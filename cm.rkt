@@ -32,11 +32,100 @@
      (error 'compile "Unknown expression type ~e" exp)]))
     
 
-(define (compile-self-evaluating exp target linkage) (error))
-(define (compile-quoted exp target linkage) (error))
-(define (compile-variable exp target linkage) (error))
-(define (compile-assignment exp target linkage) (error))
-(define (compile-definition exp target linkage) (error))
+
+(define-struct instruction-sequence (needs modifies statements))
+
+(define empty-instruction-sequence (make-instruction-sequence '() '() '()))
+
+
+(define (compile-linkage linkage)
+  (cond
+    [(eq? linkage 'return)
+     (make-instruction-sequence '(continue) '() '((goto (reg continue))))]
+    [(eq? linkage 'next)
+     empty-instruction-sequence]
+    [else
+     (make-instruction-sequence '() '()
+                                `((goto (label ,linkage))))]))
+
+(define (end-with-linkage linkage instruction-sequence)
+  (preserving '(continue)
+              instruction-sequence
+              (compile-linkage linkage)))
+
+
+(define (preserving registers instruction-sequence linkage)
+  (error))
+
+
+
+
+
+(define (compile-self-evaluating exp target linkage) 
+  (end-with-linkage linkage
+                    (make-instruction-sequence 
+                     '()
+                     (list target)
+                     `((assign ,target (const ,exp))))))
+
+
+(define (compile-quoted exp target linkage) 
+  (end-with-linkage linkage
+                    (make-instruction-sequence 
+                     '() 
+                     (list target)
+                     `((assign ,target (const ,(text-of-quotation exp)))))))
+
+
+(define (compile-variable exp target linkage)
+  (end-with-linkage linkage
+                    (make-instruction-sequence 
+                     '(env) 
+                     (list target)
+                     `((assign ,target
+                               (op lookup-variable-value)
+                               (const ,exp)
+                               (reg env))))))
+
+
+
+(define (compile-assignment exp target linkage) 
+  (let ([var (assignment-variable exp)]
+        [get-value-code
+         (compile (assignment-value exp) 'val 'next)])
+    (end-with-linkage
+     linkage
+     (preserving '(env)
+                 get-value-code
+                 (make-instruction-sequence 
+                  '(env val)
+                  (list target)
+                  `((perform (op set-variable-value!)
+                             (const ,var)
+                             (reg val)
+                             (reg env))
+                    (assign ,target (const ok))))))))
+
+
+(define (compile-definition exp target linkage)
+  (let ([var (definition-variable exp)]
+        [get-value-code
+         (compile (definition-value exp) 'val 'next)])
+    (end-with-linkage 
+     linkage
+     (preserving
+      '(env)
+      get-value-code
+      (make-instruction-sequence 
+       '(env val)
+       (list target)
+       `((perform (op define-variable!)
+                  (const ,var)
+                  (reg val)
+                  (reg env))
+         (assign ,target (const ok))))))))
+
+
 (define (compile-if exp target linkage) (error))
 (define (compile-lambda exp target linkage) (error))
 (define (compile-sequence seq target linkage) (error))
@@ -53,6 +142,8 @@
 (define (variable? exp) (symbol? exp))
 
 (define (quoted? exp) (tagged-list? exp 'quote))
+(define (text-of-quotation exp) (cadr exp))
+
 
 (define (tagged-list? exp tag)
   (if (pair? exp)
@@ -66,7 +157,7 @@
 
 (define (definition? exp)
   (tagged-list? exp 'define))
-(define (definiiton-variable exp)
+(define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
       (caadr exp)))

@@ -469,41 +469,41 @@
 
 
 
-(define-struct chunk (name stmts) #:transparent)
+(define-struct basic-block (name stmts) #:transparent)
 (define (fracture stmts)
   (let loop ([name (make-label 'start)]
              [acc '()]
-             [chunks '()]
+             [basic-blocks '()]
              [stmts stmts]
              [last-stmt-goto? #f])
     (cond
       [(null? stmts)
-       (reverse (cons (make-chunk name (reverse acc))
-                      chunks))]
+       (reverse (cons (make-basic-block name (reverse acc))
+                      basic-blocks))]
       [(symbol? (car stmts))
        (loop (car stmts)
              '()
-             (cons (make-chunk name  
+             (cons (make-basic-block name  
                                (if last-stmt-goto? 
                                    (reverse acc)
                                    (reverse (append `((goto (label ,(car stmts))))
                                                     acc))))
-                   chunks)
+                   basic-blocks)
              (cdr stmts)
              (tagged-list? (car stmts) 'goto))]
       [else
        (loop name
              (cons (car stmts) acc)
-             chunks
+             basic-blocks
              (cdr stmts)
              (tagged-list? (car stmts) 'goto))])))
 
 
-;; assemble-chunk: chunk -> string
-(define (assemble-chunk a-chunk)
+;; assemble-basic-block: basic-block -> string
+(define (assemble-basic-block a-basic-block)
   (format "var ~a=function(){~a};"
-          (chunk-name a-chunk)
-          (string-join (map assemble-stmt (chunk-stmts a-chunk))
+          (basic-block-name a-basic-block)
+          (string-join (map assemble-stmt (basic-block-stmts a-basic-block))
                        "\n")))
 
 (define (location? stmt)
@@ -556,18 +556,18 @@
              (assemble-op-call (op-name (cadr stmt))
                                (cddr stmt)))]
     [(tagged-list? stmt 'branch)
-     (format "if(--MACHINE.gas){return ~a()}else{throw ~a}}"
+     (format "if(--MACHINE.callsBeforeTrampoline){return ~a()}else{throw ~a}}"
              (assemble-location (cadr stmt))
              (assemble-location (cadr stmt)))]
     [(tagged-list? stmt 'goto)
-     (format "if(--MACHINE.gas){return ~a()}else{throw ~a}"
+     (format "if(--MACHINE.callsBeforeTrampoline){return ~a()}else{throw ~a}"
              (assemble-location (cadr stmt))
              (assemble-location (cadr stmt)))]
     [(tagged-list? stmt 'save)
-     (format "MACHINE.push(MACHINE.~a);"
+     (format "MACHINE.stack.push(MACHINE.~a);"
              (cadr stmt))]
     [(tagged-list? stmt 'restore)
-     (format "MACHINE.~a=MACHINE.pop();"
+     (format "MACHINE.~a=MACHINE.stack.pop();"
              (cadr stmt))]
     [else (error 'assemble "~a" stmt)]))
 
@@ -583,22 +583,26 @@
            (format "~s" val)])))
 
 (define (assemble-op-call op-name inputs)
-  (format "~a(~a)"
-          (case op-name
-            [(lookup-variable-value) "_envLookup"]
-            [(set-variable-value!) "_envSet"]
-            [(define-variable!) "_envDefine"]
-            [(false?) "_isFalse"]
-            [(make-compiled-procedure) "_makeClosure"]
-            [(compiled-procedure-env) "_closureEnv"]
-            [(compiled-procedure-entry) "_closureEntry"]
-            [(extend-environment) "_envExtend"]
-            [(list) "_list"]
-            [(cons) "_cons"]
-            [(primitive-procedure?) "_isPrimProc"]
-            [(apply-primitive-procedure) "_applyPrimProc"]
-            [else (error 'assemble "~e" op-name)])
-          (string-join (map assemble-input inputs) ",")))
+  (case op-name
+    [(compiled-procedure-entry)
+     (format "~a.label" (assemble-input (first inputs)))]
+    [(compiled-procedure-env)
+     (format "~a.env" (assemble-input (first inputs)))]
+    [else
+     (format "~a(~a)"
+             (case op-name
+               [(lookup-variable-value) "_envLookup"]
+               [(set-variable-value!) "_envSet"]
+               [(define-variable!) "_envDefine"]
+               [(false?) "_isFalse"]
+               [(make-compiled-procedure) "_makeClosure"]
+               [(extend-environment) "_envExtend"]
+               [(list) "_list"]
+               [(cons) "_cons"]
+               [(primitive-procedure?) "_isPrimProc"]
+               [(apply-primitive-procedure) "_applyPrimProc"]
+               [else (error 'assemble "~e" op-name)])
+             (string-join (map assemble-input inputs) ","))]))
 
 (define (assemble-input an-input)
   (cond
@@ -628,13 +632,33 @@
 
 
 
-(define (test)
-  (for-each (lambda (chunk)
-              (displayln (assemble-chunk chunk)))
-            (fracture (statements (compile '(define (factorial n)
-                                              (if (= n 0)
-                                                  1
-                                                  (* (factorial (- n 1))
-                                                     n)))
-                                           'val
-                                           'next)))))
+(define (test source-code)
+  (let ([basic-blocks
+         (fracture (statements (compile source-code
+                                        'val
+                                        'next)))])
+    (printf "var invoke = function(MACHINE, k) {\n")
+    (for-each (lambda (basic-block)
+                (displayln (assemble-basic-block basic-block))
+                (newline))
+              basic-blocks)
+    (printf "_harness(~a, k); };\n"
+            (basic-block-name (first basic-blocks)))))
+
+
+#;(test '(define (factorial n)
+         (if (= n 0)
+             1
+             (* (factorial (- n 1))
+                n))))
+(test '(define (gauss n)
+         (if (= n 0)
+             0
+             (+ (gauss (- n 1))
+                n))))
+
+#;(test '(define (fib m)
+         (if (< n 2)
+             1
+             (+ (fib (- n 1))
+                (fib (- n 2))))))

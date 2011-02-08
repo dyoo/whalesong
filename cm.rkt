@@ -9,29 +9,56 @@
 
 
 
+;; A compile-time environment is a (listof (listof symbol)).
+;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
+
+
+;; find-variable: symbol compile-time-environment -> lexical-address
+;; Find where the variable should be located.
+(define (find-variable name cenv)
+  (define (find-pos sym los)
+    (cond
+      [(eq? sym (car los))
+       0]
+      [else
+       (add1 (find-pos sym (cdr los)))]))
+  (let loop ([cenv cenv]
+             [depth 0])
+    (cond [(empty? cenv)
+           'not-found]
+          [(member name (first cenv))
+           (list depth (find-pos name (first cenv)))]
+          [else
+           (loop (rest cenv) (add1 depth))])))
+
+  
+
+
+
 ;; compile: expression target linkage -> instruction-sequence
-(define (compile exp target linkage)
+(define (compile exp cenv target linkage)
   (cond
     [(self-evaluating? exp)
-     (compile-self-evaluating exp target linkage)]
+     (compile-self-evaluating exp cenv target linkage)]
     [(quoted? exp)
-     (compile-quoted exp target linkage)]
+     (compile-quoted exp cenv target linkage)]
     [(variable? exp)
-     (compile-variable exp target linkage)]
+     (compile-variable exp cenv target linkage)]
     [(assignment? exp)
-     (compile-assignment exp target linkage)]
+     (compile-assignment exp cenv target linkage)]
     [(definition? exp)
-     (compile-definition exp target linkage)]
+     (compile-definition exp cenv target linkage)]
     [(if? exp)
-     (compile-if exp target linkage)]
+     (compile-if exp cenv target linkage)]
     [(lambda? exp)
-     (compile-lambda exp target linkage)]
+     (compile-lambda exp cenv target linkage)]
     [(begin? exp)
      (compile-sequence (begin-actions exp)
+                       cenv
                        target
                        linkage)]
     [(application? exp)
-     (compile-application exp target linkage)]
+     (compile-application exp cenv target linkage)]
     [else
      (error 'compile "Unknown expression type ~e" exp)]))
 
@@ -53,7 +80,7 @@
               (compile-linkage linkage)))
 
 
-(define (compile-self-evaluating exp target linkage)
+(define (compile-self-evaluating exp cenv target linkage)
   (end-with-linkage linkage
                     (make-instruction-sequence
                      '()
@@ -61,7 +88,7 @@
                      `((assign ,target (const ,exp))))))
 
 
-(define (compile-quoted exp target linkage)
+(define (compile-quoted exp cenv target linkage)
   (end-with-linkage linkage
                     (make-instruction-sequence
                      '()
@@ -69,7 +96,8 @@
                      `((assign ,target (const ,(text-of-quotation exp)))))))
 
 
-(define (compile-variable exp target linkage)
+(define (compile-variable exp cenv target linkage)
+  ;; FIXME: must find lexical address
   (end-with-linkage linkage
                     (make-instruction-sequence
                      '(env)
@@ -81,10 +109,11 @@
 
 
 
-(define (compile-assignment exp target linkage)
+(define (compile-assignment exp cenv target linkage)
+  ;; FIXME: must find lexical address
   (let ([var (assignment-variable exp)]
         [get-value-code
-         (compile (assignment-value exp) 'val 'next)])
+         (compile (assignment-value exp) cenv 'val 'next)])
     (end-with-linkage
      linkage
      (preserving '(env)
@@ -99,10 +128,11 @@
                     (assign ,target (const ok))))))))
 
 
-(define (compile-definition exp target linkage)
+(define (compile-definition exp cenv target linkage)
+  ;; FIXME: must find lexical address
   (let ([var (definition-variable exp)]
         [get-value-code
-         (compile (definition-value exp) 'val 'next)])
+         (compile (definition-value exp) cenv 'val 'next)])
     (end-with-linkage
      linkage
      (preserving
@@ -119,7 +149,7 @@
 
 
 
-(define (compile-if exp target linkage)  
+(define (compile-if exp cenv target linkage)  
   (let ([t-branch (make-label 'trueBranch)]
         [f-branch (make-label 'falseBranch)]
         [after-if (make-label 'afterIf)])
@@ -127,9 +157,9 @@
            (if (eq? linkage 'next)
                after-if
                linkage)])
-      (let ([p-code (compile (if-predicate exp) 'val 'next)]
-            [c-code (compile (if-consequent exp) target consequent-linkage)]
-            [a-code (compile (if-alternative exp) target linkage)])
+      (let ([p-code (compile (if-predicate exp) cenv 'val 'next)]
+            [c-code (compile (if-consequent exp) cenv target consequent-linkage)]
+            [a-code (compile (if-alternative exp) cenv target linkage)])
         (preserving '(env cont)
                     p-code
                     (append-instruction-sequences
@@ -145,15 +175,16 @@
 
 
 
-(define (compile-sequence seq target linkage) 
+(define (compile-sequence seq cenv target linkage) 
   (if (last-exp? seq)
-      (compile (first-exp seq) target linkage)
+      (compile (first-exp seq) cenv target linkage)
       (preserving '(env cont)
-                  (compile (first-exp seq) target 'next)
-                  (compile-sequence (rest-exps seq) target linkage))))
+                  (compile (first-exp seq) cenv target 'next)
+                  (compile-sequence (rest-exps seq) cenv target linkage))))
 
 
-(define (compile-lambda exp target linkage) 
+(define (compile-lambda exp cenv target linkage) 
+  ;; FIXME: must extend compile-time lexical environment
   (let ([proc-entry (make-label 'entry)]
         [after-lambda (make-label 'afterLambda)])
     (let ([lambda-linkage
@@ -170,10 +201,12 @@
                                      (op make-compiled-procedure)
                                      (label ,proc-entry)
                                      (reg env)))))
-        (compile-lambda-body exp proc-entry))                                                     
+        (compile-lambda-body exp cenv
+                             proc-entry))
        after-lambda))))
 
-(define (compile-lambda-body exp proc-entry)
+(define (compile-lambda-body exp cenv proc-entry)
+  ;; FIXME: must extend compile-time lexical environment
   (let ([formals (lambda-parameters exp)])
     (append-instruction-sequences
      (make-instruction-sequence 
@@ -186,13 +219,13 @@
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body exp) 'val 'return))))
+     (compile-sequence (lambda-body exp) cenv 'val 'return))))
 
 
-(define (compile-application exp target linkage) 
-  (let ([proc-code (compile (operator exp) 'proc 'next)]
+(define (compile-application exp cenv target linkage) 
+  (let ([proc-code (compile (operator exp) cenv 'proc 'next)]
         [operand-codes (map (lambda (operand)
-                              (compile operand 'val 'next))
+                              (compile operand cenv 'val 'next))
                             (operands exp))])
     (preserving '(env cont)
                 proc-code
@@ -591,12 +624,14 @@
     [else
      (format "~a(~a)"
              (case op-name
+               
                [(lookup-variable-value) "_envLookup"]
                [(set-variable-value!) "_envSet"]
                [(define-variable!) "_envDefine"]
+               [(extend-environment) "_envExtend"]
+               
                [(false?) "_isFalse"]
                [(make-compiled-procedure) "_makeClosure"]
-               [(extend-environment) "_envExtend"]
                [(list) "_list"]
                [(cons) "_cons"]
                [(primitive-procedure?) "_isPrimProc"]
@@ -635,6 +670,7 @@
 (define (test source-code)
   (let ([basic-blocks
          (fracture (statements (compile source-code
+                                        '()
                                         'val
                                         'next)))])
     (printf "var invoke = function(MACHINE, k) {\n")

@@ -31,7 +31,16 @@
           [else
            (loop (rest cenv) (add1 depth))])))
 
-  
+;; global-lexical-address?: lexical-address -> boolean
+;; Produces true if the address refers to the toplevel environment.
+(define (global-lexical-address? address)
+  (eq? address 'not-found))
+
+
+;; extend-lexical-environment: lexical-environment (listof symbol) -> lexical-envrionment
+(define (extend-lexical-environment cenv names)
+  (cons names cenv))
+
 
 
 
@@ -97,39 +106,73 @@
 
 
 (define (compile-variable exp cenv target linkage)
-  ;; FIXME: must find lexical address
-  (end-with-linkage linkage
-                    (make-instruction-sequence
-                     '(env)
-                     (list target)
-                     `((assign ,target
-                               (op lookup-variable-value)
-                               (const ,exp)
-                               (reg env))))))
+  (let ([lexical-pos (find-variable exp cenv)])
+    (cond
+      [(global-lexical-address? lexical-pos)
+       (end-with-linkage linkage
+                         (make-instruction-sequence
+                          '(env)
+                          (list target)
+                          ;; Slight modification: explicitly testing for
+                          ;; global variable binding before lookup.
+                          `((perform (op check-bound-global!)
+                                     (const ,exp)
+                                     (reg env))
+                            (assign ,target
+                                    (op lookup-variable-value)
+                                    (const ,exp)
+                                    (reg env)))))]
+      [else
+       (end-with-linkage linkage
+                         (make-instruction-sequence
+                          '(env)
+                          (list target)
+                          `((assign ,target
+                                    (op lexical-address-lookup)
+                                    (const ,(first lexical-pos))
+                                    (const ,(second lexical-pos))
+                                    (reg env)))))])))
 
 
 
 (define (compile-assignment exp cenv target linkage)
-  ;; FIXME: must find lexical address
-  (let ([var (assignment-variable exp)]
-        [get-value-code
-         (compile (assignment-value exp) cenv 'val 'next)])
-    (end-with-linkage
-     linkage
-     (preserving '(env)
-                 get-value-code
-                 (make-instruction-sequence
-                  '(env val)
-                  (list target)
-                  `((perform (op set-variable-value!)
-                             (const ,var)
-                             (reg val)
-                             (reg env))
-                    (assign ,target (const ok))))))))
+  (let* ([var (assignment-variable exp)]
+         [get-value-code
+          (compile (assignment-value exp) cenv 'val 'next)]
+         [lexical-address
+          (find-variable var cenv)])
+    (cond
+      [(global-lexical-address? lexical-address)
+       (end-with-linkage
+        linkage
+        (preserving '(env)
+                    get-value-code
+                    (make-instruction-sequence
+                     '(env val)
+                     (list target)
+                     `((perform (op set-variable-value!)
+                                (const ,var)
+                                (reg val)
+                                (reg env))
+                       (assign ,target (const ok))))))]
+      [else
+       (end-with-linkage
+        linkage
+        (preserving '(env)
+                    get-value-code
+                    (make-instruction-sequence
+                     '(env val)
+                     (list target)
+                     `((perform (op lexical-address-set!)
+                                (const ,(first lexical-address))
+                                (const ,(second lexical-address))
+                                (reg env)
+                                (reg val))
+                       (assign ,target (const ok))))))])))
 
 
+;; FIXME: exercise 5.43
 (define (compile-definition exp cenv target linkage)
-  ;; FIXME: must find lexical address
   (let ([var (definition-variable exp)]
         [get-value-code
          (compile (definition-value exp) cenv 'val 'next)])
@@ -184,7 +227,6 @@
 
 
 (define (compile-lambda exp cenv target linkage) 
-  ;; FIXME: must extend compile-time lexical environment
   (let ([proc-entry (make-label 'entry)]
         [after-lambda (make-label 'afterLambda)])
     (let ([lambda-linkage
@@ -200,14 +242,21 @@
                            `((assign ,target
                                      (op make-compiled-procedure)
                                      (label ,proc-entry)
+                                     ;; TODO: rather than capture the whole
+                                     ;; environment, we may instead
+                                     ;; just capture the free variables.
+                                     ;; But that requires that we box
+                                     ;; up all set!-ed variables, in order
+                                     ;; to preserve semantics of set!
                                      (reg env)))))
         (compile-lambda-body exp cenv
                              proc-entry))
        after-lambda))))
 
+
 (define (compile-lambda-body exp cenv proc-entry)
-  ;; FIXME: must extend compile-time lexical environment
-  (let ([formals (lambda-parameters exp)])
+  (let* ([formals (lambda-parameters exp)]
+         [extended-cenv (extend-lexical-environment cenv formals)])
     (append-instruction-sequences
      (make-instruction-sequence 
       '(env proc argl)
@@ -216,10 +265,9 @@
         (assign env (op compiled-procedure-env) (reg proc))
         (assign env
                 (op extend-environment)
-                (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body exp) cenv 'val 'return))))
+     (compile-sequence (lambda-body exp) extended-cenv 'val 'return))))
 
 
 (define (compile-application exp cenv target linkage) 
@@ -263,7 +311,7 @@
         (preserving '(env)
                     code-for-next-arg
                     (code-to-get-rest-args (cdr operand-codes))))))
-              
+
 
 (define (compile-procedure-call target linkage)
   (let ([primitive-branch (make-label 'primitiveBranch)]
@@ -325,9 +373,9 @@
         [(and (not (eq? target 'val))
               (eq? linkage 'return))
          (error 'compile "return linkage, target not val: ~s" target)]))
-                   
-            
-             
+
+
+
 
 
 
@@ -373,10 +421,10 @@
                                  `((restore ,first-reg))))
                         seq2)
             (preserving (cdr regs) seq1 seq2)))))
-            
-  
-  
-  
+
+
+
+
 (define (append-instruction-sequences . seqs)
   (define (append-2-sequences seq1 seq2)
     (make-instruction-sequence
@@ -517,10 +565,10 @@
        (loop (car stmts)
              '()
              (cons (make-basic-block name  
-                               (if last-stmt-goto? 
-                                   (reverse acc)
-                                   (reverse (append `((goto (label ,(car stmts))))
-                                                    acc))))
+                                     (if last-stmt-goto? 
+                                         (reverse acc)
+                                         (reverse (append `((goto (label ,(car stmts))))
+                                                          acc))))
                    basic-blocks)
              (cdr stmts)
              (tagged-list? (car stmts) 'goto))]
@@ -577,17 +625,17 @@
        [(op? (caddr stmt))
         (format "MACHINE.~a=~a;" 
                 (cadr stmt)
-                (assemble-op-call (op-name (caddr stmt))
-                                  (cdddr stmt)))]
+                (assemble-op-expression (op-name (caddr stmt))
+                                        (cdddr stmt)))]
        [else
         (error 'assemble "~a" stmt)])]
     [(tagged-list? stmt 'perform)
-     (assemble-op-call (op-name (cadr stmt))
-                       (cddr stmt))]
+     (assemble-op-statement (op-name (cadr stmt))
+                            (cddr stmt))]
     [(tagged-list? stmt 'test)
      (format "if(~a){"
-             (assemble-op-call (op-name (cadr stmt))
-                               (cddr stmt)))]
+             (assemble-op-expression (op-name (cadr stmt))
+                                     (cddr stmt)))]
     [(tagged-list? stmt 'branch)
      (format "if(--MACHINE.callsBeforeTrampoline){return ~a()}else{throw ~a}}"
              (assemble-location (cadr stmt))
@@ -615,29 +663,87 @@
           [else
            (format "~s" val)])))
 
-(define (assemble-op-call op-name inputs)
-  (case op-name
-    [(compiled-procedure-entry)
-     (format "~a.label" (assemble-input (first inputs)))]
-    [(compiled-procedure-env)
-     (format "~a.env" (assemble-input (first inputs)))]
-    [else
-     (format "~a(~a)"
-             (case op-name
-               
-               [(lookup-variable-value) "_envLookup"]
-               [(set-variable-value!) "_envSet"]
-               [(define-variable!) "_envDefine"]
-               [(extend-environment) "_envExtend"]
-               
-               [(false?) "_isFalse"]
-               [(make-compiled-procedure) "_makeClosure"]
-               [(list) "_list"]
-               [(cons) "_cons"]
-               [(primitive-procedure?) "_isPrimProc"]
-               [(apply-primitive-procedure) "_applyPrimProc"]
-               [else (error 'assemble "~e" op-name)])
-             (string-join (map assemble-input inputs) ","))]))
+(define (assemble-op-expression op-name inputs)
+  (let ([assembled-inputs (map assemble-input inputs)])
+    (case op-name
+      ;; open coding some of the primitive operations:
+      [(compiled-procedure-entry)
+       (format "(~a.label)" (assemble-input (first inputs)))]
+      [(compiled-procedure-env)
+       (format "(~a.env)" (assemble-input (first inputs)))]
+      [(make-compiled-procedure)
+       (format "(new Closure(~a, ~a))"
+               (second assembled-inputs)
+               (first assembled-inputs))]
+      [(false?)
+       (format "(!(~a))" (assemble-input (first inputs)))]
+      [(cons)
+       (format "[~a]" (string-join (map assemble-input inputs) ","))]
+      [(list)
+       (cond [(empty? inputs)
+              "undefined"]
+             [else
+              (let loop ([assembled-inputs assembled-inputs])
+                (cond
+                  [(empty? assembled-inputs)
+                   "undefined"]
+                  [else
+                   (format "[~a, ~a]"
+                           (first assembled-inputs)
+                           (loop (rest assembled-inputs)))]))])]
+      [(apply-primitive-procedure)
+       (format "~a(~a)" 
+               (first assembled-inputs)
+               (second assembled-inputs))]
+      [(lexical-address-lookup)
+       (format "(~a).valss[~a][~a]"
+               (third assembled-inputs)
+               (first assembled-inputs)
+               (second assembled-inputs))]
+      [(primitive-procedure?)
+       (format "(typeof(~a) === 'function')"
+               (first assembled-inputs))]
+      [(extend-environment)
+       (format "(new ExtendedEnvironment(~a, ~a)"
+               (second assembled-inputs)
+               (first assembled-inputs))]
+      [(lookup-variable-value)
+       (format "((~a).globalBindings[~a])"
+               (second assembled-inputs)
+               (first assembled-inputs))]
+      [else
+       (error 'assemble "~e" op-name)])))
+
+
+(define (assemble-op-statement op-name inputs)
+  (let ([assembled-inputs (map assemble-input inputs)])
+    (case op-name
+      [(define-variable!)
+       (format "(~a).globalBindings[~a] = ~a;"
+               (third assembled-inputs)
+               (first assembled-inputs)
+               (second assembled-inputs))]
+      [(set-variable-value!)
+       (format "(~a).globalBindings[~a] = ~a;"
+               (third assembled-inputs)
+               (first assembled-inputs)
+               (second assembled-inputs))]
+      [(lexical-address-set!)
+       (format "(~a).valss[~a][~a] = ~a;"
+               (third assembled-inputs)
+               (first assembled-inputs)
+               (second assembled-inputs)
+               (fourth assembled-inputs))]
+      [(check-bound-global!)
+       (format "if (! (~a).globalBindings.hasOwnProperty(~a)) { throw new Error('Not bound: ~a') }"
+               (second assembled-inputs)
+               (first assembled-inputs)
+               (first assembled-inputs))]
+      [else
+       (error 'assemble-op-statement "~a" op-name)])))
+
+
+
 
 (define (assemble-input an-input)
   (cond
@@ -663,7 +769,7 @@
 (define (assemble-label a-label)
   (symbol->string (cadr a-label)))
 
- 
+
 
 
 
@@ -683,10 +789,10 @@
 
 
 #;(test '(define (factorial n)
-         (if (= n 0)
-             1
-             (* (factorial (- n 1))
-                n))))
+           (if (= n 0)
+               1
+               (* (factorial (- n 1))
+                  n))))
 (test '(define (gauss n)
          (if (= n 0)
              0
@@ -694,7 +800,7 @@
                 n))))
 
 #;(test '(define (fib m)
-         (if (< n 2)
-             1
-             (+ (fib (- n 1))
-                (fib (- n 2))))))
+           (if (< n 2)
+               1
+               (+ (fib (- n 1))
+                  (fib (- n 2))))))

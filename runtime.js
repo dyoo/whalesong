@@ -1,82 +1,47 @@
+// Type representations:
+//
+// number are numbers
+//
+// cons pairs are [first, rest]
+// 
+// function closures are Closures
+// primitive procedures are regular functions.
+
 var TopEnvironment = function() {
-    this.bindings = {'=': function(argl) {
-                         return argl[0] === argl[1][0];
-                     },
-                     '+': function(argl) {
-                         return argl[0] + argl[1][0];
-                     },
-		     '-': function(argl) {
-                         return argl[0] - argl[1][0];
-                     }
-		     };
-    this.parent = undefined;
+    this.globalBindings = {
+	'=': function(argl) {
+            return argl[0] === argl[1][0];
+        },
+
+        '+': function(argl) {
+            return argl[0] + argl[1][0];
+        },
+
+	'-': function(argl) {
+            return argl[0] - argl[1][0];
+        }
+    };
+    this.valss = [];
 };
 
-var ExtendedEnvironment = function(parent) {
-    this.bindings = {};
-    this.parent = parent;
+var ExtendedEnvironment = function(parent, vs) {
+    var vals = [];
+    while(vs) {
+	vals.push(vs[0]);
+	vs = vs[1];
+    }
+    this.valss = parent.valss.slice();
+    this.valss.shift(vals);
+    this.globalBindings = parent.globalBindings;
 };
 
 
+// A closure consists of its free variables as well as a label
+// into its text segment.
 var Closure = function(env, label) {
     this.env = env;
     this.label = label;
 };
-
-
-var _isFalse = function(x) { if(x) return false; return true; }
-var _isPrimProc = function(x) { return typeof(x) === 'function'; };
-var _applyPrimProc = function(p, argl) { return p(argl); }
-var _closureEnv = function(c) { return c.env; }
-var _closureEntry = function(c) { return c.label; }
-var _makeClosure = function(l, e) { return new Closure(e, l); }
-var _envDefine = function(n, v, e) {
-    e.bindings[n] = v;
-};
-var _envExtend = function(ns, vs, e) {
-    var e2 = new ExtendedEnvironment(e);
-    while(ns) {
-        e2.bindings[ns[0]] = vs[0];
-        ns = ns[1]; vs = vs[1];
-    }
-    return e2;
-};
-var _envLookup = function(n, e) {
-    while (e) {
-        if (e.bindings.hasOwnProperty(n)) { 
-	    return e.bindings[n]; 
-	}
-        e = e.parent;
-    }
-    throw new Error("Not bound: " + n);
-};
-
-
-//////////////////////////////////////////////////////////////////////
-// Lexical addressing
-var _lexicalAddressLookup = function(depth, pos, env) {
-    // FIXME
-};
-
-var _lexicalAddressAssign = function(depth, pos, env, value) {
-    // FIXME
-};
-
-//////////////////////////////////////////////////////////////////////
-
-
-
-
-
-var _cons = function(x, y) { return [x, y]; }
-var _list = function() {
-    var i;
-    var result;
-    for (i = arguments.length - 1; i >= 0; i--) {
-        result = [arguments[i], result];
-    }
-    return result;
-}
 
 
 var MACHINE={callsBeforeTrampoline: 100, 

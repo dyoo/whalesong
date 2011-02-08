@@ -582,7 +582,8 @@
 
 ;; assemble-basic-block: basic-block -> string
 (define (assemble-basic-block a-basic-block)
-  (format "var ~a=function(){~a};"
+  (format "var ~a=function(){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
+          (basic-block-name a-basic-block)
           (basic-block-name a-basic-block)
           (string-join (map assemble-stmt (basic-block-stmts a-basic-block))
                        "\n")))
@@ -637,12 +638,11 @@
              (assemble-op-expression (op-name (cadr stmt))
                                      (cddr stmt)))]
     [(tagged-list? stmt 'branch)
-     (format "if(--MACHINE.callsBeforeTrampoline){return ~a()}else{throw ~a}}"
-             (assemble-location (cadr stmt))
+     ;; the unbalanced } is deliberate: test and branch always follow each other.
+     (format "return ~a();}"
              (assemble-location (cadr stmt)))]
     [(tagged-list? stmt 'goto)
-     (format "if(--MACHINE.callsBeforeTrampoline){return ~a()}else{throw ~a}"
-             (assemble-location (cadr stmt))
+     (format "return ~a();"
              (assemble-location (cadr stmt)))]
     [(tagged-list? stmt 'save)
      (format "MACHINE.stack.push(MACHINE.~a);"
@@ -735,7 +735,7 @@
                (second assembled-inputs)
                (fourth assembled-inputs))]
       [(check-bound-global!)
-       (format "if (! (~a).globalBindings.hasOwnProperty(~a)) { throw new Error('Not bound: ~a') }"
+       (format "if (! (~a).globalBindings.hasOwnProperty(~a)) { throw new Error(\"Not bound: \" + ~a); }"
                (second assembled-inputs)
                (first assembled-inputs)
                (first assembled-inputs))]

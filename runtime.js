@@ -39,7 +39,7 @@ var ExtendedEnvironment = function(parent, vs) {
 	vs = vs[1];
     }
     this.valss = parent.valss.slice();
-    this.valss.shift(vals);
+    this.valss.unshift(vals);
     this.globalBindings = parent.globalBindings;
 };
 
@@ -55,7 +55,8 @@ var Closure = function(env, label) {
 // adaptToJs: closure -> (array (X -> void) -> void)
 // Converts closures to functions that can be called from the
 // JavaScript toplevel.
-Closure.adaptToJs = function() {
+Closure.prototype.adaptToJs = function() {
+    var that = this;
     return function(args, k) {
         var oldEnv = MACHINE.env;
 	var oldCont = MACHINE.cont;
@@ -64,11 +65,11 @@ Closure.adaptToJs = function() {
 	var oldVal = MACHINE.val;
 	trampoline(
 	    function() {
-		var proc = _envLookup("gauss", MACHINE.env);
+		var proc = that;
 		MACHINE.proc = proc;
 		MACHINE.argl = undefined;
 		for(var i = args.length - 1; i >= 0; i--) {
-		    MACHINE.argl = _list(args[i], MACHINE.argl);
+		    MACHINE.argl = [args[i], MACHINE.argl];
 		}
 		
 		MACHINE.cont = function() {
@@ -81,7 +82,7 @@ Closure.adaptToJs = function() {
                     k(result);
 		};
 		
-		_closureEntry(proc)();
+		proc.label();
             },
             function() {
             });

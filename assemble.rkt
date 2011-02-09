@@ -301,7 +301,7 @@
        (format "(typeof(~a) === 'function')"
                (first assembled-inputs))]
       [(extend-environment)
-       (format "(new ExtendedEnvironment(~a, ~a)"
+       (format "new ExtendedEnvironment(~a, ~a)"
                (second assembled-inputs)
                (first assembled-inputs))]
       [(lookup-variable-value)

@@ -78,8 +78,11 @@
 
 (define empty-instruction-sequence (make-instruction-sequence '() '() '()))
 
-(define (make-label l)
-  (gensym l))
+(define make-label
+  (let ([n 0])
+    (lambda (l)
+      (set! n (add1 n))
+      (string->symbol (format "~a~a" l n)))))
 
 
 (define (registers-needed s)

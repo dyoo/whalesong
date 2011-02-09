@@ -479,13 +479,14 @@
          (fracture (statements (compile source-code
                                         '()
                                         'val
-                                        'next)))])
+                                        'return)))])
     (printf "var invoke = function(MACHINE, k) {\n")
     (for-each (lambda (basic-block)
                 (displayln (assemble-basic-block basic-block))
                 (newline))
               basic-blocks)
-    (printf "_harness(~a, k); };\n"
+    (printf "MACHINE.cont = k;\n")
+    (printf "trampoline(~a, function() {}); };\n"
             (basic-block-name (first basic-blocks)))))
 
 

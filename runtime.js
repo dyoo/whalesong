@@ -17,9 +17,17 @@ var TopEnvironment = function() {
             return argl[0] + argl[1][0];
         },
 
+        '*': function(argl) {
+            return argl[0] * argl[1][0];
+        },
+
 	'-': function(argl) {
             return argl[0] - argl[1][0];
-        }
+        },
+	
+	'/': function(argl) {
+	    return argl[0] / argl[1][0];
+	}
     };
     this.valss = [];
 };
@@ -44,6 +52,44 @@ var Closure = function(env, label) {
 };
 
 
+// adaptToJs: closure -> (array (X -> void) -> void)
+// Converts closures to functions that can be called from the
+// JavaScript toplevel.
+Closure.adaptToJs = function() {
+    return function(args, k) {
+        var oldEnv = MACHINE.env;
+	var oldCont = MACHINE.cont;
+	var oldProc = MACHINE.proc;
+	var oldArgl = MACHINE.argl;
+	var oldVal = MACHINE.val;
+	trampoline(
+	    function() {
+		var proc = _envLookup("gauss", MACHINE.env);
+		MACHINE.proc = proc;
+		MACHINE.argl = undefined;
+		for(var i = args.length - 1; i >= 0; i--) {
+		    MACHINE.argl = _list(args[i], MACHINE.argl);
+		}
+		
+		MACHINE.cont = function() {
+		    var result = MACHINE.val;
+                    MACHINE.env = oldEnv;
+		    MACHINE.cont = oldCont;
+		    MACHINE.proc = oldProc;
+		    MACHINE.argl = oldArgl;
+		    MACHINE.val = oldVal;
+                    k(result);
+		};
+		
+		_closureEntry(proc)();
+            },
+            function() {
+            });
+    }
+};
+
+
+
 var MACHINE={callsBeforeTrampoline: 100, 
              env: new TopEnvironment(),
              proc:undefined, 
@@ -54,20 +100,17 @@ var MACHINE={callsBeforeTrampoline: 100,
 
 
 // harness: (->) (->) -> void
-var _harness = function(thunk, k) {
-    var toCall;
+var trampoline = function(initialJump, k) {
+    var thunk = initialJump;
     MACHINE.callsBeforeTrampoline = 100;
     while(thunk) {
         try {
-            toCall = thunk;
-            thunk = undefined;
-            toCall();
+            thunk();
+	    break;
         } catch (e) {
             if (typeof(e) === 'function') {
                 thunk = e;
                 MACHINE.callsBeforeTrampoline = 100;
-            } else if (e === 'done') {
-                break;
             } else {
 	        throw e;
             }

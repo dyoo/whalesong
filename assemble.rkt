@@ -8,9 +8,13 @@
 
 
 (define-struct basic-block (name stmts) #:transparent)
+
+
+;; fracture: (listof stmt) -> (listof basic-block)
 (define (fracture stmts)
   (let* ([first-block-label (make-label 'start)]
-         [headers (cons first-block-label (collect-headers stmts))])
+         [jump-targets 
+          (cons first-block-label (collect-general-jump-targets stmts))])
     (let loop ([name first-block-label]
                [acc '()]
                [basic-blocks '()]
@@ -22,7 +26,7 @@
                         basic-blocks))]
         [(symbol? (car stmts))
          (cond
-           [(member (car stmts) headers)
+           [(member (car stmts) jump-targets)
             (loop (car stmts)
                   '()
                   (cons (make-basic-block name  
@@ -47,6 +51,7 @@
                (tagged-list? (car stmts) 'goto))]))))
 
 
+
 ;; unique: (listof symbol -> listof symbol)
 (define (unique los)
   (let ([ht (make-hasheq)])
@@ -56,9 +61,9 @@
       k)))
 
 
-;; collect-headers: (listof stmt) -> (listof label)
+;; collect-general-jump-targets: (listof stmt) -> (listof label)
 ;; collects all the labels that are potential targets for GOTOs or branches.
-(define (collect-headers stmts)
+(define (collect-general-jump-targets stmts)
   (define (collect-input an-input)
     (cond
       [(reg? an-input)
@@ -111,6 +116,71 @@
                         [else
                          (error 'assemble "~a" stmt)])
                       (loop (rest stmts))))]))))
+
+
+
+;; collect-indirect-jump-targets: (listof stmt) -> (listof label)
+;; collects the labels that are potential targets for GOTOs or branches from
+;; indirect jumps.
+;; The only interesting case should be where there's a register assignment
+;; whose value is a label.
+(define (collect-indirect-jump-targets stmts)
+  (define (collect-input an-input)
+    (cond
+      [(reg? an-input)
+       empty]
+      [(const? an-input)
+       empty]
+      [(label? an-input)
+       empty]
+      [else (error 'collect-input "~e" an-input)]))
+  (define (collect-location a-location)
+    (cond
+      [(reg? a-location)
+       empty]
+      [(label? a-location)
+       empty]
+      [else 
+       (error 'collect-location "~e" a-location)]))
+  (unique
+   (let loop ([stmts stmts])
+     (cond [(empty? stmts)
+            empty]
+           [else
+            (let ([stmt (first stmts)])
+              (append (cond
+                        [(symbol? stmt)
+                         empty]
+                        [(tagged-list? stmt 'assign)
+                         (cond 
+                           [(reg? (caddr stmt))
+                            empty]
+                           [(label? (caddr stmt))
+                            ;; Watch assignments of labels into registers.
+                            (list (label-name (caddr stmt)))]
+                           [(const? (caddr stmt))
+                            empty]
+                           [(op? (caddr stmt))
+                            empty]
+                           [else
+                            (error 'assemble "~a" stmt)])]
+                        [(tagged-list? stmt 'perform)
+                         empty]
+                        [(tagged-list? stmt 'test)
+                         empty]
+                        [(tagged-list? stmt 'branch)
+                         empty]
+                        [(tagged-list? stmt 'goto)
+                         empty]
+                        [(tagged-list? stmt 'save)
+                         empty]
+                        [(tagged-list? stmt 'restore)
+                         empty]
+                        [else
+                         (error 'assemble "~a" stmt)])
+                      (loop (rest stmts))))]))))
+
+
 
 
 

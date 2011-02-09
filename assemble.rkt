@@ -7,7 +7,6 @@
 
 
 
-(define-struct basic-block (name stmts) #:transparent)
 
 
 ;; fracture: (listof stmt) -> (listof basic-block)
@@ -192,28 +191,6 @@
           (string-join (map assemble-stmt (basic-block-stmts a-basic-block))
                        "\n")))
 
-(define (location? stmt)
-  (or (tagged-list? stmt 'reg)
-      (tagged-list? stmt 'label)))
-
-(define (const? stmt)
-  (tagged-list? stmt 'const))
-
-(define (reg? s)
-  (tagged-list? s 'reg))
-
-(define (label? s)
-  (tagged-list? s 'label))
-
-(define (label-name a-label)
-  (cadr a-label))
-
-
-(define (op? s)
-  (tagged-list? s 'op))
-
-(define (op-name s)
-  (cadr s))
 
 ;; assemble-stmt: stmt -> string
 (define (assemble-stmt stmt)

@@ -91,3 +91,38 @@
   (if (symbol? s) '() (instruction-sequence-modifies s)))
 (define (statements s)
   (if (symbol? s) (list s) (instruction-sequence-statements s)))
+
+
+
+
+;; Statements
+(define (location? stmt)
+  (or (tagged-list? stmt 'reg)
+      (tagged-list? stmt 'label)))
+
+(define (const? stmt)
+  (tagged-list? stmt 'const))
+
+(define (reg? s)
+  (tagged-list? s 'reg))
+
+(define (label? s)
+  (tagged-list? s 'label))
+
+(define (label-name a-label)
+  (cadr a-label))
+
+(define (op? s)
+  (tagged-list? s 'op))
+
+(define (op-name s)
+  (cadr s))
+
+
+
+
+
+
+
+;; Basic blocks
+(define-struct basic-block (name stmts) #:transparent)

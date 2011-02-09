@@ -6,34 +6,112 @@
 (provide (all-defined-out))
 
 
+
 (define-struct basic-block (name stmts) #:transparent)
 (define (fracture stmts)
-  (let loop ([name (make-label 'start)]
-             [acc '()]
-             [basic-blocks '()]
-             [stmts stmts]
-             [last-stmt-goto? #f])
+  (let* ([first-block-label (make-label 'start)]
+         [headers (cons first-block-label (collect-headers stmts))])
+    (let loop ([name first-block-label]
+               [acc '()]
+               [basic-blocks '()]
+               [stmts stmts]
+               [last-stmt-goto? #f])
+      (cond
+        [(null? stmts)
+         (reverse (cons (make-basic-block name (reverse acc))
+                        basic-blocks))]
+        [(symbol? (car stmts))
+         (cond
+           [(member (car stmts) headers)
+            (loop (car stmts)
+                  '()
+                  (cons (make-basic-block name  
+                                          (if last-stmt-goto? 
+                                              (reverse acc)
+                                              (reverse (append `((goto (label ,(car stmts))))
+                                                               acc))))
+                        basic-blocks)
+                  (cdr stmts)
+                  last-stmt-goto?)]
+           [else
+            (loop name
+                  acc
+                  basic-blocks
+                  (cdr stmts)
+                  last-stmt-goto?)])]
+        [else
+         (loop name
+               (cons (car stmts) acc)
+               basic-blocks
+               (cdr stmts)
+               (tagged-list? (car stmts) 'goto))]))))
+
+
+;; unique: (listof symbol -> listof symbol)
+(define (unique los)
+  (let ([ht (make-hasheq)])
+    (for ([l los])
+      (hash-set! ht l #t))
+    (for/list ([k (in-hash-keys ht)]) 
+      k)))
+
+
+;; collect-headers: (listof stmt) -> (listof label)
+;; collects all the labels that are potential targets for GOTOs or branches.
+(define (collect-headers stmts)
+  (define (collect-input an-input)
     (cond
-      [(null? stmts)
-       (reverse (cons (make-basic-block name (reverse acc))
-                      basic-blocks))]
-      [(symbol? (car stmts))
-       (loop (car stmts)
-             '()
-             (cons (make-basic-block name  
-                                     (if last-stmt-goto? 
-                                         (reverse acc)
-                                         (reverse (append `((goto (label ,(car stmts))))
-                                                          acc))))
-                   basic-blocks)
-             (cdr stmts)
-             (tagged-list? (car stmts) 'goto))]
-      [else
-       (loop name
-             (cons (car stmts) acc)
-             basic-blocks
-             (cdr stmts)
-             (tagged-list? (car stmts) 'goto))])))
+      [(reg? an-input)
+       empty]
+      [(const? an-input)
+       empty]
+      [(label? an-input)
+       (list (label-name an-input))]
+      [else (error 'collect-input "~e" an-input)]))
+  (define (collect-location a-location)
+    (cond
+      [(reg? a-location)
+       empty]
+      [(label? a-location)
+       (list (label-name a-location))]
+      [else (error 'collect-location "~e" a-location)]))
+  (unique
+   (let loop ([stmts stmts])
+     (cond [(empty? stmts)
+            empty]
+           [else
+            (let ([stmt (first stmts)])
+              (append (cond
+                        [(symbol? stmt)
+                         empty]
+                        [(tagged-list? stmt 'assign)
+                         (cond 
+                           [(reg? (caddr stmt))
+                            empty]
+                           [(label? (caddr stmt))
+                            (list (label-name (caddr stmt)))]
+                           [(const? (caddr stmt))
+                            empty]
+                           [(op? (caddr stmt))
+                            (apply append (map collect-input (cdddr stmt)))]
+                           [else
+                            (error 'assemble "~a" stmt)])]
+                        [(tagged-list? stmt 'perform)
+                         (apply append (map collect-input (cddr stmt)))]
+                        [(tagged-list? stmt 'test)
+                         (apply append (map collect-input (cddr stmt)))]
+                        [(tagged-list? stmt 'branch)
+                         (collect-location (cadr stmt))]
+                        [(tagged-list? stmt 'goto)
+                         (collect-location (cadr stmt))]
+                        [(tagged-list? stmt 'save)
+                         empty]
+                        [(tagged-list? stmt 'restore)
+                         empty]
+                        [else
+                         (error 'assemble "~a" stmt)])
+                      (loop (rest stmts))))]))))
+
 
 
 ;; assemble-basic-block: basic-block -> string
@@ -56,6 +134,10 @@
 
 (define (label? s)
   (tagged-list? s 'label))
+
+(define (label-name a-label)
+  (cadr a-label))
+
 
 (define (op? s)
   (tagged-list? s 'op))
@@ -222,5 +304,6 @@
 (define (assemble-reg a-reg)
   (string-append "MACHINE." (symbol->string (cadr a-reg))))
 
+
 (define (assemble-label a-label)
-  (symbol->string (cadr a-label)))
+  (symbol->string (label-name a-label)))

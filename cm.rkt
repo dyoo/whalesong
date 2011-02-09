@@ -494,13 +494,13 @@
                1
                (* (factorial (- n 1))
                   n))))
-(test '(define (gauss n)
+#;(test '(define (gauss n)
          (if (= n 0)
              0
              (+ (gauss (- n 1))
                 n))))
 
-#;(test '(define (fib m)
+(test '(define (fib m)
            (if (< n 2)
                1
                (+ (fib (- n 1))

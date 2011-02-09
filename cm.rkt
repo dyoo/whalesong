@@ -500,7 +500,7 @@
              (+ (gauss (- n 1))
                 n))))
 
-(test '(define (fib m)
+(test '(define (fib n)
            (if (< n 2)
                1
                (+ (fib (- n 1))

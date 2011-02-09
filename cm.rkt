@@ -4,6 +4,8 @@
          "assemble.rkt"
          racket/list)
 
+(provide compile)
+
 ;; SICP, Chapter 5.5
 
 ;; registers: env, argl, proc, val, cont
@@ -43,8 +45,6 @@
 ;; extend-lexical-environment: lexical-environment (listof symbol) -> lexical-envrionment
 (define (extend-lexical-environment cenv names)
   (cons names cenv))
-
-
 
 
 ;; compile: expression target linkage -> instruction-sequence
@@ -489,20 +489,3 @@
     (printf "trampoline(~a, function() {}); };\n"
             (basic-block-name (first basic-blocks)))))
 
-
-#;(test '(define (factorial n)
-           (if (= n 0)
-               1
-               (* (factorial (- n 1))
-                  n))))
-#;(test '(define (gauss n)
-         (if (= n 0)
-             0
-             (+ (gauss (- n 1))
-                n))))
-
-(test '(define (fib n)
-           (if (< n 2)
-               1
-               (+ (fib (- n 1))
-                  (fib (- n 2))))))

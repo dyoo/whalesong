@@ -6,6 +6,18 @@
 (provide (all-defined-out))
 
 
+;; assemble/write-invoke: (listof statement) output-port -> void
+(define (assemble/write-invoke stmts op)
+  (let ([basic-blocks (fracture stmts)])
+    (fprintf op "function(k) {\n")
+    (for-each (lambda (basic-block)
+                (displayln (assemble-basic-block basic-block) op)
+                (newline op))
+              basic-blocks)
+    (fprintf op "MACHINE.cont = k;\n")
+    (fprintf op "trampoline(~a, function() {}); }"
+             (basic-block-name (first basic-blocks)))))
+
 
 
 

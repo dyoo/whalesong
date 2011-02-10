@@ -2,9 +2,9 @@
 #include <sys/time.h>
 
 int main(int argc, char**argv) {
-  unsigned long i, n, acc=0;
+  unsigned long long i, n, acc=0;
   struct timeval start, end;
-  sscanf(argv[1], "%lu", &n);
+  sscanf(argv[1], "%llu", &n);
 
 
   gettimeofday(&start, NULL);
@@ -12,7 +12,7 @@ int main(int argc, char**argv) {
     acc = acc + i;
   }
   gettimeofday(&end, NULL);
-  printf("%lu (%f milliseconds)\n", 
+  printf("%llu (%f milliseconds)\n", 
 	 acc,
 	 (1000.0*(end.tv_sec - start.tv_sec) + 
 	  ((end.tv_usec - start.tv_usec) / 1000.0) ));

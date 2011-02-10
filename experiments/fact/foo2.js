@@ -96,45 +96,31 @@ var MACHINE={env: new TopEnvironment(),
              argl:undefined,
              val:undefined,
              cont:undefined,
-             stack: []};
+             stack: [],
+	     label: undefined};
 
-
-// harness: (->) (->) -> void
-var trampoline = function(initialJump, k) {
-    var thunk = initialJump;
-    MACHINE.callsBeforeTrampoline = 100;
-    while(thunk) {
-        try {
-            thunk();
-	    break;
-        } catch (e) {
-            if (typeof(e) === 'function') {
-                thunk = e;
-                MACHINE.callsBeforeTrampoline = 100;
-            } else {
-	        throw e;
-            }
-        }
-    }
-    k();
-};
 
 
 var invoke = function(k) {
     MACHINE.cont = k;
-    program(1, function() {});
+    MACHINE.label = 1;
+    program(function() {});
 };
 
 
 
-var program = function(label, k) {
+var program = function(k) {
     while(true) {
-	switch(label) {
+	if (typeof(MACHINE.label) === 'function') {
+	    MACHINE.label();
+	    return;
+	}
+
+	switch(MACHINE.label) {
 
 	case 1:
-	    if(--MACHINE.callsBeforeTrampoline < 0) { throw start23; }
 	    MACHINE.val=(new Closure(MACHINE.env, 2));
-	    label = 3;
+	    MACHINE.label = 3;
 	    break;
 
 
@@ -149,17 +135,17 @@ var program = function(label, k) {
 	    MACHINE.argl=[MACHINE.val,MACHINE.argl];
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
-		label = MACHINE.cont();
+		MACHINE.label = MACHINE.cont();
 		break;}
-	    MACHINE.val=(MACHINE.proc.label);
-	    label = MACHINE.val();
+	    MACHINE.val=(MACHINE.proc.MACHINE.label);
+	    MACHINE.label = MACHINE.val();
 	    break;
 
 	case 3:
 	    (MACHINE.env).globalBindings["factorial"] = MACHINE.val;
 	    MACHINE.val="ok";
 	    MACHINE.val=(new Closure(MACHINE.env, 4));
-	    label = 9;
+	    MACHINE.label = 9;
 	    break;
 
 	case 4:
@@ -175,21 +161,21 @@ var program = function(label, k) {
 	    MACHINE.argl=[MACHINE.val,MACHINE.argl];
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
-		label=5;
+		MACHINE.label=5;
 		break;}
 	    MACHINE.cont=5;
-	    MACHINE.val=(MACHINE.proc.label);
-	    label = MACHINE.val();
+	    MACHINE.val=(MACHINE.proc.MACHINE.label);
+	    MACHINE.label = MACHINE.val();
 	    break;
 
 	case 5:
 	    MACHINE.env=MACHINE.stack.pop();
 	    MACHINE.cont=MACHINE.stack.pop();
 	    if((!(MACHINE.val))){
-		label=6;
+		MACHINE.label=6;
 		break;}
 	    MACHINE.val=(MACHINE.env).valss[0][1];
-	    label = MACHINE.cont();
+	    MACHINE.label = MACHINE.cont();
 	    break;
 
 
@@ -207,13 +193,13 @@ var program = function(label, k) {
 	    MACHINE.argl=[MACHINE.val,MACHINE.argl];
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
-		label=7;
+		MACHINE.label=7;
 		break;}
 	    MACHINE.cont=7;
-	    MACHINE.val=(MACHINE.proc.label);
-	    label = MACHINE.val();
+	    MACHINE.val=(MACHINE.proc.MACHINE.label);
+	    MACHINE.label = MACHINE.val();
 	    break;
-	
+	    
 	case 7:
 	    MACHINE.argl=[MACHINE.val, undefined];
 	    MACHINE.env=MACHINE.stack.pop();
@@ -226,11 +212,11 @@ var program = function(label, k) {
 	    MACHINE.argl=[MACHINE.val,MACHINE.argl];
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
-		label=8;
+		MACHINE.label=8;
 		break;}
 	    MACHINE.cont=8;
-	    MACHINE.val=(MACHINE.proc.label);
-	    label = MACHINE.val();
+	    MACHINE.val=(MACHINE.proc.MACHINE.label);
+	    MACHINE.label = MACHINE.val();
 	    break;
 
 
@@ -241,16 +227,16 @@ var program = function(label, k) {
 	    MACHINE.cont=MACHINE.stack.pop();
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
-		label = MACHINE.cont();
+		MACHINE.label = MACHINE.cont();
 		break; }
-	    MACHINE.val=(MACHINE.proc.label);
-	    label = MACHINE.val();
+	    MACHINE.val=(MACHINE.proc.MACHINE.label);
+	    MACHINE.label = MACHINE.val();
 	    break;
 
 	case 9:
 	    (MACHINE.env).globalBindings["fact-iter"] = MACHINE.val;
 	    MACHINE.val="ok";
-	    label = MACHINE.cont();
+	    MACHINE.label = MACHINE.cont();
 	    break;
 	}
     }

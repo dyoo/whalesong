@@ -63,29 +63,26 @@ Closure.prototype.adaptToJs = function() {
 	var oldProc = MACHINE.proc;
 	var oldArgl = MACHINE.argl;
 	var oldVal = MACHINE.val;
-	trampoline(
-	    function() {
-		var proc = that;
-		MACHINE.proc = proc;
-		MACHINE.argl = undefined;
-		for(var i = args.length - 1; i >= 0; i--) {
-		    MACHINE.argl = [args[i], MACHINE.argl];
-		}
-		
-		MACHINE.cont = function() {
-		    var result = MACHINE.val;
-                    MACHINE.env = oldEnv;
-		    MACHINE.cont = oldCont;
-		    MACHINE.proc = oldProc;
-		    MACHINE.argl = oldArgl;
-		    MACHINE.val = oldVal;
-                    k(result);
-		};
-		
-		program(proc.label);
-            },
-            function() {
-            });
+
+	var proc = that;
+	MACHINE.proc = proc;
+	MACHINE.argl = undefined;
+	for(var i = args.length - 1; i >= 0; i--) {
+	    MACHINE.argl = [args[i], MACHINE.argl];
+	}
+	
+	MACHINE.cont = function() {
+	    var result = MACHINE.val;
+            MACHINE.env = oldEnv;
+	    MACHINE.cont = oldCont;
+	    MACHINE.proc = oldProc;
+	    MACHINE.argl = oldArgl;
+	    MACHINE.val = oldVal;
+            k(result);
+	};
+	
+	MACHINE.label = proc.label;
+	program();
     }
 };
 
@@ -104,12 +101,12 @@ var MACHINE={env: new TopEnvironment(),
 var invoke = function(k) {
     MACHINE.cont = k;
     MACHINE.label = 1;
-    program(function() {});
+    program();
 };
 
 
 
-var program = function(k) {
+var program = function() {
     while(true) {
 	if (typeof(MACHINE.label) === 'function') {
 	    MACHINE.label();
@@ -135,10 +132,11 @@ var program = function(k) {
 	    MACHINE.argl=[MACHINE.val,MACHINE.argl];
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
-		MACHINE.label = MACHINE.cont();
-		break;}
-	    MACHINE.val=(MACHINE.proc.MACHINE.label);
-	    MACHINE.label = MACHINE.val();
+		MACHINE.label = MACHINE.cont;
+		break;
+	    }
+	    MACHINE.val=(MACHINE.proc.label);
+	    MACHINE.label = MACHINE.val;
 	    break;
 
 	case 3:
@@ -162,10 +160,11 @@ var program = function(k) {
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
 		MACHINE.label=5;
-		break;}
+		break;
+	    }
 	    MACHINE.cont=5;
-	    MACHINE.val=(MACHINE.proc.MACHINE.label);
-	    MACHINE.label = MACHINE.val();
+	    MACHINE.val=(MACHINE.proc.label);
+	    MACHINE.label = MACHINE.val;
 	    break;
 
 	case 5:
@@ -175,7 +174,7 @@ var program = function(k) {
 		MACHINE.label=6;
 		break;}
 	    MACHINE.val=(MACHINE.env).valss[0][1];
-	    MACHINE.label = MACHINE.cont();
+	    MACHINE.label = MACHINE.cont;
 	    break;
 
 
@@ -194,10 +193,11 @@ var program = function(k) {
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
 		MACHINE.label=7;
-		break;}
+		break;
+	    }
 	    MACHINE.cont=7;
-	    MACHINE.val=(MACHINE.proc.MACHINE.label);
-	    MACHINE.label = MACHINE.val();
+	    MACHINE.val=(MACHINE.proc.label);
+	    MACHINE.label = MACHINE.val;
 	    break;
 	    
 	case 7:
@@ -213,10 +213,11 @@ var program = function(k) {
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
 		MACHINE.label=8;
-		break;}
+		break;
+	    }
 	    MACHINE.cont=8;
-	    MACHINE.val=(MACHINE.proc.MACHINE.label);
-	    MACHINE.label = MACHINE.val();
+	    MACHINE.val = (MACHINE.proc.label);
+	    MACHINE.label = MACHINE.val;
 	    break;
 
 
@@ -227,18 +228,23 @@ var program = function(k) {
 	    MACHINE.cont=MACHINE.stack.pop();
 	    if((typeof(MACHINE.proc) === 'function')){
 		MACHINE.val=MACHINE.proc(MACHINE.argl);
-		MACHINE.label = MACHINE.cont();
-		break; }
-	    MACHINE.val=(MACHINE.proc.MACHINE.label);
-	    MACHINE.label = MACHINE.val();
+		MACHINE.label = MACHINE.cont;
+		break;
+	    }
+	    MACHINE.val=(MACHINE.proc.label);
+	    MACHINE.label = MACHINE.val;
 	    break;
 
 	case 9:
 	    (MACHINE.env).globalBindings["fact-iter"] = MACHINE.val;
 	    MACHINE.val="ok";
-	    MACHINE.label = MACHINE.cont();
+	    MACHINE.label = MACHINE.cont;
 	    break;
+
+
+	default:
+	    throw new Error("impossible situation");
 	}
+
     }
-    k();
 }

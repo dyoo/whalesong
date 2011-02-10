@@ -1,0 +1,27 @@
+<html>
+<head>
+<script src="foo.js">
+</script>
+<script>
+invoke(function() {});
+var f = MACHINE.env.globalBindings.factorial.adaptToJs();
+
+var startTime;
+
+startTime = new Date();
+f([10000000], function(v) { console.log(v, new Date() - startTime); });
+
+
+var mul = function(x, y) { return x * y; }
+startTime = new Date();
+var acc;
+for (i = 1; i < 10000000; i++) {
+    acc = mul(acc * i);
+}
+console.log(acc, new Date() - startTime);
+
+
+</script>
+<body>
+</body>
+</html>

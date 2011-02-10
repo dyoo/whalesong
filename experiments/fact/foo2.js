@@ -108,11 +108,6 @@ var invoke = function(k) {
 
 var program = function() {
     while(true) {
-	if (typeof(MACHINE.label) === 'function') {
-	    MACHINE.label();
-	    return;
-	}
-
 	switch(MACHINE.label) {
 
 	case 1:
@@ -243,7 +238,8 @@ var program = function() {
 
 
 	default:
-	    throw new Error("impossible situation");
+	    return MACHINE.label();
+	    return;
 	}
 
     }

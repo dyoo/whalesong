@@ -8,17 +8,19 @@ var f = MACHINE.env.globalBindings.factorial.adaptToJs();
 
 var startTime;
 
+var N = 1000000;
+
 startTime = new Date();
-f([10], function(v) { console.log(v, new Date() - startTime); });
+f([N], function(v) { console.log("switch", v, new Date() - startTime); });
 
 
-//var mul = function(x, y) { return x * y; }
-//startTime = new Date();
-//var acc;
-//for (i = 1; i < 10000000; i++) {
-//    acc = mul(acc * i);
-//}
-//console.log(acc, new Date() - startTime);
+var mul = function(x, y) { return x * y; }
+startTime = new Date();
+var acc = 1;
+for (var i = 1; i <= N; i++) {
+    acc = mul(acc, i);
+}
+console.log("loops", acc, new Date() - startTime);
 
 
 </script>

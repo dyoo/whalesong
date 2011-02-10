@@ -1,10 +1,10 @@
 <html>
 <head>
-<script src="foo.js">
+<script src="gauss.js">
 </script>
 <script>
 invoke(function() {});
-var f = MACHINE.env.globalBindings.factorial.adaptToJs();
+var f = MACHINE.env.globalBindings.gauss.adaptToJs();
 
 var startTime;
 
@@ -14,11 +14,11 @@ startTime = new Date();
 f([N], function(v) { console.log("functions", v, new Date() - startTime); });
 
 
-var mul = function(x, y) { return x * y; }
+var add = function(x, y) { return x + y; }
 startTime = new Date();
-var acc = 1;
+var acc = 0;
 for (var i = 1; i <= N; i++) {
-    acc = mul(acc, i);
+    acc = add(acc, i);
 }
 console.log("loops", acc, new Date() - startTime);
 </script>

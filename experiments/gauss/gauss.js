@@ -130,9 +130,9 @@ var entry1=function(){
 if(--MACHINE.callsBeforeTrampoline < 0) { throw entry1; }
 MACHINE.env=(MACHINE.proc.env);
 MACHINE.env=new ExtendedEnvironment(MACHINE.env, MACHINE.argl);
-if (! (MACHINE.env).globalBindings.hasOwnProperty("fact-iter")) { throw new Error("Not bound: " + "fact-iter"); }
-MACHINE.proc=((MACHINE.env).globalBindings["fact-iter"]);
-MACHINE.val=1;
+if (! (MACHINE.env).globalBindings.hasOwnProperty("gauss-iter")) { throw new Error("Not bound: " + "gauss-iter"); }
+MACHINE.proc=((MACHINE.env).globalBindings["gauss-iter"]);
+MACHINE.val=0;
 MACHINE.argl=[MACHINE.val, undefined];
 MACHINE.val=(MACHINE.env).valss[0][0];
 MACHINE.argl=[MACHINE.val,MACHINE.argl];
@@ -145,7 +145,7 @@ return MACHINE.val();};
 
 var afterLambda2=function(){
 if(--MACHINE.callsBeforeTrampoline < 0) { throw afterLambda2; }
-(MACHINE.env).globalBindings["factorial"] = MACHINE.val;
+(MACHINE.env).globalBindings["gauss"] = MACHINE.val;
 MACHINE.val="ok";
 MACHINE.val=(new Closure(MACHINE.env, entry6));
 return afterLambda7();};
@@ -181,13 +181,13 @@ return MACHINE.cont();};
 
 var falseBranch9=function(){
 if(--MACHINE.callsBeforeTrampoline < 0) { throw falseBranch9; }
-if (! (MACHINE.env).globalBindings.hasOwnProperty("fact-iter")) { throw new Error("Not bound: " + "fact-iter"); }
-MACHINE.proc=((MACHINE.env).globalBindings["fact-iter"]);
+if (! (MACHINE.env).globalBindings.hasOwnProperty("gauss-iter")) { throw new Error("Not bound: " + "gauss-iter"); }
+MACHINE.proc=((MACHINE.env).globalBindings["gauss-iter"]);
 MACHINE.stack.push(MACHINE.cont);
 MACHINE.stack.push(MACHINE.proc);
 MACHINE.stack.push(MACHINE.env);
-if (! (MACHINE.env).globalBindings.hasOwnProperty("*")) { throw new Error("Not bound: " + "*"); }
-MACHINE.proc=((MACHINE.env).globalBindings["*"]);
+if (! (MACHINE.env).globalBindings.hasOwnProperty("+")) { throw new Error("Not bound: " + "+"); }
+MACHINE.proc=((MACHINE.env).globalBindings["+"]);
 MACHINE.val=(MACHINE.env).valss[0][0];
 MACHINE.argl=[MACHINE.val, undefined];
 MACHINE.val=(MACHINE.env).valss[0][1];
@@ -235,7 +235,7 @@ return MACHINE.val();};
 
 var afterLambda7=function(){
 if(--MACHINE.callsBeforeTrampoline < 0) { throw afterLambda7; }
-(MACHINE.env).globalBindings["fact-iter"] = MACHINE.val;
+(MACHINE.env).globalBindings["gauss-iter"] = MACHINE.val;
 MACHINE.val="ok";
 return MACHINE.cont();};
 

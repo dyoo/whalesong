@@ -41,11 +41,13 @@
 
 ;; global-lexical-address?: lexical-address -> boolean
 ;; Produces true if the address refers to the toplevel environment.
+(: global-lexical-address? (LexicalAddress -> Boolean))
 (define (global-lexical-address? address)
   (eq? address 'not-found))
 
 
 ;; extend-lexical-environment: lexical-environment (listof symbol) -> lexical-envrionment
+(: extend-lexical-environment (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
 (define (extend-lexical-environment cenv names)
   (cons names cenv))
 
@@ -79,7 +81,7 @@
      (error 'compile "Unknown expression type ~e" exp)]))
 
 
-
+(: compile-linkage (Linkage -> InstructionSequence))
 (define (compile-linkage linkage)
   (cond
     [(eq? linkage 'return)
@@ -90,12 +92,13 @@
      (make-instruction-sequence '() '()
                                 `((goto (label ,linkage))))]))
 
+(: end-with-linkage (Linkage InstructionSequence -> InstructionSequence))
 (define (end-with-linkage linkage instruction-sequence)
   (preserving '(cont)
               instruction-sequence
               (compile-linkage linkage)))
 
-
+(: compile-self-evaluating (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-self-evaluating exp cenv target linkage)
   (end-with-linkage linkage
                     (make-instruction-sequence
@@ -103,7 +106,7 @@
                      (list target)
                      `((assign ,target (const ,exp))))))
 
-
+(: compile-quoted (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-quoted exp cenv target linkage)
   (end-with-linkage linkage
                     (make-instruction-sequence
@@ -111,7 +114,7 @@
                      (list target)
                      `((assign ,target (const ,(Quote-text exp)))))))
 
-
+(: compile-variable (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-variable exp cenv target linkage)
   (let ([lexical-pos (find-variable exp cenv)])
     (cond
@@ -141,7 +144,7 @@
                                     (reg env)))))])))
 
 
-
+(: compile-assignment (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-assignment exp cenv target linkage)
   (let* ([var (Assign-variable exp)]
          [get-value-code
@@ -179,6 +182,7 @@
 
 
 ;; FIXME: exercise 5.43
+(: compile-definition (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-definition exp cenv target linkage)
   (let ([var (Def-variable exp)]
         [get-value-code
@@ -198,7 +202,7 @@
          (assign ,target (const ok))))))))
 
 
-
+(: compile-if (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-if exp cenv target linkage)  
   (let ([t-branch (make-label 'trueBranch)]
         [f-branch (make-label 'falseBranch)]
@@ -224,7 +228,7 @@
                      after-if))))))
 
 
-
+(: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-sequence seq cenv target linkage) 
   (if (last-exp? seq)
       (compile (first-exp seq) cenv target linkage)
@@ -233,6 +237,7 @@
                   (compile-sequence (rest-exps seq) cenv target linkage))))
 
 
+(: compile-lambda (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-lambda exp cenv target linkage) 
   (let ([proc-entry (make-label 'entry)]
         [after-lambda (make-label 'afterLambda)])
@@ -260,7 +265,7 @@
                              proc-entry))
        after-lambda))))
 
-
+(: compile-lambda-body (Expression CompileTimeEnvironment Linkage -> InstructionSequence))
 (define (compile-lambda-body exp cenv proc-entry)
   (let* ([formals (Lam-parameters exp)]
          [extended-cenv (extend-lexical-environment cenv formals)])
@@ -276,18 +281,19 @@
                 (reg env))))
      (compile-sequence (Lam-body exp) extended-cenv 'val 'return))))
 
-
+(: compile-application (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-application exp cenv target linkage) 
-  (let ([proc-code (compile (operator exp) cenv 'proc 'next)]
+  (let ([proc-code (compile (App-operator exp) cenv 'proc 'next)]
         [operand-codes (map (lambda (operand)
                               (compile operand cenv 'val 'next))
-                            (operands exp))])
+                            (App-operands exp))])
     (preserving '(env cont)
                 proc-code
                 (preserving '(proc cont)
                             (construct-arglist operand-codes)
                             (compile-procedure-call target linkage)))))
 
+(: construct-arglist ((Listof InstructionSequence) -> InstructionSequence))
 (define (construct-arglist operand-codes)
   (let ([operand-codes (reverse operand-codes)])
     (if (null? operand-codes)
@@ -305,6 +311,7 @@
                           code-to-get-last-arg
                           (code-to-get-rest-args
                            (cdr operand-codes))))))))
+(: code-to-get-rest-args ((Listof InstructionSequence) -> InstructionSequence))
 (define (code-to-get-rest-args operand-codes)
   (let ([code-for-next-arg
          (preserving '(argl)
@@ -319,7 +326,7 @@
                     code-for-next-arg
                     (code-to-get-rest-args (cdr operand-codes))))))
 
-
+(: compile-procedure-call (Target Linkage -> InstructionSequence))
 (define (compile-procedure-call target linkage)
   (let ([primitive-branch (make-label 'primitiveBranch)]
         [compiled-branch (make-label 'compiledBranch)]
@@ -346,6 +353,7 @@
                                       (reg argl)))))))
        after-call))))
 
+(: compile-proc-appl (Target Linkage -> InstructionSequence))
 (define (compile-proc-appl target linkage)
   (cond [(and (eq? target 'val)
               (not (eq? linkage 'return)))
@@ -389,13 +397,15 @@
 
 
 
-
+(: needs-register? (InstructionSequence Symbol -> Boolean))
 (define (needs-register? seq reg)
   (memq reg (registers-needed seq)))
+
+(: modifies-register? (InstructionSequence Symbol -> Boolean))
 (define (modifies-register? seq reg)
   (memq reg (registers-modified seq)))
 
-
+(: preserving ((Listof Symbol) InstructionSequence InstructionSequence -> InstructionSequence))
 (define (preserving regs seq1 seq2)
   (if (null? regs)
       (append-instruction-sequences seq1 seq2)
@@ -416,10 +426,11 @@
 
 
 
-
+(: append-instruction-sequence (InstructionSequence * -> InstructionSequence))
 (define (append-instruction-sequences . seqs)
   (append-seq-list seqs))
 
+(: append-2-sequences (InstructionSequence InstructionSequence -> InstructionSequence))
 (define (append-2-sequences seq1 seq2)
     (make-instruction-sequence
      (list-union (registers-needed seq1)
@@ -429,18 +440,22 @@
                  (registers-modified seq2))
      (append (statements seq1) (statements seq2))))
 
+(: append-seq-list ((Listof InstructionSequence) -> InstructionSequence))
 (define (append-seq-list seqs)
   (if (null? seqs)
       empty-instruction-sequence
       (append-2-sequences (car seqs)
                           (append-seq-list (cdr seqs)))))
 
+(: list-union ((Listof Symbol) (Listof Symbol) -> (Listof Symbol)))
 (define (list-union s1 s2)
   (cond [(null? s1) s2]
         [(memq (car s1) s2)
          (list-union (cdr s1) s2)]
         [else (cons (car s1) (list-union (cdr s1) s2))]))
 
+
+(: list-difference ((Listof Symbol) (Listof Symbol) -> (Listof Symbol)))
 (define (list-difference s1 s2)
   (cond [(null? s1) '()]
         [(memq (car s1) s2)
@@ -449,13 +464,13 @@
          (cons (car s1) (list-difference (cdr s1) s2))]))
 
 
-
+(: tack-on-instruction-sequence (InstructionSequence InstructionSequence -> InstructionSequence))
 (define (tack-on-instruction-sequence seq body-seq)
   (make-instruction-sequence (registers-needed seq)
                              (registers-modified seq)
                              (append (statements seq) (statements body-seq))))
 
-
+(: parallel-instruction-sequences (InstructionSequence InstructionSequence -> InstructionSequence))
 (define (parallel-instruction-sequences seq1 seq2)
   (make-instruction-sequence
    (list-union (registers-needed seq1)

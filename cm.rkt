@@ -1,7 +1,7 @@
-#lang racket/base
+#lang typed/racket/base
 
-(require "structs.rkt"
-         "assemble.rkt"
+(require "typed-structs.rkt"
+         #;"assemble.rkt"
          racket/list)
 
 (provide compile)
@@ -16,25 +16,28 @@
 
 ;; A compile-time environment is a (listof (listof symbol)).
 ;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
-
+(define-type CompileTimeEnvironment (Listof (Listof Symbol)))
+(define-type LexicalAddress (List Number Number))
 
 ;; find-variable: symbol compile-time-environment -> lexical-address
 ;; Find where the variable should be located.
+(: find-variable (Symbol CompileTimeEnvironment -> LexicalAddress))
 (define (find-variable name cenv)
+  (: find-pos (Symbol (Listof Symbol) -> Natural))
   (define (find-pos sym los)
     (cond
       [(eq? sym (car los))
        0]
       [else
        (add1 (find-pos sym (cdr los)))]))
-  (let loop ([cenv cenv]
-             [depth 0])
-    (cond [(empty? cenv)
-           'not-found]
-          [(member name (first cenv))
-           (list depth (find-pos name (first cenv)))]
-          [else
-           (loop (rest cenv) (add1 depth))])))
+  (let: loop : (U LexicalAddress 'not-found) ([cenv : CompileTimeEnvironment cenv]
+                                              [depth : Natural 0])
+        (cond [(empty? cenv)
+               'not-found]
+              [(member name (first cenv))
+               (list depth (find-pos name (first cenv)))]
+              [else
+               (loop (rest cenv) (add1 depth))])))
 
 ;; global-lexical-address?: lexical-address -> boolean
 ;; Produces true if the address refers to the toplevel environment.
@@ -48,28 +51,29 @@
 
 
 ;; compile: expression target linkage -> instruction-sequence
+(: compile (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile exp cenv target linkage)
   (cond
-    [(self-evaluating? exp)
+    [(Constant? exp)
      (compile-self-evaluating exp cenv target linkage)]
-    [(quoted? exp)
+    [(Quote? exp)
      (compile-quoted exp cenv target linkage)]
-    [(variable? exp)
+    [(Var? exp)
      (compile-variable exp cenv target linkage)]
-    [(assignment? exp)
+    [(Assign? exp)
      (compile-assignment exp cenv target linkage)]
-    [(definition? exp)
+    [(Def? exp)
      (compile-definition exp cenv target linkage)]
-    [(if? exp)
+    [(Branch? exp)
      (compile-if exp cenv target linkage)]
-    [(lambda? exp)
+    [(Lam? exp)
      (compile-lambda exp cenv target linkage)]
-    [(begin? exp)
-     (compile-sequence (begin-actions exp)
+    [(Seq? exp)
+     (compile-sequence (Seq-actions exp)
                        cenv
                        target
                        linkage)]
-    [(application? exp)
+    [(App? exp)
      (compile-application exp cenv target linkage)]
     [else
      (error 'compile "Unknown expression type ~e" exp)]))
@@ -105,7 +109,7 @@
                     (make-instruction-sequence
                      '()
                      (list target)
-                     `((assign ,target (const ,(text-of-quotation exp)))))))
+                     `((assign ,target (const ,(Quote-text exp)))))))
 
 
 (define (compile-variable exp cenv target linkage)
@@ -139,9 +143,9 @@
 
 
 (define (compile-assignment exp cenv target linkage)
-  (let* ([var (assignment-variable exp)]
+  (let* ([var (Assign-variable exp)]
          [get-value-code
-          (compile (assignment-value exp) cenv 'val 'next)]
+          (compile (Assign-value exp) cenv 'val 'next)]
          [lexical-address
           (find-variable var cenv)])
     (cond
@@ -176,9 +180,9 @@
 
 ;; FIXME: exercise 5.43
 (define (compile-definition exp cenv target linkage)
-  (let ([var (definition-variable exp)]
+  (let ([var (Def-variable exp)]
         [get-value-code
-         (compile (definition-value exp) cenv 'val 'next)])
+         (compile (Def-value exp) cenv 'val 'next)])
     (end-with-linkage
      linkage
      (preserving
@@ -203,9 +207,9 @@
            (if (eq? linkage 'next)
                after-if
                linkage)])
-      (let ([p-code (compile (if-predicate exp) cenv 'val 'next)]
-            [c-code (compile (if-consequent exp) cenv target consequent-linkage)]
-            [a-code (compile (if-alternative exp) cenv target linkage)])
+      (let ([p-code (compile (Branch-predicate exp) cenv 'val 'next)]
+            [c-code (compile (Branch-consequent exp) cenv target consequent-linkage)]
+            [a-code (compile (Branch-alternative exp) cenv target linkage)])
         (preserving '(env cont)
                     p-code
                     (append-instruction-sequences
@@ -258,7 +262,7 @@
 
 
 (define (compile-lambda-body exp cenv proc-entry)
-  (let* ([formals (lambda-parameters exp)]
+  (let* ([formals (Lam-parameters exp)]
          [extended-cenv (extend-lexical-environment cenv formals)])
     (append-instruction-sequences
      (make-instruction-sequence 
@@ -270,7 +274,7 @@
                 (op extend-environment)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body exp) extended-cenv 'val 'return))))
+     (compile-sequence (Lam-body exp) extended-cenv 'val 'return))))
 
 
 (define (compile-application exp cenv target linkage) 
@@ -414,7 +418,9 @@
 
 
 (define (append-instruction-sequences . seqs)
-  (define (append-2-sequences seq1 seq2)
+  (append-seq-list seqs))
+
+(define (append-2-sequences seq1 seq2)
     (make-instruction-sequence
      (list-union (registers-needed seq1)
                  (list-difference (registers-needed seq2)
@@ -422,12 +428,12 @@
      (list-union (registers-modified seq1)
                  (registers-modified seq2))
      (append (statements seq1) (statements seq2))))
-  (define (append-seq-list seqs)
-    (if (null? seqs)
-        empty-instruction-sequence
-        (append-2-sequences (car seqs)
-                            (append-seq-list (cdr seqs)))))
-  (append-seq-list seqs))
+
+(define (append-seq-list seqs)
+  (if (null? seqs)
+      empty-instruction-sequence
+      (append-2-sequences (car seqs)
+                          (append-seq-list (cdr seqs)))))
 
 (define (list-union s1 s2)
   (cond [(null? s1) s2]
@@ -474,7 +480,7 @@
 
 
 
-(define (test source-code)
+#;(define (test source-code)
   (let ([basic-blocks
          (fracture (statements (compile source-code
                                         '()

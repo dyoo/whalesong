@@ -17,7 +17,7 @@
 ;; A compile-time environment is a (listof (listof symbol)).
 ;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
 (define-type CompileTimeEnvironment (Listof (Listof Symbol)))
-(define-type LexicalAddress (List Number Number))
+(define-type LexicalAddress (U (List Number Number) 'not-found))
 
 ;; find-variable: symbol compile-time-environment -> lexical-address
 ;; Find where the variable should be located.
@@ -30,8 +30,8 @@
        0]
       [else
        (add1 (find-pos sym (cdr los)))]))
-  (let: loop : (U LexicalAddress 'not-found) ([cenv : CompileTimeEnvironment cenv]
-                                              [depth : Natural 0])
+  (let: loop : LexicalAddress ([cenv : CompileTimeEnvironment cenv]
+                               [depth : Natural 0])
         (cond [(empty? cenv)
                'not-found]
               [(member name (first cenv))
@@ -39,11 +39,6 @@
               [else
                (loop (rest cenv) (add1 depth))])))
 
-;; global-lexical-address?: lexical-address -> boolean
-;; Produces true if the address refers to the toplevel environment.
-(: global-lexical-address? (LexicalAddress -> Boolean))
-(define (global-lexical-address? address)
-  (eq? address 'not-found))
 
 
 ;; extend-lexical-environment: lexical-environment (listof symbol) -> lexical-envrionment
@@ -98,7 +93,7 @@
               instruction-sequence
               (compile-linkage linkage)))
 
-(: compile-self-evaluating (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-self-evaluating (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-self-evaluating exp cenv target linkage)
   (end-with-linkage linkage
                     (make-instruction-sequence
@@ -106,7 +101,7 @@
                      (list target)
                      `((assign ,target (const ,exp))))))
 
-(: compile-quoted (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-quoted (Quote CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-quoted exp cenv target linkage)
   (end-with-linkage linkage
                     (make-instruction-sequence
@@ -114,11 +109,11 @@
                      (list target)
                      `((assign ,target (const ,(Quote-text exp)))))))
 
-(: compile-variable (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-variable (Var CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-variable exp cenv target linkage)
-  (let ([lexical-pos (find-variable exp cenv)])
+  (let ([lexical-pos (find-variable (Var-id exp) cenv)])
     (cond
-      [(global-lexical-address? lexical-pos)
+      [(eq? lexical-pos 'not-found)
        (end-with-linkage linkage
                          (make-instruction-sequence
                           '(env)
@@ -126,11 +121,11 @@
                           ;; Slight modification: explicitly testing for
                           ;; global variable binding before lookup.
                           `((perform (op check-bound-global!)
-                                     (const ,exp)
+                                     (const ,(Var-id exp))
                                      (reg env))
                             (assign ,target
                                     (op lookup-variable-value)
-                                    (const ,exp)
+                                    (const ,(Var-id exp))
                                     (reg env)))))]
       [else
        (end-with-linkage linkage
@@ -144,7 +139,7 @@
                                     (reg env)))))])))
 
 
-(: compile-assignment (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-assignment (Assign CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-assignment exp cenv target linkage)
   (let* ([var (Assign-variable exp)]
          [get-value-code
@@ -152,7 +147,7 @@
          [lexical-address
           (find-variable var cenv)])
     (cond
-      [(global-lexical-address? lexical-address)
+      [(eq? lexical-address 'not-found)
        (end-with-linkage
         linkage
         (preserving '(env)
@@ -182,7 +177,7 @@
 
 
 ;; FIXME: exercise 5.43
-(: compile-definition (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-definition exp cenv target linkage)
   (let ([var (Def-variable exp)]
         [get-value-code
@@ -202,7 +197,7 @@
          (assign ,target (const ok))))))))
 
 
-(: compile-if (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-if (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-if exp cenv target linkage)  
   (let ([t-branch (make-label 'trueBranch)]
         [f-branch (make-label 'falseBranch)]
@@ -237,7 +232,7 @@
                   (compile-sequence (rest-exps seq) cenv target linkage))))
 
 
-(: compile-lambda (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-lambda exp cenv target linkage) 
   (let ([proc-entry (make-label 'entry)]
         [after-lambda (make-label 'afterLambda)])
@@ -265,7 +260,7 @@
                              proc-entry))
        after-lambda))))
 
-(: compile-lambda-body (Expression CompileTimeEnvironment Linkage -> InstructionSequence))
+(: compile-lambda-body (Lam CompileTimeEnvironment Linkage -> InstructionSequence))
 (define (compile-lambda-body exp cenv proc-entry)
   (let* ([formals (Lam-parameters exp)]
          [extended-cenv (extend-lexical-environment cenv formals)])
@@ -281,10 +276,10 @@
                 (reg env))))
      (compile-sequence (Lam-body exp) extended-cenv 'val 'return))))
 
-(: compile-application (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-application exp cenv target linkage) 
   (let ([proc-code (compile (App-operator exp) cenv 'proc 'next)]
-        [operand-codes (map (lambda (operand)
+        [operand-codes (map (lambda: ([operand : Expression])
                               (compile operand cenv 'val 'next))
                             (App-operands exp))])
     (preserving '(env cont)
@@ -399,11 +394,11 @@
 
 (: needs-register? (InstructionSequence Symbol -> Boolean))
 (define (needs-register? seq reg)
-  (memq reg (registers-needed seq)))
+  (and (memq reg (registers-needed seq)) #t))
 
 (: modifies-register? (InstructionSequence Symbol -> Boolean))
 (define (modifies-register? seq reg)
-  (memq reg (registers-modified seq)))
+  (and (memq reg (registers-modified seq)) #t))
 
 (: preserving ((Listof Symbol) InstructionSequence InstructionSequence -> InstructionSequence))
 (define (preserving regs seq1 seq2)
@@ -426,7 +421,7 @@
 
 
 
-(: append-instruction-sequence (InstructionSequence * -> InstructionSequence))
+(: append-instruction-sequences (InstructionSequence * -> InstructionSequence))
 (define (append-instruction-sequences . seqs)
   (append-seq-list seqs))
 

@@ -7,6 +7,7 @@
 
 
 ;; assemble/write-invoke: (listof statement) output-port -> void
+(: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
 (define (assemble/write-invoke stmts op)
   (let ([basic-blocks (fracture stmts)])
     (fprintf op "function(k) {\n")
@@ -22,6 +23,7 @@
 
 
 ;; fracture: (listof stmt) -> (listof basic-block)
+(: fracture ((Listof Statement) -> (Listof BasicBlock)))
 (define (fracture stmts)
   (let* ([first-block-label (make-label 'start)]
          [jump-targets 
@@ -43,7 +45,7 @@
                   (cons (make-basic-block name  
                                           (if last-stmt-goto? 
                                               (reverse acc)
-                                              (reverse (append `((goto (label ,(car stmts))))
+                                              (reverse (append `(,(make-GotoStatement (make-Label (car stmts))))
                                                                acc))))
                         basic-blocks)
                   (cdr stmts)
@@ -59,11 +61,12 @@
                (cons (car stmts) acc)
                basic-blocks
                (cdr stmts)
-               (tagged-list? (car stmts) 'goto))]))))
+               (GotoStatement? (car stmts)))]))))
 
 
 
 ;; unique: (listof symbol -> listof symbol)
+(: unique ((Listof symbol) -> (Listof Symbol)))
 (define (unique los)
   (let ([ht (make-hasheq)])
     (for ([l los])
@@ -74,22 +77,23 @@
 
 ;; collect-general-jump-targets: (listof stmt) -> (listof label)
 ;; collects all the labels that are potential targets for GOTOs or branches.
+(: collect-general-jump-targets ((Listof Statement) -> (Listof Symbol)))
 (define (collect-general-jump-targets stmts)
   (define (collect-input an-input)
     (cond
-      [(reg? an-input)
+      [(Reg? an-input)
        empty]
-      [(const? an-input)
+      [(Const? an-input)
        empty]
-      [(label? an-input)
-       (list (label-name an-input))]
+      [(Label? an-input)
+       (list (Label-name an-input))]
       [else (error 'collect-input "~e" an-input)]))
   (define (collect-location a-location)
     (cond
-      [(reg? a-location)
+      [(Reg? a-location)
        empty]
-      [(label? a-location)
-       (list (label-name a-location))]
+      [(Label? a-location)
+       (list (Label-name a-location))]
       [else (error 'collect-location "~e" a-location)]))
   (unique
    (let loop ([stmts stmts])
@@ -135,7 +139,8 @@
 ;; indirect jumps.
 ;; The only interesting case should be where there's a register assignment
 ;; whose value is a label.
-(define (collect-indirect-jump-targets stmts)
+#;(: collect-indirect-jump-targets ((Listof Statement) -> (Listof Symbol)))
+#;(define (collect-indirect-jump-targets stmts)
   (define (collect-input an-input)
     (cond
       [(reg? an-input)
@@ -196,6 +201,7 @@
 
 
 ;; assemble-basic-block: basic-block -> string
+(: assemble-basic-block (BasicBlock -> String))
 (define (assemble-basic-block a-basic-block)
   (format "var ~a=function(){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
           (basic-block-name a-basic-block)
@@ -205,6 +211,7 @@
 
 
 ;; assemble-stmt: stmt -> string
+(: assemble-stmt (Statement -> String))
 (define (assemble-stmt stmt)
   (cond
     [(tagged-list? stmt 'assign)
@@ -250,6 +257,7 @@
     [else (error 'assemble "~a" stmt)]))
 
 ;; fixme: use js->string
+(: Assemble-Const (Any -> String))
 (define (assemble-const stmt)
   (let loop ([val (cadr stmt)])
     (cond [(symbol? val)

@@ -100,7 +100,7 @@
                     (make-instruction-sequence
                      '()
                      (list target)
-                     `(,(make-AssignConstantStatement target exp)))))
+                     `(,(make-AssignImmediateStatement target (make-Const exp))))))
 
 (: compile-quoted (Quote CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-quoted exp cenv target linkage)
@@ -108,7 +108,7 @@
                     (make-instruction-sequence
                      '()
                      (list target)
-                     `(,(make-AssignConstantStatement target (Quote-text exp))))))
+                     `(,(make-AssignImmediateStatement target (make-Const (Quote-text exp)))))))
 
 (: compile-variable (Var CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-variable exp cenv target linkage)
@@ -160,7 +160,7 @@
                                                (list (make-Const var)
                                                      (make-Reg 'val)
                                                      (make-Reg 'env)))
-                       ,(make-AssignConstantStatement target 'ok)))))]
+                       ,(make-AssignImmediateStatement target (make-Const 'ok))))))]
       [else
        (end-with-linkage
         linkage
@@ -174,7 +174,7 @@
                                       (make-Const (second lexical-address))
                                       (make-Reg 'env)
                                       (make-Reg 'val)))
-                       ,(make-AssignConstantStatement target 'ok)))))])))
+                       ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
 
 
 ;; FIXME: exercise 5.43
@@ -195,7 +195,7 @@
                                  (list (make-Const var)
                                        (make-Reg 'val)
                                        (make-Reg 'env)))
-         ,(make-AssignConstantStatement target 'ok)))))))
+         ,(make-AssignImmediateStatement target (make-Const 'ok))))))))
 
 
 (: compile-if (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -297,7 +297,7 @@
     (if (null? operand-codes)
         (make-instruction-sequence '()
                                    '(argl) 
-                                   `(,(make-AssignConstantStatement 'argl '())))
+                                   `(,(make-AssignImmediateStatement 'argl (make-Const '()))))
         (let ([code-to-get-last-arg
                (append-instruction-sequences
                 (car operand-codes)
@@ -362,7 +362,7 @@
          (make-instruction-sequence 
           '(proc) 
           all-regs
-          `(,(make-AssignLabelStatement 'cont linkage)
+          `(,(make-AssignImmediateStatement 'cont (make-Label linkage))
             ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
                                          (list (make-Reg 'proc)))
             ,(make-GotoStatement (make-Reg 'val))))]
@@ -372,12 +372,12 @@
            (make-instruction-sequence
             '(proc)
             all-regs
-            `(,(make-AssignLabelStatement 'cont proc-return)
+            `(,(make-AssignImmediateStatement 'cont (make-Label proc-return))
               ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
                                            (list (make-Reg 'proc)))
               ,(make-GotoStatement (make-Reg 'val))
               ,proc-return
-              ,(make-AssignRegisterStatement target 'val)
+              ,(make-AssignImmediateStatement target (make-Reg 'val))
               ,(make-GotoStatement (make-Label linkage)))))]
         [(and (eq? target 'val)
               (eq? linkage 'return))

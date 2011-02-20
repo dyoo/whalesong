@@ -32,15 +32,18 @@
 
 
 ;; instruction sequences
-(define-type Statement (U Symbol  ;; label
-                          AssignImmediateStatement
-                          AssignPrimOpStatement
-                          PerformStatement
-                          TestStatement
-                          BranchLabelStatement
-                          GotoStatement
-                          SaveStatement
-                          RestoreStatement))
+(define-type UnlabeledStatement (U 
+                                 AssignImmediateStatement
+                                 AssignPrimOpStatement
+                                 PerformStatement
+                                 TestStatement
+                                 BranchLabelStatement
+                                 GotoStatement
+                                 SaveStatement
+                                 RestoreStatement))
+(define-type Statement (U UnlabeledStatement
+                          Symbol  ;; label
+                          ))
 (define-struct: AssignImmediateStatement ([target : Symbol]
                                           [value : (U Const Reg Label)])
   #:transparent)
@@ -104,4 +107,4 @@
 
 
 (define-struct: BasicBlock ([name : Symbol] 
-                            [stmts : (Listof Statement)]) #:transparent)
+                            [stmts : (Listof UnlabeledStatement)]) #:transparent)

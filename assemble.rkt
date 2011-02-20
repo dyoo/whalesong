@@ -30,7 +30,7 @@
           (cons first-block-label (collect-general-jump-targets stmts))])
     (let: loop : (Listof BasicBlock)
           ([name : Symbol first-block-label]
-           [acc : (Listof Statement) '()]
+           [acc : (Listof UnlabeledStatement) '()]
            [basic-blocks  : (Listof BasicBlock) '()]
            [stmts : (Listof Statement) stmts]
            [last-stmt-goto? : Boolean #f])
@@ -209,7 +209,7 @@
 
 
 ;; assemble-stmt: stmt -> string
-(: assemble-stmt (Statement -> String))
+(: assemble-stmt (UnlabeledStatement -> String))
 (define (assemble-stmt stmt)
   (cond
     [(AssignImmediateStatement? stmt)

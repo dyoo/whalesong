@@ -30,6 +30,7 @@
 
 
 
+
 ;; instruction sequences
 (define-type Statement (U Symbol  ;; label
                           AssignImmediateStatement
@@ -102,5 +103,5 @@
 
 
 
-(define-struct: basic-block ([name : Symbol] 
-                             [stmts : (Listof Statement)]) #:transparent)
+(define-struct: BasicBlock ([name : Symbol] 
+                            [stmts : (Listof Statement)]) #:transparent)

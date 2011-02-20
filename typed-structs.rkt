@@ -31,10 +31,31 @@
 
 
 ;; instruction sequences
+(define-type Statement (U Symbol  ;; label
+                          AssignStatement
+                          PerformStatement
+                          TestStatement
+                          BranchStatement
+                          GotoStatement
+                          SaveStatement
+                          RestoreStatement))
+(define-struct: AssignStatement () #:transparent)
+(define-struct: PerformStatement () #:transparent)
+(define-struct: TestStatement () #:transparent)
+(define-struct: BranchStatement () #:transparent)
+(define-struct: GotoStatement () #:transparent)
+(define-struct: SaveStatement () #:transparent)
+(define-struct: RestoreStatement () #:transparent)
+
+
+
+
+
+
 (define-type InstructionSequence (U Symbol instruction-sequence))
 (define-struct: instruction-sequence ([needs : (Listof Symbol)]
                                       [modifies : (Listof Symbol)]
-                                      [statements : (Listof Any)]) #:transparent)
+                                      [statements : (Listof Statement)]) #:transparent)
 (define empty-instruction-sequence (make-instruction-sequence '() '() '()))
 
 (: make-label (Symbol -> Symbol))
@@ -53,7 +74,7 @@
 (define (registers-modified s)
   (if (symbol? s) '() (instruction-sequence-modifies s)))
 
-(: statements (InstructionSequence -> (Listof Any)))
+(: statements (InstructionSequence -> (Listof Statement)))
 (define (statements s)
   (if (symbol? s) (list s) (instruction-sequence-statements s)))
 
@@ -64,3 +85,7 @@
 
 ;; Linkage
 (define-type Linkage (U 'return 'next Symbol))
+
+
+
+(define-struct: basic-block ([name : Symbol] [stmts : (Listof Statement)]) #:transparent)

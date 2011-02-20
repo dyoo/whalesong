@@ -1,7 +1,6 @@
 #lang typed/racket/base
 
 (require "typed-structs.rkt"
-         #;"assemble.rkt"
          racket/list)
 
 (provide compile)

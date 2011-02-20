@@ -1,5 +1,5 @@
-#lang racket/base
-(require "structs.rkt"
+#lang typed/racket/base
+(require "typed-structs.rkt"
          racket/string
          racket/list)
 

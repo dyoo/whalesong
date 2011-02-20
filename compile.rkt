@@ -18,6 +18,8 @@
 (define-type CompileTimeEnvironment (Listof (Listof Symbol)))
 (define-type LexicalAddress (U (List Number Number) 'not-found))
 
+
+
 ;; find-variable: symbol compile-time-environment -> lexical-address
 ;; Find where the variable should be located.
 (: find-variable (Symbol CompileTimeEnvironment -> LexicalAddress))
@@ -79,12 +81,12 @@
 (define (compile-linkage linkage)
   (cond
     [(eq? linkage 'return)
-     (make-instruction-sequence '(cont) '() '((goto (reg cont))))]
+     (make-instruction-sequence '(cont) '() `(,(make-GotoStatement (make-Reg 'cont))))]
     [(eq? linkage 'next)
      empty-instruction-sequence]
     [else
      (make-instruction-sequence '() '()
-                                `((goto (label ,linkage))))]))
+                                `(,(make-GotoStatement (make-Label linkage))))]))
 
 (: end-with-linkage (Linkage InstructionSequence -> InstructionSequence))
 (define (end-with-linkage linkage instruction-sequence)
@@ -98,7 +100,7 @@
                     (make-instruction-sequence
                      '()
                      (list target)
-                     `((assign ,target (const ,exp))))))
+                     `(,(make-AssignConstantStatement target exp)))))
 
 (: compile-quoted (Quote CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-quoted exp cenv target linkage)
@@ -106,7 +108,7 @@
                     (make-instruction-sequence
                      '()
                      (list target)
-                     `((assign ,target (const ,(Quote-text exp)))))))
+                     `(,(make-AssignConstantStatement target (Quote-text exp))))))
 
 (: compile-variable (Var CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-variable exp cenv target linkage)
@@ -119,23 +121,23 @@
                           (list target)
                           ;; Slight modification: explicitly testing for
                           ;; global variable binding before lookup.
-                          `((perform (op check-bound-global!)
-                                     (const ,(Var-id exp))
-                                     (reg env))
-                            (assign ,target
-                                    (op lookup-variable-value)
-                                    (const ,(Var-id exp))
-                                    (reg env)))))]
+                          `(,(make-PerformStatement 'check-bound-global!
+                                                    (list (make-Const (Var-id exp))
+                                                          (make-Reg 'env)))
+                            ,(make-AssignPrimOpStatement target
+                                    'lookup-variable-value
+                                    (list (make-Const (Var-id exp))
+                                          (make-Reg 'env))))))]
       [else
        (end-with-linkage linkage
                          (make-instruction-sequence
                           '(env)
                           (list target)
-                          `((assign ,target
-                                    (op lexical-address-lookup)
-                                    (const ,(first lexical-pos))
-                                    (const ,(second lexical-pos))
-                                    (reg env)))))])))
+                          `(,(make-AssignPrimOpStatement target
+                                                         'lexical-address-lookup
+                                                         (list (make-Const (first lexical-pos))
+                                                               (make-Const (second lexical-pos))
+                                                               (make-Reg 'env))))))])))
 
 
 (: compile-assignment (Assign CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -154,11 +156,11 @@
                     (make-instruction-sequence
                      '(env val)
                      (list target)
-                     `((perform (op set-variable-value!)
-                                (const ,var)
-                                (reg val)
-                                (reg env))
-                       (assign ,target (const ok))))))]
+                     `(,(make-PerformStatement 'set-variable-value!
+                                               (list (make-Const var)
+                                                     (make-Reg 'val)
+                                                     (make-Reg 'env)))
+                       ,(make-AssignConstantStatement target 'ok)))))]
       [else
        (end-with-linkage
         linkage
@@ -167,12 +169,12 @@
                     (make-instruction-sequence
                      '(env val)
                      (list target)
-                     `((perform (op lexical-address-set!)
-                                (const ,(first lexical-address))
-                                (const ,(second lexical-address))
-                                (reg env)
-                                (reg val))
-                       (assign ,target (const ok))))))])))
+                     `(,(make-PerformStatement 'lexical-address-set!
+                                (list (make-Const (first lexical-address))
+                                      (make-Const (second lexical-address))
+                                      (make-Reg 'env)
+                                      (make-Reg 'val)))
+                       ,(make-AssignConstantStatement target 'ok)))))])))
 
 
 ;; FIXME: exercise 5.43
@@ -189,11 +191,11 @@
       (make-instruction-sequence
        '(env val)
        (list target)
-       `((perform (op define-variable!)
-                  (const ,var)
-                  (reg val)
-                  (reg env))
-         (assign ,target (const ok))))))))
+       `(,(make-PerformStatement 'define-variable!
+                                 (list (make-Const var)
+                                       (make-Reg 'val)
+                                       (make-Reg 'env)))
+         ,(make-AssignConstantStatement target 'ok)))))))
 
 
 (: compile-if (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -214,8 +216,8 @@
                      (make-instruction-sequence
                       '(val)
                       '()
-                      `((test (op false?) (reg val))
-                        (branch (label ,f-branch))))
+                      `(,(make-TestStatement 'false? 'val)
+                        ,(make-BranchLabelStatement f-branch)))
                      (parallel-instruction-sequences
                       (append-instruction-sequences t-branch c-code)
                       (append-instruction-sequences f-branch a-code))
@@ -245,16 +247,16 @@
                           (make-instruction-sequence 
                            '(env)
                            (list target)
-                           `((assign ,target
-                                     (op make-compiled-procedure)
-                                     (label ,proc-entry)
-                                     ;; TODO: rather than capture the whole
-                                     ;; environment, we may instead
-                                     ;; just capture the free variables.
-                                     ;; But that requires that we box
-                                     ;; up all set!-ed variables, in order
-                                     ;; to preserve semantics of set!
-                                     (reg env)))))
+                           `(,(make-AssignPrimOpStatement target
+                                                          'make-compiled-procedure
+                                                          (list (make-Label proc-entry)
+                                                                ;; TODO: rather than capture the whole
+                                                                ;; environment, we may instead
+                                                                ;; just capture the free variables.
+                                                                ;; But that requires that we box
+                                                                ;; up all set!-ed variables, in order
+                                                                ;; to preserve semantics of set!
+                                                                (make-Reg 'env))))))
         (compile-lambda-body exp cenv
                              proc-entry))
        after-lambda))))
@@ -268,11 +270,13 @@
       '(env proc argl)
       '(env)
       `(,proc-entry
-        (assign env (op compiled-procedure-env) (reg proc))
-        (assign env
-                (op extend-environment)
-                (reg argl)
-                (reg env))))
+        ,(make-AssignPrimOpStatement 'env 
+                                     'compiled-procedure-env
+                                     (list (make-Reg 'proc)))
+        ,(make-AssignPrimOpStatement 'env
+                'extend-environment
+                (list (make-Reg 'argl)
+                      (make-Reg 'env)))))
      (compile-sequence (Lam-body exp) extended-cenv 'val 'return))))
 
 (: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -293,12 +297,13 @@
     (if (null? operand-codes)
         (make-instruction-sequence '()
                                    '(argl) 
-                                   '((assign argl (const ()))))
+                                   `(,(make-AssignConstantStatement 'argl '())))
         (let ([code-to-get-last-arg
                (append-instruction-sequences
                 (car operand-codes)
                 (make-instruction-sequence '(val) '(argl)
-                                           '((assign argl (op list) (reg val)))))])
+                                           `(,(make-AssignPrimOpStatement 'argl 'list 
+                                                                          (list (make-Reg 'val))))))])
           (if (null? (cdr operand-codes))
               code-to-get-last-arg
               (preserving '(env)
@@ -313,7 +318,10 @@
                      (make-instruction-sequence 
                       '(val argl) 
                       '(argl)
-                      '((assign argl (op cons) (reg val) (reg argl)))))])
+                      `(,(make-AssignPrimOpStatement 'argl 
+                                                     'cons 
+                                                     (list (make-Reg 'val)
+                                                           (make-Reg 'argl))))))])
     (if (null? (cdr operand-codes))
         code-for-next-arg
         (preserving '(env)
@@ -329,8 +337,8 @@
            (if (eq? linkage 'next) after-call linkage)])
       (append-instruction-sequences
        (make-instruction-sequence '(proc) '()
-                                  `((test (op primitive-procedure?) (reg proc))
-                                    (branch (label ,primitive-branch))))
+                                  `(,(make-TestStatement 'primitive-procedure? 'proc)
+                                    ,(make-BranchLabelStatement primitive-branch)))
        (parallel-instruction-sequences
         (append-instruction-sequences
          compiled-branch
@@ -341,10 +349,10 @@
                            (make-instruction-sequence 
                             '(proc argl)
                             (list target)
-                            `((assign ,target
-                                      (op apply-primitive-procedure)
-                                      (reg proc)
-                                      (reg argl)))))))
+                            `(,(make-AssignPrimOpStatement target
+                                                           'apply-primitive-procedure
+                                                           (list (make-Reg 'proc)
+                                                                 (make-Reg 'argl))))))))
        after-call))))
 
 (: compile-proc-appl (Target Linkage -> InstructionSequence))
@@ -354,31 +362,31 @@
          (make-instruction-sequence 
           '(proc) 
           all-regs
-          `((assign cont (label ,linkage))
-            (assign val (op compiled-procedure-entry)
-                    (reg proc))
-            (goto (reg val))))]
+          `(,(make-AssignLabelStatement 'cont linkage)
+            ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
+                                         (list (make-Reg 'proc)))
+            ,(make-GotoStatement (make-Reg 'val))))]
         [(and (not (eq? target 'val))
               (not (eq? linkage 'return)))
          (let ([proc-return (make-label 'procReturn)])
            (make-instruction-sequence
             '(proc)
             all-regs
-            `((assign cont (label ,proc-return))
-              (assign val (op compiled-procedure-entry)
-                      (reg proc))
-              (goto (reg val))
+            `(,(make-AssignLabelStatement 'cont proc-return)
+              ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
+                                           (list (make-Reg 'proc)))
+              ,(make-GotoStatement (make-Reg 'val))
               ,proc-return
-              (assign ,target (reg val))
-              (goto (label ,linkage)))))]
+              ,(make-AssignRegisterStatement target 'val)
+              ,(make-GotoStatement (make-Label linkage)))))]
         [(and (eq? target 'val)
               (eq? linkage 'return))
          (make-instruction-sequence
           '(proc cont)
           all-regs
-          '((assign val (op compiled-procedure-entry)
-                    (reg proc))
-            (goto (reg val))))]
+          `(,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
+                                        (list (make-Reg 'proc)))
+            ,(make-GotoStatement (make-Reg 'val))))]
         [(and (not (eq? target 'val))
               (eq? linkage 'return))
          (error 'compile "return linkage, target not val: ~s" target)]))
@@ -412,9 +420,9 @@
                                      (registers-needed seq1))
                          (list-difference (registers-modified seq1)
                                           (list first-reg))
-                         (append `((save ,first-reg))
+                         (append `(,(make-SaveStatement first-reg))
                                  (statements seq1)
-                                 `((restore ,first-reg))))
+                                 `(,(make-RestoreStatement first-reg))))
                         seq2)
             (preserving (cdr regs) seq1 seq2)))))
 

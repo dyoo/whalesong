@@ -32,21 +32,43 @@
 
 ;; instruction sequences
 (define-type Statement (U Symbol  ;; label
-                          AssignStatement
+                          AssignConstantStatement
+                          AssignLabelStatement
+                          AssignRegisterStatement
+                          AssignPrimOpStatement
                           PerformStatement
                           TestStatement
-                          BranchStatement
+                          BranchLabelStatement
                           GotoStatement
                           SaveStatement
                           RestoreStatement))
-(define-struct: AssignStatement () #:transparent)
-(define-struct: PerformStatement () #:transparent)
-(define-struct: TestStatement () #:transparent)
-(define-struct: BranchStatement () #:transparent)
-(define-struct: GotoStatement () #:transparent)
-(define-struct: SaveStatement () #:transparent)
-(define-struct: RestoreStatement () #:transparent)
+(define-struct: AssignConstantStatement ([target : Symbol]
+                                         [value : Any])
+  #:transparent)
+(define-struct: AssignRegisterStatement ([target : Symbol]
+                                         [reg : Symbol])
+  #:transparent)
+(define-struct: AssignLabelStatement ([target : Symbol]
+                                      [label : Symbol])
+  #:transparent)
+(define-struct: AssignPrimOpStatement ([target : Symbol]
+                                       [op : Symbol]
+                                       [rands : (Listof (U Label Reg Const))])
+  #:transparent)
+(define-struct: PerformStatement ([op : Symbol]
+                                  [rands : (Listof (U Label Reg Const))]) #:transparent)
+(define-struct: TestStatement ([op : (U 'false? 'primitive-procedure?)]
+                               [register-rand : Symbol]) #:transparent)
+(define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
+(define-struct: GotoStatement ([target : (U Label Reg)]) #:transparent)
+(define-struct: SaveStatement ([reg : Symbol]) #:transparent)
+(define-struct: RestoreStatement ([reg : Symbol]) #:transparent)
 
+(define-struct: Label ([name : Symbol]))
+(define-struct: Reg ([name : Symbol]))
+(define-struct: Const ([const : Any]))
+
+(define-type OpArg (U Const Label Reg))
 
 
 

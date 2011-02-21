@@ -63,9 +63,12 @@
 (define-struct: SaveStatement ([reg : Symbol]) #:transparent)
 (define-struct: RestoreStatement ([reg : Symbol]) #:transparent)
 
-(define-struct: Label ([name : Symbol]))
-(define-struct: Reg ([name : Symbol]))
-(define-struct: Const ([const : Any]))
+(define-struct: Label ([name : Symbol])
+  #:transparent)
+(define-struct: Reg ([name : Symbol])
+  #:transparent)
+(define-struct: Const ([const : Any])
+  #:transparent)
 
 (define-type OpArg (U Const Label Reg))
 
@@ -144,7 +147,8 @@
 ;;  Lexical environments
 
 ;; A toplevel prefix contains a list of toplevel variables.
-(define-struct: Prefix ([names : (Listof Symbol)]))
+(define-struct: Prefix ([names : (Listof Symbol)])
+  #:transparent)
 
 ;; A compile-time environment is a (listof (listof symbol)).
 ;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
@@ -153,7 +157,9 @@
 (define-type LexicalAddress (U LocalAddress PrefixAddress))
 
 (define-struct: LocalAddress ([depth : Natural]
-                              [pos : Natural]))
+                              [pos : Natural])
+  #:transparent)
 (define-struct: PrefixAddress ([depth : Natural]
                                [pos : Natural]
-                               [name : Symbol]))
+                               [name : Symbol])
+  #:transparent)

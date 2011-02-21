@@ -192,11 +192,15 @@
   (let: loop : String ([val : Any (Const-const stmt)])
         (cond [(symbol? val)
                (format "~s" (symbol->string val))]
-              [(list? val)
-               (format "_list(~a)" (string-join (map loop val)
-                                                ","))]
+              [(pair? val)
+               (format "[~a, ~a]" 
+                       (loop (car val))
+                       (loop (cdr val)))]
+              [(empty? val)
+               (format "undefined")]
               [else
                (format "~s" val)])))
+
 
 (: assemble-op-expression ((U PrimitiveOperator TestOperator) (Listof OpArg) -> String))
 (define (assemble-op-expression op-name inputs)
@@ -251,11 +255,8 @@
       [(extend-environment/prefix)
        (format "new ExtendedPrefixEnvironment(~a, ~a)"
                (second assembled-inputs)
-               (first assembled-inputs))]
-      #;[(lookup-variable-value)
-       (format "((~a).globalBindings[~a])"
-               (second assembled-inputs)
                (first assembled-inputs))])))
+
 
 (: assemble-op-statement (PerformOperator (Listof OpArg) -> String))
 (define (assemble-op-statement op-name inputs)

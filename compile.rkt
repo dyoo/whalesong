@@ -80,7 +80,7 @@
                     (make-instruction-sequence
                      '()
                      (list target)
-                     `(,(make-AssignImmediateStatement target (make-Const exp))))))
+                     `(,(make-AssignImmediateStatement target (make-Const (Constant-v exp)))))))
 
 (: compile-quoted (Quote CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-quoted exp cenv target linkage)

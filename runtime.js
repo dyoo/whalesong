@@ -7,44 +7,59 @@
 // function closures are Closures
 // primitive procedures are regular functions.
 
-var TopEnvironment = function() {
-    this.globalBindings = {
-	'=': function(argl) {
-            return argl[0] === argl[1][0];
-        },
+var Primitives = {
+    '=': function(argl) {
+        return argl[0] === argl[1][0];
+    },
+    
+    '+': function(argl) {
+        return argl[0] + argl[1][0];
+    },
+    
+    '*': function(argl) {
+        return argl[0] * argl[1][0];
+    },
+    
+    '-': function(argl) {
+        return argl[0] - argl[1][0];
+    },
+    
+    '/': function(argl) {
+	return argl[0] / argl[1][0];
+    }
+};
 
-        '+': function(argl) {
-            return argl[0] + argl[1][0];
-        },
 
-        '*': function(argl) {
-            return argl[0] * argl[1][0];
-        },
-
-	'-': function(argl) {
-            return argl[0] - argl[1][0];
-        },
-	
-	'/': function(argl) {
-	    return argl[0] / argl[1][0];
-	}
-    };
+var TopEnvironment = function() {    
     this.valss = [];
 };
 
+
 var ExtendedPrefixEnvironment = function(parent, vs) {
     var vals = [];
+    this.names = [];
     while(vs) {
-	if (parent.globalBindings[vs[0]]) {
-	    vals.push(parent.globalBindings[vs[0]]);
+	this.names.push(vs[0]);
+	if (Primitives[vs[0]]) {
+	    vals.push(Primitives[vs[0]]);
 	} else {
 	    vals.push(undefined);
 	}	
 	vs = vs[1];
     }
+
     this.valss = parent.valss.slice();
     this.valss.unshift(vals);
-    this.globalBindings = parent.globalBindings;
+};
+
+ExtendedPrefixEnvironment.prototype.lookup = function(name) {
+    var i;
+    for (i = 0; i < this.names.length; i++) {
+	if (this.names[i] === name) {
+	    return this.valss[0][i];
+	}
+    }
+    return undefined;
 };
 
 var ExtendedEnvironment = function(parent, vs) {
@@ -55,7 +70,6 @@ var ExtendedEnvironment = function(parent, vs) {
     }
     this.valss = parent.valss.slice();
     this.valss.unshift(vals);
-    this.globalBindings = parent.globalBindings;
 };
 
 

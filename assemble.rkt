@@ -1,5 +1,6 @@
 #lang typed/racket/base
 (require "typed-structs.rkt"
+         "helpers.rkt"
          racket/string
          racket/list)
 
@@ -66,13 +67,6 @@
 
 
 
-;; unique: (listof symbol -> listof symbol)
-(: unique ((Listof Symbol) -> (Listof Symbol)))
-(define (unique los)
-  (let: ([ht : (HashTable Symbol Boolean) (make-hasheq)])
-    (for ([l los])
-      (hash-set! ht l #t))
-    (hash-map ht (lambda: ([k : Symbol] [v : Boolean]) k))))
 
 
 

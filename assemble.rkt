@@ -241,10 +241,11 @@
                (first assembled-inputs)
                (second assembled-inputs))]
       [(toplevel-lookup)
-       (format "(~a).valss[~a][~a]"
-               (third assembled-inputs)
-               (first assembled-inputs)
-               (second assembled-inputs))]
+       (let ([depth (first assembled-inputs)]
+             [pos (second assembled-inputs)]
+             [name (third assembled-inputs)]
+             [env (fourth assembled-inputs)])
+         (format "(~a).valss[~a][~a]" env depth pos))]
       [(primitive-procedure?)
        (format "(typeof(~a) === 'function')"
                (first assembled-inputs))]

@@ -19,9 +19,14 @@
   (let: loop : LexicalAddress ([cenv : CompileTimeEnvironment cenv]
                                [depth : Natural 0])
         (cond [(empty? cenv)
-               'not-found]
+               (error 'find-variable "Unable to find ~s in the environment" name)]
+              [(Prefix? (first cenv))
+               (cond [(member name (Prefix-names (first cenv)))
+                      (make-PrefixAddress depth (find-pos name (Prefix-names (first cenv))) name)]
+                     [else
+                      (loop (rest cenv) (add1 depth))])]
               [(member name (first cenv))
-               (list depth (find-pos name (first cenv)))]
+               (make-LocalAddress depth (find-pos name (first cenv)))]
               [else
                (loop (rest cenv) (add1 depth))])))
 

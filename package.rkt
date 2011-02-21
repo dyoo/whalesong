@@ -17,10 +17,9 @@
       (copy-port ip op)))
   (newline op)
   (fprintf op "var invoke = ")
-  (assemble/write-invoke (statements (compile (parse source-code)
-                                              '()
-                                              'val
-                                              'return))
+  (assemble/write-invoke (statements (compile-top (parse source-code)
+                                                  'val
+                                                  'return))
                          op)
   (fprintf op ";\n"))
 
@@ -35,7 +34,7 @@
                1
                (* (factorial (- n 1))
                   n))))
-(test '(begin
+#;(test '(begin
          (define (factorial n)
            (fact-iter n 1))
          (define (fact-iter n acc)
@@ -43,13 +42,13 @@
                acc
                (fact-iter (- n 1) (* acc n))))))
 
-(test '(define (gauss n)
+#;(test '(define (gauss n)
          (if (= n 0)
              0
              (+ (gauss (- n 1))
                 n))))
 
-(test '(define (fib n)
+#;(test '(define (fib n)
            (if (< n 2)
                1
                (+ (fib (- n 1))

@@ -3,18 +3,30 @@
 (require "typed-structs.rkt"
          "lexical-env.rkt"
          "helpers.rkt"
+         "find-toplevel-variables.rkt"
          racket/list)
 
-(provide compile)
+(provide compile-top)
 
-;; SICP, Chapter 5.5
 
 ;; registers: env, argl, proc, val, cont
 ;; as well as the stack.
 (define all-regs '(env argl proc val cont))
 
 
-
+(: compile-top (Expression Target Linkage -> InstructionSequence))
+(define (compile-top exp target linkage)
+  (let*: ([names : (Listof Symbol) (find-toplevel-variables exp)]
+          [cenv : CompileTimeEnvironment (list (make-Prefix names))])
+        (append-instruction-sequences
+         (make-instruction-sequence 
+          '(env)
+          '(env)
+          `(,(make-AssignPrimOpStatement 'env
+                                         'extend-environment/prefix
+                                         (list (make-Const names)
+                                               (make-Reg 'env)))))
+         (compile exp cenv target linkage))))
 
 
 ;; compile: expression target linkage -> instruction-sequence
@@ -82,29 +94,31 @@
 (define (compile-variable exp cenv target linkage)
   (let ([lexical-pos (find-variable (Var-id exp) cenv)])
     (cond
-      [(eq? lexical-pos 'not-found)
-       (end-with-linkage linkage
-                         (make-instruction-sequence
-                          '(env)
-                          (list target)
-                          ;; Slight modification: explicitly testing for
-                          ;; global variable binding before lookup.
-                          `(,(make-PerformStatement 'check-bound-global!
-                                                    (list (make-Const (Var-id exp))
-                                                          (make-Reg 'env)))
-                            ,(make-AssignPrimOpStatement target
-                                    'lookup-variable-value
-                                    (list (make-Const (Var-id exp))
-                                          (make-Reg 'env))))))]
-      [else
+      [(LocalAddress? lexical-pos)
        (end-with-linkage linkage
                          (make-instruction-sequence
                           '(env)
                           (list target)
                           `(,(make-AssignPrimOpStatement target
                                                          'lexical-address-lookup
-                                                         (list (make-Const (first lexical-pos))
-                                                               (make-Const (second lexical-pos))
+                                                         (list (make-Const (LocalAddress-depth lexical-pos))
+                                                               (make-Const (LocalAddress-pos lexical-pos))
+                                                               (make-Reg 'env))))))]
+      [(PrefixAddress? lexical-pos)
+       (end-with-linkage linkage
+                         (make-instruction-sequence
+                          '(env)
+                          (list target)
+                          `(,(make-PerformStatement 'check-bound! 
+                                                    (list (make-Const (PrefixAddress-depth lexical-pos))
+                                                          (make-Const (PrefixAddress-pos lexical-pos))
+                                                          (make-Const (PrefixAddress-name lexical-pos))
+                                                          (make-Reg 'env)))
+                            ,(make-AssignPrimOpStatement target
+                                                         'toplevel-lookup
+                                                         (list (make-Const (PrefixAddress-depth lexical-pos))
+                                                               (make-Const (PrefixAddress-pos lexical-pos))
+                                                               (make-Const (PrefixAddress-name lexical-pos))
                                                                (make-Reg 'env))))))])))
 
 
@@ -116,20 +130,7 @@
          [lexical-address
           (find-variable var cenv)])
     (cond
-      [(eq? lexical-address 'not-found)
-       (end-with-linkage
-        linkage
-        (preserving '(env)
-                    get-value-code
-                    (make-instruction-sequence
-                     '(env val)
-                     (list target)
-                     `(,(make-PerformStatement 'set-variable-value!
-                                               (list (make-Const var)
-                                                     (make-Reg 'val)
-                                                     (make-Reg 'env)))
-                       ,(make-AssignImmediateStatement target (make-Const 'ok))))))]
-      [else
+      [(LocalAddress? lexical-address)
        (end-with-linkage
         linkage
         (preserving '(env)
@@ -138,8 +139,23 @@
                      '(env val)
                      (list target)
                      `(,(make-PerformStatement 'lexical-address-set!
-                                (list (make-Const (first lexical-address))
-                                      (make-Const (second lexical-address))
+                                (list (make-Const (LocalAddress-depth lexical-address))
+                                      (make-Const (LocalAddress-pos lexical-address))
+                                      (make-Reg 'env)
+                                      (make-Reg 'val)))
+                       ,(make-AssignImmediateStatement target (make-Const 'ok))))))]
+      [(PrefixAddress? lexical-address)
+       (end-with-linkage
+        linkage
+        (preserving '(env)
+                    get-value-code
+                    (make-instruction-sequence
+                     '(env val)
+                     (list target)
+                     `(,(make-PerformStatement 'toplevel-set!
+                                (list (make-Const (PrefixAddress-depth lexical-address))
+                                      (make-Const (PrefixAddress-pos lexical-address))
+                                      (make-Const (PrefixAddress-name lexical-address))
                                       (make-Reg 'env)
                                       (make-Reg 'val)))
                        ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
@@ -148,22 +164,29 @@
 ;; FIXME: exercise 5.43
 (: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-definition exp cenv target linkage)
-  (let ([var (Def-variable exp)]
-        [get-value-code
-         (compile (Def-value exp) cenv 'val 'next)])
-    (end-with-linkage
-     linkage
-     (preserving
-      '(env)
-      get-value-code
-      (make-instruction-sequence
-       '(env val)
-       (list target)
-       `(,(make-PerformStatement 'define-variable!
-                                 (list (make-Const var)
-                                       (make-Reg 'val)
-                                       (make-Reg 'env)))
-         ,(make-AssignImmediateStatement target (make-Const 'ok))))))))
+  (let* ([var (Def-variable exp)]
+         [lexical-pos (find-variable var cenv)]
+         [get-value-code
+          (compile (Def-value exp) cenv 'val 'next)])
+    (cond
+      [(LocalAddress? lexical-pos)
+       (error 'compile-definition "Defintion not at toplevel")]
+      [(PrefixAddress? lexical-pos)
+       (end-with-linkage
+        linkage
+        (preserving
+         '(env)
+         get-value-code
+         (make-instruction-sequence
+          '(env val)
+          (list target)
+          `(,(make-PerformStatement 'toplevel-set!
+                                    (list (make-Const (PrefixAddress-depth lexical-pos))
+                                          (make-Const (PrefixAddress-pos lexical-pos))
+                                          (make-Const var)
+                                          (make-Reg 'env)
+                                          (make-Reg 'val)))
+            ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
 
 
 (: compile-if (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))

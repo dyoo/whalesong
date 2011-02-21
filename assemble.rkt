@@ -236,6 +236,11 @@
                (third assembled-inputs)
                (first assembled-inputs)
                (second assembled-inputs))]
+      [(toplevel-lookup)
+       (format "(~a).valss[~a][~a]"
+               (third assembled-inputs)
+               (first assembled-inputs)
+               (second assembled-inputs))]
       [(primitive-procedure?)
        (format "(typeof(~a) === 'function')"
                (first assembled-inputs))]
@@ -243,7 +248,11 @@
        (format "new ExtendedEnvironment(~a, ~a)"
                (second assembled-inputs)
                (first assembled-inputs))]
-      [(lookup-variable-value)
+      [(extend-environment/prefix)
+       (format "new ExtendedPrefixEnvironment(~a, ~a)"
+               (second assembled-inputs)
+               (first assembled-inputs))]
+      #;[(lookup-variable-value)
        (format "((~a).globalBindings[~a])"
                (second assembled-inputs)
                (first assembled-inputs))])))
@@ -252,27 +261,34 @@
 (define (assemble-op-statement op-name inputs)
   (let ([assembled-inputs (map assemble-input inputs)])
     (case op-name
-      [(define-variable!)
-       (format "(~a).globalBindings[~a] = ~a;"
-               (third assembled-inputs)
-               (first assembled-inputs)
-               (second assembled-inputs))]
-      [(set-variable-value!)
-       (format "(~a).globalBindings[~a] = ~a;"
-               (third assembled-inputs)
-               (first assembled-inputs)
-               (second assembled-inputs))]
       [(lexical-address-set!)
        (format "(~a).valss[~a][~a] = ~a;"
                (third assembled-inputs)
                (first assembled-inputs)
                (second assembled-inputs)
                (fourth assembled-inputs))]
-      [(check-bound-global!)
-       (format "if (! (~a).globalBindings.hasOwnProperty(~a)) { throw new Error(\"Not bound: \" + ~a); }"
-               (second assembled-inputs)
-               (first assembled-inputs)
-               (first assembled-inputs))])))
+      [(toplevel-set!)
+       (let ([depth (first assembled-inputs)]
+             [pos (second assembled-inputs)]
+             [name (third assembled-inputs)]
+             [env (fourth assembled-inputs)]
+             [val (fifth assembled-inputs)])
+         (format "(~a).valss[~a][~a] = ~a;"
+                 env
+                 depth
+                 pos
+                 val))]
+      [(check-bound!)
+       (let ([depth (first assembled-inputs)]
+             [pos (second assembled-inputs)]
+             [name (third assembled-inputs)]
+             [env (fourth assembled-inputs)])
+         (format "if ((~a).valss[~a][~a] === undefined) { throw new Error(\"Not bound: \" + ~a); }"
+                 env
+                 depth
+                 pos
+                 name))])))
+
 
 
 

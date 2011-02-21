@@ -73,18 +73,23 @@
 (define-type PrimitiveOperator (U 'compiled-procedure-entry
                                   'compiled-procedure-env
                                   'make-compiled-procedure
+
                                   'false?
                                   'cons
                                   'list
                                   'apply-primitive-procedure
+                                  
                                   'lexical-address-lookup
+                                  'toplevel-lookup
+                                  
                                   'extend-environment
-                                  'lookup-variable-value))
+                                  'extend-environment/prefix))
+
 (define-type TestOperator (U 'false? 'primitive-procedure?))
-(define-type PerformOperator (U 'define-variable!
-                                'set-variable-value!
+
+(define-type PerformOperator (U 'toplevel-set!
                                 'lexical-address-set!
-                                'check-bound-global!))
+                                'check-bound!))
 
 
 
@@ -138,10 +143,17 @@
 
 ;;  Lexical environments
 
+;; A toplevel prefix contains a list of toplevel variables.
+(define-struct: Prefix ([names : (Listof Symbol)]))
 
 ;; A compile-time environment is a (listof (listof symbol)).
 ;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
-(define-type CompileTimeEnvironment (Listof (Listof Symbol)))
-(define-type LexicalAddress (U (List Number Number) 'not-found))
+(define-type CompileTimeEnvironment (Listof (U (Listof Symbol)
+                                               Prefix)))
+(define-type LexicalAddress (U LocalAddress PrefixAddress))
 
-(define-struct: Prefix ([names : (Listof Symbol)]))
+(define-struct: LocalAddress ([depth : Natural]
+                              [pos : Natural]))
+(define-struct: PrefixAddress ([depth : Natural]
+                               [pos : Natural]
+                               [name : Symbol]))

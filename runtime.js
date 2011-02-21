@@ -32,6 +32,21 @@ var TopEnvironment = function() {
     this.valss = [];
 };
 
+var ExtendedPrefixEnvironment = function(parent, vs) {
+    var vals = [];
+    while(vs) {
+	if (parent.globalBindings[vs[0]]) {
+	    vals.push(parent.globalBindings[vs[0]]);
+	} else {
+	    vals.push(undefined);
+	}	
+	vs = vs[1];
+    }
+    this.valss = parent.valss.slice();
+    this.valss.unshift(vals);
+    this.globalBindings = parent.globalBindings;
+};
+
 var ExtendedEnvironment = function(parent, vs) {
     var vals = [];
     while(vs) {

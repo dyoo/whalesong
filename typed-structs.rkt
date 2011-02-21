@@ -132,3 +132,16 @@
 
 (define-struct: BasicBlock ([name : Symbol] 
                             [stmts : (Listof UnlabeledStatement)]) #:transparent)
+
+
+;;;;;;;;;;;;;;
+
+;;  Lexical environments
+
+
+;; A compile-time environment is a (listof (listof symbol)).
+;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
+(define-type CompileTimeEnvironment (Listof (Listof Symbol)))
+(define-type LexicalAddress (U (List Number Number) 'not-found))
+
+(define-struct: Prefix ([names : (Listof Symbol)]))

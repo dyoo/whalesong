@@ -1,6 +1,8 @@
 #lang typed/racket/base
 
 (require "typed-structs.rkt"
+         "lexical-env.rkt"
+         "helpers.rkt"
          racket/list)
 
 (provide compile)
@@ -13,39 +15,6 @@
 
 
 
-;; A compile-time environment is a (listof (listof symbol)).
-;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
-(define-type CompileTimeEnvironment (Listof (Listof Symbol)))
-(define-type LexicalAddress (U (List Number Number) 'not-found))
-
-
-
-;; find-variable: symbol compile-time-environment -> lexical-address
-;; Find where the variable should be located.
-(: find-variable (Symbol CompileTimeEnvironment -> LexicalAddress))
-(define (find-variable name cenv)
-  (: find-pos (Symbol (Listof Symbol) -> Natural))
-  (define (find-pos sym los)
-    (cond
-      [(eq? sym (car los))
-       0]
-      [else
-       (add1 (find-pos sym (cdr los)))]))
-  (let: loop : LexicalAddress ([cenv : CompileTimeEnvironment cenv]
-                               [depth : Natural 0])
-        (cond [(empty? cenv)
-               'not-found]
-              [(member name (first cenv))
-               (list depth (find-pos name (first cenv)))]
-              [else
-               (loop (rest cenv) (add1 depth))])))
-
-
-
-;; extend-lexical-environment: lexical-environment (listof symbol) -> lexical-envrionment
-(: extend-lexical-environment (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
-(define (extend-lexical-environment cenv names)
-  (cons names cenv))
 
 
 ;; compile: expression target linkage -> instruction-sequence
@@ -72,9 +41,8 @@
                        target
                        linkage)]
     [(App? exp)
-     (compile-application exp cenv target linkage)]
-    [else
-     (error 'compile "Unknown expression type ~e" exp)]))
+     (compile-application exp cenv target linkage)]))
+
 
 
 (: compile-linkage (Linkage -> InstructionSequence))
@@ -449,21 +417,7 @@
       (append-2-sequences (car seqs)
                           (append-seq-list (cdr seqs)))))
 
-(: list-union ((Listof Symbol) (Listof Symbol) -> (Listof Symbol)))
-(define (list-union s1 s2)
-  (cond [(null? s1) s2]
-        [(memq (car s1) s2)
-         (list-union (cdr s1) s2)]
-        [else (cons (car s1) (list-union (cdr s1) s2))]))
 
-
-(: list-difference ((Listof Symbol) (Listof Symbol) -> (Listof Symbol)))
-(define (list-difference s1 s2)
-  (cond [(null? s1) '()]
-        [(memq (car s1) s2)
-         (list-difference (cdr s1) s2)]
-        [else
-         (cons (car s1) (list-difference (cdr s1) s2))]))
 
 
 (: tack-on-instruction-sequence (InstructionSequence InstructionSequence -> InstructionSequence))
@@ -480,35 +434,4 @@
    (list-union (registers-modified seq1)
                (registers-modified seq2))
    (append (statements seq1) (statements seq2))))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#;(define (test source-code)
-  (let ([basic-blocks
-         (fracture (statements (compile source-code
-                                        '()
-                                        'val
-                                        'return)))])
-    (printf "var invoke = function(MACHINE, k) {\n")
-    (for-each (lambda (basic-block)
-                (displayln (assemble-basic-block basic-block))
-                (newline))
-              basic-blocks)
-    (printf "MACHINE.cont = k;\n")
-    (printf "trampoline(~a, function() {}); };\n"
-            (basic-block-name (first basic-blocks)))))
 

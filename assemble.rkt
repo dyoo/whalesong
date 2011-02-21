@@ -80,6 +80,7 @@
 ;; collects all the labels that are potential targets for GOTOs or branches.
 (: collect-general-jump-targets ((Listof Statement) -> (Listof Symbol)))
 (define (collect-general-jump-targets stmts)
+  (: collect-input (OpArg -> (Listof Symbol)))
   (define (collect-input an-input)
     (cond
       [(Reg? an-input)
@@ -87,15 +88,16 @@
       [(Const? an-input)
        empty]
       [(Label? an-input)
-       (list (Label-name an-input))]
-      [else (error 'collect-input "~e" an-input)]))
+       (list (Label-name an-input))]))
+
+  (: collect-location ((U Reg Label) -> (Listof Symbol)))
   (define (collect-location a-location)
     (cond
       [(Reg? a-location)
        empty]
       [(Label? a-location)
-       (list (Label-name a-location))]
-      [else (error 'collect-location "~e" a-location)]))
+       (list (Label-name a-location))]))
+  
   (unique
    (let loop ([stmts stmts])
      (cond [(empty? stmts)
@@ -129,71 +131,6 @@
                         [(RestoreStatement? stmt)
                          empty])
                       (loop (rest stmts))))]))))
-
-
-
-;; collect-indirect-jump-targets: (listof stmt) -> (listof label)
-;; collects the labels that are potential targets for GOTOs or branches from
-;; indirect jumps.
-;; The only interesting case should be where there's a register assignment
-;; whose value is a label.
-#;(: collect-indirect-jump-targets ((Listof Statement) -> (Listof Symbol)))
-#;(define (collect-indirect-jump-targets stmts)
-  (define (collect-input an-input)
-    (cond
-      [(reg? an-input)
-       empty]
-      [(const? an-input)
-       empty]
-      [(label? an-input)
-       empty]
-      [else (error 'collect-input "~e" an-input)]))
-  (define (collect-location a-location)
-    (cond
-      [(reg? a-location)
-       empty]
-      [(label? a-location)
-       empty]
-      [else 
-       (error 'collect-location "~e" a-location)]))
-  (unique
-   (let loop ([stmts stmts])
-     (cond [(empty? stmts)
-            empty]
-           [else
-            (let ([stmt (first stmts)])
-              (append (cond
-                        [(symbol? stmt)
-                         empty]
-                        [(tagged-list? stmt 'assign)
-                         (cond 
-                           [(reg? (caddr stmt))
-                            empty]
-                           [(label? (caddr stmt))
-                            ;; Watch assignments of labels into registers.
-                            (list (label-name (caddr stmt)))]
-                           [(const? (caddr stmt))
-                            empty]
-                           [(op? (caddr stmt))
-                            empty]
-                           [else
-                            (error 'assemble "~a" stmt)])]
-                        [(tagged-list? stmt 'perform)
-                         empty]
-                        [(tagged-list? stmt 'test)
-                         empty]
-                        [(tagged-list? stmt 'branch)
-                         empty]
-                        [(tagged-list? stmt 'goto)
-                         empty]
-                        [(tagged-list? stmt 'save)
-                         empty]
-                        [(tagged-list? stmt 'restore)
-                         empty]
-                        [else
-                         (error 'assemble "~a" stmt)])
-                      (loop (rest stmts))))]))))
-
 
 
 
@@ -267,7 +204,7 @@
               [else
                (format "~s" val)])))
 
-(: assemble-op-expression (Symbol (Listof OpArg) -> String))
+(: assemble-op-expression ((U PrimitiveOperator TestOperator) (Listof OpArg) -> String))
 (define (assemble-op-expression op-name inputs)
   (let ([assembled-inputs (map assemble-input inputs)])
     (case op-name
@@ -315,11 +252,9 @@
       [(lookup-variable-value)
        (format "((~a).globalBindings[~a])"
                (second assembled-inputs)
-               (first assembled-inputs))]
-      [else
-       (error 'assemble "~e" op-name)])))
+               (first assembled-inputs))])))
 
-(: assemble-op-statement (Symbol (Listof OpArg) -> String))
+(: assemble-op-statement (PerformOperator (Listof OpArg) -> String))
 (define (assemble-op-statement op-name inputs)
   (let ([assembled-inputs (map assemble-input inputs)])
     (case op-name
@@ -343,9 +278,7 @@
        (format "if (! (~a).globalBindings.hasOwnProperty(~a)) { throw new Error(\"Not bound: \" + ~a); }"
                (second assembled-inputs)
                (first assembled-inputs)
-               (first assembled-inputs))]
-      [else
-       (error 'assemble-op-statement "~a" op-name)])))
+               (first assembled-inputs))])))
 
 
 

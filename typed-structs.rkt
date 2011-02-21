@@ -1,6 +1,9 @@
 #lang typed/racket/base
 (provide (all-defined-out))
 
+
+;; Expressions
+
 (define-type Expression (U Constant Quote Var Assign Branch Def Lam Seq App))
 (define-struct: Constant ([v : Any]) #:transparent)
 (define-struct: Quote ([text : Any]) #:transparent)
@@ -29,7 +32,7 @@
 (define (rest-exps seq) (cdr seq))
 
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; instruction sequences
 (define-type UnlabeledStatement (U 
@@ -48,12 +51,12 @@
                                           [value : (U Const Reg Label)])
   #:transparent)
 (define-struct: AssignPrimOpStatement ([target : Symbol]
-                                       [op : Symbol]
+                                       [op : PrimitiveOperator]
                                        [rands : (Listof (U Label Reg Const))])
   #:transparent)
-(define-struct: PerformStatement ([op : Symbol]
+(define-struct: PerformStatement ([op : PerformOperator]
                                   [rands : (Listof (U Label Reg Const))]) #:transparent)
-(define-struct: TestStatement ([op : (U 'false? 'primitive-procedure?)]
+(define-struct: TestStatement ([op : TestOperator]
                                [register-rand : Symbol]) #:transparent)
 (define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
 (define-struct: GotoStatement ([target : (U Label Reg)]) #:transparent)
@@ -66,6 +69,22 @@
 
 (define-type OpArg (U Const Label Reg))
 
+
+(define-type PrimitiveOperator (U 'compiled-procedure-entry
+                                  'compiled-procedure-env
+                                  'make-compiled-procedure
+                                  'false?
+                                  'cons
+                                  'list
+                                  'apply-primitive-procedure
+                                  'lexical-address-lookup
+                                  'extend-environment
+                                  'lookup-variable-value))
+(define-type TestOperator (U 'false? 'primitive-procedure?))
+(define-type PerformOperator (U 'define-variable!
+                                'set-variable-value!
+                                'lexical-address-set!
+                                'check-bound-global!))
 
 
 
@@ -105,6 +124,11 @@
 (define-type Linkage (U 'return 'next Symbol))
 
 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Assembly
 
 (define-struct: BasicBlock ([name : Symbol] 
                             [stmts : (Listof UnlabeledStatement)]) #:transparent)

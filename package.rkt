@@ -1,8 +1,9 @@
 #lang racket/base
 
-(require "cm.rkt"
+(require "compile.rkt"
          "structs.rkt"
          "assemble.rkt"
+         "typed-parse.rkt"
          racket/runtime-path
          racket/port)
 ;; Packager: produce single .js files to be included.
@@ -16,7 +17,7 @@
       (copy-port ip op)))
   (newline op)
   (fprintf op "var invoke = ")
-  (assemble/write-invoke (statements (compile source-code
+  (assemble/write-invoke (statements (compile (parse source-code)
                                               '()
                                               'val
                                               'return))

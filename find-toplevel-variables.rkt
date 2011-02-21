@@ -25,7 +25,8 @@
        (loop (Assign-value exp))]
       
       [(Def? exp)
-       (loop (Def-value exp))]
+       (cons (Def-variable exp)
+             (loop (Def-value exp)))]
       
       [(Branch? exp)
        (append (loop (Branch-predicate exp))

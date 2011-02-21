@@ -1,5 +1,5 @@
-#lang racket/base
-(require "structs.rkt"
+#lang typed/racket/base
+(require "typed-structs.rkt"
          racket/string
          racket/list)
 
@@ -7,43 +7,46 @@
 
 
 ;; assemble/write-invoke: (listof statement) output-port -> void
+(: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
 (define (assemble/write-invoke stmts op)
   (let ([basic-blocks (fracture stmts)])
     (fprintf op "function(k) {\n")
-    (for-each (lambda (basic-block)
+    (for-each (lambda: ([basic-block : BasicBlock])
                 (displayln (assemble-basic-block basic-block) op)
                 (newline op))
               basic-blocks)
     (fprintf op "MACHINE.cont = k;\n")
     (fprintf op "trampoline(~a, function() {}); }"
-             (basic-block-name (first basic-blocks)))))
+             (BasicBlock-name (first basic-blocks)))))
 
 
 
 
 ;; fracture: (listof stmt) -> (listof basic-block)
+(: fracture ((Listof Statement) -> (Listof BasicBlock)))
 (define (fracture stmts)
   (let* ([first-block-label (make-label 'start)]
          [jump-targets 
           (cons first-block-label (collect-general-jump-targets stmts))])
-    (let loop ([name first-block-label]
-               [acc '()]
-               [basic-blocks '()]
-               [stmts stmts]
-               [last-stmt-goto? #f])
+    (let: loop : (Listof BasicBlock)
+          ([name : Symbol first-block-label]
+           [acc : (Listof UnlabeledStatement) '()]
+           [basic-blocks  : (Listof BasicBlock) '()]
+           [stmts : (Listof Statement) stmts]
+           [last-stmt-goto? : Boolean #f])
       (cond
         [(null? stmts)
-         (reverse (cons (make-basic-block name (reverse acc))
+         (reverse (cons (make-BasicBlock name (reverse acc))
                         basic-blocks))]
         [(symbol? (car stmts))
          (cond
            [(member (car stmts) jump-targets)
             (loop (car stmts)
                   '()
-                  (cons (make-basic-block name  
+                  (cons (make-BasicBlock name  
                                           (if last-stmt-goto? 
                                               (reverse acc)
-                                              (reverse (append `((goto (label ,(car stmts))))
+                                              (reverse (append `(,(make-GotoStatement (make-Label (car stmts))))
                                                                acc))))
                         basic-blocks)
                   (cdr stmts)
@@ -59,37 +62,39 @@
                (cons (car stmts) acc)
                basic-blocks
                (cdr stmts)
-               (tagged-list? (car stmts) 'goto))]))))
+               (GotoStatement? (car stmts)))]))))
 
 
 
 ;; unique: (listof symbol -> listof symbol)
+(: unique ((Listof Symbol) -> (Listof Symbol)))
 (define (unique los)
-  (let ([ht (make-hasheq)])
+  (let: ([ht : (HashTable Symbol Boolean) (make-hasheq)])
     (for ([l los])
       (hash-set! ht l #t))
-    (for/list ([k (in-hash-keys ht)]) 
-      k)))
+    (hash-map ht (lambda: ([k : Symbol] [v : Boolean]) k))))
+
 
 
 ;; collect-general-jump-targets: (listof stmt) -> (listof label)
 ;; collects all the labels that are potential targets for GOTOs or branches.
+(: collect-general-jump-targets ((Listof Statement) -> (Listof Symbol)))
 (define (collect-general-jump-targets stmts)
   (define (collect-input an-input)
     (cond
-      [(reg? an-input)
+      [(Reg? an-input)
        empty]
-      [(const? an-input)
+      [(Const? an-input)
        empty]
-      [(label? an-input)
-       (list (label-name an-input))]
+      [(Label? an-input)
+       (list (Label-name an-input))]
       [else (error 'collect-input "~e" an-input)]))
   (define (collect-location a-location)
     (cond
-      [(reg? a-location)
+      [(Reg? a-location)
        empty]
-      [(label? a-location)
-       (list (label-name a-location))]
+      [(Label? a-location)
+       (list (Label-name a-location))]
       [else (error 'collect-location "~e" a-location)]))
   (unique
    (let loop ([stmts stmts])
@@ -100,32 +105,29 @@
               (append (cond
                         [(symbol? stmt)
                          empty]
-                        [(tagged-list? stmt 'assign)
-                         (cond 
-                           [(reg? (caddr stmt))
-                            empty]
-                           [(label? (caddr stmt))
-                            (list (label-name (caddr stmt)))]
-                           [(const? (caddr stmt))
-                            empty]
-                           [(op? (caddr stmt))
-                            (apply append (map collect-input (cdddr stmt)))]
-                           [else
-                            (error 'assemble "~a" stmt)])]
-                        [(tagged-list? stmt 'perform)
-                         (apply append (map collect-input (cddr stmt)))]
-                        [(tagged-list? stmt 'test)
-                         (apply append (map collect-input (cddr stmt)))]
-                        [(tagged-list? stmt 'branch)
-                         (collect-location (cadr stmt))]
-                        [(tagged-list? stmt 'goto)
-                         (collect-location (cadr stmt))]
-                        [(tagged-list? stmt 'save)
+                        [(AssignImmediateStatement? stmt)
+                         (let ([v (AssignImmediateStatement-value stmt)])
+                           (cond 
+                             [(Reg? v)
+                              empty]
+                             [(Label? v)
+                              (list (Label-name v))]
+                             [(Const? v)
+                              empty]))]
+                        [(AssignPrimOpStatement? stmt)
+                         (apply append (map collect-input (AssignPrimOpStatement-rands stmt)))]
+                        [(PerformStatement? stmt)
+                         (apply append (map collect-input (PerformStatement-rands stmt)))]
+                        [(TestStatement? stmt)
                          empty]
-                        [(tagged-list? stmt 'restore)
+                        [(BranchLabelStatement? stmt)
+                         (list (BranchLabelStatement-label stmt))]
+                        [(GotoStatement? stmt)
+                         (collect-location (GotoStatement-target stmt))]
+                        [(SaveStatement? stmt)
                          empty]
-                        [else
-                         (error 'assemble "~a" stmt)])
+                        [(RestoreStatement? stmt)
+                         empty])
                       (loop (rest stmts))))]))))
 
 
@@ -135,7 +137,8 @@
 ;; indirect jumps.
 ;; The only interesting case should be where there's a register assignment
 ;; whose value is a label.
-(define (collect-indirect-jump-targets stmts)
+#;(: collect-indirect-jump-targets ((Listof Statement) -> (Listof Symbol)))
+#;(define (collect-indirect-jump-targets stmts)
   (define (collect-input an-input)
     (cond
       [(reg? an-input)
@@ -196,70 +199,75 @@
 
 
 ;; assemble-basic-block: basic-block -> string
+(: assemble-basic-block (BasicBlock -> String))
 (define (assemble-basic-block a-basic-block)
   (format "var ~a=function(){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
-          (basic-block-name a-basic-block)
-          (basic-block-name a-basic-block)
-          (string-join (map assemble-stmt (basic-block-stmts a-basic-block))
+          (BasicBlock-name a-basic-block)
+          (BasicBlock-name a-basic-block)
+          (string-join (map assemble-stmt (BasicBlock-stmts a-basic-block))
                        "\n")))
 
 
 ;; assemble-stmt: stmt -> string
+(: assemble-stmt (UnlabeledStatement -> String))
 (define (assemble-stmt stmt)
   (cond
-    [(tagged-list? stmt 'assign)
-     (cond 
-       [(reg? (caddr stmt))
-        (format "MACHINE.~a=~a" 
-                (cadr stmt)
-                (assemble-reg (caddr stmt)))]
-       [(label? (caddr stmt))
-        (format "MACHINE.~a=~a;" (cadr stmt) 
-                (assemble-label (caddr stmt)))]
-       [(const? (caddr stmt))
-        (format "MACHINE.~a=~a;" 
-                (cadr stmt)
-                (assemble-const (caddr stmt)))]
-       [(op? (caddr stmt))
-        (format "MACHINE.~a=~a;" 
-                (cadr stmt)
-                (assemble-op-expression (op-name (caddr stmt))
-                                        (cdddr stmt)))]
-       [else
-        (error 'assemble "~a" stmt)])]
-    [(tagged-list? stmt 'perform)
-     (assemble-op-statement (op-name (cadr stmt))
-                            (cddr stmt))]
-    [(tagged-list? stmt 'test)
+    [(AssignImmediateStatement? stmt)
+     (let ([v (AssignImmediateStatement-value stmt)])
+       (cond 
+         [(Reg? v)
+          (format "MACHINE.~a=~a" 
+                  (AssignImmediateStatement-target stmt)
+                  (assemble-reg v))]
+         [(Label? v)
+          (format "MACHINE.~a=~a;" 
+                  (AssignImmediateStatement-target stmt)
+                  (assemble-label v))]
+         [(Const? v)
+          (format "MACHINE.~a=~a;" 
+                  (AssignImmediateStatement-target stmt)
+                  (assemble-const v))]))]
+    
+    [(AssignPrimOpStatement? stmt)
+     (format "MACHINE.~a=~a;" 
+             (AssignPrimOpStatement-target stmt)
+             (assemble-op-expression (AssignPrimOpStatement-op stmt)
+                                     (AssignPrimOpStatement-rands stmt)))]
+    [(PerformStatement? stmt)
+     (assemble-op-statement (PerformStatement-op stmt)
+                            (PerformStatement-rands stmt))]
+    [(TestStatement? stmt)
      (format "if(~a){"
-             (assemble-op-expression (op-name (cadr stmt))
-                                     (cddr stmt)))]
-    [(tagged-list? stmt 'branch)
+             (assemble-op-expression (TestStatement-op stmt)
+                                     (list (make-Reg (TestStatement-register-rand stmt)))))]
+    [(BranchLabelStatement? stmt)
      ;; the unbalanced } is deliberate: test and branch always follow each other.
      (format "return ~a();}"
-             (assemble-location (cadr stmt)))]
-    [(tagged-list? stmt 'goto)
+             (assemble-location (make-Label (BranchLabelStatement-label stmt))))]
+    [(GotoStatement? stmt)
      (format "return ~a();"
-             (assemble-location (cadr stmt)))]
-    [(tagged-list? stmt 'save)
+             (assemble-location (GotoStatement-target stmt)))]
+    [(SaveStatement? stmt)
      (format "MACHINE.stack.push(MACHINE.~a);"
-             (cadr stmt))]
-    [(tagged-list? stmt 'restore)
+             (SaveStatement-reg stmt))]
+    [(RestoreStatement? stmt)
      (format "MACHINE.~a=MACHINE.stack.pop();"
-             (cadr stmt))]
-    [else (error 'assemble "~a" stmt)]))
+             (RestoreStatement-reg stmt))]))
+    
 
 ;; fixme: use js->string
+(: assemble-const (Const -> String))
 (define (assemble-const stmt)
-  (let loop ([val (cadr stmt)])
-    (cond [(symbol? val)
-           (format "~s" (symbol->string val))]
-          [(list? val)
-           (format "_list(~a)" (string-join (map loop val)
-                                            ","))]
-          [else
-           (format "~s" val)])))
+  (let: loop : String ([val : Any (Const-const stmt)])
+        (cond [(symbol? val)
+               (format "~s" (symbol->string val))]
+              [(list? val)
+               (format "_list(~a)" (string-join (map loop val)
+                                                ","))]
+              [else
+               (format "~s" val)])))
 
+(: assemble-op-expression (Symbol (Listof OpArg) -> String))
 (define (assemble-op-expression op-name inputs)
   (let ([assembled-inputs (map assemble-input inputs)])
     (case op-name
@@ -280,7 +288,7 @@
        (cond [(empty? inputs)
               "undefined"]
              [else
-              (let loop ([assembled-inputs assembled-inputs])
+              (let: loop : String ([assembled-inputs : (Listof String) assembled-inputs])
                 (cond
                   [(empty? assembled-inputs)
                    "undefined"]
@@ -311,7 +319,7 @@
       [else
        (error 'assemble "~e" op-name)])))
 
-
+(: assemble-op-statement (Symbol (Listof OpArg) -> String))
 (define (assemble-op-statement op-name inputs)
   (let ([assembled-inputs (map assemble-input inputs)])
     (case op-name
@@ -341,28 +349,28 @@
 
 
 
-
+(: assemble-input ((U Reg Const Label) -> String))
 (define (assemble-input an-input)
   (cond
-    [(reg? an-input)
+    [(Reg? an-input)
      (assemble-reg an-input)]
-    [(const? an-input)
+    [(Const? an-input)
      (assemble-const an-input)]
-    [(label? an-input)
-     (assemble-label an-input)]
-    [else (error 'assemble-input "~e" an-input)]))
-
+    [(Label? an-input)
+     (assemble-label an-input)]))
+    
+(: assemble-location ((U Reg Label) -> String))
 (define (assemble-location a-location)
   (cond
-    [(reg? a-location)
+    [(Reg? a-location)
      (assemble-reg a-location)]
-    [(label? a-location)
-     (assemble-label a-location)]
-    [else (error 'assemble-location "~e" a-location)]))
+    [(Label? a-location)
+     (assemble-label a-location)]))
 
+(: assemble-reg (Reg -> String))
 (define (assemble-reg a-reg)
-  (string-append "MACHINE." (symbol->string (cadr a-reg))))
+  (string-append "MACHINE." (symbol->string (Reg-name a-reg))))
 
-
+(: assemble-label (Label -> String))
 (define (assemble-label a-label)
-  (symbol->string (label-name a-label)))
+  (symbol->string (Label-name a-label)))

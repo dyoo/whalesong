@@ -30,11 +30,50 @@
 
 
 
+
 ;; instruction sequences
+(define-type UnlabeledStatement (U 
+                                 AssignImmediateStatement
+                                 AssignPrimOpStatement
+                                 PerformStatement
+                                 TestStatement
+                                 BranchLabelStatement
+                                 GotoStatement
+                                 SaveStatement
+                                 RestoreStatement))
+(define-type Statement (U UnlabeledStatement
+                          Symbol  ;; label
+                          ))
+(define-struct: AssignImmediateStatement ([target : Symbol]
+                                          [value : (U Const Reg Label)])
+  #:transparent)
+(define-struct: AssignPrimOpStatement ([target : Symbol]
+                                       [op : Symbol]
+                                       [rands : (Listof (U Label Reg Const))])
+  #:transparent)
+(define-struct: PerformStatement ([op : Symbol]
+                                  [rands : (Listof (U Label Reg Const))]) #:transparent)
+(define-struct: TestStatement ([op : (U 'false? 'primitive-procedure?)]
+                               [register-rand : Symbol]) #:transparent)
+(define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
+(define-struct: GotoStatement ([target : (U Label Reg)]) #:transparent)
+(define-struct: SaveStatement ([reg : Symbol]) #:transparent)
+(define-struct: RestoreStatement ([reg : Symbol]) #:transparent)
+
+(define-struct: Label ([name : Symbol]))
+(define-struct: Reg ([name : Symbol]))
+(define-struct: Const ([const : Any]))
+
+(define-type OpArg (U Const Label Reg))
+
+
+
+
+
 (define-type InstructionSequence (U Symbol instruction-sequence))
 (define-struct: instruction-sequence ([needs : (Listof Symbol)]
                                       [modifies : (Listof Symbol)]
-                                      [statements : (Listof Any)]) #:transparent)
+                                      [statements : (Listof Statement)]) #:transparent)
 (define empty-instruction-sequence (make-instruction-sequence '() '() '()))
 
 (: make-label (Symbol -> Symbol))
@@ -53,7 +92,7 @@
 (define (registers-modified s)
   (if (symbol? s) '() (instruction-sequence-modifies s)))
 
-(: statements (InstructionSequence -> (Listof Any)))
+(: statements (InstructionSequence -> (Listof Statement)))
 (define (statements s)
   (if (symbol? s) (list s) (instruction-sequence-statements s)))
 
@@ -64,3 +103,8 @@
 
 ;; Linkage
 (define-type Linkage (U 'return 'next Symbol))
+
+
+
+(define-struct: BasicBlock ([name : Symbol] 
+                            [stmts : (Listof UnlabeledStatement)]) #:transparent)

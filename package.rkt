@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require "compile.rkt"
-         "structs.rkt"
+         "typed-structs.rkt"
          "assemble.rkt"
          "typed-parse.rkt"
          racket/runtime-path
@@ -30,7 +30,7 @@
   (package s-exp (current-output-port)))
 
 
-#;(test '(define (factorial n)
+(test '(define (factorial n)
            (if (= n 0)
                1
                (* (factorial (- n 1))
@@ -43,13 +43,13 @@
                acc
                (fact-iter (- n 1) (* acc n))))))
 
-#;(test '(define (gauss n)
+(test '(define (gauss n)
          (if (= n 0)
              0
              (+ (gauss (- n 1))
                 n))))
 
-#;(test '(define (fib n)
+(test '(define (fib n)
            (if (< n 2)
                1
                (+ (fib (- n 1))

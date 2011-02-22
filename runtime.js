@@ -26,6 +26,12 @@ var Primitives = {
     
     '/': function(argl) {
 	return argl[0] / argl[1][0];
+    },
+    'display': function(argl) {
+        MACHINE.params.currentDisplayer(argl[0]);
+    },
+    'newline': function(argl) {
+        MACHINE.params.currentDisplayer("\n");
     }
 };
 
@@ -126,7 +132,8 @@ var MACHINE={callsBeforeTrampoline: 100,
              argl:undefined,
              val:undefined,
              cont:undefined,
-             stack: []};
+             stack: [],
+             params: {currentDisplayer: function(v) {}}};
 
 
 // harness: (->) (->) -> void

@@ -7,6 +7,7 @@
          "package.rkt")
 
 ;; A hacky way to test the evaluation.
+(provide evaluate)
 
 
 ;; Channel's meant to serialize use of the web server.
@@ -43,7 +44,6 @@ function sendRequest(url,callback,postData) {
 	if (!req) return;
 	var method = (postData) ? "POST" : "GET";
 	req.open(method,url,true);
-	req.setRequestHeader('User-Agent','XMLHTTP/1.0');
 	if (postData) {
   	    req.setRequestHeader('Content-type','application/x-www-form-urlencoded');
         }
@@ -81,10 +81,17 @@ function createXMLHTTPObject() {
 
 
 var whenLoaded = function() {
-    invoke(function(v) {
-        alert('ok'); 
+    var output = [];
+    MACHINE.params.currentDisplayer = function(v) {
+        output.push(String(v));
+    };
+    var startTime = new Date();
+    invoke(function() {
+        var endTime = new Date();
+        document.body.appendChild(document.createTextNode("Program evaluated; sending back."));
         sendRequest("/eval", function(req) {},
-                    "r=" + encodeURIComponent(v));
+                    "r=" + encodeURIComponent(output.join('')) +
+                    "&t=" + encodeURIComponent(String(endTime - startTime)));
     });
 };
 </script>
@@ -104,7 +111,8 @@ EOF
          
               
               [(exists-binding? 'r (request-bindings req))
-               (channel-put ch (extract-binding/single 'r (request-bindings req)))
+               (channel-put ch (list (extract-binding/single 'r (request-bindings req))
+                                     (extract-binding/single 't (request-bindings req))))
                `(html (body (p "ok")))]
               [else
                `(html (body (p "Loaded")))]))

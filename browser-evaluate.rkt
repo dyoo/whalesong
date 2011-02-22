@@ -54,7 +54,7 @@
                          #:servlet-path "/eval"))))
 
 (define (handle-poke req)
-  ;; FIXME: handle alarm for timeouts?
+  ;; FIXME: how do we handle timeouts?
   (let/ec return
     (let ([program (sync ch)]
           [op (open-output-bytes)])
@@ -111,10 +111,13 @@ EOF
 <script>
 // http://www.quirksmode.org/js/xmlhttp.html
 //
+// XMLHttpRequest wrapper.  Transparently restarts the request
+// if a timeout occurs.
 function sendRequest(url,callback,postData) {
-	var req = createXMLHTTPObject();
+	var req = createXMLHTTPObject(), method, TIMEOUT = 5000, stillInProgress = true, timeoutId;
+
 	if (!req) return;
-	var method = (postData) ? "POST" : "GET";
+	method = (postData) ? "POST" : "GET";
 	req.open(method,url,true);
 	if (postData) {
   	    req.setRequestHeader('Content-type','application/x-www-form-urlencoded');
@@ -124,10 +127,21 @@ function sendRequest(url,callback,postData) {
 		if (req.status !== 200 && req.status !== 304) {
 			return;
 		}
+                stillInProgress = false;
+                if (timeoutId) { clearTimeout(timeoutId); timeoutId = undefined; }
 		callback(req);
 	}
 	if (req.readyState == 4) return;
 	req.send(postData);
+/*
+        timeoutId = setTimeout(function() { if(stillInProgress) { 
+                                                req.abort();
+                                                // Reschedule
+                                                setTimeout(function() { sendRequest(url, callback, postData);}, 0);
+                                            }
+                                          },
+                               TIMEOUT);
+*/
 }
 
 var XMLHttpFactories = [

@@ -17,7 +17,7 @@
                 (newline op))
               basic-blocks)
     (fprintf op "MACHINE.cont = k;\n")
-    (fprintf op "trampoline(~a, function() {}); }"
+    (fprintf op "trampoline(~a, function() {}, function(e) { MACHINE.params.currentErrorHandler(e)}); }"
              (BasicBlock-name (first basic-blocks)))))
 
 

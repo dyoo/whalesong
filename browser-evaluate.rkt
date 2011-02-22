@@ -83,22 +83,28 @@ function createXMLHTTPObject() {
 
 
 var whenLoaded = function() {
-    var output = [];
+    var output = [], startTime, endTime;
     MACHINE.params.currentDisplayer = function(v) {
         output.push(String(v));
     };
-    setTimeout(
+    MACHINE.params.currentErrorHandler = function(e) {
+        endTime = new Date();
+        document.body.appendChild(document.createTextNode(
+           "Program evaluated; sending back to DrRacket."));
+        sendRequest("/eval", function(req) {},
+                    "e=" + encodeURIComponent(String(e)) +
+                    "&t=" + encodeURIComponent(String(endTime - startTime)));
+    };
+    startTime = new Date();
+    invoke(
         function() {
-            var startTime = new Date();
-            invoke(function() {
-                var endTime = new Date();
-                document.body.appendChild(document.createTextNode(
-                   "Program evaluated; sending back to DrRacket."));
-                sendRequest("/eval", function(req) {},
-                            "r=" + encodeURIComponent(output.join('')) +
-                            "&t=" + encodeURIComponent(String(endTime - startTime)));
-            });
-        }, 0); 
+            endTime = new Date();
+            document.body.appendChild(document.createTextNode(
+               "Program evaluated; sending back to DrRacket."));
+            sendRequest("/eval", function(req) {},
+                        "r=" + encodeURIComponent(output.join('')) +
+                        "&t=" + encodeURIComponent(String(endTime - startTime)));
+        });
 };
 </script>
 </head>
@@ -114,12 +120,21 @@ EOF
                                 empty 
                                 (list #"" (get-output-bytes op))))]
 
-         
-              
+              ;; Normal result came back
               [(exists-binding? 'r (request-bindings req))
                (channel-put ch (list (extract-binding/single 'r (request-bindings req))
-                                     (extract-binding/single 't (request-bindings req))))
+                                     (string->number
+                                      (extract-binding/single 't (request-bindings req)))))
                `(html (body (p "ok")))]
+
+              ;; Error occurred
+              [(exists-binding? 'e (request-bindings req))
+               (channel-put ch (make-error-happened 
+                                (extract-binding/single 'e (request-bindings req))
+                                (string->number
+                                 (extract-binding/single 't (request-bindings req)))))
+               `(html (body (p "ok")))]
+              
               [else
                `(html (body (p "Loaded")))]))
           
@@ -131,6 +146,8 @@ EOF
                          #:servlet-path "/eval"))))
 
 
+(define-struct error-happened (str t) #:transparent)
+
 
 ;; evaluate: sexp -> (values string number)
 ;; A little driver to test the evalution of expressions, using a browser to help.
@@ -140,5 +157,8 @@ EOF
   (send-url (format "http://localhost:~a/eval?p=t" port) #f)
   (channel-put ch e)
   (let ([output+time (channel-get ch)])
-    (values (first output+time)
-            (string->number (second output+time)))))
+    (cond [(error-happened? output+time)
+           (raise output+time)]
+          [else
+           (values (first output+time)
+                   (second output+time))])))

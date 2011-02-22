@@ -92,7 +92,7 @@ var Closure = function(env, label) {
 // JavaScript toplevel.
 Closure.prototype.adaptToJs = function() {
     var that = this;
-    return function(args, k) {
+    return function(args, success, fail) {
         var oldEnv = MACHINE.env;
 	var oldCont = MACHINE.cont;
 	var oldProc = MACHINE.proc;
@@ -114,13 +114,16 @@ Closure.prototype.adaptToJs = function() {
 		    MACHINE.proc = oldProc;
 		    MACHINE.argl = oldArgl;
 		    MACHINE.val = oldVal;
-                    k(result);
+                    success(result);
 		};
 		
 		proc.label();
             },
             function() {
-            });
+            },
+            function(e) {
+		return fail(e);
+	    });
     }
 };
 
@@ -133,11 +136,11 @@ var MACHINE={callsBeforeTrampoline: 100,
              val:undefined,
              cont:undefined,
              stack: [],
-             params: {currentDisplayer: function(v) {}}};
+             params: {currentDisplayer: function(v) {},
+		      currentErrorHandler: function(e) {}}};
 
 
-// harness: (->) (->) -> void
-var trampoline = function(initialJump, k) {
+var trampoline = function(initialJump, success, fail) {
     var thunk = initialJump;
     MACHINE.callsBeforeTrampoline = 100;
     while(thunk) {
@@ -149,9 +152,9 @@ var trampoline = function(initialJump, k) {
                 thunk = e;
                 MACHINE.callsBeforeTrampoline = 100;
             } else {
-	        throw e;
+	        return fail(e);
             }
         }
     }
-    k();
+    return success();
 };

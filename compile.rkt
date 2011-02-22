@@ -161,7 +161,6 @@
                        ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
 
 
-;; FIXME: exercise 5.43
 (: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-definition exp cenv target linkage)
   (let* ([var (Def-variable exp)]
@@ -272,6 +271,9 @@
 
 (: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-application exp cenv target linkage) 
+  ;; FIXME: I need to implement important special cases.
+  ;; 1. We may be able to open-code if the operator is primitive
+  ;; 2. We may have a static location to jump to if the operator is lexically scoped.
   (let ([proc-code (compile (App-operator exp) cenv 'proc 'next)]
         [operand-codes (map (lambda: ([operand : Expression])
                               (compile operand cenv 'val 'next))

@@ -1,0 +1,3 @@
+Racket is about 20 times slower than C on gauss.
+
+My compiled output is about 60 times slower than a raw JavaScript loop.

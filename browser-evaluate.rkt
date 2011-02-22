@@ -53,12 +53,31 @@
                          #:port port
                          #:servlet-path "/eval"))))
 
-
 (define (handle-poke req)
-  ;; Fixme: add timeout protocol.
-  (let ([program (sync ch)])
-    (let ([op (open-output-bytes)])
-      (package-anonymous program op)
+  ;; FIXME: handle alarm for timeouts?
+  (let/ec return
+    (let ([program (sync ch)]
+          [op (open-output-bytes)])
+      (with-handlers ([exn:fail? (lambda (exn)
+                                   (let ([sentinel
+                                          (format
+                                           #<<EOF
+(function () {
+    return function(success, fail, params) {
+        fail(~s);
+    }
+ });
+EOF
+                                           (exn-message exn))])
+                                     
+                                     (return 
+                                      (response/full 200 #"Okay"
+                                                     (current-seconds)
+                                                     #"text/plain; charset=utf-8"
+                                                     empty
+                                                     (list #"" (string->bytes/utf-8 sentinel))))))])
+        (package-anonymous program op))
+      
       (response/full 200 #"Okay" 
                      (current-seconds) 
                      #"text/plain; charset=utf-8"
@@ -102,7 +121,7 @@ function sendRequest(url,callback,postData) {
         }
 	req.onreadystatechange = function () {
 		if (req.readyState != 4) return;
-		if (req.status != 200 && req.status != 304) {
+		if (req.status !== 200 && req.status !== 304) {
 			return;
 		}
 		callback(req);

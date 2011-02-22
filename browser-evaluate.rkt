@@ -9,6 +9,8 @@
 ;; A hacky way to test the evaluation.
 (provide evaluate)
 
+(define port (+ 8000 (random 8000)))
+
 
 ;; Channel's meant to serialize use of the web server.
 (define ch (make-channel))
@@ -85,14 +87,18 @@ var whenLoaded = function() {
     MACHINE.params.currentDisplayer = function(v) {
         output.push(String(v));
     };
-    var startTime = new Date();
-    invoke(function() {
-        var endTime = new Date();
-        document.body.appendChild(document.createTextNode("Program evaluated; sending back."));
-        sendRequest("/eval", function(req) {},
-                    "r=" + encodeURIComponent(output.join('')) +
-                    "&t=" + encodeURIComponent(String(endTime - startTime)));
-    });
+    setTimeout(
+        function() {
+            var startTime = new Date();
+            invoke(function() {
+                var endTime = new Date();
+                document.body.appendChild(document.createTextNode(
+                   "Program evaluated; sending back to DrRacket."));
+                sendRequest("/eval", function(req) {},
+                            "r=" + encodeURIComponent(output.join('')) +
+                            "&t=" + encodeURIComponent(String(endTime - startTime)));
+            });
+        }, 0); 
 };
 </script>
 </head>
@@ -121,13 +127,18 @@ EOF
                          #:banner? #f
                          #:launch-browser? #f
                          #:quit? #f
-                         #:port 8080
+                         #:port port
                          #:servlet-path "/eval"))))
 
 
+
+;; evaluate: sexp -> (values string number)
 ;; A little driver to test the evalution of expressions, using a browser to help.
+;; Returns the captured result of stdout, plus # of milliseconds it took to execute.
 (define (evaluate e)
   ;; Send the program to the web browser, and wait for the thread to send back
-  (send-url "http://localhost:8080/eval?p=t" #f)
+  (send-url (format "http://localhost:~a/eval?p=t" port) #f)
   (channel-put ch e)
-  (channel-get ch))
+  (let ([output+time (channel-get ch)])
+    (values (first output+time)
+            (string->number (second output+time)))))

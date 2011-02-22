@@ -11,12 +11,22 @@
 (: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
 (define (assemble/write-invoke stmts op)
   (let ([basic-blocks (fracture stmts)])
-    (fprintf op "function(k) {\n")
+    (fprintf op "function(success, fail, params) {\n")
+    (fprintf op "var param;\n")
     (for-each (lambda: ([basic-block : BasicBlock])
                 (displayln (assemble-basic-block basic-block) op)
                 (newline op))
               basic-blocks)
-    (fprintf op "MACHINE.cont = k;\n")
+    (fprintf op "MACHINE.cont = success;\n")
+    (fprintf op "MACHINE.params.currentErrorHandler = function(e) { fail(e); };\n")
+    (fprintf op #<<EOF
+for (param in params) {
+    if (params.hasOwnProperty(param)) {
+        MACHINE.params[param] = params[param];
+    }
+}
+EOF
+             )
     (fprintf op "trampoline(~a, function() {}, function(e) { MACHINE.params.currentErrorHandler(e)}); }"
              (BasicBlock-name (first basic-blocks)))))
 

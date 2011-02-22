@@ -7,7 +7,8 @@
          racket/runtime-path
          racket/port)
 
-(provide package)
+(provide package
+         package-anonymous)
 
 ;; Packager: produce single .js files to be included.
 
@@ -27,3 +28,7 @@
   (fprintf op ";\n"))
 
 
+(define (package-anonymous source-code op)
+  (fprintf op "(function() {\n")
+  (package source-code op)
+  (fprintf op " return invoke; })\n"))

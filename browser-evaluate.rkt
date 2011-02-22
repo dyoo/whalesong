@@ -7,6 +7,11 @@
          "package.rkt")
 
 ;; A hacky way to test the evaluation.
+;;
+;; TODO: figure out how to do this without so many urls.  Push-style from the server
+;; should be able to work.
+
+
 (provide evaluate)
 
 (define port (+ 8000 (random 8000)))

@@ -7,7 +7,16 @@
 // function closures are Closures
 // primitive procedures are regular functions.
 
+
+// No error trapping at the moment.
 var Primitives = {
+    'display': function(argl) {
+        MACHINE.params.currentDisplayer(argl[0]);
+    },
+    'newline': function(argl) {
+        MACHINE.params.currentDisplayer("\n");
+    },
+
     '=': function(argl) {
         return argl[0] === argl[1][0];
     },
@@ -27,11 +36,21 @@ var Primitives = {
     '/': function(argl) {
 	return argl[0] / argl[1][0];
     },
-    'display': function(argl) {
-        MACHINE.params.currentDisplayer(argl[0]);
+
+    'cons': function(argl) {
+	return [argl[0], argl[1][0]];
     },
-    'newline': function(argl) {
-        MACHINE.params.currentDisplayer("\n");
+    'list': function(argl) {
+	return argl;
+    },
+    'car': function(argl) {
+	return argl[0][0];
+    },
+    'cdr': function(argl) {
+	return argl[0][1];
+    },
+    'null?': function(argl) {
+	return argl[0] === undefined;
     }
 };
 

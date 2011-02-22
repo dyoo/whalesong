@@ -7,10 +7,14 @@
     [(_ s exp)
      (with-syntax ([stx stx])
        (syntax/loc #'stx
-         (let-values ([(output time) (evaluate s)])
-           (unless (string=? output exp)
-             (raise-syntax-error #f (format "Expected ~s, got ~s" exp output)
-                                 #'stx)))))]))
+         (begin
+           (printf "running test...")
+           (let-values ([(output time) (evaluate s)])
+             (unless (string=? output exp)
+               (printf " error!\n")
+               (raise-syntax-error #f (format "Expected ~s, got ~s" exp output)
+                                   #'stx)))
+           (printf " ok\n"))))]))
 
 
 (test '(begin (define (f x) 
@@ -24,6 +28,13 @@
               (display (f 10000)))
       "6\n10\n50005000")
 
-
-
-"ok"
+(test '(begin (define (length l)
+                (if (null? l)
+                    0
+                    (+ 1 (length (cdr l)))))
+              (display (length (list 1 2 3 4 5 6)))
+              (newline)
+              (display (length (list "hello" "world")))
+              (newline))
+              
+      "6\n2\n")

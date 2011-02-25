@@ -17,7 +17,7 @@
                 (displayln (assemble-basic-block basic-block) op)
                 (newline op))
               basic-blocks)
-    (fprintf op "MACHINE.cont = success;\n")
+    (fprintf op "MACHINE.cont = function() {success(MACHINE.val)};\n")
     (fprintf op "MACHINE.params.currentErrorHandler = function(e) { fail(e); };\n")
     (fprintf op #<<EOF
 for (param in params) {

@@ -23,6 +23,7 @@
 (define-struct evaluated (stdout value t) #:transparent)
 
 
+
 ;; make-evaluate: (Any output-port) -> void
 ;; Produce a JavaScript evaluator that cooperates with a browser.
 ;; The JavaScript-compiler is expected to write out a thunk.  When invoked,
@@ -79,37 +80,51 @@
                             #:port port
                             #:servlet-path "/eval"))))
   
+  
+  (define *alarm-timeout* 30000)
+  
   (define (handle-comet req)
-    ;; FIXME: how do we handle timeouts?
     (let/ec return
-      (let ([program (sync ch)]
-            [op (open-output-bytes)])
-        (with-handlers ([exn:fail? (lambda (exn)
-                                     (let ([sentinel
-                                            (format
-                                             #<<EOF
+      (let* ([alarm (alarm-evt (+ (current-inexact-milliseconds) *alarm-timeout*))]
+             [program (sync ch alarm)]
+             [op (open-output-bytes)])
+        (cond
+          [(eq? program alarm)
+           (try-again-response)]
+          [else
+           (with-handlers ([exn:fail? (lambda (exn)
+                                        (let ([sentinel
+                                               (format
+                                                #<<EOF
 (function () {
     return function(success, fail, params) {
         fail(~s);
     }
  });
 EOF
-                                             (exn-message exn))])
-                                       
-                                       (return 
-                                        (response/full 200 #"Okay"
-                                                       (current-seconds)
-                                                       #"text/plain; charset=utf-8"
-                                                       empty
-                                                       (list #"" (string->bytes/utf-8 sentinel))))))])
-          (javascript-compiler program op))
-        
-        (response/full 200 #"Okay" 
-                       (current-seconds) 
-                       #"text/plain; charset=utf-8"
-                       empty 
-                       (list #"" (get-output-bytes op))))))
+                                                (exn-message exn))])
+                                          
+                                          (return 
+                                           (response/full 200 #"Okay"
+                                                          (current-seconds)
+                                                          #"text/plain; charset=utf-8"
+                                                          empty
+                                                          (list #"" (string->bytes/utf-8 sentinel))))))])
+             (javascript-compiler program op))
+           
+           (response/full 200 #"Okay" 
+                          (current-seconds) 
+                          #"text/plain; charset=utf-8"
+                          empty 
+                          (list #"" (get-output-bytes op)))]))))
+
   
+  (define (try-again-response)
+    (response/full 200 #"Try again"
+                   (current-seconds)
+                   #"text/plain; charset=utf-8"
+                   empty
+                   (list #"" #"")))
   
   (define (ok-response)
     (response/full 200 #"Okay"
@@ -147,7 +162,7 @@ EOF
 // XMLHttpRequest wrapper.  Transparently restarts the request
 // if a timeout occurs.
 function sendRequest(url,callback,postData) {
-	var req = createXMLHTTPObject(), method, TIMEOUT = 5000, stillInProgress = true, timeoutId;
+	var req = createXMLHTTPObject(), method;
 
 	if (!req) return;
 	method = (postData) ? "POST" : "GET";
@@ -160,21 +175,15 @@ function sendRequest(url,callback,postData) {
 		if (req.status !== 200 && req.status !== 304) {
 			return;
 		}
-                stillInProgress = false;
-                if (timeoutId) { clearTimeout(timeoutId); timeoutId = undefined; }
+                if (req.status === 200 && req.statusText === 'Try again') {
+                   req.abort();
+                   setTimeout(function() { sendRequest(url, callback, postData); }, 0);
+                   return;
+                }
 		callback(req);
 	}
 	if (req.readyState == 4) return;
 	req.send(postData);
-/*
-        timeoutId = setTimeout(function() { if(stillInProgress) { 
-                                                req.abort();
-                                                // Reschedule
-                                                setTimeout(function() { sendRequest(url, callback, postData);}, 0);
-                                            }
-                                          },
-                               TIMEOUT);
-*/
 }
 
 var XMLHttpFactories = [

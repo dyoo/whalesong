@@ -85,13 +85,20 @@ EOF
                      (list #"" (get-output-bytes op))))))
 
 
+(define (ok-response)
+  (response/full 200 #"Okay"
+                 (current-seconds)
+                 TEXT/HTML-MIME-TYPE
+                 empty
+                 (list #"" #"<html><head></head><body><p>ok</p></body></html>")))
+
 
 
 (define (handle-normal-response req)
   (channel-put ch (list (extract-binding/single 'r (request-bindings req))
                         (string->number
                          (extract-binding/single 't (request-bindings req)))))
-  `(html (body (p "ok"))))
+  (ok-response))
 
 
 (define (handle-error-response req)
@@ -99,8 +106,7 @@ EOF
                    (extract-binding/single 'e (request-bindings req))
                    (string->number
                     (extract-binding/single 't (request-bindings req)))))
-  `(html (body (p "ok"))))
-
+  (ok-response))
 
 
 (define (make-on-first-load-response)

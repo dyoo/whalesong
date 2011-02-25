@@ -2,8 +2,8 @@
 
 (require racket/list
          web-server/servlet
-         web-server/servlet-env
-         "package.rkt")
+         web-server/servlet-env)
+
 
 ;; A hacky way to test the evaluation.
 ;;
@@ -13,105 +13,132 @@
 ;; value to the user, along with the time it took to evaluate.
 
 
-(provide evaluate)
-
-(define port (+ 8000 (random 8000)))
-
-
-;; This channel's meant to serialize use of the web server.
-(define ch (make-channel))
+(provide make-evaluate
+         (struct-out error-happened)
+         (struct-out evaluated))
 
 
-;; start up the web server
-;; The web server responds to two types of requests
-;; ?p    Inputting a program
-;; ?r    Getting a response
-(void
- (thread (lambda ()
-          (define (start req)
-            (cond
-              ;; Server-side sync for a program
-              [(exists-binding? 'poke (request-bindings req))
-               (handle-poke req)]
-              
-              ;; Normal result came back
-              [(exists-binding? 'r (request-bindings req))
-               (handle-normal-response req)]
 
-              ;; Error occurred
-              [(exists-binding? 'e (request-bindings req))
-               (handle-error-response req)]
-              
-              [else
-               (make-on-first-load-response)]))
+(define-struct error-happened (str t) #:transparent)
+(define-struct evaluated (stdout value t) #:transparent)
 
-          
-          (serve/servlet start 
-                         #:banner? #f
-                         #:launch-browser? #t
-                         #:quit? #f
-                         #:port port
-                         #:servlet-path "/eval"))))
 
-(define (handle-poke req)
-  ;; FIXME: how do we handle timeouts?
-  (let/ec return
-    (let ([program (sync ch)]
-          [op (open-output-bytes)])
-      (with-handlers ([exn:fail? (lambda (exn)
-                                   (let ([sentinel
-                                          (format
-                                           #<<EOF
+;; make-evaluate: (Any output-port) -> void
+;; Produce a JavaScript evaluator that cooperates with a browser.
+;; The JavaScript-compiler is expected to write out a thunk.  When invoked,
+;; the thunk should return a function that consumes three values, corresponding
+;; to success, failure, and other parameters to evaluation.  For example:
+;;
+;; (make-evaluate (lambda (program op)
+;;                          (fprintf op "(function() {
+;;                                            return function(success, fail, params) {
+;;                                                       success('ok');
+;;                                            }})")))
+;;
+;; is a do-nothing evaluator that will always give back 'ok'. 
+;;
+;; At the moment, the evaluator will pass in a parameter that binds 'currentDisplayer' to a function
+;; that captures output.
+(define (make-evaluate javascript-compiler)
+  (define port (+ 8000 (random 8000)))
+  
+  
+  ;; This channel's meant to serialize use of the web server.
+  (define ch (make-channel))
+  
+  
+  ;; start up the web server
+  ;; The web server responds to two types of requests
+  ;; ?comet    Starting up the comet request path.
+  ;; ?v       Getting a value back from evaluation.
+  ;; ?e       Got an error.
+  (void
+   (thread (lambda ()
+             (define (start req)
+               (cond
+                 ;; Server-side sync for a program
+                 [(exists-binding? 'comet (request-bindings req))
+                  (handle-comet req)]
+                 
+                 ;; Normal result came back
+                 [(exists-binding? 'v (request-bindings req))
+                  (handle-normal-response req)]
+                 
+                 ;; Error occurred
+                 [(exists-binding? 'e (request-bindings req))
+                  (handle-error-response req)]
+                 
+                 [else
+                  (make-on-first-load-response)]))
+             
+             
+             (serve/servlet start 
+                            #:banner? #f
+                            #:launch-browser? #t
+                            #:quit? #f
+                            #:port port
+                            #:servlet-path "/eval"))))
+  
+  (define (handle-comet req)
+    ;; FIXME: how do we handle timeouts?
+    (let/ec return
+      (let ([program (sync ch)]
+            [op (open-output-bytes)])
+        (with-handlers ([exn:fail? (lambda (exn)
+                                     (let ([sentinel
+                                            (format
+                                             #<<EOF
 (function () {
     return function(success, fail, params) {
         fail(~s);
     }
  });
 EOF
-                                           (exn-message exn))])
-                                     
-                                     (return 
-                                      (response/full 200 #"Okay"
-                                                     (current-seconds)
-                                                     #"text/plain; charset=utf-8"
-                                                     empty
-                                                     (list #"" (string->bytes/utf-8 sentinel))))))])
-        (package-anonymous program op))
-      
-      (response/full 200 #"Okay" 
-                     (current-seconds) 
-                     #"text/plain; charset=utf-8"
-                     empty 
-                     (list #"" (get-output-bytes op))))))
-
-
-(define (ok-response)
-  (response/full 200 #"Okay"
-                 (current-seconds)
-                 TEXT/HTML-MIME-TYPE
-                 empty
-                 (list #"" #"<html><head></head><body><p>ok</p></body></html>")))
-
-
-
-(define (handle-normal-response req)
-  (channel-put ch (list (extract-binding/single 'r (request-bindings req))
-                        (string->number
-                         (extract-binding/single 't (request-bindings req)))))
-  (ok-response))
-
-
-(define (handle-error-response req)
-  (channel-put ch (make-error-happened 
-                   (extract-binding/single 'e (request-bindings req))
-                   (string->number
-                    (extract-binding/single 't (request-bindings req)))))
-  (ok-response))
-
-
-(define (make-on-first-load-response)
-  (let ([op (open-output-bytes)])
-    (fprintf op #<<EOF
+                                             (exn-message exn))])
+                                       
+                                       (return 
+                                        (response/full 200 #"Okay"
+                                                       (current-seconds)
+                                                       #"text/plain; charset=utf-8"
+                                                       empty
+                                                       (list #"" (string->bytes/utf-8 sentinel))))))])
+          (javascript-compiler program op))
+        
+        (response/full 200 #"Okay" 
+                       (current-seconds) 
+                       #"text/plain; charset=utf-8"
+                       empty 
+                       (list #"" (get-output-bytes op))))))
+  
+  
+  (define (ok-response)
+    (response/full 200 #"Okay"
+                   (current-seconds)
+                   TEXT/HTML-MIME-TYPE
+                   empty
+                   (list #"" #"<html><head></head><body><p>ok</p></body></html>")))
+  
+  
+  
+  (define (handle-normal-response req)
+    (channel-put ch (make-evaluated (extract-binding/single 'o (request-bindings req))
+                                    (extract-binding/single 'v (request-bindings req))
+                                    (string->number
+                                     (extract-binding/single 't (request-bindings req)))))
+    (ok-response))
+  
+  
+  (define (handle-error-response req)
+    (channel-put ch (make-error-happened 
+                     (extract-binding/single 'e (request-bindings req))
+                     (string->number
+                      (extract-binding/single 't (request-bindings req)))))
+    (ok-response))
+  
+  
+  (define (make-on-first-load-response)
+    (let ([op (open-output-bytes)])
+      (fprintf op #<<EOF
 <html>
 <head>
 <script>
@@ -171,7 +198,7 @@ function createXMLHTTPObject() {
 	return xmlhttp;
 }
 
-var poke = function() {
+var comet = function() {
     sendRequest("/eval", 
                 function(req) {
                     var invoke = eval(req.responseText)();
@@ -179,27 +206,28 @@ var poke = function() {
                     var startTime, endTime;
                     var params = { currentDisplayer: function(v) { output.push(String(v)); } };
 
-                    var onSuccess = function() {
+                    var onSuccess = function(v) {
                         endTime = new Date();
-                        sendRequest("/eval", function(req) { setTimeout(poke, 0); },
-                            "r=" + encodeURIComponent(output.join('')) +
+                        sendRequest("/eval", function(req) { setTimeout(comet, 0); },
+                            "v=" + encodeURIComponent(String(v)) +
+                            "&o=" + encodeURIComponent(output.join('')) +
                             "&t=" + encodeURIComponent(String(endTime - startTime)));
                     };
 
                     var onFail = function(e) {
                         endTime = new Date();
-                        sendRequest("/eval", function(req) { setTimeout(poke, 0); },
+                        sendRequest("/eval", function(req) { setTimeout(comet, 0); },
                             "e=" + encodeURIComponent(String(e)) +
                             "&t=" + encodeURIComponent(String(endTime - startTime)));
                     };
                     startTime = new Date();
                     invoke(onSuccess, onFail, params);
                 },
-                "poke=t");
+                "comet=t");
 };
 
 var whenLoaded = function() {
-    setTimeout(poke, 0);
+    setTimeout(comet, 0);
 };
 
 </script>
@@ -209,26 +237,26 @@ var whenLoaded = function() {
 </body>
 </html>
 EOF
-             )
-    (response/full 200 #"Okay" 
-                   (current-seconds) 
-                   TEXT/HTML-MIME-TYPE
-                   empty 
-                   (list #"" (get-output-bytes op)))))
+               )
+      (response/full 200 #"Okay" 
+                     (current-seconds) 
+                     TEXT/HTML-MIME-TYPE
+                     empty 
+                     (list #"" (get-output-bytes op)))))
+  
+  
+  
+  ;; evaluate: sexp -> (values string number)
+  ;; A little driver to test the evalution of expressions, using a browser to help.
+  ;; Returns the captured result of stdout, plus # of milliseconds it took to execute.
+  (define (evaluate e)
+    ;; Send the program to the web browser, and wait for the thread to send back
+    (channel-put ch e)
+    (let ([result (channel-get ch)])
+      (cond [(error-happened? result)
+             (raise result)]
+            [else
+             result])))
+  
 
-
-(define-struct error-happened (str t) #:transparent)
-
-
-;; evaluate: sexp -> (values string number)
-;; A little driver to test the evalution of expressions, using a browser to help.
-;; Returns the captured result of stdout, plus # of milliseconds it took to execute.
-(define (evaluate e)
-  ;; Send the program to the web browser, and wait for the thread to send back
-  (channel-put ch e)
-  (let ([output+time (channel-get ch)])
-    (cond [(error-happened? output+time)
-           (raise output+time)]
-          [else
-           (values (first output+time)
-                   (second output+time))])))
+  evaluate)

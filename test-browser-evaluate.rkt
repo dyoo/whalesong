@@ -1,5 +1,8 @@
 #lang racket
-(require "browser-evaluate.rkt")
+(require "browser-evaluate.rkt"
+         "package.rkt")
+
+(define evaluate (make-evaluate package-anonymous))
 
 ;; test-find-toplevel-variables
 (define-syntax (test stx)
@@ -9,11 +12,12 @@
        (syntax/loc #'stx
          (begin
            (printf "running test...")
-           (let-values ([(output time) (evaluate s)])
-             (unless (string=? output exp)
-               (printf " error!\n")
-               (raise-syntax-error #f (format "Expected ~s, got ~s" exp output)
-                                   #'stx)))
+           (let ([result (evaluate s)])
+             (let ([output (evaluated-stdout result)])
+               (unless (string=? output exp)
+                 (printf " error!\n")
+                 (raise-syntax-error #f (format "Expected ~s, got ~s" exp output)
+                                     #'stx))))
            (printf " ok\n"))))]))
 
 

@@ -20,6 +20,10 @@ var Primitives = {
     '=': function(argl) {
         return argl[0] === argl[1][0];
     },
+
+    '<': function(argl) {
+	return argl[0] < argl[1][0];
+    },
     
     '+': function(argl) {
         return argl[0] + argl[1][0];
@@ -49,6 +53,7 @@ var Primitives = {
     'cdr': function(argl) {
 	return argl[0][1];
     },
+    'null' : undefined,
     'null?': function(argl) {
 	return argl[0] === undefined;
     }

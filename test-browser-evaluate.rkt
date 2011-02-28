@@ -51,3 +51,16 @@
                     z))
               (display (tak 18 12 6)))
       "7")
+
+
+(test '(begin (define (fib x)
+                (if (< x 2)
+                    x
+                    (+ (fib (- x 1))
+                       (fib (- x 2)))))
+              (displayln (fib 3))
+              (displayln (fib 4))
+              (displayln (fib 5))
+              (displayln (fib 6)))
+      "2\n3\n5\n8\n")
+      

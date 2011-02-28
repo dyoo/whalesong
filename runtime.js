@@ -13,7 +13,13 @@ var Primitives = {
     'display': function(argl) {
         MACHINE.params.currentDisplayer(argl[0]);
     },
+
     'newline': function(argl) {
+        MACHINE.params.currentDisplayer("\n");
+    },
+
+    'displayln': function(argl){
+        MACHINE.params.currentDisplayer(argl[0]);
         MACHINE.params.currentDisplayer("\n");
     },
 
@@ -44,16 +50,21 @@ var Primitives = {
     'cons': function(argl) {
 	return [argl[0], argl[1][0]];
     },
+
     'list': function(argl) {
 	return argl;
     },
+
     'car': function(argl) {
 	return argl[0][0];
     },
+
     'cdr': function(argl) {
 	return argl[0][1];
     },
+
     'null' : undefined,
+
     'null?': function(argl) {
 	return argl[0] === undefined;
     }

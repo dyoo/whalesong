@@ -1,5 +1,10 @@
 #lang typed/racket/base
 
+(provide Setof new-set new-seteq
+         set-insert! set-remove! set-contains? 
+         set-for-each set-map
+         set->list list->set)
+
 (define-struct: (A) set ([ht : (HashTable A Boolean)]))
 (define-type (Setof A) (set A))
 
@@ -38,3 +43,15 @@
 (define (set-map f s)
   ((inst hash-map A Boolean B) (set-ht s) (lambda: ([k : A] [v : Boolean])
                                                    (f k))))
+
+(: set->list (All (A) ((Setof A) -> (Listof A))))
+(define (set->list a-set)
+  (set-map (lambda: ([k : A]) k) a-set))
+
+(: list->set (All (A) ((Listof A) -> (Setof A))))
+(define (list->set a-lst)
+  (let: ([a-set : (Setof A) (new-set)])
+        (for-each (lambda: ([k : A])
+                           (set-insert! a-set k))
+                  a-lst)
+        a-set))

@@ -36,7 +36,7 @@
                        cenv
                        target
                        linkage)]
-    #;[(App? exp)
+    [(App? exp)
      (compile-application exp cenv target linkage)]))
 
 
@@ -230,15 +230,28 @@
 
 
 
-#;(: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-application exp cenv target linkage) 
-  ;; FIXME: I need to implement important special cases.
-  ;; 1. We may be able to open-code if the operator is primitive
-  ;; 2. We may have a static location to jump to if the operator is lexically scoped.
-  (let ([proc-code (compile (App-operator exp) cenv 'proc 'next)]
-        [operand-codes (map (lambda: ([operand : Expression])
-                              (compile operand cenv 'val 'next))
-                            (App-operands exp))])   
+;; FIXME: I need to implement important special cases.
+;; 1. We may be able to open-code if the operator is primitive
+;; 2. We may have a static location to jump to if the operator is lexically scoped.
+(: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-application exp cenv target linkage) 
+  (let* ([extended-cenv (extend-lexical-environment/placeholders cenv (length (App-operands exp)))]
+         [proc-code (compile (App-operator exp)
+                             extended-cenv 
+                             (if (empty? (App-operands exp))
+                                 'proc
+                                 (make-EnvOffset (max 0 (sub1 (length (App-operands exp))))))
+                             'next)]
+         [operand-codes (map (lambda: ([operand : Expression]
+                                       [target : Target])
+                                      (compile operand extended-cenv target 'next))
+                             (App-operands exp)
+                             (build-list (length (App-operands exp))
+                                         (lambda: ([i : Natural])
+                                                  (if (< i (sub1 (length (App-operands exp))))
+                                                      (make-EnvOffset i)
+                                                      'val))))])
+
     ;; FIXME: we need to allocate space for the arguments in the environment.
     ;; FIXME: we need to compile each operand especially to write to the correct
     ;; environment location.
@@ -246,74 +259,73 @@
     ;; FIXME: at procedure entry, the arguments need to be installed
     ;; in the environment.  We need to install 
     ;; the closure's values now.
-    ;;
-    ;; FIXME: if we're calling in tail position, preserve space.
     (append-instruction-sequences
+     (make-instruction-sequence `(,(make-PushEnv (length (App-operands exp)))))
      proc-code
-     (append-instruction-sequences
-      (construct-arglist operand-codes)
-      (compile-procedure-call target linkage)))))
+     (install-operands operand-codes)
+     (compile-procedure-call extended-cenv (length (App-operands exp)) target linkage))))
+    
 
-#;(: construct-arglist ((Listof InstructionSequence) -> InstructionSequence))
-#;(define (construct-arglist operand-codes)
-  (let ([operand-codes (reverse operand-codes)])
-    (if (null? operand-codes)
-        (make-instruction-sequence `(,(make-AssignImmediateStatement 'argl (make-Const '()))))
-        (let ([code-to-get-last-arg
-               (append-instruction-sequences
-                (car operand-codes)
-                (make-instruction-sequence `(,(make-AssignPrimOpStatement 'argl 'list 
-                                                                          (list (make-Reg 'val))))))])
-          (if (null? (cdr operand-codes))
-              code-to-get-last-arg
-              (append-instruction-sequences code-to-get-last-arg
-                                            (code-to-get-rest-args
-                                             (cdr operand-codes))))))))
-#;(: code-to-get-rest-args ((Listof InstructionSequence) -> InstructionSequence))
-#;(define (code-to-get-rest-args operand-codes)
-  (let ([code-for-next-arg
-         (append-instruction-sequences
-          (car operand-codes)
-          (make-instruction-sequence 
-           `(,(make-AssignPrimOpStatement 'argl 
-                                          'cons 
-                                          (list (make-Reg 'val)
-                                                (make-Reg 'argl))))))])
-    (if (null? (cdr operand-codes))
-        code-for-next-arg
-        (append-instruction-sequences code-for-next-arg
-                                      (code-to-get-rest-args (cdr operand-codes))))))
 
-#;(: compile-procedure-call (Target Linkage -> InstructionSequence))
-#;(define (compile-procedure-call target linkage)
-    (let ([primitive-branch (make-label 'primitiveBranch)]
-          [compiled-branch (make-label 'compiledBranch)]
-          [after-call (make-label 'afterCall)])
-      (let ([compiled-linkage
-             (if (eq? linkage 'next) after-call linkage)])
+(: install-operands ((Listof InstructionSequence) -> InstructionSequence))
+;; Installs the operators.  At the end of this,
+;; the procedure lives in 'proc, and the operands on the environment stack.
+(define (install-operands operand-codes)
+  (let: ([n : Natural 
+            ;; defensive coding: the operand codes should be nonempty.
+            (max 0 (sub1 (length operand-codes)))])
+        (let: loop : InstructionSequence ([ops : (Listof InstructionSequence) operand-codes])
+              (cond
+                ;; If there are no operands, no need to juggle.
+                [(null? ops)
+                 (make-instruction-sequence empty)]
+                [(null? (rest ops))
+                 ;; The last operand needs to be handled specially: it currently lives in 
+                 ;; val.  We move the procedure at env[n] over to proc, and move the
+                 ;; last operand at 'val into env[n].
+                 (make-instruction-sequence 
+                  `(,(make-AssignImmediateStatement 'proc 
+                                                    (make-EnvLexicalReference n))
+                    ,(make-AssignImmediateStatement (make-EnvOffset n)
+                                                    (make-Reg 'val))))]
+                [else
+                 ;; Otherwise, add instructions to juggle the operator and operands in the stack.
+                 (append-instruction-sequences (car ops)
+                                               (loop (rest ops)))]))))
+
+
+(: compile-procedure-call (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(define (compile-procedure-call cenv n target linkage)
+  (let ([primitive-branch (make-label 'primitiveBranch)]
+        [compiled-branch (make-label 'compiledBranch)]
+        [after-call (make-label 'afterCall)])
+    (let ([compiled-linkage
+           (if (eq? linkage 'next) after-call linkage)])
+      (append-instruction-sequences
+       (make-instruction-sequence `(,(make-TestStatement 'primitive-procedure? 'proc)
+                                    ,(make-BranchLabelStatement primitive-branch)))
+       (append-instruction-sequences
         (append-instruction-sequences
-         (make-instruction-sequence `(,(make-TestStatement 'primitive-procedure? 'proc)
-                                      ,(make-BranchLabelStatement primitive-branch)))
-         (parallel-instruction-sequences
-          (append-instruction-sequences
-           compiled-branch
-           (compile-proc-appl target compiled-linkage))
-          (append-instruction-sequences
-           primitive-branch
-           (end-with-linkage linkage
-                             (make-instruction-sequence 
-                              `(,(make-AssignPrimOpStatement target
-                                                             'apply-primitive-procedure
-                                                             (list (make-Reg 'proc)
-                                                                   (make-Reg 'argl))))))))
-         after-call))))
+         compiled-branch
+         (compile-proc-appl n target compiled-linkage))
+        (append-instruction-sequences
+         primitive-branch
+         (end-with-linkage linkage
+                           cenv
+                           (make-instruction-sequence 
+                            `(,(make-AssignPrimOpStatement target
+                                                           'apply-primitive-procedure
+                                                           (list (make-Reg 'proc)
+                                                                 (make-Const n)
+                                                                 (make-Reg 'env))))))))
+       after-call))))
 
-#;(: compile-proc-appl (Target Linkage -> InstructionSequence))
-#;(define (compile-proc-appl target linkage)
+(: compile-proc-appl (Natural Target Linkage -> InstructionSequence))
+(define (compile-proc-appl n target linkage)
   (cond [(and (eq? target 'val)
               (not (eq? linkage 'return)))
          (make-instruction-sequence 
-          `(,(make-AssignImmediateStatement 'cont (make-Label linkage))
+          `(#;,(make-AssignImmediateStatement 'cont (make-Label linkage))
             ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
                                          (list (make-Reg 'proc)))
             ,(make-GotoStatement (make-Reg 'val))))]
@@ -321,7 +333,7 @@
               (not (eq? linkage 'return)))
          (let ([proc-return (make-label 'procReturn)])
            (make-instruction-sequence
-            `(,(make-AssignImmediateStatement 'cont (make-Label proc-return))
+            `(#;,(make-AssignImmediateStatement 'cont (make-Label proc-return))
               ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
                                            (list (make-Reg 'proc)))
               ,(make-GotoStatement (make-Reg 'val))
@@ -330,9 +342,11 @@
               ,(make-GotoStatement (make-Label linkage)))))]
         [(and (eq? target 'val)
               (eq? linkage 'return))
+         ;; FIXME: do tail call stuff!
+         ;; Must shift existing environment to replace
          (make-instruction-sequence
           `(,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
-                                        (list (make-Reg 'proc)))
+                                         (list (make-Reg 'proc)))
             ,(make-GotoStatement (make-Reg 'val))))]
         [(and (not (eq? target 'val))
               (eq? linkage 'return))

@@ -68,7 +68,7 @@
 (define-struct: PopEnv ([n : Natural]) #:transparent)
 (define-struct: PopControl () #:transparent)
 
-(define-struct: PushEnv () #:transparent)
+(define-struct: PushEnv ([n : Natural]) #:transparent)
 (define-struct: PushControl () #:transparent)
 
 
@@ -131,9 +131,9 @@
 
 ;; Targets
 (define-type Target (U RegisterSymbol ControlTarget EnvOffset))
-(define-struct: ControlTarget ())
-(define-struct: EnvOffset ([depth : Natural]
-                           [pos : Natural]))
+(define-struct: EnvOffset ([depth : Natural]) #:transparent)
+(define-struct: ControlTarget () #:transparent)
+
 
 ;; Linkage
 (define-type Linkage (U 'return 
@@ -148,5 +148,6 @@
 ;; Assembly
 
 (define-struct: BasicBlock ([name : Symbol] 
-                            [stmts : (Listof UnlabeledStatement)]) #:transparent)
+                            [stmts : (Listof UnlabeledStatement)]) 
+  #:transparent)
 

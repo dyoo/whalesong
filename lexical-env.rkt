@@ -2,7 +2,7 @@
 
 (require racket/list
          "typed-structs.rkt")
-(provide find-variable extend-lexical-environment)
+(provide find-variable extend-lexical-environment lexical-environment-pop-depth)
 
 
 ;; find-variable: symbol compile-time-environment -> lexical-address
@@ -36,3 +36,13 @@
 (: extend-lexical-environment (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
 (define (extend-lexical-environment cenv names)
   (cons names cenv))
+
+
+(: lexical-environment-pop-depth (CompileTimeEnvironment -> Natural))
+(define (lexical-environment-pop-depth cenv)
+  (cond [(empty? cenv)
+         (error 'lexical-environment-pop-depth "Empty environment")]
+        [(Prefix? (first cenv))
+         1]
+        [(list? (first cenv))
+         1]))

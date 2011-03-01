@@ -9,12 +9,9 @@
 (provide compile-top)
 
 
-;; registers: env, argl, proc, val, cont
-;; as well as the stack.
-(define all-regs '(val control env))
 
 
-(: compile-top (Expression Target Linkage -> InstructionSequence))
+(: compile-top (ExpressionCore Target Linkage -> InstructionSequence))
 (define (compile-top exp target linkage)
   (let*: ([names : (Listof Symbol) (find-toplevel-variables exp)]
           [cenv : CompileTimeEnvironment (list (make-Prefix names))])
@@ -28,24 +25,22 @@
 
 
 ;; compile: expression target linkage -> instruction-sequence
-(: compile (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile (ExpressionCore CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile exp cenv target linkage)
   (cond
     [(Constant? exp)
-     (compile-self-evaluating exp cenv target linkage)]
-    #;[(Quote? exp)
+     (compile-constant exp cenv target linkage)]
+    [(Quote? exp)
      (compile-quoted exp cenv target linkage)]
-    #;[(Var? exp)
+    [(Var? exp)
      (compile-variable exp cenv target linkage)]
-    #;[(Assign? exp)
-     (compile-assignment exp cenv target linkage)]
-    #;[(Def? exp)
+    [(Def? exp)
      (compile-definition exp cenv target linkage)]
-    #;[(Branch? exp)
-     (compile-if exp cenv target linkage)]
+    [(Branch? exp)
+     (compile-branch exp cenv target linkage)]
     #;[(Lam? exp)
      (compile-lambda exp cenv target linkage)]
-    #;[(Seq? exp)
+    [(Seq? exp)
      (compile-sequence (Seq-actions exp)
                        cenv
                        target
@@ -55,39 +50,48 @@
 
 
 
-(: compile-linkage (Linkage -> InstructionSequence))
-(define (compile-linkage linkage)
+(: compile-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
+(define (compile-linkage cenv linkage)
   (cond
-    #;[(eq? linkage 'return)
-       (make-instruction-sequence `(,(make-GotoStatement (make-ControlOffset 0))))]
+    [(eq? linkage 'return)
+     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
+                                                               'read-control-label
+                                                               (list (make-Reg 'control)))
+                                  ,(make-PopEnv (lexical-environment-pop-depth cenv))
+                                  ,(make-PopControl)
+                                  ,(make-GotoStatement (make-Reg 'proc))))]
     [(eq? linkage 'next)
      empty-instruction-sequence]
-    [else
+    [(symbol? linkage)
      (make-instruction-sequence `(,(make-GotoStatement (make-Label linkage))))]))
 
-(: end-with-linkage (Linkage InstructionSequence -> InstructionSequence))
-(define (end-with-linkage linkage instruction-sequence)
+(: end-with-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
+                             InstructionSequence))
+(define (end-with-linkage linkage cenv instruction-sequence)
   (append-instruction-sequences instruction-sequence
-                                (compile-linkage linkage)))
+                                (compile-linkage cenv linkage)))
 
-(: compile-self-evaluating (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
-(define (compile-self-evaluating exp cenv target linkage)
+(: compile-constant (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-constant exp cenv target linkage)
   (end-with-linkage linkage
+                    cenv
                     (make-instruction-sequence
                      `(,(make-AssignImmediateStatement target (make-Const (Constant-v exp)))))))
 
-#;(: compile-quoted (Quote CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-quoted exp cenv target linkage)
+(: compile-quoted (Quote CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-quoted exp cenv target linkage)
   (end-with-linkage linkage
+                    cenv
                     (make-instruction-sequence
                      `(,(make-AssignImmediateStatement target (make-Const (Quote-text exp)))))))
 
-#;(: compile-variable (Var CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-variable exp cenv target linkage)
+(: compile-variable (Var CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-variable exp cenv target linkage)
   (let ([lexical-pos (find-variable (Var-id exp) cenv)])
     (cond
       [(LocalAddress? lexical-pos)
        (end-with-linkage linkage
+                         cenv
                          (make-instruction-sequence
                           `(,(make-AssignPrimOpStatement target
                                                          'lexical-address-lookup
@@ -96,6 +100,7 @@
                                                                (make-Reg 'env))))))]
       [(PrefixAddress? lexical-pos)
        (end-with-linkage linkage
+                         cenv
                          (make-instruction-sequence
                           `(,(make-PerformStatement 'check-bound! 
                                                     (list (make-Const (PrefixAddress-depth lexical-pos))
@@ -110,41 +115,8 @@
                                                                (make-Reg 'env))))))])))
 
 
-#;(: compile-assignment (Assign CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-assignment exp cenv target linkage)
-  (let* ([var (Assign-variable exp)]
-         [get-value-code
-          (compile (Assign-value exp) cenv 'val 'next)]
-         [lexical-address
-          (find-variable var cenv)])
-    (cond
-      [(LocalAddress? lexical-address)
-       (end-with-linkage
-        linkage
-        (append-instruction-sequences get-value-code
-                                      (make-instruction-sequence
-                                       `(,(make-PerformStatement 'lexical-address-set!
-                                                                 (list (make-Const (LocalAddress-depth lexical-address))
-                                                                       (make-Const (LocalAddress-pos lexical-address))
-                                                                       (make-Reg 'env)
-                                                                       (make-Reg 'val)))
-                                         ,(make-AssignImmediateStatement target (make-Const 'ok))))))]
-      [(PrefixAddress? lexical-address)
-       (end-with-linkage
-        linkage
-        (append-instruction-sequences get-value-code
-                                      (make-instruction-sequence
-                                       `(,(make-PerformStatement 'toplevel-set!
-                                                                 (list (make-Const (PrefixAddress-depth lexical-address))
-                                                                       (make-Const (PrefixAddress-pos lexical-address))
-                                                                       (make-Const (PrefixAddress-name lexical-address))
-                                                                       (make-Reg 'env)
-                                                                       (make-Reg 'val)))
-                                         ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
-
-
-#;(: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-definition exp cenv target linkage)
+(: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-definition exp cenv target linkage)
   (let* ([var (Def-variable exp)]
          [lexical-pos (find-variable var cenv)]
          [get-value-code
@@ -155,6 +127,7 @@
       [(PrefixAddress? lexical-pos)
        (end-with-linkage
         linkage
+        cenv
         (append-instruction-sequences
          get-value-code
          (make-instruction-sequence `(,(make-PerformStatement 'toplevel-set!
@@ -166,8 +139,8 @@
                                       ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
 
 
-#;(: compile-if (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-if exp cenv target linkage)  
+(: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-branch exp cenv target linkage)  
   (let ([t-branch (make-label 'trueBranch)]
         [f-branch (make-label 'falseBranch)]
         [after-if (make-label 'afterIf)])
@@ -189,8 +162,8 @@
                                        after-if))))))
 
 
-#;(: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-sequence seq cenv target linkage) 
+(: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-sequence seq cenv target linkage) 
   (if (last-exp? seq)
       (compile (first-exp seq) cenv target linkage)
       (append-instruction-sequences (compile (first-exp seq) cenv target 'next)

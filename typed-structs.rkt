@@ -4,7 +4,7 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Constant #;Quote #;Var #;Branch #;Def #;Lam #;Seq #;App))
+(define-type ExpressionCore (U Constant Quote Var Branch Def #;Lam Seq #;App))
 (define-type Expression (U ExpressionCore #;Assign))
 (define-struct: Constant ([v : Any]) #:transparent)
 (define-struct: Quote ([text : Any]) #:transparent)
@@ -33,8 +33,11 @@
 (define (rest-exps seq) (cdr seq))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (define-type StackRegisterSymbol (U 'control 'env))
-(define-type RegisterSymbol (U StackRegisterSymbol 'val))
+(define-type RegisterSymbol (U StackRegisterSymbol 'val 'proc))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,30 +46,25 @@
 (define-type UnlabeledStatement (U 
                                  AssignImmediateStatement
                                  AssignPrimOpStatement
+                                 GotoStatement
                                  PerformStatement
                                  TestStatement
                                  BranchLabelStatement
-                                 GotoStatement
+                                 PopEnv
+                                 PopControl
                                  #;SaveStatement
                                  #;RestoreStatement))
 (define-type Statement (U UnlabeledStatement
                           Symbol  ;; label
                           ))
+
 (define-struct: AssignImmediateStatement ([target : Target]
-                                          [value : (U Const Reg Label)])
+                                          [value : OpArg])
   #:transparent)
 (define-struct: AssignPrimOpStatement ([target : Target]
                                        [op : PrimitiveOperator]
-                                       [rands : (Listof (U Label Reg Const))])
+                                       [rands : (Listof OpArg)])
   #:transparent)
-(define-struct: PerformStatement ([op : PerformOperator]
-                                  [rands : (Listof (U Label Reg Const))]) #:transparent)
-(define-struct: TestStatement ([op : TestOperator]
-                               [register-rand : RegisterSymbol]) #:transparent)
-(define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
-(define-struct: GotoStatement ([target : (U Label Reg)]) #:transparent)
-#;(define-struct: SaveStatement ([reg : RegisterSymbol]) #:transparent)
-#;(define-struct: RestoreStatement ([reg : RegisterSymbol]) #:transparent)
 
 (define-struct: Label ([name : Symbol])
   #:transparent)
@@ -75,7 +73,25 @@
 (define-struct: Const ([const : Any])
   #:transparent)
 
-(define-type OpArg (U Const Label Reg))
+(define-struct: TopControlProcedure ()) 
+
+(define-type OpArg (U Const Label Reg TopControlProcedure))
+
+(define-struct: PopEnv ([n : Natural]))
+(define-struct: PopControl ())
+
+(define-struct: GotoStatement ([target : (U Label Reg)]) 
+  #:transparent)
+
+
+(define-struct: PerformStatement ([op : PerformOperator]
+                                  [rands : (Listof (U Label Reg Const))]) #:transparent)
+(define-struct: TestStatement ([op : TestOperator]
+                               [register-rand : RegisterSymbol]) #:transparent)
+(define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
+#;(define-struct: SaveStatement ([reg : RegisterSymbol]) #:transparent)
+#;(define-struct: RestoreStatement ([reg : RegisterSymbol]) #:transparent)
+
 
 
 (define-type PrimitiveOperator (U 'compiled-procedure-entry
@@ -89,6 +105,8 @@
                                   
                                   'lexical-address-lookup
                                   'toplevel-lookup
+                                  
+                                  'read-control-label
                                   
                                   'extend-environment
                                   'extend-environment/prefix))
@@ -122,13 +140,13 @@
 
 
 ;; Targets
-(define-type Target (U RegisterSymbol ControlOffset EnvOffset))
-(define-struct: ControlOffset ([depth : Natural]))
+(define-type Target (U RegisterSymbol ControlTarget EnvOffset))
+(define-struct: ControlTarget ())
 (define-struct: EnvOffset ([depth : Natural]
                            [pos : Natural]))
 
 ;; Linkage
-(define-type Linkage (U #; 'return 
+(define-type Linkage (U 'return 
                         'next
                         Symbol))
 

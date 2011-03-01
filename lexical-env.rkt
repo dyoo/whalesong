@@ -1,8 +1,14 @@
 #lang typed/racket/base
 
 (require racket/list
-         "typed-structs.rkt")
-(provide find-variable extend-lexical-environment lexical-environment-pop-depth)
+         "il-structs.rkt"
+         "lexical-structs.rkt"
+         "sets.rkt")
+(provide find-variable 
+         extend-lexical-environment
+         lexical-environment-pop-depth
+         collect-lexical-references
+         lexical-references->compile-time-environment)
 
 
 ;; find-variable: symbol compile-time-environment -> lexical-address
@@ -52,3 +58,48 @@
          1]
         [(list? (first cenv))
          1]))
+
+
+
+
+(: collect-lexical-references ((Listof LexicalAddress) 
+                               -> 
+                               (Listof (U EnvLexicalReference EnvWholePrefixReference))))
+;; Given a list of lexical addresses, computes a set of unique references.
+;; Multiple lexical addresses to a single prefix should be treated identically.
+(define (collect-lexical-references addresses)
+  (let: ([prefix-references : (Setof EnvWholePrefixReference) (new-set)]
+         [lexical-references : (Setof EnvLexicalReference) (new-set)])
+        (let: loop : (Listof (U EnvLexicalReference EnvWholePrefixReference)) 
+              ([addresses : (Listof LexicalAddress) addresses])
+              (cond 
+                [(empty? addresses)
+                 (append (set->list prefix-references) (set->list lexical-references))]
+                [else
+                 (let ([addr (first addresses)])
+                   (cond
+                     [(LocalAddress? addr)
+                      (set-insert! lexical-references
+                                   (make-EnvLexicalReference (LocalAddress-depth addr)
+                                                             (LocalAddress-pos addr)))
+                      (loop (rest addresses))]
+                     [(PrefixAddress? addr)
+                      (set-insert! prefix-references
+                                   (make-EnvWholePrefixReference (PrefixAddress-depth addr)))
+                      (loop (rest addresses))]))]))))
+
+
+(: lexical-references->compile-time-environment ((Listof (U EnvLexicalReference EnvWholePrefixReference))
+                                                 CompileTimeEnvironment
+                                                 -> CompileTimeEnvironment))
+(define (lexical-references->compile-time-environment refs cenv)
+  cenv
+  #;(cond
+    [(empty? refs)
+     cenv]
+    [else
+     (let ([a-ref (first refs)])
+       (cond
+         [(EnvLexicalReference? a-ref)
+          ...]))]))
+

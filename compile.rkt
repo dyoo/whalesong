@@ -1,6 +1,8 @@
 #lang typed/racket/base
 
-(require "typed-structs.rkt"
+(require "expression-structs.rkt"
+         "lexical-structs.rkt"
+         "il-structs.rkt"
          "lexical-env.rkt"
          "helpers.rkt"
          "find-toplevel-variables.rkt"
@@ -202,31 +204,7 @@
           after-lambda)))
 
 
-(: collect-lexical-references ((Listof LexicalAddress) 
-                               -> 
-                               (Listof (U EnvLexicalReference EnvWholePrefixReference))))
-;; Given a list of lexical addresses, computes a set of unique references.
-;; Multiple lexical addresses to a single prefix should be treated identically.
-(define (collect-lexical-references addresses)
-  (let: ([prefix-references : (Setof EnvWholePrefixReference) (new-set)]
-         [lexical-references : (Setof EnvLexicalReference) (new-set)])
-        (let: loop : (Listof (U EnvLexicalReference EnvWholePrefixReference)) 
-              ([addresses : (Listof LexicalAddress) addresses])
-              (cond 
-                [(empty? addresses)
-                 (append (set->list prefix-references) (set->list lexical-references))]
-                [else
-                 (let ([addr (first addresses)])
-                   (cond
-                     [(LocalAddress? addr)
-                      (set-insert! lexical-references
-                                   (make-EnvLexicalReference (LocalAddress-depth addr)
-                                                             (LocalAddress-pos addr)))
-                      (loop (rest addresses))]
-                     [(PrefixAddress? addr)
-                      (set-insert! prefix-references
-                                   (make-EnvWholePrefixReference (PrefixAddress-depth addr)))
-                      (loop (rest addresses))]))]))))
+
 
   
 

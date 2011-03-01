@@ -32,13 +32,14 @@
 
 
 
-;; extend-lexical-environment: lexical-environment (listof symbol) -> lexical-envrionment
 (: extend-lexical-environment (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
+;; Extends the lexical environment with procedure bindings.
 (define (extend-lexical-environment cenv names)
   (cons names cenv))
 
 
 (: lexical-environment-pop-depth (CompileTimeEnvironment -> Natural))
+;; Computes how many environments we need to pop till we clear the procedure arguments.
 (define (lexical-environment-pop-depth cenv)
   (cond [(empty? cenv)
          (error 'lexical-environment-pop-depth "Empty environment")]

@@ -38,7 +38,7 @@
      (compile-definition exp cenv target linkage)]
     [(Branch? exp)
      (compile-branch exp cenv target linkage)]
-    #;[(Lam? exp)
+    [(Lam? exp)
      (compile-lambda exp cenv target linkage)]
     [(Seq? exp)
      (compile-sequence (Seq-actions exp)
@@ -156,7 +156,7 @@
                                        (make-instruction-sequence
                                         `(,(make-TestStatement 'false? 'val)
                                           ,(make-BranchLabelStatement f-branch)))
-                                       (parallel-instruction-sequences
+                                       (append-instruction-sequences
                                         (append-instruction-sequences t-branch c-code)
                                         (append-instruction-sequences f-branch a-code))
                                        after-if))))))
@@ -170,8 +170,8 @@
                                     (compile-sequence (rest-exps seq) cenv target linkage))))
 
 
-#;(: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-lambda exp cenv target linkage) 
+(: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-lambda exp cenv target linkage) 
   (let ([proc-entry (make-label 'entry)]
         [after-lambda (make-label 'afterLambda)])
     (let ([lambda-linkage
@@ -179,8 +179,9 @@
                after-lambda
                linkage)])
       (append-instruction-sequences
-       (tack-on-instruction-sequence
+       (append-instruction-sequences
         (end-with-linkage lambda-linkage
+                          cenv
                           (make-instruction-sequence 
                            `(,(make-AssignPrimOpStatement target
                                                           'make-compiled-procedure
@@ -196,21 +197,19 @@
                              proc-entry))
        after-lambda))))
 
-#;(: compile-lambda-body (Lam CompileTimeEnvironment Linkage -> InstructionSequence))
-#;(define (compile-lambda-body exp cenv proc-entry)
+(: compile-lambda-body (Lam CompileTimeEnvironment Linkage -> InstructionSequence))
+(define (compile-lambda-body exp cenv proc-entry)
   (let* ([formals (Lam-parameters exp)]
          [extended-cenv (extend-lexical-environment cenv formals)])
     (append-instruction-sequences
      (make-instruction-sequence 
       `(,proc-entry
+        ;; FIXME: not right: we need to install the closure values here,
+        ;; instead of replacing the environment altogether.
         ,(make-AssignPrimOpStatement 'env 
                                      'compiled-procedure-env
-                                     (list (make-Reg 'proc)))
-        ,(make-AssignPrimOpStatement 'env
-                'extend-environment
-                (list (make-Reg 'argl)
-                      (make-Reg 'env)))))
-     (compile-sequence (Lam-body exp) extended-cenv 'val 'return))))
+                                     (list (make-Reg 'proc)))))
+     (compile (Lam-body exp) extended-cenv 'val 'return))))
 
 #;(: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 #;(define (compile-application exp cenv target linkage) 
@@ -220,7 +219,10 @@
   (let ([proc-code (compile (App-operator exp) cenv 'proc 'next)]
         [operand-codes (map (lambda: ([operand : Expression])
                               (compile operand cenv 'val 'next))
-                            (App-operands exp))])
+                            (App-operands exp))])   
+    ;; FIXME: at procedure entry, the arguments need to be installed
+    ;; in the environment.  We need to install 
+    ;; the closure's values now.
     (append-instruction-sequences
      proc-code
      (append-instruction-sequences
@@ -330,15 +332,3 @@
       empty-instruction-sequence
       (append-2-sequences (car seqs)
                           (append-seq-list (cdr seqs)))))
-
-
-
-
-(: tack-on-instruction-sequence (InstructionSequence InstructionSequence -> InstructionSequence))
-(define (tack-on-instruction-sequence seq body-seq)
-  (make-instruction-sequence (append (statements seq) (statements body-seq))))
-
-(: parallel-instruction-sequences (InstructionSequence InstructionSequence -> InstructionSequence))
-(define (parallel-instruction-sequences seq1 seq2)
-  (make-instruction-sequence (append (statements seq1) (statements seq2))))
-

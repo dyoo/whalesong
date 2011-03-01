@@ -17,7 +17,7 @@
 (define-struct: Def ([variable : Symbol] 
                      [value : Expression]) #:transparent)
 (define-struct: Lam ([parameters : (Listof Symbol)]
-                     [body : (Listof Expression)]) #:transparent)
+                     [body : Expression]) #:transparent)
 (define-struct: Seq ([actions : (Listof Expression)]) #:transparent)
 (define-struct: App ([operator : Expression]
                      [operands : (Listof Expression)]) #:transparent)
@@ -52,8 +52,8 @@
                                  BranchLabelStatement
                                  PopEnv
                                  PopControl
-                                 #;SaveStatement
-                                 #;RestoreStatement))
+                                 PushEnv
+                                 PushControl))
 (define-type Statement (U UnlabeledStatement
                           Symbol  ;; label
                           ))
@@ -77,8 +77,12 @@
 
 (define-type OpArg (U Const Label Reg TopControlProcedure))
 
-(define-struct: PopEnv ([n : Natural]))
-(define-struct: PopControl ())
+(define-struct: PopEnv ([n : Natural]) #:transparent)
+(define-struct: PopControl () #:transparent)
+
+(define-struct: PushEnv () #:transparent)
+(define-struct: PushControl () #:transparent)
+
 
 (define-struct: GotoStatement ([target : (U Label Reg)]) 
   #:transparent)
@@ -89,8 +93,6 @@
 (define-struct: TestStatement ([op : TestOperator]
                                [register-rand : RegisterSymbol]) #:transparent)
 (define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
-#;(define-struct: SaveStatement ([reg : RegisterSymbol]) #:transparent)
-#;(define-struct: RestoreStatement ([reg : RegisterSymbol]) #:transparent)
 
 
 

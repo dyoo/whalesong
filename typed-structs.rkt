@@ -4,10 +4,12 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Constant Quote Var Branch Def #;Lam Seq #;App))
+(define-type ExpressionCore (U Top Constant Var Branch Def #;Lam Seq #;App))
 (define-type Expression (U ExpressionCore #;Assign))
+
+(define-struct: Top ([prefix : Prefix]
+                     [code : ExpressionCore]) #:transparent)
 (define-struct: Constant ([v : Any]) #:transparent)
-(define-struct: Quote ([text : Any]) #:transparent)
 (define-struct: Var ([id : Symbol]) #:transparent)
 (define-struct: Assign ([variable : Symbol]
                         [value : Expression]) #:transparent)

@@ -12,6 +12,9 @@
   (: loop (Expression -> (Listof Symbol)))
   (define (loop exp)
     (cond
+      [(Top? exp)
+       (list-difference (Prefix-names (Top-prefix exp))
+                        (loop (Top-code exp)))]
       [(Constant? exp)
        empty]
       

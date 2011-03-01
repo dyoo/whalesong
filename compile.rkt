@@ -3,7 +3,6 @@
 (require "typed-structs.rkt"
          "lexical-env.rkt"
          "helpers.rkt"
-         "find-toplevel-variables.rkt"
          racket/list)
 
 (provide compile-top)
@@ -11,27 +10,15 @@
 
 
 
-(: compile-top (ExpressionCore Target Linkage -> InstructionSequence))
-(define (compile-top exp target linkage)
-  (let*: ([names : (Listof Symbol) (find-toplevel-variables exp)]
-          [cenv : CompileTimeEnvironment (list (make-Prefix names))])
-        (append-instruction-sequences
-         (make-instruction-sequence 
-          `(,(make-AssignPrimOpStatement 'env
-                                         'extend-environment/prefix
-                                         (list (make-Const names)
-                                               (make-Reg 'env)))))
-         (compile exp cenv target linkage))))
-
 
 ;; compile: expression target linkage -> instruction-sequence
 (: compile (ExpressionCore CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile exp cenv target linkage)
   (cond
+    [(Top? exp)
+     (compile-top exp cenv target linkage)]
     [(Constant? exp)
      (compile-constant exp cenv target linkage)]
-    [(Quote? exp)
-     (compile-quoted exp cenv target linkage)]
     [(Var? exp)
      (compile-variable exp cenv target linkage)]
     [(Def? exp)
@@ -47,6 +34,20 @@
                        linkage)]
     #;[(App? exp)
      (compile-application exp cenv target linkage)]))
+
+
+
+(: compile-top (Top CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-top top cenv target linkage)
+  (let*: ([cenv : CompileTimeEnvironment (extend-lexical-environment cenv (Top-prefix top))]
+          [names : (Listof Symbol) (Prefix-names (Top-prefix top))])
+        (append-instruction-sequences
+         (make-instruction-sequence 
+          `(,(make-AssignPrimOpStatement 'env
+                                         'extend-environment/prefix
+                                         (list (make-Const names)
+                                               (make-Reg 'env)))))
+         (compile (Top-code top) cenv target linkage))))
 
 
 
@@ -77,13 +78,6 @@
                     cenv
                     (make-instruction-sequence
                      `(,(make-AssignImmediateStatement target (make-Const (Constant-v exp)))))))
-
-(: compile-quoted (Quote CompileTimeEnvironment Target Linkage -> InstructionSequence))
-(define (compile-quoted exp cenv target linkage)
-  (end-with-linkage linkage
-                    cenv
-                    (make-instruction-sequence
-                     `(,(make-AssignImmediateStatement target (make-Const (Quote-text exp)))))))
 
 (: compile-variable (Var CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-variable exp cenv target linkage)

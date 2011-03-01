@@ -32,10 +32,15 @@
 
 
 
-(: extend-lexical-environment (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
+(: extend-lexical-environment (CompileTimeEnvironment (U (Listof Symbol) Prefix) -> CompileTimeEnvironment))
 ;; Extends the lexical environment with procedure bindings.
 (define (extend-lexical-environment cenv names)
-  (cons names cenv))
+  (cond [(Prefix? names)
+         (cons names cenv)]
+        [(list? names)
+         (cons names cenv)]))
+
+
 
 
 (: lexical-environment-pop-depth (CompileTimeEnvironment -> Natural))

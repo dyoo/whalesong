@@ -4,8 +4,8 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Constant Quote Var Branch Def Lam Seq App))
-(define-type Expression (U ExpressionCore Assign))
+(define-type ExpressionCore (U Constant #;Quote #;Var #;Branch #;Def #;Lam #;Seq #;App))
+(define-type Expression (U ExpressionCore #;Assign))
 (define-struct: Constant ([v : Any]) #:transparent)
 (define-struct: Quote ([text : Any]) #:transparent)
 (define-struct: Var ([id : Symbol]) #:transparent)
@@ -33,6 +33,10 @@
 (define (rest-exps seq) (cdr seq))
 
 
+(define-type StackRegisterSymbol (U 'control 'env))
+(define-type RegisterSymbol (U StackRegisterSymbol 'val))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; instruction sequences
@@ -43,30 +47,30 @@
                                  TestStatement
                                  BranchLabelStatement
                                  GotoStatement
-                                 SaveStatement
-                                 RestoreStatement))
+                                 #;SaveStatement
+                                 #;RestoreStatement))
 (define-type Statement (U UnlabeledStatement
                           Symbol  ;; label
                           ))
-(define-struct: AssignImmediateStatement ([target : Symbol]
+(define-struct: AssignImmediateStatement ([target : Target]
                                           [value : (U Const Reg Label)])
   #:transparent)
-(define-struct: AssignPrimOpStatement ([target : Symbol]
+(define-struct: AssignPrimOpStatement ([target : Target]
                                        [op : PrimitiveOperator]
                                        [rands : (Listof (U Label Reg Const))])
   #:transparent)
 (define-struct: PerformStatement ([op : PerformOperator]
                                   [rands : (Listof (U Label Reg Const))]) #:transparent)
 (define-struct: TestStatement ([op : TestOperator]
-                               [register-rand : Symbol]) #:transparent)
+                               [register-rand : RegisterSymbol]) #:transparent)
 (define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
 (define-struct: GotoStatement ([target : (U Label Reg)]) #:transparent)
-(define-struct: SaveStatement ([reg : Symbol]) #:transparent)
-(define-struct: RestoreStatement ([reg : Symbol]) #:transparent)
+#;(define-struct: SaveStatement ([reg : RegisterSymbol]) #:transparent)
+#;(define-struct: RestoreStatement ([reg : RegisterSymbol]) #:transparent)
 
 (define-struct: Label ([name : Symbol])
   #:transparent)
-(define-struct: Reg ([name : Symbol])
+(define-struct: Reg ([name : RegisterSymbol])
   #:transparent)
 (define-struct: Const ([const : Any])
   #:transparent)
@@ -99,10 +103,9 @@
 
 
 (define-type InstructionSequence (U Symbol instruction-sequence))
-(define-struct: instruction-sequence ([needs : (Listof Symbol)]
-                                      [modifies : (Listof Symbol)]
-                                      [statements : (Listof Statement)]) #:transparent)
-(define empty-instruction-sequence (make-instruction-sequence '() '() '()))
+(define-struct: instruction-sequence ([statements : (Listof Statement)])
+  #:transparent)
+(define empty-instruction-sequence (make-instruction-sequence '()))
 
 (: make-label (Symbol -> Symbol))
 (define make-label
@@ -112,14 +115,6 @@
       (string->symbol (format "~a~a" l n)))))
 
 
-(: registers-needed (InstructionSequence -> (Listof Symbol)))
-(define (registers-needed s)
-  (if (symbol? s) '() (instruction-sequence-needs s)))
-
-(: registers-modified (InstructionSequence -> (Listof Symbol)))
-(define (registers-modified s)
-  (if (symbol? s) '() (instruction-sequence-modifies s)))
-
 (: statements (InstructionSequence -> (Listof Statement)))
 (define (statements s)
   (if (symbol? s) (list s) (instruction-sequence-statements s)))
@@ -127,10 +122,15 @@
 
 
 ;; Targets
-(define-type Target Symbol)
+(define-type Target (U RegisterSymbol ControlOffset EnvOffset))
+(define-struct: ControlOffset ([depth : Natural]))
+(define-struct: EnvOffset ([depth : Natural]
+                           [pos : Natural]))
 
 ;; Linkage
-(define-type Linkage (U 'return 'next Symbol))
+(define-type Linkage (U #; 'return 
+                        'next
+                        Symbol))
 
 
 

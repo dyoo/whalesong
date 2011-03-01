@@ -220,9 +220,15 @@
         [operand-codes (map (lambda: ([operand : Expression])
                               (compile operand cenv 'val 'next))
                             (App-operands exp))])   
+    ;; FIXME: we need to allocate space for the arguments in the environment.
+    ;; FIXME: we need to compile each operand especially to write to the correct
+    ;; environment location.
+    ;; FIXME: we need to push the control.
     ;; FIXME: at procedure entry, the arguments need to be installed
     ;; in the environment.  We need to install 
     ;; the closure's values now.
+    ;;
+    ;; FIXME: if we're calling in tail position, preserve space.
     (append-instruction-sequences
      proc-code
      (append-instruction-sequences
@@ -261,27 +267,27 @@
 
 #;(: compile-procedure-call (Target Linkage -> InstructionSequence))
 #;(define (compile-procedure-call target linkage)
-  (let ([primitive-branch (make-label 'primitiveBranch)]
-        [compiled-branch (make-label 'compiledBranch)]
-        [after-call (make-label 'afterCall)])
-    (let ([compiled-linkage
-           (if (eq? linkage 'next) after-call linkage)])
-      (append-instruction-sequences
-       (make-instruction-sequence `(,(make-TestStatement 'primitive-procedure? 'proc)
-                                    ,(make-BranchLabelStatement primitive-branch)))
-       (parallel-instruction-sequences
+    (let ([primitive-branch (make-label 'primitiveBranch)]
+          [compiled-branch (make-label 'compiledBranch)]
+          [after-call (make-label 'afterCall)])
+      (let ([compiled-linkage
+             (if (eq? linkage 'next) after-call linkage)])
         (append-instruction-sequences
-         compiled-branch
-         (compile-proc-appl target compiled-linkage))
-        (append-instruction-sequences
-         primitive-branch
-         (end-with-linkage linkage
-                           (make-instruction-sequence 
-                            `(,(make-AssignPrimOpStatement target
-                                                           'apply-primitive-procedure
-                                                           (list (make-Reg 'proc)
-                                                                 (make-Reg 'argl))))))))
-       after-call))))
+         (make-instruction-sequence `(,(make-TestStatement 'primitive-procedure? 'proc)
+                                      ,(make-BranchLabelStatement primitive-branch)))
+         (parallel-instruction-sequences
+          (append-instruction-sequences
+           compiled-branch
+           (compile-proc-appl target compiled-linkage))
+          (append-instruction-sequences
+           primitive-branch
+           (end-with-linkage linkage
+                             (make-instruction-sequence 
+                              `(,(make-AssignPrimOpStatement target
+                                                             'apply-primitive-procedure
+                                                             (list (make-Reg 'proc)
+                                                                   (make-Reg 'argl))))))))
+         after-call))))
 
 #;(: compile-proc-appl (Target Linkage -> InstructionSequence))
 #;(define (compile-proc-appl target linkage)

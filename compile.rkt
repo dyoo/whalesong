@@ -94,7 +94,6 @@
                           `(,(make-AssignPrimOpStatement target
                                                          'lexical-address-lookup
                                                          (list (make-Const (LocalAddress-depth lexical-pos))
-                                                               (make-Const (LocalAddress-pos lexical-pos))
                                                                (make-Reg 'env))))))]
       [(PrefixAddress? lexical-pos)
        (end-with-linkage linkage
@@ -190,12 +189,6 @@
                              `(,(make-AssignPrimOpStatement target
                                                             'make-compiled-procedure
                                                             (list* (make-Label proc-entry)
-                                                                   ;; TODO: rather than capture the whole
-                                                                   ;; environment, we need to instead
-                                                                   ;; capture the free variables.
-                                                                   ;; But that requires that we box
-                                                                   ;; up all set!-ed variables, in order
-                                                                   ;; to preserve semantics of set!
                                                                    (make-Reg 'env)
                                                                    lexical-references)))))
           (compile-lambda-body exp cenv
@@ -214,20 +207,23 @@
                             Linkage 
                             -> 
                             InstructionSequence))
-;; Compiles the body of the lambda.
+;; Compiles the body of the lambda in the appropriate environment.
 (define (compile-lambda-body exp cenv lexical-references proc-entry)
-  (let*:  ([formals : (Listof Symbol) (Lam-parameters exp)]
-           [extended-cenv : CompileTimeEnvironment (extend-lexical-environment cenv formals)]
-           [extended-cenv : CompileTimeEnvironment extended-cenv])
-    (append-instruction-sequences
-     (make-instruction-sequence 
-      `(,proc-entry
-        ;; FIXME: not right: we need to install the closure values here,
-        ;; instead of replacing the environment altogether.
-        ,(make-AssignPrimOpStatement 'env 
-                                     'compiled-procedure-env
-                                     (list (make-Reg 'proc)))))
-     (compile (Lam-body exp) extended-cenv 'val 'return))))
+  (let*: ([formals : (Listof Symbol) (Lam-parameters exp)]
+          [extended-cenv : CompileTimeEnvironment 
+                         (extend-lexical-environment '() formals)]
+          [extended-cenv : CompileTimeEnvironment 
+                         (begin
+                           (lexical-references->compile-time-environment lexical-references cenv extended-cenv))])
+         (append-instruction-sequences
+          (make-instruction-sequence 
+           `(,proc-entry
+             ;; FIXME: not right: we need to install the closure values here,
+             ;; instead of replacing the environment altogether.
+             ,(make-AssignPrimOpStatement 'env 
+                                          'compiled-procedure-env
+                                          (list (make-Reg 'proc)))))
+          (compile (Lam-body exp) extended-cenv 'val 'return))))
 
 
 

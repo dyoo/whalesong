@@ -5,13 +5,40 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Registers of the machine:
 
 (define-type StackRegisterSymbol (U 'control 'env))
-(define-type RegisterSymbol (U StackRegisterSymbol 'val 'proc))
+(define-type AtomicRegisterSymbol (U 'val 'proc))
+(define-type RegisterSymbol (U StackRegisterSymbol AtomicRegisterSymbol))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;; An operation can refer to the following:
+(define-type OpArg (U Const ;; an constant
+                      Label ;; an label
+                      Reg   ;; an register 
+                      EnvLexicalReference
+                      EnvWholePrefixReference))
+
+(define-struct: Label ([name : Symbol])
+  #:transparent)
+(define-struct: Reg ([name : RegisterSymbol])
+  #:transparent)
+(define-struct: Const ([const : Any])
+  #:transparent)
+(define-struct: EnvLexicalReference ([depth : Natural])
+  #:transparent)
+(define-struct: EnvWholePrefixReference ([depth : Natural])
+  #:transparent)
+
+
+
+
+
+
 
 ;; instruction sequences
 (define-type UnlabeledStatement (U 
@@ -37,25 +64,6 @@
                                        [rands : (Listof OpArg)])
   #:transparent)
 
-
-
-
-(define-struct: Label ([name : Symbol])
-  #:transparent)
-(define-struct: Reg ([name : RegisterSymbol])
-  #:transparent)
-(define-struct: Const ([const : Any])
-  #:transparent)
-(define-struct: EnvLexicalReference ([depth : Natural]
-                                     [pos : Natural])
-  #:transparent)
-(define-struct: EnvWholePrefixReference ([depth : Natural])
-  #:transparent)
-
-
-;; An operation can refer to a Const, a Register, the top of the Control stack,
-;; or a reference within the lexical environment.
-(define-type OpArg (U Const Label Reg EnvLexicalReference EnvWholePrefixReference))
 
 (define-struct: PopEnv ([n : Natural]) #:transparent)
 (define-struct: PopControl () #:transparent)

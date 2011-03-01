@@ -31,10 +31,12 @@
                       (make-PrefixAddress depth (find-pos name (Prefix-names (first cenv))) name)]
                      [else
                       (loop (rest cenv) (add1 depth))])]
-              [(member name (first cenv))
-               (make-LocalAddress depth (find-pos name (first cenv)))]
-              [else
-               (loop (rest cenv) (add1 depth))])))
+              [(symbol? (first cenv))
+               (cond
+                 [(eq? name (first cenv))
+                  (make-LocalAddress depth)]
+                 [else
+                  (loop (rest cenv) (add1 depth))])])))
 
 
 
@@ -44,21 +46,14 @@
   (cond [(Prefix? names)
          (cons names cenv)]
         [(list? names)
-         (cons names cenv)]))
-
+         (append names cenv)]))
 
 
 
 (: lexical-environment-pop-depth (CompileTimeEnvironment -> Natural))
 ;; Computes how many environments we need to pop till we clear the procedure arguments.
 (define (lexical-environment-pop-depth cenv)
-  (cond [(empty? cenv)
-         (error 'lexical-environment-pop-depth "Empty environment")]
-        [(Prefix? (first cenv))
-         1]
-        [(list? (first cenv))
-         1]))
-
+  (length cenv))
 
 
 
@@ -80,8 +75,7 @@
                    (cond
                      [(LocalAddress? addr)
                       (set-insert! lexical-references
-                                   (make-EnvLexicalReference (LocalAddress-depth addr)
-                                                             (LocalAddress-pos addr)))
+                                   (make-EnvLexicalReference (LocalAddress-depth addr)))
                       (loop (rest addresses))]
                      [(PrefixAddress? addr)
                       (set-insert! prefix-references
@@ -89,17 +83,25 @@
                       (loop (rest addresses))]))]))))
 
 
-(: lexical-references->compile-time-environment ((Listof (U EnvLexicalReference EnvWholePrefixReference))
-                                                 CompileTimeEnvironment
-                                                 -> CompileTimeEnvironment))
-(define (lexical-references->compile-time-environment refs cenv)
-  cenv
-  #;(cond
-    [(empty? refs)
-     cenv]
-    [else
-     (let ([a-ref (first refs)])
-       (cond
-         [(EnvLexicalReference? a-ref)
-          ...]))]))
+(define-type EnvReference (U EnvLexicalReference EnvWholePrefixReference))
 
+(: lexical-references->compile-time-environment ((Listof EnvReference) CompileTimeEnvironment CompileTimeEnvironment
+                                                                       -> CompileTimeEnvironment))
+;; Creates a lexical environment containing the closure's bindings.
+(define (lexical-references->compile-time-environment refs cenv new-cenv)
+  (let: loop : CompileTimeEnvironment ([refs : (Listof EnvReference) (reverse refs)]
+                                       [new-cenv : CompileTimeEnvironment new-cenv])
+        (cond
+          [(empty? refs)
+           new-cenv]
+          [else
+           (let: ([a-ref : EnvReference (first refs)])
+                 (cond
+                   [(EnvLexicalReference? a-ref)
+                    (loop (rest refs)
+                          (cons (list-ref cenv (EnvLexicalReference-depth a-ref))
+                                new-cenv))]
+                   [(EnvWholePrefixReference? a-ref)
+                    (loop (rest refs)
+                          (cons (list-ref cenv (EnvWholePrefixReference-depth a-ref))
+                                new-cenv))]))])))

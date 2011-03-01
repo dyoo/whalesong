@@ -1,6 +1,6 @@
 #lang typed/racket/base
-(require "typed-structs.rkt")
+(require "expression-structs.rkt")
 (require/typed "parse.rkt"
-               [parse (Any -> Expression)])
+               [parse (Any -> ExpressionCore)])
 
 (provide parse)

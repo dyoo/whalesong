@@ -1,5 +1,5 @@
 #lang racket/base
-(require "typed-structs.rkt")
+(require "expression-structs.rkt")
 (provide parse)
 
 (define (parse exp)
@@ -7,12 +7,9 @@
     [(self-evaluating? exp)
      (make-Constant exp)]
     [(quoted? exp)
-     (make-Quote (text-of-quotation exp))]
+     (make-Constant (text-of-quotation exp))]
     [(variable? exp)
      (make-Var exp)]      
-    [(assignment? exp)
-     (make-Assign (assignment-variable exp)
-                  (parse (assignment-value exp)))]
     [(definition? exp)
      (make-Def (definition-variable exp)
                (parse (definition-value exp)))]
@@ -22,7 +19,7 @@
                   (parse (if-alternative exp)))]
     [(lambda? exp)
      (make-Lam (lambda-parameters exp)
-               (map parse (lambda-body exp)))]
+               (make-Seq (map parse (lambda-body exp))))]
     [(begin? exp)
      (make-Seq (map parse (begin-actions exp)))]
     

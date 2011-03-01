@@ -23,6 +23,10 @@ var Primitives = {
         MACHINE.params.currentDisplayer("\n");
     },
 
+    'pi' : Math.PI,
+
+    'e' : Math.E,
+
     '=': function(argl) {
         return argl[0] === argl[1][0];
     },

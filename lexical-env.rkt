@@ -6,6 +6,7 @@
          "sets.rkt")
 (provide find-variable 
          extend-lexical-environment
+         extend-lexical-environment/placeholders
          lexical-environment-pop-depth
          collect-lexical-references
          lexical-references->compile-time-environment)
@@ -26,17 +27,22 @@
                                [depth : Natural 0])
         (cond [(empty? cenv)
                (error 'find-variable "Unable to find ~s in the environment" name)]
-              [(Prefix? (first cenv))
-               (cond [(member name (Prefix-names (first cenv)))
-                      (make-PrefixAddress depth (find-pos name (Prefix-names (first cenv))) name)]
-                     [else
-                      (loop (rest cenv) (add1 depth))])]
-              [(symbol? (first cenv))
-               (cond
-                 [(eq? name (first cenv))
-                  (make-LocalAddress depth)]
-                 [else
-                  (loop (rest cenv) (add1 depth))])])))
+              [else
+               (let: ([elt : CompileTimeEnvironmentEntry (first cenv)])
+                 (cond
+                   [(eq? #f elt)
+                    (loop (rest cenv) (add1 depth))]
+                   [(Prefix? elt)
+                    (cond [(member name (Prefix-names elt))
+                           (make-PrefixAddress depth (find-pos name (Prefix-names elt)) name)]
+                          [else
+                           (loop (rest cenv) (add1 depth))])]
+                   [(symbol? elt)
+                    (cond
+                      [(eq? name elt)
+                       (make-LocalAddress depth)]
+                      [else
+                       (loop (rest cenv) (add1 depth))])]))])))
 
 
 
@@ -49,6 +55,14 @@
          (append names cenv)]))
 
 
+(: extend-lexical-environment/placeholders (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
+;; Add placeholders to the lexical environment (This represents what happens during procedure application.)
+(define (extend-lexical-environment/placeholders cenv n)
+  (cond [(= n 0)
+         cenv]
+        [else
+         (extend-lexical-environment/placeholders (cons #f cenv) (sub1 n))]))
+  
 
 (: lexical-environment-pop-depth (CompileTimeEnvironment -> Natural))
 ;; Computes how many environments we need to pop till we clear the procedure arguments.

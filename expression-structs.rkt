@@ -5,15 +5,12 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq #;App))
-(define-type Expression (U ExpressionCore #;Assign))
+(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)
 (define-struct: Constant ([v : Any]) #:transparent)
 (define-struct: Var ([id : Symbol]) #:transparent)
-(define-struct: Assign ([variable : Symbol]
-                        [value : Expression]) #:transparent)
 (define-struct: Branch ([predicate : Expression]
                         [consequent : Expression]
                         [alternative : Expression]) #:transparent)
@@ -34,3 +31,10 @@
 
 (: rest-exps ((Listof Expression) -> (Listof Expression)))
 (define (rest-exps seq) (cdr seq))
+
+
+
+
+(define-struct: Assign ([variable : Symbol]
+                        [value : Expression]) #:transparent)
+(define-type Expression (U ExpressionCore #;Assign))

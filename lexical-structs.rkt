@@ -10,10 +10,15 @@
 (define-struct: Prefix ([names : (Listof Symbol)])
   #:transparent)
 
+
+(define-type CompileTimeEnvironmentEntry (U False  ;; placeholder for temporary space
+                                            Symbol ;; lexically bound local identiifer
+                                            Prefix ;; a prefix
+                                            ))
+
 ;; A compile-time environment is a (listof (listof symbol)).
 ;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
-(define-type CompileTimeEnvironment (Listof (U Symbol
-                                               Prefix)))
+(define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
 
 ;; A lexical address is a reference to an value in the environment stack.
 (define-type LexicalAddress (U LocalAddress PrefixAddress))

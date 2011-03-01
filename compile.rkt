@@ -161,6 +161,7 @@
 
 (: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-sequence seq cenv target linkage) 
+  ;; All but the last will use 'next linkage.
   (if (last-exp? seq)
       (compile (first-exp seq) cenv target linkage)
       (append-instruction-sequences (compile (first-exp seq) cenv target 'next)
@@ -168,6 +169,8 @@
 
 
 (: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Write out code for lambda expressions.
+;; The lambda will close over the free variables.
 (define (compile-lambda exp cenv target linkage) 
   (let*: ([proc-entry : Symbol (make-label 'entry)]
           [after-lambda : Symbol (make-label 'afterLambda)]

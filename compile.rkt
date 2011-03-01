@@ -3,6 +3,8 @@
 (require "typed-structs.rkt"
          "lexical-env.rkt"
          "helpers.rkt"
+         "find-toplevel-variables.rkt"
+         "sets.rkt"
          racket/list)
 
 (provide compile-top)
@@ -11,8 +13,8 @@
 
 
 
-;; compile: expression target linkage -> instruction-sequence
 (: compile (ExpressionCore CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiles an expression into an instruction sequence.
 (define (compile exp cenv target linkage)
   (cond
     [(Top? exp)
@@ -166,35 +168,79 @@
 
 (: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-lambda exp cenv target linkage) 
-  (let ([proc-entry (make-label 'entry)]
-        [after-lambda (make-label 'afterLambda)])
-    (let ([lambda-linkage
-           (if (eq? linkage 'next)
-               after-lambda
-               linkage)])
-      (append-instruction-sequences
-       (append-instruction-sequences
-        (end-with-linkage lambda-linkage
-                          cenv
-                          (make-instruction-sequence 
-                           `(,(make-AssignPrimOpStatement target
-                                                          'make-compiled-procedure
-                                                          (list (make-Label proc-entry)
-                                                                ;; TODO: rather than capture the whole
-                                                                ;; environment, we may instead
-                                                                ;; just capture the free variables.
-                                                                ;; But that requires that we box
-                                                                ;; up all set!-ed variables, in order
-                                                                ;; to preserve semantics of set!
-                                                                (make-Reg 'env))))))
-        (compile-lambda-body exp cenv
-                             proc-entry))
-       after-lambda))))
+  (let*: ([proc-entry : Symbol (make-label 'entry)]
+          [after-lambda : Symbol (make-label 'afterLambda)]
+          [lambda-linkage : Linkage
+                          (if (eq? linkage 'next)
+                              after-lambda
+                              linkage)]
+          [free-vars : (Listof Symbol) (find-toplevel-variables exp)]
+          [lexical-addresses : (Listof LexicalAddress) 
+                             (map (lambda: ([var : Symbol])
+                                           (find-variable var cenv))
+                                  free-vars)]
+          [lexical-references : (Listof (U EnvLexicalReference EnvWholePrefixReference))
+                              (collect-lexical-references lexical-addresses)])
+         (append-instruction-sequences
+          (end-with-linkage lambda-linkage
+                            cenv
+                            (make-instruction-sequence 
+                             `(,(make-AssignPrimOpStatement target
+                                                            'make-compiled-procedure
+                                                            (list* (make-Label proc-entry)
+                                                                   ;; TODO: rather than capture the whole
+                                                                   ;; environment, we need to instead
+                                                                   ;; capture the free variables.
+                                                                   ;; But that requires that we box
+                                                                   ;; up all set!-ed variables, in order
+                                                                   ;; to preserve semantics of set!
+                                                                   (make-Reg 'env)
+                                                                   lexical-references)))))
+          (compile-lambda-body exp cenv
+                               lexical-references
+                               proc-entry)
+          after-lambda)))
 
-(: compile-lambda-body (Lam CompileTimeEnvironment Linkage -> InstructionSequence))
-(define (compile-lambda-body exp cenv proc-entry)
-  (let* ([formals (Lam-parameters exp)]
-         [extended-cenv (extend-lexical-environment cenv formals)])
+
+(: collect-lexical-references ((Listof LexicalAddress) 
+                               -> 
+                               (Listof (U EnvLexicalReference EnvWholePrefixReference))))
+;; Given a list of lexical addresses, computes a set of unique references.
+;; Multiple lexical addresses to a single prefix should be treated identically.
+(define (collect-lexical-references addresses)
+  (let: ([prefix-references : (Setof EnvWholePrefixReference) (new-set)]
+         [lexical-references : (Setof EnvLexicalReference) (new-set)])
+        (let: loop : (Listof (U EnvLexicalReference EnvWholePrefixReference)) 
+              ([addresses : (Listof LexicalAddress) addresses])
+              (cond 
+                [(empty? addresses)
+                 (append (set->list prefix-references) (set->list lexical-references))]
+                [else
+                 (let ([addr (first addresses)])
+                   (cond
+                     [(LocalAddress? addr)
+                      (set-insert! lexical-references
+                                   (make-EnvLexicalReference (LocalAddress-depth addr)
+                                                             (LocalAddress-pos addr)))
+                      (loop (rest addresses))]
+                     [(PrefixAddress? addr)
+                      (set-insert! prefix-references
+                                   (make-EnvWholePrefixReference (PrefixAddress-depth addr)))
+                      (loop (rest addresses))]))]))))
+
+  
+
+(: compile-lambda-body (Lam CompileTimeEnvironment 
+                            (Listof (U EnvLexicalReference
+                                       EnvWholePrefixReference))
+                            Linkage 
+                            -> 
+                            InstructionSequence))
+;; Compiles the body of the lambda.
+(define (compile-lambda-body exp cenv lexical-references proc-entry)
+  (let*:  ([formals : (Listof Symbol) (Lam-parameters exp)]
+           [extended-cenv : CompileTimeEnvironment (extend-lexical-environment cenv formals)]
+           [extended-cenv : CompileTimeEnvironment extended-cenv])
     (append-instruction-sequences
      (make-instruction-sequence 
       `(,proc-entry
@@ -204,6 +250,8 @@
                                      'compiled-procedure-env
                                      (list (make-Reg 'proc)))))
      (compile (Lam-body exp) extended-cenv 'val 'return))))
+
+
 
 #;(: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 #;(define (compile-application exp cenv target linkage) 

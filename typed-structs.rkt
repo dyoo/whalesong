@@ -4,7 +4,7 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Top Constant Var Branch Def #;Lam Seq #;App))
+(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq #;App))
 (define-type Expression (U ExpressionCore #;Assign))
 
 (define-struct: Top ([prefix : Prefix]
@@ -68,16 +68,25 @@
                                        [rands : (Listof OpArg)])
   #:transparent)
 
+
+
+
 (define-struct: Label ([name : Symbol])
   #:transparent)
 (define-struct: Reg ([name : RegisterSymbol])
   #:transparent)
 (define-struct: Const ([const : Any])
   #:transparent)
+(define-struct: EnvLexicalReference ([depth : Natural]
+                                     [pos : Natural])
+  #:transparent)
+(define-struct: EnvWholePrefixReference ([depth : Natural])
+  #:transparent)
 
-(define-struct: TopControlProcedure ()) 
 
-(define-type OpArg (U Const Label Reg TopControlProcedure))
+;; An operation can refer to a Const, a Register, the top of the Control stack,
+;; or a reference within the lexical environment.
+(define-type OpArg (U Const Label Reg EnvLexicalReference EnvWholePrefixReference))
 
 (define-struct: PopEnv ([n : Natural]) #:transparent)
 (define-struct: PopControl () #:transparent)
@@ -181,8 +190,10 @@
 
 (define-struct: LocalAddress ([depth : Natural]
                               [pos : Natural])
+  ;; These need to be treated transparently for equality checking.
   #:transparent)
 (define-struct: PrefixAddress ([depth : Natural]
                                [pos : Natural]
                                [name : Symbol])
+  ;; These need to be treated transparently for equality checking.
   #:transparent)

@@ -1,6 +1,6 @@
 #lang typed/racket/base
-
-(provide list-union list-difference unique)
+(require racket/list)
+(provide list-union list-difference unique/eq? unique/equal?)
 
 
 (: list-union ((Listof Symbol) (Listof Symbol) -> (Listof Symbol)))
@@ -23,8 +23,8 @@
 ;; Trying to work around what looks like a bug in typed racket:
 (define string-sort (inst sort String String))
 
-(: unique ((Listof Symbol) -> (Listof Symbol)))
-(define (unique los)
+(: unique/eq? ((Listof Symbol) -> (Listof Symbol)))
+(define (unique/eq? los)
   (let: ([ht : (HashTable Symbol Boolean) (make-hasheq)])
     (for ([l los])
       (hash-set! ht l #t))
@@ -33,3 +33,16 @@
           (hash-map ht (lambda: ([k : Symbol] [v : Boolean]) 
                                 (symbol->string k)))
           string<?))))
+
+
+
+(: unique/equal? (All (A) ((Listof A) -> (Listof A))))
+(define (unique/equal? lst)
+  (cond
+    [(empty? lst)
+     empty]
+    [(member (first lst) (rest lst))
+     (unique/equal? (rest lst))]
+    [else
+     (cons (first lst)
+           (unique/equal? (rest lst)))]))

@@ -6,10 +6,10 @@
 (provide find-toplevel-variables)
 
 
-(: find-toplevel-variables (Expression -> (Listof Symbol)))
+(: find-toplevel-variables (ExpressionCore -> (Listof Symbol)))
 ;; Collects the list of toplevel variables we need.
 (define (find-toplevel-variables exp)
-  (: loop (Expression -> (Listof Symbol)))
+  (: loop (ExpressionCore -> (Listof Symbol)))
   (define (loop exp)
     (cond
       [(Top? exp)
@@ -17,16 +17,10 @@
                         (loop (Top-code exp)))]
       [(Constant? exp)
        empty]
-      
-      [(Quote? exp)
-       empty]
-      
+            
       [(Var? exp)
        (list (Var-id exp))]
-      
-      [(Assign? exp)
-       (loop (Assign-value exp))]
-      
+            
       [(Def? exp)
        (cons (Def-variable exp)
              (loop (Def-value exp)))]
@@ -37,7 +31,7 @@
                (loop (Branch-alternative exp)))]
       
       [(Lam? exp)
-       (list-difference (apply append (map loop (Lam-body exp)))
+       (list-difference (loop (Lam-body exp))
                         (Lam-parameters exp))]
       [(Seq? exp)
        (apply append (map loop (Seq-actions exp)))]
@@ -46,5 +40,5 @@
        (append (loop (App-operator exp))
                (apply append (map loop (App-operands exp))))]))
   
-  (unique (loop exp)))
+  (unique/eq? (loop exp)))
   

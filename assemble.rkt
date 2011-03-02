@@ -1,5 +1,5 @@
 #lang typed/racket/base
-(require "typed-structs.rkt"
+(require "il-structs.rkt"
          "helpers.rkt"
          racket/string
          racket/list)
@@ -92,7 +92,11 @@ EOF
       [(Const? an-input)
        empty]
       [(Label? an-input)
-       (list (Label-name an-input))]))
+       (list (Label-name an-input))]
+      [(EnvLexicalReference? an-input)
+       empty]
+      [(EnvWholePrefixReference? an-input)
+       empty]))
 
   (: collect-location ((U Reg Label) -> (Listof Symbol)))
   (define (collect-location a-location)
@@ -102,8 +106,8 @@ EOF
       [(Label? a-location)
        (list (Label-name a-location))]))
   
-  (unique
-   (let loop ([stmts stmts])
+  (unique/eq?
+   (let: loop : (Listof Symbol) ([stmts : (Listof Statement) stmts])
      (cond [(empty? stmts)
             empty]
            [else
@@ -112,13 +116,17 @@ EOF
                         [(symbol? stmt)
                          empty]
                         [(AssignImmediateStatement? stmt)
-                         (let ([v (AssignImmediateStatement-value stmt)])
+                         (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
                            (cond 
                              [(Reg? v)
                               empty]
                              [(Label? v)
                               (list (Label-name v))]
                              [(Const? v)
+                              empty]
+                             [(EnvLexicalReference? v)
+                              empty]
+                             [(EnvWholePrefixReference? v)
                               empty]))]
                         [(AssignPrimOpStatement? stmt)
                          (apply append (map collect-input (AssignPrimOpStatement-rands stmt)))]
@@ -130,9 +138,13 @@ EOF
                          (list (BranchLabelStatement-label stmt))]
                         [(GotoStatement? stmt)
                          (collect-location (GotoStatement-target stmt))]
-                        [(SaveStatement? stmt)
+                        [(PushEnv? stmt)
                          empty]
-                        [(RestoreStatement? stmt)
+                        [(PopEnv? stmt)
+                         empty]
+                        [(PushControl? stmt)
+                         empty]
+                        [(PopControl? stmt)
                          empty])
                       (loop (rest stmts))))]))))
 
@@ -167,7 +179,15 @@ EOF
          [(Const? v)
           (format "MACHINE.~a=~a;" 
                   (AssignImmediateStatement-target stmt)
-                  (assemble-const v))]))]
+                  (assemble-const v))]
+         [(EnvLexicalReference? v)
+          (format "MACHINE.~a=~a;"
+                  (AssignImmediateStatement-target stmt)
+                  (assemble-lexical-reference v))]
+         [(EnvWholePrefixReference? v)
+          (format "MACHINE.~a=~a;"
+                  (AssignImmediateStatement-target stmt)
+                  (assemble-whole-prefix-reference v))]))]
     
     [(AssignPrimOpStatement? stmt)
      (format "MACHINE.~a=~a;" 
@@ -188,12 +208,14 @@ EOF
     [(GotoStatement? stmt)
      (format "return ~a();"
              (assemble-location (GotoStatement-target stmt)))]
-    [(SaveStatement? stmt)
-     (format "MACHINE.stack.push(MACHINE.~a);"
-             (SaveStatement-reg stmt))]
-    [(RestoreStatement? stmt)
-     (format "MACHINE.~a=MACHINE.stack.pop();"
-             (RestoreStatement-reg stmt))]))
+    [(PushControl? stmt)
+     "fixme"]
+    [(PopControl? stmt)
+     "fixme"]
+    [(PushEnv? stmt)
+     "fixme"]
+    [(PopEnv? stmt)
+     "fixme"]))
     
 
 ;; fixme: use js->string
@@ -210,6 +232,16 @@ EOF
                (format "undefined")]
               [else
                (format "~s" val)])))
+
+(: assemble-lexical-reference (EnvLexicalReference -> String))
+(define (assemble-lexical-reference a-lex-ref)
+  (format "MACHINE.env[~a]"
+          (EnvLexicalReference-depth a-lex-ref)))
+
+(: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
+(define (assemble-whole-prefix-reference a-prefix-ref)
+  (format "MACHINE.env[~a]"
+          (EnvWholePrefixReference-depth a-prefix-ref)))
 
 
 (: assemble-op-expression ((U PrimitiveOperator TestOperator) (Listof OpArg) -> String))
@@ -266,7 +298,10 @@ EOF
       [(extend-environment/prefix)
        (format "new ExtendedPrefixEnvironment(~a, ~a)"
                (second assembled-inputs)
-               (first assembled-inputs))])))
+               (first assembled-inputs))]
+      [(read-control-label)
+       "fixme"]
+      )))
 
 
 (: assemble-op-statement (PerformOperator (Listof OpArg) -> String))
@@ -304,7 +339,7 @@ EOF
 
 
 
-(: assemble-input ((U Reg Const Label) -> String))
+(: assemble-input (OpArg -> String))
 (define (assemble-input an-input)
   (cond
     [(Reg? an-input)
@@ -312,7 +347,11 @@ EOF
     [(Const? an-input)
      (assemble-const an-input)]
     [(Label? an-input)
-     (assemble-label an-input)]))
+     (assemble-label an-input)]
+    [(EnvLexicalReference? an-input)
+     (assemble-lexical-reference an-input)]
+    [(EnvWholePrefixReference? an-input)
+     (assemble-whole-prefix-reference an-input)]))
     
 (: assemble-location ((U Reg Label) -> String))
 (define (assemble-location a-location)

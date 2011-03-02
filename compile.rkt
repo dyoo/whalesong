@@ -58,8 +58,7 @@
   (cond
     [(eq? linkage 'return)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
-                                                               'read-control-label
-                                                               (list))
+                                                               (make-GetControlStackLabel))
                                   ,(make-PopEnv (lexical-environment-pop-depth cenv)
                                                 ;; FIXME: not right
                                                 0)
@@ -91,11 +90,9 @@
        (end-with-linkage linkage
                          cenv
                          (make-instruction-sequence
-                          `(,(make-AssignPrimOpStatement target
-                                                         'lexical-address-lookup
-                                                         (list (make-Const 
-                                                                (LocalAddress-depth lexical-pos))
-                                                               (make-Reg 'env))))))]
+                          `(,(make-AssignPrimOpStatement 
+                              target
+                              (make-LookupLexicalAddress (LocalAddress-depth lexical-pos))))))]
       [(PrefixAddress? lexical-pos)
        (end-with-linkage linkage
                          cenv
@@ -104,12 +101,12 @@
                                                     (list (make-Const (PrefixAddress-depth lexical-pos))
                                                           (make-Const (PrefixAddress-pos lexical-pos))
                                                           (make-Const (PrefixAddress-name lexical-pos))))
-                            ,(make-AssignPrimOpStatement target
-                                                         'toplevel-lookup
-                                                         (list (make-Const (PrefixAddress-depth lexical-pos))
-                                                               (make-Const (PrefixAddress-pos lexical-pos))
-                                                               (make-Const (PrefixAddress-name lexical-pos))
-                                                               (make-Reg 'env))))))])))
+                            ,(make-AssignPrimOpStatement 
+                              target
+                              (make-LookupToplevelAddress
+                               (PrefixAddress-depth lexical-pos)
+                               (PrefixAddress-pos lexical-pos)
+                               (PrefixAddress-name lexical-pos))))))])))
 
 
 (: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -184,13 +181,13 @@
           [lexical-references : (Listof (U EnvLexicalReference EnvWholePrefixReference))
                               (collect-lexical-references lexical-addresses)])
          (append-instruction-sequences
-          (end-with-linkage lambda-linkage
-                            cenv
-                            (make-instruction-sequence 
-                             `(,(make-AssignPrimOpStatement target
-                                                            'make-compiled-procedure
-                                                            (list* (make-Label proc-entry)
-                                                                   lexical-references)))))
+          (end-with-linkage 
+           lambda-linkage
+           cenv
+           (make-instruction-sequence 
+            `(,(make-AssignPrimOpStatement target
+                                           (make-MakeCompiledProcedure proc-entry
+                                                                       lexical-references)))))
           (compile-lambda-body exp cenv
                                lexical-references
                                proc-entry)
@@ -306,11 +303,9 @@
        (end-with-linkage linkage
                          cenv
                          (make-instruction-sequence 
-                          `(,(make-AssignPrimOpStatement target
-                                                         'apply-primitive-procedure
-                                                         (list (make-Reg 'proc)
-                                                               (make-Const n)
-                                                               (make-Reg 'env))))))
+                          `(,(make-AssignPrimOpStatement 
+                              target
+                              (make-ApplyPrimitiveProcedure n)))))
        after-call))))
 
 
@@ -332,8 +327,7 @@
          ;; tail position.
          (make-instruction-sequence 
           `(,(make-PushControlFrame linkage)
-            ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
-                                         (list (make-Reg 'proc)))
+            ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
             ,(make-GotoStatement (make-Reg 'val))))]
         
         [(and (not (eq? target 'val))
@@ -343,8 +337,8 @@
          (let ([proc-return (make-label 'procReturn)])
            (make-instruction-sequence
             `(,(make-PushControlFrame proc-return)
-              ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
-                                           (list (make-Reg 'proc)))
+              ,(make-AssignPrimOpStatement 'val
+                                           (make-GetCompiledProcedureEntry))
               ,(make-GotoStatement (make-Reg 'val))
               ,proc-return
               ,(make-AssignImmediateStatement target (make-Reg 'val))
@@ -356,8 +350,9 @@
          ;; FIXME: do tail call stuff!
          ;; Must shift existing environment to replace
          (make-instruction-sequence
-          `(,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
-                                         (list (make-Reg 'proc)))
+          `(,(make-AssignPrimOpStatement 'val 
+                                         (make-GetCompiledProcedureEntry))
+            ;; FIXME: shift off the environment?
             ,(make-GotoStatement (make-Reg 'val))))]
 
         [(and (not (eq? target 'val))

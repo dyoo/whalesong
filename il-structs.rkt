@@ -35,6 +35,9 @@
   #:transparent)
 
 
+(define-type LexicalReference (U EnvLexicalReference
+                                 EnvWholePrefixReference))
+
 
 
 
@@ -60,8 +63,7 @@
                                           [value : OpArg])
   #:transparent)
 (define-struct: AssignPrimOpStatement ([target : Target]
-                                       [op : PrimitiveOperator]
-                                       [rands : (Listof OpArg)])
+                                       [op : PrimitiveOperator])
   #:transparent)
 
 
@@ -90,33 +92,50 @@
 
 
 
-(define-type PrimitiveOperator (U 
-                                
-                                ;; register -> label
-                                ;; Get the label from the closure stored in
-                                ;; the register and return it.
-                                'compiled-procedure-entry
-                                
-                                ;; label LexicalReference * -> closure
-                                'make-compiled-procedure                                
-                                  
-                                ;; primitive-procedure arity -> any
-                                'apply-primitive-procedure
-                                
-                                ;; depth -> any
-                                ;; Lookup the value in the environment
-                                'lexical-address-lookup
-                                
-                                ;; depth pos symbol -> any
-                                ;; lookup the value in the prefix installed in the
-                                ;; environment.
-                                'toplevel-lookup
-                                
-                                ;; -> label
-                                ;; Grabs the label embedded in the top
-                                ;; of the control stack
-                                'read-control-label 
-                                ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Primitive Operators
+
+;; The operators that return values, that are used in AssignPrimopStatement.
+(define-type PrimitiveOperator (U GetCompiledProcedureEntry
+                                  MakeCompiledProcedure
+                                  ApplyPrimitiveProcedure
+                                  LookupLexicalAddress
+                                  LookupToplevelAddress
+                                  GetControlStackLabel))
+
+;; Gets the label from the closure stored in the 'proc register and returns it.
+(define-struct: GetCompiledProcedureEntry ()
+  #:transparent)
+
+;; Constructs a closure, given the label and the set of lexical references
+;; into the environment that the closure needs to close over.
+(define-struct: MakeCompiledProcedure ([label : Symbol]
+                                       [closed-vals : (Listof LexicalReference)])
+  #:transparent)
+
+;; Applies the primitive procedure that's stored in the proc register, using
+;; the arity number of values that are bound in the environment as arguments
+;; to that primitive.
+(define-struct: ApplyPrimitiveProcedure ([arity : Natural])
+  #:transparent)
+
+;; Gets the value stored at the given depth in the environment.
+(define-struct: LookupLexicalAddress ([depth : Natural])
+  #:transparent)
+
+;; Looks up the value in the prefix installed in the environment.    
+(define-struct: LookupToplevelAddress ([depth : Natural]
+                                       [pos : Natural]
+                                       [name : Symbol])
+  #:transparent)
+
+;; Gets the return address embedded at the top of the control stack.
+(define-struct: GetControlStackLabel ()
+  #:transparent)
+
+
+
 
 (define-type PrimitiveTest (U 
                             

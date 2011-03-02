@@ -97,7 +97,6 @@
                       (loop (rest addresses))]))]))))
 
 
-(define-type EnvReference (U EnvLexicalReference EnvWholePrefixReference))
 
 (: lexical-references->compile-time-environment ((Listof EnvReference) CompileTimeEnvironment CompileTimeEnvironment
                                                                        -> CompileTimeEnvironment))

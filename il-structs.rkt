@@ -34,9 +34,9 @@
 (define-struct: EnvWholePrefixReference ([depth : Natural])
   #:transparent)
 
-
-(define-type LexicalReference (U EnvLexicalReference
-                                 EnvWholePrefixReference))
+;; An environment reference
+(define-type EnvReference (U EnvLexicalReference
+                             EnvWholePrefixReference))
 
 
 
@@ -111,7 +111,7 @@
 ;; Constructs a closure, given the label and the set of lexical references
 ;; into the environment that the closure needs to close over.
 (define-struct: MakeCompiledProcedure ([label : Symbol]
-                                       [closed-vals : (Listof LexicalReference)])
+                                       [closed-vals : (Listof EnvReference)])
   #:transparent)
 
 ;; Applies the primitive procedure that's stored in the proc register, using

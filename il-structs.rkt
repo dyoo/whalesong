@@ -51,7 +51,7 @@
                                  PopEnv
                                  PopControl
                                  PushEnv
-                                 PushControl))
+                                 PushControlFrame))
 (define-type Statement (U UnlabeledStatement
                           Symbol  ;; label
                           ))
@@ -65,47 +65,93 @@
   #:transparent)
 
 
-(define-struct: PopEnv ([n : Natural]) #:transparent)
-(define-struct: PopControl () #:transparent)
+(define-struct: PopEnv ([n : Natural]
+                        [skip : Natural])
+  #:transparent)
+(define-struct: PopControl () 
+  #:transparent)
+(define-struct: PushEnv ([n : Natural])
+  #:transparent)
 
-(define-struct: PushEnv ([n : Natural]) #:transparent)
-(define-struct: PushControl () #:transparent)
+;; Adding a frame for getting back after procedure application.
+(define-struct: PushControlFrame ([label : Symbol]) 
+  #:transparent)
 
 
 (define-struct: GotoStatement ([target : (U Label Reg)]) 
   #:transparent)
 
 
-(define-struct: PerformStatement ([op : PerformOperator]
+(define-struct: PerformStatement ([op : PrimitiveCommand]
                                   [rands : (Listof (U Label Reg Const))]) #:transparent)
-(define-struct: TestStatement ([op : TestOperator]
+(define-struct: TestStatement ([op : PrimitiveTest]
                                [register-rand : RegisterSymbol]) #:transparent)
 (define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
 
 
 
-(define-type PrimitiveOperator (U 'compiled-procedure-entry
-                                  'compiled-procedure-env
-                                  'make-compiled-procedure
-
-                                  'false?
-                                  'cons
-                                  'list
-                                  'apply-primitive-procedure
+(define-type PrimitiveOperator (U 
+                                
+                                ;; register -> label
+                                ;; Get the label from the closure stored in
+                                ;; the register and return it.
+                                'compiled-procedure-entry
+                                
+                                ;; label LexicalReference * -> closure
+                                'make-compiled-procedure                                
                                   
-                                  'lexical-address-lookup
-                                  'toplevel-lookup
-                                  
-                                  'read-control-label
-                                  
-                                  'extend-environment
-                                  'extend-environment/prefix))
+                                ;; primitive-procedure arity -> any
+                                'apply-primitive-procedure
+                                
+                                ;; depth -> any
+                                ;; Lookup the value in the environment
+                                'lexical-address-lookup
+                                
+                                ;; depth pos symbol -> any
+                                ;; lookup the value in the prefix installed in the
+                                ;; environment.
+                                'toplevel-lookup
+                                
+                                ;; -> label
+                                ;; Grabs the label embedded in the top
+                                ;; of the control stack
+                                'read-control-label 
+                                ))
 
-(define-type TestOperator (U 'false? 'primitive-procedure?))
+(define-type PrimitiveTest (U 
+                            
+                            ;; register -> boolean
+                            ;; Meant to branch when the register value is false.
+                            'false?
+                            
+                            ;; register -> boolean
+                            ;; Meant to branch when the register value is a primitive
+                            ;; procedure
+                            'primitive-procedure?
+                            ))
 
-(define-type PerformOperator (U 'toplevel-set!
-                                'lexical-address-set!
-                                'check-bound!))
+(define-type PrimitiveCommand (U 
+                               
+                               ;; depth pos symbol
+                               ;; Assign the value in the val register into
+                               ;; the prefix installed at (depth, pos).
+                               'toplevel-set!
+                                            
+                               ;; depth pos symbol -> void
+                               ;; Check that the value in the prefix has been defined.
+                               ;; If not, raise an error and stop evaluation.
+                               'check-bound!                              
+                               
+                               ;; (listof symbol) -> void
+                               ;; Extends the environment with a prefix that holds
+                               ;; lookups to the namespace.
+                               'extend-environment/prefix!
+                               
+                               ;; register -> void
+                               ;; Adjusts the environment by pushing the values in the
+                               ;; closure (held in the register) into itself.
+                               'install-closure-values!
+                               ))
 
 
 

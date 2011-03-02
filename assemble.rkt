@@ -244,7 +244,7 @@ EOF
           (EnvWholePrefixReference-depth a-prefix-ref)))
 
 
-(: assemble-op-expression ((U PrimitiveOperator TestOperator) (Listof OpArg) -> String))
+(: assemble-op-expression ((U PrimitiveOperator PrimitiveTest) (Listof OpArg) -> String))
 (define (assemble-op-expression op-name inputs)
   (let ([assembled-inputs (map assemble-input inputs)])
     (case op-name
@@ -274,9 +274,10 @@ EOF
                            (first assembled-inputs)
                            (loop (rest assembled-inputs)))]))])]
       [(apply-primitive-procedure)
-       (format "~a(~a)" 
+       (format "~a(~a)"
                (first assembled-inputs)
-               (second assembled-inputs))]
+               ;; FIXME: this doesn't look quite right...
+               (third assembled-inputs))]
       [(lexical-address-lookup)
        (format "(~a).valss[~a][~a]"
                (third assembled-inputs)
@@ -304,7 +305,7 @@ EOF
       )))
 
 
-(: assemble-op-statement (PerformOperator (Listof OpArg) -> String))
+(: assemble-op-statement (PrimitiveCommand (Listof OpArg) -> String))
 (define (assemble-op-statement op-name inputs)
   (let ([assembled-inputs (map assemble-input inputs)])
     (case op-name

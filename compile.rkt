@@ -47,10 +47,8 @@
           [names : (Listof Symbol) (Prefix-names (Top-prefix top))])
         (append-instruction-sequences
          (make-instruction-sequence 
-          `(,(make-AssignPrimOpStatement 'env
-                                         'extend-environment/prefix
-                                         (list (make-Const names)
-                                               (make-Reg 'env)))))
+          `(,(make-PerformStatement 'extend-environment/prefix!
+                                    (list (make-Const names)))))
          (compile (Top-code top) cenv target linkage))))
 
 
@@ -61,8 +59,10 @@
     [(eq? linkage 'return)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
                                                                'read-control-label
-                                                               (list (make-Reg 'control)))
-                                  ,(make-PopEnv (lexical-environment-pop-depth cenv))
+                                                               (list))
+                                  ,(make-PopEnv (lexical-environment-pop-depth cenv)
+                                                ;; FIXME: not right
+                                                0)
                                   ,(make-PopControl)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(eq? linkage 'next)
@@ -93,7 +93,8 @@
                          (make-instruction-sequence
                           `(,(make-AssignPrimOpStatement target
                                                          'lexical-address-lookup
-                                                         (list (make-Const (LocalAddress-depth lexical-pos))
+                                                         (list (make-Const 
+                                                                (LocalAddress-depth lexical-pos))
                                                                (make-Reg 'env))))))]
       [(PrefixAddress? lexical-pos)
        (end-with-linkage linkage
@@ -102,8 +103,7 @@
                           `(,(make-PerformStatement 'check-bound! 
                                                     (list (make-Const (PrefixAddress-depth lexical-pos))
                                                           (make-Const (PrefixAddress-pos lexical-pos))
-                                                          (make-Const (PrefixAddress-name lexical-pos))
-                                                          (make-Reg 'env)))
+                                                          (make-Const (PrefixAddress-name lexical-pos))))
                             ,(make-AssignPrimOpStatement target
                                                          'toplevel-lookup
                                                          (list (make-Const (PrefixAddress-depth lexical-pos))
@@ -130,9 +130,7 @@
          (make-instruction-sequence `(,(make-PerformStatement 'toplevel-set!
                                                               (list (make-Const (PrefixAddress-depth lexical-pos))
                                                                     (make-Const (PrefixAddress-pos lexical-pos))
-                                                                    (make-Const var)
-                                                                    (make-Reg 'env)
-                                                                    (make-Reg 'val)))
+                                                                    (make-Const var)))
                                       ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
 
 
@@ -192,7 +190,6 @@
                              `(,(make-AssignPrimOpStatement target
                                                             'make-compiled-procedure
                                                             (list* (make-Label proc-entry)
-                                                                   (make-Reg 'env)
                                                                    lexical-references)))))
           (compile-lambda-body exp cenv
                                lexical-references
@@ -216,16 +213,13 @@
           [extended-cenv : CompileTimeEnvironment 
                          (extend-lexical-environment '() formals)]
           [extended-cenv : CompileTimeEnvironment 
-                         (begin
-                           (lexical-references->compile-time-environment lexical-references cenv extended-cenv))])
+                         (lexical-references->compile-time-environment 
+                          lexical-references cenv extended-cenv)])
          (append-instruction-sequences
           (make-instruction-sequence 
            `(,proc-entry
-             ;; FIXME: not right: we need to install the closure values here,
-             ;; instead of replacing the environment altogether.
-             ,(make-AssignPrimOpStatement 'env 
-                                          'compiled-procedure-env
-                                          (list (make-Reg 'proc)))))
+             ,(make-PerformStatement 'install-closure-values!
+                                     (list (make-Reg 'proc)))))
           (compile (Lam-body exp) extended-cenv 'val 'return))))
 
 
@@ -252,9 +246,6 @@
                                                       (make-EnvOffset i)
                                                       'val))))])
 
-    ;; FIXME: we need to allocate space for the arguments in the environment.
-    ;; FIXME: we need to compile each operand especially to write to the correct
-    ;; environment location.
     ;; FIXME: we need to push the control.
     ;; FIXME: at procedure entry, the arguments need to be installed
     ;; in the environment.  We need to install 
@@ -262,15 +253,15 @@
     (append-instruction-sequences
      (make-instruction-sequence `(,(make-PushEnv (length (App-operands exp)))))
      proc-code
-     (install-operands operand-codes)
+     (juggle-operands operand-codes)
      (compile-procedure-call extended-cenv (length (App-operands exp)) target linkage))))
     
 
 
-(: install-operands ((Listof InstructionSequence) -> InstructionSequence))
+(: juggle-operands ((Listof InstructionSequence) -> InstructionSequence))
 ;; Installs the operators.  At the end of this,
 ;; the procedure lives in 'proc, and the operands on the environment stack.
-(define (install-operands operand-codes)
+(define (juggle-operands operand-codes)
   (let: ([n : Natural 
             ;; defensive coding: the operand codes should be nonempty.
             (max 0 (sub1 (length operand-codes)))])
@@ -294,62 +285,86 @@
                                                (loop (rest ops)))]))))
 
 
+
 (: compile-procedure-call (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+;; Assumes the procedure value has been loaded into the proc register.
 (define (compile-procedure-call cenv n target linkage)
   (let ([primitive-branch (make-label 'primitiveBranch)]
         [compiled-branch (make-label 'compiledBranch)]
         [after-call (make-label 'afterCall)])
     (let ([compiled-linkage
            (if (eq? linkage 'next) after-call linkage)])
+      
       (append-instruction-sequences
        (make-instruction-sequence `(,(make-TestStatement 'primitive-procedure? 'proc)
-                                    ,(make-BranchLabelStatement primitive-branch)))
-       (append-instruction-sequences
-        (append-instruction-sequences
-         compiled-branch
-         (compile-proc-appl n target compiled-linkage))
-        (append-instruction-sequences
-         primitive-branch
-         (end-with-linkage linkage
-                           cenv
-                           (make-instruction-sequence 
-                            `(,(make-AssignPrimOpStatement target
-                                                           'apply-primitive-procedure
-                                                           (list (make-Reg 'proc)
-                                                                 (make-Const n)
-                                                                 (make-Reg 'env))))))))
+                                    ,(make-BranchLabelStatement primitive-branch)))        
+       
+       compiled-branch
+       (compile-proc-appl n target compiled-linkage)
+
+       primitive-branch
+       (end-with-linkage linkage
+                         cenv
+                         (make-instruction-sequence 
+                          `(,(make-AssignPrimOpStatement target
+                                                         'apply-primitive-procedure
+                                                         (list (make-Reg 'proc)
+                                                               (make-Const n)
+                                                               (make-Reg 'env))))))
        after-call))))
 
+
+
 (: compile-proc-appl (Natural Target Linkage -> InstructionSequence))
+;; Three fundamental cases for general compiled-procedure application.
+;;    1.  Non-tail calls that write to val
+;;    2.  Calls in argument position that write to the environment
+;;    3.  Tail calls.
+;; The Other cases should be excluded.
 (define (compile-proc-appl n target linkage)
-  (cond [(and (eq? target 'val)
+  (cond [(eq? linkage 'next)
+         ;; This case should be impossible: next linkage can't be used in this position.
+         (error 'compile "next linkage")]
+        
+        [(and (eq? target 'val)
               (not (eq? linkage 'return)))
+         ;; This case happens for a function call that isn't in
+         ;; tail position.
          (make-instruction-sequence 
-          `(#;,(make-AssignImmediateStatement 'cont (make-Label linkage))
+          `(,(make-PushControlFrame linkage)
             ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
                                          (list (make-Reg 'proc)))
             ,(make-GotoStatement (make-Reg 'val))))]
+        
         [(and (not (eq? target 'val))
               (not (eq? linkage 'return)))
+         ;; This case happens for evaluating arguments, since the
+         ;; arguments are being installed into the scratch space.
          (let ([proc-return (make-label 'procReturn)])
            (make-instruction-sequence
-            `(#;,(make-AssignImmediateStatement 'cont (make-Label proc-return))
+            `(,(make-PushControlFrame proc-return)
               ,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
                                            (list (make-Reg 'proc)))
               ,(make-GotoStatement (make-Reg 'val))
               ,proc-return
               ,(make-AssignImmediateStatement target (make-Reg 'val))
               ,(make-GotoStatement (make-Label linkage)))))]
+        
         [(and (eq? target 'val)
               (eq? linkage 'return))
+         ;; This case happens when we're in tail position.
          ;; FIXME: do tail call stuff!
          ;; Must shift existing environment to replace
          (make-instruction-sequence
           `(,(make-AssignPrimOpStatement 'val 'compiled-procedure-entry
                                          (list (make-Reg 'proc)))
             ,(make-GotoStatement (make-Reg 'val))))]
+
         [(and (not (eq? target 'val))
               (eq? linkage 'return))
+         ;; This case should be impossible: return linkage should only
+         ;; occur when we're in tail position, and we're in tail position
+         ;; only when the target is the val register.
          (error 'compile "return linkage, target not val: ~s" target)]))
 
 

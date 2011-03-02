@@ -47,10 +47,11 @@
 (define-type UnlabeledStatement (U 
                                  AssignImmediateStatement
                                  AssignPrimOpStatement
-                                 GotoStatement
                                  PerformStatement
-                                 TestStatement
-                                 BranchLabelStatement
+                                 
+                                 GotoStatement
+                                 TestAndBranchStatement
+                                 
                                  PopEnv
                                  PopControl
                                  PushEnv
@@ -79,17 +80,16 @@
 (define-struct: PushControlFrame ([label : Symbol]) 
   #:transparent)
 
-
 (define-struct: GotoStatement ([target : (U Label Reg)]) 
   #:transparent)
 
-
 (define-struct: PerformStatement ([op : PrimitiveCommand]
-                                  [rands : (Listof (U Label Reg Const))]) #:transparent)
-(define-struct: TestStatement ([op : PrimitiveTest]
-                               [register-rand : RegisterSymbol]) #:transparent)
-(define-struct: BranchLabelStatement ([label : Symbol]) #:transparent)
-
+                                  [rands : (Listof (U Label Reg Const))])
+  #:transparent)
+(define-struct: TestAndBranchStatement ([op : PrimitiveTest]
+                                        [register-rand : RegisterSymbol]
+                                        [label : Symbol])
+  #:transparent)
 
 
 
@@ -136,7 +136,8 @@
 
 
 
-
+;; The following is used with TestStatement: each is passed the register-rand and
+;; is expected to
 (define-type PrimitiveTest (U 
                             
                             ;; register -> boolean
@@ -149,8 +150,8 @@
                             'primitive-procedure?
                             ))
 
-(define-type PrimitiveCommand (U 
-                               
+
+(define-type PrimitiveCommand (U                                
                                ;; depth pos symbol
                                ;; Assign the value in the val register into
                                ;; the prefix installed at (depth, pos).

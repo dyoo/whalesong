@@ -146,8 +146,10 @@
         (append-instruction-sequences p-code
                                       (append-instruction-sequences
                                        (make-instruction-sequence
-                                        `(,(make-TestStatement 'false? 'val)
-                                          ,(make-BranchLabelStatement f-branch)))
+                                        `(,(make-TestAndBranchStatement 'false? 
+                                                                        'val
+                                                                        f-branch)
+                                          ))
                                        (append-instruction-sequences
                                         (append-instruction-sequences t-branch c-code)
                                         (append-instruction-sequences f-branch a-code))
@@ -293,8 +295,10 @@
            (if (eq? linkage 'next) after-call linkage)])
       
       (append-instruction-sequences
-       (make-instruction-sequence `(,(make-TestStatement 'primitive-procedure? 'proc)
-                                    ,(make-BranchLabelStatement primitive-branch)))        
+       (make-instruction-sequence 
+        `(,(make-TestAndBranchStatement 'primitive-procedure?
+                                        'proc
+                                        primitive-branch)))
        
        compiled-branch
        (compile-proc-appl n target compiled-linkage)

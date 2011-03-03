@@ -32,3 +32,8 @@
   (test (machine-pc (step-n m 3)) 1)
   (test (machine-pc (step-n m 4)) 2)
   (test (machine-pc (step-n m 5)) 1))
+
+
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const 42))))])
+  (test (machine-val m) (void))
+  (test (machine-val (step m)) 42))

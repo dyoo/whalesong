@@ -26,28 +26,29 @@
 ;; Take one simulation step.
 (define (step m)
   (let: ([i : Statement (current-instruction m)])
-        (cond
-          [(symbol? i)
-           (increment-pc m)]
-          [(AssignImmediateStatement? i)
-           (error 'step)]
-          [(AssignPrimOpStatement? i)
-           (error 'step)]
-          [(PerformStatement? i)
-           (error 'step)]
-          [(GotoStatement? i)
-           (step-goto m i)]
-          [(TestAndBranchStatement? i)
-           (error 'step)]
-          [(PopEnvironment? i)
-           (error 'step)]
-          [(PushEnvironment? i)
-           (error 'step)]
-          [(PushControlFrame? i)
-           (error 'step)]
-          [(PopControlFrame? i)
-           (error 'step)])))
-
+        (increment-pc
+         (cond
+           [(symbol? i)
+            m]
+           [(AssignImmediateStatement? i)
+            (step-assign-immediate m i)]
+           [(AssignPrimOpStatement? i)
+            (error 'step)]
+           [(PerformStatement? i)
+            (error 'step)]
+           [(GotoStatement? i)
+            (step-goto m i)]
+           [(TestAndBranchStatement? i)
+            (error 'step)]
+           [(PopEnvironment? i)
+            (error 'step)]
+           [(PushEnvironment? i)
+            (error 'step)]
+           [(PushControlFrame? i)
+            (error 'step)]
+           [(PopControlFrame? i)
+            (error 'step)]))))
+  
     
 (: step-goto (machine GotoStatement -> machine))
 (define (step-goto m a-goto)
@@ -64,6 +65,39 @@
                            [else
                             (error 'step-goto "Register '~s is supposed to be either 'val or 'proc"
                                    reg)]))])))
+
+(: step-assign-immediate (machine AssignImmediateStatement -> machine))
+(define (step-assign-immediate m stmt)
+  (let: ([t : Target (AssignImmediateStatement-target stmt)]
+         [v : Any (evaluate-oparg m (AssignImmediateStatement-value stmt))])
+        (cond [(eq? t 'proc)
+               (proc-update m v)]
+              [(eq? t 'val)
+               (val-update m v)]
+              [(EnvLexicalReference? t)
+               (env-mutate m (EnvLexicalReference-depth t) v)])))
+
+
+
+(: evaluate-oparg (machine OpArg -> Any))
+(define (evaluate-oparg m an-oparg)
+  (cond
+    [(Const? an-oparg)
+     (Const-const an-oparg)]
+    [(Label? an-oparg)
+     (Label-name an-oparg)]
+    [(Reg? an-oparg)
+     (let: ([n : AtomicRegisterSymbol (Reg-name an-oparg)])
+           (cond
+             [(eq? n 'proc)
+              (machine-proc m)]
+             [(eq? n 'val)
+              (machine-val m)]))]
+    [(EnvLexicalReference? an-oparg)
+     (list-ref (machine-env m) (EnvLexicalReference-depth an-oparg))]
+    [(EnvWholePrefixReference? an-oparg)
+     ;; TODO: check that the value is a prefix value.
+     (list-ref (machine-env m) (EnvWholePrefixReference-depth an-oparg))]))
 
 
 (: ensure-symbol (Any -> Symbol))
@@ -156,11 +190,11 @@
 
 
 (: jump (machine Symbol -> machine))
-;; Jumps directly to the instruction right after the given label.
+;; Jumps directly to the instruction at the given label.
 (define (jump m l)
   (match m
     [(struct machine (val proc env control pc text))
-     (make-machine val proc env control (add1 (vector-find text l)) text)]))
+     (make-machine val proc env control (vector-find text l) text)]))
 
 
 (: vector-find (All (A) (Vectorof A) A -> Natural))

@@ -263,7 +263,7 @@
                              extended-cenv 
                              (if (empty? (App-operands exp))
                                  'proc
-                                 (make-EnvOffset (max 0 (sub1 (length (App-operands exp))))))
+                                 (make-EnvLexicalReference (max 0 (sub1 (length (App-operands exp))))))
                              'next)]
          [operand-codes (map (lambda: ([operand : Expression]
                                        [target : Target])
@@ -272,7 +272,7 @@
                              (build-list (length (App-operands exp))
                                          (lambda: ([i : Natural])
                                                   (if (< i (sub1 (length (App-operands exp))))
-                                                      (make-EnvOffset i)
+                                                      (make-EnvLexicalReference i)
                                                       'val))))])
 
     ;; FIXME: we need to push the control.
@@ -308,7 +308,7 @@
                   (make-instruction-sequence 
                    `(,(make-AssignImmediateStatement 'proc 
                                                      (make-EnvLexicalReference n))
-                     ,(make-AssignImmediateStatement (make-EnvOffset n)
+                     ,(make-AssignImmediateStatement (make-EnvLexicalReference n)
                                                      (make-Reg 'val)))))]
                 [else
                  ;; Otherwise, add instructions to juggle the operator and operands in the stack.

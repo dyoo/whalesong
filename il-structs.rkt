@@ -26,7 +26,7 @@
 
 (define-struct: Label ([name : Symbol])
   #:transparent)
-(define-struct: Reg ([name : RegisterSymbol])
+(define-struct: Reg ([name : AtomicRegisterSymbol])
   #:transparent)
 (define-struct: Const ([const : Any])
   #:transparent)
@@ -91,7 +91,7 @@
                                   [rands : (Listof (U Label Reg Const))])
   #:transparent)
 (define-struct: TestAndBranchStatement ([op : PrimitiveTest]
-                                        [register-rand : RegisterSymbol]
+                                        [register-rand : AtomicRegisterSymbol]
                                         [label : Symbol])
   #:transparent)
 
@@ -199,10 +199,8 @@
 
 
 
-;; Targets
-(define-type Target (U RegisterSymbol ControlTarget EnvOffset))
-(define-struct: EnvOffset ([depth : Natural]) #:transparent)
-(define-struct: ControlTarget () #:transparent)
+;; Targets: these are the allowable lhs's for an assignment.
+(define-type Target (U AtomicRegisterSymbol EnvLexicalReference))
 
 
 ;; Linkage

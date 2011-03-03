@@ -12,9 +12,11 @@
 
                          [pc : Natural]                  ;; program counter
                          [text : (Vectorof Statement)]   ;; text of the program
-                         ))
+                         )
+  #:transparent)
 
 
-(define-struct: frame ([return : Symbol]))
+(define-struct: frame ([return : Symbol])
+  #:transparent)
 
 

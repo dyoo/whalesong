@@ -16,11 +16,14 @@
 
 
 (: can-step? (machine -> Boolean))
+;; Produces true if we can make a further step in the simulation.
 (define (can-step? m)
-  #t)
+  (< (machine-pc m)
+     (vector-length (machine-text m))))
 
 
 (: step (machine -> machine))
+;; Take one simulation step.
 (define (step m)
   (let: ([i : Statement (current-instruction m)])
         (cond
@@ -33,7 +36,7 @@
           [(PerformStatement? i)
            (error 'step)]
           [(GotoStatement? i)
-           (error 'step)]
+           (step-goto m i)]
           [(TestAndBranchStatement? i)
            (error 'step)]
           [(PopEnvironment? i)
@@ -46,8 +49,33 @@
            (error 'step)])))
 
     
+(: step-goto (machine GotoStatement -> machine))
+(define (step-goto m a-goto)
+  (let: ([t : (U Label Reg) (GotoStatement-target a-goto)])
+        (cond [(Label? t)
+               (jump m (Label-name t))]
+              [(Reg? t)
+               (let: ([reg : RegisterSymbol (Reg-name t)])
+                     (cond [(AtomicRegisterSymbol? reg)
+                            (cond [(eq? reg 'val)
+                                   (jump m (ensure-symbol (machine-val m)))]
+                                  [(eq? reg 'proc)
+                                   (jump m (ensure-symbol (machine-proc m)))])]
+                           [else
+                            (error 'step-goto "Register '~s is supposed to be either 'val or 'proc"
+                                   reg)]))])))
 
 
+(: ensure-symbol (Any -> Symbol))
+;; Make sure the value is a symbol.
+(define (ensure-symbol v)
+  (cond
+    [(symbol? v)
+     v]
+    [else
+     (error 'ensure-symbol)]))
+  
+  
 
 (: current-instruction (machine -> Statement))
 (define (current-instruction m)
@@ -128,10 +156,11 @@
 
 
 (: jump (machine Symbol -> machine))
+;; Jumps directly to the instruction right after the given label.
 (define (jump m l)
   (match m
     [(struct machine (val proc env control pc text))
-     (make-machine val proc env control (vector-find text l) text)]))
+     (make-machine val proc env control (add1 (vector-find text l)) text)]))
 
 
 (: vector-find (All (A) (Vectorof A) A -> Natural))

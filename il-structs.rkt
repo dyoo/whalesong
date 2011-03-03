@@ -11,6 +11,7 @@
 (define-type AtomicRegisterSymbol (U 'val 'proc))
 (define-type RegisterSymbol (U StackRegisterSymbol AtomicRegisterSymbol))
 
+(define-predicate AtomicRegisterSymbol? AtomicRegisterSymbol)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

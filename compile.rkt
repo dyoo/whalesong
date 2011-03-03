@@ -300,11 +300,13 @@
                  ;; The last operand needs to be handled specially: it currently lives in 
                  ;; val.  We move the procedure at env[n] over to proc, and move the
                  ;; last operand at 'val into env[n].
-                 (make-instruction-sequence 
-                  `(,(make-AssignImmediateStatement 'proc 
-                                                    (make-EnvLexicalReference n))
-                    ,(make-AssignImmediateStatement (make-EnvOffset n)
-                                                    (make-Reg 'val))))]
+                 (append-instruction-sequences 
+                  (car ops)
+                  (make-instruction-sequence 
+                   `(,(make-AssignImmediateStatement 'proc 
+                                                     (make-EnvLexicalReference n))
+                     ,(make-AssignImmediateStatement (make-EnvOffset n)
+                                                     (make-Reg 'val)))))]
                 [else
                  ;; Otherwise, add instructions to juggle the operator and operands in the stack.
                  (append-instruction-sequences (car ops)
@@ -328,15 +330,18 @@
                                         primitive-branch)))
        
        compiled-branch
-       (compile-proc-appl cenv n target compiled-linkage)
+       (end-with-application-linkage 
+        compiled-linkage
+        cenv
+        (compile-proc-appl cenv n target compiled-linkage))
 
        primitive-branch
-       (end-with-application-linkage linkage
-                                     cenv
-                                     (make-instruction-sequence 
-                                      `(,(make-AssignPrimOpStatement 
-                                          target
-                                          (make-ApplyPrimitiveProcedure n)))))
+       (end-with-linkage linkage
+                         cenv
+                         (make-instruction-sequence 
+                          `(,(make-AssignPrimOpStatement 
+                              target
+                              (make-ApplyPrimitiveProcedure n)))))
        after-call))))
 
 

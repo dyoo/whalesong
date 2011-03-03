@@ -60,7 +60,6 @@
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
                                                                (make-GetControlStackLabel))
                                   ,(make-PopEnv (lexical-environment-pop-depth cenv)
-                                                ;; FIXME: not right
                                                 0)
                                   ,(make-PopControl)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
@@ -69,11 +68,39 @@
     [(symbol? linkage)
      (make-instruction-sequence `(,(make-GotoStatement (make-Label linkage))))]))
 
+
 (: end-with-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
                              InstructionSequence))
 (define (end-with-linkage linkage cenv instruction-sequence)
   (append-instruction-sequences instruction-sequence
                                 (compile-linkage cenv linkage)))
+
+
+(: end-with-application-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
+                                         InstructionSequence))
+;; Add linkage for applications; we need to specialize this to preserve tail calls.
+(define (end-with-application-linkage linkage cenv instruction-sequence)
+  (append-instruction-sequences instruction-sequence
+                                (compile-application-linkage cenv linkage)))
+
+
+(: compile-application-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
+;; Like compile-linkage, but the special case for 'return linkage already assumes
+;; the stack has been appropriately popped.
+(define (compile-application-linkage cenv linkage)
+  (cond
+    [(eq? linkage 'return)
+     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
+                                                               (make-GetControlStackLabel))
+                                  ,(make-PopControl)
+                                  ,(make-GotoStatement (make-Reg 'proc))))]
+    [(eq? linkage 'next)
+     empty-instruction-sequence]
+    [(symbol? linkage)
+     (make-instruction-sequence `(,(make-GotoStatement (make-Label linkage))))]))
+
+
+
 
 (: compile-constant (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-constant exp cenv target linkage)
@@ -301,31 +328,27 @@
                                         primitive-branch)))
        
        compiled-branch
-       (compile-proc-appl n target compiled-linkage)
+       (compile-proc-appl cenv n target compiled-linkage)
 
        primitive-branch
-       (end-with-linkage linkage
-                         cenv
-                         (make-instruction-sequence 
-                          `(,(make-AssignPrimOpStatement 
-                              target
-                              (make-ApplyPrimitiveProcedure n)))))
+       (end-with-application-linkage linkage
+                                     cenv
+                                     (make-instruction-sequence 
+                                      `(,(make-AssignPrimOpStatement 
+                                          target
+                                          (make-ApplyPrimitiveProcedure n)))))
        after-call))))
 
 
 
-(: compile-proc-appl (Natural Target Linkage -> InstructionSequence))
+(: compile-proc-appl (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Non-tail calls that write to val
 ;;    2.  Calls in argument position that write to the environment
 ;;    3.  Tail calls.
 ;; The Other cases should be excluded.
-(define (compile-proc-appl n target linkage)
-  (cond [(eq? linkage 'next)
-         ;; This case should be impossible: next linkage can't be used in this position.
-         (error 'compile "next linkage")]
-        
-        [(and (eq? target 'val)
+(define (compile-proc-appl cenv n target linkage)
+  (cond [(and (eq? target 'val)
               (not (eq? linkage 'return)))
          ;; This case happens for a function call that isn't in
          ;; tail position.
@@ -341,8 +364,7 @@
          (let ([proc-return (make-label 'procReturn)])
            (make-instruction-sequence
             `(,(make-PushControlFrame proc-return)
-              ,(make-AssignPrimOpStatement 'val
-                                           (make-GetCompiledProcedureEntry))
+              ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
               ,(make-GotoStatement (make-Reg 'val))
               ,proc-return
               ,(make-AssignImmediateStatement target (make-Reg 'val))
@@ -356,7 +378,8 @@
          (make-instruction-sequence
           `(,(make-AssignPrimOpStatement 'val 
                                          (make-GetCompiledProcedureEntry))
-            ;; FIXME: shift off the environment?
+            ,(make-PopEnv (max 0 (- (lexical-environment-pop-depth cenv) n))
+                          n)
             ,(make-GotoStatement (make-Reg 'val))))]
 
         [(and (not (eq? target 'val))

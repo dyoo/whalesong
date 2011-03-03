@@ -59,9 +59,9 @@
     [(eq? linkage 'return)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
                                                                (make-GetControlStackLabel))
-                                  ,(make-PopEnv (lexical-environment-pop-depth cenv)
+                                  ,(make-PopEnvironment (lexical-environment-pop-depth cenv)
                                                 0)
-                                  ,(make-PopControl)
+                                  ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(eq? linkage 'next)
      empty-instruction-sequence]
@@ -76,10 +76,10 @@
                                 (compile-linkage cenv linkage)))
 
 
-(: end-with-application-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
+(: end-with-compiled-application-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
                                          InstructionSequence))
 ;; Add linkage for applications; we need to specialize this to preserve tail calls.
-(define (end-with-application-linkage linkage cenv instruction-sequence)
+(define (end-with-compiled-application-linkage linkage cenv instruction-sequence)
   (append-instruction-sequences instruction-sequence
                                 (compile-application-linkage cenv linkage)))
 
@@ -92,12 +92,15 @@
     [(eq? linkage 'return)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
                                                                (make-GetControlStackLabel))
-                                  ,(make-PopControl)
+                                  ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(eq? linkage 'next)
-     empty-instruction-sequence]
+     (make-instruction-sequence `(,(make-PopEnvironment (lexical-environment-pop-depth cenv)
+                                                        0)))]
     [(symbol? linkage)
-     (make-instruction-sequence `(,(make-GotoStatement (make-Label linkage))))]))
+     (make-instruction-sequence `(,(make-PopEnvironment (lexical-environment-pop-depth cenv)
+                                                        0)
+                                  ,(make-GotoStatement (make-Label linkage))))]))
 
 
 
@@ -277,7 +280,7 @@
     ;; in the environment.  We need to install 
     ;; the closure's values now.
     (append-instruction-sequences
-     (make-instruction-sequence `(,(make-PushEnv (length (App-operands exp)))))
+     (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)))))
      proc-code
      (juggle-operands operand-codes)
      (compile-procedure-call extended-cenv (length (App-operands exp)) target linkage))))
@@ -316,6 +319,7 @@
 
 (: compile-procedure-call (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
 ;; Assumes the procedure value has been loaded into the proc register.
+;; n is the number of arguments passed in.
 (define (compile-procedure-call cenv n target linkage)
   (let ([primitive-branch (make-label 'primitiveBranch)]
         [compiled-branch (make-label 'compiledBranch)]
@@ -330,7 +334,7 @@
                                         primitive-branch)))
        
        compiled-branch
-       (end-with-application-linkage 
+       (end-with-compiled-application-linkage 
         compiled-linkage
         cenv
         (compile-proc-appl cenv n target compiled-linkage))
@@ -378,13 +382,13 @@
         [(and (eq? target 'val)
               (eq? linkage 'return))
          ;; This case happens when we're in tail position.
-         ;; FIXME: do tail call stuff!
-         ;; Must shift existing environment to replace
+         ;; We clean up the stack right before the jump, and do not add
+         ;; to the control stack.
          (make-instruction-sequence
           `(,(make-AssignPrimOpStatement 'val 
                                          (make-GetCompiledProcedureEntry))
-            ,(make-PopEnv (max 0 (- (lexical-environment-pop-depth cenv) n))
-                          n)
+            ,(make-PopEnvironment (max 0 (- (lexical-environment-pop-depth cenv) n))
+                                  n)
             ,(make-GotoStatement (make-Reg 'val))))]
 
         [(and (not (eq? target 'val))

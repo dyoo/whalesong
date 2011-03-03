@@ -52,10 +52,10 @@
                                  GotoStatement
                                  TestAndBranchStatement
                                  
-                                 PopEnv
-                                 PopControl
-                                 PushEnv
-                                 PushControlFrame))
+                                 PopEnvironment
+                                 PushEnvironment
+                                 PushControlFrame
+                                 PopControlFrame))
 (define-type Statement (U UnlabeledStatement
                           Symbol  ;; label
                           ))
@@ -68,12 +68,15 @@
   #:transparent)
 
 
-(define-struct: PopEnv ([n : Natural]
-                        [skip : Natural])
+;; Pop n slots from the environment, skipping past a few first.
+(define-struct: PopEnvironment ([n : Natural]
+                                [skip : Natural])
   #:transparent)
-(define-struct: PopControl () 
+(define-struct: PushEnvironment ([n : Natural])
   #:transparent)
-(define-struct: PushEnv ([n : Natural])
+
+
+(define-struct: PopControlFrame () 
   #:transparent)
 
 ;; Adding a frame for getting back after procedure application.

@@ -220,3 +220,15 @@
                         end))])
   (test (machine-val (run m))
         'a-procedure))
+
+
+
+
+
+;; AssignPrimOpStatement
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+ - * =)))))])
+  (test (machine-env (run m))
+        (list (make-toplevel (vector (lookup-primitive +)
+                                     (lookup-primitive -)
+                                     (lookup-primitive *)
+                                     (lookup-primitive =))))))

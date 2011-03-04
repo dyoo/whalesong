@@ -87,9 +87,9 @@
 (define-struct: GotoStatement ([target : (U Label Reg)]) 
   #:transparent)
 
-(define-struct: PerformStatement ([op : PrimitiveCommand]
-                                  [rands : (Listof (U Label Reg Const))])
+(define-struct: PerformStatement ([op : PrimitiveCommand])
   #:transparent)
+
 (define-struct: TestAndBranchStatement ([op : PrimitiveTest]
                                         [register : AtomicRegisterSymbol]
                                         [label : Symbol])
@@ -143,7 +143,6 @@
 ;; The following is used with TestStatement: each is passed the register-rand and
 ;; is expected to
 (define-type PrimitiveTest (U 
-                            
                             ;; register -> boolean
                             ;; Meant to branch when the register value is false.
                             'false?
@@ -155,27 +154,36 @@
                             ))
 
 
+
+;; Assign the value in the val register into
+;; the prefix installed at (depth, pos).
+(define-struct: SetToplevel! ([depth : Natural]
+                             [pos : Natural]
+                             [name : Symbol])
+  #:transparent)
+
+;; Check that the value in the prefix has been defined.
+;; If not, raise an error and stop evaluation.
+(define-struct: CheckToplevelBound! ([depth : Natural]
+                                     [pos : Natural]
+                                     [name : Symbol])
+  #:transparent)
+
+;; Extends the environment with a prefix that holds
+;; lookups to the namespace.
+(define-struct: ExtendEnvironment/Prefix! ([names : (Listof Symbol)])
+  #:transparent)
+
+;; Adjusts the environment by pushing the values in the
+;; closure (held in the proc register) into itself.
+(define-struct: InstallClosureValues! ()
+  #:transparent)
+
 (define-type PrimitiveCommand (U                                
-                               ;; depth pos symbol
-                               ;; Assign the value in the val register into
-                               ;; the prefix installed at (depth, pos).
-                               'toplevel-set!
-                                            
-                               ;; depth pos symbol -> void
-                               ;; Check that the value in the prefix has been defined.
-                               ;; If not, raise an error and stop evaluation.
-                               'check-bound!                              
-                               
-                               ;; (listof symbol) -> void
-                               ;; Extends the environment with a prefix that holds
-                               ;; lookups to the namespace.
-                               'extend-environment/prefix!
-                               
-                               ;; register -> void
-                               ;; Adjusts the environment by pushing the values in the
-                               ;; closure (held in the register) into itself.
-                               'install-closure-values!
-                               ))
+                               SetToplevel!
+                               CheckToplevelBound!
+                               ExtendEnvironment/Prefix!
+                               InstallClosureValues!))
 
 
 

@@ -19,6 +19,11 @@
 (define-struct: frame ([return : Symbol])
   #:transparent)
 
+(define-struct: toplevel ([vals : (Vectorof Any)])
+  #:transparent)
 
 ;; Primitive procedure wrapper
 (define-struct: primitive-proc ([f : (Any * -> Any)]))
+
+
+

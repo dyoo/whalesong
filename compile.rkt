@@ -47,8 +47,7 @@
           [names : (Listof Symbol) (Prefix-names (Top-prefix top))])
         (append-instruction-sequences
          (make-instruction-sequence 
-          `(,(make-PerformStatement 'extend-environment/prefix!
-                                    (list (make-Const names)))))
+          `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
          (compile (Top-code top) cenv target linkage))))
 
 
@@ -127,10 +126,10 @@
        (end-with-linkage linkage
                          cenv
                          (make-instruction-sequence
-                          `(,(make-PerformStatement 'check-bound! 
-                                                    (list (make-Const (PrefixAddress-depth lexical-pos))
-                                                          (make-Const (PrefixAddress-pos lexical-pos))
-                                                          (make-Const (PrefixAddress-name lexical-pos))))
+                          `(,(make-PerformStatement (make-CheckToplevelBound!
+                                                     (PrefixAddress-depth lexical-pos)
+                                                     (PrefixAddress-pos lexical-pos)
+                                                     (PrefixAddress-name lexical-pos)))
                             ,(make-AssignPrimOpStatement 
                               target
                               (make-LookupToplevelAddress
@@ -154,10 +153,10 @@
         cenv
         (append-instruction-sequences
          get-value-code
-         (make-instruction-sequence `(,(make-PerformStatement 'toplevel-set!
-                                                              (list (make-Const (PrefixAddress-depth lexical-pos))
-                                                                    (make-Const (PrefixAddress-pos lexical-pos))
-                                                                    (make-Const var)))
+         (make-instruction-sequence `(,(make-PerformStatement (make-SetToplevel!
+                                                               (PrefixAddress-depth lexical-pos)
+                                                               (PrefixAddress-pos lexical-pos)
+                                                               var))
                                       ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
 
 
@@ -247,8 +246,7 @@
          (append-instruction-sequences
           (make-instruction-sequence 
            `(,proc-entry
-             ,(make-PerformStatement 'install-closure-values!
-                                     (list (make-Reg 'proc)))))
+             ,(make-PerformStatement (make-InstallClosureValues!))))
           (compile (Lam-body exp) extended-cenv 'val 'return))))
 
 

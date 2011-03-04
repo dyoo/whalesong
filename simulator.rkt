@@ -65,15 +65,12 @@
         (cond [(Label? t)
                (jump m (Label-name t))]
               [(Reg? t)
-               (let: ([reg : RegisterSymbol (Reg-name t)])
+               (let: ([reg : AtomicRegisterSymbol (Reg-name t)])
                      (cond [(AtomicRegisterSymbol? reg)
                             (cond [(eq? reg 'val)
                                    (jump m (ensure-symbol (machine-val m)))]
                                   [(eq? reg 'proc)
-                                   (jump m (ensure-symbol (machine-proc m)))])]
-                           [else
-                            (error 'step-goto "Register '~s is supposed to be either 'val or 'proc"
-                                   reg)]))])))
+                                   (jump m (ensure-symbol (machine-proc m)))])]))])))
 
 (: step-assign-immediate (machine AssignImmediateStatement -> machine))
 (define (step-assign-immediate m stmt)

@@ -139,7 +139,12 @@
   (let: ([op : PrimitiveCommand (PerformStatement-op stmt)])
         (cond
           [(SetToplevel!? op)
-           (error 'step-perform)]
+           (env-mutate m 
+                       (SetToplevel!-depth op)
+                       (toplevel-mutate (ensure-toplevel (env-ref m (SetToplevel!-depth op)))
+                                        (SetToplevel!-pos op)
+                                        
+                                        (machine-val m)))]
           [(CheckToplevelBound!? op)
            (error 'step-perform)]
           [(ExtendEnvironment/Prefix!? op)
@@ -182,7 +187,15 @@
     [else
      (error 'ensure-symbol)]))
   
-  
+
+(: ensure-toplevel (Any -> toplevel))
+(define (ensure-toplevel v)
+  (cond
+    [(toplevel? v)
+     v]
+    [else
+     (error 'ensure-toplevel)]))
+
 
 (: current-instruction (machine -> Statement))
 (define (current-instruction m)
@@ -280,3 +293,9 @@
            (loop (add1 i))])))
 
 
+(: toplevel-mutate (toplevel Natural Any -> toplevel))
+(define (toplevel-mutate a-top index v)
+  (make-toplevel (append (take (toplevel-vals a-top) index)
+                         (list v)
+                         (drop (toplevel-vals a-top) (add1 index)))))
+                 

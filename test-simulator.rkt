@@ -11,12 +11,7 @@
     [(_ actual exp)
      (with-syntax ([stx stx])
        (syntax/loc #'stx
-         (let ([results (with-handlers ([exn:fail?
-                                         (lambda (exn)
-                                           (raise-syntax-error #f (format "Exception happened: ~s" 
-                                                                          (exn-message exn))
-                                                               #'stx))])
-                          actual)])
+         (let ([results actual])
            (unless (equal? actual exp)
              (raise-syntax-error #f (format "Expected ~s, got ~s" exp results)
                                  #'stx)))))]))
@@ -227,8 +222,8 @@
 
 ;; AssignPrimOpStatement
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+ - * =)))))])
-  (test (machine-env (run m))
-        (list (make-toplevel (vector (lookup-primitive +)
-                                     (lookup-primitive -)
-                                     (lookup-primitive *)
-                                     (lookup-primitive =))))))
+  (test (first (machine-env (run m)))
+        (make-toplevel (vector (lookup-primitive '+)
+                               (lookup-primitive '-)
+                               (lookup-primitive '*)
+                               (lookup-primitive '=)))))

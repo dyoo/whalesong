@@ -16,14 +16,20 @@
   #:transparent)
 
 
-(define-struct: frame ([return : Symbol])
+(define-struct: frame ([return : Symbol]
+                       ;; TODO: add continuation marks
+                       )
   #:transparent)
 
 (define-struct: toplevel ([vals : (Vectorof Any)])
   #:transparent)
 
+
 ;; Primitive procedure wrapper
-(define-struct: primitive-proc ([f : (Any * -> Any)]))
+(define-struct: primitive-proc ([f : (Any * -> Any)])
+  #:transparent)
 
-
-
+;; Compiled procedure closures
+(define-struct: closure ([label : Symbol]
+                         [vals : (Listof Any)])
+  #:transparent)

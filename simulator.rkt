@@ -12,7 +12,7 @@
          (for-syntax racket/base))
 
 (require/typed "simulator-prims.rkt"
-               [lookup-primitive (Symbol -> (Any * -> Any))])
+               [lookup-primitive (Symbol -> Any)])
                
 
 (provide new-machine can-step? step)
@@ -43,7 +43,7 @@
            [(AssignPrimOpStatement? i)
             (error 'step)]
            [(PerformStatement? i)
-            (error 'step)]
+            (step-perform m i)]
            [(GotoStatement? i)
             (step-goto m i)]
            [(TestAndBranchStatement? i)
@@ -132,6 +132,24 @@
          (machine-val m)]
         [(eq? reg 'proc)
          (machine-proc m)]))
+
+
+(: step-perform (machine PerformStatement -> machine))
+(define (step-perform m stmt)
+  (let: ([op : PrimitiveCommand (PerformStatement-op stmt)])
+        (cond
+          [(SetToplevel!? op)
+           (error 'step-perform)]
+          [(CheckToplevelBound!? op)
+           (error 'step-perform)]
+          [(ExtendEnvironment/Prefix!? op)
+           (env-push m 
+                     (make-toplevel (list->vector
+                                     (map lookup-primitive 
+                                          (ExtendEnvironment/Prefix!-names op)))))]
+          [(InstallClosureValues!? op)
+           (error 'step-perform)])))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 

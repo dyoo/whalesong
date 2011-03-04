@@ -20,3 +20,5 @@
   #:transparent)
 
 
+;; Primitive procedure wrapper
+(define-struct: primitive-proc ([f : (Any * -> Any)]))

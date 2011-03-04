@@ -118,3 +118,39 @@
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const "louie"))
                         ,(make-PopEnvironment 2 1)))])
   (test (machine-env (run m)) '("hewie")))
+
+
+
+;; PushControl
+(let ([m (new-machine `(foo 
+                        ,(make-PushControlFrame 'foo)
+                        bar
+                        ,(make-PushControlFrame 'bar)
+                        baz
+                        ))])
+  (test (machine-control (run m))
+        (list (make-frame 'bar)
+              (make-frame 'foo))))
+
+
+
+;; PopControl
+(let ([m (new-machine `(foo 
+                        ,(make-PushControlFrame 'foo)
+                        bar
+                        ,(make-PushControlFrame 'bar)
+                        baz
+                        ,(make-PopControlFrame)
+                        ))])
+  (test (machine-control (run m))
+        (list (make-frame 'foo))))
+
+(let ([m (new-machine `(foo 
+                        ,(make-PushControlFrame 'foo)
+                        bar
+                        ,(make-PushControlFrame 'bar)
+                        baz
+                        ,(make-PopControlFrame)
+                        ,(make-PopControlFrame)))])
+  (test (machine-control (run m))
+        (list)))

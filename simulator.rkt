@@ -5,7 +5,12 @@
 (require "il-structs.rkt"
          "simulator-structs.rkt"
          racket/list
-         racket/match)
+         racket/match
+         (for-syntax racket/base))
+
+(require/typed "simulator-prims.rkt"
+               [lookup-primitive (Symbol -> (Any * -> Any))])
+               
 
 (provide new-machine can-step? step)
 
@@ -45,9 +50,10 @@
            [(PushEnvironment? i)
             (step-push-environment m i)]
            [(PushControlFrame? i)
-            (error 'step)]
+            (step-push-control-frame m i)]
            [(PopControlFrame? i)
-            (error 'step)]))))
+            (step-pop-control-frame m i)]))))
+
   
     
 (: step-goto (machine GotoStatement -> machine))
@@ -90,12 +96,22 @@
              (sub1 n))])))
 
 (: step-pop-environment (machine PopEnvironment -> machine))
-(define (step-pop-environment machine stmt)
-  (env-pop machine
+(define (step-pop-environment m stmt)
+  (env-pop m
            (PopEnvironment-n stmt)
            (PopEnvironment-skip stmt)))
 
 
+(: step-push-control-frame (machine PushControlFrame -> machine))
+(define (step-push-control-frame m stmt)
+  (control-push m (PushControlFrame-label stmt)))
+
+(: step-pop-control-frame (machine PopControlFrame -> machine))
+(define (step-pop-control-frame m stmt)
+  (let-values: ([([m : machine]
+                  [l : Symbol])
+                 (control-pop m)])
+               m))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -197,8 +213,8 @@
      (make-machine val proc env (cons (make-frame l) control) pc text)]))
 
 
-(: control-pop (machine Symbol -> (values machine Symbol)))
-(define (control-pop m l)
+(: control-pop (machine -> (values machine Symbol)))
+(define (control-pop m)
   (match m
     [(struct machine (val proc env control pc text))
      (values (make-machine val proc env (rest control) pc text)
@@ -227,3 +243,5 @@
            i]
           [else
            (loop (add1 i))])))
+
+

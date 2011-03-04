@@ -41,7 +41,7 @@
            [(TestAndBranchStatement? i)
             (error 'step)]
            [(PopEnvironment? i)
-            (error 'step)]
+            (step-pop-environment m i)]
            [(PushEnvironment? i)
             (step-push-environment m i)]
            [(PushControlFrame? i)
@@ -89,8 +89,16 @@
        (loop (env-push m (void))
              (sub1 n))])))
 
+(: step-pop-environment (machine PopEnvironment -> machine))
+(define (step-pop-environment machine stmt)
+  (env-pop machine
+           (PopEnvironment-n stmt)
+           (PopEnvironment-skip stmt)))
 
-;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (: evaluate-oparg (machine OpArg -> Any))

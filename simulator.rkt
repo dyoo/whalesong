@@ -43,7 +43,7 @@
            [(PopEnvironment? i)
             (error 'step)]
            [(PushEnvironment? i)
-            (error 'step)]
+            (step-push-environment m i)]
            [(PushControlFrame? i)
             (error 'step)]
            [(PopControlFrame? i)
@@ -77,6 +77,20 @@
               [(EnvLexicalReference? t)
                (env-mutate m (EnvLexicalReference-depth t) v)])))
 
+
+(: step-push-environment (machine PushEnvironment -> machine))
+(define (step-push-environment m stmt)
+  (let: loop : machine ([m : machine m]
+                        [n : Natural (PushEnvironment-n stmt)])
+    (cond
+      [(= n 0)
+       m]
+      [else
+       (loop (env-push m (void))
+             (sub1 n))])))
+
+
+;;;;;;;;;
 
 
 (: evaluate-oparg (machine OpArg -> Any))

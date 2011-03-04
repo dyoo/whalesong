@@ -1,6 +1,9 @@
 #lang typed/racket/base
 
 ;; An evaluator for the intermediate language, so I can do experiments.
+;;
+;; For example, I'll need to be able to count the number of statements executed by an evaluation.
+;; I also need to do things like count pushes and pops.  Basically, low-level benchmarking.
 
 (require "il-structs.rkt"
          "simulator-structs.rkt"
@@ -44,7 +47,7 @@
            [(GotoStatement? i)
             (step-goto m i)]
            [(TestAndBranchStatement? i)
-            (error 'step)]
+            (step-test-and-branch m i)]
            [(PopEnvironment? i)
             (step-pop-environment m i)]
            [(PushEnvironment? i)
@@ -113,7 +116,25 @@
                  (control-pop m)])
                m))
 
+(: step-test-and-branch (machine TestAndBranchStatement -> machine))
+(define (step-test-and-branch m stmt)
+  (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)]
+         [argval : Any (lookup-atomic-register m (TestAndBranchStatement-register stmt))])
+        (if (cond
+              [(eq? test 'false?)
+               (not argval)]
+              [(eq? test 'primitive-procedure?)
+               (primitive-proc? argval)])
+            (jump m (TestAndBranchStatement-label stmt))
+            m)))
 
+      
+(: lookup-atomic-register (machine AtomicRegisterSymbol -> Any))
+(define (lookup-atomic-register m reg)
+  (cond [(eq? reg 'val)
+         (machine-val m)]
+        [(eq? reg 'proc)
+         (machine-proc m)]))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 

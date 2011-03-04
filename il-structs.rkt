@@ -91,7 +91,7 @@
                                   [rands : (Listof (U Label Reg Const))])
   #:transparent)
 (define-struct: TestAndBranchStatement ([op : PrimitiveTest]
-                                        [register-rand : AtomicRegisterSymbol]
+                                        [register : AtomicRegisterSymbol]
                                         [label : Symbol])
   #:transparent)
 

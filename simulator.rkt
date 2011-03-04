@@ -144,9 +144,8 @@
            (error 'step-perform)]
           [(ExtendEnvironment/Prefix!? op)
            (env-push m 
-                     (make-toplevel (list->vector
-                                     (map lookup-primitive 
-                                          (ExtendEnvironment/Prefix!-names op)))))]
+                     (make-toplevel (map lookup-primitive 
+                                         (ExtendEnvironment/Prefix!-names op))))]
           [(InstallClosureValues!? op)
            (error 'step-perform)])))
 

@@ -155,11 +155,10 @@
 
 
 
-;; Assign the value in the val register into
-;; the prefix installed at (depth, pos).
+;; Assign the value in the val register into the prefix installed at (depth, pos).
 (define-struct: SetToplevel! ([depth : Natural]
-                             [pos : Natural]
-                             [name : Symbol])
+                              [pos : Natural]
+                              [name : Symbol])
   #:transparent)
 
 ;; Check that the value in the prefix has been defined.

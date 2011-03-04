@@ -21,7 +21,7 @@
                        )
   #:transparent)
 
-(define-struct: toplevel ([vals : (Vectorof Any)])
+(define-struct: toplevel ([vals : (Listof Any)])
   #:transparent)
 
 

@@ -23,7 +23,7 @@
                 cname]
                ...
                [else
-                (error 'lookup)]
+                (void)]
                )))))]))
 
 

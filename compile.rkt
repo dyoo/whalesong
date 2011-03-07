@@ -9,8 +9,17 @@
          "sets.rkt"
          racket/list)
 
-(provide compile-top)
+(provide (rename-out [-compile compile]))
 
+;(provide compile-top)
+
+(: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
+(define (-compile exp target linkage)
+  (statements
+   (compile exp 
+            (list (make-Prefix (find-toplevel-variables exp)))
+            target 
+            linkage)))
 
 
 

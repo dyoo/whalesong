@@ -16,8 +16,9 @@
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
 (define (-compile exp target linkage)
   (statements
-   (compile exp 
-            (list (make-Prefix (find-toplevel-variables exp)))
+   (compile (make-Top (make-Prefix (find-toplevel-variables exp))
+                      exp)
+            (list)
             target 
             linkage)))
 

@@ -9,7 +9,7 @@
     [(quoted? exp)
      (make-Constant (text-of-quotation exp))]
     [(variable? exp)
-     (make-Var exp)]      
+     (make-Var exp)] 
     [(definition? exp)
      (make-Def (definition-variable exp)
                (parse (definition-value exp)))]
@@ -38,6 +38,7 @@
   (cond
     [(number? exp) #t]
     [(string? exp) #t]
+    [(boolean? exp) #t]
     [else #f]))
 
 (define (variable? exp) (symbol? exp))

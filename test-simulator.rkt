@@ -47,12 +47,12 @@
 
 ;; Assigning to val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const 42))))])
-  (test (machine-val m) (void))
+  (test (machine-val m) (make-undefined))
   (test (machine-val (step m)) 42))
 
 ;; Assigning to proc
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const 42))))])
-  (test (machine-proc m) (void))
+  (test (machine-proc m) (make-undefined))
   (test (machine-proc (step m)) 42))
 
 
@@ -67,19 +67,19 @@
 (let* ([m (new-machine `(,(make-PushEnvironment 2)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 42))))]
        [m (run m)])
-  (test (machine-env m) `(,(void) 42)))
+  (test (machine-env m) `(,(make-undefined) 42)))
 
 
 ;; Assigning to another environment reference
 (let* ([m (new-machine `(,(make-PushEnvironment 2)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 42))))]
        [m (run m)])
-  (test (machine-env m) `(42 ,(void))))
+  (test (machine-env m) `(42 ,(make-undefined))))
 
 
 ;; PushEnv
 (let ([m (new-machine `(,(make-PushEnvironment 20)))])
-  (test (machine-env (run m)) (build-list 20 (lambda (i) (void)))))
+  (test (machine-env (run m)) (build-list 20 (lambda (i) (make-undefined)))))
 
 
 ;; PopEnv
@@ -233,14 +233,14 @@
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PerformStatement (make-SetToplevel! 0 0 'some-variable))))])
-  (run m)
+  (void (run m))
   ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
   ;; the toplevel structure in the environment... :(
   )
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable another)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PerformStatement (make-SetToplevel! 0 1 'another))))])
-  (run m)
+  (void (run m))
   ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
   ;; the toplevel structure in the environment... :(
   )
@@ -248,7 +248,29 @@
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PushEnvironment 5)
                         ,(make-PerformStatement (make-SetToplevel! 5 0 'some-variable))))])
-  (run m)
+  (void (run m))
   ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
   ;; the toplevel structure in the environment... :(
   )
+
+
+
+
+
+;; check-toplevel-bound
+;; This should produce an error.
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
+                        ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'some-variable))))])
+  (with-handlers ((exn:fail? (lambda (exn)
+                               (void))))
+    
+    (run m)
+    (raise "I expected an error")))
+
+;; check-toplevel-bound shouldn't fail here.
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
+                        ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
+                        ,(make-PerformStatement (make-SetToplevel! 0 0 'some-variable))
+                        ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'some-variable))))])
+  (void (run m)))
+

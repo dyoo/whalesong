@@ -23,7 +23,7 @@
                 cname]
                ...
                [else
-                (void)]
+                (make-undefined)]
                )))))]))
 
 

@@ -5,9 +5,19 @@
 (require "il-structs.rkt")
 
 
-(define-struct: machine ([val : Any]
-                         [proc : Any]
-                         [env : (Listof Any)]
+(define-type PrimitiveValue (Rec PrimitiveValue (U String Number Symbol Boolean Null
+                                                   primitive-proc 
+                                                   closure
+                                                   undefined
+                                                   (Pairof PrimitiveValue PrimitiveValue)
+                                                   )))
+(define-type SlotValue (U PrimitiveValue toplevel))
+
+
+
+(define-struct: machine ([val : SlotValue]
+                         [proc : SlotValue]
+                         [env : (Listof SlotValue)]
                          [control : (Listof frame)]
 
                          [pc : Natural]                  ;; program counter
@@ -25,11 +35,18 @@
   #:transparent)
 
 
+
+
+
 ;; Primitive procedure wrapper
-(define-struct: primitive-proc ([f : (Any * -> Any)])
+(define-struct: primitive-proc ([f : (PrimitiveValue * -> PrimitiveValue)])
   #:transparent)
 
 ;; Compiled procedure closures
 (define-struct: closure ([label : Symbol]
-                         [vals : (Listof Any)])
+                         [vals : (Listof SlotValue)])
+  #:transparent)
+
+;; undefined value
+(define-struct: undefined ()
   #:transparent)

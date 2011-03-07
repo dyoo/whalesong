@@ -20,7 +20,7 @@
 
 (: new-machine ((Listof Statement) -> machine))
 (define (new-machine program-text)
-  (make-machine (void) (void) '() '() 0 (list->vector program-text)))
+  (make-machine (make-undefined) (make-undefined) '() '() 0 (list->vector program-text)))
 
 
 (: can-step? (machine -> Boolean))
@@ -75,7 +75,7 @@
 (: step-assign-immediate (machine AssignImmediateStatement -> machine))
 (define (step-assign-immediate m stmt)
   (let: ([t : Target (AssignImmediateStatement-target stmt)]
-         [v : Any (evaluate-oparg m (AssignImmediateStatement-value stmt))])
+         [v : SlotValue (evaluate-oparg m (AssignImmediateStatement-value stmt))])
         (cond [(eq? t 'proc)
                (proc-update m v)]
               [(eq? t 'val)
@@ -92,7 +92,7 @@
       [(= n 0)
        m]
       [else
-       (loop (env-push m (void))
+       (loop (env-push m (make-undefined))
              (sub1 n))])))
 
 (: step-pop-environment (machine PopEnvironment -> machine))
@@ -146,7 +146,13 @@
                                         
                                         (machine-val m)))]
           [(CheckToplevelBound!? op)
-           (error 'step-perform)]
+           (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])
+                 (cond
+                   [(undefined? (list-ref (toplevel-vals a-top) (CheckToplevelBound!-pos op)))
+                    (error 'check-toplevel-bound! "Unbound identifier ~s" (CheckToplevelBound!-name op))]
+                   [else
+                    m]))]
+
           [(ExtendEnvironment/Prefix!? op)
            (env-push m 
                      (make-toplevel (map lookup-primitive 
@@ -157,11 +163,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(: evaluate-oparg (machine OpArg -> Any))
+(: evaluate-oparg (machine OpArg -> SlotValue))
 (define (evaluate-oparg m an-oparg)
   (cond
     [(Const? an-oparg)
-     (Const-const an-oparg)]
+     (ensure-primitive-value (Const-const an-oparg))]
     [(Label? an-oparg)
      (Label-name an-oparg)]
     [(Reg? an-oparg)
@@ -174,9 +180,38 @@
     [(EnvLexicalReference? an-oparg)
      (list-ref (machine-env m) (EnvLexicalReference-depth an-oparg))]
     [(EnvWholePrefixReference? an-oparg)
-     ;; TODO: check that the value is a prefix value.
+     (unless (toplevel? (list-ref (machine-env m)
+                                  (EnvWholePrefixReference-depth an-oparg)))
+       (error 'evaluate-oparg "Internal error: not a toplevel at depth ~s"
+              (EnvWholePrefixReference-depth an-oparg)))
      (list-ref (machine-env m) (EnvWholePrefixReference-depth an-oparg))]))
 
+
+(: ensure-primitive-value (Any -> PrimitiveValue))
+;; Make sure the value is primitive.
+(define (ensure-primitive-value val)
+  (let: loop : PrimitiveValue ([v : Any val])
+        (cond
+          [(string? v)
+           v]
+          [(symbol? v)
+           v]
+          [(number? v)
+           v]
+          [(boolean? v)
+           v]
+          [(null? v)
+           v]
+          [(cons? v)
+           (cons (loop (car v)) (loop (cdr v)))]
+          [(primitive-proc? v)
+           v]
+          [(closure? v)
+           v]
+          [(undefined? v)
+           v]
+          [else
+           (error 'ensure-primitive-value "Unable to coerse Const ~s to a primitive value" v)])))
 
 (: ensure-symbol (Any -> Symbol))
 ;; Make sure the value is a symbol.
@@ -205,19 +240,19 @@
 
   
 
-(: val-update (machine Any -> machine))
+(: val-update (machine SlotValue -> machine))
 (define (val-update m v)
   (match m
     [(struct machine (val proc env control pc text))
      (make-machine v proc env control pc text)]))
 
-(: proc-update (machine Any -> machine))
+(: proc-update (machine SlotValue -> machine))
 (define (proc-update m v)
     (match m
     [(struct machine (val proc env control pc text))
      (make-machine val v env control pc text)]))
 
-(: env-push (machine Any -> machine))
+(: env-push (machine SlotValue -> machine))
 (define (env-push m v)
   (match m
     [(struct machine (val proc env control pc text))
@@ -229,7 +264,7 @@
     [(struct machine (val proc env control pc text))
      (list-ref env i)]))
 
-(: env-mutate (machine Natural Any -> machine))
+(: env-mutate (machine Natural SlotValue -> machine))
 (define (env-mutate m i v)
   (match m
     [(struct machine (val proc env control pc text))

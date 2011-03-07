@@ -31,7 +31,7 @@
                        )
   #:transparent)
 
-(define-struct: toplevel ([vals : (Listof Any)])
+(define-struct: toplevel ([vals : (Listof PrimitiveValue)])
   #:transparent)
 
 
@@ -50,3 +50,7 @@
 ;; undefined value
 (define-struct: undefined ()
   #:transparent)
+
+
+
+(define-predicate PrimitiveValue? PrimitiveValue)

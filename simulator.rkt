@@ -12,7 +12,7 @@
          (for-syntax racket/base))
 
 (require/typed "simulator-prims.rkt"
-               [lookup-primitive (Symbol -> Any)])
+               [lookup-primitive (Symbol -> PrimitiveValue)])
                
 
 (provide new-machine can-step? step)
@@ -41,7 +41,7 @@
            [(AssignImmediateStatement? i)
             (step-assign-immediate m i)]
            [(AssignPrimOpStatement? i)
-            (error 'step)]
+            (step-assign-primitive-operation m i)]
            [(PerformStatement? i)
             (step-perform m i)]
            [(GotoStatement? i)
@@ -143,8 +143,7 @@
                        (SetToplevel!-depth op)
                        (toplevel-mutate (ensure-toplevel (env-ref m (SetToplevel!-depth op)))
                                         (SetToplevel!-pos op)
-                                        
-                                        (machine-val m)))]
+                                        (ensure-primitive-value (machine-val m))))]
           [(CheckToplevelBound!? op)
            (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])
                  (cond
@@ -166,6 +165,10 @@
                    [else
                     (error 'step-perform "Procedure register doesn't hold a procedure: ~s"
                            a-proc)]))])))
+
+(: step-assign-primitive-operation (machine AssignPrimOpStatement -> machine))
+(define (step-assign-primitive-operation m stmt)
+  m)
            
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -176,8 +179,10 @@
   (cond
     [(Const? an-oparg)
      (ensure-primitive-value (Const-const an-oparg))]
+    
     [(Label? an-oparg)
      (Label-name an-oparg)]
+    
     [(Reg? an-oparg)
      (let: ([n : AtomicRegisterSymbol (Reg-name an-oparg)])
            (cond
@@ -185,14 +190,27 @@
               (machine-proc m)]
              [(eq? n 'val)
               (machine-val m)]))]
+
     [(EnvLexicalReference? an-oparg)
-     (list-ref (machine-env m) (EnvLexicalReference-depth an-oparg))]
+     (let: ([v : SlotValue
+               (list-ref (machine-env m) (EnvLexicalReference-depth an-oparg))])
+           (cond
+             [(PrimitiveValue? v)
+              v]
+             [(toplevel? v)
+              (error 'evaluate-oparg
+                     "Unexpected toplevel at depth ~s"
+                     (EnvLexicalReference-depth an-oparg))]))]
+
     [(EnvWholePrefixReference? an-oparg)
-     (unless (toplevel? (list-ref (machine-env m)
-                                  (EnvWholePrefixReference-depth an-oparg)))
-       (error 'evaluate-oparg "Internal error: not a toplevel at depth ~s"
-              (EnvWholePrefixReference-depth an-oparg)))
-     (list-ref (machine-env m) (EnvWholePrefixReference-depth an-oparg))]))
+     (let: ([v : SlotValue
+               (list-ref (machine-env m) (EnvWholePrefixReference-depth an-oparg))])
+           (cond
+             [(PrimitiveValue? v)
+              (error 'evaluate-oparg "Internal error: primitive value at depth ~s"
+                     (EnvWholePrefixReference-depth an-oparg))]
+             [(toplevel? v)
+              v]))]))
 
 
 (: ensure-primitive-value (Any -> PrimitiveValue))
@@ -343,9 +361,8 @@
            (loop (add1 i))])))
 
 
-(: toplevel-mutate (toplevel Natural Any -> toplevel))
+(: toplevel-mutate (toplevel Natural PrimitiveValue -> toplevel))
 (define (toplevel-mutate a-top index v)
   (make-toplevel (append (take (toplevel-vals a-top) index)
                          (list v)
                          (drop (toplevel-vals a-top) (add1 index)))))
-                 

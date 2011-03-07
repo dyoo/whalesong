@@ -21,8 +21,9 @@
 (define-type OpArg (U Const ;; an constant
                       Label ;; an label
                       Reg   ;; an register 
-                      EnvLexicalReference
-                      EnvWholePrefixReference))
+                      EnvLexicalReference ;; a reference into the stack
+                      EnvWholePrefixReference ;; a reference into a toplevel prefix in the stack.
+                      ))
 
 (define-struct: Label ([name : Symbol])
   #:transparent)

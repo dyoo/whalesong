@@ -207,7 +207,15 @@
                                                 (MakeCompiledProcedure-closed-vals op))))]
 
           [(ApplyPrimitiveProcedure? op)
-           m]
+           (let: ([prim : SlotValue (machine-proc m)]
+                  [args : (Listof PrimitiveValue)
+                        (map ensure-primitive-value (take (machine-env m)
+                                                          (ApplyPrimitiveProcedure-arity op)))])
+                 (cond
+                   [(primitive-proc? prim)
+                    (target-updater m (ensure-primitive-value (apply (primitive-proc-f prim) args)))]
+                   [else
+                    (error 'apply-primitive-procedure)]))]
           
           [(LookupLexicalAddress? op)
            (let: ([a-val : SlotValue (env-ref m (LookupLexicalAddress-depth op))])

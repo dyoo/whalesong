@@ -400,6 +400,20 @@
   (test (machine-val (run m))
         'curly))
 
+;; ApplyPrimitiveProcedure
+;; Adding two numbers
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                        ,(make-AssignPrimOpStatement 'proc (make-LookupToplevelAddress 0 0 '+))
+                        ,(make-PushEnvironment 2)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 126389))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 42))
+                        ,(make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure 2))))])
+  (test (machine-val (run m))
+        (+ 126389 42))
+  
+  (test (machine-env (run m))
+        (list 126389 42 (make-toplevel (list (lookup-primitive '+))))))
+
 
 
 #;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupLexicalAddress))))])

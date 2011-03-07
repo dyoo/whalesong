@@ -209,7 +209,7 @@
                              (map (lambda: ([var : Symbol])
                                            (find-variable var cenv))
                                   free-vars)]
-          [lexical-references : (Listof (U EnvLexicalReference EnvWholePrefixReference))
+          [lexical-references : (Listof EnvReference)
                               (collect-lexical-references lexical-addresses)])
          (append-instruction-sequences
           (end-with-linkage 
@@ -230,8 +230,7 @@
   
 
 (: compile-lambda-body (Lam CompileTimeEnvironment 
-                            (Listof (U EnvLexicalReference
-                                       EnvWholePrefixReference))
+                            (Listof EnvReference)
                             Linkage 
                             -> 
                             InstructionSequence))

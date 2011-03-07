@@ -193,7 +193,9 @@
                     (error 'get-copmiled-procedure-entry)]))]
 
           [(MakeCompiledProcedure? op)
-           m]
+           (target-updater m (make-closure (MakeCompiledProcedure-label op)
+                                           (list)))]
+
           [(ApplyPrimitiveProcedure? op)
            m]
           [(LookupLexicalAddress? op)

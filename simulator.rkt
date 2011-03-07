@@ -208,10 +208,24 @@
 
           [(ApplyPrimitiveProcedure? op)
            m]
+          
           [(LookupLexicalAddress? op)
-           m]
+           (let: ([a-val : SlotValue (env-ref m (LookupLexicalAddress-depth op))])
+                 (cond
+                   [(toplevel? a-val)
+                    (error 'lookup-lexical-address)]
+                   [else
+                    (target-updater m a-val)]))]
+
           [(LookupToplevelAddress? op)
-           m]
+           (let: ([a-top : SlotValue (env-ref m (LookupToplevelAddress-depth op))])
+                 (cond
+                   [(toplevel? a-top)
+                    (target-updater m (list-ref (toplevel-vals a-top)
+                                                (LookupToplevelAddress-pos op)))]
+                   [else
+                    (error 'lookup-toplevel "not a toplevel: ~s" a-top)]))]
+         
           [(GetControlStackLabel? op)
            m])))
            

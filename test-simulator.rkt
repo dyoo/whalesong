@@ -373,9 +373,35 @@
                                              'moe))))
 
 
+;; Test toplevel lookup
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                        ,(make-AssignPrimOpStatement 'val (make-LookupToplevelAddress 0 0 '+))))])
+  (test (machine-val (run m))
+        (lookup-primitive '+)))
 
-#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-ApplyPrimitiveProcedure))))])
-  (test ...))
+;; Test lexical lookup
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                        ,(make-PushEnvironment 3)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 'larry))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 'curly))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
+                        
+                        ,(make-AssignPrimOpStatement 'val (make-LookupLexicalAddress 0))))])
+  (test (machine-val (run m))
+        'larry))
+;; Another lexical lookup test
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                        ,(make-PushEnvironment 3)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 'larry))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 'curly))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
+                        
+                        ,(make-AssignPrimOpStatement 'val (make-LookupLexicalAddress 1))))])
+  (test (machine-val (run m))
+        'curly))
+
+
+
 #;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupLexicalAddress))))])
   (test ...))
 #;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupToplevelAddress))))])

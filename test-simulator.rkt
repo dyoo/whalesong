@@ -310,7 +310,7 @@
   (test (machine-val (run m))
         (make-closure 'procedure-entry (list))))
 
-;; Capturing a closed variable
+;; make-compiled-procedure: Capturing a few variables.
 (let ([m (new-machine `(,(make-PushEnvironment 3)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 'larry))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 'curly))
@@ -326,6 +326,51 @@
   (test (machine-val (run m))
         (make-closure 'procedure-entry (list 'larry 'moe))))
 
+;; make-compiled-procedure: Capturing a toplevel.
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(x y z)))
+                        ,(make-AssignImmediateStatement 'val (make-Const "x"))
+                        ,(make-PerformStatement (make-SetToplevel! 0 0 'x))
+                        ,(make-AssignImmediateStatement 'val (make-Const "y"))
+                        ,(make-PerformStatement (make-SetToplevel! 0 1 'y))
+                        ,(make-AssignImmediateStatement 'val (make-Const "z"))
+                        ,(make-PerformStatement (make-SetToplevel! 0 2 'z))
+                        ,(make-AssignPrimOpStatement 
+                          'val
+                          (make-MakeCompiledProcedure 'procedure-entry (list (make-EnvWholePrefixReference 0))))
+                        ,(make-GotoStatement (make-Label 'end))
+                        procedure-entry
+                        end
+                        ))])
+  (test (machine-val (run m))
+        (make-closure 'procedure-entry (list (make-toplevel (list "x" "y" "z"))))))
+
+;; make-compiled-procedure: Capturing both a toplevel and some lexical values
+(let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(x y z)))
+                        ,(make-AssignImmediateStatement 'val (make-Const "x"))
+                        ,(make-PerformStatement (make-SetToplevel! 0 0 'x))
+                        ,(make-AssignImmediateStatement 'val (make-Const "y"))
+                        ,(make-PerformStatement (make-SetToplevel! 0 1 'y))
+                        ,(make-AssignImmediateStatement 'val (make-Const "z"))
+                        ,(make-PerformStatement (make-SetToplevel! 0 2 'z))
+
+                        ,(make-PushEnvironment 3)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 'larry))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 'curly))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
+                        ,(make-AssignPrimOpStatement 
+                          'val
+                          (make-MakeCompiledProcedure 'procedure-entry (list (make-EnvWholePrefixReference 3)
+                                                                             (make-EnvLexicalReference 0)
+                                                                             (make-EnvLexicalReference 2))))
+                        ,(make-PopEnvironment 3 0)
+                        ,(make-GotoStatement (make-Label 'end))
+                        procedure-entry
+                        end
+                        ))])
+  (test (machine-val (run m))
+        (make-closure 'procedure-entry (list (make-toplevel (list "x" "y" "z"))
+                                             'larry
+                                             'moe))))
 
 
 

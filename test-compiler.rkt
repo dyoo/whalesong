@@ -26,6 +26,24 @@
                                    #'stx))
              (printf "ok. ~s steps\n\n" num-steps)))))]))
 
+;; test, and expect an error
+(define-syntax (test/exn stx)
+  (syntax-case stx ()
+    [(_ code)
+     (with-syntax ([stx stx])
+       (syntax/loc #'stx
+         (begin
+           (printf "Running/exn ~s ...\n" 'code)
+           (let/ec return
+             (with-handlers ([exn:fail? (lambda (exn)
+                                          (printf "ok\n\n")
+                                          (return))])
+               (run (new-machine (run-compiler 'code))))
+             (raise-syntax-error #f (format "Expected an exception")
+                                 #'stx)))))]))
+
+
+
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.
 (define (run m)
@@ -58,6 +76,41 @@
              (define z 8)
              (* x y z))
       (* 6 7 8))
+
+;; Simple branching
+(test (if #t 'ok 'not-ok)
+      'ok)
+
+(test (if #f 'not-ok 'ok)
+      'ok)
+
+;; Sequencing
+(test (begin 1
+             2
+             3)
+      3)
+(test (begin 1)
+      1)
+
+;; Simple application
+(test ((lambda (x) x) 42)
+      42)
+(test ((lambda (x) 
+         (begin (* x x))) 42)
+      1764)
+(test ((lambda (x y z) x) 3 4 5)
+      3)
+(test ((lambda (x y z) y) 3 4 5)
+      4)
+(test ((lambda (x y z) z) 3 4 5)
+      5)
+
+
+;; We should see an error here, since the arity is wrong
+(test/exn ((lambda (x y z) x) 3))
+(test/exn ((lambda (x y z) x) 3 4 5 6))
+
+
 
 
 ;(simulate (compile (parse '42) 'val 'next))

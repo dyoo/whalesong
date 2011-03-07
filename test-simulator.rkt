@@ -36,6 +36,7 @@
      m]))
 
 
+;; Infinite loop
 (let ([m (new-machine `(hello world ,(make-GotoStatement (make-Label 'hello))))])
   (test (machine-pc (step-n m 0)) 0)
   (test (machine-pc (step-n m 1)) 1)
@@ -415,10 +416,9 @@
         (list 126389 42 (make-toplevel (list (lookup-primitive '+))))))
 
 
-
-#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupLexicalAddress))))])
-  (test ...))
-#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupToplevelAddress))))])
-  (test ...))
-#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-GetControlStackLabel))))])
-  (test ...))
+;; GetControlStackLabel
+(let ([m (new-machine `(foo
+                        ,(make-PushControlFrame 'foo)
+                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))))])
+  (test (machine-proc (run m))
+        'foo))

@@ -235,7 +235,8 @@
                     (error 'lookup-toplevel "not a toplevel: ~s" a-top)]))]
          
           [(GetControlStackLabel? op)
-           m])))
+           (target-updater m (frame-return (first (machine-control m))))])))
+
            
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

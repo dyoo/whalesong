@@ -287,7 +287,7 @@
         (list 1 2 3 true false)))
 
 
-
+;; get-compiled-procedure-entry
 (let ([m 
        (make-machine (make-undefined) 
                      (make-closure 'procedure-entry (list 1 2 3))
@@ -299,9 +299,19 @@
         'procedure-entry))
 
 
+;; make-compiled-procedure, with empty closure set
+(let ([m (new-machine `(,(make-AssignPrimOpStatement 
+                          'val
+                          (make-MakeCompiledProcedure 'procedure-entry (list)))
+                        ,(make-GotoStatement (make-Label 'end))
+                        procedure-entry
+                        end
+                        ))])
+  (test (machine-val (run m))
+        (make-closure 'procedure-entry (list))))
 
-#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-MakeCompiledProcedure))))])
-  (test ...))
+
+
 #;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-ApplyPrimitiveProcedure))))])
   (test ...))
 #;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupLexicalAddress))))])

@@ -270,3 +270,18 @@
                         ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'some-variable))))])
   (void (run m)))
 
+
+
+;; install-closure-values
+(let ([m  
+       (make-machine (make-undefined) (make-closure 'procedure-entry
+                                                    (list 1 2 3))
+                     (list true false) ;; existing environment holds true, false
+                     '() 
+                     0 
+                     (list->vector `(,(make-PerformStatement (make-InstallClosureValues!))
+                                     procedure-entry
+                                     )))])
+  (test (machine-env (run m))
+        ;; Check that the environment has installed the expected closure values.
+        (list 1 2 3 true false)))

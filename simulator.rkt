@@ -158,7 +158,15 @@
                      (make-toplevel (map lookup-primitive 
                                          (ExtendEnvironment/Prefix!-names op))))]
           [(InstallClosureValues!? op)
-           (error 'step-perform)])))
+           (let: ([a-proc : SlotValue (machine-proc m)])
+                 (cond
+                   [(closure? a-proc)
+                    (env-push-many m
+                                   (closure-vals a-proc))]
+                   [else
+                    (error 'step-perform "Procedure register doesn't hold a procedure: ~s"
+                           a-proc)]))])))
+           
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -257,6 +265,13 @@
   (match m
     [(struct machine (val proc env control pc text))
      (make-machine val proc (cons v env) control pc text)]))
+
+(: env-push-many (machine (Listof SlotValue) -> machine))
+(define (env-push-many m vs)
+  (match m
+    [(struct machine (val proc env control pc text))
+     (make-machine val proc (append vs env) control pc text)]))
+
 
 (: env-ref (machine Natural -> Any))
 (define (env-ref m i)  

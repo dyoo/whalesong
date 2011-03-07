@@ -222,37 +222,33 @@
 
 ;; AssignPrimOpStatement
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+ - * =)))))])
-  (void (run m))
   ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
   ;; the toplevel structure in the environment... :(
-  #;(test (first (machine-env (run m)))
-          (make-toplevel (vector (lookup-primitive '+)
-                                 (lookup-primitive '-)
-                                 (lookup-primitive '*)
-                                 (lookup-primitive '=)))))
+  (test (first (machine-env (run m)))
+        (make-toplevel (list (lookup-primitive '+)
+                             (lookup-primitive '-)
+                             (lookup-primitive '*)
+                             (lookup-primitive '=)))))
+
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PerformStatement (make-SetToplevel! 0 0 'some-variable))))])
-  (void (run m))
-  ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
-  ;; the toplevel structure in the environment... :(
-  )
+  (test (machine-env (run m))
+        (list (make-toplevel (list "Danny")))))
+
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable another)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PerformStatement (make-SetToplevel! 0 1 'another))))])
-  (void (run m))
-  ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
-  ;; the toplevel structure in the environment... :(
-  )
+  (test (machine-env (run m))
+        (list (make-toplevel (list (make-undefined) "Danny")))))
+
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PushEnvironment 5)
                         ,(make-PerformStatement (make-SetToplevel! 5 0 'some-variable))))])
-  (void (run m))
-  ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
-  ;; the toplevel structure in the environment... :(
-  )
-
+  (test (machine-env (run m))
+        (list (make-undefined) (make-undefined) (make-undefined) (make-undefined) (make-undefined)
+              (make-toplevel (list "Danny")))))
 
 
 

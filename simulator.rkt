@@ -116,7 +116,7 @@
 (: step-test-and-branch (machine TestAndBranchStatement -> machine))
 (define (step-test-and-branch m stmt)
   (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)]
-         [argval : Any (lookup-atomic-register m (TestAndBranchStatement-register stmt))])
+         [argval : SlotValue (lookup-atomic-register m (TestAndBranchStatement-register stmt))])
         (if (cond
               [(eq? test 'false?)
                (not argval)]
@@ -126,12 +126,20 @@
             m)))
 
       
-(: lookup-atomic-register (machine AtomicRegisterSymbol -> Any))
+(: lookup-atomic-register (machine AtomicRegisterSymbol -> SlotValue))
 (define (lookup-atomic-register m reg)
   (cond [(eq? reg 'val)
          (machine-val m)]
         [(eq? reg 'proc)
          (machine-proc m)]))
+
+
+(: lookup-env-reference (machine EnvReference -> SlotValue))
+(define (lookup-env-reference m ref)
+  (cond [(EnvLexicalReference? ref)
+         (env-ref m (EnvLexicalReference-depth ref))]
+        [(EnvWholePrefixReference? ref)
+         (env-ref m (EnvWholePrefixReference-depth ref))]))
 
 
 (: step-perform (machine PerformStatement -> machine))
@@ -190,11 +198,13 @@
                    [(closure? a-proc)
                     (target-updater m (closure-label a-proc))]
                    [else
-                    (error 'get-copmiled-procedure-entry)]))]
+                    (error 'get-compiled-procedure-entry)]))]
 
           [(MakeCompiledProcedure? op)
            (target-updater m (make-closure (MakeCompiledProcedure-label op)
-                                           (list)))]
+                                           (map (lambda: ([r : EnvReference])
+                                                         (lookup-env-reference m r))
+                                                (MakeCompiledProcedure-closed-vals op))))]
 
           [(ApplyPrimitiveProcedure? op)
            m]
@@ -326,7 +336,7 @@
      (make-machine val proc (append vs env) control pc text)]))
 
 
-(: env-ref (machine Natural -> Any))
+(: env-ref (machine Natural -> SlotValue))
 (define (env-ref m i)  
   (match m
     [(struct machine (val proc env control pc text))

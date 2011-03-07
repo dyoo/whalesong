@@ -310,6 +310,23 @@
   (test (machine-val (run m))
         (make-closure 'procedure-entry (list))))
 
+;; Capturing a closed variable
+(let ([m (new-machine `(,(make-PushEnvironment 3)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 'larry))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 'curly))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
+                        ,(make-AssignPrimOpStatement 
+                          'val
+                          (make-MakeCompiledProcedure 'procedure-entry (list (make-EnvLexicalReference 0)
+                                                                             (make-EnvLexicalReference 2))))
+                        ,(make-GotoStatement (make-Label 'end))
+                        procedure-entry
+                        end
+                        ))])
+  (test (machine-val (run m))
+        (make-closure 'procedure-entry (list 'larry 'moe))))
+
+
 
 
 #;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-ApplyPrimitiveProcedure))))])

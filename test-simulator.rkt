@@ -288,3 +288,25 @@
 
 
 
+(let ([m 
+       (make-machine (make-undefined) 
+                     (make-closure 'procedure-entry (list 1 2 3))
+                     (list true false) ;; existing environment holds true, false
+                     '() 
+                     0 
+                     (list->vector `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))))])
+  (test (machine-val (run m))
+        'procedure-entry))
+
+
+
+#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-MakeCompiledProcedure))))])
+  (test ...))
+#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-ApplyPrimitiveProcedure))))])
+  (test ...))
+#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupLexicalAddress))))])
+  (test ...))
+#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-LookupToplevelAddress))))])
+  (test ...))
+#;(let ([m (new-machine `(,(make-AssignPrimOpStatement (make-GetControlStackLabel))))])
+  (test ...))

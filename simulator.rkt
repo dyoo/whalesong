@@ -166,9 +166,42 @@
                     (error 'step-perform "Procedure register doesn't hold a procedure: ~s"
                            a-proc)]))])))
 
+(: get-target-updater (Target -> (machine SlotValue -> machine)))
+(define (get-target-updater t)
+  (cond
+    [(eq? t 'proc)
+     proc-update]
+    [(eq? t 'val)
+     val-update]
+    [(EnvLexicalReference? t)
+     (lambda: ([m : machine] [v : SlotValue])
+              (env-mutate m (EnvLexicalReference-depth t) v))]))
+
+
 (: step-assign-primitive-operation (machine AssignPrimOpStatement -> machine))
 (define (step-assign-primitive-operation m stmt)
-  m)
+  (let: ([op : PrimitiveOperator (AssignPrimOpStatement-op stmt)]
+         [target-updater : (machine SlotValue -> machine)
+                         (get-target-updater (AssignPrimOpStatement-target stmt))])
+        (cond
+          [(GetCompiledProcedureEntry? op)
+           (let: ([a-proc : SlotValue (machine-proc m)])
+                 (cond
+                   [(closure? a-proc)
+                    (target-updater m (closure-label a-proc))]
+                   [else
+                    (error 'get-copmiled-procedure-entry)]))]
+
+          [(MakeCompiledProcedure? op)
+           m]
+          [(ApplyPrimitiveProcedure? op)
+           m]
+          [(LookupLexicalAddress? op)
+           m]
+          [(LookupToplevelAddress? op)
+           m]
+          [(GetControlStackLabel? op)
+           m])))
            
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

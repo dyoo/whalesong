@@ -15,7 +15,7 @@
                [lookup-primitive (Symbol -> PrimitiveValue)])
                
 
-(provide new-machine can-step? step)
+(provide new-machine can-step? step current-instruction)
 
 
 (: new-machine ((Listof Statement) -> machine))
@@ -197,6 +197,7 @@
      val-update]
     [(EnvLexicalReference? t)
      (lambda: ([m : machine] [v : SlotValue])
+              (printf "Setting env[~a] to ~s\n" (EnvLexicalReference-depth t) v)
               (env-mutate m (EnvLexicalReference-depth t) v))]))
 
 

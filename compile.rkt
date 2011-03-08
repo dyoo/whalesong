@@ -118,7 +118,7 @@
 
 
 (: lexical-environment-pop-depth (CompileTimeEnvironment Linkage -> Natural))
-;; Computes how many environments we need to pop till we clear the procedure arguments.
+;; Computes how much of the environment we need to pop.
 (define (lexical-environment-pop-depth cenv linkage)
   (cond
     [(empty? cenv)
@@ -311,15 +311,13 @@
                                                       (make-EnvLexicalReference i)
                                                       'val))))])
     
-    ;; FIXME: we need to push the control.
-    ;; FIXME: at procedure entry, the arguments need to be installed
-    ;; in the environment.  We need to install 
-    ;; the closure's values now.
     (append-instruction-sequences
      (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)))))
      proc-code
      (juggle-operands operand-codes)
-     (compile-procedure-call extended-cenv (length (App-operands exp)) target linkage))))
+     (compile-procedure-call cenv extended-cenv 
+                             (length (App-operands exp)) 
+                             target linkage))))
 
 
 
@@ -353,10 +351,13 @@
 
 
 
-(: compile-procedure-call (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(: compile-procedure-call (CompileTimeEnvironment CompileTimeEnvironment 
+                                                  Natural Target Linkage 
+                                                  ->
+                                                  InstructionSequence))
 ;; Assumes the procedure value has been loaded into the proc register.
 ;; n is the number of arguments passed in.
-(define (compile-procedure-call cenv n target linkage)
+(define (compile-procedure-call cenv extended-cenv n target linkage)
   (let ([primitive-branch (make-label 'primitiveBranch)]
         [compiled-branch (make-label 'compiledBranch)]
         [after-call (make-label 'afterCall)])
@@ -374,17 +375,19 @@
         `(,(make-PerformStatement (make-CheckClosureArity! n))))
        (end-with-compiled-application-linkage 
         compiled-linkage
-        cenv
-        (compile-proc-appl cenv n target compiled-linkage))
+        extended-cenv
+        (compile-proc-appl extended-cenv n target compiled-linkage))
        
        primitive-branch
-       (end-with-compiled-application-linkage
+       (end-with-linkage
         linkage
         cenv
         (make-instruction-sequence 
          `(,(make-AssignPrimOpStatement 
-             target
-             (make-ApplyPrimitiveProcedure n)))))
+             'val
+             (make-ApplyPrimitiveProcedure n))
+           ,(make-PopEnvironment n 0)
+           ,(make-AssignImmediateStatement target (make-Reg 'val)))))
 
        after-call))))
 
@@ -461,6 +464,6 @@
 
 (: ensure-natural (Integer -> Natural))
 (define (ensure-natural n)
-  (if (> n 0)
+  (if (>= n 0)
       n
       (error 'ensure-natural "Not a natural: ~s\n" n)))

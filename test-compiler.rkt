@@ -46,9 +46,12 @@
 
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.
-(define (run m)
+(define (run m #:debug? (debug? false))
   (let loop ([m m]
              [steps 0])
+    (when debug?
+      (when (can-step? m)
+        (printf "~s\n" (current-instruction m))))
     (cond
       [(can-step? m)
        (loop (step m) (add1 steps))]

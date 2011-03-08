@@ -384,10 +384,17 @@
         cenv
         (make-instruction-sequence 
          `(,(make-AssignPrimOpStatement 
-             'val
+             ;; optimization: we can put the result directly in the registers, or in
+             ;; the appropriate spot on the stack.
+             (cond [(eq? target 'val)
+                    'val]
+                   [(eq? target 'proc)
+                    'proc]
+                   [(EnvLexicalReference? target)
+                    (make-EnvLexicalReference (+ (EnvLexicalReference-depth target) n))])
              (make-ApplyPrimitiveProcedure n))
-           ,(make-PopEnvironment n 0)
-           ,(make-AssignImmediateStatement target (make-Reg 'val)))))
+           ,(make-PopEnvironment n 0))))
+
 
        after-call))))
 

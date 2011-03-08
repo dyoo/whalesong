@@ -27,6 +27,9 @@
              (unless (= (machine-stack-size a-machine) 1)
                (raise-syntax-error #f (format "Stack is not back to the prefix as expected!")
                                    #'stx))
+             (unless (null? (machine-control a-machine))
+               (raise-syntax-error #f (format "Control is not empty as expected!")
+                                   #'stx))
              (printf "ok. ~s steps.\n\n" num-steps)))))]))
 
 ;; test, and expect an error

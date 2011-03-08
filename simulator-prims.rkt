@@ -32,5 +32,9 @@
 (provide lookup-primitive)
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= cons list car cdr
                                                      sub1
-                                                     display newline displayln)
+                                                     display newline displayln
+                                                     not
+                                                     pair?
+                                                     eq?
+                                                     null?)
                                       #:constants (null pi e)))

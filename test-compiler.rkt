@@ -108,8 +108,11 @@
 
 ;; We should see an error here, since the arity is wrong
 (test/exn ((lambda (x y z) x) 3))
+(test/exn ((lambda (x y z) z) 3))
 (test/exn ((lambda (x y z) x) 3 4 5 6))
 
+;; And this should fail because it's not a lambda
+(test/exn (not-a-procedure 5))
 
 
 

@@ -44,6 +44,7 @@
 
 ;; Compiled procedure closures
 (define-struct: closure ([label : Symbol]
+                         [arity : Natural]
                          [vals : (Listof SlotValue)])
   #:transparent)
 

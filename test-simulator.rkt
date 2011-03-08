@@ -276,6 +276,7 @@
 ;; install-closure-values
 (let ([m  
        (make-machine (make-undefined) (make-closure 'procedure-entry
+                                                    0
                                                     (list 1 2 3))
                      (list true false) ;; existing environment holds true, false
                      '() 
@@ -291,7 +292,7 @@
 ;; get-compiled-procedure-entry
 (let ([m 
        (make-machine (make-undefined) 
-                     (make-closure 'procedure-entry (list 1 2 3))
+                     (make-closure 'procedure-entry 0 (list 1 2 3))
                      (list true false) ;; existing environment holds true, false
                      '() 
                      0 
@@ -303,13 +304,13 @@
 ;; make-compiled-procedure, with empty closure set
 (let ([m (new-machine `(,(make-AssignPrimOpStatement 
                           'val
-                          (make-MakeCompiledProcedure 'procedure-entry (list)))
+                          (make-MakeCompiledProcedure 'procedure-entry 0 (list)))
                         ,(make-GotoStatement (make-Label 'end))
                         procedure-entry
                         end
                         ))])
   (test (machine-val (run m))
-        (make-closure 'procedure-entry (list))))
+        (make-closure 'procedure-entry 0 (list))))
 
 ;; make-compiled-procedure: Capturing a few variables.
 (let ([m (new-machine `(,(make-PushEnvironment 3)
@@ -318,14 +319,16 @@
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
                         ,(make-AssignPrimOpStatement 
                           'val
-                          (make-MakeCompiledProcedure 'procedure-entry (list (make-EnvLexicalReference 0)
-                                                                             (make-EnvLexicalReference 2))))
+                          (make-MakeCompiledProcedure 'procedure-entry 
+                                                      0 
+                                                      (list (make-EnvLexicalReference 0)
+                                                            (make-EnvLexicalReference 2))))
                         ,(make-GotoStatement (make-Label 'end))
                         procedure-entry
                         end
                         ))])
   (test (machine-val (run m))
-        (make-closure 'procedure-entry (list 'larry 'moe))))
+        (make-closure 'procedure-entry 0 (list 'larry 'moe))))
 
 ;; make-compiled-procedure: Capturing a toplevel.
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(x y z)))
@@ -337,13 +340,15 @@
                         ,(make-PerformStatement (make-SetToplevel! 0 2 'z))
                         ,(make-AssignPrimOpStatement 
                           'val
-                          (make-MakeCompiledProcedure 'procedure-entry (list (make-EnvWholePrefixReference 0))))
+                          (make-MakeCompiledProcedure 'procedure-entry 
+                                                      0
+                                                      (list (make-EnvWholePrefixReference 0))))
                         ,(make-GotoStatement (make-Label 'end))
                         procedure-entry
                         end
                         ))])
   (test (machine-val (run m))
-        (make-closure 'procedure-entry (list (make-toplevel (list "x" "y" "z"))))))
+        (make-closure 'procedure-entry 0 (list (make-toplevel (list "x" "y" "z"))))))
 
 ;; make-compiled-procedure: Capturing both a toplevel and some lexical values
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(x y z)))
@@ -360,18 +365,22 @@
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
                         ,(make-AssignPrimOpStatement 
                           'val
-                          (make-MakeCompiledProcedure 'procedure-entry (list (make-EnvWholePrefixReference 3)
-                                                                             (make-EnvLexicalReference 0)
-                                                                             (make-EnvLexicalReference 2))))
+                          (make-MakeCompiledProcedure 'procedure-entry 
+                                                      0
+                                                      (list (make-EnvWholePrefixReference 3)
+                                                            (make-EnvLexicalReference 0)
+                                                            (make-EnvLexicalReference 2))))
                         ,(make-PopEnvironment 3 0)
                         ,(make-GotoStatement (make-Label 'end))
                         procedure-entry
                         end
                         ))])
   (test (machine-val (run m))
-        (make-closure 'procedure-entry (list (make-toplevel (list "x" "y" "z"))
-                                             'larry
-                                             'moe))))
+        (make-closure 'procedure-entry 
+                      0
+                      (list (make-toplevel (list "x" "y" "z"))
+                            'larry
+                            'moe))))
 
 
 ;; Test toplevel lookup

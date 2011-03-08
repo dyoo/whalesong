@@ -228,6 +228,7 @@
            (make-instruction-sequence 
             `(,(make-AssignPrimOpStatement target
                                            (make-MakeCompiledProcedure proc-entry
+                                                                       (length (Lam-parameters exp))
                                                                        lexical-references)))))
           (compile-lambda-body exp cenv
                                lexical-references
@@ -341,6 +342,8 @@
                                         primitive-branch)))
        
        compiled-branch
+       (make-instruction-sequence
+        `(,(make-PerformStatement (make-CheckClosureArity! n))))
        (end-with-compiled-application-linkage 
         compiled-linkage
         cenv

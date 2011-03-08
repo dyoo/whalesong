@@ -113,9 +113,11 @@
 (define-struct: GetCompiledProcedureEntry ()
   #:transparent)
 
-;; Constructs a closure, given the label and the set of lexical references
-;; into the environment that the closure needs to close over.
+;; Constructs a closure, given the label, # of expected arguments,
+;; and the set of lexical references into the environment that the
+;; closure needs to close over.
 (define-struct: MakeCompiledProcedure ([label : Symbol]
+                                       [arity : Natural]
                                        [closed-vals : (Listof EnvReference)])
   #:transparent)
 
@@ -169,6 +171,10 @@
                                      [name : Symbol])
   #:transparent)
 
+;; Check the closure procedure value in 'proc and make sure it can accept n values.
+(define-struct: CheckClosureArity! ([arity : Natural])
+  #:transparent)
+
 ;; Extends the environment with a prefix that holds
 ;; lookups to the namespace.
 (define-struct: ExtendEnvironment/Prefix! ([names : (Listof Symbol)])
@@ -182,6 +188,7 @@
 (define-type PrimitiveCommand (U                                
                                SetToplevel!
                                CheckToplevelBound!
+                               CheckClosureArity!
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!))
 

@@ -152,18 +152,32 @@
                        (toplevel-mutate (ensure-toplevel (env-ref m (SetToplevel!-depth op)))
                                         (SetToplevel!-pos op)
                                         (ensure-primitive-value (machine-val m))))]
+
           [(CheckToplevelBound!? op)
            (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])
                  (cond
                    [(undefined? (list-ref (toplevel-vals a-top) (CheckToplevelBound!-pos op)))
-                    (error 'check-toplevel-bound! "Unbound identifier ~s" (CheckToplevelBound!-name op))]
+                    (error 'check-toplevel-bound! "Unbound identifier ~s" 
+                           (CheckToplevelBound!-name op))]
                    [else
                     m]))]
+          
+          [(CheckClosureArity!? op)
+           (let: ([clos : SlotValue (machine-proc m)])
+                 (cond
+                   [(closure? clos)
+                    (if (= (closure-arity clos)
+                           (CheckClosureArity!-arity op))
+                        m
+                        (error 'check-closure-arity "arity mismatch"))]
+                   [else
+                    (error 'check-closure-arity "not a closure")]))]
 
           [(ExtendEnvironment/Prefix!? op)
            (env-push m 
                      (make-toplevel (map lookup-primitive 
                                          (ExtendEnvironment/Prefix!-names op))))]
+          
           [(InstallClosureValues!? op)
            (let: ([a-proc : SlotValue (machine-proc m)])
                  (cond
@@ -202,6 +216,7 @@
 
           [(MakeCompiledProcedure? op)
            (target-updater m (make-closure (MakeCompiledProcedure-label op)
+                                           (MakeCompiledProcedure-arity op)
                                            (map (lambda: ([r : EnvReference])
                                                          (lookup-env-reference m r))
                                                 (MakeCompiledProcedure-closed-vals op))))]

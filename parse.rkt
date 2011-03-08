@@ -17,11 +17,20 @@
      (make-Branch (parse (if-predicate exp))
                   (parse (if-consequent exp))
                   (parse (if-alternative exp)))]
+    [(cond? exp)
+     (parse (desugar-cond exp))]
+    
     [(lambda? exp)
      (make-Lam (lambda-parameters exp)
                (make-Seq (map parse (lambda-body exp))))]
+ 
     [(begin? exp)
-     (make-Seq (map parse (begin-actions exp)))]
+     (let ([actions (map parse (begin-actions exp))])
+       (cond
+         [(= 1 (length actions))
+          (car actions)]
+         [else
+          (make-Seq actions)]))]
     
     [(application? exp)
      (make-App (parse (operator exp))
@@ -95,3 +104,32 @@
 (define (application? exp) (pair? exp))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
+
+
+(define (cond? exp)
+  (tagged-list? exp 'cond))
+
+(define (desugar-cond exp)
+  (let loop ([clauses (cdr exp)])
+    (cond
+      [(null? clauses)
+       '(void)]
+      [(null? (cdr clauses))
+       (let* ([clause (car clauses)]
+              [question (car clause)]
+              [answer `(begin ,@(cdr clause))])
+         (cond
+           [(eq? question 'else)
+            answer]
+           [else
+            `(if ,question 
+                 ,answer
+                 (void))]))]
+      [else
+       (let* ([clause (car clauses)]
+              [question (car clause)]
+              [answer `(begin ,@(cdr clause))])
+         `(if ,question 
+              ,answer
+              ,(loop (cdr clauses))))])))
+         

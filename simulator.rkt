@@ -15,12 +15,22 @@
                [lookup-primitive (Symbol -> PrimitiveValue)])
                
 
-(provide new-machine can-step? step current-instruction)
+(provide new-machine can-step? step current-instruction
+         
+         machine-control-size)
 
 
 (: new-machine ((Listof Statement) -> machine))
 (define (new-machine program-text)
   (make-machine (make-undefined) (make-undefined) '() '() 0 (list->vector program-text) 0))
+
+
+
+(: machine-control-size (machine -> Natural))
+(define (machine-control-size m)
+  (length (machine-control m)))
+
+
 
 
 (: can-step? (machine -> Boolean))

@@ -5,10 +5,12 @@
 (require "il-structs.rkt")
 
 
-(define-type PrimitiveValue (Rec PrimitiveValue (U String Number Symbol Boolean Null
+(define-type PrimitiveValue (Rec PrimitiveValue (U String Number Symbol Boolean
+                                                   Null Void
                                                    primitive-proc 
                                                    closure
                                                    undefined
+
                                                    (Pairof PrimitiveValue PrimitiveValue)
                                                    )))
 (define-type SlotValue (U PrimitiveValue toplevel))

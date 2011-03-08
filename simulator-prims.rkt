@@ -39,5 +39,8 @@
                                                      null?
                                                      add1
                                                      sub1
-                                                     abs)
+                                                     abs
+                                                     void
+                                                     quotient
+                                                     remainder)
                                       #:constants (null pi e)))

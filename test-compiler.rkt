@@ -114,6 +114,49 @@
 ;; And this should fail because it's not a lambda
 (test/exn (not-a-procedure 5))
 
+;; Square
+(test (begin (define (f x)
+               (* x x))
+             (f 3))
+      9)
+
+;; composition of square
+(test (begin (define (f x)
+               (* x x))
+             (f (f 3)))
+      81)
+
+
+; factorial
+(test (begin (define (f x)
+               (if (= x 0)
+                   1
+                   (* f (sub1 x))))
+             (f 0))
+      1)
+(test (begin (define (f x)
+               (if (= x 0)
+                   1
+                   (* f (sub1 x))))
+             (f 1))
+      1)
+(test (begin (define (f x)
+               (if (= x 0)
+                   1
+                   (* f (sub1 x))))
+             (f 2))
+      2)
+(test (begin (define (f x)
+               (if (= x 0)
+                   1
+                   (* f (sub1 x))))
+             (f 3))
+      6)
+
+
+
+               
+
 
 
 ;(simulate (compile (parse '42) 'val 'next))

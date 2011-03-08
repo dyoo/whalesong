@@ -20,7 +20,7 @@
 
 (: new-machine ((Listof Statement) -> machine))
 (define (new-machine program-text)
-  (make-machine (make-undefined) (make-undefined) '() '() 0 (list->vector program-text)))
+  (make-machine (make-undefined) (make-undefined) '() '() 0 (list->vector program-text) 0))
 
 
 (: can-step? (machine -> Boolean))
@@ -339,11 +339,18 @@
     [else
      (error 'ensure-toplevel)]))
 
+(: ensure-natural (Integer -> Natural))
+(define (ensure-natural x)
+  (if (>= x 0)
+      x
+      (error 'ensure-natural)))
+
 
 (: current-instruction (machine -> Statement))
 (define (current-instruction m)
   (match m
-    [(struct machine (val proc env control pc text))
+    [(struct machine (val proc env control pc text
+                          stack-size))
      (vector-ref text pc)]))
 
   
@@ -351,39 +358,43 @@
 (: val-update (machine SlotValue -> machine))
 (define (val-update m v)
   (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine v proc env control pc text)]))
+    [(struct machine (val proc env control pc text
+                          stack-size))
+     (make-machine v proc env control pc text stack-size)]))
 
 (: proc-update (machine SlotValue -> machine))
 (define (proc-update m v)
     (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine val v env control pc text)]))
+    [(struct machine (val proc env control pc text
+                          stack-size))
+     (make-machine val v env control pc text stack-size)]))
 
 (: env-push (machine SlotValue -> machine))
 (define (env-push m v)
   (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine val proc (cons v env) control pc text)]))
+    [(struct machine (val proc env control pc text stack-size))
+     (make-machine val proc (cons v env) control pc text
+                   (add1 stack-size))]))
 
 (: env-push-many (machine (Listof SlotValue) -> machine))
 (define (env-push-many m vs)
   (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine val proc (append vs env) control pc text)]))
+    [(struct machine (val proc env control pc text stack-size))
+     (make-machine val proc (append vs env) control pc text
+                   (+ stack-size (length vs)))]))
 
 
 (: env-ref (machine Natural -> SlotValue))
 (define (env-ref m i)  
   (match m
-    [(struct machine (val proc env control pc text))
+    [(struct machine (val proc env control pc text stack-size))
      (list-ref env i)]))
 
 (: env-mutate (machine Natural SlotValue -> machine))
 (define (env-mutate m i v)
   (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine val proc (list-replace env i v) control pc text)]))
+    [(struct machine (val proc env control pc text stack-size))
+     (make-machine val proc (list-replace env i v) control pc text stack-size)]))
 
 (: list-replace (All (A) (Listof A) Natural A -> (Listof A)))
 (define (list-replace l i v)
@@ -398,39 +409,41 @@
 (: env-pop (machine Natural Natural -> machine))
 (define (env-pop m n skip)     
   (match m
-    [(struct machine (val proc env control pc text))
+    [(struct machine (val proc env control pc text stack-size))
      (make-machine val proc (append (take env skip)
                                     (drop env (+ skip n)))
-                   control pc text)]))
+                   control pc text
+                   (ensure-natural (- stack-size n)))]))
 
 
 (: control-push (machine Symbol -> machine))
 (define (control-push m l)
   (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine val proc env (cons (make-frame l) control) pc text)]))
+    [(struct machine (val proc env control pc text stack-size))
+     (make-machine val proc env (cons (make-frame l) control) pc text
+                   stack-size)]))
 
 
 (: control-pop (machine -> (values machine Symbol)))
 (define (control-pop m)
   (match m
-    [(struct machine (val proc env control pc text))
-     (values (make-machine val proc env (rest control) pc text)
+    [(struct machine (val proc env control pc text stack-size))
+     (values (make-machine val proc env (rest control) pc text stack-size)
              (frame-return (first control)))]))
 
 (: increment-pc (machine -> machine))
 (define (increment-pc m)
   (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine val proc env control (add1 pc) text)]))
+    [(struct machine (val proc env control pc text stack-size))
+     (make-machine val proc env control (add1 pc) text stack-size)]))
 
 
 (: jump (machine Symbol -> machine))
 ;; Jumps directly to the instruction at the given label.
 (define (jump m l)
   (match m
-    [(struct machine (val proc env control pc text))
-     (make-machine val proc env control (vector-find text l) text)]))
+    [(struct machine (val proc env control pc text stack-size))
+     (make-machine val proc env control (vector-find text l) text stack-size)]))
 
 
 (: vector-find (All (A) (Vectorof A) A -> Natural))

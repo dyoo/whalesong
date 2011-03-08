@@ -22,6 +22,9 @@
 
                          [pc : Natural]                  ;; program counter
                          [text : (Vectorof Statement)]   ;; text of the program
+
+                         ;; other metrics for debugging
+                         [stack-size : Natural]
                          )
   #:transparent)
 

@@ -24,7 +24,7 @@
              (unless (equal? actual exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
                                    #'stx))
-             (unless (= (length (machine-env a-machine)) 1)
+             (unless (= (machine-stack-size a-machine) 1)
                (raise-syntax-error #f (format "Stack is not back to the prefix as expected!")
                                    #'stx))
              (printf "ok. ~s steps.\n\n" num-steps)))))]))
@@ -32,7 +32,7 @@
 ;; test, and expect an error
 (define-syntax (test/exn stx)
   (syntax-case stx ()
-    [(_ code)
+    [(_ code options ...)
      (with-syntax ([stx stx])
        (syntax/loc #'stx
          (begin
@@ -41,7 +41,7 @@
              (with-handlers ([exn:fail? (lambda (exn)
                                           (printf "ok\n\n")
                                           (return))])
-               (run (new-machine (run-compiler 'code))))
+               (run (new-machine (run-compiler 'code)) options ...))
              (raise-syntax-error #f (format "Expected an exception")
                                  #'stx)))))]))
 
@@ -60,7 +60,7 @@
                 (length (machine-env m))
                 (current-instruction m))))
     (when stack-limit
-      (when (stack-overflow? (machine-env m) stack-limit)
+      (when (> (machine-stack-size m) stack-limit)
         (error 'run "Stack overflow")))
 
     (cond
@@ -68,15 +68,6 @@
        (loop (step m) (add1 steps))]
       [else
        (values m steps)])))
-
-(define (stack-overflow? l n)
-  (cond
-    [(empty? l)
-     #f]
-    [(= n 0)
-     #t]
-    [else
-     (stack-overflow? (rest l) (sub1 n))]))
 
 
 ;; Atomic expressions
@@ -201,6 +192,7 @@
 
 
 
+
 ;; Tail calling behavior: watch that the stack never grows beyond 8.
 (test (begin (define (f x acc)
                  (if (= x 0)
@@ -213,7 +205,22 @@
                         (* x (f (sub1 x)))))])
         (f 1000))
       #:stack-limit 8)
-      
+
+;; And from experimental testing, anything below 7 will break.
+(test/exn (begin (define (f x acc)
+                   (if (= x 0)
+                       acc
+                       (f (sub1 x) (* x acc))))
+                 (f 1000 1))
+          (letrec ([f (lambda (x)
+                        (if (= x 0)
+                            1
+                            (* x (f (sub1 x)))))])
+            (f 1000))
+          #:stack-limit 7)
+
+
+
 
 ;; tak test
 (test (begin (define (tak x y z)
@@ -225,16 +232,6 @@
              (tak 18 12 6))
       7)
       
-
-(test (begin (define (tak x y z)
-               (if (>= y x)
-                   z
-                   (tak (tak (- x 1) y z)
-                        (tak (- y 1) z x)
-                        (tak (- z 1) x y))))
-             (tak 18 12 6))
-      7
-      #:stack-limit 120)
 
 
 

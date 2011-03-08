@@ -282,8 +282,8 @@
                      '() 
                      0 
                      (list->vector `(,(make-PerformStatement (make-InstallClosureValues!))
-                                     procedure-entry
-                                     )))])
+                                     procedure-entry))
+                     0)])
   (test (machine-env (run m))
         ;; Check that the environment has installed the expected closure values.
         (list 1 2 3 true false)))
@@ -296,7 +296,8 @@
                      (list true false) ;; existing environment holds true, false
                      '() 
                      0 
-                     (list->vector `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))))])
+                     (list->vector `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))
+                     0)])
   (test (machine-val (run m))
         'procedure-entry))
 

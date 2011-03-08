@@ -6,6 +6,7 @@
          "sets.rkt")
 (provide find-variable 
          extend-lexical-environment
+         extend-lexical-environment/names
          extend-lexical-environment/placeholders
          collect-lexical-references
          lexical-references->compile-time-environment)
@@ -35,25 +36,16 @@
                           [else
                            (loop (rest cenv) (add1 depth))])]
                    
-                   [(FunctionExtension? elt)
-                    (let: ([index : (U #f Natural) (list-index name (FunctionExtension-names elt))])
-                          (cond
-                            [(boolean? index)
-                             (loop (rest cenv) (+ depth (length (FunctionExtension-names elt))))]
-                            [else
-                             (make-LocalAddress (+ depth index))]))]
+                   [(symbol? elt)
+                    (cond
+                      [(eq? elt name)
+                       (make-LocalAddress depth)]
+                      [else
+                       (loop (rest cenv) (add1 depth))])]
                    
-                   [(LocalExtension? elt)
-                    (let: ([index : (U #f Natural) (list-index name (LocalExtension-names elt))])
-                          (cond 
-                            [(boolean? index)
-                             (loop (rest cenv) (+ depth (length (LocalExtension-names elt))))]
-                            [else
-                             (make-LocalAddress (+ depth index))]))]
+                   [(eq? elt #f)
+                    (loop (rest cenv) (add1 depth))]))])))
 
-                   [(TemporaryExtension? elt)
-                    (loop (rest cenv) 
-                          (+ depth (TemporaryExtension-n elt)))]))])))
 
 (: list-index (All (A) A (Listof A) -> (U #f Natural)))
 (define (list-index x l)
@@ -75,12 +67,18 @@
   (cons extension cenv))
 
 
+
+(: extend-lexical-environment/names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
+(define (extend-lexical-environment/names cenv names)
+  (append names cenv))
+
+
 (: extend-lexical-environment/placeholders
    (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
 ;; Add placeholders to the lexical environment (This represents what happens during procedure application.)
 (define (extend-lexical-environment/placeholders cenv n)
-  (cons (make-TemporaryExtension n)
-        cenv))
+  (append (build-list n (lambda: ([i : Natural]) #f))
+          cenv))
   
 
 

@@ -11,20 +11,22 @@
 (define-struct: Prefix ([names : (Listof Symbol)])
   #:transparent)
 
-(define-struct: FunctionExtension ([names : (Listof Symbol)])
+#;(define-struct: FunctionExtension ([names : (Listof Symbol)])
   #:transparent)
 
-(define-struct: LocalExtension ([names : (Listof Symbol)])
+#;(define-struct: LocalExtension ([names : (Listof Symbol)])
   #:transparent)
 
-(define-struct: TemporaryExtension ([n : Natural])
+#;(define-struct: TemporaryExtension ([n : Natural])
   #:transparent)
 
 
 (define-type CompileTimeEnvironmentEntry (U Prefix ;; a prefix
-                                            FunctionExtension
-                                            LocalExtension
-                                            TemporaryExtension))
+                                            Symbol
+                                            False
+                                            #;FunctionExtension
+                                            #;LocalExtension
+                                            #;TemporaryExtension))
 
 
 ;; A compile-time environment is a (listof (listof symbol)).

@@ -120,7 +120,8 @@
 (: lexical-environment-pop-depth (CompileTimeEnvironment Linkage -> Natural))
 ;; Computes how much of the environment we need to pop.
 (define (lexical-environment-pop-depth cenv linkage)
-  (cond
+  (length cenv)
+  #;(cond
     [(empty? cenv)
      0]
     [else
@@ -128,14 +129,12 @@
            (cond
              [(Prefix? entry)
               (+ 1 (lexical-environment-pop-depth (rest cenv) linkage))]
-             [(FunctionExtension? entry)
-              (length (FunctionExtension-names entry))]
-             [(LocalExtension? entry)
-              (+ (length (LocalExtension-names entry))
-                 (lexical-environment-pop-depth (rest cenv) linkage))]
-             [(TemporaryExtension? entry)
-              (+ (TemporaryExtension-n entry)
-                 (lexical-environment-pop-depth (rest cenv) linkage))]))]))
+             [(symbol? entry)
+              (cond
+              (+ 1 (lexical-environment-pop-depth (rest cenv) linkage)))]
+             [(eq? entry #f)
+              (+ 1 (lexical-environment-pop-depth (rest cenv) linkage))]))]))
+
 
 
 
@@ -274,9 +273,9 @@
 (define (compile-lambda-body exp cenv lexical-references proc-entry)
   (let*: ([formals : (Listof Symbol) (Lam-parameters exp)]
           [extended-cenv : CompileTimeEnvironment 
-                         (extend-lexical-environment 
+                         (extend-lexical-environment/names
                           '() 
-                          (make-FunctionExtension formals))]
+                          formals)]
           [extended-cenv : CompileTimeEnvironment 
                          (lexical-references->compile-time-environment 
                           lexical-references cenv extended-cenv)])

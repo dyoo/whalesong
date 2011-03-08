@@ -54,7 +54,9 @@
              [steps 0])
     (when debug?
       (when (can-step? m)
-        (printf "~s\n" (current-instruction m))))
+        (printf "env-depth=~s instruction=~s\n" 
+                (length (machine-env m))
+                (current-instruction m))))
     (cond
       [(can-step? m)
        (loop (step m) (add1 steps))]
@@ -158,25 +160,25 @@
 (test (begin (define (f x)
                (if (= x 0)
                    1
-                   (* f (sub1 x))))
+                   (* x (f (sub1 x)))))
              (f 0))
       1)
 (test (begin (define (f x)
                (if (= x 0)
                    1
-                   (* f (sub1 x))))
+                   (* x (f (sub1 x)))))
              (f 1))
       1)
 (test (begin (define (f x)
                (if (= x 0)
                    1
-                   (* f (sub1 x))))
+                   (* x (f (sub1 x)))))
              (f 2))
       2)
 (test (begin (define (f x)
                (if (= x 0)
                    1
-                   (* f (sub1 x))))
+                   (* x (f (sub1 x)))))
              (f 3))
       6)
 

@@ -355,7 +355,8 @@
                          (make-instruction-sequence 
                           `(,(make-AssignPrimOpStatement 
                               target
-                              (make-ApplyPrimitiveProcedure n)))))
+                              (make-ApplyPrimitiveProcedure n))
+                            ,(make-PopEnvironment n 0))))
        after-call))))
 
 

@@ -92,6 +92,27 @@
 (test (begin 1)
       1)
 
+
+(test (+ (* 3 4) 5)
+      17)
+
+
+
+;; Square
+(test (begin (define (f x)
+               (* x x))
+             (f 3))
+      9)
+
+
+
+;; composition of square
+(test (begin (define (f x)
+               (* x x))
+             (f (f 3)))
+      81)
+
+
 ;; Simple application
 (test ((lambda (x) x) 42)
       42)
@@ -105,26 +126,15 @@
 (test ((lambda (x y z) z) 3 4 5)
       5)
 
+;; And this should fail because it's not a lambda
+(test/exn (not-a-procedure 5))
 
 ;; We should see an error here, since the arity is wrong
 (test/exn ((lambda (x y z) x) 3))
 (test/exn ((lambda (x y z) z) 3))
 (test/exn ((lambda (x y z) x) 3 4 5 6))
 
-;; And this should fail because it's not a lambda
-(test/exn (not-a-procedure 5))
 
-;; Square
-(test (begin (define (f x)
-               (* x x))
-             (f 3))
-      9)
-
-;; composition of square
-(test (begin (define (f x)
-               (* x x))
-             (f (f 3)))
-      81)
 
 
 ; factorial

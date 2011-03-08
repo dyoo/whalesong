@@ -13,13 +13,13 @@
 ;; Test out the compiler, using the simulator.
 (define-syntax (test stx)
   (syntax-case stx ()
-    [(_ code exp)
+    [(_ code exp options ...)
      (with-syntax ([stx stx])
        (syntax/loc #'stx
          (begin
-           (printf "Running ~s...\n" 'code)
+           (printf "Running ~s ...\n" 'code)
            (let*-values([(a-machine num-steps) 
-                         (run (new-machine (run-compiler 'code)))]
+                         (run (new-machine (run-compiler 'code)) options ...)]
                         [(actual) (machine-val a-machine)])
              (unless (equal? actual exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
@@ -49,7 +49,9 @@
 
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.
-(define (run m #:debug? (debug? false))
+(define (run m 
+             #:debug? (debug? false)
+             #:stack-limit (stack-limit false))
   (let loop ([m m]
              [steps 0])
     (when debug?
@@ -57,11 +59,24 @@
         (printf "env-depth=~s instruction=~s\n" 
                 (length (machine-env m))
                 (current-instruction m))))
+    (when stack-limit
+      (when (stack-overflow? (machine-env m) stack-limit)
+        (error 'run "Stack overflow")))
+
     (cond
       [(can-step? m)
        (loop (step m) (add1 steps))]
       [else
        (values m steps)])))
+
+(define (stack-overflow? l n)
+  (cond
+    [(empty? l)
+     #f]
+    [(= n 0)
+     #t]
+    [else
+     (stack-overflow? (rest l) (sub1 n))]))
 
 
 ;; Atomic expressions
@@ -175,16 +190,51 @@
                    (* x (f (sub1 x)))))
              (f 2))
       2)
+
 (test (begin (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
-             (f 3))
-      6)
+             (f 100))
+      93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
+      )
 
 
 
-               
+;; Tail calling behavior: watch that the stack never grows beyond 8.
+(test (begin (define (f x acc)
+                 (if (= x 0)
+                     acc
+                     (f (sub1 x) (* x acc))))
+               (f 1000 1))
+      (letrec ([f (lambda (x)
+                    (if (= x 0)
+                        1
+                        (* x (f (sub1 x)))))])
+        (f 1000))
+      #:stack-limit 8)
+      
+
+;; tak test
+(test (begin (define (tak x y z)
+               (if (>= y x)
+                   z
+                   (tak (tak (- x 1) y z)
+                        (tak (- y 1) z x)
+                        (tak (- z 1) x y))))
+             (tak 18 12 6))
+      7)
+      
+
+(test (begin (define (tak x y z)
+               (if (>= y x)
+                   z
+                   (tak (tak (- x 1) y z)
+                        (tak (- y 1) z x)
+                        (tak (- z 1) x y))))
+             (tak 18 12 6))
+      7
+      #:stack-limit 120)
 
 
 

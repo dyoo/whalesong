@@ -30,44 +30,81 @@
               [else
                (let: ([elt : CompileTimeEnvironmentEntry (first cenv)])
                  (cond
-                   [(eq? #f elt)
-                    (loop (rest cenv) (add1 depth))]
                    [(Prefix? elt)
                     (cond [(member name (Prefix-names elt))
                            (make-PrefixAddress depth (find-pos name (Prefix-names elt)) name)]
                           [else
                            (loop (rest cenv) (add1 depth))])]
-                   [(symbol? elt)
-                    (cond
-                      [(eq? name elt)
-                       (make-LocalAddress depth)]
-                      [else
-                       (loop (rest cenv) (add1 depth))])]))])))
+                   
+                   [(FunctionExtension? elt)
+                    (let: ([index : (U #f Natural) (list-index name (FunctionExtension-names elt))])
+                          (cond
+                            [(boolean? index)
+                             (loop (rest cenv) (+ depth (length (FunctionExtension-names elt))))]
+                            [else
+                             (make-LocalAddress (+ depth index))]))]
+                   
+                   [(LocalExtension? elt)
+                    (let: ([index : (U #f Natural) (list-index name (LocalExtension-names elt))])
+                          (cond 
+                            [(boolean? index)
+                             (loop (rest cenv) (+ depth (length (LocalExtension-names elt))))]
+                            [else
+                             (make-LocalAddress (+ depth index))]))]
+
+                   [(TemporaryExtension? elt)
+                    (loop (rest cenv) 
+                          (+ depth (TemporaryExtension-n elt)))]))])))
+
+(: list-index (All (A) A (Listof A) -> (U #f Natural)))
+(define (list-index x l)
+  (let loop ([i 0]
+             [l l])
+    (cond
+      [(empty? l)
+       #f]
+      [(eq? x (first l))
+       i]
+      [else
+       (loop (add1 i) (rest l))])))
 
 
-
-(: extend-lexical-environment (CompileTimeEnvironment (U (Listof Symbol) Prefix) -> CompileTimeEnvironment))
+(: extend-lexical-environment 
+   (CompileTimeEnvironment CompileTimeEnvironmentEntry -> CompileTimeEnvironment))
 ;; Extends the lexical environment with procedure bindings.
-(define (extend-lexical-environment cenv names)
-  (cond [(Prefix? names)
-         (cons names cenv)]
-        [(list? names)
-         (append names cenv)]))
+(define (extend-lexical-environment cenv extension)
+  (cons extension cenv))
 
 
-(: extend-lexical-environment/placeholders (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
+(: extend-lexical-environment/placeholders
+   (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
 ;; Add placeholders to the lexical environment (This represents what happens during procedure application.)
 (define (extend-lexical-environment/placeholders cenv n)
-  (cond [(= n 0)
-         cenv]
-        [else
-         (extend-lexical-environment/placeholders (cons #f cenv) (sub1 n))]))
+  (cons (make-TemporaryExtension n)
+        cenv))
   
 
 (: lexical-environment-pop-depth (CompileTimeEnvironment -> Natural))
 ;; Computes how many environments we need to pop till we clear the procedure arguments.
 (define (lexical-environment-pop-depth cenv)
-  (length cenv))
+  (cond
+    [(empty? cenv)
+     0]
+    [else
+     (let: ([entry : CompileTimeEnvironmentEntry (first cenv)])
+           (cond
+             [(Prefix? entry)
+              (+ (length (Prefix-names entry))
+                 (lexical-environment-pop-depth (rest cenv)))]
+             [(FunctionExtension? entry)
+              (length (FunctionExtension-names entry))]
+             [(LocalExtension? entry)
+              (+ (length (LocalExtension-names entry))
+                 (lexical-environment-pop-depth (rest cenv)))]
+             [(TemporaryExtension? entry)
+              (+ (TemporaryExtension-n entry)
+                 (lexical-environment-pop-depth (rest cenv)))]))]))
+
 
 
 

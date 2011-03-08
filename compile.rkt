@@ -55,10 +55,10 @@
 (define (compile-top top cenv target linkage)
   (let*: ([cenv : CompileTimeEnvironment (extend-lexical-environment cenv (Top-prefix top))]
           [names : (Listof Symbol) (Prefix-names (Top-prefix top))])
-        (append-instruction-sequences
-         (make-instruction-sequence 
-          `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
-         (compile (Top-code top) cenv target linkage))))
+         (append-instruction-sequences
+          (make-instruction-sequence 
+           `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+          (compile (Top-code top) cenv target linkage))))
 
 
 
@@ -69,7 +69,7 @@
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
                                                                (make-GetControlStackLabel))
                                   ,(make-PopEnvironment (lexical-environment-pop-depth cenv)
-                                                0)
+                                                        0)
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(eq? linkage 'next)
@@ -86,7 +86,7 @@
 
 
 (: end-with-compiled-application-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
-                                         InstructionSequence))
+                                                  InstructionSequence))
 ;; Add linkage for applications; we need to specialize this to preserve tail calls.
 (define (end-with-compiled-application-linkage linkage cenv instruction-sequence)
   (append-instruction-sequences instruction-sequence
@@ -238,7 +238,7 @@
 
 
 
-  
+
 
 (: compile-lambda-body (Lam CompileTimeEnvironment 
                             (Listof EnvReference)
@@ -249,7 +249,9 @@
 (define (compile-lambda-body exp cenv lexical-references proc-entry)
   (let*: ([formals : (Listof Symbol) (Lam-parameters exp)]
           [extended-cenv : CompileTimeEnvironment 
-                         (extend-lexical-environment '() formals)]
+                         (extend-lexical-environment 
+                          '() 
+                          (make-FunctionExtension formals))]
           [extended-cenv : CompileTimeEnvironment 
                          (lexical-references->compile-time-environment 
                           lexical-references cenv extended-cenv)])
@@ -282,7 +284,7 @@
                                                   (if (< i (sub1 (length (App-operands exp))))
                                                       (make-EnvLexicalReference i)
                                                       'val))))])
-
+    
     ;; FIXME: we need to push the control.
     ;; FIXME: at procedure entry, the arguments need to be installed
     ;; in the environment.  We need to install 
@@ -292,7 +294,7 @@
      proc-code
      (juggle-operands operand-codes)
      (compile-procedure-call extended-cenv (length (App-operands exp)) target linkage))))
-    
+
 
 
 (: juggle-operands ((Listof InstructionSequence) -> InstructionSequence))
@@ -348,15 +350,14 @@
         compiled-linkage
         cenv
         (compile-proc-appl cenv n target compiled-linkage))
-
+       
        primitive-branch
        (end-with-linkage linkage
                          cenv
                          (make-instruction-sequence 
                           `(,(make-AssignPrimOpStatement 
                               target
-                              (make-ApplyPrimitiveProcedure n))
-                            ,(make-PopEnvironment n 0))))
+                              (make-ApplyPrimitiveProcedure n)))))
        after-call))))
 
 
@@ -401,7 +402,7 @@
             ,(make-PopEnvironment (max 0 (- (lexical-environment-pop-depth cenv) n))
                                   n)
             ,(make-GotoStatement (make-Reg 'val))))]
-
+        
         [(and (not (eq? target 'val))
               (eq? linkage 'return))
          ;; This case should be impossible: return linkage should only
@@ -419,8 +420,8 @@
 
 (: append-2-sequences (InstructionSequence InstructionSequence -> InstructionSequence))
 (define (append-2-sequences seq1 seq2)
-    (make-instruction-sequence
-     (append (statements seq1) (statements seq2))))
+  (make-instruction-sequence
+   (append (statements seq1) (statements seq2))))
 
 (: append-seq-list ((Listof InstructionSequence) -> InstructionSequence))
 (define (append-seq-list seqs)

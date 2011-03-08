@@ -62,22 +62,7 @@
 
 
 
-(: compile-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
-(define (compile-linkage cenv linkage)
-  (cond
-    [(eq? linkage 'return)
-     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
-                                                               (make-GetControlStackLabel))
-                                  ,(make-PopEnvironment (lexical-environment-pop-depth cenv)
-                                                        0)
-                                  ,(make-PopControlFrame)
-                                  ,(make-GotoStatement (make-Reg 'proc))))]
-    [(eq? linkage 'next)
-     empty-instruction-sequence]
-    [(symbol? linkage)
-     (make-instruction-sequence `(,(make-GotoStatement (make-Label linkage))))]))
-
-
+;; Add linkage for expressions.
 (: end-with-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
                              InstructionSequence))
 (define (end-with-linkage linkage cenv instruction-sequence)
@@ -93,6 +78,24 @@
                                 (compile-application-linkage cenv linkage)))
 
 
+
+(: compile-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
+(define (compile-linkage cenv linkage)
+  (cond
+    [(eq? linkage 'return)
+     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
+                                                               (make-GetControlStackLabel))
+                                  ,(make-PopEnvironment 
+                                    (lexical-environment-pop-depth cenv linkage)
+                                    0)
+                                  ,(make-PopControlFrame)
+                                  ,(make-GotoStatement (make-Reg 'proc))))]
+    [(eq? linkage 'next)
+     empty-instruction-sequence]
+    [(symbol? linkage)
+     (make-instruction-sequence `(,(make-GotoStatement (make-Label linkage))))]))
+
+
 (: compile-application-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
 ;; Like compile-linkage, but the special case for 'return linkage already assumes
 ;; the stack has been appropriately popped.
@@ -104,13 +107,35 @@
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(eq? linkage 'next)
-     (make-instruction-sequence `(,(make-PopEnvironment (lexical-environment-pop-depth cenv)
+     (make-instruction-sequence `(,(make-PopEnvironment (lexical-environment-pop-depth cenv linkage)
                                                         0)))]
     [(symbol? linkage)
-     (make-instruction-sequence `(,(make-PopEnvironment (lexical-environment-pop-depth cenv)
+     (make-instruction-sequence `(,(make-PopEnvironment (lexical-environment-pop-depth cenv linkage)
                                                         0)
                                   ,(make-GotoStatement (make-Label linkage))))]))
 
+
+
+
+(: lexical-environment-pop-depth (CompileTimeEnvironment Linkage -> Natural))
+;; Computes how many environments we need to pop till we clear the procedure arguments.
+(define (lexical-environment-pop-depth cenv linkage)
+  (cond
+    [(empty? cenv)
+     0]
+    [else
+     (let: ([entry : CompileTimeEnvironmentEntry (first cenv)])
+           (cond
+             [(Prefix? entry)
+              (+ 1 (lexical-environment-pop-depth (rest cenv) linkage))]
+             [(FunctionExtension? entry)
+              (length (FunctionExtension-names entry))]
+             [(LocalExtension? entry)
+              (+ (length (LocalExtension-names entry))
+                 (lexical-environment-pop-depth (rest cenv) linkage))]
+             [(TemporaryExtension? entry)
+              (+ (TemporaryExtension-n entry)
+                 (lexical-environment-pop-depth (rest cenv) linkage))]))]))
 
 
 
@@ -273,7 +298,8 @@
                              extended-cenv 
                              (if (empty? (App-operands exp))
                                  'proc
-                                 (make-EnvLexicalReference (max 0 (sub1 (length (App-operands exp))))))
+                                 (make-EnvLexicalReference 
+                                  (ensure-natural (sub1 (length (App-operands exp))))))
                              'next)]
          [operand-codes (map (lambda: ([operand : Expression]
                                        [target : Target])
@@ -303,7 +329,7 @@
 (define (juggle-operands operand-codes)
   (let: ([n : Natural 
             ;; defensive coding: the operand codes should be nonempty.
-            (max 0 (sub1 (length operand-codes)))])
+            (ensure-natural (sub1 (length operand-codes)))])
         (let: loop : InstructionSequence ([ops : (Listof InstructionSequence) operand-codes])
               (cond
                 ;; If there are no operands, no need to juggle.
@@ -352,12 +378,14 @@
         (compile-proc-appl cenv n target compiled-linkage))
        
        primitive-branch
-       (end-with-linkage linkage
-                         cenv
-                         (make-instruction-sequence 
-                          `(,(make-AssignPrimOpStatement 
-                              target
-                              (make-ApplyPrimitiveProcedure n)))))
+       (end-with-compiled-application-linkage
+        linkage
+        cenv
+        (make-instruction-sequence 
+         `(,(make-AssignPrimOpStatement 
+             target
+             (make-ApplyPrimitiveProcedure n)))))
+
        after-call))))
 
 
@@ -399,7 +427,8 @@
          (make-instruction-sequence
           `(,(make-AssignPrimOpStatement 'val 
                                          (make-GetCompiledProcedureEntry))
-            ,(make-PopEnvironment (max 0 (- (lexical-environment-pop-depth cenv) n))
+            ,(make-PopEnvironment (ensure-natural (- (lexical-environment-pop-depth cenv linkage)
+                                                     n))
                                   n)
             ,(make-GotoStatement (make-Reg 'val))))]
         
@@ -429,3 +458,9 @@
       empty-instruction-sequence
       (append-2-sequences (car seqs)
                           (append-seq-list (cdr seqs)))))
+
+(: ensure-natural (Integer -> Natural))
+(define (ensure-natural n)
+  (if (> n 0)
+      n
+      (error 'ensure-natural "Not a natural: ~s\n" n)))

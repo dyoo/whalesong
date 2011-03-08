@@ -7,7 +7,6 @@
 (provide find-variable 
          extend-lexical-environment
          extend-lexical-environment/placeholders
-         lexical-environment-pop-depth
          collect-lexical-references
          lexical-references->compile-time-environment)
 
@@ -83,28 +82,6 @@
   (cons (make-TemporaryExtension n)
         cenv))
   
-
-(: lexical-environment-pop-depth (CompileTimeEnvironment -> Natural))
-;; Computes how many environments we need to pop till we clear the procedure arguments.
-(define (lexical-environment-pop-depth cenv)
-  (cond
-    [(empty? cenv)
-     0]
-    [else
-     (let: ([entry : CompileTimeEnvironmentEntry (first cenv)])
-           (cond
-             [(Prefix? entry)
-              (+ (length (Prefix-names entry))
-                 (lexical-environment-pop-depth (rest cenv)))]
-             [(FunctionExtension? entry)
-              (length (FunctionExtension-names entry))]
-             [(LocalExtension? entry)
-              (+ (length (LocalExtension-names entry))
-                 (lexical-environment-pop-depth (rest cenv)))]
-             [(TemporaryExtension? entry)
-              (+ (TemporaryExtension-n entry)
-                 (lexical-environment-pop-depth (rest cenv)))]))]))
-
 
 
 

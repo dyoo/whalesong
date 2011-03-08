@@ -32,7 +32,8 @@
   #:transparent)
 
 (define-struct: toplevel ([vals : (Listof PrimitiveValue)])
-  #:transparent)
+  #:transparent
+  #:mutable)
 
 
 

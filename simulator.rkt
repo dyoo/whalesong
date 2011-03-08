@@ -147,11 +147,10 @@
   (let: ([op : PrimitiveCommand (PerformStatement-op stmt)])
         (cond
           [(SetToplevel!? op)
-           (env-mutate m 
-                       (SetToplevel!-depth op)
-                       (toplevel-mutate (ensure-toplevel (env-ref m (SetToplevel!-depth op)))
-                                        (SetToplevel!-pos op)
-                                        (ensure-primitive-value (machine-val m))))]
+           (toplevel-mutate! (ensure-toplevel (env-ref m (SetToplevel!-depth op)))
+                             (SetToplevel!-pos op)
+                             (ensure-primitive-value (machine-val m)))
+           m]
 
           [(CheckToplevelBound!? op)
            (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])
@@ -444,8 +443,8 @@
            (loop (add1 i))])))
 
 
-(: toplevel-mutate (toplevel Natural PrimitiveValue -> toplevel))
-(define (toplevel-mutate a-top index v)
-  (make-toplevel (append (take (toplevel-vals a-top) index)
-                         (list v)
-                         (drop (toplevel-vals a-top) (add1 index)))))
+(: toplevel-mutate! (toplevel Natural PrimitiveValue -> Void))
+(define (toplevel-mutate! a-top index v)
+  (set-toplevel-vals! a-top (append (take (toplevel-vals a-top) index)
+                                    (list v)
+                                    (drop (toplevel-vals a-top) (add1 index)))))

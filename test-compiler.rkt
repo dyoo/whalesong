@@ -55,6 +55,7 @@
 (define (run m 
              #:debug? (debug? false)
              #:stack-limit (stack-limit false))
+  
   (let loop ([m m]
              [steps 0])
     (when debug?
@@ -122,6 +123,14 @@
       9)
 
 
+;; Other simple expressions
+(test (+ 137 349)
+      486)
+
+
+(test (/ 10 5)
+      2)
+
 
 ;; composition of square
 (test (begin (define (f x)
@@ -129,6 +138,16 @@
              (f (f 3)))
       81)
 
+(test (begin (define pi 3.14159)
+             (define radius 10)
+             (* pi (* radius radius)))
+      314.159)
+
+(test (begin (define pi 3.14159)
+             (define radius 10)
+             (define circumference (* 2 pi radius))
+             circumference)
+      62.8318)
 
 ;; Slightly crazy expression
 (test (begin (define (f x)
@@ -274,6 +293,7 @@
           (* (* b x) (+ (/ 0 b) (/ 1 x)))
           0))
 
+;; Foldl
 (test (begin (define (foldl f acc lst)
                (if (null? lst)
                    acc
@@ -285,7 +305,77 @@
       (* 1 2 3 4 5 6 7 8 9 10))
 
 
-                 
+
+;; iterating, with some crazy expressions
+(test (begin (define (iterate f x n)
+                 (if (= n 0)
+                     x
+                     (iterate f (f x) (sub1 n))))
+               (list (iterate (lambda (x) (* x x)) 20 2)
+                     (iterate add1 1 1000)
+                     (iterate (lambda (x)
+                                (iterate (lambda (y)
+                                           (+ x y))
+                                         x
+                                         x))
+                              1
+                              3)))
+      (list 160000 1001 42))
+
+;; Trying out closures
+(test (begin
+        (define delta 1)
+        (define (diff f)
+          (lambda (x)
+            (/ (- (f (+ x delta))
+                  (f x))
+               delta)))
+        (define 2x (diff (lambda (x) (* x x))))
+        (define two (diff 2x))
+        (list (2x 1000)
+              (two 2011)))
+      (list 2001 2))
+
+
+
+(test (begin (define (square x)
+               (* x x))
+             (square (square 3)))
+      81)
+
+
+(test (begin (define (square x)
+               (* x x))
+             (define (sum-of-squares x y)
+               (+ (square x) (square y)))
+             (sum-of-squares 3 4))
+      25)
+
+
+(test (begin (define (sqrt-iter guess x)
+               (if (good-enough? guess x)
+                   guess
+                   (sqrt-iter (improve guess x)
+                              x)))
+             (define (improve guess x)
+               (average guess (/ x guess)))
+             
+             (define (square x)
+               (* x x))
+             
+             (define (average x y)
+               (/ (+ x y) 2))
+             
+             (define (good-enough? guess x)
+               (< (abs (- (square guess) x)) 0.001))
+             
+             (define (sqrt x)
+               (sqrt-iter 1.0 x))
+             
+             (list (sqrt 9) (sqrt 23942) (sqrt 31337)))
+
+      '(3.00009155413138 154.73202642085838 177.02259745919164))
+
 
 
 ;(simulate (compile (parse '42) 'val 'next))

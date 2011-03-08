@@ -36,5 +36,8 @@
                                                      not
                                                      pair?
                                                      eq?
-                                                     null?)
+                                                     null?
+                                                     add1
+                                                     sub1
+                                                     abs)
                                       #:constants (null pi e)))

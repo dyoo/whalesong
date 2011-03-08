@@ -24,7 +24,10 @@
              (unless (equal? actual exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
                                    #'stx))
-             (printf "ok. ~s steps\n\n" num-steps)))))]))
+             (unless (= (length (machine-env a-machine)) 1)
+               (raise-syntax-error #f (format "Stack is not back to the prefix as expected!")
+                                   #'stx))
+             (printf "ok. ~s steps.\n\n" num-steps)))))]))
 
 ;; test, and expect an error
 (define-syntax (test/exn stx)
@@ -114,6 +117,17 @@
                (* x x))
              (f (f 3)))
       81)
+
+
+;; Slightly crazy expression
+(test (begin (define (f x)
+               (* x x))
+             (define (g x)
+               (* x x x))
+             (- (g (f (+ (g 3)
+                         (f 3))))
+                1))
+      2176782335)
 
 
 ;; Simple application

@@ -197,7 +197,6 @@
      val-update]
     [(EnvLexicalReference? t)
      (lambda: ([m : machine] [v : SlotValue])
-              (printf "Setting env[~a] to ~s\n" (EnvLexicalReference-depth t) v)
               (env-mutate m (EnvLexicalReference-depth t) v))]))
 
 

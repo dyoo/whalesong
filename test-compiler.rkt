@@ -274,6 +274,19 @@
           (* (* b x) (+ (/ 0 b) (/ 1 x)))
           0))
 
+(test (begin (define (foldl f acc lst)
+               (if (null? lst)
+                   acc
+                   (foldl f (f (car lst) acc) (cdr lst))))
+             (foldl (lambda (x acc)
+                      (* x acc))
+                    1
+                    '(1 2 3 4 5 6 7 8 9 10)))
+      (* 1 2 3 4 5 6 7 8 9 10)
+      #:debug? #t)
+
+                 
+
 
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

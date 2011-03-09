@@ -20,7 +20,12 @@
        (syntax/loc #'stx
          (begin
            (printf "Running ~s ...\n" (syntax->datum #'expr))
-           (let ([actual expr])
+           (let ([actual 
+                  (with-handlers ([void
+                                   (lambda (exn)
+                                     (raise-syntax-error #f (format "Runtime error: got ~s" exn)
+                                                         #'stx))])
+                    expr)])
              (unless (equal? actual expected)
                (raise-syntax-error #f (format "Expected ~s, got ~s" expected actual)
                                    #'stx))
@@ -247,6 +252,26 @@
 
 
 
+;; Set-toplevel
+(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(advisor)))
+                ,(make-AssignImmediateStatement 'val (make-Const "Kathi"))
+                ,(make-PerformStatement (make-SetToplevel! 0 0 'some-variable)))
+              "MACHINE.env[0][0]")
+      "Kathi")
 
 
-
+;; check-toplevel-bound
+(let/ec return
+  (let ([dont-care 
+         (with-handlers ([void (lambda (exn) (return))])
+           (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
+                     ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'some-variable)))))])
+    (raise "I expected an error")))
+  
+;; check-toplevel-bound shouldn't fail here.
+(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(another-advisor)))
+                ,(make-AssignImmediateStatement 'val (make-Const "Shriram"))
+                ,(make-PerformStatement (make-SetToplevel! 0 0 'some-variable))
+                ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'another-advisor)))
+              "MACHINE.env[0][0]")
+      "Shriram")

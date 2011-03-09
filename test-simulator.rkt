@@ -223,8 +223,6 @@
 
 ;; AssignPrimOpStatement
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+ - * =)))))])
-  ;; FIXME:  I'm hitting what appears to be a Typed Racket bug that prevents me from inspecting
-  ;; the toplevel structure in the environment... :(
   (test (first (machine-env (run m)))
         (make-toplevel (list (lookup-primitive '+)
                              (lookup-primitive '-)

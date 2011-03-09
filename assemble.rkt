@@ -341,29 +341,16 @@ EOF
 (define (assemble-op-statement op)  
   (cond 
     [(SetToplevel!? op)
-     (error 'assemble-op-statement)
-     #;(let ([depth (first assembled-inputs)]
-             [pos (second assembled-inputs)]
-             [name (third assembled-inputs)]
-             [env (fourth assembled-inputs)]
-             [val (fifth assembled-inputs)])
-         (format "(~a).valss[~a][~a] = ~a;"
-                 env
-                 depth
-                 pos
-                 val))]
+     (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a] = MACHINE.val;"
+             (SetToplevel!-depth op)
+             (SetToplevel!-pos op))]
     
     [(CheckToplevelBound!? op)
-     (error 'assemble-op-statement)
-     #;(let ([depth (first assembled-inputs)]
-             [pos (second assembled-inputs)]
-             [name (third assembled-inputs)]
-             [env (fourth assembled-inputs)])
-         (format "if ((~a).valss[~a][~a] === undefined) { throw new Error(\"Not bound: \" + ~a); }"
-                 env
-                 depth
-                 pos
-                 name))]
+     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { throw new Error(\"Not bound: \" + ~s); }"
+             (CheckToplevelBound!-depth op)
+             (CheckToplevelBound!-pos op)
+             (symbol->string (CheckToplevelBound!-name op)))]
+    
     [(CheckClosureArity!? op)
      ;; fixme
      (error 'assemble-op-statement)]

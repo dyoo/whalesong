@@ -315,7 +315,11 @@ EOF
              (MakeCompiledProcedure-label op)
              (MakeCompiledProcedure-arity op)
              (string-join (map assemble-env-reference 
-                               (MakeCompiledProcedure-closed-vals op))
+                               ;; The closure values are in reverse order
+                               ;; to make it easier to push, in bulk, into
+                               ;; the environment (which is also in reversed order)
+                               ;; during install-closure-values.
+                               (reverse (MakeCompiledProcedure-closed-vals op)))
                           ", ")
              (symbol->string (MakeCompiledProcedure-label op)))]
     
@@ -366,11 +370,7 @@ EOF
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     (error 'assemble-op-statement)]))
-      
-      
-
-
+     "MACHINE.env.splice.apply(MACHINE.env, [MACHINE.env.length, 0].concat(MACHINE.proc.closedVals));"]))
 
 
 (: assemble-input (OpArg -> String))

@@ -165,7 +165,6 @@
       "afterLambda")
 
 
-
 ;; A do-nothing closure with a few values
 (test (E-many (list (make-GotoStatement (make-Label 'afterLambda))
                     'closureStart
@@ -179,8 +178,30 @@
                     (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'afterLambda 0 
                                                                                  (list (make-EnvLexicalReference 0)
                                                                                        (make-EnvLexicalReference 1)))))
-              "MACHINE.val.closedVals[0] + ',' + MACHINE.val.closedVals[1]")
+              "MACHINE.val.closedVals[1] + ',' + MACHINE.val.closedVals[0]")
       "hello,world")
+
+;; Let's try to install the closure values.
+(test (E-many (list (make-GotoStatement (make-Label 'afterLambdaBody))
+                    
+                    'closureStart
+                    (make-PerformStatement (make-InstallClosureValues!))
+                    (make-GotoStatement (make-Label 'theEnd))
+
+                    'afterLambdaBody
+                    (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                   (make-Const "hello"))
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                                                   (make-Const "world"))
+                    (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'afterLambdaBody 0 
+                                                                                 (list (make-EnvLexicalReference 0)
+                                                                                       (make-EnvLexicalReference 1))))
+                    (make-PopEnvironment 2 0)
+                    (make-GotoStatement (make-Label 'closureStart))
+                    'theEnd)
+              "String(MACHINE.env.length) + ',' + MACHINE.env[1] + ',' + MACHINE.env[0]")
+      "2,hello,world")
 
 
 

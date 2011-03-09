@@ -106,6 +106,16 @@ EOF
       [(Label? a-location)
        (list (Label-name a-location))]))
   
+  (: collect-primitive-operator (PrimitiveOperator -> (Listof Symbol)))
+  (define (collect-primitive-operator op)
+    ;; fixme
+    (error 'collect-primitive-operator))
+
+  
+  (define (collect-primitive-command op)
+    ;; fixme
+    (error 'collect-primitive-command))
+  
   (unique/eq?
    (let: loop : (Listof Symbol) ([stmts : (Listof Statement) stmts])
      (cond [(empty? stmts)
@@ -129,22 +139,20 @@ EOF
                              [(EnvWholePrefixReference? v)
                               empty]))]
                         [(AssignPrimOpStatement? stmt)
-                         (apply append (map collect-input (AssignPrimOpStatement-rands stmt)))]
+                         (collect-primitive-operator (AssignPrimOpStatement-op stmt))]
                         [(PerformStatement? stmt)
-                         (apply append (map collect-input (PerformStatement-rands stmt)))]
-                        [(TestStatement? stmt)
-                         empty]
-                        [(BranchLabelStatement? stmt)
-                         (list (BranchLabelStatement-label stmt))]
+                         (collect-primitive-command (PerformStatement-op stmt))]
+                        [(TestAndBranchStatement? stmt)
+                         (list (TestAndBranchStatement-label stmt))]
                         [(GotoStatement? stmt)
                          (collect-location (GotoStatement-target stmt))]
-                        [(PushEnv? stmt)
+                        [(PushEnvironment? stmt)
                          empty]
-                        [(PopEnv? stmt)
+                        [(PopEnvironment? stmt)
                          empty]
-                        [(PushControl? stmt)
+                        [(PushControlFrame? stmt)
                          empty]
-                        [(PopControl? stmt)
+                        [(PopControlFrame? stmt)
                          empty])
                       (loop (rest stmts))))]))))
 
@@ -192,29 +200,28 @@ EOF
     [(AssignPrimOpStatement? stmt)
      (format "MACHINE.~a=~a;" 
              (AssignPrimOpStatement-target stmt)
-             (assemble-op-expression (AssignPrimOpStatement-op stmt)
-                                     (AssignPrimOpStatement-rands stmt)))]
+             (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
+    
     [(PerformStatement? stmt)
-     (assemble-op-statement (PerformStatement-op stmt)
-                            (PerformStatement-rands stmt))]
-    [(TestStatement? stmt)
-     (format "if(~a){"
-             (assemble-op-expression (TestStatement-op stmt)
-                                     (list (make-Reg (TestStatement-register-rand stmt)))))]
-    [(BranchLabelStatement? stmt)
-     ;; the unbalanced } is deliberate: test and branch always follow each other.
-     (format "return ~a();}"
-             (assemble-location (make-Label (BranchLabelStatement-label stmt))))]
+     (assemble-op-statement (PerformStatement-op stmt))]
+    
+    [(TestAndBranchStatement? stmt)
+     (error 'assemble-stmt)
+     #;(format "if(~a){return ~a();}"
+             (assemble-op-expression (TestAndBranchStatement-op stmt)
+                                     (list (make-Reg (TestAndBranchStatement-register stmt))))
+             (assemble-location (make-Label (TestAndBranchStatement-label stmt))))]
+
     [(GotoStatement? stmt)
      (format "return ~a();"
              (assemble-location (GotoStatement-target stmt)))]
-    [(PushControl? stmt)
+    [(PushControlFrame? stmt)
      "fixme"]
-    [(PopControl? stmt)
+    [(PopControlFrame? stmt)
      "fixme"]
-    [(PushEnv? stmt)
+    [(PushEnvironment? stmt)
      "fixme"]
-    [(PopEnv? stmt)
+    [(PopEnvironment? stmt)
      "fixme"]))
     
 
@@ -244,79 +251,85 @@ EOF
           (EnvWholePrefixReference-depth a-prefix-ref)))
 
 
-(: assemble-op-expression ((U PrimitiveOperator PrimitiveTest) (Listof OpArg) -> String))
-(define (assemble-op-expression op-name inputs)
-  (let ([assembled-inputs (map assemble-input inputs)])
-    (case op-name
-      ;; open coding some of the primitive operations:
-      [(compiled-procedure-entry)
-       (format "(~a.label)" (assemble-input (first inputs)))]
-      [(compiled-procedure-env)
-       (format "(~a.env)" (assemble-input (first inputs)))]
-      [(make-compiled-procedure)
-       (format "(new Closure(~a, ~a))"
-               (second assembled-inputs)
-               (first assembled-inputs))]
-      [(false?)
-       (format "(!(~a))" (assemble-input (first inputs)))]
-      [(cons)
-       (format "[~a]" (string-join (map assemble-input inputs) ","))]
-      [(list)
-       (cond [(empty? inputs)
-              "undefined"]
-             [else
-              (let: loop : String ([assembled-inputs : (Listof String) assembled-inputs])
-                (cond
-                  [(empty? assembled-inputs)
-                   "undefined"]
-                  [else
-                   (format "[~a, ~a]"
-                           (first assembled-inputs)
-                           (loop (rest assembled-inputs)))]))])]
-      [(apply-primitive-procedure)
-       (format "~a(~a)"
-               (first assembled-inputs)
-               ;; FIXME: this doesn't look quite right...
-               (third assembled-inputs))]
-      [(lexical-address-lookup)
-       (format "(~a).valss[~a][~a]"
-               (third assembled-inputs)
-               (first assembled-inputs)
-               (second assembled-inputs))]
-      [(toplevel-lookup)
-       (let ([depth (first assembled-inputs)]
-             [pos (second assembled-inputs)]
-             [name (third assembled-inputs)]
-             [env (fourth assembled-inputs)])
-         (format "(~a).valss[~a][~a]" env depth pos))]
-      [(primitive-procedure?)
-       (format "(typeof(~a) === 'function')"
-               (first assembled-inputs))]
-      [(extend-environment)
-       (format "new ExtendedEnvironment(~a, ~a)"
-               (second assembled-inputs)
-               (first assembled-inputs))]
-      [(extend-environment/prefix)
-       (format "new ExtendedPrefixEnvironment(~a, ~a)"
-               (second assembled-inputs)
-               (first assembled-inputs))]
-      [(read-control-label)
-       "fixme"]
-      )))
 
 
-(: assemble-op-statement (PrimitiveCommand (Listof OpArg) -> String))
-(define (assemble-op-statement op-name inputs)
-  (let ([assembled-inputs (map assemble-input inputs)])
-    (case op-name
-      [(lexical-address-set!)
-       (format "(~a).valss[~a][~a] = ~a;"
-               (third assembled-inputs)
-               (first assembled-inputs)
-               (second assembled-inputs)
-               (fourth assembled-inputs))]
-      [(toplevel-set!)
-       (let ([depth (first assembled-inputs)]
+(: assemble-op-expression (PrimitiveOperator -> String))
+(define (assemble-op-expression op)
+  (cond
+    [(GetCompiledProcedureEntry? op)
+     (error 'assemble-op-expression)
+     #;(format "(~a.label)" (assemble-input (first inputs)))]
+    [(MakeCompiledProcedure? op)
+     (error 'assemble-op-expression)]
+    [(ApplyPrimitiveProcedure? op)
+     (error 'assemble-op-expression)]
+    [(LookupLexicalAddress? op)
+     (error 'assemble-op-expression)]
+    [(LookupToplevelAddress? op)
+     (error 'assemble-op-expression)]
+    [(GetControlStackLabel? op)
+     (error 'assemble-op-expression)]
+    
+    #;[(compiled-procedure-env)
+     #;(format "(~a.env)" (assemble-input (first inputs)))]
+    #;[(make-compiled-procedure)
+     (format "(new Closure(~a, ~a))"
+             (second assembled-inputs)
+             (first assembled-inputs))]
+    #;[(false?)
+     (format "(!(~a))" (assemble-input (first inputs)))]
+    #;[(cons)
+     (format "[~a]" (string-join (map assemble-input inputs) ","))]
+    #;[(list)
+     (cond [(empty? inputs)
+            "undefined"]
+           [else
+            (let: loop : String ([assembled-inputs : (Listof String) assembled-inputs])
+                  (cond
+                    [(empty? assembled-inputs)
+                     "undefined"]
+                    [else
+                     (format "[~a, ~a]"
+                             (first assembled-inputs)
+                             (loop (rest assembled-inputs)))]))])]
+    #;[(apply-primitive-procedure)
+     (format "~a(~a)"
+             (first assembled-inputs)
+             ;; FIXME: this doesn't look quite right...
+             (third assembled-inputs))]
+    #;[(lexical-address-lookup)
+     (format "(~a).valss[~a][~a]"
+             (third assembled-inputs)
+             (first assembled-inputs)
+             (second assembled-inputs))]
+    #;[(toplevel-lookup)
+     (let ([depth (first assembled-inputs)]
+           [pos (second assembled-inputs)]
+           [name (third assembled-inputs)]
+           [env (fourth assembled-inputs)])
+       (format "(~a).valss[~a][~a]" env depth pos))]
+    #;[(primitive-procedure?)
+     (format "(typeof(~a) === 'function')"
+             (first assembled-inputs))]
+    #;[(extend-environment)
+     (format "new ExtendedEnvironment(~a, ~a)"
+             (second assembled-inputs)
+             (first assembled-inputs))]
+    #;[(extend-environment/prefix)
+     (format "new ExtendedPrefixEnvironment(~a, ~a)"
+             (second assembled-inputs)
+             (first assembled-inputs))]
+    #;[(read-control-label)
+     "fixme"]
+    ))
+
+
+(: assemble-op-statement (PrimitiveCommand -> String))
+(define (assemble-op-statement op)  
+  (cond 
+    [(SetToplevel!? op)
+     (error 'assemble-op-statement)
+     #;(let ([depth (first assembled-inputs)]
              [pos (second assembled-inputs)]
              [name (third assembled-inputs)]
              [env (fourth assembled-inputs)]
@@ -326,8 +339,10 @@ EOF
                  depth
                  pos
                  val))]
-      [(check-bound!)
-       (let ([depth (first assembled-inputs)]
+    
+    [(CheckToplevelBound!? op)
+     (error 'assemble-op-statement)
+     #;(let ([depth (first assembled-inputs)]
              [pos (second assembled-inputs)]
              [name (third assembled-inputs)]
              [env (fourth assembled-inputs)])
@@ -335,7 +350,19 @@ EOF
                  env
                  depth
                  pos
-                 name))])))
+                 name))]
+    [(CheckClosureArity!? op)
+     ;; fixme
+     (error 'assemble-op-statement)]
+    
+    [(ExtendEnvironment/Prefix!? op)
+     ;; fixme
+     (error 'assemble-op-statement)]
+    
+    [(InstallClosureValues!? op)
+     (error 'assemble-op-statement)]))
+      
+      
 
 
 

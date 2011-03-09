@@ -75,48 +75,6 @@ var Primitives = {
 };
 
 
-var TopEnvironment = function() {    
-    this.valss = [];
-};
-
-
-var ExtendedPrefixEnvironment = function(parent, vs) {
-    var vals = [];
-    this.names = [];
-    while(vs) {
-	this.names.push(vs[0]);
-	if (Primitives[vs[0]]) {
-	    vals.push(Primitives[vs[0]]);
-	} else {
-	    vals.push(undefined);
-	}	
-	vs = vs[1];
-    }
-
-    this.valss = parent.valss.slice();
-    this.valss.unshift(vals);
-};
-
-ExtendedPrefixEnvironment.prototype.lookup = function(name) {
-    var i;
-    for (i = 0; i < this.names.length; i++) {
-	if (this.names[i] === name) {
-	    return this.valss[0][i];
-	}
-    }
-    return undefined;
-};
-
-var ExtendedEnvironment = function(parent, vs) {
-    var vals = [];
-    while(vs) {
-	vals.push(vs[0]);
-	vs = vs[1];
-    }
-    this.valss = parent.valss.slice();
-    this.valss.unshift(vals);
-};
-
 
 // A closure consists of its free variables as well as a label
 // into its text segment.
@@ -169,12 +127,10 @@ Closure.prototype.adaptToJs = function() {
 
 
 var MACHINE={callsBeforeTrampoline: 100, 
-             env: new TopEnvironment(),
-             proc:undefined, 
-             argl:undefined,
              val:undefined,
-             cont:undefined,
-             stack: [],
+             proc:undefined, 
+             env: [],
+	     control : [],
              params: {currentDisplayer: function(v) {},
 		      currentErrorHandler: function(e) {}}};
 

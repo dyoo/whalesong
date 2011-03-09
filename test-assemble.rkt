@@ -27,16 +27,25 @@
 
 
 
-(define e (make-evaluate
-           (lambda (a-statement op)
-             (let ([code
-                    (string-append
-                       "(function() { "
-                       runtime
-                       "return function(success, fail, params){" (assemble-statement a-statement) "success(String(MACHINE.val)); };"
-                       "});")])
+(define -E (make-evaluate
+           (lambda (a-statement+inspector op)
+             (let* ([a-statement (car a-statement+inspector)]
+                    [inspector (cdr a-statement+inspector)]
+                    [code
+                     (string-append
+                      "(function() { "
+                      runtime
+                      "return function(success, fail, params){" (assemble-statement a-statement) 
+                      (format "success(String(~a)); };" inspector)
+                      "});")])
                (display code op)))))
 
+(define (E a-statement (inspector "MACHINE.val"))
+  (evaluated-value (-E (cons a-statement inspector))))
 
-(test (evaluated-value (e (make-AssignImmediateStatement 'val (make-Const 42))))
+
+
+(test (E (make-AssignImmediateStatement 'val (make-Const 42)))
       "42")
+(test (E (make-AssignImmediateStatement 'val (make-Const "Danny")))
+      "Danny")

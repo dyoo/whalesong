@@ -308,7 +308,7 @@ EOF
 (define (assemble-op-expression op)
   (cond
     [(GetCompiledProcedureEntry? op)
-     "proc.label"]
+     "MACHINE.proc.label"]
     
     [(MakeCompiledProcedure? op)
      (format "new Closure(~a, ~a, [~a], ~s)"

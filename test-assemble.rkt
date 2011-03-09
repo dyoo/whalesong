@@ -160,9 +160,9 @@
                     'closureStart
                     (make-GotoStatement (make-Label 'afterLambda))
                     'afterLambda
-                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'afterLambda 0 '())))
+                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 '())))
               "MACHINE.val.displayName")
-      "afterLambda")
+      "closureStart")
 
 
 ;; A do-nothing closure with a few values
@@ -175,7 +175,7 @@
                                                    (make-Const "hello"))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1)
                                                    (make-Const "world"))
-                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'afterLambda 0 
+                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list (make-EnvLexicalReference 0)
                                                                                        (make-EnvLexicalReference 1)))))
               "MACHINE.val.closedVals[1] + ',' + MACHINE.val.closedVals[0]")
@@ -194,7 +194,7 @@
                                                    (make-Const "hello"))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1)
                                                    (make-Const "world"))
-                    (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'afterLambdaBody 0 
+                    (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list (make-EnvLexicalReference 0)
                                                                                        (make-EnvLexicalReference 1))))
                     (make-PopEnvironment 2 0)
@@ -204,6 +204,27 @@
       "2,hello,world")
 
 
+
+;; get-compiled-procedure-entry
+(test (E-many (list (make-GotoStatement (make-Label 'afterLambdaBody))
+                    
+                    'closureStart
+                    (make-PerformStatement (make-InstallClosureValues!))
+                    (make-GotoStatement (make-Label 'theEnd))
+
+                    'afterLambdaBody
+                    (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                   (make-Const "hello"))
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                                                   (make-Const "world"))
+                    (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
+                                                                                 (list (make-EnvLexicalReference 0)
+                                                                                       (make-EnvLexicalReference 1))))
+                    (make-PopEnvironment 2 0)
+                    (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))
+              "typeof(MACHINE.val) + ',' + (MACHINE.val === MACHINE.proc.label)")
+      "function,true")
 
 
 

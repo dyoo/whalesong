@@ -227,6 +227,49 @@
       "function,true")
 
 
+;; check-closure-arity.  This should succeed.
+(void (E-many (list (make-GotoStatement (make-Label 'afterLambdaBody))
+                    
+                    'closureStart
+                    (make-PerformStatement (make-InstallClosureValues!))
+                    (make-GotoStatement (make-Label 'theEnd))
+
+                    'afterLambdaBody
+                    (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                   (make-Const "hello"))
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                                                   (make-Const "world"))
+                    (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
+                                                                                  (list (make-EnvLexicalReference 0)
+                                                                                        (make-EnvLexicalReference 1))))
+                    (make-PopEnvironment 2 0)
+                    (make-PerformStatement (make-CheckClosureArity! 5)))))
+
+;; this should fail, since the check is for 1, but the closure expects 5.
+(let/ec return
+  (with-handlers ([void
+                   (lambda (exn) (return))])
+    (E-many (list (make-GotoStatement (make-Label 'afterLambdaBody))
+                  
+                  'closureStart
+                  (make-PerformStatement (make-InstallClosureValues!))
+                  (make-GotoStatement (make-Label 'theEnd))
+                  
+                  'afterLambdaBody
+                  (make-PushEnvironment 2)
+                  (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                 (make-Const "hello"))
+                  (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                                                 (make-Const "world"))
+                  (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
+                                                                                (list (make-EnvLexicalReference 0)
+                                                                                      (make-EnvLexicalReference 1))))
+                  (make-PopEnvironment 2 0)
+                  (make-PerformStatement (make-CheckClosureArity! 1)))))
+  (error 'expected-failure))
+
+
 
 
 

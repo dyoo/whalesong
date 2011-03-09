@@ -238,7 +238,7 @@ EOF
      (format "return ~a();"
              (assemble-location (GotoStatement-target stmt)))]
     [(PushControlFrame? stmt)
-     (format "MACHINE.control.push(~a);" (PushControlFrame-label stmt))]
+     (format "MACHINE.control.push(new Frame(~a));" (PushControlFrame-label stmt))]
     [(PopControlFrame? stmt)
      "MACHINE.control.pop();"]
     [(PushEnvironment? stmt)
@@ -356,8 +356,9 @@ EOF
              (symbol->string (CheckToplevelBound!-name op)))]
     
     [(CheckClosureArity!? op)
-     ;; fixme
-     (error 'assemble-op-statement)]
+     (format "if (! (MACHINE.proc instanceof Closure && MACHINE.proc.arity === ~a)) { if (! (MACHINE.proc instanceof Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }"
+             (CheckClosureArity!-arity op)
+             )]
     
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof Symbol) (ExtendEnvironment/Prefix!-names op)])

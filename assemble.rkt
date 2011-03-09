@@ -4,7 +4,10 @@
          racket/string
          racket/list)
 
-(provide (all-defined-out))
+(provide assemble/write-invoke
+         fracture
+         assemble-basic-block
+         assemble-statement)
 
 
 ;; assemble/write-invoke: (listof statement) output-port -> void

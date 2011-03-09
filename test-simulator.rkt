@@ -11,10 +11,13 @@
     [(_ actual exp)
      (with-syntax ([stx stx])
        (syntax/loc #'stx
-         (let ([results actual])
-           (unless (equal? actual exp)
-             (raise-syntax-error #f (format "Expected ~s, got ~s" exp results)
-                                 #'stx)))))]))
+         (begin
+           (printf "Running ~s ..." (syntax->datum #'stx))
+           (let ([results actual])
+             (unless (equal? actual exp)
+               (raise-syntax-error #f (format "Expected ~s, got ~s" exp results)
+                                   #'stx)))
+           (printf "ok\n\n"))))]))
 
 
 ;; take n steps in evaluating the machine.
@@ -416,7 +419,8 @@
                         ,(make-PushEnvironment 2)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 126389))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 42))
-                        ,(make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure 2))))])
+                        ,(make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure 2 'after))
+                        after))])
   (test (machine-val (run m))
         (+ 126389 42))
   

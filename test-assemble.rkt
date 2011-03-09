@@ -45,7 +45,19 @@
 
 
 
+;; Assigning a number
 (test (E (make-AssignImmediateStatement 'val (make-Const 42)))
       "42")
+;; Assigning a string
 (test (E (make-AssignImmediateStatement 'val (make-Const "Danny")))
+      "Danny")
+;; Assigning a cons
+(test (E (make-AssignImmediateStatement 'val (make-Const (cons 1 2))))
+      "1,2")
+;; Assigning to proc means val should still be uninitialized.
+(test (E (make-AssignImmediateStatement 'proc (make-Const "Danny")))
+      "undefined")
+;; But we should see the assignment if we inspect MACHINE.proc.
+(test (E (make-AssignImmediateStatement 'proc (make-Const "Danny"))
+         "MACHINE.proc")
       "Danny")

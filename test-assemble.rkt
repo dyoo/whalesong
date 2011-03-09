@@ -29,39 +29,39 @@
 
 ;; evaluating single expression
 (define -E (delay (make-evaluate
-           (lambda (a-statement+inspector op)
-             (let* ([a-statement (car a-statement+inspector)]
-                    [inspector (cdr a-statement+inspector)]
-                    [snippet (assemble-statement a-statement)]
-                    [code
-                     (string-append
-                      "(function() { "
-                      runtime
-                      "return function(success, fail, params){" snippet
-                      (format "success(String(~a)); };" inspector)
-                      "});")])
-               (displayln snippet)
-               (display code op))))))
+                   (lambda (a-statement+inspector op)
+                     (let* ([a-statement (car a-statement+inspector)]
+                            [inspector (cdr a-statement+inspector)]
+                            [snippet (assemble-statement a-statement)]
+                            [code
+                             (string-append
+                              "(function() { "
+                              runtime
+                              "return function(success, fail, params){" snippet
+                              (format "success(String(~a)); };" inspector)
+                              "});")])
+                       (displayln snippet)
+                       (display code op))))))
 (define (E-single a-statement (inspector "MACHINE.val"))
   (evaluated-value ((force -E) (cons a-statement inspector))))
 
 ;; evaluating many expressions[.
 (define -E-many (delay (make-evaluate
-           (lambda (a-statement+inspector op)
-             (let* ([a-statement (car a-statement+inspector)]
-                    [inspector (cdr a-statement+inspector)])
-
-               (display "(function() { " op)
-               (display runtime op)
-               
-               (display "var myInvoke = " op)
-               (assemble/write-invoke a-statement op)
-               (display ";" op)
-               
-               (fprintf op 
-                        "return function(succ, fail, params) { myInvoke(function(v) { succ(String(~a));}, fail, params); }"
-                        inspector)
-               (display "})" op))))))
+                        (lambda (a-statement+inspector op)
+                          (let* ([a-statement (car a-statement+inspector)]
+                                 [inspector (cdr a-statement+inspector)])
+                            
+                            (display "(function() { " op)
+                            (display runtime op)
+                            
+                            (display "var myInvoke = " op)
+                            (assemble/write-invoke a-statement op)
+                            (display ";" op)
+                            
+                            (fprintf op 
+                                     "return function(succ, fail, params) { myInvoke(function(v) { succ(String(~a));}, fail, params); }"
+                                     inspector)
+                            (display "})" op))))))
 (define (E-many stmts (inspector "MACHINE.val"))
   (evaluated-value ((force -E-many) (cons stmts inspector))))
 
@@ -86,12 +86,12 @@
       "undefined")
 ;; But we should see the assignment if we inspect MACHINE.proc.
 (test (E-single (make-AssignImmediateStatement 'proc (make-Const "Danny"))
-         "MACHINE.proc")
+                "MACHINE.proc")
       "Danny")
 
 
 (test (E-single (make-PushEnvironment 1)
-         "MACHINE.env.length")
+                "MACHINE.env.length")
       "1")
 (test (E-single (make-PushEnvironment 20)
                 "MACHINE.env.length")
@@ -146,7 +146,7 @@
                                                 (make-ApplyPrimitiveProcedure 2 'done))
                     'done))
       "7")
-                    
+
 
 
 
@@ -176,3 +176,77 @@
                                                                                        (make-EnvLexicalReference 1)))))
               "MACHINE.val.closedVals[0] + ',' + MACHINE.val.closedVals[1]")
       "hello,world")
+
+
+
+
+
+
+
+(test (E-many `(,(make-AssignImmediateStatement 'val (make-Const 42))
+                ,(make-TestAndBranchStatement 'false? 'val 'onFalse)
+                ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                ,(make-GotoStatement (make-Label 'end))
+                onFalse
+                ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+                end))
+      "ok")
+
+;; TestAndBranch: try the false branch
+(test (E-many `(,(make-AssignImmediateStatement 'val (make-Const #f))
+                ,(make-TestAndBranchStatement 'false? 'val 'onFalse)
+                ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+                ,(make-GotoStatement (make-Label 'end))
+                onFalse
+                ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                end))
+      "ok")
+
+;; Test for primitive procedure
+(test (E-many `(,(make-AssignImmediateStatement 'val (make-Const '+))
+                ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
+                ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                ,(make-GotoStatement (make-Label 'end))
+                onTrue
+                ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+                end))
+      "ok")
+
+;; Give a primitive procedure in val
+(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                ,(make-AssignPrimOpStatement 'val (make-LookupToplevelAddress 0 0 '+))
+                ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
+                ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+                ,(make-GotoStatement (make-Label 'end))
+                onTrue
+                ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                end))
+      "ok")
+
+;; Give a primitive procedure in proc, but test val
+(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                ,(make-AssignPrimOpStatement 'proc (make-LookupToplevelAddress 0 0 '+))
+                ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
+                ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
+                ,(make-GotoStatement (make-Label 'end))
+                onTrue
+                ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
+                end))
+      "not-a-procedure")
+
+;; Give a primitive procedure in proc and test proc
+(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                ,(make-AssignPrimOpStatement 'proc (make-LookupToplevelAddress 0 0 '+))
+                ,(make-TestAndBranchStatement 'primitive-procedure? 'proc 'onTrue)
+                ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
+                ,(make-GotoStatement (make-Label 'end))
+                onTrue
+                ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
+                end))
+      "a-procedure")
+
+
+
+
+
+

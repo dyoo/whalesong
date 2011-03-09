@@ -223,11 +223,16 @@ EOF
      (assemble-op-statement (PerformStatement-op stmt))]
     
     [(TestAndBranchStatement? stmt)
-     (error 'assemble-stmt)
-     #;(format "if(~a){return ~a();}"
-             (assemble-op-expression (TestAndBranchStatement-op stmt)
-                                     (list (make-Reg (TestAndBranchStatement-register stmt))))
-             (assemble-location (make-Label (TestAndBranchStatement-label stmt))))]
+     (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
+            (cond
+              [(eq? test 'false?)
+               (format "if (! ~a) { return ~a(); }"
+                       (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                       (assemble-label (make-Label (TestAndBranchStatement-label stmt))))]
+              [(eq? test 'primitive-procedure?)
+               (format "if (typeof(~a) === 'function') { return ~a(); };"
+                       (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                       (assemble-label (make-Label (TestAndBranchStatement-label stmt))))]))]
 
     [(GotoStatement? stmt)
      (format "return ~a();"
@@ -272,6 +277,8 @@ EOF
                (format "[~a, ~a]" 
                        (loop (car val))
                        (loop (cdr val)))]
+              [(boolean? val)
+               (if val "true" "false")]
               [(empty? val)
                (format "undefined")]
               [else
@@ -327,60 +334,7 @@ EOF
              (LookupToplevelAddress-pos op))]
 
     [(GetControlStackLabel? op)
-     (format "MACHINE.control[MACHINE.control.length-1].label")]
-    
-    #;[(compiled-procedure-env)
-     #;(format "(~a.env)" (assemble-input (first inputs)))]
-    #;[(make-compiled-procedure)
-     (format "(new Closure(~a, ~a))"
-             (second assembled-inputs)
-             (first assembled-inputs))]
-    #;[(false?)
-     (format "(!(~a))" (assemble-input (first inputs)))]
-    #;[(cons)
-     (format "[~a]" (string-join (map assemble-input inputs) ","))]
-    #;[(list)
-     (cond [(empty? inputs)
-            "undefined"]
-           [else
-            (let: loop : String ([assembled-inputs : (Listof String) assembled-inputs])
-                  (cond
-                    [(empty? assembled-inputs)
-                     "undefined"]
-                    [else
-                     (format "[~a, ~a]"
-                             (first assembled-inputs)
-                             (loop (rest assembled-inputs)))]))])]
-    #;[(apply-primitive-procedure)
-     (format "~a(~a)"
-             (first assembled-inputs)
-             ;; FIXME: this doesn't look quite right...
-             (third assembled-inputs))]
-    #;[(lexical-address-lookup)
-     (format "(~a).valss[~a][~a]"
-             (third assembled-inputs)
-             (first assembled-inputs)
-             (second assembled-inputs))]
-    #;[(toplevel-lookup)
-     (let ([depth (first assembled-inputs)]
-           [pos (second assembled-inputs)]
-           [name (third assembled-inputs)]
-           [env (fourth assembled-inputs)])
-       (format "(~a).valss[~a][~a]" env depth pos))]
-    #;[(primitive-procedure?)
-     (format "(typeof(~a) === 'function')"
-             (first assembled-inputs))]
-    #;[(extend-environment)
-     (format "new ExtendedEnvironment(~a, ~a)"
-             (second assembled-inputs)
-             (first assembled-inputs))]
-    #;[(extend-environment/prefix)
-     (format "new ExtendedPrefixEnvironment(~a, ~a)"
-             (second assembled-inputs)
-             (first assembled-inputs))]
-    #;[(read-control-label)
-     "fixme"]
-    ))
+     (format "MACHINE.control[MACHINE.control.length-1].label")]))
 
 
 (: assemble-op-statement (PrimitiveCommand -> String))

@@ -110,13 +110,33 @@ EOF
   
   (: collect-primitive-operator (PrimitiveOperator -> (Listof Symbol)))
   (define (collect-primitive-operator op)
-    ;; fixme
-    (error 'collect-primitive-operator))
+    (cond
+      [(GetCompiledProcedureEntry? op)
+       empty]
+      [(MakeCompiledProcedure? op)
+       (list (MakeCompiledProcedure-label op))]
+      [(ApplyPrimitiveProcedure? op)
+       empty]
+      [(LookupLexicalAddress? op)
+       empty]
+      [(LookupToplevelAddress? op)
+       empty]
+      [(GetControlStackLabel? op)
+       empty]))
 
-  
+  (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
   (define (collect-primitive-command op)
-    ;; fixme
-    (error 'collect-primitive-command))
+    (cond
+      [(SetToplevel!? op) 
+       empty]
+      [(CheckToplevelBound!? op)
+       empty]
+      [(CheckClosureArity!? op)
+       empty]
+      [(ExtendEnvironment/Prefix!? op)
+       empty]
+      [(InstallClosureValues!? op)
+       empty]))
   
   (unique/eq?
    (let: loop : (Listof Symbol) ([stmts : (Listof Statement) stmts])

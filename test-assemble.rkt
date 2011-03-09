@@ -22,7 +22,7 @@
            (printf "Running ~s ...\n" (syntax->datum #'expr))
            (let ([actual expr])
              (unless (equal? actual expected)
-               (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
+               (raise-syntax-error #f (format "Expected ~s, got ~s" expected actual)
                                    #'stx))
              (printf "ok.\n\n")))))]))
 
@@ -124,3 +124,12 @@
                                                    (make-Const 12345)))
               "MACHINE.env[0]")
       "12345")
+
+;; A do-nothing closure
+(test (E-many (list (make-GotoStatement (make-Label 'afterLambda))
+                    'closureStart
+                    (make-GotoStatement (make-Label 'afterLambda))
+                    'afterLambda
+                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'afterLambda 0 '())))
+              "MACHINE.val.displayName")
+      "afterLambda")

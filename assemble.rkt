@@ -302,13 +302,15 @@ EOF
   (cond
     [(GetCompiledProcedureEntry? op)
      "proc.label"]
+    
     [(MakeCompiledProcedure? op)
-     (format "new Closure(~a, ~a, ~a)"
+     (format "new Closure(~a, ~a, [~a], ~s)"
              (MakeCompiledProcedure-label op)
              (MakeCompiledProcedure-arity op)
              (string-join (map assemble-env-reference 
                                (MakeCompiledProcedure-closed-vals op))
-                          ", "))]
+                          ", ")
+             (symbol->string (MakeCompiledProcedure-label op)))]
     
     [(ApplyPrimitiveProcedure? op)
      (error 'assemble-op-expression)]

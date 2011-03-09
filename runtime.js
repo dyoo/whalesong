@@ -78,9 +78,11 @@ var Primitives = {
 
 // A closure consists of its free variables as well as a label
 // into its text segment.
-var Closure = function(env, label) {
-    this.env = env;
+var Closure = function(label, arity, closedVals, displayName) {
     this.label = label;
+    this.arity = arity;
+    this.closedVals = closedVals;
+    this.displayName = displayName;
 };
 
 

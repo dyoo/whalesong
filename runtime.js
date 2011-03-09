@@ -9,71 +9,104 @@
 
 
 // No error trapping at the moment.
-var Primitives = {
-    'display': function(argl) {
-        MACHINE.params.currentDisplayer(argl[0]);
-    },
 
-    'newline': function(argl) {
-        MACHINE.params.currentDisplayer("\n");
-    },
+var Primitives = (function() {
+    var NULL = [];
+    return {
+	'display': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+            MACHINE.params.currentDisplayer(firstArg);
+	},
 
-    'displayln': function(argl){
-        MACHINE.params.currentDisplayer(argl[0]);
-        MACHINE.params.currentDisplayer("\n");
-    },
+	'newline': function(arity, returnLabel) {
+            MACHINE.params.currentDisplayer("\n");
+	},
 
-    'pi' : Math.PI,
+	'displayln': function(arity, returnLabel){
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+            MACHINE.params.currentDisplayer(firstArg);
+            MACHINE.params.currentDisplayer("\n");
+	},
 
-    'e' : Math.E,
+	'pi' : Math.PI,
 
-    '=': function(argl) {
-        return argl[0] === argl[1][0];
-    },
+	'e' : Math.E,
 
-    '<': function(argl) {
-	return argl[0] < argl[1][0];
-    },
-    
-    '+': function(argl) {
-        return argl[0] + argl[1][0];
-    },
-    
-    '*': function(argl) {
-        return argl[0] * argl[1][0];
-    },
-    
-    '-': function(argl) {
-        return argl[0] - argl[1][0];
-    },
-    
-    '/': function(argl) {
-	return argl[0] / argl[1][0];
-    },
+	'=': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+            return firstArg === secondArg;
+	},
 
-    'cons': function(argl) {
-	return [argl[0], argl[1][0]];
-    },
+	'<': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg < secondArg;
+	},
+	
+	'+': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 
-    'list': function(argl) {
-	return argl;
-    },
+            return firstArg + secondArg;
+	},
+	
+	'*': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+            return firstArg * secondArg;
+	},
+	
+	'-': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+            return firstArg - secondArg;
+	},
+	
+	'/': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg / secondArg;
+	},
 
-    'car': function(argl) {
-	return argl[0][0];
-    },
+	'cons': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return [firstArg, secondArg];
+	},
 
-    'cdr': function(argl) {
-	return argl[0][1];
-    },
+	'list': function(arity, returnLabel) {
+	    var result = NULL;
+	    for (var i = 0; i < arity; i++) {
+		result = [MACHINE.env[MACHINE.env.length - (arity - i)],
+			  result];
+	    }
+	    return result;
+	},
 
-    'null' : undefined,
+	'car': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return firstArg[0];
+	},
 
-    'null?': function(argl) {
-	return argl[0] === undefined;
-    }
+	'cdr': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return firstArg[1];
+	},
+
+	'null' : NULL,
+
+	'null?': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return firstArg === NULL;
+	}
+    };
+})();
+
+
+var Frame = function(label) {
+    this.label = label;
 };
-
 
 
 // A closure consists of its free variables as well as a label
@@ -133,8 +166,9 @@ var MACHINE={callsBeforeTrampoline: 100,
              proc:undefined, 
              env: [],
 	     control : [],
-             params: {currentDisplayer: function(v) {},
-		      currentErrorHandler: function(e) {}}};
+             params: { currentDisplayer: function(v) {},
+		       currentErrorHandler: function(e) {},
+		       currentNamespace: {}}};
 
 
 var trampoline = function(initialJump, success, fail) {

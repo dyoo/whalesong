@@ -125,6 +125,31 @@
               "MACHINE.env[0]")
       "12345")
 
+
+;; Toplevel Environment loading
+(test (E-single (make-PerformStatement (make-ExtendEnvironment/Prefix! '(pi)))
+                "String(MACHINE.env[0]).slice(0, 5)")
+      "3.141")
+
+
+
+;; Simple application
+(test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+                    (make-AssignPrimOpStatement 'proc
+                                                (make-LookupToplevelAddress 0 0 '+))
+                    (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                   (make-Const 3))
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                                                   (make-Const 4))
+                    (make-AssignPrimOpStatement 'val
+                                                (make-ApplyPrimitiveProcedure 2 'done))
+                    'done))
+      "7")
+                    
+
+
+
 ;; A do-nothing closure
 (test (E-many (list (make-GotoStatement (make-Label 'afterLambda))
                     'closureStart

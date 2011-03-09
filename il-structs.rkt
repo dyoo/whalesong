@@ -124,7 +124,11 @@
 ;; Applies the primitive procedure that's stored in the proc register, using
 ;; the arity number of values that are bound in the environment as arguments
 ;; to that primitive.
-(define-struct: ApplyPrimitiveProcedure ([arity : Natural])
+;; 
+;; If the primitive needs to capture the current continutation, it can get the
+;; immediate address at label.
+(define-struct: ApplyPrimitiveProcedure ([arity : Natural]
+                                         [label : Symbol])
   #:transparent)
 
 ;; Gets the value stored at the given depth in the environment.

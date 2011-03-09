@@ -393,7 +393,7 @@
                    [(EnvLexicalReference? target)
                     ;; The optimization is right here.
                     (make-EnvLexicalReference (+ (EnvLexicalReference-depth target) n))])
-             (make-ApplyPrimitiveProcedure n))
+             (make-ApplyPrimitiveProcedure n after-call))
            ,(make-PopEnvironment n 0))))
 
        after-call))))

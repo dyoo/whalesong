@@ -116,7 +116,7 @@ EOF
       [(MakeCompiledProcedure? op)
        (list (MakeCompiledProcedure-label op))]
       [(ApplyPrimitiveProcedure? op)
-       empty]
+       (list (ApplyPrimitiveProcedure-label op))]
       [(LookupLexicalAddress? op)
        empty]
       [(LookupToplevelAddress? op)
@@ -313,13 +313,21 @@ EOF
              (symbol->string (MakeCompiledProcedure-label op)))]
     
     [(ApplyPrimitiveProcedure? op)
-     (error 'assemble-op-expression)]
+     (format "MACHINE.proc(~a, ~a)"
+             (ApplyPrimitiveProcedure-arity op)
+             (ApplyPrimitiveProcedure-label op))]
+
     [(LookupLexicalAddress? op)
-     (error 'assemble-op-expression)]
+     (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"
+             (LookupLexicalAddress-depth op))]
+
     [(LookupToplevelAddress? op)
-     (error 'assemble-op-expression)]
+     (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"
+             (LookupToplevelAddress-depth op)
+             (LookupToplevelAddress-pos op))]
+
     [(GetControlStackLabel? op)
-     (error 'assemble-op-expression)]
+     (format "MACHINE.control[MACHINE.control.length-1].label")]
     
     #;[(compiled-procedure-env)
      #;(format "(~a.env)" (assemble-input (first inputs)))]
@@ -407,8 +415,14 @@ EOF
      (error 'assemble-op-statement)]
     
     [(ExtendEnvironment/Prefix!? op)
-     ;; fixme
-     (error 'assemble-op-statement)]
+     (let: ([names : (Listof Symbol) (ExtendEnvironment/Prefix!-names op)])
+           (format "MACHINE.env.push([~a]);"
+                   (string-join (map (lambda: ([n : Symbol])
+                                              (format "MACHINE.params.currentNamespace[~s] || Primitives[~s]"
+                                                      (symbol->string n) 
+                                                      (symbol->string n)))
+                                     names)
+                                ",")))]
     
     [(InstallClosureValues!? op)
      (error 'assemble-op-statement)]))

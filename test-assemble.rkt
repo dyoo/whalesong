@@ -59,7 +59,7 @@
                (display ";" op)
                
                (fprintf op 
-                        "return function(succ, fail, params) { console.log('here'); myInvoke(function(v) { console.log('there!');succ(String(~a));}, fail, params); }"
+                        "return function(succ, fail, params) { myInvoke(function(v) { succ(String(~a));}, fail, params); }"
                         inspector)
                (display "})" op))))))
 (define (E-many stmts (inspector "MACHINE.val"))
@@ -97,6 +97,30 @@
                 "MACHINE.env.length")
       "20")
 
-(test (E-many (list (make-PushEnvironment 1))
+;; PopEnvironment
+(test (E-many (list (make-PushEnvironment 2))
+              "MACHINE.env.length")
+      "2")
+(test (E-many (list (make-PushEnvironment 2)
+                    (make-PopEnvironment 1 0))
               "MACHINE.env.length")
       "1")
+
+
+
+;; Assigning to the environment
+(test (E-many (list (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                   (make-Const 12345)))
+              "MACHINE.env[1]")
+      "12345")
+(test (E-many (list (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                   (make-Const 12345)))
+              "MACHINE.env[0]")
+      "undefined")
+(test (E-many (list (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                                                   (make-Const 12345)))
+              "MACHINE.env[0]")
+      "12345")

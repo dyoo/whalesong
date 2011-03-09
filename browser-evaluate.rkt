@@ -210,6 +210,7 @@ function createXMLHTTPObject() {
 var comet = function() {
     sendRequest("/eval", 
                 function(req) {
+                    console.log(req.responseText);
                     var invoke = eval(req.responseText)();
                     var output = [];
                     var startTime, endTime;

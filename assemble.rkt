@@ -171,33 +171,28 @@ EOF
                        "\n")))
 
 
+
+
 (: assemble-statement (UnlabeledStatement -> String))
 ;; Generates the code to assemble a statement.
 (define (assemble-statement stmt)
   (cond
     [(AssignImmediateStatement? stmt)
-     (let ([v (AssignImmediateStatement-value stmt)])
-       (cond 
-         [(Reg? v)
-          (format "MACHINE.~a=~a" 
-                  (AssignImmediateStatement-target stmt)
-                  (assemble-reg v))]
-         [(Label? v)
-          (format "MACHINE.~a=~a;" 
-                  (AssignImmediateStatement-target stmt)
-                  (assemble-label v))]
-         [(Const? v)
-          (format "MACHINE.~a=~a;" 
-                  (AssignImmediateStatement-target stmt)
-                  (assemble-const v))]
-         [(EnvLexicalReference? v)
-          (format "MACHINE.~a=~a;"
-                  (AssignImmediateStatement-target stmt)
-                  (assemble-lexical-reference v))]
-         [(EnvWholePrefixReference? v)
-          (format "MACHINE.~a=~a;"
-                  (AssignImmediateStatement-target stmt)
-                  (assemble-whole-prefix-reference v))]))]
+     (let ([t (assemble-target (AssignImmediateStatement-target stmt))]
+           [v (AssignImmediateStatement-value stmt)])
+       (format "~a = ~a;"
+               t
+               (cond 
+                 [(Reg? v)
+                  (assemble-reg v)]
+                 [(Label? v)
+                  (assemble-label v)]
+                 [(Const? v)
+                  (assemble-const v)]
+                 [(EnvLexicalReference? v)
+                  (assemble-lexical-reference v)]
+                 [(EnvWholePrefixReference? v)
+                  (assemble-whole-prefix-reference v)])))]
     
     [(AssignPrimOpStatement? stmt)
      (format "MACHINE.~a=~a;" 
@@ -227,8 +222,25 @@ EOF
                                                                                     "undefined"))
                                       ", "))]
     [(PopEnvironment? stmt)
-     "fixme"]))
-    
+     (format "MACHINE.env.splice(MACHINE.env.length-(~a),~a);"
+             (+ (PopEnvironment-skip stmt)
+                (PopEnvironment-n stmt))
+             (PopEnvironment-n stmt))]))
+
+
+
+(: assemble-target (Target -> String))
+(define (assemble-target target)
+  (cond
+    [(eq? target 'proc)
+     "MACHINE.proc"]
+    [(eq? target 'val)
+     "MACHINE.val"]
+    [(EnvLexicalReference? target)
+     (assemble-lexical-reference target)]))
+
+
+
 
 ;; fixme: use js->string
 (: assemble-const (Const -> String))
@@ -248,12 +260,12 @@ EOF
 
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
-  (format "MACHINE.env[~a]"
+  (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
           (EnvLexicalReference-depth a-lex-ref)))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
-  (format "MACHINE.env[~a]"
+  (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
           (EnvWholePrefixReference-depth a-prefix-ref)))
 
 (: assemble-env-reference (EnvReference -> String))

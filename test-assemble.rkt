@@ -133,3 +133,21 @@
                     (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'afterLambda 0 '())))
               "MACHINE.val.displayName")
       "afterLambda")
+
+
+
+;; A do-nothing closure with a few values
+(test (E-many (list (make-GotoStatement (make-Label 'afterLambda))
+                    'closureStart
+                    (make-GotoStatement (make-Label 'afterLambda))
+                    'afterLambda
+                    (make-PushEnvironment 2)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                                                   (make-Const "hello"))
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                                                   (make-Const "world"))
+                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'afterLambda 0 
+                                                                                 (list (make-EnvLexicalReference 0)
+                                                                                       (make-EnvLexicalReference 1)))))
+              "MACHINE.val.closedVals[0] + ',' + MACHINE.val.closedVals[1]")
+      "hello,world")

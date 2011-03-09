@@ -11,16 +11,16 @@
                      [code : ExpressionCore]) #:transparent)
 (define-struct: Constant ([v : Any]) #:transparent)
 (define-struct: Var ([id : Symbol]) #:transparent)
-(define-struct: Branch ([predicate : Expression]
-                        [consequent : Expression]
-                        [alternative : Expression]) #:transparent)
+(define-struct: Branch ([predicate : ExpressionCore]
+                        [consequent : ExpressionCore]
+                        [alternative : ExpressionCore]) #:transparent)
 (define-struct: Def ([variable : Symbol] 
-                     [value : Expression]) #:transparent)
+                     [value : ExpressionCore]) #:transparent)
 (define-struct: Lam ([parameters : (Listof Symbol)]
-                     [body : Expression]) #:transparent)
-(define-struct: Seq ([actions : (Listof Expression)]) #:transparent)
-(define-struct: App ([operator : Expression]
-                     [operands : (Listof Expression)]) #:transparent)
+                     [body : ExpressionCore]) #:transparent)
+(define-struct: Seq ([actions : (Listof ExpressionCore)]) #:transparent)
+(define-struct: App ([operator : ExpressionCore]
+                     [operands : (Listof ExpressionCore)]) #:transparent)
 
 (: last-exp? ((Listof Expression) -> Boolean))
 (define (last-exp? seq) 

@@ -3,6 +3,8 @@
          racket/math
          (for-syntax racket/base))
 
+(provide lookup-primitive)
+
 
 (define-syntax (make-lookup stx)
   (syntax-case stx ()
@@ -27,9 +29,10 @@
                )))))]))
 
 
+
+
 (define e (exp 1))
 
-(provide lookup-primitive)
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= cons list car cdr
                                                      sub1
                                                      display newline displayln

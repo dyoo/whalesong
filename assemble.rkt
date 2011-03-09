@@ -165,13 +165,13 @@ EOF
   (format "var ~a=function(){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
           (BasicBlock-name a-basic-block)
           (BasicBlock-name a-basic-block)
-          (string-join (map assemble-stmt (BasicBlock-stmts a-basic-block))
+          (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))
                        "\n")))
 
 
-;; assemble-stmt: stmt -> string
-(: assemble-stmt (UnlabeledStatement -> String))
-(define (assemble-stmt stmt)
+(: assemble-statement (UnlabeledStatement -> String))
+;; Generates the code to assemble a statement.
+(define (assemble-statement stmt)
   (cond
     [(AssignImmediateStatement? stmt)
      (let ([v (AssignImmediateStatement-value stmt)])
@@ -240,6 +240,7 @@ EOF
               [else
                (format "~s" val)])))
 
+
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (format "MACHINE.env[~a]"
@@ -250,17 +251,28 @@ EOF
   (format "MACHINE.env[~a]"
           (EnvWholePrefixReference-depth a-prefix-ref)))
 
-
+(: assemble-env-reference (EnvReference -> String))
+(define (assemble-env-reference ref)
+  (cond
+    [(EnvLexicalReference? ref)
+     (assemble-lexical-reference ref)]
+    [(EnvWholePrefixReference? ref)
+     (assemble-whole-prefix-reference ref)]))
 
 
 (: assemble-op-expression (PrimitiveOperator -> String))
 (define (assemble-op-expression op)
   (cond
     [(GetCompiledProcedureEntry? op)
-     (error 'assemble-op-expression)
-     #;(format "(~a.label)" (assemble-input (first inputs)))]
+     "proc.label"]
     [(MakeCompiledProcedure? op)
-     (error 'assemble-op-expression)]
+     (format "new Closure(~a, ~a, ~a)"
+             (MakeCompiledProcedure-label op)
+             (MakeCompiledProcedure-arity op)
+             (string-join (map assemble-env-reference 
+                               (MakeCompiledProcedure-closed-vals op))
+                          ", "))]
+    
     [(ApplyPrimitiveProcedure? op)
      (error 'assemble-op-expression)]
     [(LookupLexicalAddress? op)

@@ -10,17 +10,16 @@
          assemble-statement)
 
 
-;; assemble/write-invoke: (listof statement) output-port -> void
 (: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
+;; Writes out the JavaScript code that represents the anonymous invocation expression.
 (define (assemble/write-invoke stmts op)
   (let ([basic-blocks (fracture stmts)])
-    (fprintf op "function(success, fail, params) {\n")
+    (fprintf op "(function(success, fail, params) {\n")
     (fprintf op "var param;\n")
     (for-each (lambda: ([basic-block : BasicBlock])
                 (displayln (assemble-basic-block basic-block) op)
                 (newline op))
               basic-blocks)
-    (fprintf op "MACHINE.cont = function() {success(MACHINE.val)};\n")
     (fprintf op "MACHINE.params.currentErrorHandler = function(e) { fail(e); };\n")
     (fprintf op #<<EOF
 for (param in params) {
@@ -30,7 +29,7 @@ for (param in params) {
 }
 EOF
              )
-    (fprintf op "trampoline(~a, function() {}, function(e) { MACHINE.params.currentErrorHandler(e)}); }"
+    (fprintf op "trampoline(~a, function() {success(MACHINE.val)}, fail); })"
              (BasicBlock-name (first basic-blocks)))))
 
 
@@ -219,11 +218,14 @@ EOF
      (format "return ~a();"
              (assemble-location (GotoStatement-target stmt)))]
     [(PushControlFrame? stmt)
-     "fixme"]
+     (format "MACHINE.control.push(~a);" (PushControlFrame-label stmt))]
     [(PopControlFrame? stmt)
-     "fixme"]
+     "MACHINE.control.pop();"]
     [(PushEnvironment? stmt)
-     "fixme"]
+     (format "MACHINE.env.push(~a);" (string-join
+                                      (build-list (PushEnvironment-n stmt) (lambda: ([i : Natural])
+                                                                                    "undefined"))
+                                      ", "))]
     [(PopEnvironment? stmt)
      "fixme"]))
     

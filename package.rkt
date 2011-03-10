@@ -1,9 +1,9 @@
 #lang racket/base
 
 (require "compile.rkt"
-         "typed-structs.rkt"
          "assemble.rkt"
          "typed-parse.rkt"
+         "il-structs.rkt"
          racket/runtime-path
          racket/port)
 
@@ -21,9 +21,9 @@
       (copy-port ip op)))
   (newline op)
   (fprintf op "var invoke = ")
-  (assemble/write-invoke (statements (compile-top (parse source-code)
-                                                  'val
-                                                  'return))
+  (assemble/write-invoke (compile (parse source-code)
+                                  'val
+                                  'next)
                          op)
   (fprintf op ";\n"))
 

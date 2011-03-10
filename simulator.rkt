@@ -328,6 +328,8 @@
            v]
           [(null? v)
            v]
+          [(void? v)
+           v]
           [(cons? v)
            (cons (loop (car v)) (loop (cdr v)))]
           [(primitive-proc? v)

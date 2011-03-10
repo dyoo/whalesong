@@ -448,5 +448,17 @@
             (expt 2 23984000)))
 
 
+(test (begin (define (length l)
+               (if (null? l)
+                   0
+                   (+ 1 (length (cdr l)))))
+             (display (length (list 1 2 3 4 5 6)))
+             (newline)
+             #;(display (length (list "hello" "world")))
+             #;(newline))
+      (void))
+
+
+
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

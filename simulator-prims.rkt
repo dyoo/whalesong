@@ -45,5 +45,8 @@
                                                      abs
                                                      void
                                                      quotient
-                                                     remainder)
+                                                     remainder
+                                                     display
+                                                     displayln
+                                                     newline)
                                       #:constants (null pi e)))

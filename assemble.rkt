@@ -215,8 +215,8 @@ EOF
        (format "~a = ~a;" t (assemble-oparg v)))]
     
     [(AssignPrimOpStatement? stmt)
-     (format "MACHINE.~a=~a;" 
-             (AssignPrimOpStatement-target stmt)
+     (format "~a=~a;" 
+             (assemble-target (AssignPrimOpStatement-target stmt))
              (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
     
     [(PerformStatement? stmt)
@@ -235,8 +235,7 @@ EOF
                        (assemble-label (make-Label (TestAndBranchStatement-label stmt))))]))]
 
     [(GotoStatement? stmt)
-     (format "return ~a();"
-             (assemble-location (GotoStatement-target stmt)))]
+     (format "return ~a();" (assemble-location (GotoStatement-target stmt)))]
     [(PushControlFrame? stmt)
      (format "MACHINE.control.push(new Frame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
     [(PopControlFrame? stmt)

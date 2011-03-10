@@ -281,7 +281,7 @@ EOF
               [(boolean? val)
                (if val "true" "false")]
               [(empty? val)
-               (format "undefined")]
+               (format "Primitives.NULL")]
               [else
                (format "~s" val)])))
 

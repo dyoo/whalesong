@@ -462,10 +462,26 @@
 (test (begin (define (sum-integers a b)
                (if (> a b)
                    0
-                   (+ a (sum-integers (+ a 1) b))))
+                   (+ a (sum-integers (+ a 1) b))))        
              (sum-integers 1 100))
       (* 50 101))
 
+
+(test (begin (define (sum term a next b)
+               (if (> a b)
+                   0
+                   (+ (term a)
+                      (sum term (next a) next b))))
+             (define (inc n) (+ n 1))
+             (define (identity x) x)
+             (define (cube x) (* x x x))
+             (define (sum-cubes a b) (sum cube a inc b))
+             (define (sum-integers a b) (sum identity a inc b))
+             
+             (list (sum-cubes 1 10)
+                   (sum-integers 1 10)))
+      (list 3025 55))
+                     
 
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

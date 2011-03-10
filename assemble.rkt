@@ -238,7 +238,7 @@ EOF
      (format "return ~a();"
              (assemble-location (GotoStatement-target stmt)))]
     [(PushControlFrame? stmt)
-     (format "MACHINE.control.push(new Frame(~a));" (PushControlFrame-label stmt))]
+     (format "MACHINE.control.push(new Frame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
     [(PopControlFrame? stmt)
      "MACHINE.control.pop();"]
     [(PushEnvironment? stmt)

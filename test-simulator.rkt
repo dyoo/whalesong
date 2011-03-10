@@ -122,20 +122,22 @@
 
 
 ;; PushControl
-(let ([m (new-machine `(foo 
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        foo 
                         ,(make-PushControlFrame 'foo)
                         bar
                         ,(make-PushControlFrame 'bar)
                         baz
                         ))])
   (test (machine-control (run m))
-        (list (make-frame 'bar)
-              (make-frame 'foo))))
+        (list (make-frame 'bar #f)
+              (make-frame 'foo #f))))
 
 
 
 ;; PopControl
-(let ([m (new-machine `(foo 
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        foo 
                         ,(make-PushControlFrame 'foo)
                         bar
                         ,(make-PushControlFrame 'bar)
@@ -143,9 +145,10 @@
                         ,(make-PopControlFrame)
                         ))])
   (test (machine-control (run m))
-        (list (make-frame 'foo))))
+        (list (make-frame 'foo #f))))
 
-(let ([m (new-machine `(foo 
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        foo 
                         ,(make-PushControlFrame 'foo)
                         bar
                         ,(make-PushControlFrame 'bar)
@@ -429,7 +432,8 @@
 
 
 ;; GetControlStackLabel
-(let ([m (new-machine `(foo
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        foo
                         ,(make-PushControlFrame 'foo)
                         ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))))])
   (test (machine-proc (run m))

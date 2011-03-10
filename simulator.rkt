@@ -119,7 +119,8 @@
 
 (: step-push-control-frame (machine PushControlFrame -> machine))
 (define (step-push-control-frame m stmt)
-  (control-push m (PushControlFrame-label stmt)))
+  (control-push m (make-frame (PushControlFrame-label stmt)
+                              (ensure-closure-or-false (machine-proc m)))))
 
 (: step-pop-control-frame (machine PopControlFrame -> machine))
 (define (step-pop-control-frame m stmt)
@@ -305,6 +306,13 @@
               v]))]))
 
 
+(: ensure-closure-or-false (SlotValue -> (U closure #f)))
+(define (ensure-closure-or-false v)
+  (if (or (closure? v) (eq? v #f))
+      v
+      (error 'ensure-closure)))
+
+
 (: ensure-primitive-value (Any -> PrimitiveValue))
 ;; Make sure the value is primitive.
 (define (ensure-primitive-value val)
@@ -426,11 +434,11 @@
                    (ensure-natural (- stack-size n)))]))
 
 
-(: control-push (machine Symbol -> machine))
-(define (control-push m l)
+(: control-push (machine frame -> machine))
+(define (control-push m a-frame)
   (match m
     [(struct machine (val proc env control pc text stack-size))
-     (make-machine val proc env (cons (make-frame l) control) pc text
+     (make-machine val proc env (cons a-frame control) pc text
                    stack-size)]))
 
 

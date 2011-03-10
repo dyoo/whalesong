@@ -32,6 +32,8 @@
 
 
 (define-struct: frame ([return : Symbol]
+                       ;; The procedure being called.  Used to optimize self-application
+                       [proc : (U closure #f)]
                        ;; TODO: add continuation marks
                        )
   #:transparent)

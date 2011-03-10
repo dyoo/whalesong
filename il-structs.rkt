@@ -93,6 +93,8 @@
   #:transparent)
 
 ;; Adding a frame for getting back after procedure application.
+;; The 'proc register must hold either #f or a closure at the time of
+;; this call, as the control frame will hold onto the called procedure record.
 (define-struct: PushControlFrame ([label : Symbol]) 
   #:transparent)
 

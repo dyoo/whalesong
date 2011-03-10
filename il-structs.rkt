@@ -26,7 +26,9 @@
 
 
 ;; Targets: these are the allowable lhs's for an assignment.
-(define-type Target (U AtomicRegisterSymbol EnvLexicalReference))
+(define-type Target (U AtomicRegisterSymbol 
+                       EnvLexicalReference
+                       EnvPrefixReference))
 
 
 
@@ -38,8 +40,12 @@
   #:transparent)
 (define-struct: EnvLexicalReference ([depth : Natural])
   #:transparent)
+(define-struct: EnvPrefixReference ([depth : Natural]
+                                    [pos : Natural])
+  #:transparent)
 (define-struct: EnvWholePrefixReference ([depth : Natural])
   #:transparent)
+
 
 
 ;; An environment reference is either lexical or referring to a whole prefix.

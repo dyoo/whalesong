@@ -260,7 +260,9 @@ EOF
     [(eq? target 'val)
      "MACHINE.val"]
     [(EnvLexicalReference? target)
-     (assemble-lexical-reference target)]))
+     (assemble-lexical-reference target)]
+    [(EnvPrefixReference? target)
+     (assemble-prefix-reference target)]))
 
 
 
@@ -288,10 +290,17 @@ EOF
   (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
           (EnvLexicalReference-depth a-lex-ref)))
 
+(: assemble-prefix-reference (EnvPrefixReference -> String))
+(define (assemble-prefix-reference a-ref)
+  (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"
+          (EnvPrefixReference-depth a-ref)
+          (EnvPrefixReference-pos a-ref)))
+
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
   (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
           (EnvWholePrefixReference-depth a-prefix-ref)))
+
 
 (: assemble-env-reference (EnvReference -> String))
 (define (assemble-env-reference ref)

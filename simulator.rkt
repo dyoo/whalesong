@@ -91,7 +91,12 @@
               [(eq? t 'val)
                (val-update m v)]
               [(EnvLexicalReference? t)
-               (env-mutate m (EnvLexicalReference-depth t) v)])))
+               (env-mutate m (EnvLexicalReference-depth t) v)]
+              [(EnvPrefixReference? t)
+               (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
+                                 (EnvPrefixReference-pos t)
+                                 (ensure-primitive-value v))
+               m])))
 
 
 (: step-push-environment (machine PushEnvironment -> machine))
@@ -206,7 +211,13 @@
      val-update]
     [(EnvLexicalReference? t)
      (lambda: ([m : machine] [v : SlotValue])
-              (env-mutate m (EnvLexicalReference-depth t) v))]))
+              (env-mutate m (EnvLexicalReference-depth t) v))]
+    [(EnvPrefixReference? t)
+     (lambda: ([m : machine] [v : SlotValue])
+              (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
+                                (EnvPrefixReference-pos t)
+                                (ensure-primitive-value v))
+              m)]))
 
 
 (: step-assign-primitive-operation (machine AssignPrimOpStatement -> machine))

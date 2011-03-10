@@ -418,7 +418,10 @@
                     'proc]
                    [(EnvLexicalReference? target)
                     ;; The optimization is right here.
-                    (make-EnvLexicalReference (+ (EnvLexicalReference-depth target) n))])
+                    (make-EnvLexicalReference (+ (EnvLexicalReference-depth target) n))]
+                   [(EnvPrefixReference? target)
+                    ;; The optimization is right here.
+                    (make-EnvPrefixReference (+ (EnvPrefixReference-depth target) n) (EnvPrefixReference-pos target))])
              (make-ApplyPrimitiveProcedure n after-call))
            ,(make-PopEnvironment n 0))))
 

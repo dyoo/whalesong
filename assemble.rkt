@@ -171,7 +171,7 @@ EOF
                         [(PopEnvironment? stmt)
                          empty]
                         [(PushControlFrame? stmt)
-                         empty]
+                         (list (PushControlFrame-label stmt))]
                         [(PopControlFrame? stmt)
                          empty])
                       (loop (rest stmts))))]))))

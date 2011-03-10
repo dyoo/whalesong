@@ -4,6 +4,6 @@
          "test-simulator.rkt"
          "test-compiler.rkt"
          "test-assemble.rkt"
-         #; test-browser-evaluate
-         #; test-package
+         "test-browser-evaluate.rkt"
+         "test-package.rkt"
          )

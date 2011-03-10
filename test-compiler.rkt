@@ -459,6 +459,13 @@
       (void))
 
 
+(test (begin (define (sum-integers a b)
+               (if (> a b)
+                   0
+                   (+ a (sum-integers (+ a 1) b))))
+             (sum-integers 1 100))
+      (* 50 101))
+
 
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

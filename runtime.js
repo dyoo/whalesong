@@ -43,6 +43,24 @@ var Primitives = (function() {
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg < secondArg;
 	},
+
+	'>': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg > secondArg;
+	},
+
+	'<=': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg <= secondArg;
+	},
+
+	'>=': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg >= secondArg;
+	},
 	
 	'+': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -100,10 +118,12 @@ var Primitives = (function() {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg === NULL;
 	},
+
 	'add1': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg + 1;
 	},
+
 	'sub1': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg - 1;

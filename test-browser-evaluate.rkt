@@ -64,3 +64,12 @@
               (displayln (fib 6)))
       "2\n3\n5\n8\n")
       
+
+(test '(begin (define (tak x y z)
+               (if (>= y x)
+                   z
+                   (tak (tak (- x 1) y z)
+                        (tak (- y 1) z x)
+                        (tak (- z 1) x y))))
+             (displayln (tak 18 12 6)))
+      "7\n")

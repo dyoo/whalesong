@@ -14,8 +14,8 @@
   (define (loop exp)
     (cond
       [(Top? exp)
-       (list-difference (Prefix-names (Top-prefix exp))
-                        (loop (Top-code exp)))]
+       (list-difference (loop (Top-code exp))
+                        (Prefix-names (Top-prefix exp)))]
       [(Constant? exp)
        empty]
             
@@ -39,7 +39,12 @@
       
       [(App? exp)
        (append (loop (App-operator exp))
-               (apply append (map loop (App-operands exp))))]))
+               (apply append (map loop (App-operands exp))))]
+
+      #;[(Letrec? exp)
+       (list-difference (append (apply append (map loop (Letrec-procs exp)))
+                                (loop (Letrec-body exp)))
+                        (Letrec-names exp))]))
   
   (unique/eq? (loop exp)))
   

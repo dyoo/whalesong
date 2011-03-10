@@ -5,7 +5,7 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App))
+(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App #;Letrec))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)
@@ -21,6 +21,10 @@
 (define-struct: Seq ([actions : (Listof ExpressionCore)]) #:transparent)
 (define-struct: App ([operator : ExpressionCore]
                      [operands : (Listof ExpressionCore)]) #:transparent)
+
+#;(define-struct: Letrec ([names : (Listof Symbol)]
+                        [procs : (Listof Lam)]
+                        [body : ExpressionCore]))
 
 (: last-exp? ((Listof Expression) -> Boolean))
 (define (last-exp? seq) 

@@ -47,7 +47,9 @@
                        target
                        linkage)]
     [(App? exp)
-     (compile-application exp cenv target linkage)]))
+     (compile-application exp cenv target linkage)]
+    #;[(Letrec? exp)
+     (compile-letrec exp cenv target linkage)]))
 
 
 
@@ -120,20 +122,7 @@
 (: lexical-environment-pop-depth (CompileTimeEnvironment Linkage -> Natural))
 ;; Computes how much of the environment we need to pop.
 (define (lexical-environment-pop-depth cenv linkage)
-  (length cenv)
-  #;(cond
-    [(empty? cenv)
-     0]
-    [else
-     (let: ([entry : CompileTimeEnvironmentEntry (first cenv)])
-           (cond
-             [(Prefix? entry)
-              (+ 1 (lexical-environment-pop-depth (rest cenv) linkage))]
-             [(symbol? entry)
-              (cond
-              (+ 1 (lexical-environment-pop-depth (rest cenv) linkage)))]
-             [(eq? entry #f)
-              (+ 1 (lexical-environment-pop-depth (rest cenv) linkage))]))]))
+  (length cenv))
 
 
 
@@ -285,6 +274,43 @@
              ,(make-PerformStatement (make-InstallClosureValues!))))
           (compile (Lam-body exp) extended-cenv 'val 'return))))
 
+
+#;(: compile-letrec (Letrec CompileTimeEnvironment Target Linkage -> InstructionSequence))
+#;(define (compile-letrec exp cenv target linkage)
+  (let* ([after-let (make-label 'afterLet)]
+         [let-linkage (if (eq? linkage 'next)
+                          after-let
+                          linkage)]
+         [extended-cenv : CompileTimeEnvironment
+                        (extend-lexical-environment/names
+                         '()
+                         (reverse (Letrec-names exp)))]
+         [lam-codes : (Listof InstructionSequence)
+                    (let: ([n : Natural (length (Letrec-procs exp))])
+                    (map (lambda: ([lam : Lam]
+                                   [target : Target])
+                                  (compile-lambda lam extended-cenv target 'next))
+                         (Letrec-procs exp)
+                         (build-list (length (Letrec-procs exp))
+                                     (lambda: ([i : Natural])
+                                              (make-EnvLexicalReference (- n 1 i))))))]
+         [body-code : InstructionSequence 
+                    (compile (Letrec-body exp) extended-cenv target let-linkage)]
+   (append-instruction-sequences
+    (end-with-linkage let-linkage cenv
+     (make-instruction-sequence `(;; create space for the lambdas
+                                  ,(make-PushEnvironment n)  
+                                  ;; install each one of them in place
+                                  (apply append-instruction-sequences lam-codes)
+                                  ;; mutate each of the lambda's shells so they're correct
+                                  
+                                  ;; evaluate the body
+                                  body-code
+                                  ;; pop the temporary space
+                                  )))
+    after-let))))
+
+         
 
 
 ;; FIXME: I need to implement important special cases.

@@ -348,15 +348,13 @@
 ;; Installs the operators.  At the end of this,
 ;; the procedure lives in 'proc, and the operands on the environment stack.
 (define (juggle-operands operand-codes)
-  (let: ([n : Natural 
-            ;; defensive coding: the operand codes should be nonempty.
-            (ensure-natural (sub1 (length operand-codes)))])
-        (let: loop : InstructionSequence ([ops : (Listof InstructionSequence) operand-codes])
-              (cond
-                ;; If there are no operands, no need to juggle.
-                [(null? ops)
-                 (make-instruction-sequence empty)]
-                [(null? (rest ops))
+  (let: loop : InstructionSequence ([ops : (Listof InstructionSequence) operand-codes])
+        (cond
+          ;; If there are no operands, no need to juggle.
+          [(null? ops)
+           (make-instruction-sequence empty)]
+          [(null? (rest ops))
+           (let: ([n : Natural (ensure-natural (sub1 (length operand-codes)))])
                  ;; The last operand needs to be handled specially: it currently lives in 
                  ;; val.  We move the procedure at env[n] over to proc, and move the
                  ;; last operand at 'val into env[n].
@@ -366,11 +364,11 @@
                    `(,(make-AssignImmediateStatement 'proc 
                                                      (make-EnvLexicalReference n))
                      ,(make-AssignImmediateStatement (make-EnvLexicalReference n)
-                                                     (make-Reg 'val)))))]
-                [else
-                 ;; Otherwise, add instructions to juggle the operator and operands in the stack.
-                 (append-instruction-sequences (car ops)
-                                               (loop (rest ops)))]))))
+                                                     (make-Reg 'val))))))]
+          [else
+           ;; Otherwise, add instructions to juggle the operator and operands in the stack.
+           (append-instruction-sequences (car ops)
+                                         (loop (rest ops)))])))
 
 
 

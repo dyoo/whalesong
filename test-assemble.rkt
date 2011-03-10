@@ -340,7 +340,7 @@
 ;; Set-toplevel
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(advisor)))
                 ,(make-AssignImmediateStatement 'val (make-Const "Kathi"))
-                ,(make-PerformStatement (make-SetToplevel! 0 0 'some-variable)))
+                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val)))
               "MACHINE.env[0][0]")
       "Kathi")
 
@@ -356,7 +356,7 @@
 ;; check-toplevel-bound shouldn't fail here.
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(another-advisor)))
                 ,(make-AssignImmediateStatement 'val (make-Const "Shriram"))
-                ,(make-PerformStatement (make-SetToplevel! 0 0 'some-variable))
+                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
                 ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'another-advisor)))
               "MACHINE.env[0][0]")
       "Shriram")

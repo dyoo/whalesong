@@ -167,12 +167,6 @@
 
 
 
-;; Assign the value in the val register into the prefix installed at (depth, pos).
-(define-struct: SetToplevel! ([depth : Natural]
-                              [pos : Natural]
-                              [name : Symbol])
-  #:transparent)
-
 ;; Check that the value in the prefix has been defined.
 ;; If not, raise an error and stop evaluation.
 (define-struct: CheckToplevelBound! ([depth : Natural]
@@ -195,7 +189,6 @@
   #:transparent)
 
 (define-type PrimitiveCommand (U                                
-                               SetToplevel!
                                CheckToplevelBound!
                                CheckClosureArity!
                                ExtendEnvironment/Prefix!

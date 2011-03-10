@@ -161,11 +161,6 @@
 (define (step-perform m stmt)
   (let: ([op : PrimitiveCommand (PerformStatement-op stmt)])
         (cond
-          [(SetToplevel!? op)
-           (toplevel-mutate! (ensure-toplevel (env-ref m (SetToplevel!-depth op)))
-                             (SetToplevel!-pos op)
-                             (ensure-primitive-value (machine-val m)))
-           m]
 
           [(CheckToplevelBound!? op)
            (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])

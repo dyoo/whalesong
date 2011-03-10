@@ -164,23 +164,22 @@
 (: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-definition exp cenv target linkage)
   (let* ([var (Def-variable exp)]
-         [lexical-pos (find-variable var cenv)]
-         [get-value-code
-          (compile (Def-value exp) cenv 'val 'next)])
+         [lexical-pos (find-variable var cenv)])
     (cond
       [(LocalAddress? lexical-pos)
        (error 'compile-definition "Defintion not at toplevel")]
       [(PrefixAddress? lexical-pos)
-       (end-with-linkage
-        linkage
-        cenv
-        (append-instruction-sequences
-         get-value-code
-         (make-instruction-sequence `(,(make-PerformStatement (make-SetToplevel!
-                                                               (PrefixAddress-depth lexical-pos)
-                                                               (PrefixAddress-pos lexical-pos)
-                                                               var))
-                                      ,(make-AssignImmediateStatement target (make-Const 'ok))))))])))
+       (let ([get-value-code
+              (compile (Def-value exp) cenv (make-EnvPrefixReference 
+                                             (PrefixAddress-depth lexical-pos)
+                                             (PrefixAddress-pos lexical-pos))
+                       'next)])
+         (end-with-linkage
+          linkage
+          cenv
+          (append-instruction-sequences
+           get-value-code
+           (make-instruction-sequence `(,(make-AssignImmediateStatement target (make-Const 'ok)))))))])))
 
 
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))

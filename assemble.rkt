@@ -125,8 +125,6 @@ EOF
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
   (define (collect-primitive-command op)
     (cond
-      [(SetToplevel!? op) 
-       empty]
       [(CheckToplevelBound!? op)
        empty]
       [(CheckClosureArity!? op)
@@ -347,10 +345,6 @@ EOF
 (: assemble-op-statement (PrimitiveCommand -> String))
 (define (assemble-op-statement op)  
   (cond 
-    [(SetToplevel!? op)
-     (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a] = MACHINE.val;"
-             (SetToplevel!-depth op)
-             (SetToplevel!-pos op))]
     
     [(CheckToplevelBound!? op)
      (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { throw new Error(\"Not bound: \" + ~s); }"

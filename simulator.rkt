@@ -241,14 +241,6 @@
                    [else
                     (error 'apply-primitive-procedure)]))]
           
-          [(LookupLexicalAddress? op)
-           (let: ([a-val : SlotValue (env-ref m (LookupLexicalAddress-depth op))])
-                 (cond
-                   [(toplevel? a-val)
-                    (error 'lookup-lexical-address)]
-                   [else
-                    (target-updater m a-val)]))]
-
           [(LookupToplevelAddress? op)
            (let: ([a-top : SlotValue (env-ref m (LookupToplevelAddress-depth op))])
                  (cond

@@ -117,8 +117,6 @@ EOF
        (list (MakeCompiledProcedure-label op))]
       [(ApplyPrimitiveProcedure? op)
        (list (ApplyPrimitiveProcedure-label op))]
-      [(LookupLexicalAddress? op)
-       empty]
       [(LookupToplevelAddress? op)
        empty]
       [(GetControlStackLabel? op)
@@ -327,10 +325,6 @@ EOF
      (format "MACHINE.proc(~a, ~a)"
              (ApplyPrimitiveProcedure-arity op)
              (ApplyPrimitiveProcedure-label op))]
-
-    [(LookupLexicalAddress? op)
-     (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"
-             (LookupLexicalAddress-depth op))]
 
     [(LookupToplevelAddress? op)
      (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"

@@ -16,14 +16,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
-;; An operation can refer to the following:
+;; An operation can refer to the following arguments:
 (define-type OpArg (U Const ;; an constant
                       Label ;; an label
                       Reg   ;; an register 
                       EnvLexicalReference ;; a reference into the stack
                       EnvWholePrefixReference ;; a reference into a toplevel prefix in the stack.
                       ))
+
+
+;; Targets: these are the allowable lhs's for an assignment.
+(define-type Target (U AtomicRegisterSymbol EnvLexicalReference))
+
+
 
 (define-struct: Label ([name : Symbol])
   #:transparent)
@@ -36,12 +41,10 @@
 (define-struct: EnvWholePrefixReference ([depth : Natural])
   #:transparent)
 
-;; An environment reference
+
+;; An environment reference is either lexical or referring to a whole prefix.
 (define-type EnvReference (U EnvLexicalReference
                              EnvWholePrefixReference))
-
-
-
 
 
 
@@ -58,6 +61,7 @@
                                  PushEnvironment
                                  PushControlFrame
                                  PopControlFrame))
+
 (define-type Statement (U UnlabeledStatement
                           Symbol  ;; label
                           ))
@@ -105,7 +109,6 @@
 (define-type PrimitiveOperator (U GetCompiledProcedureEntry
                                   MakeCompiledProcedure
                                   ApplyPrimitiveProcedure
-                                  LookupLexicalAddress
                                   LookupToplevelAddress
                                   GetControlStackLabel))
 
@@ -129,10 +132,6 @@
 ;; immediate address at label.
 (define-struct: ApplyPrimitiveProcedure ([arity : Natural]
                                          [label : Symbol])
-  #:transparent)
-
-;; Gets the value stored at the given depth in the environment.
-(define-struct: LookupLexicalAddress ([depth : Natural])
   #:transparent)
 
 ;; Looks up the value in the prefix installed in the environment.    
@@ -218,8 +217,6 @@
 
 
 
-;; Targets: these are the allowable lhs's for an assignment.
-(define-type Target (U AtomicRegisterSymbol EnvLexicalReference))
 
 
 ;; Linkage

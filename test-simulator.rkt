@@ -398,7 +398,7 @@
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 'curly))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
                         
-                        ,(make-AssignPrimOpStatement 'val (make-LookupLexicalAddress 0))))])
+                        ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0))))])
   (test (machine-val (run m))
         'larry))
 ;; Another lexical lookup test
@@ -408,7 +408,7 @@
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 'curly))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2) (make-Const 'moe))
                         
-                        ,(make-AssignPrimOpStatement 'val (make-LookupLexicalAddress 1))))])
+                        ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 1))))])
   (test (machine-val (run m))
         'curly))
 

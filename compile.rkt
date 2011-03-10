@@ -142,9 +142,9 @@
        (end-with-linkage linkage
                          cenv
                          (make-instruction-sequence
-                          `(,(make-AssignPrimOpStatement 
+                          `(,(make-AssignImmediateStatement 
                               target
-                              (make-LookupLexicalAddress (LocalAddress-depth lexical-pos))))))]
+                              (make-EnvLexicalReference (LocalAddress-depth lexical-pos))))))]
       [(PrefixAddress? lexical-pos)
        (end-with-linkage linkage
                          cenv

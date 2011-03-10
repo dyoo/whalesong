@@ -97,6 +97,8 @@ EOF
        (list (Label-name an-input))]
       [(EnvLexicalReference? an-input)
        empty]
+      [(EnvPrefixReference? an-input)
+       empty]
       [(EnvWholePrefixReference? an-input)
        empty]))
 
@@ -117,8 +119,6 @@ EOF
        (list (MakeCompiledProcedure-label op))]
       [(ApplyPrimitiveProcedure? op)
        (list (ApplyPrimitiveProcedure-label op))]
-      [(LookupToplevelAddress? op)
-       empty]
       [(GetControlStackLabel? op)
        empty]))
 
@@ -154,6 +154,8 @@ EOF
                               empty]
                              [(EnvLexicalReference? v)
                               empty]
+                             [(EnvPrefixReference? v)
+                              empty] 
                              [(EnvWholePrefixReference? v)
                               empty]))]
                         [(AssignPrimOpStatement? stmt)
@@ -186,7 +188,21 @@ EOF
           (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))
                        "\n")))
 
-
+(: assemble-oparg (OpArg -> String))
+(define (assemble-oparg v)
+  (cond 
+    [(Reg? v)
+     (assemble-reg v)]
+    [(Label? v)
+     (assemble-label v)]
+    [(Const? v)
+     (assemble-const v)]
+    [(EnvLexicalReference? v)
+     (assemble-lexical-reference v)]
+    [(EnvPrefixReference? v)
+     (assemble-prefix-reference v)]
+    [(EnvWholePrefixReference? v)
+     (assemble-whole-prefix-reference v)]))
 
 
 (: assemble-statement (UnlabeledStatement -> String))
@@ -196,19 +212,7 @@ EOF
     [(AssignImmediateStatement? stmt)
      (let ([t (assemble-target (AssignImmediateStatement-target stmt))]
            [v (AssignImmediateStatement-value stmt)])
-       (format "~a = ~a;"
-               t
-               (cond 
-                 [(Reg? v)
-                  (assemble-reg v)]
-                 [(Label? v)
-                  (assemble-label v)]
-                 [(Const? v)
-                  (assemble-const v)]
-                 [(EnvLexicalReference? v)
-                  (assemble-lexical-reference v)]
-                 [(EnvWholePrefixReference? v)
-                  (assemble-whole-prefix-reference v)])))]
+       (format "~a = ~a;" t (assemble-oparg v)))]
     
     [(AssignPrimOpStatement? stmt)
      (format "MACHINE.~a=~a;" 
@@ -333,11 +337,6 @@ EOF
              (ApplyPrimitiveProcedure-arity op)
              (ApplyPrimitiveProcedure-label op))]
 
-    [(LookupToplevelAddress? op)
-     (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"
-             (LookupToplevelAddress-depth op)
-             (LookupToplevelAddress-pos op))]
-
     [(GetControlStackLabel? op)
      (format "MACHINE.control[MACHINE.control.length-1].label")]))
 
@@ -382,6 +381,8 @@ EOF
      (assemble-label an-input)]
     [(EnvLexicalReference? an-input)
      (assemble-lexical-reference an-input)]
+    [(EnvPrefixReference? an-input)
+     (assemble-prefix-reference an-input)]
     [(EnvWholePrefixReference? an-input)
      (assemble-whole-prefix-reference an-input)]))
     

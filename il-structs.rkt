@@ -21,6 +21,7 @@
                       Label ;; an label
                       Reg   ;; an register 
                       EnvLexicalReference ;; a reference into the stack
+                      EnvPrefixReference  ;; a reference into an element in the toplevel.
                       EnvWholePrefixReference ;; a reference into a toplevel prefix in the stack.
                       ))
 
@@ -115,7 +116,6 @@
 (define-type PrimitiveOperator (U GetCompiledProcedureEntry
                                   MakeCompiledProcedure
                                   ApplyPrimitiveProcedure
-                                  LookupToplevelAddress
                                   GetControlStackLabel))
 
 ;; Gets the label from the closure stored in the 'proc register and returns it.
@@ -134,17 +134,12 @@
 ;; the arity number of values that are bound in the environment as arguments
 ;; to that primitive.
 ;; 
-;; If the primitive needs to capture the current continutation, it can get the
+;; If the primitive needs to capture the current continuation, it can get the
 ;; immediate address at label.
 (define-struct: ApplyPrimitiveProcedure ([arity : Natural]
                                          [label : Symbol])
   #:transparent)
 
-;; Looks up the value in the prefix installed in the environment.    
-(define-struct: LookupToplevelAddress ([depth : Natural]
-                                       [pos : Natural]
-                                       [name : Symbol])
-  #:transparent)
 
 ;; Gets the return address embedded at the top of the control stack.
 (define-struct: GetControlStackLabel ()

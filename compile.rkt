@@ -153,12 +153,11 @@
                                                      (PrefixAddress-depth lexical-pos)
                                                      (PrefixAddress-pos lexical-pos)
                                                      (PrefixAddress-name lexical-pos)))
-                            ,(make-AssignPrimOpStatement 
+                            ,(make-AssignImmediateStatement 
                               target
-                              (make-LookupToplevelAddress
+                              (make-EnvPrefixReference
                                (PrefixAddress-depth lexical-pos)
-                               (PrefixAddress-pos lexical-pos)
-                               (PrefixAddress-name lexical-pos))))))])))
+                               (PrefixAddress-pos lexical-pos))))))])))
 
 
 (: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))

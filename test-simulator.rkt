@@ -387,7 +387,7 @@
 
 ;; Test toplevel lookup
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                        ,(make-AssignPrimOpStatement 'val (make-LookupToplevelAddress 0 0 '+))))])
+                        ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))))])
   (test (machine-val (run m))
         (lookup-primitive '+)))
 
@@ -415,7 +415,7 @@
 ;; ApplyPrimitiveProcedure
 ;; Adding two numbers
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                        ,(make-AssignPrimOpStatement 'proc (make-LookupToplevelAddress 0 0 '+))
+                        ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                         ,(make-PushEnvironment 2)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const 126389))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1) (make-Const 42))

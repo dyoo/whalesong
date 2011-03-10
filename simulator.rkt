@@ -247,14 +247,6 @@
                    [else
                     (error 'apply-primitive-procedure)]))]
           
-          [(LookupToplevelAddress? op)
-           (let: ([a-top : SlotValue (env-ref m (LookupToplevelAddress-depth op))])
-                 (cond
-                   [(toplevel? a-top)
-                    (target-updater m (list-ref (toplevel-vals a-top)
-                                                (LookupToplevelAddress-pos op)))]
-                   [else
-                    (error 'lookup-toplevel "not a toplevel: ~s" a-top)]))]
          
           [(GetControlStackLabel? op)
            (target-updater m (frame-return (first (machine-control m))))])))
@@ -291,7 +283,17 @@
               (error 'evaluate-oparg
                      "Unexpected toplevel at depth ~s"
                      (EnvLexicalReference-depth an-oparg))]))]
+    
+    [(EnvPrefixReference? an-oparg)
+     (let: ([a-top : SlotValue (env-ref m (EnvPrefixReference-depth an-oparg))])
+           (cond
+             [(toplevel? a-top)
+              (list-ref (toplevel-vals a-top)
+                        (EnvPrefixReference-pos an-oparg))]
+             [else
+              (error 'evaluate-oparg "not a toplevel: ~s" a-top)]))]
 
+    
     [(EnvWholePrefixReference? an-oparg)
      (let: ([v : SlotValue
                (list-ref (machine-env m) (EnvWholePrefixReference-depth an-oparg))])

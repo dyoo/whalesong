@@ -140,8 +140,7 @@
 
 ;; Simple application
 (test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                    (make-AssignPrimOpStatement 'proc
-                                                (make-LookupToplevelAddress 0 0 '+))
+                    (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                     (make-PushEnvironment 2)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0)
                                                    (make-Const 3))
@@ -304,7 +303,7 @@
 
 ;; Give a primitive procedure in val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignPrimOpStatement 'val (make-LookupToplevelAddress 0 0 '+))
+                ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                 ,(make-GotoStatement (make-Label 'end))
@@ -315,7 +314,7 @@
 
 ;; Give a primitive procedure in proc, but test val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignPrimOpStatement 'proc (make-LookupToplevelAddress 0 0 '+))
+                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
@@ -326,7 +325,7 @@
 
 ;; Give a primitive procedure in proc and test proc
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignPrimOpStatement 'proc (make-LookupToplevelAddress 0 0 '+))
+                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'proc 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))

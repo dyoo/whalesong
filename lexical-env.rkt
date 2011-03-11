@@ -49,15 +49,15 @@
 
 (: list-index (All (A) A (Listof A) -> (U #f Natural)))
 (define (list-index x l)
-  (let loop ([i 0]
-             [l l])
-    (cond
-      [(empty? l)
-       #f]
-      [(eq? x (first l))
-       i]
-      [else
-       (loop (add1 i) (rest l))])))
+  (let: loop : (U #f Natural) ([i : Natural 0]
+                               [l : (Listof A) l])
+        (cond
+          [(empty? l)
+           #f]
+          [(eq? x (first l))
+           i]
+          [else
+           (loop (add1 i) (rest l))])))
 
 
 (: extend-lexical-environment 

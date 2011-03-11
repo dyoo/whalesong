@@ -29,7 +29,7 @@
                 (make-undefined)]
                )))))]))
 
-(define my-callcc
+(define call/cc
   (make-closure call/cc-label
                 1
                 '()))
@@ -57,4 +57,4 @@
                                                      display
                                                      displayln
                                                      newline)
-                                      #:constants (null pi e)))
+                                      #:constants (null pi e call/cc)))

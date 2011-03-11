@@ -531,5 +531,9 @@
       #:control-limit 1)
 
 
+(test (let ([x 16])
+        (call/cc (lambda (k) (+ x x))))
+      32)
+
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

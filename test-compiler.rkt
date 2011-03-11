@@ -510,7 +510,25 @@
                (list x y z)))
       (list (list 3 4 7)
             (list 17 18 35)))
-            
+
+(test (let* ([x 0]
+             [x (add1 x)]
+             [x (add1 x)])
+        x)
+      2)
+ 
+
+(test (begin 
+          (define (sum-iter x acc)
+            (if (= x 0)
+                acc
+                (let* ([y (sub1 x)]
+                       [z (+ x acc)])
+                  (sum-iter y z))))
+          (sum-iter 300 0))
+      45150
+      #:stack-limit 8
+      #:control-limit 1)
 
 
 ;(simulate (compile (parse '42) 'val 'next))

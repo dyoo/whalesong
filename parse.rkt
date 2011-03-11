@@ -6,17 +6,22 @@
   (cond
     [(self-evaluating? exp)
      (make-Constant exp)]
+    
     [(quoted? exp)
      (make-Constant (text-of-quotation exp))]
+    
     [(variable? exp)
      (make-Var exp)] 
+    
     [(definition? exp)
      (make-Def (definition-variable exp)
                (parse (definition-value exp)))]
+    
     [(if? exp)
      (make-Branch (parse (if-predicate exp))
                   (parse (if-consequent exp))
                   (parse (if-alternative exp)))]
+    
     [(cond? exp)
      (parse (desugar-cond exp))]
     
@@ -35,6 +40,12 @@
     [(application? exp)
      (make-App (parse (operator exp))
                (map parse (operands exp)))]
+    
+    [(let? exp)
+     (parse-let exp)]
+    
+    [(let*? exp)
+     (parse-let* exp)]
     
     [else
      (error 'compile "Unknown expression type ~e" exp)]))
@@ -133,3 +144,53 @@
               ,answer
               ,(loop (cdr clauses))))])))
          
+
+
+(define (parse-let exp)
+  (let ([vars (let-variables exp)]
+        [rhss (let-rhss exp)]
+        [body (let-body exp)])
+    (cond 
+      [(= 1 (length vars))
+       (make-Let1 (car vars)
+                  (car rhss)
+                  (parse `(begin ,body)))]
+      [else
+       (error 'parse-let "not supported yet")])))
+
+(define (parse-let* exp)
+  (parse
+   (let ([body (let-body exp)])
+     (let loop ([vars (let-variables exp)]
+                [rhss (let-rhss exp)])
+       (cond
+         [(null? vars)
+          `(begin ,@body)]
+         [else
+         `(let ([,(car vars) ,(car rhss)])
+            ,(loop (cdr vars) (cdr rhss)))])))))
+              
+          
+;; any -> boolean
+(define (let? exp)
+  (tagged-list? exp 'let))
+
+;; any -> boolean
+(define (let*? exp)
+  (tagged-list? exp 'let*))
+
+;; let -> (listof symbol)
+(define (let-variables exp)
+  (map (lambda (clause)
+         (car clause))
+       (cadr exp)))
+
+;; let -> (listof expr)
+(define (let-rhss exp)
+  (map (lambda (clause)
+         (cadr clause))
+       (cadr exp)))
+
+;; let -> (listof expr)
+(define (let-body exp)
+  (caddr exp))

@@ -22,6 +22,12 @@
 (define-struct: App ([operator : ExpressionCore]
                      [operands : (Listof ExpressionCore)]) #:transparent)
 
+(define-struct: Let1 ([name : Symbol]
+                      [rhs : ExpressionCore ]
+                      [body : ExpressionCore])
+  #:transparent)
+
+
 #;(define-struct: Letrec ([names : (Listof Symbol)]
                         [procs : (Listof Lam)]
                         [body : ExpressionCore]))

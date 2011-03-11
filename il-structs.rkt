@@ -119,7 +119,11 @@
 (define-type PrimitiveOperator (U GetCompiledProcedureEntry
                                   MakeCompiledProcedure
                                   ApplyPrimitiveProcedure
-                                  GetControlStackLabel))
+                                  GetControlStackLabel
+
+                                  CaptureEnvironment
+                                  CaptureControl
+                                  ))
 
 ;; Gets the label from the closure stored in the 'proc register and returns it.
 (define-struct: GetCompiledProcedureEntry ()
@@ -147,6 +151,13 @@
 ;; Gets the return address embedded at the top of the control stack.
 (define-struct: GetControlStackLabel ()
   #:transparent)
+
+;; Capture the current environment, skipping skip frames.
+(define-struct: CaptureEnvironment ([skip : Natural]))
+
+;; Capture the control stack, skipping skip frames.
+(define-struct: CaptureControl ([skip : Natural]))
+
 
 
 
@@ -186,11 +197,23 @@
 (define-struct: InstallClosureValues! ()
   #:transparent)
 
+
+;; Changes over the control located at the given argument from the structure in env[1]
+(define-struct: RestoreControl! ())
+
+;; Changes over the environment located at the given argument from the structure in env[0]
+(define-struct: RestoreEnvironment! ())
+
+
+
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
                                CheckClosureArity!
                                ExtendEnvironment/Prefix!
-                               InstallClosureValues!))
+                               InstallClosureValues!
+                               
+                               RestoreEnvironment!
+                               RestoreControl!))
 
 
 

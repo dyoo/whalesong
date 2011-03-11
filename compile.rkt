@@ -552,18 +552,19 @@
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;; The primitive code necessary to do call/cc
 
 (: call/cc-label Symbol)
 (define call/cc-label 'callCCEntry)
+(define call/cc-closure-entry 'callCCClosureEntry)
+
 
 ;; (call/cc f)
 ;; Tail-calls f, providing it a special object that knows how to do the low-level
-;; manipulations.
-
+;; manipulation of the environment and control stack.
 (define (make-call/cc-code)
   (append-instruction-sequences
    (make-instruction-sequence 
@@ -573,15 +574,39 @@
       ;; First, move f to the proc register
       ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0))
       
-      ;; Next, capture the current continuation closure and target it into env[0].
+      
+      ;; Next, capture the envrionment and the current continuation closure,
+      ;; targetting env[0].
       ;; FIXME!
-      ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const "I should be a continuation"))))
+      ,(make-PushEnvironment 2)
+      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0) 
+                                   ;; When capturing, skip over f and the two slots we just added.
+                                   (make-CaptureEnvironment 3))
+      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1) 
+                                   (make-CaptureControl 0))
+      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0)                                       
+                                   (make-MakeCompiledProcedure call/cc-closure-entry
+                                                               1  ;; the continuation consumes a single value
+                                                               (list (make-EnvLexicalReference 0)
+                                                                     (make-EnvLexicalReference 1))))
+      ,(make-PopEnvironment 2 0)))
+                                   
 
    ;; Finally, tail call into f.
    (compile-procedure-call (extend-lexical-environment/placeholders '() 1)
                            (extend-lexical-environment/placeholders '() 1)
                            1 
                            'val
-                           'return)))
-
-
+                           'return)
+   
+   
+   ;; The code for the continuation
+   (make-instruction-sequence `(,call/cc-closure-entry
+                                ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0))
+                                
+                                ,(make-PerformStatement (make-RestoreControl!))
+                                ,(make-PerformStatement (make-RestoreEnvironment!))
+                                
+                                ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                                ,(make-PopControlFrame)
+                                ,(make-GotoStatement (make-Reg 'proc))))))

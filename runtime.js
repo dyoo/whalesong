@@ -128,6 +128,12 @@ var Primitives = (function() {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg - 1;
 	}
+// 	,
+// 	'call/cc': new Closure(callCCEntry,
+// 			       1,
+// 			       [],
+// 			       "call/cc")
+
     };
 })();
 

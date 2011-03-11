@@ -592,7 +592,7 @@
       ,(make-PopEnvironment 2 0)))
                                    
 
-   ;; Finally, tail call into f.
+   ;; Finally, do a tail call into f.
    (compile-procedure-call (extend-lexical-environment/placeholders '() 1)
                            (extend-lexical-environment/placeholders '() 1)
                            1 
@@ -600,7 +600,8 @@
                            'return)
    
    
-   ;; The code for the continuation
+   ;; The code for the continuation coe follows.  It's supposed to
+   ;; abandon the current continuation, initialize the control and environment, and then jump.
    (make-instruction-sequence `(,call/cc-closure-entry
                                 ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0))
                                 

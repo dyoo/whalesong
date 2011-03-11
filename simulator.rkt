@@ -40,13 +40,13 @@
      (vector-length (machine-text m))))
 
 
-(: step! (machine -> Void))
+(: step! (machine -> 'ok))
 ;; Take one simulation step.
 (define (step! m)
   (let: ([i : Statement (current-instruction m)])
          (cond
            [(symbol? i)
-            (void)]
+            'ok]
            [(AssignImmediateStatement? i)
             (step-assign-immediate! m i)]
            [(AssignPrimOpStatement? i)
@@ -70,7 +70,7 @@
 
   
     
-(: step-goto! (machine GotoStatement -> Void))
+(: step-goto! (machine GotoStatement -> 'ok))
 (define (step-goto! m a-goto)
   (let: ([t : (U Label Reg) (GotoStatement-target a-goto)])
         (cond [(Label? t)
@@ -83,7 +83,7 @@
                                   [(eq? reg 'proc)
                                    (jump! m (ensure-symbol (machine-proc m)))])]))])))
 
-(: step-assign-immediate! (machine AssignImmediateStatement -> Void))
+(: step-assign-immediate! (machine AssignImmediateStatement -> 'ok))
 (define (step-assign-immediate! m stmt)
   (let: ([t : Target (AssignImmediateStatement-target stmt)]
          [v : SlotValue (evaluate-oparg m (AssignImmediateStatement-value stmt))])
@@ -99,32 +99,32 @@
                                  (ensure-primitive-value v))])))
 
 
-(: step-push-environment! (machine PushEnvironment -> Void))
+(: step-push-environment! (machine PushEnvironment -> 'ok))
 (define (step-push-environment! m stmt)
-  (let: loop : Void ([n : Natural (PushEnvironment-n stmt)])
+  (let: loop : 'ok ([n : Natural (PushEnvironment-n stmt)])
     (cond
       [(= n 0)
-       (void)]
+       'ok]
       [else
        (env-push! m (make-undefined))
        (loop (sub1 n))])))
 
-(: step-pop-environment! (machine PopEnvironment -> Void))
+(: step-pop-environment! (machine PopEnvironment -> 'ok))
 (define (step-pop-environment! m stmt)
   (env-pop! m (PopEnvironment-n stmt) (PopEnvironment-skip stmt)))
 
 
-(: step-push-control-frame! (machine PushControlFrame -> Void))
+(: step-push-control-frame! (machine PushControlFrame -> 'ok))
 (define (step-push-control-frame! m stmt)
   (control-push! m (make-frame (PushControlFrame-label stmt)
                                (ensure-closure-or-false (machine-proc m)))))
 
-(: step-pop-control-frame! (machine PopControlFrame -> Void))
+(: step-pop-control-frame! (machine PopControlFrame -> 'ok))
 (define (step-pop-control-frame! m stmt)
   (let: ([l : Symbol (control-pop! m)])
-        (void)))
+        'ok))
 
-(: step-test-and-branch! (machine TestAndBranchStatement -> Void))
+(: step-test-and-branch! (machine TestAndBranchStatement -> 'ok))
 (define (step-test-and-branch! m stmt)
   (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)]
          [argval : SlotValue (lookup-atomic-register m (TestAndBranchStatement-register stmt))])
@@ -134,7 +134,7 @@
               [(eq? test 'primitive-procedure?)
                (primitive-proc? argval)])
             (jump! m (TestAndBranchStatement-label stmt))
-            (void))))
+            'ok)))
 
       
 (: lookup-atomic-register (machine AtomicRegisterSymbol -> SlotValue))
@@ -153,7 +153,7 @@
          (env-ref m (EnvWholePrefixReference-depth ref))]))
 
 
-(: step-perform! (machine PerformStatement -> Void))
+(: step-perform! (machine PerformStatement -> 'ok))
 (define (step-perform! m stmt)
   (let: ([op : PrimitiveCommand (PerformStatement-op stmt)])
         (cond
@@ -165,7 +165,7 @@
                     (error 'check-toplevel-bound! "Unbound identifier ~s" 
                            (CheckToplevelBound!-name op))]
                    [else
-                    (void)]))]
+                    'ok]))]
           
           [(CheckClosureArity!? op)
            (let: ([clos : SlotValue (machine-proc m)])
@@ -173,7 +173,7 @@
                    [(closure? clos)
                     (if (= (closure-arity clos)
                            (CheckClosureArity!-arity op))
-                        (void)
+                        'ok
                         (error 'check-closure-arity "arity mismatch"))]
                    [else
                     (error 'check-closure-arity "not a closure")]))]
@@ -190,9 +190,14 @@
                     (env-push-many! m (closure-vals a-proc))]
                    [else
                     (error 'step-perform "Procedure register doesn't hold a procedure: ~s"
-                           a-proc)]))])))
+                           a-proc)]))]
+          
+          [(RestoreControl!? op)
+           (error 'fixme)]
+          [(RestoreEnvironment!? op)
+           (error 'fixme)])))
 
-(: get-target-updater (Target -> (machine SlotValue -> Void)))
+(: get-target-updater (Target -> (machine SlotValue -> 'ok)))
 (define (get-target-updater t)
   (cond
     [(eq? t 'proc)
@@ -209,10 +214,10 @@
                                 (ensure-primitive-value v)))]))
 
 
-(: step-assign-primitive-operation! (machine AssignPrimOpStatement -> Void))
+(: step-assign-primitive-operation! (machine AssignPrimOpStatement -> 'ok))
 (define (step-assign-primitive-operation! m stmt)
   (let: ([op : PrimitiveOperator (AssignPrimOpStatement-op stmt)]
-         [target-updater! : (machine SlotValue -> Void)
+         [target-updater! : (machine SlotValue -> 'ok)
                          (get-target-updater (AssignPrimOpStatement-target stmt))])
         (cond
           [(GetCompiledProcedureEntry? op)
@@ -245,7 +250,11 @@
                     (error 'apply-primitive-procedure)]))]
                    
           [(GetControlStackLabel? op)
-           (target-updater! m (frame-return (first (machine-control m))))])))
+           (target-updater! m (frame-return (first (machine-control m))))]
+          [(CaptureEnvironment? op)
+           (error 'fixme)]
+          [(CaptureControl? op)
+           (error 'fixme)])))
 
            
 
@@ -370,29 +379,33 @@
 
   
 
-(: val-update! (machine SlotValue -> Void))
+(: val-update! (machine SlotValue -> 'ok))
 (define (val-update! m v)
-  (set-machine-val! m v))
+  (set-machine-val! m v)
+  'ok)
 
 
-(: proc-update! (machine SlotValue -> Void))
+(: proc-update! (machine SlotValue -> 'ok))
 (define (proc-update! m v)
-  (set-machine-proc! m v))
+  (set-machine-proc! m v)
+  'ok)
 
 
-(: env-push! (machine SlotValue -> Void))
+(: env-push! (machine SlotValue -> 'ok))
 (define (env-push! m v)
   (match m
     [(struct machine (val proc env control pc text stack-size))
      (set-machine-env! m (cons v env))
-     (set-machine-stack-size! m (add1 stack-size))]))
+     (set-machine-stack-size! m (add1 stack-size))
+     'ok]))
 
-(: env-push-many! (machine (Listof SlotValue) -> Void))
+(: env-push-many! (machine (Listof SlotValue) -> 'ok))
 (define (env-push-many! m vs)
   (match m
     [(struct machine (val proc env control pc text stack-size))
      (set-machine-env! m (append vs env))
-     (set-machine-stack-size! m (+ stack-size (length vs)))]))
+     (set-machine-stack-size! m (+ stack-size (length vs)))
+     'ok]))
 
 
 (: env-ref (machine Natural -> SlotValue))
@@ -401,11 +414,12 @@
     [(struct machine (val proc env control pc text stack-size))
      (list-ref env i)]))
 
-(: env-mutate! (machine Natural SlotValue -> Void))
+(: env-mutate! (machine Natural SlotValue -> 'ok))
 (define (env-mutate! m i v)
   (match m
     [(struct machine (val proc env control pc text stack-size))
-     (set-machine-env! m (list-replace env i v))]))
+     (set-machine-env! m (list-replace env i v))
+     'ok]))
 
 
 (: list-replace (All (A) (Listof A) Natural A -> (Listof A)))
@@ -418,43 +432,47 @@
            (list-replace (rest l) (sub1 i) v))]))
 
 
-(: env-pop! (machine Natural Natural -> Void))
+(: env-pop! (machine Natural Natural -> 'ok))
 (define (env-pop! m n skip)     
   (match m
     [(struct machine (val proc env control pc text stack-size))
      (set-machine-env! m (append (take env skip)
                                     (drop env (+ skip n))))
-     (set-machine-stack-size! m (ensure-natural (- stack-size n)))]))
+     (set-machine-stack-size! m (ensure-natural (- stack-size n)))
+     'ok]))
                    
 
-(: control-push! (machine frame -> Void))
+(: control-push! (machine frame -> 'ok))
 (define (control-push! m a-frame)
   (match m
     [(struct machine (val proc env control pc text stack-size))
-     (set-machine-control! m (cons a-frame control))]))
+     (set-machine-control! m (cons a-frame control))
+     'ok]))
 
 
-(: control-pop! (machine -> Symbol))
+(: control-pop! (machine -> 'ok))
 (define (control-pop! m)
   (match m
     [(struct machine (val proc env control pc text stack-size))
-     (begin
-       (set-machine-control! m (rest control))
-       (frame-return (first control)))]))
+     (set-machine-control! m (rest control))
+     'ok]))
 
 
-(: increment-pc! (machine -> Void))
+
+(: increment-pc! (machine -> 'ok))
 (define (increment-pc! m)
-  (set-machine-pc! m (add1 (machine-pc m))))
+  (set-machine-pc! m (add1 (machine-pc m)))
+  'ok)
 
 
 
-(: jump! (machine Symbol -> Void))
+(: jump! (machine Symbol -> 'ok))
 ;; Jumps directly to the instruction at the given label.
 (define (jump! m l)
   (match m
     [(struct machine (val proc env control pc text stack-size))
-     (set-machine-pc! m (vector-find text l))]))
+     (set-machine-pc! m (vector-find text l))
+     'ok]))
 
 
 
@@ -468,8 +486,9 @@
            (loop (add1 i))])))
 
 
-(: toplevel-mutate! (toplevel Natural PrimitiveValue -> Void))
+(: toplevel-mutate! (toplevel Natural PrimitiveValue -> 'ok))
 (define (toplevel-mutate! a-top index v)
   (set-toplevel-vals! a-top (append (take (toplevel-vals a-top) index)
                                     (list v)
-                                    (drop (toplevel-vals a-top) (add1 index)))))
+                                    (drop (toplevel-vals a-top) (add1 index))))
+  'ok)

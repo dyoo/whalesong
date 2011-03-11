@@ -13,7 +13,7 @@
      (with-syntax ([(prim-name ...) (generate-temporaries #'(name ...))])
        (syntax/loc stx
          (let ([prim-name (make-primitive-proc 
-                           (lambda args
+                           (lambda (machine return-label . args)
                              (apply name args)))]
                ...)
            (lambda (n)
@@ -28,6 +28,11 @@
                 (make-undefined)]
                )))))]))
 
+#;(define my-callcc
+    (make-primitive-proc
+     (lambda (machine return-label k)
+       (make-primitive-proc (lambda (m2 r2 k2)
+                              ...)))))
 
 
 

@@ -14,7 +14,7 @@
          (begin
            (printf "Running ~s ..." (syntax->datum #'stx))
            (let ([results actual])
-             (unless (equal? actual exp)
+             (unless (equal? results exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp results)
                                    #'stx)))
            (printf "ok\n\n"))))]))
@@ -26,7 +26,8 @@
     [(= n 0)
      m]
     [else
-     (step-n (step m) (sub1 n))]))
+     (step! m)
+     (step-n m (sub1 n))]))
 
 
 ;; run: machine -> machine
@@ -34,7 +35,8 @@
 (define (run m)
   (cond
     [(can-step? m)
-     (run (step m))]
+     (step! m)
+     (run m)]
     [else
      m]))
 
@@ -43,21 +45,23 @@
 (let ([m (new-machine `(hello world ,(make-GotoStatement (make-Label 'hello))))])
   (test (machine-pc (step-n m 0)) 0)
   (test (machine-pc (step-n m 1)) 1)
-  (test (machine-pc (step-n m 2)) 2)
-  (test (machine-pc (step-n m 3)) 1)
-  (test (machine-pc (step-n m 4)) 2)
-  (test (machine-pc (step-n m 5)) 1))
+  (test (machine-pc (step-n m 1)) 2)
+  (test (machine-pc (step-n m 1)) 1)
+  (test (machine-pc (step-n m 1)) 2)
+  (test (machine-pc (step-n m 1)) 1))
 
 
 ;; Assigning to val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const 42))))])
   (test (machine-val m) (make-undefined))
-  (test (machine-val (step m)) 42))
+  (step! m)
+  (test (machine-val m) 42))
 
 ;; Assigning to proc
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const 42))))])
   (test (machine-proc m) (make-undefined))
-  (test (machine-proc (step m)) 42))
+  (step! m)
+  (test (machine-proc m) 42))
 
 
 ;; Assigning to a environment reference

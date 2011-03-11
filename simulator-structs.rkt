@@ -7,9 +7,10 @@
 
 (define-type PrimitiveValue (Rec PrimitiveValue (U String Number Symbol Boolean
                                                    Null Void
+                                                   undefined
+                                                   
                                                    primitive-proc 
                                                    closure
-                                                   undefined
 
                                                    (Pairof PrimitiveValue PrimitiveValue)
                                                    )))
@@ -28,7 +29,8 @@
                          ;; other metrics for debugging
                          [stack-size : Natural]
                          )
-  #:transparent)
+  #:transparent
+  #:mutable)
 
 
 (define-struct: frame ([return : Symbol]
@@ -47,7 +49,7 @@
 
 
 ;; Primitive procedure wrapper
-(define-struct: primitive-proc ([f : (PrimitiveValue * -> PrimitiveValue)])
+(define-struct: primitive-proc ([f : (machine Symbol PrimitiveValue * -> PrimitiveValue)])
   #:transparent)
 
 
@@ -57,6 +59,10 @@
                          [arity : Natural]
                          [vals : (Listof SlotValue)])
   #:transparent)
+
+
+
+
 
 ;; undefined value
 (define-struct: undefined ()

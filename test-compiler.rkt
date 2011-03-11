@@ -57,8 +57,7 @@
              #:stack-limit (stack-limit false)
              #:control-limit (control-limit false))
   
-  (let loop ([m m]
-             [steps 0])
+  (let loop ([steps 0])
     (when debug?
       (when (can-step? m)
         (printf "|env|=~s, |control|=~s,  instruction=~s\n" 
@@ -75,7 +74,8 @@
 
     (cond
       [(can-step? m)
-       (loop (step m) (add1 steps))]
+       (step! m)
+       (loop (add1 steps))]
       [else
        (values m steps)])))
 

@@ -151,10 +151,12 @@
         [rhss (let-rhss exp)]
         [body (let-body exp)])
     (cond 
+      [(= 0 (length vars))
+       (parse `(begin ,@body))]
       [(= 1 (length vars))
        (make-Let1 (car vars)
                   (parse (car rhss))
-                  (parse `(begin ,body)))]
+                  (parse `(begin ,@body)))]
       [else
        (error 'parse-let "not supported yet")])))
 
@@ -193,4 +195,4 @@
 
 ;; let -> (listof expr)
 (define (let-body exp)
-  (caddr exp))
+  (cddr exp))

@@ -482,13 +482,27 @@
                    (sum-integers 1 10)))
       (list 3025 55))
 
+(test (let () 5) 5)
 
 (test (let* ([x 3]
              [y 4]
              [z 17])
         (+ x y z))
-      24
+      24)
+      
+
+(test (list (let* ([x 3]
+                   [y (+ x 1)]
+                   [z (+ x y)])
+               (list x y z))
+            (let* ([x 17]
+                   [y (+ x 1)]
+                   [z (+ x y)])
+               (list x y z)))
+      (list (list 3 4 7)
+            (list 17 18 35))
       #:debug? #t)
+            
 
 
 ;(simulate (compile (parse '42) 'val 'next))

@@ -5,7 +5,8 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App #;Letrec))
+(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App #;Letrec
+                               Let1))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)

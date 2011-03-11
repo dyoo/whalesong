@@ -481,7 +481,15 @@
              (list (sum-cubes 1 10)
                    (sum-integers 1 10)))
       (list 3025 55))
-                     
+
+
+(test (let* ([x 3]
+             [y 4]
+             [z 17])
+        (+ x y z))
+      24
+      #:debug? #t)
+
 
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

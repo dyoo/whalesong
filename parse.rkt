@@ -37,15 +37,15 @@
          [else
           (make-Seq actions)]))]
     
-    [(application? exp)
-     (make-App (parse (operator exp))
-               (map parse (operands exp)))]
-    
     [(let? exp)
      (parse-let exp)]
     
     [(let*? exp)
      (parse-let* exp)]
+    
+    [(application? exp)
+     (make-App (parse (operator exp))
+               (map parse (operands exp)))]
     
     [else
      (error 'compile "Unknown expression type ~e" exp)]))
@@ -153,7 +153,7 @@
     (cond 
       [(= 1 (length vars))
        (make-Let1 (car vars)
-                  (car rhss)
+                  (parse (car rhss))
                   (parse `(begin ,body)))]
       [else
        (error 'parse-let "not supported yet")])))

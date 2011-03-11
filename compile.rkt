@@ -48,6 +48,8 @@
                        linkage)]
     [(App? exp)
      (compile-application exp cenv target linkage)]
+    [(Let1? exp)
+     (compile-let1 exp cenv target linkage)]
     #;[(Letrec? exp)
      (compile-letrec exp cenv target linkage)]))
 
@@ -474,6 +476,37 @@
          ;; only when the target is the val register.
          (error 'compile "return linkage, target not val: ~s" target)]))
 
+
+(: compile-let1 (Let1 CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-let1 exp cenv target linkage)
+  (let*: ([rhs-code : InstructionSequence 
+                    (compile (Let1-rhs exp)
+                             (extend-lexical-environment/placeholders cenv 1)
+                             (make-EnvLexicalReference 0)
+                             'next)]
+          [after-let1 : Symbol (make-label 'afterLetOne)]
+          [after-body-code : Symbol (make-label 'afterLetBody)]
+          [extended-cenv : CompileTimeEnvironment
+                         (extend-lexical-environment/names cenv (list (Let1-name exp)))]
+          [let-linkage : Linkage
+                       (cond
+                         [(eq? linkage 'next)
+                          'next]
+                         [(eq? linkage 'return)
+                          'return]
+                         [(symbol? linkage)
+                          after-body-code])]
+          [body-code : InstructionSequence
+                     (compile (Let1-body exp) extended-cenv target let-linkage)])
+         (end-with-linkage 
+          linkage
+          extended-cenv
+          (append-instruction-sequences (make-instruction-sequence `(,(make-PushEnvironment 1)))
+                                        rhs-code
+                                        body-code
+                                        after-body-code
+                                        (make-instruction-sequence `(,(make-PopEnvironment 1 0)))
+                                        after-let1))))
 
 
 

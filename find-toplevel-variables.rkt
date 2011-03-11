@@ -40,6 +40,11 @@
       [(App? exp)
        (append (loop (App-operator exp))
                (apply append (map loop (App-operands exp))))]
+      
+      [(Let1? exp)
+       (append (loop (Let1-rhs exp))
+               (list-difference (loop (Let1-body exp))
+                                (list (Let1-name exp))))]
 
       #;[(Letrec? exp)
        (list-difference (append (apply append (map loop (Letrec-procs exp)))

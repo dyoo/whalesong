@@ -2,7 +2,7 @@
 
 (require "il-structs.rkt"
          "simulator-structs.rkt"
-         "simulator-prims.rkt"
+         "simulator-primitives.rkt"
          "simulator.rkt")
 
 

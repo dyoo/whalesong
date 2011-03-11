@@ -1,5 +1,6 @@
 #lang racket/base
 (require "simulator-structs.rkt"
+         "compile.rkt"
          racket/math
          (for-syntax racket/base))
 
@@ -28,13 +29,15 @@
                 (make-undefined)]
                )))))]))
 
-#;(define my-callcc
-    (make-primitive-proc
-     (lambda (machine return-label k)
-       (make-primitive-proc (lambda (m2 r2 k2)
-                              ...)))))
+(define my-callcc
+  (make-closure call/cc-label
+                1
+                '()))
 
 
+
+
+    
 
 (define e (exp 1))
 

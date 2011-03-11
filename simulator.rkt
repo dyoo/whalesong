@@ -11,7 +11,7 @@
          racket/match
          (for-syntax racket/base))
 
-(require/typed "simulator-prims.rkt"
+(require/typed "simulator-primitives.rkt"
                [lookup-primitive (Symbol -> PrimitiveValue)])
                
 

@@ -9,18 +9,27 @@
          "sets.rkt"
          racket/list)
 
-(provide (rename-out [-compile compile]))
+(provide (rename-out [-compile compile])
+         compile-procedure-call
+         append-instruction-sequences
+         
+         call/cc-label)
 
 ;(provide compile-top)
 
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
 (define (-compile exp target linkage)
   (statements
-   (compile (make-Top (make-Prefix (find-toplevel-variables exp))
-                      exp)
-            (list)
-            target 
-            linkage)))
+   (let ([end (make-label 'end)])
+     (append-instruction-sequences
+      (compile (make-Top (make-Prefix (find-toplevel-variables exp))
+                         exp)
+               (list)
+               target 
+               linkage)
+      (make-instruction-sequence `(,(make-GotoStatement (make-Label end))))
+      (make-call/cc-code)
+      end))))
 
 
 
@@ -275,6 +284,7 @@
           (compile (Lam-body exp) extended-cenv 'val 'return))))
 
 
+
 #;(: compile-letrec (Letrec CompileTimeEnvironment Target Linkage -> InstructionSequence))
 #;(define (compile-letrec exp cenv target linkage)
   (let* ([after-let (make-label 'afterLet)]
@@ -380,13 +390,13 @@
                                                   InstructionSequence))
 ;; Assumes the procedure value has been loaded into the proc register.
 ;; n is the number of arguments passed in.
+;; cenv is the compile-time enviroment before arguments have been shifted in.
+;; extended-cenv is the compile-time environment after arguments have been shifted in.
 (define (compile-procedure-call cenv extended-cenv n target linkage)
   (let ([primitive-branch (make-label 'primitiveBranch)]
         [compiled-branch (make-label 'compiledBranch)]
         [after-call (make-label 'afterCall)])
-    (let ([compiled-linkage
-           (if (eq? linkage 'next) after-call linkage)])
-      
+    (let ([compiled-linkage (if (eq? linkage 'next) after-call linkage)])
       (append-instruction-sequences
        (make-instruction-sequence 
         `(,(make-TestAndBranchStatement 'primitive-procedure?
@@ -536,3 +546,42 @@
   (if (>= n 0)
       n
       (error 'ensure-natural "Not a natural: ~s\n" n)))
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; The primitive code necessary to do call/cc
+
+(: call/cc-label Symbol)
+(define call/cc-label 'callCCEntry)
+
+;; (call/cc f)
+;; Tail-calls f, providing it a special object that knows how to do the low-level
+;; manipulations.
+
+(define (make-call/cc-code)
+  (append-instruction-sequences
+   (make-instruction-sequence 
+    `(,call/cc-label
+      ;; Precondition: the environment holds the f function that we want to jump into.
+      
+      ;; First, move f to the proc register
+      ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0))
+      
+      ;; Next, capture the current continuation closure and target it into env[0].
+      ;; FIXME!
+      ,(make-AssignImmediateStatement (make-EnvLexicalReference 0) (make-Const "I should be a continuation"))))
+
+   ;; Finally, tail call into f.
+   (compile-procedure-call (extend-lexical-environment/placeholders '() 1)
+                           (extend-lexical-environment/placeholders '() 1)
+                           1 
+                           'val
+                           'return)))
+
+

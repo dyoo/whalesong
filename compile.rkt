@@ -410,16 +410,7 @@
              ;; Optimization: we put the result directly in the registers, or in
              ;; the appropriate spot on the stack.  This takes into account the popenviroment
              ;; that happens right afterwards.
-             (cond [(eq? target 'val)
-                    'val]
-                   [(eq? target 'proc)
-                    'proc]
-                   [(EnvLexicalReference? target)
-                    ;; The optimization is right here.
-                    (make-EnvLexicalReference (+ (EnvLexicalReference-depth target) n))]
-                   [(EnvPrefixReference? target)
-                    ;; The optimization is right here.
-                    (make-EnvPrefixReference (+ (EnvPrefixReference-depth target) n) (EnvPrefixReference-pos target))])
+             (adjust-target-depth target n)                     
              (make-ApplyPrimitiveProcedure n after-call))
            ,(make-PopEnvironment n 0))))
 
@@ -496,8 +487,9 @@
                           'return]
                          [(symbol? linkage)
                           after-body-code])]
+          [body-target : Target (adjust-target-depth target 1)]
           [body-code : InstructionSequence
-                     (compile (Let1-body exp) extended-cenv target let-linkage)])
+                     (compile (Let1-body exp) extended-cenv body-target let-linkage)])
          (end-with-linkage 
           linkage
           extended-cenv
@@ -508,6 +500,18 @@
                                         (make-instruction-sequence `(,(make-PopEnvironment 1 0)))
                                         after-let1))))
 
+(: adjust-target-depth (Target Natural -> Target))
+(define (adjust-target-depth target n)
+  (cond
+    [(eq? target 'val)
+     target]
+    [(eq? target 'proc)
+     target]
+    [(EnvLexicalReference? target)
+     (make-EnvLexicalReference (+ n (EnvLexicalReference-depth target)))]
+    [(EnvPrefixReference? target)
+     (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
+                              (EnvPrefixReference-pos target))]))
 
 
 

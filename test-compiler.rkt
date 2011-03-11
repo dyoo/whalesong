@@ -495,13 +495,21 @@
                    [y (+ x 1)]
                    [z (+ x y)])
                (list x y z))
+            4)
+      (list (list 3 4 7)
+            4))
+
+
+(test (list (let* ([x 3]
+                   [y (+ x 1)]
+                   [z (+ x y)])
+               (list x y z))
             (let* ([x 17]
                    [y (+ x 1)]
                    [z (+ x y)])
                (list x y z)))
       (list (list 3 4 7)
-            (list 17 18 35))
-      #:debug? #t)
+            (list 17 18 35)))
             
 
 

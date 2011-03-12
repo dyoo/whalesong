@@ -83,3 +83,13 @@
                                   (display 3))))
               (program))
       "11213")
+
+
+(test '(begin (define (f return)
+                (return 2)
+                3)
+              (display (f (lambda (x) x))) ; displays 3
+              (display (call/cc f)) ;; displays 2
+              )
+      "32")
+

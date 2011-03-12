@@ -354,9 +354,11 @@ EOF
     [(GetControlStackLabel? op)
      (format "MACHINE.control[MACHINE.control.length-1].label")]
     [(CaptureEnvironment? op)
-     (format "MACHINE.env.slice(0)")]
+     (format "MACHINE.env.slice(0, MACHINE.env.length - ~a)"
+             (CaptureEnvironment-skip op))]
     [(CaptureControl? op)
-     (format "MACHINE.control.slice(0)")]))
+     (format "MACHINE.control.slice(0, MACHINE.control.length - ~a)"
+             (CaptureControl-skip op))]))
 
 
 (: assemble-op-statement (PrimitiveCommand -> String))

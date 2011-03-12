@@ -3,7 +3,7 @@
 (require "package.rkt")
 
 (define (test s-exp)
-  (package s-exp (current-output-port)))
+  (package s-exp (open-output-string) #;(current-output-port)))
 
 
 (test '(define (factorial n)

@@ -38,7 +38,14 @@ EOF
 ;; fracture: (listof stmt) -> (listof basic-block)
 (: fracture ((Listof Statement) -> (Listof BasicBlock)))
 (define (fracture stmts)
-  (let* ([first-block-label (make-label 'start)]
+  (let* ([first-block-label (if (and (not (empty? stmts))
+                                     (symbol? (first stmts)))
+                                (first stmts)
+                                (make-label 'start))]
+         [stmts (if (and (not (empty? stmts))
+                                     (symbol? (first stmts)))
+                    (rest stmts)
+                    stmts)]
          [jump-targets 
           (cons first-block-label (collect-general-jump-targets stmts))])
     (let: loop : (Listof BasicBlock)

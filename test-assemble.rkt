@@ -4,6 +4,7 @@
          "browser-evaluate.rkt"
          "parse.rkt"
          "il-structs.rkt"
+         "compile.rkt"
          racket/port
          racket/promise
          racket/runtime-path)
@@ -41,7 +42,16 @@
                             [code
                              (string-append
                               "(function() { "
+                              
+                                ;; The support code for call/cc
+                              (string-join (map assemble-basic-block 
+                                                (fracture (statements 
+                                                           (make-call/cc-code))))
+                                           "\n")
+                              
                               runtime
+                              
+                              
                               "return function(success, fail, params){" snippet
                               (format "success(String(~a)); };" inspector)
                               "});")])
@@ -57,6 +67,14 @@
                                  [inspector (cdr a-statement+inspector)])
                             
                             (display "(function() { " op)
+                            
+                            (display
+                             (string-join (map assemble-basic-block 
+                                                (fracture (statements 
+                                                           (make-call/cc-code))))
+                                           "\n")
+                             op)
+                            
                             (display runtime op)
                             
                             (display "var myInvoke = " op)

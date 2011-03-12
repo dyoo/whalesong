@@ -10,6 +10,24 @@
 
 // No error trapping at the moment.
 
+
+var Frame = function(label, proc) {
+    this.label = label;
+    this.proc = proc;
+};
+
+
+// A closure consists of its free variables as well as a label
+// into its text segment.
+var Closure = function(label, arity, closedVals, displayName) {
+    this.label = label;
+    this.arity = arity;
+    this.closedVals = closedVals;
+    this.displayName = displayName;
+};
+
+
+
 var Primitives = (function() {
     var NULL = [];
     return {
@@ -128,30 +146,16 @@ var Primitives = (function() {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg - 1;
 	}
-// 	,
-// 	'call/cc': new Closure(callCCEntry,
-// 			       1,
-// 			       [],
-// 			       "call/cc")
+ 	,
+ 	'call/cc': new Closure(callCCEntry,
+ 			       1,
+ 			       [],
+ 			       "call/cc")
 
     };
 })();
 
 
-var Frame = function(label, proc) {
-    this.label = label;
-    this.proc = proc;
-};
-
-
-// A closure consists of its free variables as well as a label
-// into its text segment.
-var Closure = function(label, arity, closedVals, displayName) {
-    this.label = label;
-    this.arity = arity;
-    this.closedVals = closedVals;
-    this.displayName = displayName;
-};
 
 
 // // adaptToJs: closure -> (array (X -> void) -> void)

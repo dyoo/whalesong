@@ -5,5 +5,4 @@
          "test-compiler.rkt"
          "test-assemble.rkt"
          "test-browser-evaluate.rkt"
-         "test-package.rkt"
-         )
+         "test-package.rkt")

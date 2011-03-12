@@ -14,8 +14,14 @@
 
                                                    (Pairof PrimitiveValue PrimitiveValue)
                                                    )))
-(define-type SlotValue (U PrimitiveValue toplevel))
+(define-type SlotValue (U PrimitiveValue 
+                          toplevel
+                          CapturedControl
+                          CapturedEnvironment))
 
+;; For continuation capture:
+(define-struct: CapturedControl ([frames : (Listof frame)]))
+(define-struct: CapturedEnvironment ([vals : (Listof SlotValue)]))
 
 
 (define-struct: machine ([val : SlotValue]

@@ -535,5 +535,13 @@
         (call/cc (lambda (k) (+ x x))))
       32)
 
+
+(test (let ([x 16])
+        (call/cc (lambda (k) 
+                   (k "escape!")
+                   (+ x x))))
+      "escape!")
+
+
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

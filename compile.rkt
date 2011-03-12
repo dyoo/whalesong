@@ -574,37 +574,31 @@
       ;; First, move f to the proc register
       ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0))
       
-      
-      ;; Next, capture the envrionment and the current continuation closure,
-      ;; targetting env[0].
-      ;; FIXME!
+      ;; Next, capture the envrionment and the current continuation closure,.
       ,(make-PushEnvironment 2)
       ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0) 
+                                   (make-CaptureControl 0))
+      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1)
                                    ;; When capturing, skip over f and the two slots we just added.
                                    (make-CaptureEnvironment 3))
-      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1) 
-                                   (make-CaptureControl 0))
-      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0)                                       
+      ,(make-AssignPrimOpStatement (adjust-target-depth (make-EnvLexicalReference 0) 2)
                                    (make-MakeCompiledProcedure call/cc-closure-entry
-                                                               1  ;; the continuation consumes a single value
+                                                               1 ;; the continuation consumes a single value
                                                                (list (make-EnvLexicalReference 0)
                                                                      (make-EnvLexicalReference 1))))
       ,(make-PopEnvironment 2 0)))
                                    
-
    ;; Finally, do a tail call into f.
-   (compile-procedure-call (extend-lexical-environment/placeholders '() 1)
+   (compile-procedure-call '()
                            (extend-lexical-environment/placeholders '() 1)
                            1 
                            'val
                            'return)
    
-   
    ;; The code for the continuation coe follows.  It's supposed to
    ;; abandon the current continuation, initialize the control and environment, and then jump.
    (make-instruction-sequence `(,call/cc-closure-entry
                                 ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0))
-                                
                                 ,(make-PerformStatement (make-RestoreControl!))
                                 ,(make-PerformStatement (make-RestoreEnvironment!))
                                 

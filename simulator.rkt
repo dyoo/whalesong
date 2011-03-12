@@ -13,7 +13,7 @@
 
 (require/typed "simulator-primitives.rkt"
                [lookup-primitive (Symbol -> PrimitiveValue)])
-               
+
 
 (provide new-machine can-step? step! current-instruction
          
@@ -44,32 +44,32 @@
 ;; Take one simulation step.
 (define (step! m)
   (let: ([i : Statement (current-instruction m)])
-         (cond
-           [(symbol? i)
-            'ok]
-           [(AssignImmediateStatement? i)
-            (step-assign-immediate! m i)]
-           [(AssignPrimOpStatement? i)
-            (step-assign-primitive-operation! m i)]
-           [(PerformStatement? i)
-            (step-perform! m i)]
-           [(GotoStatement? i)
-            (step-goto! m i)]
-           [(TestAndBranchStatement? i)
-            (step-test-and-branch! m i)]
-           [(PopEnvironment? i)
-            (step-pop-environment! m i)]
-           [(PushEnvironment? i)
-            (step-push-environment! m i)]
-           [(PushControlFrame? i)
-            (step-push-control-frame! m i)]
-           [(PopControlFrame? i)
-            (step-pop-control-frame! m i)]))
+        (cond
+          [(symbol? i)
+           'ok]
+          [(AssignImmediateStatement? i)
+           (step-assign-immediate! m i)]
+          [(AssignPrimOpStatement? i)
+           (step-assign-primitive-operation! m i)]
+          [(PerformStatement? i)
+           (step-perform! m i)]
+          [(GotoStatement? i)
+           (step-goto! m i)]
+          [(TestAndBranchStatement? i)
+           (step-test-and-branch! m i)]
+          [(PopEnvironment? i)
+           (step-pop-environment! m i)]
+          [(PushEnvironment? i)
+           (step-push-environment! m i)]
+          [(PushControlFrame? i)
+           (step-push-control-frame! m i)]
+          [(PopControlFrame? i)
+           (step-pop-control-frame! m i)]))
   (increment-pc! m))
 
 
-  
-    
+
+
 (: step-goto! (machine GotoStatement -> 'ok))
 (define (step-goto! m a-goto)
   (let: ([t : (U Label Reg) (GotoStatement-target a-goto)])
@@ -102,12 +102,12 @@
 (: step-push-environment! (machine PushEnvironment -> 'ok))
 (define (step-push-environment! m stmt)
   (let: loop : 'ok ([n : Natural (PushEnvironment-n stmt)])
-    (cond
-      [(= n 0)
-       'ok]
-      [else
-       (env-push! m (make-undefined))
-       (loop (sub1 n))])))
+        (cond
+          [(= n 0)
+           'ok]
+          [else
+           (env-push! m (make-undefined))
+           (loop (sub1 n))])))
 
 (: step-pop-environment! (machine PopEnvironment -> 'ok))
 (define (step-pop-environment! m stmt)
@@ -136,7 +136,7 @@
             (jump! m (TestAndBranchStatement-label stmt))
             'ok)))
 
-      
+
 (: lookup-atomic-register (machine AtomicRegisterSymbol -> SlotValue))
 (define (lookup-atomic-register m reg)
   (cond [(eq? reg 'val)
@@ -157,7 +157,7 @@
 (define (step-perform! m stmt)
   (let: ([op : PrimitiveCommand (PerformStatement-op stmt)])
         (cond
-
+          
           [(CheckToplevelBound!? op)
            (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])
                  (cond
@@ -176,8 +176,8 @@
                         'ok
                         (error 'check-closure-arity "arity mismatch"))]
                    [else
-                    (error 'check-closure-arity "not a closure")]))]
-
+                    (error 'check-closure-arity "not a closure: ~s" clos)]))]
+          
           [(ExtendEnvironment/Prefix!? op)
            (env-push! m 
                       (make-toplevel (map lookup-primitive 
@@ -193,9 +193,13 @@
                            a-proc)]))]
           
           [(RestoreControl!? op)
-           (error 'fixme)]
+           (set-machine-control! m (CapturedControl-frames (ensure-CapturedControl (env-ref m 0))))
+           'ok]
+
           [(RestoreEnvironment!? op)
-           (error 'fixme)])))
+           (set-machine-env! m (CapturedEnvironment-vals (ensure-CapturedEnvironment (env-ref m 1))))
+           'ok])))
+
 
 (: get-target-updater (Target -> (machine SlotValue -> 'ok)))
 (define (get-target-updater t)
@@ -218,7 +222,7 @@
 (define (step-assign-primitive-operation! m stmt)
   (let: ([op : PrimitiveOperator (AssignPrimOpStatement-op stmt)]
          [target-updater! : (machine SlotValue -> 'ok)
-                         (get-target-updater (AssignPrimOpStatement-target stmt))])
+                          (get-target-updater (AssignPrimOpStatement-target stmt))])
         (cond
           [(GetCompiledProcedureEntry? op)
            (let: ([a-proc : SlotValue (machine-proc m)])
@@ -227,14 +231,14 @@
                     (target-updater! m (closure-label a-proc))]
                    [else
                     (error 'get-compiled-procedure-entry)]))]
-
+          
           [(MakeCompiledProcedure? op)
            (target-updater! m (make-closure (MakeCompiledProcedure-label op)
-                                           (MakeCompiledProcedure-arity op)
-                                           (map (lambda: ([r : EnvReference])
-                                                         (lookup-env-reference m r))
-                                                (MakeCompiledProcedure-closed-vals op))))]
-
+                                            (MakeCompiledProcedure-arity op)
+                                            (map (lambda: ([r : EnvReference])
+                                                          (lookup-env-reference m r))
+                                                 (MakeCompiledProcedure-closed-vals op))))]
+          
           [(ApplyPrimitiveProcedure? op)
            (let: ([prim : SlotValue (machine-proc m)]
                   [args : (Listof PrimitiveValue)
@@ -243,20 +247,23 @@
                  (cond
                    [(primitive-proc? prim)
                     (target-updater! m (ensure-primitive-value (apply (primitive-proc-f prim)
-                                                                     m
-                                                                     (ApplyPrimitiveProcedure-label op)
-                                                                     args)))]
+                                                                      m
+                                                                      (ApplyPrimitiveProcedure-label op)
+                                                                      args)))]
                    [else
                     (error 'apply-primitive-procedure)]))]
-                   
+          
           [(GetControlStackLabel? op)
            (target-updater! m (frame-return (first (machine-control m))))]
           [(CaptureEnvironment? op)
-           (error 'fixme)]
+           (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
+                                                              (CaptureEnvironment-skip op))))]
           [(CaptureControl? op)
-           (error 'fixme)])))
+           (target-updater! m (make-CapturedControl (drop (machine-control m)
+                                                          (CaptureControl-skip op))))])))
 
-           
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -277,7 +284,7 @@
               (machine-proc m)]
              [(eq? n 'val)
               (machine-val m)]))]
-
+    
     [(EnvLexicalReference? an-oparg)
      (let: ([v : SlotValue
                (list-ref (machine-env m) (EnvLexicalReference-depth an-oparg))])
@@ -297,7 +304,7 @@
                         (EnvPrefixReference-pos an-oparg))]
              [else
               (error 'evaluate-oparg "not a toplevel: ~s" a-top)]))]
-
+    
     
     [(EnvWholePrefixReference? an-oparg)
      (let: ([v : SlotValue
@@ -353,7 +360,7 @@
      v]
     [else
      (error 'ensure-symbol)]))
-  
+
 
 (: ensure-toplevel (Any -> toplevel))
 (define (ensure-toplevel v)
@@ -369,6 +376,19 @@
       x
       (error 'ensure-natural)))
 
+(: ensure-CapturedControl (Any -> CapturedControl))
+(define (ensure-CapturedControl x)
+  (if (CapturedControl? x)
+      x
+      (error 'ensure-CapturedControl "~s" x)))
+
+
+(: ensure-CapturedEnvironment (Any -> CapturedEnvironment))
+(define (ensure-CapturedEnvironment x)
+  (if (CapturedEnvironment? x)
+      x
+      (error 'ensure-CapturedEnvironment "~s" x)))
+
 
 (: current-instruction (machine -> Statement))
 (define (current-instruction m)
@@ -377,7 +397,7 @@
                           stack-size))
      (vector-ref text pc)]))
 
-  
+
 
 (: val-update! (machine SlotValue -> 'ok))
 (define (val-update! m v)
@@ -437,10 +457,10 @@
   (match m
     [(struct machine (val proc env control pc text stack-size))
      (set-machine-env! m (append (take env skip)
-                                    (drop env (+ skip n))))
+                                 (drop env (+ skip n))))
      (set-machine-stack-size! m (ensure-natural (- stack-size n)))
      'ok]))
-                   
+
 
 (: control-push! (machine frame -> 'ok))
 (define (control-push! m a-frame)

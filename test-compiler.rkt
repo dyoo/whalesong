@@ -26,6 +26,7 @@
                                    #'stx))
              (unless (= (machine-stack-size a-machine) 1)
                (raise-syntax-error #f (format "Stack is not back to the prefix as expected!")
+
                                    #'stx))
              (unless (null? (machine-control a-machine))
                (raise-syntax-error #f (format "Control is not empty as expected!")
@@ -536,11 +537,11 @@
       32)
 
 
-(test (let ([x 16])
-        (call/cc (lambda (k) 
-                   (k "escape!")
-                   (+ x x))))
-      "escape!")
+(test (add1 (let ([x 16])
+              (call/cc (lambda (k) 
+                         (k 0)
+                         (+ x x)))))
+      1)
 
 
 ;(simulate (compile (parse '42) 'val 'next))

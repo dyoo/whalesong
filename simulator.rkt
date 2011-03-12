@@ -198,6 +198,7 @@
 
           [(RestoreEnvironment!? op)
            (set-machine-env! m (CapturedEnvironment-vals (ensure-CapturedEnvironment (env-ref m 1))))
+           (set-machine-stack-size! m (length (machine-env m)))
            'ok])))
 
 

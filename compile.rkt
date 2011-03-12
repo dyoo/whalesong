@@ -599,9 +599,9 @@
    ;; abandon the current continuation, initialize the control and environment, and then jump.
    (make-instruction-sequence `(,call/cc-closure-entry
                                 ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0))
+                                ,(make-PerformStatement (make-InstallClosureValues!))
                                 ,(make-PerformStatement (make-RestoreControl!))
                                 ,(make-PerformStatement (make-RestoreEnvironment!))
-                                
                                 ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
                                 ,(make-PopControlFrame)
                                 ,(make-GotoStatement (make-Reg 'proc))))))

@@ -34,11 +34,6 @@
                 1
                 '()))
 
-
-
-
-    
-
 (define e (exp 1))
 
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= cons list car cdr

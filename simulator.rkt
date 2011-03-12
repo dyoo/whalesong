@@ -16,8 +16,11 @@
 
 
 (provide new-machine can-step? step! current-instruction
-         
+         current-simulated-output-port
          machine-control-size)
+
+
+(define current-simulated-output-port (make-parameter (current-output-port)))
 
 
 (: new-machine ((Listof Statement) -> machine))
@@ -247,10 +250,13 @@
                                                           (ApplyPrimitiveProcedure-arity op)))])
                  (cond
                    [(primitive-proc? prim)
-                    (target-updater! m (ensure-primitive-value (apply (primitive-proc-f prim)
-                                                                      m
-                                                                      (ApplyPrimitiveProcedure-label op)
-                                                                      args)))]
+                    (target-updater! m (ensure-primitive-value 
+                                        (parameterize ([current-output-port
+                                                        (current-simulated-output-port)])
+                                          (apply (primitive-proc-f prim)
+                                                 m
+                                                 (ApplyPrimitiveProcedure-label op)
+                                                 args))))]
                    [else
                     (error 'apply-primitive-procedure)]))]
           

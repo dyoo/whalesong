@@ -544,5 +544,22 @@
       1)
 
 
+;; Reference:  http://lists.racket-lang.org/users/archive/2009-January/029812.html
+(let ([op (open-output-string)])
+  (parameterize ([current-simulated-output-port op])
+    (test (begin (define program (lambda ()
+                                 (let ((y (call/cc (lambda (c) c))))
+                                   (display 1)
+                                   (call/cc (lambda (c) (y c)))
+                                   (display 2)
+                                   (call/cc (lambda (c) (y c)))
+                                   (display 3))))
+               (program))
+        (void))
+    (unless (string=? (get-output-string op)
+                      "11213")
+      (error "puzzle failed: ~s" (get-output-string op)))))
+                
+
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

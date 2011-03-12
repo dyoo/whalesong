@@ -120,6 +120,10 @@ EOF
       [(ApplyPrimitiveProcedure? op)
        (list (ApplyPrimitiveProcedure-label op))]
       [(GetControlStackLabel? op)
+       empty]
+      [(CaptureEnvironment? op)
+       empty]
+      [(CaptureControl? op)
        empty]))
 
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
@@ -132,6 +136,10 @@ EOF
       [(ExtendEnvironment/Prefix!? op)
        empty]
       [(InstallClosureValues!? op)
+       empty]
+      [(RestoreEnvironment!? op)
+       empty]
+      [(RestoreControl!? op)
        empty]))
   
   (unique/eq?
@@ -337,7 +345,11 @@ EOF
              (ApplyPrimitiveProcedure-label op))]
 
     [(GetControlStackLabel? op)
-     (format "MACHINE.control[MACHINE.control.length-1].label")]))
+     (format "MACHINE.control[MACHINE.control.length-1].label")]
+    [(CaptureEnvironment? op)
+     (format "MACHINE.env.slice(0)")]
+    [(CaptureControl? op)
+     (format "MACHINE.control.slice(0)")]))
 
 
 (: assemble-op-statement (PrimitiveCommand -> String))
@@ -366,7 +378,11 @@ EOF
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     "MACHINE.env.splice.apply(MACHINE.env, [MACHINE.env.length, 0].concat(MACHINE.proc.closedVals));"]))
+     "MACHINE.env.splice.apply(MACHINE.env, [MACHINE.env.length, 0].concat(MACHINE.proc.closedVals));"]
+    [(RestoreEnvironment!? op)
+     "MACHINE.env = MACHINE.env[MACHINE.env.length - 2].slice(0);"]
+    [(RestoreControl!? op)
+     "MACHINE.control = MACHINE.env[MACHINE.env.length - 1].slice(0);"]))
 
 
 (: assemble-input (OpArg -> String))

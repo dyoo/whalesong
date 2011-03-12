@@ -13,7 +13,8 @@
          compile-procedure-call
          append-instruction-sequences
          
-         call/cc-label)
+         call/cc-label
+         make-call/cc-code)
 
 ;(provide compile-top)
 

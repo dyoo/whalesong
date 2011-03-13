@@ -33,8 +33,11 @@
   (make-closure call/cc-label
                 1
                 '()))
+(define call-with-current-continuation call/cc)
 
 (define e (exp 1))
+
+
 
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= cons list car cdr
                                                      sub1
@@ -52,4 +55,4 @@
                                                      display
                                                      displayln
                                                      newline)
-                                      #:constants (null pi e call/cc)))
+                                      #:constants (null pi e call/cc call-with-current-continuation)))

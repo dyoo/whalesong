@@ -129,6 +129,11 @@ var Primitives = (function() {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg[1];
 	},
+	
+	'not': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return (!firstArg);
+	},
 
 	'null' : NULL,
 
@@ -150,7 +155,11 @@ var Primitives = (function() {
  	'call/cc': new Closure(callCCEntry,
  			       1,
  			       [],
- 			       "call/cc")
+ 			       "call/cc"),
+	'call-with-current-continuation': new Closure(callCCEntry,
+ 						      1,
+ 						      [],
+ 						      "call-with-current-continuation")
 
     };
 })();

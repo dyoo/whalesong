@@ -561,5 +561,47 @@
       (error "puzzle failed: ~s" (get-output-string op)))))
                 
 
+
+
+;; ctak
+(test (begin
+        (define (ctak x y z)
+          (call-with-current-continuation
+           (lambda (k)
+             (ctak-aux k x y z))))
+        
+        (define (ctak-aux k x y z)
+          (cond ((not (< y x))  ;xy
+                 (k z))
+                (else (call-with-current-continuation
+                       (ctak-aux
+                        k
+                        (call-with-current-continuation
+                         (lambda (k)
+                           (ctak-aux k
+                                     (- x 1)
+                                     y
+                                     z)))
+                        (call-with-current-continuation
+                         (lambda (k)
+                           (ctak-aux k
+                                     (- y 1)
+                                     z
+                                     x)))
+                        (call-with-current-continuation
+                         (lambda (k)
+                           (ctak-aux k
+                                     (- z 1)
+                                     x
+                                     y))))))))
+        (ctak 18 12 6))
+      7)
+
+
+
+
+
+
+
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

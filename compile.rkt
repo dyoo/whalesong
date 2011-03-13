@@ -159,7 +159,7 @@
                           `(,(make-AssignImmediateStatement 
                               target
                               (make-EnvLexicalReference (LocalAddress-depth lexical-pos)
-                                                        #f)))))]
+                                                        (LocalAddress-unbox? lexical-pos))))))]
       [(PrefixAddress? lexical-pos)
        (end-with-linkage linkage
                          cenv

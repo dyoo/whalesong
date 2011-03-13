@@ -11,18 +11,12 @@
 (define-struct: Prefix ([names : (Listof Symbol)])
   #:transparent)
 
-#;(define-struct: FunctionExtension ([names : (Listof Symbol)])
-  #:transparent)
 
-#;(define-struct: LocalExtension ([names : (Listof Symbol)])
-  #:transparent)
-
-#;(define-struct: TemporaryExtension ([n : Natural])
-  #:transparent)
 
 
 (define-type CompileTimeEnvironmentEntry (U Prefix ;; a prefix
                                             Symbol
+                                            (Boxof Symbol) ;; A boxed local
                                             False
                                             #;FunctionExtension
                                             #;LocalExtension
@@ -35,7 +29,8 @@
 
 ;; A lexical address is a reference to an value in the environment stack.
 (define-type LexicalAddress (U LocalAddress PrefixAddress))
-(define-struct: LocalAddress ([depth : Natural])
+(define-struct: LocalAddress ([depth : Natural]
+                              [unbox? : Boolean])
   #:transparent)
 (define-struct: PrefixAddress ([depth : Natural]
                                [pos : Natural]

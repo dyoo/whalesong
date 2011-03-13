@@ -7,6 +7,7 @@
 (provide find-variable 
          extend-lexical-environment
          extend-lexical-environment/names
+         extend-lexical-environment/boxed-names
          extend-lexical-environment/placeholders
          collect-lexical-references
          lexical-references->compile-time-environment)
@@ -39,7 +40,14 @@
                    [(symbol? elt)
                     (cond
                       [(eq? elt name)
-                       (make-LocalAddress depth)]
+                       (make-LocalAddress depth #f)]
+                      [else
+                       (loop (rest cenv) (add1 depth))])]
+
+                   [(box? elt)
+                    (cond
+                      [(eq? (unbox elt) name)
+                       (make-LocalAddress depth #t)]
                       [else
                        (loop (rest cenv) (add1 depth))])]
                    
@@ -73,6 +81,11 @@
   (append names cenv))
 
 
+(: extend-lexical-environment/boxed-names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
+(define (extend-lexical-environment/boxed-names cenv names)
+  (append (map (inst box Symbol) names) cenv))
+
+
 (: extend-lexical-environment/placeholders
    (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
 ;; Add placeholders to the lexical environment (This represents what happens during procedure application.)
@@ -102,7 +115,7 @@
                      [(LocalAddress? addr)
                       (set-insert! lexical-references
                                    (make-EnvLexicalReference (LocalAddress-depth addr)
-                                                             #f))
+                                                             (LocalAddress-unbox? addr)))
                       (loop (rest addresses))]
                      [(PrefixAddress? addr)
                       (set-insert! prefix-references

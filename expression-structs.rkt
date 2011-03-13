@@ -5,9 +5,8 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App #;Letrec
-                               Let1
-                               Let))
+(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App
+                               Let1 Let LetRec))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)
@@ -31,6 +30,10 @@
 (define-struct: Let ([names : (Listof Symbol)]
                      [rhss : (Listof ExpressionCore)]
                      [body : ExpressionCore])
+  #:transparent)
+(define-struct: LetRec ([names : (Listof Symbol)]
+                        [rhss : (Listof ExpressionCore)]
+                        [body : ExpressionCore])
   #:transparent)
 
 

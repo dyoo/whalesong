@@ -61,7 +61,9 @@
     [(Let1? exp)
      (compile-let1 exp cenv target linkage)]
     [(Let? exp)
-     (compile-let exp cenv target linkage)]))
+     (compile-let exp cenv target linkage)]
+    [(LetRec? exp)
+     (compile-letrec exp cenv target linkage)]))
 
 
 
@@ -156,7 +158,8 @@
                          (make-instruction-sequence
                           `(,(make-AssignImmediateStatement 
                               target
-                              (make-EnvLexicalReference (LocalAddress-depth lexical-pos))))))]
+                              (make-EnvLexicalReference (LocalAddress-depth lexical-pos)
+                                                        #f)))))]
       [(PrefixAddress? lexical-pos)
        (end-with-linkage linkage
                          cenv
@@ -335,7 +338,8 @@
                              (if (empty? (App-operands exp))
                                  'proc
                                  (make-EnvLexicalReference 
-                                  (ensure-natural (sub1 (length (App-operands exp))))))
+                                  (ensure-natural (sub1 (length (App-operands exp))))
+                                  #f))
                              'next)]
          [operand-codes (map (lambda: ([operand : Expression]
                                        [target : Target])
@@ -344,7 +348,7 @@
                              (build-list (length (App-operands exp))
                                          (lambda: ([i : Natural])
                                                   (if (< i (sub1 (length (App-operands exp))))
-                                                      (make-EnvLexicalReference i)
+                                                      (make-EnvLexicalReference i #f)
                                                       'val))))])
     
     (append-instruction-sequences
@@ -375,8 +379,8 @@
                   (car ops)
                   (make-instruction-sequence 
                    `(,(make-AssignImmediateStatement 'proc 
-                                                     (make-EnvLexicalReference n))
-                     ,(make-AssignImmediateStatement (make-EnvLexicalReference n)
+                                                     (make-EnvLexicalReference n #f))
+                     ,(make-AssignImmediateStatement (make-EnvLexicalReference n #f)
                                                      (make-Reg 'val))))))]
           [else
            ;; Otherwise, add instructions to juggle the operator and operands in the stack.
@@ -484,7 +488,7 @@
   (let*: ([rhs-code : InstructionSequence 
                     (compile (Let1-rhs exp)
                              (extend-lexical-environment/placeholders cenv 1)
-                             (make-EnvLexicalReference 0)
+                             (make-EnvLexicalReference 0 #f)
                              'next)]
           [after-let1 : Symbol (make-label 'afterLetOne)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
@@ -521,7 +525,7 @@
                                     [i : Natural])
                                    (compile rhs
                                             (extend-lexical-environment/placeholders cenv n)
-                                            (make-EnvLexicalReference i)
+                                            (make-EnvLexicalReference i #f)
                                             'next))
                           (Let-rhss exp)
                           (build-list n
@@ -552,7 +556,44 @@
                                         (make-instruction-sequence `(,(make-PopEnvironment n 0)))
                                         after-let))))
 
-
+(: compile-letrec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-letrec exp cenv target linkage)
+  (let*: ([n : Natural (length (LetRec-rhss exp))]
+          [rhs-codes : (Listof InstructionSequence)
+                     (map (lambda: ([rhs : ExpressionCore]
+                                    [i : Natural])
+                                   (compile rhs
+                                            (extend-lexical-environment/names cenv (LetRec-names exp))
+                                            (make-EnvLexicalReference i #t)
+                                            'next))
+                          (LetRec-rhss exp)
+                          (build-list n
+                                      (lambda: ([i : Natural])
+                                               i)))]
+          [after-letrec : Symbol (make-label 'afterLetRec)]
+          [after-body-code : Symbol (make-label 'afterLetBody)]
+          [extended-cenv : CompileTimeEnvironment
+                         (extend-lexical-environment/names cenv (LetRec-names exp))]
+          [let-linkage : Linkage
+                       (cond
+                         [(eq? linkage 'next)
+                          'next]
+                         [(eq? linkage 'return)
+                          'return]
+                         [(symbol? linkage)
+                          after-body-code])]
+          [body-target : Target (adjust-target-depth target n)]
+          [body-code : InstructionSequence
+                     (compile (LetRec-body exp) extended-cenv body-target let-linkage)])
+         (end-with-linkage 
+          linkage
+          extended-cenv
+          (append-instruction-sequences (make-instruction-sequence `(,(make-PushEnvironment n)))
+                                        (apply append-instruction-sequences rhs-codes)
+                                        body-code
+                                        after-body-code
+                                        (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+                                        after-letrec))))
 
 
 (: adjust-target-depth (Target Natural -> Target))
@@ -563,7 +604,8 @@
     [(eq? target 'proc)
      target]
     [(EnvLexicalReference? target)
-     (make-EnvLexicalReference (+ n (EnvLexicalReference-depth target)))]
+     (make-EnvLexicalReference (+ n (EnvLexicalReference-depth target))
+                               (EnvLexicalReference-unbox? target))]
     [(EnvPrefixReference? target)
      (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
                               (EnvPrefixReference-pos target))]))
@@ -617,20 +659,20 @@
       ;; Precondition: the environment holds the f function that we want to jump into.
       
       ;; First, move f to the proc register
-      ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0))
+      ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
       
       ;; Next, capture the envrionment and the current continuation closure,.
       ,(make-PushEnvironment 2)
-      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0) 
+      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0 #f) 
                                    (make-CaptureControl 0))
-      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1)
+      ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1 #f)
                                    ;; When capturing, skip over f and the two slots we just added.
                                    (make-CaptureEnvironment 3))
-      ,(make-AssignPrimOpStatement (adjust-target-depth (make-EnvLexicalReference 0) 2)
+      ,(make-AssignPrimOpStatement (adjust-target-depth (make-EnvLexicalReference 0 #f) 2)
                                    (make-MakeCompiledProcedure call/cc-closure-entry
                                                                1 ;; the continuation consumes a single value
-                                                               (list (make-EnvLexicalReference 0)
-                                                                     (make-EnvLexicalReference 1))))
+                                                               (list (make-EnvLexicalReference 0 #f)
+                                                                     (make-EnvLexicalReference 1 #f))))
       ,(make-PopEnvironment 2 0)))
                                    
    ;; Finally, do a tail call into f.
@@ -643,7 +685,7 @@
    ;; The code for the continuation coe follows.  It's supposed to
    ;; abandon the current continuation, initialize the control and environment, and then jump.
    (make-instruction-sequence `(,call/cc-closure-entry
-                                ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0))
+                                ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
                                 ,(make-PerformStatement (make-InstallClosureValues!))
                                 ,(make-PerformStatement (make-RestoreControl!))
                                 ,(make-PerformStatement (make-RestoreEnvironment!))

@@ -50,7 +50,14 @@
        (append (apply append (map loop (Let-rhss exp)))
                (list-difference (loop (Let-body exp))
                                 (Let-names exp)))]
-      
+       [(LetRec? exp)
+        (append (apply append (map (lambda: ([rhs : ExpressionCore])
+                                     (list-difference (loop rhs)
+                                                      (LetRec-names exp)))
+                                   (LetRec-rhss exp)))
+                (list-difference (loop (LetRec-body exp))
+                                 (LetRec-names exp)))]
+       
       #;[(Letrec? exp)
        (list-difference (append (apply append (map loop (Letrec-procs exp)))
                                 (loop (Letrec-body exp)))

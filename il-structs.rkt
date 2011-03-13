@@ -39,7 +39,8 @@
   #:transparent)
 (define-struct: Const ([const : Any])
   #:transparent)
-(define-struct: EnvLexicalReference ([depth : Natural])
+(define-struct: EnvLexicalReference ([depth : Natural]
+                                     [unbox? : Boolean])
   #:transparent)
 (define-struct: EnvPrefixReference ([depth : Natural]
                                     [pos : Natural])

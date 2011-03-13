@@ -303,8 +303,11 @@ EOF
 
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
-  (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-          (EnvLexicalReference-depth a-lex-ref)))
+  (if (EnvLexicalReference-unbox? a-lex-ref)
+      (format "MACHINE.env[MACHINE.env.length - 1 - ~a][0]"
+              (EnvLexicalReference-depth a-lex-ref))
+      (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
+              (EnvLexicalReference-depth a-lex-ref))))
 
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)

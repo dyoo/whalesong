@@ -133,17 +133,17 @@
 
 ;; Assigning to the environment
 (test (E-many (list (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 12345)))
               "MACHINE.env[1]")
       "12345")
 (test (E-many (list (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 12345)))
               "MACHINE.env[0]")
       "undefined")
 (test (E-many (list (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const 12345)))
               "MACHINE.env[0]")
       "12345")
@@ -160,9 +160,9 @@
 (test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                     (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                     (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 3))
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const 4))
                     (make-AssignPrimOpStatement 'val
                                                 (make-ApplyPrimitiveProcedure 2 'done))
@@ -188,13 +188,13 @@
                     (make-GotoStatement (make-Label 'afterLambda))
                     'afterLambda
                     (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 
-                                                                                 (list (make-EnvLexicalReference 0)
-                                                                                       (make-EnvLexicalReference 1)))))
+                                                                                 (list (make-EnvLexicalReference 0 #f)
+                                                                                       (make-EnvLexicalReference 1 #f)))))
               "MACHINE.val.closedVals[1] + ',' + MACHINE.val.closedVals[0]")
       "hello,world")
 
@@ -207,13 +207,13 @@
 
                     'afterLambdaBody
                     (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
-                                                                                 (list (make-EnvLexicalReference 0)
-                                                                                       (make-EnvLexicalReference 1))))
+                                                                                 (list (make-EnvLexicalReference 0 #f)
+                                                                                       (make-EnvLexicalReference 1 #f))))
                     (make-PopEnvironment 2 0)
                     (make-GotoStatement (make-Label 'closureStart))
                     'theEnd)
@@ -231,13 +231,13 @@
 
                     'afterLambdaBody
                     (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
-                                                                                 (list (make-EnvLexicalReference 0)
-                                                                                       (make-EnvLexicalReference 1))))
+                                                                                 (list (make-EnvLexicalReference 0 #f)
+                                                                                       (make-EnvLexicalReference 1 #f))))
                     (make-PopEnvironment 2 0)
                     (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))
               "typeof(MACHINE.val) + ',' + (MACHINE.val === MACHINE.proc.label)")
@@ -253,13 +253,13 @@
 
                     'afterLambdaBody
                     (make-PushEnvironment 2)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                    (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
-                                                                                  (list (make-EnvLexicalReference 0)
-                                                                                        (make-EnvLexicalReference 1))))
+                                                                                  (list (make-EnvLexicalReference 0 #f)
+                                                                                        (make-EnvLexicalReference 1 #f))))
                     (make-PopEnvironment 2 0)
                     (make-PerformStatement (make-CheckClosureArity! 5)))))
 
@@ -275,13 +275,13 @@
                   
                   'afterLambdaBody
                   (make-PushEnvironment 2)
-                  (make-AssignImmediateStatement (make-EnvLexicalReference 0)
+                  (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                  (make-Const "hello"))
-                  (make-AssignImmediateStatement (make-EnvLexicalReference 1)
+                  (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                  (make-Const "world"))
                   (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
-                                                                                (list (make-EnvLexicalReference 0)
-                                                                                      (make-EnvLexicalReference 1))))
+                                                                                (list (make-EnvLexicalReference 0 #f)
+                                                                                      (make-EnvLexicalReference 1 #f))))
                   (make-PopEnvironment 2 0)
                   (make-PerformStatement (make-CheckClosureArity! 1)))))
   (error 'expected-failure))

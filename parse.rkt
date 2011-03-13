@@ -43,6 +43,9 @@
     [(let*? exp)
      (parse-let* exp)]
     
+    [(letrec? exp)
+     (parse-letrec exp)]
+    
     [(application? exp)
      (make-App (parse (operator exp))
                (map parse (operands exp)))]
@@ -162,6 +165,17 @@
                  (map parse rhss)
                  (parse `(begin ,@body)))])))
 
+(define (parse-letrec exp)
+  (let ([vars (let-variables exp)]
+        [rhss (let-rhss exp)]
+        [body (let-body exp)])
+    (cond 
+      [(= 0 (length vars))
+       (parse `(begin ,@body))]
+      [else
+       (make-LetRec vars
+                    (map parse rhss)
+                    (parse `(begin ,@body)))])))
 
 (define (parse-let* exp)
   (parse
@@ -180,6 +194,8 @@
 (define (let? exp)
   (tagged-list? exp 'let))
 
+(define (letrec? exp)
+  (tagged-list? exp 'letrec))
 
 ;; any -> boolean
 (define (let*? exp)

@@ -101,7 +101,8 @@
                    (cond
                      [(LocalAddress? addr)
                       (set-insert! lexical-references
-                                   (make-EnvLexicalReference (LocalAddress-depth addr)))
+                                   (make-EnvLexicalReference (LocalAddress-depth addr)
+                                                             #f))
                       (loop (rest addresses))]
                      [(PrefixAddress? addr)
                       (set-insert! prefix-references

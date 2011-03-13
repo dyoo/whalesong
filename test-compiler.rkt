@@ -598,6 +598,13 @@
       7)
 
 
+(test (let ([x 3]
+            [y 4])
+        (let ([x y]
+              [y x])
+          (list x y)))
+      (list 4 3))
+
 
 
 

@@ -158,7 +158,10 @@
                   (parse (car rhss))
                   (parse `(begin ,@body)))]
       [else
-       (error 'parse-let "not supported yet")])))
+       (make-Let vars
+                 (map parse rhss)
+                 (parse `(begin ,@body)))])))
+
 
 (define (parse-let* exp)
   (parse
@@ -172,10 +175,11 @@
          `(let ([,(car vars) ,(car rhss)])
             ,(loop (cdr vars) (cdr rhss)))])))))
               
-          
+    
 ;; any -> boolean
 (define (let? exp)
   (tagged-list? exp 'let))
+
 
 ;; any -> boolean
 (define (let*? exp)

@@ -60,8 +60,8 @@
      (compile-application exp cenv target linkage)]
     [(Let1? exp)
      (compile-let1 exp cenv target linkage)]
-    #;[(Letrec? exp)
-     (compile-letrec exp cenv target linkage)]))
+    [(Let? exp)
+     (compile-let exp cenv target linkage)]))
 
 
 
@@ -510,6 +510,50 @@
                                         after-body-code
                                         (make-instruction-sequence `(,(make-PopEnvironment 1 0)))
                                         after-let1))))
+
+
+
+(: compile-let (Let CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-let exp cenv target linkage)
+  (let*: ([n : Natural (length (Let-rhss exp))]
+          [rhs-codes : (Listof InstructionSequence)
+                     (map (lambda: ([rhs : ExpressionCore]
+                                    [i : Natural])
+                                   (compile rhs
+                                            (extend-lexical-environment/placeholders cenv n)
+                                            (make-EnvLexicalReference i)
+                                            'next))
+                          (Let-rhss exp)
+                          (build-list n
+                                      (lambda: ([i : Natural])
+                                               i)))]
+          [after-let : Symbol (make-label 'afterLet)]
+          [after-body-code : Symbol (make-label 'afterLetBody)]
+          [extended-cenv : CompileTimeEnvironment
+                         (extend-lexical-environment/names cenv (Let-names exp))]
+          [let-linkage : Linkage
+                       (cond
+                         [(eq? linkage 'next)
+                          'next]
+                         [(eq? linkage 'return)
+                          'return]
+                         [(symbol? linkage)
+                          after-body-code])]
+          [body-target : Target (adjust-target-depth target n)]
+          [body-code : InstructionSequence
+                     (compile (Let-body exp) extended-cenv body-target let-linkage)])
+         (end-with-linkage 
+          linkage
+          extended-cenv
+          (append-instruction-sequences (make-instruction-sequence `(,(make-PushEnvironment n)))
+                                        (apply append-instruction-sequences rhs-codes)
+                                        body-code
+                                        after-body-code
+                                        (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+                                        after-let))))
+
+
+
 
 (: adjust-target-depth (Target Natural -> Target))
 (define (adjust-target-depth target n)

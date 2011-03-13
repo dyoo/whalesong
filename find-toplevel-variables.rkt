@@ -46,6 +46,11 @@
                (list-difference (loop (Let1-body exp))
                                 (list (Let1-name exp))))]
 
+      [(Let? exp)
+       (append (apply append (map loop (Let-rhss exp)))
+               (list-difference (loop (Let-body exp))
+                                (Let-names exp)))]
+      
       #;[(Letrec? exp)
        (list-difference (append (apply append (map loop (Letrec-procs exp)))
                                 (loop (Letrec-body exp)))

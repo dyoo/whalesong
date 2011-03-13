@@ -17,8 +17,8 @@
                (unless (string=? output exp)
                  (printf " error!\n")
                  (raise-syntax-error #f (format "Expected ~s, got ~s" exp output)
-                                     #'stx))))
-           (printf " ok\n"))))]))
+                                     #'stx)))
+             (printf " ok (~a milliseconds)\n" (evaluated-t result))))))]))
 
 
 (test '(begin (define (f x) 

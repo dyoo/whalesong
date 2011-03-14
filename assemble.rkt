@@ -257,8 +257,11 @@ EOF
      "MACHINE.control.pop();"]
     [(PushEnvironment? stmt)
      (format "MACHINE.env.push(~a);" (string-join
-                                      (build-list (PushEnvironment-n stmt) (lambda: ([i : Natural])
-                                                                                    "undefined"))
+                                      (build-list (PushEnvironment-n stmt) 
+                                                  (lambda: ([i : Natural])
+                                                           (if (PushEnvironment-unbox? stmt)
+                                                               "[]"
+                                                               "undefined")))
                                       ", "))]
     [(PopEnvironment? stmt)
      (format "MACHINE.env.splice(MACHINE.env.length-(~a),~a);"
@@ -321,13 +324,17 @@ EOF
           (EnvWholePrefixReference-depth a-prefix-ref)))
 
 
-(: assemble-env-reference (EnvReference -> String))
-(define (assemble-env-reference ref)
+(: assemble-env-reference/closure-capture (EnvReference -> String))
+;; When we're capturing the values for a closure, we need to not unbox
+;; lexical references: they must remain boxes.
+(define (assemble-env-reference/closure-capture ref)
   (cond
     [(EnvLexicalReference? ref)
-     (assemble-lexical-reference ref)]
+     (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
+             (EnvLexicalReference-depth ref))]
     [(EnvWholePrefixReference? ref)
-     (assemble-whole-prefix-reference ref)]))
+     (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
+             (EnvWholePrefixReference-depth ref))]))
 
 
 (: assemble-op-expression (PrimitiveOperator -> String))
@@ -340,7 +347,7 @@ EOF
      (format "new Closure(~a, ~a, [~a], ~s)"
              (MakeCompiledProcedure-label op)
              (MakeCompiledProcedure-arity op)
-             (string-join (map assemble-env-reference 
+             (string-join (map assemble-env-reference/closure-capture 
                                ;; The closure values are in reverse order
                                ;; to make it easier to push, in bulk, into
                                ;; the environment (which is also in reversed order)

@@ -125,3 +125,19 @@
                                        y))))))))
           (displayln (ctak 18 12 6)))
        "7\n")
+
+(test '(letrec ([f (lambda (x)
+                    (if (= x 0)
+                        1
+                        (* x (f (sub1 x)))))])
+         (display (f 10)))
+      "3628800")
+
+(test '(letrec ([tak (lambda (x y z)
+                       (if (>= y x)
+                           z
+                           (tak (tak (- x 1) y z)
+                                (tak (- y 1) z x)
+                                (tak (- z 1) x y))))])
+         (displayln (tak 18 12 6)))
+        "7\n")

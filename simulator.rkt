@@ -14,6 +14,9 @@
 (require/typed "simulator-primitives.rkt"
                [lookup-primitive (Symbol -> PrimitiveValue)])
 
+(require/typed "simulator-helpers.rkt"
+               [ensure-primitive-value-box (Any -> (Boxof PrimitiveValue))])
+
 
 (provide new-machine can-step? step! current-instruction
          current-simulated-output-port
@@ -95,7 +98,11 @@
               [(eq? t 'val)
                (val-update! m v)]
               [(EnvLexicalReference? t)
-               (env-mutate! m (EnvLexicalReference-depth t) v)]
+               (if (EnvLexicalReference-unbox? t)
+                   (begin (set-box! (ensure-primitive-value-box (env-ref m (EnvLexicalReference-depth t)))
+                                    (ensure-primitive-value v))
+                          'ok)
+                   (env-mutate! m (EnvLexicalReference-depth t) v))]
               [(EnvPrefixReference? t)
                (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
                                  (EnvPrefixReference-pos t)
@@ -109,7 +116,9 @@
           [(= n 0)
            'ok]
           [else
-           (env-push! m (make-undefined))
+           (env-push! m (if (PushEnvironment-unbox? stmt)
+                            (box (make-undefined))
+                            (make-undefined)))
            (loop (sub1 n))])))
 
 (: step-pop-environment! (machine PopEnvironment -> 'ok))
@@ -151,7 +160,9 @@
 (: lookup-env-reference (machine EnvReference -> SlotValue))
 (define (lookup-env-reference m ref)
   (cond [(EnvLexicalReference? ref)
-         (env-ref m (EnvLexicalReference-depth ref))]
+         (if (EnvLexicalReference-unbox? ref)
+             (ensure-primitive-value-box (env-ref m (EnvLexicalReference-depth ref)))
+             (env-ref m (EnvLexicalReference-depth ref)))]
         [(EnvWholePrefixReference? ref)
          (env-ref m (EnvWholePrefixReference-depth ref))]))
 
@@ -214,7 +225,12 @@
      val-update!]
     [(EnvLexicalReference? t)
      (lambda: ([m : machine] [v : SlotValue])
-              (env-mutate! m (EnvLexicalReference-depth t) v))]
+              (if (EnvLexicalReference-unbox? t)
+                  (begin
+                    (set-box! (ensure-primitive-value-box (env-ref m (EnvLexicalReference-depth t))) 
+                              (ensure-primitive-value v))
+                    'ok)
+                  (env-mutate! m (EnvLexicalReference-depth t) v)))]
     [(EnvPrefixReference? t)
      (lambda: ([m : machine] [v : SlotValue])
               (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
@@ -294,7 +310,7 @@
     
     [(EnvLexicalReference? an-oparg)
      (let: ([v : SlotValue
-               (list-ref (machine-env m) (EnvLexicalReference-depth an-oparg))])
+               (env-ref m (EnvLexicalReference-depth an-oparg))])
            (cond
              [(PrimitiveValue? v)
               v]
@@ -388,6 +404,8 @@
   (if (CapturedControl? x)
       x
       (error 'ensure-CapturedControl "~s" x)))
+
+
 
 
 (: ensure-CapturedEnvironment (Any -> CapturedEnvironment))

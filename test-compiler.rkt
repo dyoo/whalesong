@@ -606,7 +606,7 @@
       (list 4 3))
 
 
-#;(test (letrec ([f (lambda (x)
+(test (letrec ([f (lambda (x)
                     (if (= x 0)
                         1
                         (* x (f (sub1 x)))))])

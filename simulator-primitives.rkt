@@ -116,6 +116,7 @@
                                                     
                                                      symbol->string
                                                      string-append
+                                                     string-length
                                                      
                                                      (my-cons cons)
                                                      (my-list list)

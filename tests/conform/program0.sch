@@ -37,6 +37,12 @@
       (add1 (length (cdr l)))))
 
 
+(define (append l1 l2)
+  (if (null? l1) 
+      l2
+      (cons (car l1) (append (cdr l1) l2))))
+
+
 (define vector-copy
   (lambda (v)
     (let ((length (vector-length v)))

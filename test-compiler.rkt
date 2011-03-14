@@ -2,7 +2,7 @@
 
 (require "simulator.rkt"
          "simulator-structs.rkt"
-         "simulator-primitives.rkt"
+         "simulator-helpers.rkt"
          "compile.rkt"
          "parse.rkt")
 

@@ -15,8 +15,10 @@
                [lookup-primitive (Symbol -> PrimitiveValue)])
 
 (require/typed "simulator-helpers.rkt"
-               [ensure-primitive-value-box (Any -> (Boxof PrimitiveValue))])
-
+               [ensure-primitive-value-box (SlotValue -> (Boxof PrimitiveValue))]
+               [ensure-primitive-value (SlotValue -> PrimitiveValue)]
+               [racket->PrimitiveValue (Any -> PrimitiveValue)])
+             
 
 (provide new-machine can-step? step! current-instruction
          current-simulated-output-port
@@ -296,7 +298,7 @@
 (define (evaluate-oparg m an-oparg)
   (cond
     [(Const? an-oparg)
-     (ensure-primitive-value (Const-const an-oparg))]
+     (racket->PrimitiveValue (Const-const an-oparg))]
     
     [(Label? an-oparg)
      (Label-name an-oparg)]
@@ -351,35 +353,6 @@
       (error 'ensure-closure)))
 
 
-(: ensure-primitive-value (Any -> PrimitiveValue))
-;; Make sure the value is primitive.
-(define (ensure-primitive-value val)
-  (let: loop : PrimitiveValue ([v : Any val])
-        (cond
-          [(string? v)
-           v]
-          [(symbol? v)
-           v]
-          [(number? v)
-           v]
-          [(boolean? v)
-           v]
-          [(null? v)
-           v]
-          [(void? v)
-           v]
-          [(cons? v)
-           (make-MutablePair (loop (car v)) (loop (cdr v)))]
-          [(MutablePair? v)
-           v]
-          [(primitive-proc? v)
-           v]
-          [(closure? v)
-           v]
-          [(undefined? v)
-           v]
-          [else
-           (error 'ensure-primitive-value "Unable to coerse Const ~s to a primitive value" v)])))
 
 (: ensure-symbol (Any -> Symbol))
 ;; Make sure the value is a symbol.

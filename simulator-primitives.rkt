@@ -4,8 +4,7 @@
          racket/math
          (for-syntax racket/base))
 
-(provide lookup-primitive
-         PrimitiveValue->racket)
+(provide lookup-primitive)
 
 
 (define-syntax (make-lookup stx)
@@ -82,7 +81,7 @@
                                                      display
                                                      displayln
                                                      newline
-                                                     
+                                                     symbol->string
                                                      
                                                      (my-cons cons)
                                                      (my-list list)
@@ -96,29 +95,3 @@
                                                         call-with-current-continuation)))
 
 
-
-(define (PrimitiveValue->racket v)
-  (cond
-    [(string? v)
-     v]
-    [(number? v)
-     v]
-    [(symbol? v)
-     v]
-    [(boolean? v)
-     v]
-    [(null? v)
-     v]
-    [(void? v)
-     v]
-    [(undefined? v)
-     (letrec ([x x]) x)]
-    [(primitive-proc? v)
-     v]
-    [(closure? v)
-     v]
-    [(vector? v)
-     (apply vector (map PrimitiveValue->racket (vector->list v)))]
-    [(MutablePair? v)
-     (cons (PrimitiveValue->racket (MutablePair-h v))
-           (PrimitiveValue->racket (MutablePair-t v)))]))

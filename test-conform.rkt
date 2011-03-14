@@ -19,7 +19,8 @@
   (let loop ([steps 0])
     (when debug?
       (when (can-step? m)
-        (printf "|env|=~s, |control|=~s,  instruction=~s\n" 
+        (printf "pc=~s, |env|=~s, |control|=~s,  instruction=~s\n" 
+                (machine-pc m)
                 (length (machine-env m))
                 (length (machine-control m))
                 (current-instruction m))))
@@ -61,6 +62,7 @@
                                    #'stx))
              (printf "ok. ~s steps.\n\n" num-steps)))))]))
 
+(current-simulated-output-port (current-output-port))
 
 (test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt"))

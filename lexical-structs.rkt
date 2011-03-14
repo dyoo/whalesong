@@ -7,8 +7,9 @@
 ;;  Lexical environments
 
 
-;; A toplevel prefix contains a list of toplevel variables.
-(define-struct: Prefix ([names : (Listof Symbol)])
+;; A toplevel prefix contains a list of toplevel variables.  Some of the
+;; names may be masked out by #f.
+(define-struct: Prefix ([names : (Listof (U Symbol False))])
   #:transparent)
 
 

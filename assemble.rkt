@@ -387,12 +387,14 @@ EOF
              )]
     
     [(ExtendEnvironment/Prefix!? op)
-     (let: ([names : (Listof Symbol) (ExtendEnvironment/Prefix!-names op)])
+     (let: ([names : (Listof (U Symbol False)) (ExtendEnvironment/Prefix!-names op)])
            (format "MACHINE.env.push([~a]);"
-                   (string-join (map (lambda: ([n : Symbol])
-                                              (format "MACHINE.params.currentNamespace[~s] || Primitives[~s]"
-                                                      (symbol->string n) 
-                                                      (symbol->string n)))
+                   (string-join (map (lambda: ([n : (U Symbol False)])
+                                              (if (symbol? n)
+                                                  (format "MACHINE.params.currentNamespace[~s] || Primitives[~s]"
+                                                          (symbol->string n) 
+                                                          (symbol->string n))
+                                                  "false"))
                                      names)
                                 ",")))]
     

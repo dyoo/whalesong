@@ -15,7 +15,7 @@
     (cond
       [(Top? exp)
        (list-difference (loop (Top-code exp))
-                        (Prefix-names (Top-prefix exp)))]
+                        (filter symbol? (Prefix-names (Top-prefix exp))))]
       [(Constant? exp)
        empty]
             

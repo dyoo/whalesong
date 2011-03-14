@@ -197,7 +197,10 @@
           
           [(ExtendEnvironment/Prefix!? op)
            (env-push! m 
-                      (make-toplevel (map lookup-primitive 
+                      (make-toplevel (map (lambda: ([id/false : (U Symbol False)])
+                                                   (if (symbol? id/false)
+                                                       (lookup-primitive id/false)
+                                                       #f))
                                           (ExtendEnvironment/Prefix!-names op))))]
           
           [(InstallClosureValues!? op)

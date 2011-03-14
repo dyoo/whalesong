@@ -70,7 +70,7 @@
 (: compile-top (Top CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-top top cenv target linkage)
   (let*: ([cenv : CompileTimeEnvironment (extend-lexical-environment cenv (Top-prefix top))]
-          [names : (Listof Symbol) (Prefix-names (Top-prefix top))])
+          [names : (Listof (U Symbol False)) (Prefix-names (Top-prefix top))])
          (append-instruction-sequences
           (make-instruction-sequence 
            `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
@@ -258,6 +258,7 @@
                                                                        lexical-references)))))
           (compile-lambda-body exp cenv
                                lexical-references
+                               free-vars
                                proc-entry)
           after-lambda)))
 
@@ -268,11 +269,12 @@
 
 (: compile-lambda-body (Lam CompileTimeEnvironment 
                             (Listof EnvReference)
+                            (Listof Symbol)
                             Linkage 
                             -> 
                             InstructionSequence))
 ;; Compiles the body of the lambda in the appropriate environment.
-(define (compile-lambda-body exp cenv lexical-references proc-entry)
+(define (compile-lambda-body exp cenv lexical-references free-variables proc-entry)
   (let*: ([formals : (Listof Symbol) (Lam-parameters exp)]
           [extended-cenv : CompileTimeEnvironment 
                          (extend-lexical-environment/names
@@ -280,7 +282,8 @@
                           formals)]
           [extended-cenv : CompileTimeEnvironment 
                          (lexical-references->compile-time-environment 
-                          lexical-references cenv extended-cenv)])
+                          lexical-references cenv extended-cenv
+                          free-variables)])
          (append-instruction-sequences
           (make-instruction-sequence 
            `(,proc-entry

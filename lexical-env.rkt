@@ -10,14 +10,15 @@
          extend-lexical-environment/boxed-names
          extend-lexical-environment/placeholders
          collect-lexical-references
-         lexical-references->compile-time-environment)
+         lexical-references->compile-time-environment
+         place-prefix-mask)
 
 
 ;; find-variable: symbol compile-time-environment -> lexical-address
 ;; Find where the variable should be located.
 (: find-variable (Symbol CompileTimeEnvironment -> LexicalAddress))
 (define (find-variable name cenv)
-  (: find-pos (Symbol (Listof Symbol) -> Natural))
+  (: find-pos (Symbol (Listof (U Symbol False)) -> Natural))
   (define (find-pos sym los)
     (cond
       [(eq? sym (car los))
@@ -125,9 +126,10 @@
 
 
 (: lexical-references->compile-time-environment ((Listof EnvReference) CompileTimeEnvironment CompileTimeEnvironment
+                                                                     (Listof Symbol)
                                                                        -> CompileTimeEnvironment))
 ;; Creates a lexical environment containing the closure's bindings.
-(define (lexical-references->compile-time-environment refs cenv new-cenv)
+(define (lexical-references->compile-time-environment refs cenv new-cenv symbols-to-keep)
   (let: loop : CompileTimeEnvironment ([refs : (Listof EnvReference) (reverse refs)]
                                        [new-cenv : CompileTimeEnvironment new-cenv])
         (cond
@@ -142,5 +144,27 @@
                                 new-cenv))]
                    [(EnvWholePrefixReference? a-ref)
                     (loop (rest refs)
-                          (cons (list-ref cenv (EnvWholePrefixReference-depth a-ref))
+                          (cons (place-prefix-mask 
+                                 (ensure-Prefix (list-ref cenv (EnvWholePrefixReference-depth a-ref)))
+                                 symbols-to-keep)
                                 new-cenv))]))])))
+
+(: ensure-Prefix (Any -> Prefix))
+(define (ensure-Prefix x)
+  (if (Prefix? x)
+      x
+      (error 'ensure-Prefix "~s" x)))
+
+
+
+(: place-prefix-mask (Prefix (Listof Symbol) -> Prefix))
+;; Masks elements of the prefix off.
+(define (place-prefix-mask a-prefix symbols-to-keep)
+  (make-Prefix
+   (map (lambda: ([n : (U Symbol False)])
+                 (cond [(symbol? n)
+                        (if (member n symbols-to-keep)
+                            n
+                            #f)]
+                       [else n]))
+        (Prefix-names a-prefix))))

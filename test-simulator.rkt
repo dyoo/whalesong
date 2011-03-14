@@ -65,58 +65,58 @@
 
 
 ;; Assigning to a environment reference
-(let* ([m (new-machine `(,(make-PushEnvironment 1)
+(let* ([m (new-machine `(,(make-PushEnvironment 1 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 42))))]
        [m (run m)])
   (test (machine-env m) '(42)))
 
 
 ;; Assigning to another environment reference
-(let* ([m (new-machine `(,(make-PushEnvironment 2)
+(let* ([m (new-machine `(,(make-PushEnvironment 2 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 42))))]
        [m (run m)])
   (test (machine-env m) `(,(make-undefined) 42)))
 
 
 ;; Assigning to another environment reference
-(let* ([m (new-machine `(,(make-PushEnvironment 2)
+(let* ([m (new-machine `(,(make-PushEnvironment 2 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 42))))]
        [m (run m)])
   (test (machine-env m) `(42 ,(make-undefined))))
 
 
 ;; PushEnv
-(let ([m (new-machine `(,(make-PushEnvironment 20)))])
+(let ([m (new-machine `(,(make-PushEnvironment 20 #f)))])
   (test (machine-env (run m)) (build-list 20 (lambda (i) (make-undefined)))))
 
 
 ;; PopEnv
-(let ([m (new-machine `(,(make-PushEnvironment 20)
+(let ([m (new-machine `(,(make-PushEnvironment 20 #f)
                         ,(make-PopEnvironment 20 0)))])
   (test (machine-env (run m)) '()))
 
-(let* ([m (new-machine `(,(make-PushEnvironment 3)
+(let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
                         ,(make-PopEnvironment 1 0)))])
   (test (machine-env (run m)) '("dewey" "louie")))
 
-(let* ([m (new-machine `(,(make-PushEnvironment 3)
+(let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
                         ,(make-PopEnvironment 1 1)))])
   (test (machine-env (run m)) '("hewie" "louie")))
 
-(let* ([m (new-machine `(,(make-PushEnvironment 3)
+(let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
                         ,(make-PopEnvironment 1 2)))])
   (test (machine-env (run m)) '("hewie" "dewey")))
 
-(let* ([m (new-machine `(,(make-PushEnvironment 3)
+(let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
@@ -253,7 +253,7 @@
 
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
-                        ,(make-PushEnvironment 5)
+                        ,(make-PushEnvironment 5 #f)
                         ,(make-AssignImmediateStatement (make-EnvPrefixReference 5 0) (make-Reg 'val))))])
   (test (machine-env (run m))
         (list (make-undefined) (make-undefined) (make-undefined) (make-undefined) (make-undefined)
@@ -322,7 +322,7 @@
         (make-closure 'procedure-entry 0 (list))))
 
 ;; make-compiled-procedure: Capturing a few variables.
-(let ([m (new-machine `(,(make-PushEnvironment 3)
+(let ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 'larry))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 'curly))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const 'moe))
@@ -368,7 +368,7 @@
                         ,(make-AssignImmediateStatement 'val (make-Const "z"))
                         ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 2) (make-Reg 'val))
 
-                        ,(make-PushEnvironment 3)
+                        ,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 'larry))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 'curly))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const 'moe))
@@ -400,7 +400,7 @@
 
 ;; Test lexical lookup
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                        ,(make-PushEnvironment 3)
+                        ,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 'larry))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 'curly))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const 'moe))
@@ -410,7 +410,7 @@
         'larry))
 ;; Another lexical lookup test
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                        ,(make-PushEnvironment 3)
+                        ,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 'larry))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 'curly))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const 'moe))
@@ -423,7 +423,7 @@
 ;; Adding two numbers
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                         ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                        ,(make-PushEnvironment 2)
+                        ,(make-PushEnvironment 2 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 126389))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 42))
                         ,(make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure 2 'after))

@@ -352,7 +352,7 @@
                                                       'val))))])
     
     (append-instruction-sequences
-     (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)))))
+     (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
      proc-code
      (juggle-operands operand-codes)
      (compile-procedure-call cenv extended-cenv 
@@ -508,12 +508,13 @@
          (end-with-linkage 
           linkage
           extended-cenv
-          (append-instruction-sequences (make-instruction-sequence `(,(make-PushEnvironment 1)))
-                                        rhs-code
-                                        body-code
-                                        after-body-code
-                                        (make-instruction-sequence `(,(make-PopEnvironment 1 0)))
-                                        after-let1))))
+          (append-instruction-sequences
+           (make-instruction-sequence `(,(make-PushEnvironment 1 #f)))
+           rhs-code
+           body-code
+           after-body-code
+           (make-instruction-sequence `(,(make-PopEnvironment 1 0)))
+           after-let1))))
 
 
 
@@ -549,12 +550,13 @@
          (end-with-linkage 
           linkage
           extended-cenv
-          (append-instruction-sequences (make-instruction-sequence `(,(make-PushEnvironment n)))
-                                        (apply append-instruction-sequences rhs-codes)
-                                        body-code
-                                        after-body-code
-                                        (make-instruction-sequence `(,(make-PopEnvironment n 0)))
-                                        after-let))))
+          (append-instruction-sequences 
+           (make-instruction-sequence `(,(make-PushEnvironment n #f)))
+           (apply append-instruction-sequences rhs-codes)
+           body-code
+           after-body-code
+           (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+           after-let))))
 
 (: compile-letrec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-letrec exp cenv target linkage)
@@ -563,7 +565,8 @@
                      (map (lambda: ([rhs : ExpressionCore]
                                     [i : Natural])
                                    (compile rhs
-                                            (extend-lexical-environment/names cenv (LetRec-names exp))
+                                            (extend-lexical-environment/boxed-names cenv 
+                                                                                    (LetRec-names exp))
                                             (make-EnvLexicalReference i #t)
                                             'next))
                           (LetRec-rhss exp)
@@ -588,12 +591,13 @@
          (end-with-linkage 
           linkage
           extended-cenv
-          (append-instruction-sequences (make-instruction-sequence `(,(make-PushEnvironment n)))
-                                        (apply append-instruction-sequences rhs-codes)
-                                        body-code
-                                        after-body-code
-                                        (make-instruction-sequence `(,(make-PopEnvironment n 0)))
-                                        after-letrec))))
+          (append-instruction-sequences
+           (make-instruction-sequence `(,(make-PushEnvironment n #t)))
+           (apply append-instruction-sequences rhs-codes)
+           body-code
+           after-body-code
+           (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+           after-letrec))))
 
 
 (: adjust-target-depth (Target Natural -> Target))
@@ -662,7 +666,7 @@
       ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
       
       ;; Next, capture the envrionment and the current continuation closure,.
-      ,(make-PushEnvironment 2)
+      ,(make-PushEnvironment 2 #f)
       ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0 #f) 
                                    (make-CaptureControl 0))
       ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1 #f)

@@ -113,18 +113,18 @@
       "Danny")
 
 
-(test (E-single (make-PushEnvironment 1)
+(test (E-single (make-PushEnvironment 1 #f)
                 "MACHINE.env.length")
       "1")
-(test (E-single (make-PushEnvironment 20)
+(test (E-single (make-PushEnvironment 20 #f)
                 "MACHINE.env.length")
       "20")
 
 ;; PopEnvironment
-(test (E-many (list (make-PushEnvironment 2))
+(test (E-many (list (make-PushEnvironment 2 #f))
               "MACHINE.env.length")
       "2")
-(test (E-many (list (make-PushEnvironment 2)
+(test (E-many (list (make-PushEnvironment 2 #f)
                     (make-PopEnvironment 1 0))
               "MACHINE.env.length")
       "1")
@@ -132,17 +132,17 @@
 
 
 ;; Assigning to the environment
-(test (E-many (list (make-PushEnvironment 2)
+(test (E-many (list (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 12345)))
               "MACHINE.env[1]")
       "12345")
-(test (E-many (list (make-PushEnvironment 2)
+(test (E-many (list (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 12345)))
               "MACHINE.env[0]")
       "undefined")
-(test (E-many (list (make-PushEnvironment 2)
+(test (E-many (list (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const 12345)))
               "MACHINE.env[0]")
@@ -159,7 +159,7 @@
 ;; Simple application
 (test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                     (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                    (make-PushEnvironment 2)
+                    (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 3))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
@@ -187,7 +187,7 @@
                     'closureStart
                     (make-GotoStatement (make-Label 'afterLambda))
                     'afterLambda
-                    (make-PushEnvironment 2)
+                    (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
@@ -206,7 +206,7 @@
                     (make-GotoStatement (make-Label 'theEnd))
 
                     'afterLambdaBody
-                    (make-PushEnvironment 2)
+                    (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
@@ -230,7 +230,7 @@
                     (make-GotoStatement (make-Label 'theEnd))
 
                     'afterLambdaBody
-                    (make-PushEnvironment 2)
+                    (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
@@ -252,7 +252,7 @@
                     (make-GotoStatement (make-Label 'theEnd))
 
                     'afterLambdaBody
-                    (make-PushEnvironment 2)
+                    (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const "hello"))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
@@ -274,7 +274,7 @@
                   (make-GotoStatement (make-Label 'theEnd))
                   
                   'afterLambdaBody
-                  (make-PushEnvironment 2)
+                  (make-PushEnvironment 2 #f)
                   (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                  (make-Const "hello"))
                   (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)

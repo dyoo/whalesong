@@ -15,6 +15,7 @@
                                                    (Pairof PrimitiveValue PrimitiveValue)
                                                    )))
 (define-type SlotValue (U PrimitiveValue 
+                          (Boxof PrimitiveValue)
                           toplevel
                           CapturedControl
                           CapturedEnvironment))

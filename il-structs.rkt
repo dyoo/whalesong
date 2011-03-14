@@ -86,7 +86,8 @@
 (define-struct: PopEnvironment ([n : Natural]
                                 [skip : Natural])
   #:transparent)
-(define-struct: PushEnvironment ([n : Natural])
+(define-struct: PushEnvironment ([n : Natural]
+                                 [unbox? : Boolean])
   #:transparent)
 
 

@@ -152,6 +152,11 @@ var Primitives = (function() {
 	    return firstArg - 1;
 	},
 
+	'zero?': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return firstArg === 0;
+	},
+
 	'vector': function(arity, returnLabel) {
 	    var i;
 	    var result = [];

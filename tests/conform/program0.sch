@@ -1,4 +1,42 @@
 (begin
+
+(define (caar l)
+  (car (car l)))
+
+(define (map f l)
+  (if (null? l)
+      null
+      (cons (f (car l))
+            (map f (cdr l)))))
+
+(define (for-each f l)
+  (if (null? l)
+      null
+      (begin (f (car l))
+	     (for-each f (cdr l)))))
+
+(define (memq x l)
+  (if (null? l)
+      #f
+      (if (eq? x (car l))
+          l
+	  (memq x (cdr l)))))
+
+
+(define (assq x l)
+  (if (null? l)
+      #f
+      (if (eq? x (caar l))
+          (car l)
+	  (assq x (cdr l)))))
+
+
+(define (length l)
+  (if (null? l)
+      0
+      (add1 (length (cdr l)))))
+
+
 (define vector-copy
   (lambda (v)
     (let ((length (vector-length v)))
@@ -241,11 +279,11 @@
 (define res (lambda (pair) (cdr pair)))
 (define conforms?
   (lambda (t1 t2)
-    (letrec ((nodes-with-red-edges-out '())
+    (letrec ((nodes-with-red-edges-out (box '()))
              (add-red-edge!
               (lambda (from-node to-node)
                 (set-red-edges! from-node (adjoin to-node (red-edges from-node)))
-                (set! nodes-with-red-edges-out (adjoin from-node nodes-with-red-edges-out))))
+                (set-box! nodes-with-red-edges-out (adjoin from-node (unbox nodes-with-red-edges-out)))))
              (greenify-red-edges!
               (lambda (from-node)
                 (set-green-edges! from-node (append (red-edges from-node) (green-edges from-node)))
@@ -279,7 +317,7 @@
                                      loop)
                                    (blue-edges t2))))))))))
       (let ((result (does-conform t1 t2)))
-        (for-each (if result greenify-red-edges! delete-red-edges!) nodes-with-red-edges-out)
+        (for-each (if result greenify-red-edges! delete-red-edges!) (unbox nodes-with-red-edges-out))
         result))))
 (define equivalent? (lambda (a b) (if (conforms? a b) (conforms? b a) '#f)))
 (define classify
@@ -379,7 +417,7 @@
                               (if (conforms? node2 node1)
                                   (begin node2)
                                   (begin
-                                    (let ((result (make-node (string-append '"(" (name node1) '" v " (name node2) '")"))))
+                                    (let ((result (make-node (string-append '"(" (name node1) '" v " (name node2) '")") '())))
                                       (add-graph-nodes! graph result)
                                       (insert! (already-joined graph) node1 node2 result)
                                       (set-blue-edges!
@@ -411,25 +449,25 @@
                           (begin
                             (if print? (begin (display '" -> ") (display new-count) (newline)) (void))
                             (loop new-g new-count)))))))))
-      (let ((graph (apply make-graph (list (adjoin any-node (adjoin none-node (graph-nodes (clean-graph g))))))))
+      (let ((graph (make-graph (adjoin any-node (adjoin none-node (graph-nodes (clean-graph g)))))))
         (loop graph (length (graph-nodes graph)))))))
-(define a '())
-(define b '())
-(define c '())
-(define d '())
+(define a (box '()))
+(define b (box '()))
+(define c (box '()))
+(define d (box '()))
 (define reset
   (lambda ()
-    (set! a (make-node 'a '()))
-    (set! b (make-node 'b '()))
-    (set-blue-edges! a (list (make-blue-edge 'phi any-node b)))
-    (set-blue-edges! b (list (make-blue-edge 'phi any-node a) (make-blue-edge 'theta any-node b)))
-    (set! c (make-node '"c" '()))
-    (set! d (make-node '"d" '()))
-    (set-blue-edges! c (list (make-blue-edge 'theta any-node b)))
-    (set-blue-edges! d (list (make-blue-edge 'phi any-node c) (make-blue-edge 'theta any-node d)))
+    (set-box! a (make-node 'a '()))
+    (set-box! b (make-node 'b '()))
+    (set-blue-edges! (unbox a) (list (make-blue-edge 'phi any-node (unbox b))))
+    (set-blue-edges! (unbox b) (list (make-blue-edge 'phi any-node (unbox a)) (make-blue-edge 'theta any-node (unbox b))))
+    (set-box! c (make-node '"c" '()))
+    (set-box! d (make-node '"d" '()))
+    (set-blue-edges! (unbox c) (list (make-blue-edge 'theta any-node (unbox b))))
+    (set-blue-edges! (unbox d) (list (make-blue-edge 'phi any-node (unbox c)) (make-blue-edge 'theta any-node (unbox d))))
     '(made a b c d)))
 (define test
-  (lambda () (reset) (map name (graph-nodes (make-lattice (make-graph (list a b c d any-node none-node)) '#t)))))
+  (lambda () (reset) (map name (graph-nodes (make-lattice (make-graph (list (unbox a) (unbox b) (unbox c) (unbox d) any-node none-node)) '#t)))))
 (define go
   (lambda ()
     (reset)

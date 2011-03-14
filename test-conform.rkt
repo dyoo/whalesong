@@ -15,6 +15,8 @@
              #:debug? (debug? false)
              #:stack-limit (stack-limit false)
              #:control-limit (control-limit false))
+
+  #;(for-each displayln (vector->list (machine-text m)))
   
   (let loop ([steps 0])
     (when debug?
@@ -49,7 +51,7 @@
            (printf "Running... \n")
            (let*-values([(a-machine num-steps) 
                          (run (new-machine (run-compiler code)) options ...)]
-                                               [(actual) (machine-val a-machine)])
+                        [(actual) (machine-val a-machine)])
              (unless (equal? actual exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
                                    #'stx))
@@ -66,4 +68,4 @@
 
 (test (read (open-input-file "tests/conform/program0.sch"))
         (port->string (open-input-file "tests/conform/expected0.txt"))
-        #:debug? #t)
+        #:debug? #f)

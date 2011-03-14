@@ -354,7 +354,7 @@ EOF
                                ;; during install-closure-values.
                                (reverse (MakeCompiledProcedure-closed-vals op)))
                           ", ")
-             (symbol->string (MakeCompiledProcedure-label op)))]
+             (symbol->string (MakeCompiledProcedure-display-name op)))]
     
     [(ApplyPrimitiveProcedure? op)
      (format "MACHINE.proc(~a, ~a)"

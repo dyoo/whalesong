@@ -136,7 +136,8 @@
 ;; closure needs to close over.
 (define-struct: MakeCompiledProcedure ([label : Symbol]
                                        [arity : Natural]
-                                       [closed-vals : (Listof EnvReference)])
+                                       [closed-vals : (Listof EnvReference)]
+                                       [display-name : (U Symbol False)])
   #:transparent)
 
 ;; Applies the primitive procedure that's stored in the proc register, using

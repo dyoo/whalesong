@@ -16,6 +16,11 @@
          call/cc-label
          make-call/cc-code)
 
+
+(: current-defined-name (Parameterof (U Symbol False)))
+(define current-defined-name (make-parameter #f))
+
+
 ;(provide compile-top)
 
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
@@ -184,10 +189,11 @@
        (error 'compile-definition "Defintion not at toplevel")]
       [(PrefixAddress? lexical-pos)
        (let ([get-value-code
-              (compile (Def-value exp) cenv (make-EnvPrefixReference 
-                                             (PrefixAddress-depth lexical-pos)
-                                             (PrefixAddress-pos lexical-pos))
-                       'next)])
+              (parameterize ([current-defined-name var])
+                (compile (Def-value exp) cenv (make-EnvPrefixReference 
+                                               (PrefixAddress-depth lexical-pos)
+                                               (PrefixAddress-pos lexical-pos))
+                         'next))])
          (end-with-linkage
           linkage
           cenv
@@ -255,7 +261,8 @@
             `(,(make-AssignPrimOpStatement target
                                            (make-MakeCompiledProcedure proc-entry
                                                                        (length (Lam-parameters exp))
-                                                                       lexical-references)))))
+                                                                       lexical-references
+                                                                       (current-defined-name))))))
           (compile-lambda-body exp cenv
                                lexical-references
                                free-vars
@@ -489,10 +496,11 @@
 (: compile-let1 (Let1 CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-let1 exp cenv target linkage)
   (let*: ([rhs-code : InstructionSequence 
-                    (compile (Let1-rhs exp)
-                             (extend-lexical-environment/placeholders cenv 1)
-                             (make-EnvLexicalReference 0 #f)
-                             'next)]
+                    (parameterize ([current-defined-name (Let1-name exp)])
+                      (compile (Let1-rhs exp)
+                               (extend-lexical-environment/placeholders cenv 1)
+                               (make-EnvLexicalReference 0 #f)
+                               'next))]
           [after-let1 : Symbol (make-label 'afterLetOne)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment
@@ -526,15 +534,16 @@
   (let*: ([n : Natural (length (Let-rhss exp))]
           [rhs-codes : (Listof InstructionSequence)
                      (map (lambda: ([rhs : ExpressionCore]
-                                    [i : Natural])
-                                   (compile rhs
-                                            (extend-lexical-environment/placeholders cenv n)
-                                            (make-EnvLexicalReference i #f)
-                                            'next))
+                                    [i : Natural]
+                                    [name : Symbol])
+                                   (parameterize ([current-defined-name name])
+                                     (compile rhs
+                                              (extend-lexical-environment/placeholders cenv n)
+                                              (make-EnvLexicalReference i #f)
+                                              'next)))
                           (Let-rhss exp)
-                          (build-list n
-                                      (lambda: ([i : Natural])
-                                               i)))]
+                          (build-list n (lambda: ([i : Natural]) i))
+                          (Let-names exp))]
           [after-let : Symbol (make-label 'afterLet)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment
@@ -566,16 +575,17 @@
   (let*: ([n : Natural (length (LetRec-rhss exp))]
           [rhs-codes : (Listof InstructionSequence)
                      (map (lambda: ([rhs : ExpressionCore]
-                                    [i : Natural])
-                                   (compile rhs
-                                            (extend-lexical-environment/boxed-names cenv 
-                                                                                    (LetRec-names exp))
-                                            (make-EnvLexicalReference i #t)
-                                            'next))
+                                    [i : Natural]
+                                    [name : Symbol])
+                                   (parameterize ([current-defined-name name])
+                                     (compile rhs
+                                              (extend-lexical-environment/boxed-names cenv 
+                                                                                      (LetRec-names exp))
+                                              (make-EnvLexicalReference i #t)
+                                              'next)))
                           (LetRec-rhss exp)
-                          (build-list n
-                                      (lambda: ([i : Natural])
-                                               i)))]
+                          (build-list n (lambda: ([i : Natural]) i))
+                          (LetRec-names exp))]
           [after-letrec : Symbol (make-label 'afterLetRec)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment
@@ -679,7 +689,8 @@
                                    (make-MakeCompiledProcedure call/cc-closure-entry
                                                                1 ;; the continuation consumes a single value
                                                                (list (make-EnvLexicalReference 0 #f)
-                                                                     (make-EnvLexicalReference 1 #f))))
+                                                                     (make-EnvLexicalReference 1 #f))
+                                                               (current-defined-name)))
       ,(make-PopEnvironment 2 0)))
                                    
    ;; Finally, do a tail call into f.

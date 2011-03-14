@@ -41,7 +41,8 @@
 (define call/cc
   (make-closure call/cc-label
                 1
-                '()))
+                '()
+                'call/cc))
 (define call-with-current-continuation call/cc)
 
 (define e (exp 1))
@@ -66,6 +67,36 @@
 (define my-pair? (lambda (x)
                    (MutablePair? x)))
 
+(define my-box (lambda (x)
+                 (vector x)))
+
+(define my-unbox (lambda (x)
+                   (vector-ref x 0)))
+
+(define my-set-box! (lambda (x v)
+                   (vector-set! x 0 v)))
+
+(define my-vector->list (lambda (v)
+                          (apply my-list (vector->list v))))
+
+(define my-list->vector (lambda (l)
+                          (apply vector
+                          (let loop ([l l])
+                            (cond
+                              [(null? l)
+                               null]
+                              [else
+                               (cons (MutablePair-h l)
+                                     (loop (MutablePair-t l)))])))))
+                                
+
+(define my-set-car! (lambda (p v)
+                      (set-MutablePair-h! p v)))
+
+(define my-set-cdr! (lambda (p v)
+                      (set-MutablePair-t! p v)))
+
+
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= 
                                                      sub1
                                                      display newline displayln
@@ -74,6 +105,7 @@
                                                      eq?
                                                      add1
                                                      sub1
+                                                     zero?
                                                      abs
                                                      void
                                                      quotient
@@ -81,14 +113,37 @@
                                                      display
                                                      displayln
                                                      newline
+                                                    
                                                      symbol->string
+                                                     string-append
                                                      
                                                      (my-cons cons)
                                                      (my-list list)
                                                      (my-car car)
                                                      (my-cdr cdr)
                                                      (my-pair? pair?)
+                                                     (my-set-car! set-car!)
+                                                     (my-set-cdr! set-cdr!)
+                                                     
+                                                     
+                                                     
+                                                     (my-box box)
+                                                     (my-unbox unbox)
+                                                     (my-set-box! set-box!)
+                                                     
                                                      vector
+                                                     vector-set!
+                                                     vector-ref
+                                                     (my-vector->list vector->list)
+                                                     (my-list->vector list->vector)
+                                                     
+                                                     
+                                                     
+                                                     equal?
+                                                     
+                                                     
+                                                    
+                                                     
                                                      symbol?)
                                       #:constants (null pi e 
                                                         call/cc

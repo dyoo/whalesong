@@ -191,7 +191,9 @@
                     (if (= (closure-arity clos)
                            (CheckClosureArity!-arity op))
                         'ok
-                        (error 'check-closure-arity "arity mismatch"))]
+                        (error 'check-closure-arity "arity mismatch: passed ~s args to ~s"
+                               (CheckClosureArity!-arity op)
+                               (closure-display-name clos)))]
                    [else
                     (error 'check-closure-arity "not a closure: ~s" clos)]))]
           
@@ -263,7 +265,8 @@
                                             (MakeCompiledProcedure-arity op)
                                             (map (lambda: ([r : EnvReference])
                                                           (lookup-env-reference/closure-capture m r))
-                                                 (MakeCompiledProcedure-closed-vals op))))]
+                                                 (MakeCompiledProcedure-closed-vals op))
+                                            (MakeCompiledProcedure-display-name op)))]
           
           [(ApplyPrimitiveProcedure? op)
            (let: ([prim : SlotValue (machine-proc m)]

@@ -24,7 +24,8 @@
 
 
 (define-struct: MutablePair ([h : PrimitiveValue]
-                             [t : PrimitiveValue]))
+                             [t : PrimitiveValue])
+  #:mutable #:transparent)
 
 ;; For continuation capture:
 (define-struct: CapturedControl ([frames : (Listof frame)]))
@@ -70,7 +71,8 @@
 ;; Compiled procedure closures
 (define-struct: closure ([label : Symbol]
                          [arity : Natural]
-                         [vals : (Listof SlotValue)])
+                         [vals : (Listof SlotValue)]
+                         [display-name : (U Symbol False)])
   #:transparent)
 
 

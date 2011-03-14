@@ -141,3 +141,8 @@
                                 (tak (- z 1) x y))))])
          (displayln (tak 18 12 6)))
         "7\n")
+
+
+
+(test (read (open-input-file "tests/conform/program0.sch"))
+      (port->string (open-input-file "tests/conform/expected0.txt")))

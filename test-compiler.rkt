@@ -17,9 +17,9 @@
      (with-syntax ([stx stx])
        (syntax/loc #'stx
          (begin
-           (printf "Running ~s ...\n" 'code)
+           (printf "Running ~s ...\n" code)
            (let*-values([(a-machine num-steps) 
-                         (run (new-machine (run-compiler 'code)) options ...)]
+                         (run (new-machine (run-compiler code)) options ...)]
                         [(actual) (machine-val a-machine)])
              (unless (equal? actual exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
@@ -40,12 +40,12 @@
      (with-syntax ([stx stx])
        (syntax/loc #'stx
          (begin
-           (printf "Running/exn ~s ...\n" 'code)
+           (printf "Running/exn ~s ...\n" code)
            (let/ec return
              (with-handlers ([exn:fail? (lambda (exn)
                                           (printf "ok\n\n")
                                           (return))])
-               (run (new-machine (run-compiler 'code)) options ...))
+               (run (new-machine (run-compiler code)) options ...))
              (raise-syntax-error #f (format "Expected an exception")
                                  #'stx)))))]))
 
@@ -82,82 +82,82 @@
 
 
 ;; Atomic expressions
-(test 42 42)
-(test "hello world" "hello world")
-(test #t true)
-(test #f false)
+(test '42 42)
+(test '"hello world" "hello world")
+(test '#t true)
+(test '#f false)
 
 ;; quoted 
-(test '(+ 3 4)
+(test ''(+ 3 4)
       '(+ 3 4))
 
 ;; Simple definitions
-(test (begin (define x 42)
+(test '(begin (define x 42)
              (+ x x))
       84)
 
-(test (begin (define x 6)
+(test '(begin (define x 6)
              (define y 7)
              (define z 8)
              (* x y z))
       (* 6 7 8))
 
 ;; Simple branching
-(test (if #t 'ok 'not-ok)
+(test '(if #t 'ok 'not-ok)
       'ok)
 
-(test (if #f 'not-ok 'ok)
+(test '(if #f 'not-ok 'ok)
       'ok)
 
 ;; Sequencing
-(test (begin 1
+(test '(begin 1
              2
              3)
       3)
-(test (begin 1)
+(test '(begin 1)
       1)
 
 
-(test (+ (* 3 4) 5)
+(test '(+ (* 3 4) 5)
       17)
 
 
 
 ;; Square
-(test (begin (define (f x)
+(test '(begin (define (f x)
                (* x x))
              (f 3))
       9)
 
 
 ;; Other simple expressions
-(test (+ 137 349)
+(test '(+ 137 349)
       486)
 
 
-(test (/ 10 5)
+(test '(/ 10 5)
       2)
 
 
 ;; composition of square
-(test (begin (define (f x)
+(test '(begin (define (f x)
                (* x x))
              (f (f 3)))
       81)
 
-(test (begin (define pi 3.14159)
+(test '(begin (define pi 3.14159)
              (define radius 10)
              (* pi (* radius radius)))
       314.159)
 
-(test (begin (define pi 3.14159)
+(test '(begin (define pi 3.14159)
              (define radius 10)
              (define circumference (* 2 pi radius))
              circumference)
       62.8318)
 
 ;; Slightly crazy expression
-(test (begin (define (f x)
+(test '(begin (define (f x)
                (* x x))
              (define (g x)
                (* x x x))
@@ -168,50 +168,50 @@
 
 
 ;; Simple application
-(test ((lambda (x) x) 42)
+(test '((lambda (x) x) 42)
       42)
-(test ((lambda (x) 
+(test '((lambda (x) 
          (begin (* x x))) 42)
       1764)
-(test ((lambda (x y z) x) 3 4 5)
+(test '((lambda (x y z) x) 3 4 5)
       3)
-(test ((lambda (x y z) y) 3 4 5)
+(test '((lambda (x y z) y) 3 4 5)
       4)
-(test ((lambda (x y z) z) 3 4 5)
+(test '((lambda (x y z) z) 3 4 5)
       5)
 
 ;; And this should fail because it's not a lambda
-(test/exn (not-a-procedure 5))
+(test/exn '(not-a-procedure 5))
 
 ;; We should see an error here, since the arity is wrong
-(test/exn ((lambda (x y z) x) 3))
-(test/exn ((lambda (x y z) z) 3))
-(test/exn ((lambda (x y z) x) 3 4 5 6))
+(test/exn '((lambda (x y z) x) 3))
+(test/exn '((lambda (x y z) z) 3))
+(test/exn '((lambda (x y z) x) 3 4 5 6))
 
 
 
 
 ; factorial
-(test (begin (define (f x)
+(test '(begin (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
              (f 0))
       1)
-(test (begin (define (f x)
+(test '(begin (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
              (f 1))
       1)
-(test (begin (define (f x)
+(test '(begin (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
              (f 2))
       2)
 
-(test (begin (define (f x)
+(test '(begin (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
@@ -223,7 +223,7 @@
 
 
 ;; Tail calling behavior: watch that the stack never grows beyond 8.
-(test (begin (define (f x acc)
+(test '(begin (define (f x acc)
                  (if (= x 0)
                      acc
                      (f (sub1 x) (* x acc))))
@@ -237,7 +237,7 @@
 
 
 ;; And from experimental testing, anything below 7 will break.
-(test/exn (begin (define (f x acc)
+(test/exn '(begin (define (f x acc)
                    (if (= x 0)
                        acc
                        (f (sub1 x) (* x acc))))
@@ -253,7 +253,7 @@
 
 
 ;; tak test
-(test (begin (define (tak x y z)
+(test '(begin (define (tak x y z)
                (if (>= y x)
                    z
                    (tak (tak (- x 1) y z)
@@ -264,7 +264,7 @@
       
 
 ;; deriv
-(test (begin (define (deriv-aux a) (list '/ (deriv a) a))
+(test '(begin (define (deriv-aux a) (list '/ (deriv a) a))
              (define (map f l)
                (if (null? l)
                    l
@@ -301,7 +301,7 @@
           0))
 
 ;; Foldl
-(test (begin (define (foldl f acc lst)
+(test '(begin (define (foldl f acc lst)
                (if (null? lst)
                    acc
                    (foldl f (f (car lst) acc) (cdr lst))))
@@ -314,7 +314,7 @@
 
 
 ;; iterating, with some crazy expressions
-(test (begin (define (iterate f x n)
+(test '(begin (define (iterate f x n)
                  (if (= n 0)
                      x
                      (iterate f (f x) (sub1 n))))
@@ -330,7 +330,7 @@
       (list 160000 1001 42))
 
 ;; Trying out closures
-(test (begin
+(test '(begin
         (define delta 1)
         (define (diff f)
           (lambda (x)
@@ -345,13 +345,13 @@
 
 
 
-(test (begin (define (square x)
+(test '(begin (define (square x)
                (* x x))
              (square (square 3)))
       81)
 
 
-(test (begin (define (square x)
+(test '(begin (define (square x)
                (* x x))
              (define (sum-of-squares x y)
                (+ (square x) (square y)))
@@ -359,7 +359,7 @@
       25)
 
 
-(test (begin (define (sqrt-iter guess x)
+(test '(begin (define (sqrt-iter guess x)
                (if (good-enough? guess x)
                    guess
                    (sqrt-iter (improve guess x)
@@ -384,7 +384,7 @@
       '(3.00009155413138 154.73202642085838 177.02259745919164))
 
 ;; fibonacci
-(test (begin (define (fib n)
+(test '(begin (define (fib n)
                (if (= n 0) 0
                    (if (= n 1) 1
                        (+ (fib (- n 1))
@@ -393,7 +393,7 @@
       55)
 
 ;; Fibonacci, iterative.  This should be computable while using at most 10 spots.
-(test (begin 
+(test '(begin 
         (define (fib n)
           (fib-iter 1 0 n))
         
@@ -411,14 +411,14 @@
 
 
 ;; Exponentiation
-(test (begin (define (expt b n)
+(test '(begin (define (expt b n)
                (if (= n 0)
                    1
                    (* b (expt b (- n 1)))))
              (expt 2 30))
       (expt 2 30))
 
-(test (begin 
+(test '(begin 
         (define (expt b n)
           (expt-iter b n 1))
         
@@ -431,7 +431,7 @@
         (expt 2 30))
       (expt 2 30))
 
-(test (begin
+(test '(begin
         (define (fast-expt b n)
           (cond ((= n 0) 1)
                 ((even? n) (square (fast-expt b (/ n 2))))
@@ -449,7 +449,7 @@
             (expt 2 23984000)))
 
 
-(test (begin (define (length l)
+(test '(begin (define (length l)
                (if (null? l)
                    0
                    (+ 1 (length (cdr l)))))
@@ -460,7 +460,7 @@
       (void))
 
 
-(test (begin (define (sum-integers a b)
+(test '(begin (define (sum-integers a b)
                (if (> a b)
                    0
                    (+ a (sum-integers (+ a 1) b))))        
@@ -468,7 +468,7 @@
       (* 50 101))
 
 
-(test (begin (define (sum term a next b)
+(test '(begin (define (sum term a next b)
                (if (> a b)
                    0
                    (+ (term a)
@@ -483,16 +483,16 @@
                    (sum-integers 1 10)))
       (list 3025 55))
 
-(test (let () 5) 5)
+(test '(let () 5) 5)
 
-(test (let* ([x 3]
+(test '(let* ([x 3]
              [y 4]
              [z 17])
         (+ x y z))
       24)
       
 
-(test (list (let* ([x 3]
+(test '(list (let* ([x 3]
                    [y (+ x 1)]
                    [z (+ x y)])
                (list x y z))
@@ -501,7 +501,7 @@
             4))
 
 
-(test (list (let* ([x 3]
+(test '(list (let* ([x 3]
                    [y (+ x 1)]
                    [z (+ x y)])
                (list x y z))
@@ -512,14 +512,14 @@
       (list (list 3 4 7)
             (list 17 18 35)))
 
-(test (let* ([x 0]
+(test '(let* ([x 0]
              [x (add1 x)]
              [x (add1 x)])
         x)
       2)
  
 
-(test (begin 
+(test '(begin 
           (define (sum-iter x acc)
             (if (= x 0)
                 acc
@@ -532,12 +532,12 @@
       #:control-limit 1)
 
 
-(test (let ([x 16])
+(test '(let ([x 16])
         (call/cc (lambda (k) (+ x x))))
       32)
 
 
-(test (add1 (let ([x 16])
+(test '(add1 (let ([x 16])
               (call/cc (lambda (k) 
                          (k 0)
                          (+ x x)))))
@@ -547,7 +547,7 @@
 ;; Reference:  http://lists.racket-lang.org/users/archive/2009-January/029812.html
 (let ([op (open-output-string)])
   (parameterize ([current-simulated-output-port op])
-    (test (begin (define program (lambda ()
+    (test '(begin (define program (lambda ()
                                  (let ((y (call/cc (lambda (c) c))))
                                    (display 1)
                                    (call/cc (lambda (c) (y c)))
@@ -564,7 +564,7 @@
 
 
 ;; ctak
-(test (begin
+(test '(begin
         (define (ctak x y z)
           (call-with-current-continuation
            (lambda (k)
@@ -598,7 +598,7 @@
       7)
 
 
-(test (let ([x 3]
+(test '(let ([x 3]
             [y 4])
         (let ([x y]
               [y x])
@@ -606,14 +606,14 @@
       (list 4 3))
 
 
-(test (letrec ([f (lambda (x)
+(test '(letrec ([f (lambda (x)
                     (if (= x 0)
                         1
                         (* x (f (sub1 x)))))])
         (f 10))
       3628800)
 
-(test (letrec ([e (lambda (x)
+(test '(letrec ([e (lambda (x)
                     (if (= x 0)
                         #t
                         (o (sub1 x))))]
@@ -628,7 +628,8 @@
 
 
 
-
+(test (read (open-input-file "tests/conform/program0.sch"))
+      (port->string (open-input-file "tests/conform/expected0.txt")))
 
 ;(simulate (compile (parse '42) 'val 'next))
 ;(compile (parse '(+ 3 4)) 'val 'next)

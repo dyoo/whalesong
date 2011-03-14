@@ -150,8 +150,36 @@ var Primitives = (function() {
 	'sub1': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg - 1;
-	}
- 	,
+	},
+
+	'vector': function(arity, returnLabel) {
+	    var i;
+	    var result = [];
+	    for (i = 0; i < arity; i++) {
+		result.push(MACHINE.env[MACHINE.env.length-1-i]);
+	    }
+	    return result;
+	},
+
+	'vector-ref': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg[secondArg];
+	},
+
+	'vector-set!': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    var thirdArg = MACHINE.env[MACHINE.env.length-3];
+	    firstArg[secondArg] = thirdArg;
+	    return null;
+	},
+
+	'symbol?': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return typeof(firstArg) === 'string';
+	},
+
  	'call/cc': new Closure(callCCEntry,
  			       1,
  			       [],

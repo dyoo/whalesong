@@ -89,6 +89,10 @@
      (make-undefined)]
     [(procedure? v)
      (error 'racket->PrimitiveValue "Can't coerse procedure")]
+    [(primitive-proc? v)
+     v]
+    [(closure? v)
+     v]
     [(vector? v)
      (apply vector (map racket->PrimitiveValue (vector->list v)))]
     [(pair? v)

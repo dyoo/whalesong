@@ -157,8 +157,9 @@
          (machine-proc m)]))
 
 
-(: lookup-env-reference (machine EnvReference -> SlotValue))
-(define (lookup-env-reference m ref)
+(: lookup-env-reference/closure-capture (machine EnvReference -> SlotValue))
+;; Capture values for the closure, given a set of environment references.
+(define (lookup-env-reference/closure-capture m ref)
   (cond [(EnvLexicalReference? ref)
          (if (EnvLexicalReference-unbox? ref)
              (ensure-primitive-value-box (env-ref m (EnvLexicalReference-depth ref)))
@@ -256,7 +257,7 @@
            (target-updater! m (make-closure (MakeCompiledProcedure-label op)
                                             (MakeCompiledProcedure-arity op)
                                             (map (lambda: ([r : EnvReference])
-                                                          (lookup-env-reference m r))
+                                                          (lookup-env-reference/closure-capture m r))
                                                  (MakeCompiledProcedure-closed-vals op))))]
           
           [(ApplyPrimitiveProcedure? op)

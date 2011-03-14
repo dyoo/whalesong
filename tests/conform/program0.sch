@@ -87,10 +87,6 @@
 (define set-internal-node-blue-edges! (lambda (node edges) (vector-set! node '3 edges)))
 (define make-node
   (lambda (name blue-edges)
-    (displayln "name:")
-    (displayln name)
-    (displayln "blue-edges:")
-    (displayln blue-edges)
     (let ((name (if (symbol? name) (symbol->string name) name))
           (blue-edges (if (null? blue-edges) 'NOT-A-NODE-YET (car blue-edges))))
       (make-internal-node name '() '() blue-edges))))
@@ -217,12 +213,10 @@
        (fix-table (already-joined graph))))))
 
 
-(displayln 'here)
 
 (define none-node (make-node 'none '(#t)))
-(displayln 'here5)
 (define none-node? (lambda (node) (eq? node none-node)))
-(define any-node (make-node 'any ('())))
+(define any-node (make-node 'any '(())))
 (define any-node? (lambda (node) (eq? node any-node)))
 (define green-edge?
   (lambda (from-node to-node)
@@ -238,7 +232,6 @@
         (if (none-node? from-node)
             (begin '#t)
             (if (memq to-node (red-edges from-node)) (begin '#t) (begin '#f))))))
-(displayln 'here4)
 (define sig
   (let ((none-comma-any (cons none-node any-node)))
     (lambda (op node)
@@ -246,7 +239,6 @@
         (if (not (null? the-edge)) (cons (arg-node the-edge) (res-node the-edge)) none-comma-any)))))
 (define arg (lambda (pair) (car pair)))
 (define res (lambda (pair) (cdr pair)))
-(displayln 'here3)
 (define conforms?
   (lambda (t1 t2)
     (letrec ((nodes-with-red-edges-out '())
@@ -340,7 +332,6 @@
     (make-blue-edge op (arg-fn graph (arg sig1) (arg sig2)) (res-fn graph (res sig1) (res sig2)))))
 
 
-(displayln 'here2)
 
 
 (define meet
@@ -478,4 +469,4 @@
       (newline))))
 
 
-#;(void ((letrec ((loop (lambda (n) (if (zero? n) 'done (begin (go) (loop (- n '1))))))) loop) '10)))
+(void ((letrec ((loop (lambda (n) (if (zero? n) 'done (begin (go) (loop (- n '1))))))) loop) '10)))

@@ -86,7 +86,7 @@
 (define set-internal-node-red-edges! (lambda (node edges) (vector-set! node '2 edges)))
 (define set-internal-node-blue-edges! (lambda (node edges) (vector-set! node '3 edges)))
 (define make-node
-  (lambda (name . blue-edges)
+  (lambda (name blue-edges)
     (let ((name (if (symbol? name) (symbol->string name) name))
           (blue-edges (if (null? blue-edges) 'NOT-A-NODE-YET (car blue-edges))))
       (make-internal-node name '() '() blue-edges))))
@@ -137,7 +137,7 @@
 (define internal-graph-already-met (lambda (graph) (vector-ref graph '1)))
 (define internal-graph-already-joined (lambda (graph) (vector-ref graph '2)))
 (define set-internal-graph-nodes! (lambda (graph nodes) (vector-set! graph '0 nodes)))
-(define make-graph (lambda nodes (make-internal-graph nodes (make-empty-table) (make-empty-table))))
+(define make-graph (lambda (nodes) (make-internal-graph nodes (make-empty-table) (make-empty-table))))
 (define graph-nodes internal-graph-nodes)
 (define already-met internal-graph-already-met)
 (define already-joined internal-graph-already-joined)
@@ -211,9 +211,9 @@
        (map (lambda (class) (fix (car class))) classes)
        (fix-table (already-met graph))
        (fix-table (already-joined graph))))))
-(define none-node (make-node 'none '#t))
+(define none-node (make-node 'none '(#t)))
 (define none-node? (lambda (node) (eq? node none-node)))
-(define any-node (make-node 'any '()))
+(define any-node (make-node 'any ('())))
 (define any-node? (lambda (node) (eq? node any-node)))
 (define green-edge?
   (lambda (from-node to-node)
@@ -345,7 +345,7 @@
                               (if (conforms? node2 node1)
                                   (begin node1)
                                   (begin
-                                    (let ((result (make-node (string-append '"(" (name node1) '" ^ " (name node2) '")"))))
+                                    (let ((result (make-node (string-append '"(" (name node1) '" ^ " (name node2) '")") '())))
                                       (add-graph-nodes! graph result)
                                       (insert! (already-met graph) node1 node2 result)
                                       (set-blue-edges!
@@ -404,7 +404,7 @@
                           (begin
                             (if print? (begin (display '" -> ") (display new-count) (newline)) (void))
                             (loop new-g new-count)))))))))
-      (let ((graph (apply make-graph (adjoin any-node (adjoin none-node (graph-nodes (clean-graph g)))))))
+      (let ((graph (apply make-graph (list (adjoin any-node (adjoin none-node (graph-nodes (clean-graph g))))))))
         (loop graph (length (graph-nodes graph)))))))
 (define a '())
 (define b '())
@@ -412,17 +412,17 @@
 (define d '())
 (define reset
   (lambda ()
-    (set! a (make-node 'a))
-    (set! b (make-node 'b))
+    (set! a (make-node 'a '()))
+    (set! b (make-node 'b '()))
     (set-blue-edges! a (list (make-blue-edge 'phi any-node b)))
     (set-blue-edges! b (list (make-blue-edge 'phi any-node a) (make-blue-edge 'theta any-node b)))
-    (set! c (make-node '"c"))
-    (set! d (make-node '"d"))
+    (set! c (make-node '"c" '()))
+    (set! d (make-node '"d" '()))
     (set-blue-edges! c (list (make-blue-edge 'theta any-node b)))
     (set-blue-edges! d (list (make-blue-edge 'phi any-node c) (make-blue-edge 'theta any-node d)))
     '(made a b c d)))
 (define test
-  (lambda () (reset) (map name (graph-nodes (make-lattice (make-graph a b c d any-node none-node) '#t)))))
+  (lambda () (reset) (map name (graph-nodes (make-lattice (make-graph (list a b c d any-node none-node)) '#t)))))
 (define go
   (lambda ()
     (reset)

@@ -2,6 +2,7 @@
 
 (require "simulator.rkt"
          "simulator-structs.rkt"
+         "simulator-primitives.rkt"
          "compile.rkt"
          "parse.rkt")
 
@@ -20,7 +21,7 @@
            (printf "Running ~s ...\n" code)
            (let*-values([(a-machine num-steps) 
                          (run (new-machine (run-compiler code)) options ...)]
-                        [(actual) (machine-val a-machine)])
+                        [(actual) (PrimitiveValue->racket (machine-val a-machine))])
              (unless (equal? actual exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
                                    #'stx))
@@ -628,7 +629,7 @@
 
 
 
-(test (read (open-input-file "tests/conform/program0.sch"))
+#;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 
 ;(simulate (compile (parse '42) 'val 'next))

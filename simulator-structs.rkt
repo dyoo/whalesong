@@ -11,14 +11,20 @@
                                                    
                                                    primitive-proc 
                                                    closure
-
-                                                   (Pairof PrimitiveValue PrimitiveValue)
+                                                   
+                                                   (Vectorof PrimitiveValue)
+                                                   MutablePair
+                                                   
                                                    )))
 (define-type SlotValue (U PrimitiveValue 
                           (Boxof PrimitiveValue)
                           toplevel
                           CapturedControl
                           CapturedEnvironment))
+
+
+(define-struct: MutablePair ([h : PrimitiveValue]
+                             [t : PrimitiveValue]))
 
 ;; For continuation capture:
 (define-struct: CapturedControl ([frames : (Listof frame)]))

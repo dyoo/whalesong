@@ -369,7 +369,9 @@
           [(void? v)
            v]
           [(cons? v)
-           (cons (loop (car v)) (loop (cdr v)))]
+           (make-MutablePair (loop (car v)) (loop (cdr v)))]
+          [(MutablePair? v)
+           v]
           [(primitive-proc? v)
            v]
           [(closure? v)

@@ -76,7 +76,23 @@
        [m (run m)])
   (test (machine-env m) (list (box 42))))
 
+
+
 ;; Copying boxes over
+(let* ([m (new-machine `(,(make-PushEnvironment 1 #t)
+                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #t) (make-Const 42))
+                         ,(make-PushEnvironment 1 #f)
+                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+                                                         (make-EnvLexicalReference 1 #t))))]
+       [m (run m)])
+  (test (machine-env m) (list 42 (box 42))))
+
+(let* ([m (new-machine `(,(make-PushEnvironment 1 #t)
+                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #t) (make-Const 42))
+                         ,(make-PushEnvironment 1 #f)))]
+       [m (run m)])
+  (test (machine-env m) (list (make-undefined)
+                              (box 42))))
 (let* ([m (new-machine `(,(make-PushEnvironment 1 #t)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #t) (make-Const 42))
                          ,(make-PushEnvironment 1 #f)
@@ -86,14 +102,6 @@
   (test (machine-env m) (list (box 42)
                               (box 42))))
 
-
-(let* ([m (new-machine `(,(make-PushEnvironment 1 #t)
-                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #t) (make-Const 42))
-                         ,(make-PushEnvironment 1 #f)
-                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
-                                                         (make-EnvLexicalReference 1 #t))))]
-       [m (run m)])
-  (test (machine-env m) (list 42 (box 42))))
 
 
 

@@ -612,6 +612,18 @@
                         (* x (f (sub1 x)))))])
         (f 10))
       3628800)
+
+(test (letrec ([e (lambda (x)
+                    (if (= x 0)
+                        #t
+                        (o (sub1 x))))]
+               [o (lambda (x)
+                    (if (= x 0)
+                        #f
+                        (e (sub1 x))))])
+        (list (e 1236)
+              (e 2391)))
+      (list #t #f))
                   
 
 

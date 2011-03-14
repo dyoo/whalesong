@@ -309,15 +309,18 @@
               (machine-val m)]))]
     
     [(EnvLexicalReference? an-oparg)
-     (let: ([v : SlotValue
-               (env-ref m (EnvLexicalReference-depth an-oparg))])
+     (let*: ([v : SlotValue
+                (env-ref m (EnvLexicalReference-depth an-oparg))]
+             [v : SlotValue
+                (if (EnvLexicalReference-unbox? an-oparg)
+                    (unbox (ensure-primitive-value-box v))
+                    v)])
            (cond
-             [(PrimitiveValue? v)
-              v]
              [(toplevel? v)
               (error 'evaluate-oparg
                      "Unexpected toplevel at depth ~s"
-                     (EnvLexicalReference-depth an-oparg))]))]
+                     (EnvLexicalReference-depth an-oparg))]
+             [else v]))]
     
     [(EnvPrefixReference? an-oparg)
      (let: ([a-top : SlotValue (env-ref m (EnvPrefixReference-depth an-oparg))])

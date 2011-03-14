@@ -576,7 +576,7 @@
           [after-letrec : Symbol (make-label 'afterLetRec)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment
-                         (extend-lexical-environment/names cenv (LetRec-names exp))]
+                         (extend-lexical-environment/boxed-names cenv (LetRec-names exp))]
           [let-linkage : Linkage
                        (cond
                          [(eq? linkage 'next)

@@ -42,6 +42,9 @@
 
                          ;; other metrics for debugging
                          [stack-size : Natural]
+                         
+                         ;; compute position from label
+                         [jump-table : (HashTable Symbol Natural)]
                          )
   #:transparent
   #:mutable)

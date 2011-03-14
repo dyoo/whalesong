@@ -336,6 +336,11 @@ EOF
      (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
              (EnvWholePrefixReference-depth ref))]))
 
+(: assemble-display-name ((U Symbol False) -> String))
+(define (assemble-display-name symbol-or-string)
+  (if (symbol? symbol-or-string)
+      (format "~s" (symbol->string symbol-or-string))
+      "false"))
 
 (: assemble-op-expression (PrimitiveOperator -> String))
 (define (assemble-op-expression op)
@@ -344,7 +349,7 @@ EOF
      "MACHINE.proc.label"]
     
     [(MakeCompiledProcedure? op)
-     (format "new Closure(~a, ~a, [~a], ~s)"
+     (format "new Closure(~a, ~a, [~a], ~a)"
              (MakeCompiledProcedure-label op)
              (MakeCompiledProcedure-arity op)
              (string-join (map assemble-env-reference/closure-capture 
@@ -354,7 +359,7 @@ EOF
                                ;; during install-closure-values.
                                (reverse (MakeCompiledProcedure-closed-vals op)))
                           ", ")
-             (symbol->string (MakeCompiledProcedure-display-name op)))]
+             (assemble-display-name (MakeCompiledProcedure-display-name op)))]
     
     [(ApplyPrimitiveProcedure? op)
      (format "MACHINE.proc(~a, ~a)"

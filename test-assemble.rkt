@@ -177,7 +177,7 @@
                     'closureStart
                     (make-GotoStatement (make-Label 'afterLambda))
                     'afterLambda
-                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 '())))
+                    (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 '() 'closureStart)))
               "MACHINE.val.displayName")
       "closureStart")
 
@@ -194,7 +194,8 @@
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list (make-EnvLexicalReference 0 #f)
-                                                                                       (make-EnvLexicalReference 1 #f)))))
+                                                                                       (make-EnvLexicalReference 1 #f))
+                                                                                 'closureStart)))
               "MACHINE.val.closedVals[1] + ',' + MACHINE.val.closedVals[0]")
       "hello,world")
 
@@ -213,7 +214,8 @@
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list (make-EnvLexicalReference 0 #f)
-                                                                                       (make-EnvLexicalReference 1 #f))))
+                                                                                       (make-EnvLexicalReference 1 #f))
+                                                                                 'closureStart))
                     (make-PopEnvironment 2 0)
                     (make-GotoStatement (make-Label 'closureStart))
                     'theEnd)
@@ -237,7 +239,8 @@
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list (make-EnvLexicalReference 0 #f)
-                                                                                       (make-EnvLexicalReference 1 #f))))
+                                                                                       (make-EnvLexicalReference 1 #f))
+                                                                                 'closureStart))
                     (make-PopEnvironment 2 0)
                     (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))
               "typeof(MACHINE.val) + ',' + (MACHINE.val === MACHINE.proc.label)")
@@ -259,7 +262,8 @@
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
                                                                                   (list (make-EnvLexicalReference 0 #f)
-                                                                                        (make-EnvLexicalReference 1 #f))))
+                                                                                        (make-EnvLexicalReference 1 #f))
+                                                                                  'closureStart))
                     (make-PopEnvironment 2 0)
                     (make-PerformStatement (make-CheckClosureArity! 5)))))
 
@@ -281,7 +285,8 @@
                                                  (make-Const "world"))
                   (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
                                                                                 (list (make-EnvLexicalReference 0 #f)
-                                                                                      (make-EnvLexicalReference 1 #f))))
+                                                                                      (make-EnvLexicalReference 1 #f))
+                                                                                'closureStart))
                   (make-PopEnvironment 2 0)
                   (make-PerformStatement (make-CheckClosureArity! 1)))))
   (error 'expected-failure))

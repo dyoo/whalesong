@@ -484,6 +484,16 @@
                    (sum-integers 1 10)))
       (list 3025 55))
 
+
+;; Lexical scope bug: make sure that parameters shadow toplevels.
+(test '(begin
+         (define x 42)
+         (define (f x)
+           (+ x 1))
+         (f 16))
+      17)
+
+
 (test '(let () 5) 5)
 
 (test '(let* ([x 3]

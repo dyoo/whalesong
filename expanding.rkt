@@ -671,5 +671,55 @@
      `(begin ,@(map unexpand-expr (syntax->list #'(subexpr ...))))]
     [(begin0 subexpr ...)
      `(begin0 ,@(map unexpand-expr (syntax->list #'(subexpr ...))))]
+    [(let-values ([(id ...) expr] ...) 
+       body ...)
+     (let ([idss (syntax->datum #'((id ...) ...))])
+       (cond       
+         [(andmap (lambda (clause) (= 1 (length clause)))
+                  idss)
+          `(let (,@(map (lambda (ids rhs)
+                          (list (first ids) (unexpand-expr rhs)))
+                        (syntax->datum #'((id ...) ...))
+                        (syntax->list #'(expr ...))))
+             ,@(map unexpand-expr (syntax->list #'(body ...))))]
+         
+         [else
+          (error 'multiple-let-values)]))]
+    [(letrec-values ([(id ...) expr] ...) 
+       body ...)
+     (let ([idss (syntax->datum #'((id ...) ...))])
+       (cond       
+         [(andmap (lambda (clause) (= 1 (length clause)))
+                  idss)
+          `(letrec (,@(map (lambda (ids rhs)
+                          (list (first ids) (unexpand-expr rhs)))
+                        (syntax->datum #'((id ...) ...))
+                        (syntax->list #'(expr ...))))
+             ,@(map unexpand-expr (syntax->list #'(body ...))))]
+         
+         [else
+          (error 'multiple-letrec-values)]))]
+    [(set! id expr)
+     `(set! ,(syntax->datum #'id) ,(unexpand-expr #'expr))]
+    [(quote datum)
+     `(quote ,(syntax->datum #'datum))]
+    [(quote-syntax datum)
+     (error 'quote-syntax)]
+    [(with-continuation-mark key value body)
+     (error 'with-continuation-mark)]
+    [(#%plain-app expr ...)
+     (map unexpand-expr (syntax->list #'(expr ...)))]
+    [(#%top . id)
+     (syntax->datum #'id)]
+    [(#%variable-reference id)
+     (identifier? #'id)
+     (error '#%variable-reference)]
+    [(#%variable-reference (#%top . id))
+     (error '#%variable-reference)]
+    [(#%variable-reference)
+     (error '#%variable-reference)]
+    [_
+     (identifier? expr)
+     (syntax->datum expr)]
     [else
-     expr]))
+     (error 'unknown)]))

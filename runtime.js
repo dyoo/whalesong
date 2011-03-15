@@ -185,6 +185,28 @@ var Primitives = (function() {
 	    return typeof(firstArg) === 'string';
 	},
 
+	'symbol->string': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return firstArg;
+	},
+	
+	'box': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return [firstArg];
+	},
+
+	'set-box!': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    firstArg[0] = secondArg;
+	    return;
+	},
+
+	'void': function(arity, returnLabel) {
+	    return;
+	},
+
+ 
  	'call/cc': new Closure(callCCEntry,
  			       1,
  			       [],

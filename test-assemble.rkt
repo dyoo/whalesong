@@ -5,7 +5,6 @@
          "parse.rkt"
          "il-structs.rkt"
          "compile.rkt"
-         "bootstrapped-primitives.rkt"
          racket/port
          racket/promise
          racket/runtime-path)
@@ -45,11 +44,6 @@
                               "(function() { "
                               
                               runtime
-                              
-			      ;; The support code for call/cc
-                              (string-join (map assemble-basic-block 
-                                                (fracture (get-bootstrapping-code)))
-                                           "\n")
 
                               "return function(success, fail, params){" 
 			      snippet
@@ -69,12 +63,6 @@
                             (display "(function() { " op)
                             
                             (display runtime op)
-
-                            (display
-                             (string-join (map assemble-basic-block 
-                                                (fracture (get-bootstrapping-code)))
-                                           "\n")
-                             op)
                             
                             (display "var myInvoke = " op)
                             (assemble/write-invoke a-statement op)

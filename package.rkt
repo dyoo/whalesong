@@ -25,18 +25,11 @@
   
   (newline op)
   
-  ;; The support code for call/cc
-  (for-each (lambda (code)
-              (displayln code op))
-            (map assemble-basic-block 
-                 (fracture (get-bootstrapping-code))))
-
-  (newline op)
-
   (fprintf op "var invoke = ")
-  (assemble/write-invoke (compile (parse source-code)
-                                  'val
-                                  'next)
+  (assemble/write-invoke (append (get-bootstrapping-code)
+				 (compile (parse source-code)
+					  'val
+					  'next))
                          op)
   (fprintf op ";\n"))
 

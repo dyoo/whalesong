@@ -20,7 +20,6 @@
                                      #'stx)))
              (printf " ok (~a milliseconds)\n" (evaluated-t result))))))]))
 
-#|
 (test '(begin (define (f x) 
                 (if (= x 0)
                     0
@@ -142,7 +141,7 @@
          (displayln (tak 18 12 6)))
         "7\n")
 
-|#
 
-(test (read (open-input-file "tests/conform/program1.sch"))
+
+#;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))

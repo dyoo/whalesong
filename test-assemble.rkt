@@ -5,6 +5,7 @@
          "parse.rkt"
          "il-structs.rkt"
          "compile.rkt"
+         "bootstrapped-primitives.rkt"
          racket/port
          racket/promise
          racket/runtime-path)
@@ -45,8 +46,7 @@
                               
                                 ;; The support code for call/cc
                               (string-join (map assemble-basic-block 
-                                                (fracture (statements 
-                                                           (make-call/cc-code))))
+                                                (fracture (make-call/cc-code)))
                                            "\n")
                               
                               runtime
@@ -70,8 +70,7 @@
                             
                             (display
                              (string-join (map assemble-basic-block 
-                                                (fracture (statements 
-                                                           (make-call/cc-code))))
+                                                (fracture (make-call/cc-code)))
                                            "\n")
                              op)
                             

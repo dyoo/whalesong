@@ -4,6 +4,7 @@
          "assemble.rkt"
          "typed-parse.rkt"
          "il-structs.rkt"
+         "bootstrapped-primitives.rkt"
          racket/runtime-path
          racket/port)
 
@@ -21,8 +22,7 @@
   (for-each (lambda (code)
               (displayln code op))
             (map assemble-basic-block 
-                 (fracture (statements 
-                            (make-call/cc-code)))))
+                 (fracture (make-call/cc-code))))
 
   ;; The runtime code
   (call-with-input-file* runtime.js

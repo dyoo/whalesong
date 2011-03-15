@@ -1,6 +1,7 @@
 #lang racket/base
 (require "simulator-structs.rkt"
          "compile.rkt"
+         "bootstrapped-primitives.rkt"
          racket/math
          (for-syntax racket/base))
 

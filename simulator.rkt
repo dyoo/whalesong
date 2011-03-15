@@ -7,6 +7,7 @@
 
 (require "il-structs.rkt"
          "simulator-structs.rkt"
+         "bootstrapped-primitives.rkt"
          racket/list
          racket/match
          (for-syntax racket/base))
@@ -30,15 +31,27 @@
 
 (: new-machine ((Listof Statement) -> machine))
 (define (new-machine program-text)
-  (let: ([m : machine (make-machine (make-undefined) (make-undefined) '() '() 0 (list->vector program-text) 0
-                                    ((inst make-hash Symbol Natural)))])
-        (let: loop : Void ([i : Natural 0])
-              (when (< i (vector-length (machine-text m)))
-                (let: ([stmt : Statement (vector-ref (machine-text m) i)])
-                      (when (symbol? stmt)
-                        (hash-set! (machine-jump-table m) stmt i))
-                      (loop (add1 i)))))
-        m))
+  (let*: ([after-bootstrapping : Symbol (make-label 'afterBootstrapping)]
+          [program-text : (Listof Statement)
+                        (append `(,(make-GotoStatement (make-Label after-bootstrapping)))
+                                (make-call/cc-code)
+                                `(,after-bootstrapping)
+                                program-text)])
+         (let: ([m : machine (make-machine (make-undefined)
+                                           (make-undefined)
+                                           '() 
+                                           '()
+                                           0 
+                                           (list->vector program-text) 
+                                           0
+                                           ((inst make-hash Symbol Natural)))])
+               (let: loop : Void ([i : Natural 0])
+                     (when (< i (vector-length (machine-text m)))
+                       (let: ([stmt : Statement (vector-ref (machine-text m) i)])
+                             (when (symbol? stmt)
+                               (hash-set! (machine-jump-table m) stmt i))
+                             (loop (add1 i)))))
+               m)))
 
 
 

@@ -12,6 +12,7 @@
 (provide (rename-out [-compile compile])
          compile-procedure-call
          append-instruction-sequences
+         current-defined-name
          adjust-target-depth)
 
 

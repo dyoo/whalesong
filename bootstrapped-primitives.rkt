@@ -7,10 +7,12 @@
          "find-toplevel-variables.rkt"
          "sets.rkt"
          "compile.rkt"
+         "typed-parse.rkt"
          racket/list)
 
-(provide call/cc-label
-         make-call/cc-code)
+
+
+(provide get-bootstrapping-code)
 
 
 
@@ -66,3 +68,44 @@
                                  ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
                                  ,(make-PopControlFrame)
                                  ,(make-GotoStatement (make-Reg 'proc)))))))
+
+(: make-bootstrapped-primitive-code (Symbol Any -> (Listof Statement)))
+(define (make-bootstrapped-primitive-code name src)
+  (parameterize ([current-defined-name name])
+    (append
+     (compile (parse src) (make-PrimitivesReference name) 'next)
+     ;; Remove the prefix after the Primitives assignment.
+     `(,(make-PopEnvironment 1 0)))))
+
+
+
+
+
+(: get-bootstrapping-code (-> (Listof Statement)))
+(define (get-bootstrapping-code)
+  
+  (append
+
+   (make-bootstrapped-primitive-code 'double 
+                                     '(lambda (x) 
+                                        (* x x)))
+   
+   (make-bootstrapped-primitive-code 'map 
+                                     '(letrec ([map (lambda (f l)
+                                                      (if (null? l)
+                                                       null
+                                                       (cons (f (car l))
+                                                             (map f (cdr l)))))])
+                                        map))
+   
+   ;; The call/cc code is special:
+   (let ([after-call/cc-code (make-label 'afterCallCCImplementation)])
+     (append 
+
+      `(,(make-AssignPrimOpStatement (make-PrimitivesReference 'call/cc) 
+                                     (make-MakeCompiledProcedure call/cc-label 1 '() 'call/cc))
+        ,(make-AssignPrimOpStatement (make-PrimitivesReference 'call-with-current-continuation) 
+                                     (make-MakeCompiledProcedure call/cc-label 1 '() 'call/cc))
+        ,(make-GotoStatement (make-Label after-call/cc-code)))
+      (make-call/cc-code)
+      `(,after-call/cc-code)))))

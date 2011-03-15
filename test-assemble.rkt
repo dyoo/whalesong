@@ -44,15 +44,15 @@
                              (string-append
                               "(function() { "
                               
-                                ;; The support code for call/cc
-                              (string-join (map assemble-basic-block 
-                                                (fracture (make-call/cc-code)))
-                                           "\n")
-                              
                               runtime
                               
-                              
-                              "return function(success, fail, params){" snippet
+			      ;; The support code for call/cc
+                              (string-join (map assemble-basic-block 
+                                                (fracture (get-bootstrapping-code)))
+                                           "\n")
+
+                              "return function(success, fail, params){" 
+			      snippet
                               (format "success(String(~a)); };" inspector)
                               "});")])
                        (displayln snippet)
@@ -68,13 +68,13 @@
                             
                             (display "(function() { " op)
                             
+                            (display runtime op)
+
                             (display
                              (string-join (map assemble-basic-block 
-                                                (fracture (make-call/cc-code)))
+                                                (fracture (get-bootstrapping-code)))
                                            "\n")
                              op)
-                            
-                            (display runtime op)
                             
                             (display "var myInvoke = " op)
                             (assemble/write-invoke a-statement op)

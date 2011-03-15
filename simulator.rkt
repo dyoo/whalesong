@@ -41,9 +41,7 @@
      (let*: ([after-bootstrapping : Symbol (make-label 'afterBootstrapping)]
              [program-text : (Listof Statement)
                            (cond [with-bootstrapping-code?
-                                  (append `(,(make-GotoStatement (make-Label after-bootstrapping)))
-                                          (make-call/cc-code)
-                                          `(,after-bootstrapping)
+                                  (append (get-bootstrapping-code)
                                           program-text)]
                                  [else
                                   program-text])])

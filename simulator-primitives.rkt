@@ -45,12 +45,12 @@
                 (make-undefined)]
                )))))]))
 
-(define call/cc
-  (make-closure call/cc-label
-                1
-                '()
-                'call/cc))
-(define call-with-current-continuation call/cc)
+;(define call/cc
+;  (make-closure call/cc-label
+;                1
+;                '()
+;                'call/cc))
+;(define call-with-current-continuation call/cc)
 
 (define e (exp 1))
 
@@ -154,7 +154,7 @@
                                                      
                                                      symbol?)
                                       #:constants (null pi e 
-                                                        call/cc
-                                                        call-with-current-continuation)))
+                                                        #;call/cc
+                                                        #;call-with-current-continuation)))
 
 

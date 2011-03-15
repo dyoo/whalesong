@@ -292,16 +292,17 @@ var Primitives = (function() {
 		}
 	    }
 	    return true;
-	},
- 
- 	'call/cc': new Closure(callCCEntry,
- 			       1,
- 			       [],
- 			       "call/cc"),
-	'call-with-current-continuation': new Closure(callCCEntry,
- 						      1,
- 						      [],
- 						      "call-with-current-continuation")
+	}
+
+// 	, 
+//  	'call/cc': new Closure(callCCEntry,
+//  			       1,
+//  			       [],
+//  			       "call/cc"),
+// 	'call-with-current-continuation': new Closure(callCCEntry,
+//  						      1,
+//  						      [],
+//  						      "call-with-current-continuation")
 
     };
 })();

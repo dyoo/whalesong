@@ -37,11 +37,6 @@
   #:transparent)
 
 
-
-#;(define-struct: Letrec ([names : (Listof Symbol)]
-                        [procs : (Listof Lam)]
-                        [body : ExpressionCore]))
-
 (: last-exp? ((Listof Expression) -> Boolean))
 (define (last-exp? seq) 
   (null? (cdr seq)))

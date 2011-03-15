@@ -342,12 +342,52 @@ var MACHINE = { callsBeforeTrampoline: 100,
 		running : false,
 		params: { currentDisplayer: function(v) {},
 			  currentErrorHandler: function(e) {},
-			  currentNamespace: {}}};
+			  currentNamespace: {},
+
+			  // These parameters control how often
+			  // control yields back to the browser
+			  // for response.  The implementation is a
+			  // simple PID controller.
+			  //
+			  // To tune this, adjust desiredYieldsPerSecond.
+			  // Do no touch numBouncesBeforeYield or
+			  // maxNumBouncesBeforeYield, because those
+			  // are adjusted automatically by the
+			  // recomputeMaxNumBouncesBeforeYield
+			  // procedure.
+			  desiredYieldsPerSecond: 5,
+			  numBouncesBeforeYield: 2000,   // self-adjusting
+			  maxNumBouncesBeforeYield: 2000 // self-adjusting
+			}
+	      };
+
+
+
+// recomputeGas: state number -> number
+var recomputeMaxNumBouncesBeforeYield = function(observedDelay) {
+    // We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
+    // that we get MACHINE.params.desiredYieldsPerSecond bounces per
+    // second.
+    var DESIRED_DELAY_BETWEEN_BOUNCES = 
+	(1000 / MACHINE.params.desiredYieldsPerSecond);
+    var ALPHA = 256;
+    var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
+			   observedDelay) / 
+			  DESIRED_DELAY_BETWEEN_BOUNCES));
+    MACHINE.params.maxNumBouncesBeforeYield = 
+        Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
+                 1);
+};
 
 
 var trampoline = function(initialJump, success, fail) {
     var thunk = initialJump;
+    var startTime = (new Date()).valueOf();
     MACHINE.callsBeforeTrampoline = 100;
+    MACHINE.params.numBouncesBeforeYield = 
+	MACHINE.params.maxNumBouncesBeforeYield;
+    MACHINE.running = true;
+
     while(thunk) {
         try {
             thunk();
@@ -356,10 +396,23 @@ var trampoline = function(initialJump, success, fail) {
             if (typeof(e) === 'function') {
                 thunk = e;
                 MACHINE.callsBeforeTrampoline = 100;
+
+		if (MACHINE.params.numBouncesBeforeYield-- < 0) {
+		    recomputeMaxNumBouncesBeforeYield(
+			(new Date()).valueOf() - startTime);
+		    setTimeout(
+			function() {
+			    trampoline(thunk, success, fail);
+			},
+			0);
+		    return;
+		}
             } else {
+		MACHINE.running = false;
 	        return fail(e);
             }
         }
     }
+    MACHINE.running = false;
     return success();
 };

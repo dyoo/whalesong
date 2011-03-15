@@ -221,7 +221,7 @@ var comet = function() {
                                                          pNode.style.whiteSpace = 'pre';
                                                          pNode.appendChild(document.createTextNode(String(v)));
                                                          document.body.appendChild(pNode);
-                                                         console.log(v);
+                                                         //console.log(v);
                                                          output.push(String(v)); } };
 
                     var onSuccess = function(v) {

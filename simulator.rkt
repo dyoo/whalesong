@@ -29,29 +29,38 @@
 (define current-simulated-output-port (make-parameter (current-output-port)))
 
 
-(: new-machine ((Listof Statement) -> machine))
-(define (new-machine program-text)
-  (let*: ([after-bootstrapping : Symbol (make-label 'afterBootstrapping)]
-          [program-text : (Listof Statement)
-                        (append `(,(make-GotoStatement (make-Label after-bootstrapping)))
-                                (make-call/cc-code)
-                                `(,after-bootstrapping)
-                                program-text)])
-         (let: ([m : machine (make-machine (make-undefined)
-                                           (make-undefined)
-                                           '() 
-                                           '()
-                                           0 
-                                           (list->vector program-text) 
-                                           0
-                                           ((inst make-hash Symbol Natural)))])
-               (let: loop : Void ([i : Natural 0])
-                     (when (< i (vector-length (machine-text m)))
-                       (let: ([stmt : Statement (vector-ref (machine-text m) i)])
-                             (when (symbol? stmt)
-                               (hash-set! (machine-jump-table m) stmt i))
-                             (loop (add1 i)))))
-               m)))
+(: new-machine (case-lambda [(Listof Statement) -> machine]
+                            [(Listof Statement) Boolean -> machine]))
+(define new-machine
+  (case-lambda: 
+    [([program-text : (Listof Statement)])
+     (new-machine program-text #t)]
+    [([program-text : (Listof Statement)]
+      [with-bootstrapping-code? : Boolean])
+     (let*: ([after-bootstrapping : Symbol (make-label 'afterBootstrapping)]
+             [program-text : (Listof Statement)
+                           (cond [with-bootstrapping-code?
+                                  (append `(,(make-GotoStatement (make-Label after-bootstrapping)))
+                                          (make-call/cc-code)
+                                          `(,after-bootstrapping)
+                                          program-text)]
+                                 [else
+                                  program-text])])
+            (let: ([m : machine (make-machine (make-undefined)
+                                              (make-undefined)
+                                              '() 
+                                              '()
+                                              0 
+                                              (list->vector program-text) 
+                                              0
+                                              ((inst make-hash Symbol Natural)))])
+                  (let: loop : Void ([i : Natural 0])
+                        (when (< i (vector-length (machine-text m)))
+                          (let: ([stmt : Statement (vector-ref (machine-text m) i)])
+                                (when (symbol? stmt)
+                                  (hash-set! (machine-jump-table m) stmt i))
+                                (loop (add1 i)))))
+                  m))]))
 
 
 

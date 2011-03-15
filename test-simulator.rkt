@@ -42,7 +42,8 @@
 
 
 ;; Infinite loop
-(let ([m (new-machine `(hello world ,(make-GotoStatement (make-Label 'hello))))])
+(let ([m (new-machine `(hello world ,(make-GotoStatement (make-Label 'hello)))
+                      #f)])
   (test (machine-pc (step-n m 0)) 0)
   (test (machine-pc (step-n m 1)) 1)
   (test (machine-pc (step-n m 1)) 2)
@@ -52,13 +53,15 @@
 
 
 ;; Assigning to val
-(let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const 42))))])
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const 42)))
+                      #f)])
   (test (machine-val m) (make-undefined))
   (step! m)
   (test (machine-val m) 42))
 
 ;; Assigning to proc
-(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const 42))))])
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const 42)))
+                      #f)])
   (test (machine-proc m) (make-undefined))
   (step! m)
   (test (machine-proc m) 42))
@@ -66,7 +69,8 @@
 
 ;; Assigning to a environment reference
 (let* ([m (new-machine `(,(make-PushEnvironment 1 #f)
-                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 42))))]
+                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 42)))
+                       #f)]
        [m (run m)])
   (test (machine-env m) '(42)))
 

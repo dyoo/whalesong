@@ -129,6 +129,24 @@ var Primitives = (function() {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg[1];
 	},
+
+	'pair?': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return (typeof(firstArg) == 'object' && 
+		    firstArg.length === 2);
+	},
+
+	'set-car!': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    firstArg[0] = secondArg;
+	},
+
+	'set-cdr!': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    firstArg[1] = secondArg;
+	},
 	
 	'not': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -166,6 +184,26 @@ var Primitives = (function() {
 	    return result;
 	},
 
+	'vector->list': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var i;
+	    var result = NULL;
+	    for (i = 0; i < firstArg.length; i++) {
+		result = [firstArg[firstArg.length - 1 - i], result];
+	    }
+	    return result;
+	},
+	
+	'list->vector': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var result = [];
+	    while (firstArg !== NULL) {
+		result.push(firstArg[0]);
+		firstArg = firstArg[1];
+	    }
+	    return result;
+	},
+
 	'vector-ref': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
@@ -189,11 +227,31 @@ var Primitives = (function() {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg;
 	},
+
+	'string-append': function(arity, returnLabel) {
+	    var buffer = [];
+	    var i;
+	    for (i = 0; i < arity; i++) {
+		buffer.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+	    }
+	    return buffer.join('');
+	},
+
+	'string-length': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return firstArg.length;
+	},
 	
 	'box': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return [firstArg];
+	    var result = [firstArg];
+	    return result;
 	},
+
+	'unbox': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    return firstArg[0];
+        },
 
 	'set-box!': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -206,6 +264,18 @@ var Primitives = (function() {
 	    return;
 	},
 
+
+	'eq?': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg === secondArg;
+	},
+
+	'equal?': function(arity, returnLabel) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return firstArg == secondArg;
+	},
  
  	'call/cc': new Closure(callCCEntry,
  			       1,
@@ -264,14 +334,15 @@ var Primitives = (function() {
 
 
 
-var MACHINE={callsBeforeTrampoline: 100, 
-             val:undefined,
-             proc:undefined, 
-             env: [],
-	     control : [],
-             params: { currentDisplayer: function(v) {},
-		       currentErrorHandler: function(e) {},
-		       currentNamespace: {}}};
+var MACHINE = { callsBeforeTrampoline: 100, 
+		val:undefined,
+		proc:undefined, 
+		env: [],
+		control : [],
+		running : false,
+		params: { currentDisplayer: function(v) {},
+			  currentErrorHandler: function(e) {},
+			  currentNamespace: {}}};
 
 
 var trampoline = function(initialJump, success, fail) {

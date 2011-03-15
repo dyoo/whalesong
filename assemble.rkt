@@ -260,7 +260,7 @@ EOF
                                       (build-list (PushEnvironment-n stmt) 
                                                   (lambda: ([i : Natural])
                                                            (if (PushEnvironment-unbox? stmt)
-                                                               "[]"
+                                                               "[undefined]"
                                                                "undefined")))
                                       ", "))]
     [(PopEnvironment? stmt)
@@ -299,7 +299,7 @@ EOF
               [(boolean? val)
                (if val "true" "false")]
               [(empty? val)
-               (format "Primitives.NULL")]
+               (format "Primitives.null")]
               [else
                (format "~s" val)])))
 

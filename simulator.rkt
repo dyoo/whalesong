@@ -13,7 +13,8 @@
          (for-syntax racket/base))
 
 (require/typed "simulator-primitives.rkt"
-               [lookup-primitive (Symbol -> PrimitiveValue)])
+               [lookup-primitive (Symbol -> PrimitiveValue)]
+               [set-primitive! (Symbol PrimitiveValue -> Void)])
 
 (require/typed "simulator-helpers.rkt"
                [ensure-primitive-value-box (SlotValue -> (Boxof PrimitiveValue))]
@@ -125,20 +126,7 @@
 (define (step-assign-immediate! m stmt)
   (let: ([t : Target (AssignImmediateStatement-target stmt)]
          [v : SlotValue (evaluate-oparg m (AssignImmediateStatement-value stmt))])
-        (cond [(eq? t 'proc)
-               (proc-update! m v)]
-              [(eq? t 'val)
-               (val-update! m v)]
-              [(EnvLexicalReference? t)
-               (if (EnvLexicalReference-unbox? t)
-                   (begin (set-box! (ensure-primitive-value-box (env-ref m (EnvLexicalReference-depth t)))
-                                    (ensure-primitive-value v))
-                          'ok)
-                   (env-mutate! m (EnvLexicalReference-depth t) v))]
-              [(EnvPrefixReference? t)
-               (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
-                                 (EnvPrefixReference-pos t)
-                                 (ensure-primitive-value v))])))
+        ((get-target-updater t) m v)))
 
 
 (: step-push-environment! (machine PushEnvironment -> 'ok))
@@ -273,7 +261,12 @@
      (lambda: ([m : machine] [v : SlotValue])
               (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
                                 (EnvPrefixReference-pos t)
-                                (ensure-primitive-value v)))]))
+                                (ensure-primitive-value v)))]
+    [(PrimitivesReference? t)
+     (lambda: ([m : machine] [v : SlotValue])
+              (set-primitive! (PrimitivesReference-name t)
+                              (ensure-primitive-value v))
+              'ok)]))
 
 
 (: step-assign-primitive-operation! (machine AssignPrimOpStatement -> 'ok))

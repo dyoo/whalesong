@@ -5,7 +5,11 @@
          racket/math
          (for-syntax racket/base))
 
-(provide lookup-primitive)
+(provide lookup-primitive set-primitive!)
+
+(define mutated-primitives (make-hasheq))
+(define (set-primitive! n p)
+  (hash-set! mutated-primitives n p))
 
 
 (define-syntax (make-lookup stx)
@@ -29,6 +33,8 @@
                ...)
            (lambda (n)
              (cond
+               [(hash-has-key? mutated-primitives n)
+                (hash-ref mutated-primitives n)]
                [(eq? n 'exported-name)
                 prim-name]
                ...

@@ -281,7 +281,9 @@ EOF
     [(EnvLexicalReference? target)
      (assemble-lexical-reference target)]
     [(EnvPrefixReference? target)
-     (assemble-prefix-reference target)]))
+     (assemble-prefix-reference target)]
+    [(PrimitivesReference? target)
+     (format "Primitives[~s]" (symbol->string (PrimitivesReference-name target)))]))
 
 
 

@@ -620,7 +620,9 @@
                                (EnvLexicalReference-unbox? target))]
     [(EnvPrefixReference? target)
      (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
-                              (EnvPrefixReference-pos target))]))
+                              (EnvPrefixReference-pos target))]
+    [(PrimitivesReference? target)
+     target]))
 
 
 

@@ -274,7 +274,24 @@ var Primitives = (function() {
 	'equal?': function(arity, returnLabel) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    return firstArg == secondArg;
+	    var lset = [firstArg], rset = [secondArg];
+	    while (lset.length !== 0 && rset.length !== 0) {
+		var lhs = lset.pop();
+		var rhs = rset.pop();
+		if (lhs === rhs) {
+		    continue;
+		} else if (typeof(lhs) === 'object' &&
+			   typeof(rhs) === 'object' &&
+			   typeof(lhs.length) === 'number' &&
+			   typeof(rhs.length) === 'number' &&
+			   lhs.length === rhs.length) {
+		    lset.push.apply(lset, lhs);
+		    rset.push.apply(rset, rhs);
+		} else {
+		    return false;
+		}
+	    }
+	    return true;
 	},
  
  	'call/cc': new Closure(callCCEntry,

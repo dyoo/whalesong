@@ -1,46 +1,46 @@
 (begin
 
-(define (caar l)
-  (car (car l)))
+;; (define (caar l)
+;;   (car (car l)))
 
-(define (map f l)
-  (if (null? l)
-      null
-      (cons (f (car l))
-            (map f (cdr l)))))
+;; (define (map f l)
+;;   (if (null? l)
+;;       null
+;;       (cons (f (car l))
+;;             (map f (cdr l)))))
 
-(define (for-each f l)
-  (if (null? l)
-      null
-      (begin (f (car l))
-	     (for-each f (cdr l)))))
+;; (define (for-each f l)
+;;   (if (null? l)
+;;       null
+;;       (begin (f (car l))
+;; 	     (for-each f (cdr l)))))
 
-(define (memq x l)
-  (if (null? l)
-      #f
-      (if (eq? x (car l))
-          l
-	  (memq x (cdr l)))))
-
-
-(define (assq x l)
-  (if (null? l)
-      #f
-      (if (eq? x (caar l))
-          (car l)
-	  (assq x (cdr l)))))
+;; (define (memq x l)
+;;   (if (null? l)
+;;       #f
+;;       (if (eq? x (car l))
+;;           l
+;; 	  (memq x (cdr l)))))
 
 
-(define (length l)
-  (if (null? l)
-      0
-      (add1 (length (cdr l)))))
+;; (define (assq x l)
+;;   (if (null? l)
+;;       #f
+;;       (if (eq? x (caar l))
+;;           (car l)
+;; 	  (assq x (cdr l)))))
 
 
-(define (append l1 l2)
-  (if (null? l1) 
-      l2
-      (cons (car l1) (append (cdr l1) l2))))
+;; (define (length l)
+;;   (if (null? l)
+;;       0
+;;       (add1 (length (cdr l)))))
+
+
+;; (define (append l1 l2)
+;;   (if (nullb? l1) 
+;;       l2
+;;       (cons (car l1) (append (cdr l1) l2))))
 
 
 (define vector-copy

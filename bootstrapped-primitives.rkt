@@ -85,18 +85,69 @@
 (define (get-bootstrapping-code)
   
   (append
-
-   (make-bootstrapped-primitive-code 'double 
-                                     '(lambda (x) 
-                                        (* x x)))
    
-   (make-bootstrapped-primitive-code 'map 
-                                     '(letrec ([map (lambda (f l)
-                                                      (if (null? l)
-                                                       null
-                                                       (cons (f (car l))
-                                                             (map f (cdr l)))))])
-                                        map))
+   (make-bootstrapped-primitive-code 
+    'map 
+    '(letrec ([map (lambda (f l)
+		     (if (null? l)
+			 null
+			 (cons (f (car l))
+			       (map f (cdr l)))))])
+       map))
+
+   (make-bootstrapped-primitive-code
+    'for-each
+    '(letrec ([for-each (lambda (f l)
+			  (if (null? l)
+			      null
+			      (begin (f (car l))
+				     (for-each f (cdr l)))))])
+       for-each))
+
+   (make-bootstrapped-primitive-code
+    'caar
+    '(lambda (x)
+       (car (car x))))
+
+
+   (make-bootstrapped-primitive-code
+    'memq
+    '(letrec ([memq (lambda (x l)
+		      (if (null? l)
+			  #f
+			  (if (eq? x (car l))
+			      l
+			      (memq x (cdr l)))))])
+       memq))
+
+   (make-bootstrapped-primitive-code
+    'assq
+    '(letrec ([assq (lambda (x l)
+		     (if (null? l)
+			 #f
+			 (if (eq? x (caar l))
+			     (car l)
+			     (assq x (cdr l)))))])
+      assq))
+
+   (make-bootstrapped-primitive-code
+    'length
+    '(letrec ([length-iter (lambda (l i)
+			    (if (null? l)
+				i
+				(length-iter (cdr l) (add1 i))))])
+      (lambda (l) (length-iter l 0))))
+			  
+
+   (make-bootstrapped-primitive-code
+    'append
+    '(letrec ([append (lambda (l1 l2)
+			(if (null? l1) 
+			    l2
+			    (cons (car l1) (append (cdr l1) l2))))])
+       append))
+	      
+
    
    ;; The call/cc code is special:
    (let ([after-call/cc-code (make-label 'afterCallCCImplementation)])

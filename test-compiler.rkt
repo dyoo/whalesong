@@ -639,6 +639,14 @@
 
 
 
+(test '(let loop ([i 0])
+         (cond [(= i 5)
+	        '(ok)]
+               [else (cons i (loop (add1 i)))]))
+      '(0 1 2 3 4 ok))
+	     
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

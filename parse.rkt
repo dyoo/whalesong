@@ -36,6 +36,9 @@
           (car actions)]
          [else
           (make-Seq actions)]))]
+
+    [(named-let? exp)
+     (parse-named-let exp)]
     
     [(let? exp)
      (parse-let exp)]
@@ -189,7 +192,35 @@
          `(let ([,(car vars) ,(car rhss)])
             ,(loop (cdr vars) (cdr rhss)))])))))
               
+
+
+(define (parse-named-let exp)
+  (parse
+   `(letrec [(,(named-let-name exp)
+	      (lambda ,(named-let-variables exp)
+		,@(named-let-body exp)))]
+      (,(named-let-name exp) ,@(named-let-rhss exp)))))
+  
     
+(define (named-let? exp)
+  (and (tagged-list? exp 'let)
+       (symbol? (cadr exp))))
+
+(define (named-let-name exp)
+  (cadr exp))
+(define (named-let-variables exp)
+  (map (lambda (clause)
+         (car clause))
+       (caddr exp)))
+(define (named-let-rhss exp)
+  (map (lambda (clause)
+         (cadr clause))
+       (caddr exp)))
+(define (named-let-body exp)
+  (cdddr exp))
+
+
+
 ;; any -> boolean
 (define (let? exp)
   (tagged-list? exp 'let))

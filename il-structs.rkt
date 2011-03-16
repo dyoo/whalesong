@@ -29,7 +29,8 @@
 ;; Targets: these are the allowable lhs's for an assignment.
 (define-type Target (U AtomicRegisterSymbol 
                        EnvLexicalReference
-                       EnvPrefixReference))
+                       EnvPrefixReference
+                       PrimitivesReference))
 
 
 
@@ -46,6 +47,10 @@
                                     [pos : Natural])
   #:transparent)
 (define-struct: EnvWholePrefixReference ([depth : Natural])
+  #:transparent)
+
+
+(define-struct: PrimitivesReference ([name : Symbol])
   #:transparent)
 
 

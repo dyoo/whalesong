@@ -4,6 +4,7 @@
          "assemble.rkt"
          "typed-parse.rkt"
          "il-structs.rkt"
+         "bootstrapped-primitives.rkt"
          racket/runtime-path
          racket/port)
 
@@ -17,13 +18,6 @@
 ;; package: s-expression output-port -> void
 (define (package source-code op)
 
-  ;; The support code for call/cc
-  (for-each (lambda (code)
-              (displayln code op))
-            (map assemble-basic-block 
-                 (fracture (statements 
-                            (make-call/cc-code)))))
-
   ;; The runtime code
   (call-with-input-file* runtime.js
     (lambda (ip)
@@ -32,9 +26,10 @@
   (newline op)
   
   (fprintf op "var invoke = ")
-  (assemble/write-invoke (compile (parse source-code)
-                                  'val
-                                  'next)
+  (assemble/write-invoke (append (get-bootstrapping-code)
+				 (compile (parse source-code)
+					  'val
+					  'next))
                          op)
   (fprintf op ";\n"))
 

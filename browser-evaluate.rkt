@@ -216,7 +216,13 @@ var comet = function() {
                     var invoke = eval(req.responseText)();
                     var output = [];
                     var startTime, endTime;
-                    var params = { currentDisplayer: function(v) { output.push(String(v)); } };
+                    var params = { currentDisplayer: function(v) {
+                                                         var pNode = document.createElement("span");
+                                                         pNode.style.whiteSpace = 'pre';
+                                                         pNode.appendChild(document.createTextNode(String(v)));
+                                                         document.body.appendChild(pNode);
+                                                         //console.log(v);
+                                                         output.push(String(v)); } };
 
                     var onSuccess = function(v) {
                         endTime = new Date();

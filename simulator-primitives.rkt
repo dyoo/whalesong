@@ -1,10 +1,15 @@
 #lang racket/base
 (require "simulator-structs.rkt"
          "compile.rkt"
+         "bootstrapped-primitives.rkt"
          racket/math
          (for-syntax racket/base))
 
-(provide lookup-primitive)
+(provide lookup-primitive set-primitive!)
+
+(define mutated-primitives (make-hasheq))
+(define (set-primitive! n p)
+  (hash-set! mutated-primitives n p))
 
 
 (define-syntax (make-lookup stx)
@@ -28,6 +33,8 @@
                ...)
            (lambda (n)
              (cond
+               [(hash-has-key? mutated-primitives n)
+                (hash-ref mutated-primitives n)]
                [(eq? n 'exported-name)
                 prim-name]
                ...
@@ -38,12 +45,12 @@
                 (make-undefined)]
                )))))]))
 
-(define call/cc
-  (make-closure call/cc-label
-                1
-                '()
-                'call/cc))
-(define call-with-current-continuation call/cc)
+;(define call/cc
+;  (make-closure call/cc-label
+;                1
+;                '()
+;                'call/cc))
+;(define call-with-current-continuation call/cc)
 
 (define e (exp 1))
 
@@ -147,7 +154,7 @@
                                                      
                                                      symbol?)
                                       #:constants (null pi e 
-                                                        call/cc
-                                                        call-with-current-continuation)))
+                                                        #;call/cc
+                                                        #;call-with-current-continuation)))
 
 

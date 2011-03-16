@@ -260,7 +260,7 @@ EOF
                                       (build-list (PushEnvironment-n stmt) 
                                                   (lambda: ([i : Natural])
                                                            (if (PushEnvironment-unbox? stmt)
-                                                               "[]"
+                                                               "[undefined]"
                                                                "undefined")))
                                       ", "))]
     [(PopEnvironment? stmt)
@@ -281,7 +281,9 @@ EOF
     [(EnvLexicalReference? target)
      (assemble-lexical-reference target)]
     [(EnvPrefixReference? target)
-     (assemble-prefix-reference target)]))
+     (assemble-prefix-reference target)]
+    [(PrimitivesReference? target)
+     (format "Primitives[~s]" (symbol->string (PrimitivesReference-name target)))]))
 
 
 
@@ -299,7 +301,7 @@ EOF
               [(boolean? val)
                (if val "true" "false")]
               [(empty? val)
-               (format "Primitives.NULL")]
+               (format "Primitives.null")]
               [else
                (format "~s" val)])))
 

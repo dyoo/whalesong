@@ -43,16 +43,10 @@
                              (string-append
                               "(function() { "
                               
-                                ;; The support code for call/cc
-                              (string-join (map assemble-basic-block 
-                                                (fracture (statements 
-                                                           (make-call/cc-code))))
-                                           "\n")
-                              
                               runtime
-                              
-                              
-                              "return function(success, fail, params){" snippet
+
+                              "return function(success, fail, params){" 
+			      snippet
                               (format "success(String(~a)); };" inspector)
                               "});")])
                        (displayln snippet)
@@ -67,13 +61,6 @@
                                  [inspector (cdr a-statement+inspector)])
                             
                             (display "(function() { " op)
-                            
-                            (display
-                             (string-join (map assemble-basic-block 
-                                                (fracture (statements 
-                                                           (make-call/cc-code))))
-                                           "\n")
-                             op)
                             
                             (display runtime op)
                             

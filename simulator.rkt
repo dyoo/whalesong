@@ -7,12 +7,14 @@
 
 (require "il-structs.rkt"
          "simulator-structs.rkt"
+         "bootstrapped-primitives.rkt"
          racket/list
          racket/match
          (for-syntax racket/base))
 
 (require/typed "simulator-primitives.rkt"
-               [lookup-primitive (Symbol -> PrimitiveValue)])
+               [lookup-primitive (Symbol -> PrimitiveValue)]
+               [set-primitive! (Symbol PrimitiveValue -> Void)])
 
 (require/typed "simulator-helpers.rkt"
                [ensure-primitive-value-box (SlotValue -> (Boxof PrimitiveValue))]
@@ -28,17 +30,36 @@
 (define current-simulated-output-port (make-parameter (current-output-port)))
 
 
-(: new-machine ((Listof Statement) -> machine))
-(define (new-machine program-text)
-  (let: ([m : machine (make-machine (make-undefined) (make-undefined) '() '() 0 (list->vector program-text) 0
-                                    ((inst make-hash Symbol Natural)))])
-        (let: loop : Void ([i : Natural 0])
-              (when (< i (vector-length (machine-text m)))
-                (let: ([stmt : Statement (vector-ref (machine-text m) i)])
-                      (when (symbol? stmt)
-                        (hash-set! (machine-jump-table m) stmt i))
-                      (loop (add1 i)))))
-        m))
+(: new-machine (case-lambda [(Listof Statement) -> machine]
+                            [(Listof Statement) Boolean -> machine]))
+(define new-machine
+  (case-lambda: 
+    [([program-text : (Listof Statement)])
+     (new-machine program-text #t)]
+    [([program-text : (Listof Statement)]
+      [with-bootstrapping-code? : Boolean])
+     (let*: ([after-bootstrapping : Symbol (make-label 'afterBootstrapping)]
+             [program-text : (Listof Statement)
+                           (cond [with-bootstrapping-code?
+                                  (append (get-bootstrapping-code)
+                                          program-text)]
+                                 [else
+                                  program-text])])
+            (let: ([m : machine (make-machine (make-undefined)
+                                              (make-undefined)
+                                              '() 
+                                              '()
+                                              0 
+                                              (list->vector program-text) 
+                                              0
+                                              ((inst make-hash Symbol Natural)))])
+                  (let: loop : Void ([i : Natural 0])
+                        (when (< i (vector-length (machine-text m)))
+                          (let: ([stmt : Statement (vector-ref (machine-text m) i)])
+                                (when (symbol? stmt)
+                                  (hash-set! (machine-jump-table m) stmt i))
+                                (loop (add1 i)))))
+                  m))]))
 
 
 
@@ -103,20 +124,7 @@
 (define (step-assign-immediate! m stmt)
   (let: ([t : Target (AssignImmediateStatement-target stmt)]
          [v : SlotValue (evaluate-oparg m (AssignImmediateStatement-value stmt))])
-        (cond [(eq? t 'proc)
-               (proc-update! m v)]
-              [(eq? t 'val)
-               (val-update! m v)]
-              [(EnvLexicalReference? t)
-               (if (EnvLexicalReference-unbox? t)
-                   (begin (set-box! (ensure-primitive-value-box (env-ref m (EnvLexicalReference-depth t)))
-                                    (ensure-primitive-value v))
-                          'ok)
-                   (env-mutate! m (EnvLexicalReference-depth t) v))]
-              [(EnvPrefixReference? t)
-               (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
-                                 (EnvPrefixReference-pos t)
-                                 (ensure-primitive-value v))])))
+        ((get-target-updater t) m v)))
 
 
 (: step-push-environment! (machine PushEnvironment -> 'ok))
@@ -251,7 +259,12 @@
      (lambda: ([m : machine] [v : SlotValue])
               (toplevel-mutate! (ensure-toplevel (env-ref m (EnvPrefixReference-depth t)))
                                 (EnvPrefixReference-pos t)
-                                (ensure-primitive-value v)))]))
+                                (ensure-primitive-value v)))]
+    [(PrimitivesReference? t)
+     (lambda: ([m : machine] [v : SlotValue])
+              (set-primitive! (PrimitivesReference-name t)
+                              (ensure-primitive-value v))
+              'ok)]))
 
 
 (: step-assign-primitive-operation! (machine AssignPrimOpStatement -> 'ok))

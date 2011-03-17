@@ -213,7 +213,7 @@ var comet = function() {
     sendRequest("/eval", 
                 function(req) {
                     // debug:
-                    if (console && typeof(console.log) === 'function') { console.log(req.responseText); }
+                    if (window.console && typeof(console.log) === 'function') { console.log(req.responseText); }
 
                     var invoke = eval(req.responseText)();
                     var output = [];

@@ -192,3 +192,42 @@
                                                      (make-LocalRef 5)))
                                      (make-LocalRef 3)))
                           (list (make-EnvWholePrefixReference 0)))))
+
+(test (parse '(let ()
+                x))
+      (make-Top (make-Prefix '(x))
+                (make-ToplevelRef 0 0)))
+
+(test (parse '(let ([x 3])
+                x))
+      (make-Top (make-Prefix '())
+                (make-Let1 (make-Constant 3)
+                           (make-LocalRef 0))))
+
+(test (parse '(let ([x 3]
+                    [y 4])
+                x
+                y))
+      (make-Top (make-Prefix '())
+                (make-Let 2
+                          (list (make-Constant 3)
+                                (make-Constant 4))
+                          (make-Seq (list (make-LocalRef 0)
+                                          (make-LocalRef 1))))))
+
+(test (parse '(let ([x 3]
+                    [y 4])
+                (let ([x y]
+                      [y x])
+                  x
+                  y)))
+      (make-Top (make-Prefix '())
+                (make-Let 2
+                          (list (make-Constant 3) (make-Constant 4))
+                          (make-Let 2
+                                    (list (make-LocalRef 3)
+                                          (make-LocalRef 2))
+                                    (make-Seq (list (make-LocalRef 0)
+                                                    (make-LocalRef 1)))))))
+
+                           

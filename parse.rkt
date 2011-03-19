@@ -279,7 +279,7 @@
         [body (let-body exp)])
     (cond 
       [(= 0 (length vars))
-       (parse `(begin ,@body))]
+       (parse `(begin ,@body) cenv)]
       [(= 1 (length vars))
        (make-Let1 (parse (car rhss) (extend-lexical-environment/placeholders cenv 1))
                   (parse `(begin ,@body)
@@ -289,7 +289,7 @@
          (make-Let (length vars)
                    (map (lambda (rhs) (parse rhs rhs-cenv)) rhss)
                    (parse `(begin ,@body)
-                          (extend-lexical-environment/names vars))))])))
+                          (extend-lexical-environment/names cenv vars))))])))
 
 (define (parse-letrec exp cenv)
   (let ([vars (let-variables exp)]

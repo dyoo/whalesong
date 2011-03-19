@@ -10,15 +10,20 @@
          assemble-statement)
 
 
+;; Parameter that controls the generation of a trace.
+(define current-emit-debug-trace? (make-parameter #f))
+
+
+
 (: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
 ;; Writes out the JavaScript code that represents the anonymous invocation expression.
 (define (assemble/write-invoke stmts op)
   (let ([basic-blocks (fracture stmts)])
-    (fprintf op "(function(success, fail, params) {\n")
+    (fprintf op "(function(MACHINE, success, fail, params) {\n")
     (fprintf op "var param;\n")
     (for-each (lambda: ([basic-block : BasicBlock])
-                (displayln (assemble-basic-block basic-block) op)
-                (newline op))
+                       (displayln (assemble-basic-block basic-block) op)
+                       (newline op))
               basic-blocks)
     (fprintf op "MACHINE.params.currentErrorHandler = function(e) { fail(e); };\n")
     (fprintf op #<<EOF
@@ -29,7 +34,7 @@ for (param in params) {
 }
 EOF
              )
-    (fprintf op "trampoline(~a, function() {success(MACHINE.val)}, fail); })"
+    (fprintf op "trampoline(MACHINE, ~a, function() {success(MACHINE.val)}, fail); })"
              (BasicBlock-name (first basic-blocks)))))
 
 
@@ -43,7 +48,7 @@ EOF
                                 (first stmts)
                                 (make-label 'start))]
          [stmts (if (and (not (empty? stmts))
-                                     (symbol? (first stmts)))
+                         (symbol? (first stmts)))
                     (rest stmts)
                     stmts)]
          [jump-targets 
@@ -54,35 +59,35 @@ EOF
            [basic-blocks  : (Listof BasicBlock) '()]
            [stmts : (Listof Statement) stmts]
            [last-stmt-goto? : Boolean #f])
-      (cond
-        [(null? stmts)
-         (reverse (cons (make-BasicBlock name (reverse acc))
-                        basic-blocks))]
-        [(symbol? (car stmts))
-         (cond
-           [(member (car stmts) jump-targets)
-            (loop (car stmts)
-                  '()
-                  (cons (make-BasicBlock name  
-                                          (if last-stmt-goto? 
-                                              (reverse acc)
-                                              (reverse (append `(,(make-GotoStatement (make-Label (car stmts))))
-                                                               acc))))
-                        basic-blocks)
-                  (cdr stmts)
-                  last-stmt-goto?)]
-           [else
-            (loop name
-                  acc
-                  basic-blocks
-                  (cdr stmts)
-                  last-stmt-goto?)])]
-        [else
-         (loop name
-               (cons (car stmts) acc)
-               basic-blocks
-               (cdr stmts)
-               (GotoStatement? (car stmts)))]))))
+          (cond
+            [(null? stmts)
+             (reverse (cons (make-BasicBlock name (reverse acc))
+                            basic-blocks))]
+            [(symbol? (car stmts))
+             (cond
+               [(member (car stmts) jump-targets)
+                (loop (car stmts)
+                      '()
+                      (cons (make-BasicBlock name  
+                                             (if last-stmt-goto? 
+                                                 (reverse acc)
+                                                 (reverse (append `(,(make-GotoStatement (make-Label (car stmts))))
+                                                                  acc))))
+                            basic-blocks)
+                      (cdr stmts)
+                      last-stmt-goto?)]
+               [else
+                (loop name
+                      acc
+                      basic-blocks
+                      (cdr stmts)
+                      last-stmt-goto?)])]
+            [else
+             (loop name
+                   (cons (car stmts) acc)
+                   basic-blocks
+                   (cdr stmts)
+                   (GotoStatement? (car stmts)))]))))
 
 
 
@@ -108,7 +113,7 @@ EOF
        empty]
       [(EnvWholePrefixReference? an-input)
        empty]))
-
+  
   (: collect-location ((U Reg Label) -> (Listof Symbol)))
   (define (collect-location a-location)
     (cond
@@ -132,7 +137,7 @@ EOF
        empty]
       [(CaptureControl? op)
        empty]))
-
+  
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
   (define (collect-primitive-command op)
     (cond
@@ -151,45 +156,45 @@ EOF
   
   (unique/eq?
    (let: loop : (Listof Symbol) ([stmts : (Listof Statement) stmts])
-     (cond [(empty? stmts)
-            empty]
-           [else
-            (let ([stmt (first stmts)])
-              (append (cond
-                        [(symbol? stmt)
-                         empty]
-                        [(AssignImmediateStatement? stmt)
-                         (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
-                           (cond 
-                             [(Reg? v)
-                              empty]
-                             [(Label? v)
-                              (list (Label-name v))]
-                             [(Const? v)
-                              empty]
-                             [(EnvLexicalReference? v)
-                              empty]
-                             [(EnvPrefixReference? v)
-                              empty] 
-                             [(EnvWholePrefixReference? v)
-                              empty]))]
-                        [(AssignPrimOpStatement? stmt)
-                         (collect-primitive-operator (AssignPrimOpStatement-op stmt))]
-                        [(PerformStatement? stmt)
-                         (collect-primitive-command (PerformStatement-op stmt))]
-                        [(TestAndBranchStatement? stmt)
-                         (list (TestAndBranchStatement-label stmt))]
-                        [(GotoStatement? stmt)
-                         (collect-location (GotoStatement-target stmt))]
-                        [(PushEnvironment? stmt)
-                         empty]
-                        [(PopEnvironment? stmt)
-                         empty]
-                        [(PushControlFrame? stmt)
-                         (list (PushControlFrame-label stmt))]
-                        [(PopControlFrame? stmt)
-                         empty])
-                      (loop (rest stmts))))]))))
+         (cond [(empty? stmts)
+                empty]
+               [else
+                (let ([stmt (first stmts)])
+                  (append (cond
+                            [(symbol? stmt)
+                             empty]
+                            [(AssignImmediateStatement? stmt)
+                             (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
+                                   (cond 
+                                     [(Reg? v)
+                                      empty]
+                                     [(Label? v)
+                                      (list (Label-name v))]
+                                     [(Const? v)
+                                      empty]
+                                     [(EnvLexicalReference? v)
+                                      empty]
+                                     [(EnvPrefixReference? v)
+                                      empty] 
+                                     [(EnvWholePrefixReference? v)
+                                      empty]))]
+                            [(AssignPrimOpStatement? stmt)
+                             (collect-primitive-operator (AssignPrimOpStatement-op stmt))]
+                            [(PerformStatement? stmt)
+                             (collect-primitive-command (PerformStatement-op stmt))]
+                            [(TestAndBranchStatement? stmt)
+                             (list (TestAndBranchStatement-label stmt))]
+                            [(GotoStatement? stmt)
+                             (collect-location (GotoStatement-target stmt))]
+                            [(PushEnvironment? stmt)
+                             empty]
+                            [(PopEnvironment? stmt)
+                             empty]
+                            [(PushControlFrame? stmt)
+                             (list (PushControlFrame-label stmt))]
+                            [(PopControlFrame? stmt)
+                             empty])
+                          (loop (rest stmts))))]))))
 
 
 
@@ -197,7 +202,7 @@ EOF
 ;; assemble-basic-block: basic-block -> string
 (: assemble-basic-block (BasicBlock -> String))
 (define (assemble-basic-block a-basic-block)
-  (format "var ~a=function(){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
+  (format "var ~a=function(MACHINE){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw function() { return ~a(MACHINE); }; }\n~a};"
           (BasicBlock-name a-basic-block)
           (BasicBlock-name a-basic-block)
           (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))
@@ -223,51 +228,63 @@ EOF
 (: assemble-statement (UnlabeledStatement -> String))
 ;; Generates the code to assemble a statement.
 (define (assemble-statement stmt)
-  (cond
-    [(AssignImmediateStatement? stmt)
-     (let ([t (assemble-target (AssignImmediateStatement-target stmt))]
-           [v (AssignImmediateStatement-value stmt)])
-       (format "~a = ~a;" t (assemble-oparg v)))]
-    
-    [(AssignPrimOpStatement? stmt)
-     (format "~a=~a;" 
-             (assemble-target (AssignPrimOpStatement-target stmt))
-             (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
-    
-    [(PerformStatement? stmt)
-     (assemble-op-statement (PerformStatement-op stmt))]
-    
-    [(TestAndBranchStatement? stmt)
-     (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
-            (cond
-              [(eq? test 'false?)
-               (format "if (! ~a) { return ~a(); }"
-                       (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
-                       (assemble-label (make-Label (TestAndBranchStatement-label stmt))))]
-              [(eq? test 'primitive-procedure?)
-               (format "if (typeof(~a) === 'function') { return ~a(); };"
-                       (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
-                       (assemble-label (make-Label (TestAndBranchStatement-label stmt))))]))]
+  (string-append 
+   (if (current-emit-debug-trace?)
+       (format "if (typeof(window.console) !== 'undefined' && typeof(console.log) === 'function') { console.log(~s);\n}"
+               (format "~a" stmt))
+       "")
+   (cond
+     [(AssignImmediateStatement? stmt)
+      (let ([t (assemble-target (AssignImmediateStatement-target stmt))]
+            [v (AssignImmediateStatement-value stmt)])
+        (format "~a = ~a;" t (assemble-oparg v)))]
+     
+     [(AssignPrimOpStatement? stmt)
+      (format "~a=~a;" 
+              (assemble-target (AssignPrimOpStatement-target stmt))
+              (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
+     
+     [(PerformStatement? stmt)
+      (assemble-op-statement (PerformStatement-op stmt))]
+     
+     [(TestAndBranchStatement? stmt)
+      (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
+             (cond
+               [(eq? test 'false?)
+                (format "if (! ~a) { ~a }"
+                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
+               [(eq? test 'primitive-procedure?)
+                (format "if (typeof(~a) === 'function') { ~a };"
+                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]))]
+     
+     [(GotoStatement? stmt)
+      (assemble-jump (GotoStatement-target stmt))]
 
-    [(GotoStatement? stmt)
-     (format "return ~a();" (assemble-location (GotoStatement-target stmt)))]
-    [(PushControlFrame? stmt)
-     (format "MACHINE.control.push(new Frame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
-    [(PopControlFrame? stmt)
-     "MACHINE.control.pop();"]
-    [(PushEnvironment? stmt)
-     (format "MACHINE.env.push(~a);" (string-join
-                                      (build-list (PushEnvironment-n stmt) 
-                                                  (lambda: ([i : Natural])
-                                                           (if (PushEnvironment-unbox? stmt)
-                                                               "[undefined]"
-                                                               "undefined")))
-                                      ", "))]
-    [(PopEnvironment? stmt)
-     (format "MACHINE.env.splice(MACHINE.env.length-(~a),~a);"
-             (+ (PopEnvironment-skip stmt)
-                (PopEnvironment-n stmt))
-             (PopEnvironment-n stmt))]))
+     [(PushControlFrame? stmt)
+      (format "MACHINE.control.push(new Frame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
+     [(PopControlFrame? stmt)
+      "MACHINE.control.pop();"]
+     [(PushEnvironment? stmt)
+      (format "MACHINE.env.push(~a);" (string-join
+                                       (build-list (PushEnvironment-n stmt) 
+                                                   (lambda: ([i : Natural])
+                                                            (if (PushEnvironment-unbox? stmt)
+                                                                "[undefined]"
+                                                                "undefined")))
+                                       ", "))]
+     [(PopEnvironment? stmt)
+      (format "MACHINE.env.splice(MACHINE.env.length-(~a),~a);"
+              (+ (PopEnvironment-skip stmt)
+                 (PopEnvironment-n stmt))
+              (PopEnvironment-n stmt))])))
+
+
+
+(: assemble-jump ((U Label Reg) -> String))
+(define (assemble-jump target)
+  (format "return (~a)(MACHINE);" (assemble-location target)))
 
 
 
@@ -367,7 +384,7 @@ EOF
      (format "MACHINE.proc(~a, ~a)"
              (ApplyPrimitiveProcedure-arity op)
              (ApplyPrimitiveProcedure-label op))]
-
+    
     [(GetControlStackLabel? op)
      (format "MACHINE.control[MACHINE.control.length-1].label")]
     [(CaptureEnvironment? op)
@@ -428,7 +445,7 @@ EOF
      (assemble-prefix-reference an-input)]
     [(EnvWholePrefixReference? an-input)
      (assemble-whole-prefix-reference an-input)]))
-    
+
 (: assemble-location ((U Reg Label) -> String))
 (define (assemble-location a-location)
   (cond

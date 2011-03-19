@@ -69,7 +69,7 @@
                             (display ";" op)
                             
                             (fprintf op 
-                                     "return function(succ, fail, params) { myInvoke(function(v) { succ(String(~a));}, fail, params); }"
+                                     "return function(succ, fail, params) { myInvoke(MACHINE, function(v) { succ(String(~a));}, fail, params); }"
                                      inspector)
                             (display "})" op))))))
 (define (E-many stmts (inspector "MACHINE.val"))

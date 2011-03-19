@@ -13,18 +13,8 @@
 
 ;; Packager: produce single .js files to be included.
 
-(define-runtime-path runtime.js "runtime.js")
-
 ;; package: s-expression output-port -> void
-(define (package source-code op)
-
-  ;; The runtime code
-  (call-with-input-file* runtime.js
-    (lambda (ip)
-      (copy-port ip op)))
-  
-  (newline op)
-  
+(define (package source-code op)  
   (fprintf op "var invoke = ")
   (assemble/write-invoke (append (get-bootstrapping-code)
 				 (compile (parse source-code)

@@ -1,8 +1,36 @@
 #lang racket
 (require "browser-evaluate.rkt"
-         "package.rkt")
+         "package.rkt"
+         racket/runtime-path)
 
-(define evaluate (make-evaluate package-anonymous))
+
+(define-runtime-path runtime.js "runtime.js")
+
+(define evaluate (make-evaluate 
+                  (lambda (program op)
+
+                    (fprintf op "(function () {")
+                    
+                    ;; The runtime code
+                    (call-with-input-file* runtime.js
+                      (lambda (ip)
+                        (copy-port ip op)))
+                    
+                    (newline op)
+                    
+                    (fprintf op "var innerInvoke = ")
+                    (package-anonymous program op)
+                    (fprintf op "();\n")
+                    
+                    (fprintf op #<<EOF
+return (function(succ, fail, params) {
+            return innerInvoke(MACHINE, succ, fail, params);
+        });
+});
+EOF
+                             )
+                    
+                    )))
 
 ;; test-find-toplevel-variables
 (define-syntax (test stx)

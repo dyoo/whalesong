@@ -293,62 +293,8 @@ var Primitives = (function() {
 	    }
 	    return true;
 	}
-
-// 	, 
-//  	'call/cc': new Closure(callCCEntry,
-//  			       1,
-//  			       [],
-//  			       "call/cc"),
-// 	'call-with-current-continuation': new Closure(callCCEntry,
-//  						      1,
-//  						      [],
-//  						      "call-with-current-continuation")
-
     };
 })();
-
-
-
-
-// // adaptToJs: closure -> (array (X -> void) -> void)
-// // Converts closures to functions that can be called from the
-// // JavaScript toplevel.
-// Closure.prototype.adaptToJs = function() {
-//     var that = this;
-//     return function(args, success, fail) {
-//         var oldEnv = MACHINE.env;
-// 	var oldCont = MACHINE.cont;
-// 	var oldProc = MACHINE.proc;
-// 	var oldArgl = MACHINE.argl;
-// 	var oldVal = MACHINE.val;
-// 	trampoline(
-// 	    function() {
-// 		var proc = that;
-// 		MACHINE.proc = proc;
-// 		MACHINE.argl = undefined;
-// 		for(var i = args.length - 1; i >= 0; i--) {
-// 		    MACHINE.argl = [args[i], MACHINE.argl];
-// 		}
-		
-// 		MACHINE.cont = function() {
-// 		    var result = MACHINE.val;
-//                     MACHINE.env = oldEnv;
-// 		    MACHINE.cont = oldCont;
-// 		    MACHINE.proc = oldProc;
-// 		    MACHINE.argl = oldArgl;
-// 		    MACHINE.val = oldVal;
-//                     success(result);
-// 		};
-		
-// 		proc.label();
-//             },
-//             function() {
-//             },
-//             function(e) {
-// 		return fail(e);
-// 	    });
-//     }
-// };
 
 
 
@@ -398,7 +344,7 @@ var recomputeMaxNumBouncesBeforeYield = function(observedDelay) {
 };
 
 
-var trampoline = function(initialJump, success, fail) {
+var trampoline = function(MACHINE, initialJump, success, fail) {
     var thunk = initialJump;
     var startTime = (new Date()).valueOf();
     MACHINE.callsBeforeTrampoline = 100;
@@ -408,7 +354,7 @@ var trampoline = function(initialJump, success, fail) {
 
     while(thunk) {
         try {
-            thunk();
+            thunk(MACHINE);
 	    break;
         } catch (e) {
             if (typeof(e) === 'function') {
@@ -420,7 +366,7 @@ var trampoline = function(initialJump, success, fail) {
 			(new Date()).valueOf() - startTime);
 		    setTimeout(
 			function() {
-			    trampoline(thunk, success, fail);
+			    trampoline(MACHINE, thunk, success, fail);
 			},
 			0);
 		    return;

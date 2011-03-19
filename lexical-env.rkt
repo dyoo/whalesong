@@ -40,16 +40,16 @@
                           [else
                            (loop (rest cenv) (add1 depth))])]
                    
-                   [(symbol? elt)
+                   [(NamedBinding? elt)
                     (cond
-                      [(eq? elt name)
+                      [(eq? (NamedBinding-name elt) name)
                        (make-EnvLexicalReference depth #f)]
                       [else
                        (loop (rest cenv) (add1 depth))])]
 
                    [(box? elt)
                     (cond
-                      [(eq? (unbox elt) name)
+                      [(eq? (NamedBinding-name (unbox elt)) name)
                        (make-EnvLexicalReference depth #t)]
                       [else
                        (loop (rest cenv) (add1 depth))])]
@@ -81,12 +81,14 @@
 
 (: extend-lexical-environment/names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
 (define (extend-lexical-environment/names cenv names)
-  (append names cenv))
+  (append (map make-NamedBinding names) cenv))
 
 
 (: extend-lexical-environment/boxed-names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
 (define (extend-lexical-environment/boxed-names cenv names)
-  (append (map (inst box Symbol) names) cenv))
+  (append (map (inst box NamedBinding) 
+               (map make-NamedBinding names))
+          cenv))
 
 
 (: extend-lexical-environment/placeholders

@@ -13,12 +13,15 @@
   #:transparent)
 
 
+(define-struct: NamedBinding ([name : Symbol]))
 
 
 (define-type CompileTimeEnvironmentEntry (U Prefix ;; a prefix
-                                            Symbol
-                                            (Boxof Symbol) ;; A boxed local
+                                            NamedBinding
+                                            (Boxof NamedBinding) ;; A boxed local
                                             False))
+
+
 
 
 ;; A compile-time environment is a (listof (listof symbol)).

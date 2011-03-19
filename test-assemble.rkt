@@ -2,10 +2,8 @@
 
 (require "assemble.rkt"
          "browser-evaluate.rkt"
-         "parse.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
-         "compile.rkt"
          racket/port
          racket/promise
          racket/runtime-path)

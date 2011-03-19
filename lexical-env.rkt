@@ -1,7 +1,6 @@
 #lang typed/racket/base
 
 (require racket/list
-         "il-structs.rkt"
          "lexical-structs.rkt"
          "sets.rkt")
 (provide find-variable 

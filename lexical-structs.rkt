@@ -35,6 +35,7 @@
 (define-struct: EnvLexicalReference ([depth : Natural]
                                      [unbox? : Boolean])
   #:transparent)
+
 (define-struct: EnvPrefixReference ([depth : Natural]
                                     [pos : Natural]
                                     [name : Symbol])
@@ -42,3 +43,8 @@
 
 (define-struct: EnvWholePrefixReference ([depth : Natural])
   #:transparent)
+
+
+;; An environment reference is either lexical or referring to a whole prefix.
+(define-type EnvReference (U EnvLexicalReference
+                             EnvWholePrefixReference))

@@ -50,11 +50,6 @@
 
 
 
-;; An environment reference is either lexical or referring to a whole prefix.
-(define-type EnvReference (U EnvLexicalReference
-                             EnvWholePrefixReference))
-
-
 
 ;; instruction sequences
 (define-type UnlabeledStatement (U 

@@ -4,9 +4,7 @@
          "lexical-structs.rkt"
          "il-structs.rkt"
          "lexical-env.rkt"
-         "helpers.rkt"
          "find-toplevel-variables.rkt"
-         "sets.rkt"
          racket/list)
 
 (provide (rename-out [-compile compile])

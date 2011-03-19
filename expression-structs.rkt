@@ -5,33 +5,48 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Top Constant Var Branch Def Lam Seq App
+(define-type ExpressionCore (U Top Constant 
+                               ToplevelRef LocalRef
+                               SetToplevel
+                               Branch Lam Seq App
                                Let1 Let LetRec))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)
+
 (define-struct: Constant ([v : Any]) #:transparent)
-(define-struct: Var ([id : Symbol]) #:transparent)
+
+(define-struct: ToplevelRef ([depth : Natural]
+                             [pos : Natural])
+  #:transparent)
+
+(define-struct: LocalRef ([depth : Natural])
+  #:transparent)
+
+(define-struct: SetToplevel ([depth : Natural]
+                             [pos : Natural]
+                             [name : Symbol] 
+                             [value : ExpressionCore]) #:transparent)
+
 (define-struct: Branch ([predicate : ExpressionCore]
                         [consequent : ExpressionCore]
                         [alternative : ExpressionCore]) #:transparent)
-(define-struct: Def ([variable : Symbol] 
-                     [value : ExpressionCore]) #:transparent)
-(define-struct: Lam ([parameters : (Listof Symbol)]
+
+(define-struct: Lam ([num-parameters : Natural]
                      [body : ExpressionCore]) #:transparent)
+
 (define-struct: Seq ([actions : (Listof ExpressionCore)]) #:transparent)
 (define-struct: App ([operator : ExpressionCore]
                      [operands : (Listof ExpressionCore)]) #:transparent)
 
-(define-struct: Let1 ([name : Symbol]
-                      [rhs : ExpressionCore ]
+(define-struct: Let1 ([rhs : ExpressionCore ]
                       [body : ExpressionCore])
   #:transparent)
-(define-struct: Let ([names : (Listof Symbol)]
+(define-struct: Let ([count : Natural]
                      [rhss : (Listof ExpressionCore)]
                      [body : ExpressionCore])
   #:transparent)
-(define-struct: LetRec ([names : (Listof Symbol)]
+(define-struct: LetRec ([count : Natural]
                         [rhss : (Listof ExpressionCore)]
                         [body : ExpressionCore])
   #:transparent)
@@ -48,8 +63,4 @@
 (define (rest-exps seq) (cdr seq))
 
 
-
-
-(define-struct: Assign ([variable : Symbol]
-                        [value : Expression]) #:transparent)
-(define-type Expression (U ExpressionCore #;Assign))
+(define-type Expression (U ExpressionCore))

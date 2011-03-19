@@ -1,8 +1,48 @@
 #lang racket/base
-(require "expression-structs.rkt")
-(provide parse)
 
-(define (parse exp)
+(require "expression-structs.rkt"
+         "lexical-env.rkt"
+         "lexical-structs.rkt"
+         racket/list)
+
+(provide (rename-out (-parse parse)))
+
+(define (-parse exp)
+  (let* ([prefix (make-Prefix '())]
+         [cenv (list prefix)])
+    (let ([expr (parse exp cenv)])
+      (make-Top prefix expr))))
+
+
+;; find-prefix: CompileTimeEnvironment -> Natural
+(define (find-prefix cenv)
+  (cond
+    [(empty? cenv)
+     (error 'impossible)]
+    [(Prefix? (first cenv))
+     0]
+    [else
+     (add1 (find-prefix (rest cenv)))]))
+
+
+;; find-variable*: Any CompileTimeEnvironment -> LexicalAddress
+(define (find-variable* exp cenv)
+  (let ([address (find-variable exp cenv)])
+    (cond
+      [(eq? address #f)
+       (let* ([prefix-depth (find-prefix cenv)]
+              [prefix (list-ref cenv prefix-depth)])
+         (set-Prefix-names! prefix (append (Prefix-names prefix)
+                                           (list exp)))
+         (find-variable* exp cenv))]
+      [else
+       address])))
+
+
+
+;; parse: Any CompileTimeEnvironment -> ExpressionCore
+;; Compile an expression.
+(define (parse exp cenv)
   (cond
     [(self-evaluating? exp)
      (make-Constant exp)]
@@ -11,26 +51,56 @@
      (make-Constant (text-of-quotation exp))]
     
     [(variable? exp)
-     (make-Var exp)] 
+     (let ([address (find-variable* exp cenv)])
+       (cond
+         [(EnvLexicalReference? address)
+          (make-LocalRef (EnvLexicalReference-depth address))]
+         [(EnvPrefixReference? address)
+          (make-ToplevelRef (EnvPrefixReference-depth address)
+                            (EnvPrefixReference-pos address))]))]
     
     [(definition? exp)
-     (make-Def (definition-variable exp)
-               (parse (definition-value exp)))]
+     (let ([address (find-variable* exp cenv)])
+       (cond
+         [(EnvLexicalReference? address)
+          (error 'parse "Can't define except in toplevel context")]
+         [(EnvPrefixReference? address)
+          (make-SetToplevel (EnvPrefixReference-depth address)
+                            (EnvPrefixReference-pos address)
+                            (EnvPrefixReference-name address)
+                            (parse (definition-value exp) cenv))]))] 
     
     [(if? exp)
-     (make-Branch (parse (if-predicate exp))
-                  (parse (if-consequent exp))
-                  (parse (if-alternative exp)))]
+     (make-Branch (parse (if-predicate exp) cenv)
+                  (parse (if-consequent exp) cenv)
+                  (parse (if-alternative exp) cenv))]
     
     [(cond? exp)
-     (parse (desugar-cond exp))]
+     (parse (desugar-cond exp) cenv)]
     
     [(lambda? exp)
-     (make-Lam (lambda-parameters exp)
-               (make-Seq (map parse (lambda-body exp))))]
+     ;; Fixme: need to know what variables are treated as free here!
+     (let* ([prefix (list-ref cenv (find-prefix cenv))]
+            [prefix-length (length (Prefix-names prefix))]
+            [body-cenv (extend-lexical-environment/names 
+                        '() 
+                        (lambda-parameters exp))])
+       (let ([lam-body (make-Seq (map (lambda (b)
+                                        (parse b (cons prefix body-cenv)))
+                                      (lambda-body exp)))])
+         (cond [(= prefix-length (length (Prefix-names prefix)))
+                (make-Lam (length (lambda-parameters exp))
+                          lam-body)]
+               [else
+                (make-Lam (length (lambda-parameters exp))
+                          (make-Seq (map (lambda (b)
+                                           (parse b body-cenv))
+                                         (lambda-body exp))))])))]
  
     [(begin? exp)
-     (let ([actions (map parse (begin-actions exp))])
+     (let ([actions (map (lambda (e)
+                           (parse e cenv))
+                         (begin-actions exp))])
        (cond
          [(= 1 (length actions))
           (car actions)]
@@ -38,20 +108,23 @@
           (make-Seq actions)]))]
 
     [(named-let? exp)
-     (parse-named-let exp)]
+     (parse-named-let exp cenv)]
     
     [(let? exp)
-     (parse-let exp)]
+     (parse-let exp cenv)]
     
     [(let*? exp)
-     (parse-let* exp)]
+     (parse-let* exp cenv)]
     
     [(letrec? exp)
-     (parse-letrec exp)]
+     (parse-letrec exp cenv)]
     
     [(application? exp)
-     (make-App (parse (operator exp))
-               (map parse (operands exp)))]
+     (let ([cenv-with-scratch-space
+            (extend-lexical-environment/placeholders cenv (length (operands exp)))])
+       (make-App (parse (operator exp) cenv-with-scratch-space)
+                 (map (lambda (rand) (parse rand cenv-with-scratch-space))
+                      (operands exp))))]
     
     [else
      (error 'compile "Unknown expression type ~e" exp)]))
@@ -152,7 +225,7 @@
          
 
 
-(define (parse-let exp)
+(define (parse-let exp cenv)
   (let ([vars (let-variables exp)]
         [rhss (let-rhss exp)]
         [body (let-body exp)])
@@ -160,27 +233,31 @@
       [(= 0 (length vars))
        (parse `(begin ,@body))]
       [(= 1 (length vars))
-       (make-Let1 (car vars)
-                  (parse (car rhss))
-                  (parse `(begin ,@body)))]
+       (make-Let1 (parse (car rhss) (extend-lexical-environment/placeholders cenv 1))
+                  (parse `(begin ,@body)
+                         (extend-lexical-environment/names cenv (list (first vars)))))]
       [else
-       (make-Let vars
-                 (map parse rhss)
-                 (parse `(begin ,@body)))])))
+       (let ([rhs-cenv (extend-lexical-environment/placeholders cenv (length vars))])
+         (make-Let (length vars)
+                   (map (lambda (rhs) (parse rhs rhs-cenv)) rhss)
+                   (parse `(begin ,@body)
+                          (extend-lexical-environment/names vars))))])))
 
-(define (parse-letrec exp)
+(define (parse-letrec exp cenv)
   (let ([vars (let-variables exp)]
         [rhss (let-rhss exp)]
         [body (let-body exp)])
     (cond 
       [(= 0 (length vars))
-       (parse `(begin ,@body))]
+       (parse `(begin ,@body) cenv)]
       [else
-       (make-LetRec vars
-                    (map parse rhss)
-                    (parse `(begin ,@body)))])))
+       (let ([new-cenv (extend-lexical-environment/names cenv vars)])
+         (make-LetRec (length vars)
+                      (map (lambda (rhs) (parse rhs new-cenv)) rhss)
+                      (parse `(begin ,@body) new-cenv)))])))
 
-(define (parse-let* exp)
+
+(define (parse-let* exp cenv)
   (parse
    (let ([body (let-body exp)])
      (let loop ([vars (let-variables exp)]
@@ -190,16 +267,18 @@
           `(begin ,@body)]
          [else
          `(let ([,(car vars) ,(car rhss)])
-            ,(loop (cdr vars) (cdr rhss)))])))))
+            ,(loop (cdr vars) (cdr rhss)))])))
+   cenv))
               
 
 
-(define (parse-named-let exp)
+(define (parse-named-let exp cenv)
   (parse
    `(letrec [(,(named-let-name exp)
 	      (lambda ,(named-let-variables exp)
 		,@(named-let-body exp)))]
-      (,(named-let-name exp) ,@(named-let-rhss exp)))))
+      (,(named-let-name exp) ,@(named-let-rhss exp)))
+   cenv))
   
     
 (define (named-let? exp)

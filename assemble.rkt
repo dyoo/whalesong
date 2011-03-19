@@ -202,7 +202,7 @@ EOF
 ;; assemble-basic-block: basic-block -> string
 (: assemble-basic-block (BasicBlock -> String))
 (define (assemble-basic-block a-basic-block)
-  (format "var ~a=function(MACHINE){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw function() { return ~a(MACHINE); }; }\n~a};"
+  (format "var ~a=function(MACHINE){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
           (BasicBlock-name a-basic-block)
           (BasicBlock-name a-basic-block)
           (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))

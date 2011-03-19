@@ -255,3 +255,14 @@
                             ;; stack layout [???, x_1, x_0, prefix]
                             (make-App (make-ToplevelRef 3 0)
                                       (list (make-LocalRef 1)))))))
+
+
+(test (parse '(let* ()
+                42))
+      (make-Top (make-Prefix '()) (make-Constant 42)))
+
+
+(test (parse '(letrec ([x (lambda (x) x)]
+                       [y (lambda (x) x)])))
+      (make-Top (make-Prefix '())
+                

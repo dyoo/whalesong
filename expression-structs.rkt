@@ -49,7 +49,7 @@
   #:transparent)
 
 (define-struct: LetRec ([count : Natural]
-                        [rhss : (Listof ExpressionCore)]
+                        [rhss : (Listof Lam)]
                         [body : ExpressionCore])
   #:transparent)
 

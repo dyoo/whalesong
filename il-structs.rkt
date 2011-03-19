@@ -1,6 +1,8 @@
 #lang typed/racket/base
 (provide (all-defined-out))
 
+(require "lexical-structs.rkt")
+
 
 
 
@@ -40,14 +42,7 @@
   #:transparent)
 (define-struct: Const ([const : Any])
   #:transparent)
-(define-struct: EnvLexicalReference ([depth : Natural]
-                                     [unbox? : Boolean])
-  #:transparent)
-(define-struct: EnvPrefixReference ([depth : Natural]
-                                    [pos : Natural])
-  #:transparent)
-(define-struct: EnvWholePrefixReference ([depth : Natural])
-  #:transparent)
+
 
 
 (define-struct: PrimitivesReference ([name : Symbol])

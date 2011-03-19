@@ -1,5 +1,6 @@
 #lang typed/racket/base
 (require "il-structs.rkt"
+         "lexical-structs.rkt"
          "helpers.rkt"
          racket/string
          racket/list)

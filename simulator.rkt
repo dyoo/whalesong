@@ -6,6 +6,7 @@
 ;; I also need to do things like count pushes and pops.  Basically, low-level benchmarking.
 
 (require "il-structs.rkt"
+         "lexical-structs.rkt"
          "simulator-structs.rkt"
          "bootstrapped-primitives.rkt"
          racket/list

@@ -34,21 +34,23 @@
                  (cond
                    [(Prefix? elt)
                     (cond [(member name (Prefix-names elt))
-                           (make-PrefixAddress depth (find-pos name (Prefix-names elt)) name)]
+                           (make-EnvPrefixReference depth 
+                                                    (find-pos name (Prefix-names elt))
+                                                    name)]
                           [else
                            (loop (rest cenv) (add1 depth))])]
                    
                    [(symbol? elt)
                     (cond
                       [(eq? elt name)
-                       (make-LocalAddress depth #f)]
+                       (make-EnvLexicalReference depth #f)]
                       [else
                        (loop (rest cenv) (add1 depth))])]
 
                    [(box? elt)
                     (cond
                       [(eq? (unbox elt) name)
-                       (make-LocalAddress depth #t)]
+                       (make-EnvLexicalReference depth #t)]
                       [else
                        (loop (rest cenv) (add1 depth))])]
                    
@@ -113,14 +115,13 @@
                 [else
                  (let ([addr (first addresses)])
                    (cond
-                     [(LocalAddress? addr)
+                     [(EnvLexicalReference? addr)
                       (set-insert! lexical-references
-                                   (make-EnvLexicalReference (LocalAddress-depth addr)
-                                                             (LocalAddress-unbox? addr)))
+                                   addr)
                       (loop (rest addresses))]
-                     [(PrefixAddress? addr)
+                     [(EnvPrefixReference? addr)
                       (set-insert! prefix-references
-                                   (make-EnvWholePrefixReference (PrefixAddress-depth addr)))
+                                   (make-EnvWholePrefixReference (EnvPrefixReference-depth addr)))
                       (loop (rest addresses))]))]))))
 
 

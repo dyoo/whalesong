@@ -153,27 +153,24 @@
 (define (compile-variable exp cenv target linkage)
   (let ([lexical-pos (find-variable (Var-id exp) cenv)])
     (cond
-      [(LocalAddress? lexical-pos)
+      [(EnvLexicalReference? lexical-pos)
        (end-with-linkage linkage
                          cenv
                          (make-instruction-sequence
                           `(,(make-AssignImmediateStatement 
                               target
-                              (make-EnvLexicalReference (LocalAddress-depth lexical-pos)
-                                                        (LocalAddress-unbox? lexical-pos))))))]
-      [(PrefixAddress? lexical-pos)
+                              lexical-pos))))]
+      [(EnvPrefixReference? lexical-pos)
        (end-with-linkage linkage
                          cenv
                          (make-instruction-sequence
                           `(,(make-PerformStatement (make-CheckToplevelBound!
-                                                     (PrefixAddress-depth lexical-pos)
-                                                     (PrefixAddress-pos lexical-pos)
-                                                     (PrefixAddress-name lexical-pos)))
+                                                     (EnvPrefixReference-depth lexical-pos)
+                                                     (EnvPrefixReference-pos lexical-pos)
+                                                     (EnvPrefixReference-name lexical-pos)))
                             ,(make-AssignImmediateStatement 
                               target
-                              (make-EnvPrefixReference
-                               (PrefixAddress-depth lexical-pos)
-                               (PrefixAddress-pos lexical-pos))))))])))
+                              lexical-pos))))])))
 
 
 (: compile-definition (Def CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -181,14 +178,12 @@
   (let* ([var (Def-variable exp)]
          [lexical-pos (find-variable var cenv)])
     (cond
-      [(LocalAddress? lexical-pos)
+      [(EnvLexicalReference? lexical-pos)
        (error 'compile-definition "Defintion not at toplevel")]
-      [(PrefixAddress? lexical-pos)
+      [(EnvPrefixReference? lexical-pos)
        (let ([get-value-code
               (parameterize ([current-defined-name var])
-                (compile (Def-value exp) cenv (make-EnvPrefixReference 
-                                               (PrefixAddress-depth lexical-pos)
-                                               (PrefixAddress-pos lexical-pos))
+                (compile (Def-value exp) cenv lexical-pos
                          'next))])
          (end-with-linkage
           linkage
@@ -621,7 +616,8 @@
                                (EnvLexicalReference-unbox? target))]
     [(EnvPrefixReference? target)
      (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
-                              (EnvPrefixReference-pos target))]
+                              (EnvPrefixReference-pos target)
+                              (EnvPrefixReference-name target))]
     [(PrimitivesReference? target)
      target]))
 

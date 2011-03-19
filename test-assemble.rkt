@@ -3,6 +3,7 @@
 (require "assemble.rkt"
          "browser-evaluate.rkt"
          "parse.rkt"
+         "lexical-structs.rkt"
          "il-structs.rkt"
          "compile.rkt"
          racket/port
@@ -145,7 +146,7 @@
 
 ;; Simple application
 (test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                    (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
+                    (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0 '+))
                     (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 3))
@@ -313,7 +314,7 @@
 
 ;; Give a primitive procedure in val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))
+                ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0 '+))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                 ,(make-GotoStatement (make-Label 'end))
@@ -324,7 +325,7 @@
 
 ;; Give a primitive procedure in proc, but test val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
+                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0 '+))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
@@ -335,7 +336,7 @@
 
 ;; Give a primitive procedure in proc and test proc
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
+                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0 '+))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'proc 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
@@ -349,7 +350,7 @@
 ;; Set-toplevel
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(advisor)))
                 ,(make-AssignImmediateStatement 'val (make-Const "Kathi"))
-                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val)))
+                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'advisor) (make-Reg 'val)))
               "MACHINE.env[0][0]")
       "Kathi")
 
@@ -365,7 +366,7 @@
 ;; check-toplevel-bound shouldn't fail here.
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(another-advisor)))
                 ,(make-AssignImmediateStatement 'val (make-Const "Shriram"))
-                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
+                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'another-advisor) (make-Reg 'val))
                 ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'another-advisor)))
               "MACHINE.env[0][0]")
       "Shriram")

@@ -33,23 +33,28 @@
                         [alternative : ExpressionCore]) #:transparent)
 
 (define-struct: Lam ([num-parameters : Natural]
-                     [body : ExpressionCore]) #:transparent)
+                     [body : ExpressionCore]
+                     [closure-map : (Listof EnvReference)]) #:transparent)
 
 (define-struct: Seq ([actions : (Listof ExpressionCore)]) #:transparent)
 (define-struct: App ([operator : ExpressionCore]
                      [operands : (Listof ExpressionCore)]) #:transparent)
 
-(define-struct: Let1 ([rhs : ExpressionCore ]
+(define-struct: Let1 ([rhs : ExpressionCore]
                       [body : ExpressionCore])
   #:transparent)
 (define-struct: Let ([count : Natural]
                      [rhss : (Listof ExpressionCore)]
                      [body : ExpressionCore])
   #:transparent)
+
 (define-struct: LetRec ([count : Natural]
                         [rhss : (Listof ExpressionCore)]
                         [body : ExpressionCore])
   #:transparent)
+
+
+
 
 
 (: last-exp? ((Listof Expression) -> Boolean))

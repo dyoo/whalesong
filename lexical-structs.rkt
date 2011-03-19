@@ -10,8 +10,7 @@
 ;; A toplevel prefix contains a list of toplevel variables.  Some of the
 ;; names may be masked out by #f.
 (define-struct: Prefix ([names : (Listof (U Symbol False))])
-  #:transparent
-  #:mutable)
+  #:transparent)
 
 
 (define-struct: NamedBinding ([name : Symbol]))

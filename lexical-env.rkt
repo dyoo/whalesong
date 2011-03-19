@@ -14,7 +14,7 @@
 
 
 ;; Find where the variable is located in the lexical environment
-(: find-variable (Symbol CompileTimeEnvironment -> (U LexicalAddress False)))
+(: find-variable (Symbol CompileTimeEnvironment -> LexicalAddress))
 (define (find-variable name cenv)
   (: find-pos (Symbol (Listof (U Symbol False)) -> Natural))
   (define (find-pos sym los)
@@ -23,11 +23,11 @@
        0]
       [else
        (add1 (find-pos sym (cdr los)))]))
-  (let: loop : (U LexicalAddress False)
+  (let: loop : LexicalAddress
         ([cenv : CompileTimeEnvironment cenv]
          [depth : Natural 0])
         (cond [(empty? cenv)
-               #f]
+               (error 'find-variable "~s not in lexical environment" cenv)]
               [else
                (let: ([elt : CompileTimeEnvironmentEntry (first cenv)])
                  (cond

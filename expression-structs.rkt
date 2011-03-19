@@ -7,7 +7,7 @@
 
 (define-type ExpressionCore (U Top Constant 
                                ToplevelRef LocalRef
-                               SetToplevel
+                               ToplevelSet
                                Branch Lam Seq App
                                Let1 Let LetRec))
 
@@ -23,7 +23,7 @@
 (define-struct: LocalRef ([depth : Natural])
   #:transparent)
 
-(define-struct: SetToplevel ([depth : Natural]
+(define-struct: ToplevelSet ([depth : Natural]
                              [pos : Natural]
                              [name : Symbol] 
                              [value : ExpressionCore]) #:transparent)

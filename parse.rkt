@@ -49,10 +49,10 @@
          [(EnvLexicalReference? address)
           (error 'parse "Can't define except in toplevel context")]
          [(EnvPrefixReference? address)
-          (make-SetToplevel (EnvPrefixReference-depth address)
+          (make-ToplevelSet (EnvPrefixReference-depth address)
                             (EnvPrefixReference-pos address)
                             (EnvPrefixReference-name address)
-                            (parse (definition-value exp) cenv))]))] 
+                            (parse (definition-value exp) cenv))]))]
     
     [(if? exp)
      (make-Branch (parse (if-predicate exp) cenv)
@@ -73,11 +73,13 @@
                         cenv
                         (extend-lexical-environment/names '() (lambda-parameters exp))
                         unbound-names)])
-       (let ([lam-body (make-Seq (map (lambda (b)
-                                        (parse b body-cenv))
-                                      (lambda-body exp)))])
+       (let ([lam-body (map (lambda (b)
+                              (parse b body-cenv))
+                            (lambda-body exp))])
          (make-Lam (length (lambda-parameters exp))
-                   lam-body
+                   (if (= (length lam-body) 1)
+                       (first lam-body)
+                       (make-Seq lam-body))
                    closure-references)))]
  
     [(begin? exp)
@@ -117,58 +119,59 @@
 
 ;; find-unbound-names: Any -> (Listof Symbol)
 (define (find-unbound-names exp)
-  (cond
-    [(self-evaluating? exp)
-     '()]
-    
-    [(quoted? exp)
-     '()]
-    
-    [(variable? exp)
-     (list exp)]
-    
-    [(definition? exp)
-     (let ([address (find-variable (definition-variable exp))])
-       (cons (definition-variable address)
-             (find-unbound-names (definition-value exp))))]
-    
-    [(if? exp)
-     (append (find-unbound-names (if-predicate exp))
-             (find-unbound-names (if-consequent exp))
-             (find-unbound-names (if-alternative exp)))]
-    
-    [(cond? exp)
-     (find-unbound-names (desugar-cond exp))]
-    
-    [(lambda? exp)
-     (list-difference (apply append (map find-unbound-names (lambda-body exp)))
-                      (lambda-parameters exp))]
- 
-    [(begin? exp)
-     (apply append (map find-unbound-names (begin-actions exp)))]
-
-    [(named-let? exp)
-     (find-unbound-names (desugar-named-let exp))]
-
-    [(let*? exp)
-     (find-unbound-names (desugar-let* exp))]
-    
-    [(let? exp)
-     (append (apply append (map find-unbound-names (let-rhss exp)))
-             (list-difference (apply append (map find-unbound-names (let-body exp)))
-                              (let-variables exp)))]
-    
-    [(letrec? exp)
-     (list-difference (append (apply append (map find-unbound-names (let-rhss exp)))
-                              (apply append (map find-unbound-names (let-body exp))))
-      (let-variables exp))]
-
-    [(application? exp)
-     (append (find-unbound-names (operator exp))
-             (apply append (map find-unbound-names (operands exp))))]
-
-    [else
-     (error 'find-unbound-names "Unknown expression type ~e" exp)]))
+  (unique/eq?
+   (let loop ([exp exp])
+     (cond
+       [(self-evaluating? exp)
+        '()]
+       
+       [(quoted? exp)
+        '()]
+       
+       [(variable? exp)
+        (list exp)]
+       
+       [(definition? exp)
+        (cons (definition-variable exp)
+              (loop (definition-value exp)))]
+       
+       [(if? exp)
+        (append (loop (if-predicate exp))
+                (loop (if-consequent exp))
+                (loop (if-alternative exp)))]
+       
+       [(cond? exp)
+        (loop (desugar-cond exp))]
+       
+       [(lambda? exp)
+        (list-difference (apply append (map loop (lambda-body exp)))
+                         (lambda-parameters exp))]
+       
+       [(begin? exp)
+        (apply append (map loop (begin-actions exp)))]
+       
+       [(named-let? exp)
+        (loop (desugar-named-let exp))]
+       
+       [(let*? exp)
+        (loop (desugar-let* exp))]
+       
+       [(let? exp)
+        (append (apply append (map loop (let-rhss exp)))
+                (list-difference (apply append (map loop (let-body exp)))
+                                 (let-variables exp)))]
+       
+       [(letrec? exp)
+        (list-difference (append (apply append (map loop (let-rhss exp)))
+                                 (apply append (map loop (let-body exp))))
+                         (let-variables exp))]
+       
+       [(application? exp)
+        (append (loop (operator exp))
+                (apply append (map loop (operands exp))))]
+       
+       [else
+        (error 'find-unbound-names "Unknown expression type ~e" exp)]))))
 
 
 
@@ -226,10 +229,11 @@
   (cadr exp))
 (define (if-consequent exp)
   (caddr exp))
+
 (define (if-alternative exp)
   (if (not (null? (cdddr exp)))
       (cadddr exp)
-      'false))
+      `',(void)))
 
 (define (begin? exp)
   (tagged-list? exp 'begin))
@@ -258,7 +262,7 @@
            [else
             `(if ,question 
                  ,answer
-                 (void))]))]
+                 ',(void))]))]
       [else
        (let* ([clause (car clauses)]
               [question (car clause)]

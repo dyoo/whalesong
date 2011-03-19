@@ -230,4 +230,28 @@
                                     (make-Seq (list (make-LocalRef 0)
                                                     (make-LocalRef 1)))))))
 
+
+
+(test (parse '(let* ([x 3]
+                     [x (add1 x)])
+                (add1 x)))
+      (make-Top (make-Prefix '(add1))
+                
+                ;; stack layout: [prefix]
+                
+                (make-Let1 (make-Constant 3)
                            
+                           ;; stack layout: [x_0, prefix]
+
+                           (make-Let1
+                            
+                            ;; stack layout: [???, x_0, prefix]
+
+                            (make-App 
+                             
+                             ;; stack layout: [???, ???, x_0, prefix]
+                             (make-ToplevelRef 3 0) (list (make-LocalRef 2)))
+                            
+                            ;; stack layout [???, x_1, x_0, prefix]
+                            (make-App (make-ToplevelRef 3 0)
+                                      (list (make-LocalRef 1)))))))

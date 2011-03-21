@@ -131,7 +131,7 @@
 ;; closure needs to close over.
 (define-struct: MakeCompiledProcedure ([label : Symbol]
                                        [arity : Natural]
-                                       [closed-vals : (Listof EnvReference)]
+                                       [closed-vals : (Listof Natural)]
                                        [display-name : (U Symbol False)])
   #:transparent)
 
@@ -177,8 +177,7 @@
 ;; Check that the value in the prefix has been defined.
 ;; If not, raise an error and stop evaluation.
 (define-struct: CheckToplevelBound! ([depth : Natural]
-                                     [pos : Natural]
-                                     [name : Symbol])
+                                     [pos : Natural])
   #:transparent)
 
 ;; Check the closure procedure value in 'proc and make sure it can accept n values.

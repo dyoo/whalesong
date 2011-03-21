@@ -1,6 +1,6 @@
 #lang racket
 
-(require "test-find-toplevel-variables.rkt"
+(require "test-parse.rkt"
          "test-simulator.rkt"
          "test-compiler.rkt"
          "test-assemble.rkt"

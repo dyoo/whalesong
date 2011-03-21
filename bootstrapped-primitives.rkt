@@ -2,14 +2,8 @@
 (require "expression-structs.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
-         "lexical-env.rkt"
-         "helpers.rkt"
-         "find-toplevel-variables.rkt"
-         "sets.rkt"
          "compile.rkt"
-         "typed-parse.rkt"
-         racket/list)
-
+         "typed-parse.rkt")
 
 
 (provide get-bootstrapping-code)
@@ -46,14 +40,13 @@
        ,(make-AssignPrimOpStatement (adjust-target-depth (make-EnvLexicalReference 0 #f) 2)
                                     (make-MakeCompiledProcedure call/cc-closure-entry
                                                                 1 ;; the continuation consumes a single value
-                                                                (list (make-EnvLexicalReference 0 #f)
-                                                                      (make-EnvLexicalReference 1 #f))
+                                                                (list 0 1)
                                                                 'call/cc))
        ,(make-PopEnvironment 2 0)))
     
     ;; Finally, do a tail call into f.
-    (compile-procedure-call '()
-                            (extend-lexical-environment/placeholders '() 1)
+    (compile-procedure-call 0
+                            1
                             1 
                             'val
                             'return)

@@ -158,8 +158,7 @@
 (define (compile-toplevel-set exp cenv target linkage)
   (let* ([var (ToplevelSet-name exp)]
          [lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
-                                               (ToplevelSet-pos exp)
-                                               (ToplevelSet-name exp))])
+                                               (ToplevelSet-pos exp))])
     (let ([get-value-code
            (parameterize ([current-defined-name var])
              (compile (ToplevelSet-value exp) cenv lexical-pos
@@ -225,7 +224,7 @@
                 target
                 (make-MakeCompiledProcedure proc-entry
                                             (Lam-num-parameters exp)
-                                            (map make-Const (Lam-closure-map exp))
+                                            (Lam-closure-map exp)
                                             (current-defined-name))))))
           (compile-lambda-body exp proc-entry)
           after-lambda)))
@@ -354,7 +353,7 @@
 
 
 
-(: compile-proc-appl (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(: compile-proc-appl (Natural Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Non-tail calls that write to val
 ;;    2.  Calls in argument position that write to the environment
@@ -438,7 +437,7 @@
 
 
 
-(: compile-let-void (LetVoid CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-let-void (LetVoid Natural Target Linkage -> InstructionSequence))
 (define (compile-let-void exp cenv target linkage)
   (let*: ([n : Natural (LetVoid-count exp)]
           [after-let : Symbol (make-label 'afterLet)]

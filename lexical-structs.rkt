@@ -37,8 +37,7 @@
   #:transparent)
 
 (define-struct: EnvPrefixReference ([depth : Natural]
-                                    [pos : Natural]
-                                    [name : Symbol])
+                                    [pos : Natural])
   #:transparent)
 
 (define-struct: EnvWholePrefixReference ([depth : Natural])

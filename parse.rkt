@@ -52,7 +52,7 @@
          [(EnvPrefixReference? address)
           (make-ToplevelSet (EnvPrefixReference-depth address)
                             (EnvPrefixReference-pos address)
-                            (EnvPrefixReference-name address)
+                            (definition-variable exp)
                             (parse (definition-value exp) cenv))]))]
     
     [(if? exp)

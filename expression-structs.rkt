@@ -53,7 +53,7 @@
 
 (define-struct: InstallValue ([depth : Natural]
                               [body : ExpressionCore]
-                              [boxes? : Boolean])
+                              [box? : Boolean])
   #:transparent)
 
 

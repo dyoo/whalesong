@@ -36,8 +36,7 @@
                    [(Prefix? elt)
                     (cond [(member name (Prefix-names elt))
                            (make-EnvPrefixReference depth 
-                                                    (find-pos name (Prefix-names elt))
-                                                    name)]
+                                                    (find-pos name (Prefix-names elt)))]
                           [else
                            (loop (rest cenv) (add1 depth))])]
                    
@@ -183,8 +182,7 @@
                                (EnvLexicalReference-unbox? target))]
     [(EnvPrefixReference? target)
      (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
-                              (EnvPrefixReference-pos target)
-                              (EnvPrefixReference-name target))]
+                              (EnvPrefixReference-pos target))]
     [(EnvWholePrefixReference? target)
      (make-EnvWholePrefixReference (+ n (EnvWholePrefixReference-depth target)))]))
 

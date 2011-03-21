@@ -6,4 +6,5 @@
          "test-assemble.rkt"
          "test-browser-evaluate.rkt"
          "test-package.rkt"
-         #;"test-conform.rkt")
+         #;"test-conform.rkt"
+         #;"test-conform-browser.rkt")

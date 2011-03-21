@@ -57,7 +57,8 @@
                        )
   #:transparent)
 
-(define-struct: toplevel ([vals : (Listof PrimitiveValue)])
+(define-struct: toplevel ([names : (Listof (U #f Symbol))]
+                          [vals : (Listof PrimitiveValue)])
   #:transparent
   #:mutable)
 

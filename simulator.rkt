@@ -197,7 +197,7 @@
                  (cond
                    [(undefined? (list-ref (toplevel-vals a-top) (CheckToplevelBound!-pos op)))
                     (error 'check-toplevel-bound! "Unbound identifier ~s" 
-                           (CheckToplevelBound!-name op))]
+                           (list-ref (toplevel-names a-top) (CheckToplevelBound!-pos op)))]
                    [else
                     'ok]))]
           
@@ -216,7 +216,8 @@
           
           [(ExtendEnvironment/Prefix!? op)
            (env-push! m 
-                      (make-toplevel (map (lambda: ([id/false : (U Symbol False)])
+                      (make-toplevel (ExtendEnvironment/Prefix!-names op)
+                                     (map (lambda: ([id/false : (U Symbol False)])
                                                    (if (symbol? id/false)
                                                        (lookup-primitive id/false)
                                                        #f))
@@ -285,8 +286,7 @@
           [(MakeCompiledProcedure? op)
            (target-updater! m (make-closure (MakeCompiledProcedure-label op)
                                             (MakeCompiledProcedure-arity op)
-                                            (map (lambda: ([r : EnvReference])
-                                                          (lookup-env-reference/closure-capture m r))
+                                            (map (lambda: ([d : Natural]) (env-ref m d))
                                                  (MakeCompiledProcedure-closed-vals op))
                                             (MakeCompiledProcedure-display-name op)))]
           

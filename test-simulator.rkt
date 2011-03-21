@@ -273,30 +273,31 @@
 ;; AssignPrimOpStatement
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+ - * =)))))])
   (test (first (machine-env (run m)))
-        (make-toplevel (list (lookup-primitive '+)
+        (make-toplevel '(+ - * =)
+                       (list (lookup-primitive '+)
                              (lookup-primitive '-)
                              (lookup-primitive '*)
                              (lookup-primitive '=)))))
 
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'some-variable) (make-Reg 'val))))])
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))))])
   (test (machine-env (run m))
-        (list (make-toplevel (list "Danny")))))
+        (list (make-toplevel '(some-variable) (list "Danny")))))
 
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable another)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 1 'another) (make-Reg 'val))))])
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 1) (make-Reg 'val))))])
   (test (machine-env (run m))
-        (list (make-toplevel (list (make-undefined) "Danny")))))
+        (list (make-toplevel '(some-variable another) (list (make-undefined) "Danny")))))
 
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PushEnvironment 5 #f)
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 5 0 'some-variable) (make-Reg 'val))))])
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 5 0) (make-Reg 'val))))])
   (test (machine-env (run m))
         (list (make-undefined) (make-undefined) (make-undefined) (make-undefined) (make-undefined)
-              (make-toplevel (list "Danny")))))
+              (make-toplevel '(some-variable) (list "Danny")))))
 
 
 
@@ -304,7 +305,7 @@
 ;; check-toplevel-bound
 ;; This should produce an error.
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
-                        ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'some-variable))))])
+                        ,(make-PerformStatement (make-CheckToplevelBound! 0 0))))])
   (with-handlers ((exn:fail? (lambda (exn)
                                (void))))
     
@@ -314,8 +315,8 @@
 ;; check-toplevel-bound shouldn't fail here.
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'some-variable) (make-Reg 'val))
-                        ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'some-variable))))])
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
+                        ,(make-PerformStatement (make-CheckToplevelBound! 0 0))))])
   (void (run m)))
 
 
@@ -372,8 +373,7 @@
                           'val
                           (make-MakeCompiledProcedure 'procedure-entry 
                                                       0 
-                                                      (list (make-EnvLexicalReference 0 #f)
-                                                            (make-EnvLexicalReference 2 #f))
+                                                      (list 0 2)
                                                       'procedure-entry))
                         ,(make-GotoStatement (make-Label 'end))
                         procedure-entry
@@ -386,33 +386,33 @@
 ;; make-compiled-procedure: Capturing a toplevel.
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(x y z)))
                         ,(make-AssignImmediateStatement 'val (make-Const "x"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'x) (make-Reg 'val))
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
                         ,(make-AssignImmediateStatement 'val (make-Const "y"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 1 'y) (make-Reg 'val))
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 1) (make-Reg 'val))
                         ,(make-AssignImmediateStatement 'val (make-Const "z"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 2 'z) (make-Reg 'val))
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 2) (make-Reg 'val))
                         ,(make-AssignPrimOpStatement 
                           'val
                           (make-MakeCompiledProcedure 'procedure-entry 
                                                       0
-                                                      (list (make-EnvWholePrefixReference 0))
+                                                      (list 0)
                                                       'procedure-entry))
                         ,(make-GotoStatement (make-Label 'end))
                         procedure-entry
                         end
                         ))])
   (test (machine-val (run m))
-        (make-closure 'procedure-entry 0 (list (make-toplevel (list "x" "y" "z")))
+        (make-closure 'procedure-entry 0 (list (make-toplevel '(x y z) (list "x" "y" "z")))
                       'procedure-entry)))
 
 ;; make-compiled-procedure: Capturing both a toplevel and some lexical values
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(x y z)))
                         ,(make-AssignImmediateStatement 'val (make-Const "x"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'x) (make-Reg 'val))
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
                         ,(make-AssignImmediateStatement 'val (make-Const "y"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 1 'y) (make-Reg 'val))
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 1) (make-Reg 'val))
                         ,(make-AssignImmediateStatement 'val (make-Const "z"))
-                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 2 'z) (make-Reg 'val))
+                        ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 2) (make-Reg 'val))
 
                         ,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 'larry))
@@ -422,9 +422,7 @@
                           'val
                           (make-MakeCompiledProcedure 'procedure-entry 
                                                       0
-                                                      (list (make-EnvWholePrefixReference 3)
-                                                            (make-EnvLexicalReference 0 #f)
-                                                            (make-EnvLexicalReference 2 #f))
+                                                      (list 3 0 2)
                                                       'procedure-entry))
                         ,(make-PopEnvironment 3 0)
                         ,(make-GotoStatement (make-Label 'end))
@@ -434,7 +432,7 @@
   (test (machine-val (run m))
         (make-closure 'procedure-entry 
                       0
-                      (list (make-toplevel (list "x" "y" "z"))
+                      (list (make-toplevel '(x y z) (list "x" "y" "z"))
                             'larry
                             'moe)
                       'procedure-entry)))
@@ -442,7 +440,7 @@
 
 ;; Test toplevel lookup
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                        ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0 '+))))])
+                        ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))))])
   (test (machine-val (run m))
         (lookup-primitive '+)))
 
@@ -470,7 +468,7 @@
 ;; ApplyPrimitiveProcedure
 ;; Adding two numbers
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                        ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0 '+))
+                        ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                         ,(make-PushEnvironment 2 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 126389))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 42))
@@ -480,7 +478,7 @@
         (+ 126389 42))
   
   (test (machine-env (run m))
-        (list 126389 42 (make-toplevel (list (lookup-primitive '+))))))
+        (list 126389 42 (make-toplevel '(+) (list (lookup-primitive '+))))))
 
 
 ;; GetControlStackLabel

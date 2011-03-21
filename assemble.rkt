@@ -318,6 +318,8 @@ EOF
                        (loop (cdr val)))]
               [(boolean? val)
                (if val "true" "false")]
+              [(void? val)
+               "null"]
               [(empty? val)
                (format "Primitives.null")]
               [else

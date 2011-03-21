@@ -90,6 +90,9 @@
 ;; Assigning a cons
 (test (E-single (make-AssignImmediateStatement 'val (make-Const (cons 1 2))))
       "1,2")
+;; Assigning a void
+(test (E-single (make-AssignImmediateStatement 'val (make-Const (void))))
+      "null")
 ;; Assigning to proc means val should still be uninitialized.
 (test (E-single (make-AssignImmediateStatement 'proc (make-Const "Danny")))
       "undefined")

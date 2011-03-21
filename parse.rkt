@@ -286,10 +286,14 @@
                          (extend-lexical-environment/names cenv (list (first vars)))))]
       [else
        (let ([rhs-cenv (extend-lexical-environment/placeholders cenv (length vars))])
-         (make-Let (length vars)
-                   (map (lambda (rhs) (parse rhs rhs-cenv)) rhss)
-                   (parse `(begin ,@body)
-                          (extend-lexical-environment/names cenv vars))))])))
+         (make-LetVoid (length vars)
+                       (make-Seq (append 
+                                  (map (lambda (rhs index) 
+                                         (make-InstallValue index (parse rhs rhs-cenv)))
+                                       rhss
+                                       (build-list (length rhss) (lambda (i) i)))
+                                  (list (parse `(begin ,@body)
+                                               (extend-lexical-environment/names cenv vars)))))))])))
 
 (define (parse-letrec exp cenv)
   (let ([vars (let-variables exp)]
@@ -300,9 +304,13 @@
        (parse `(begin ,@body) cenv)]
       [else
        (let ([new-cenv (extend-lexical-environment/names cenv vars)])
-         (make-LetRec (length vars)
-                      (map (lambda (rhs) (parse rhs new-cenv)) rhss)
-                      (parse `(begin ,@body) new-cenv)))])))
+         (make-LetVoid (length vars)
+                       (make-Seq (append 
+                                  (map (lambda (rhs index) 
+                                         (make-InstallValue index (parse rhs new-cenv)))
+                                       rhss
+                                       (build-list (length rhss (lambda (i) i))))
+                                  (list (parse `(begin ,@body) new-cenv))))))])))
 
 
 (define (desugar-let* exp)

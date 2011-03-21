@@ -9,7 +9,10 @@
                                ToplevelRef LocalRef
                                ToplevelSet
                                Branch Lam Seq App
-                               Let1 Let LetRec))
+                               Let1 
+                               LetVoid 
+                               InstallValue
+                               #;LetRec))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)
@@ -43,15 +46,18 @@
 (define-struct: Let1 ([rhs : ExpressionCore]
                       [body : ExpressionCore])
   #:transparent)
-(define-struct: Let ([count : Natural]
-                     [rhss : (Listof ExpressionCore)]
-                     [body : ExpressionCore])
+(define-struct: LetVoid ([count : Natural]
+                         [body : ExpressionCore])
   #:transparent)
 
-(define-struct: LetRec ([count : Natural]
-                        [rhss : (Listof Lam)]
-                        [body : ExpressionCore])
+(define-struct: InstallValue ([depth : Natural]
+                              [body : ExpressionCore])
   #:transparent)
+
+#;(define-struct: LetRec ([count : Natural]
+                          [rhss : (Listof Lam)]
+                          [body : ExpressionCore])
+    #:transparent)
 
 
 

@@ -209,11 +209,11 @@
                 x
                 y))
       (make-Top (make-Prefix '())
-                (make-Let 2
-                          (list (make-Constant 3)
-                                (make-Constant 4))
-                          (make-Seq (list (make-LocalRef 0)
-                                          (make-LocalRef 1))))))
+                (make-LetVoid 2
+                              (make-Seq (list (make-InstallValue 0 (make-Constant 3))
+                                              (make-InstallValue 1 (make-Constant 4))
+                                              (make-Seq (list (make-LocalRef 0)
+                                                              (make-LocalRef 1))))))))
 
 (test (parse '(let ([x 3]
                     [y 4])
@@ -222,13 +222,14 @@
                   x
                   y)))
       (make-Top (make-Prefix '())
-                (make-Let 2
-                          (list (make-Constant 3) (make-Constant 4))
-                          (make-Let 2
-                                    (list (make-LocalRef 3)
-                                          (make-LocalRef 2))
-                                    (make-Seq (list (make-LocalRef 0)
-                                                    (make-LocalRef 1)))))))
+                (make-LetVoid 2
+                              (make-Seq (list (make-InstallValue 0 (make-Constant 3))
+                                              (make-InstallValue 1 (make-Constant 4))
+                                              (make-LetVoid 2
+                                                            (make-Seq (list (make-InstallValue 0 (make-LocalRef 3))
+                                                                            (make-InstallValue 1 (make-LocalRef 2))
+                                                                            (make-Seq (list (make-LocalRef 0)
+                                                                                            (make-LocalRef 1)))))))))))
 
 
 
@@ -262,7 +263,7 @@
       (make-Top (make-Prefix '()) (make-Constant 42)))
 
 
-(test (parse '(letrec ([x (lambda (x) x)]
-                       [y (lambda (x) x)])))
-      (make-Top (make-Prefix '())
+;#;(test (parse '(letrec ([x (lambda (x) x)]
+;                       [y (lambda (x) x)])))
+;      (make-Top (make-Prefix '())
                 

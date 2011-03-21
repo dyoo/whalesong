@@ -10,7 +10,8 @@
          extend-lexical-environment/placeholders
          collect-lexical-references
          lexical-references->compile-time-environment
-         place-prefix-mask)
+         place-prefix-mask
+         adjust-env-reference-depth)
 
 
 ;; Find where the variable is located in the lexical environment
@@ -170,3 +171,18 @@
                             #f)]
                        [else n]))
         (Prefix-names a-prefix))))
+
+
+
+(: adjust-env-reference-depth (EnvReference Natural -> EnvReference))
+(define (adjust-env-reference-depth target n)
+  (cond
+    [(EnvLexicalReference? target)
+     (make-EnvLexicalReference (+ n (EnvLexicalReference-depth target))
+                               (EnvLexicalReference-unbox? target))]
+    [(EnvPrefixReference? target)
+     (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
+                              (EnvPrefixReference-pos target)
+                              (EnvPrefixReference-name target))]
+    [(EnvWholePrefixReference? target)
+     (make-EnvWholePrefixReference (+ n (EnvWholePrefixReference-depth target)))]))

@@ -602,22 +602,7 @@
            after-letrec))))
 
 
-(: adjust-target-depth (Target Natural -> Target))
-(define (adjust-target-depth target n)
-  (cond
-    [(eq? target 'val)
-     target]
-    [(eq? target 'proc)
-     target]
-    [(EnvLexicalReference? target)
-     (make-EnvLexicalReference (+ n (EnvLexicalReference-depth target))
-                               (EnvLexicalReference-unbox? target))]
-    [(EnvPrefixReference? target)
-     (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
-                              (EnvPrefixReference-pos target)
-                              (EnvPrefixReference-name target))]
-    [(PrimitivesReference? target)
-     target]))
+
 
 
 
@@ -644,3 +629,21 @@
       (error 'ensure-natural "Not a natural: ~s\n" n)))
 
 
+
+
+(: adjust-target-depth (Target Natural -> Target))
+(define (adjust-target-depth target n)
+  (cond
+    [(eq? target 'val)
+     target]
+    [(eq? target 'proc)
+     target]
+    [(EnvLexicalReference? target)
+     (make-EnvLexicalReference (+ n (EnvLexicalReference-depth target))
+                               (EnvLexicalReference-unbox? target))]
+    [(EnvPrefixReference? target)
+     (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
+                              (EnvPrefixReference-pos target)
+                              (EnvPrefixReference-name target))]
+    [(PrimitivesReference? target)
+     target]))

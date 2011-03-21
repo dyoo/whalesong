@@ -344,17 +344,14 @@ EOF
           (EnvWholePrefixReference-depth a-prefix-ref)))
 
 
-(: assemble-env-reference/closure-capture (EnvReference -> String))
+(: assemble-env-reference/closure-capture (Natural -> String))
 ;; When we're capturing the values for a closure, we need to not unbox
-;; lexical references: they must remain boxes.
-(define (assemble-env-reference/closure-capture ref)
-  (cond
-    [(EnvLexicalReference? ref)
-     (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-             (EnvLexicalReference-depth ref))]
-    [(EnvWholePrefixReference? ref)
-     (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-             (EnvWholePrefixReference-depth ref))]))
+;; lexical references: they must remain boxes.  So all we need is 
+;; the depth into the environment.
+(define (assemble-env-reference/closure-capture depth)
+  (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
+          depth))
+
 
 (: assemble-display-name ((U Symbol False) -> String))
 (define (assemble-display-name symbol-or-string)
@@ -401,10 +398,11 @@ EOF
   (cond 
     
     [(CheckToplevelBound!? op)
-     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { throw new Error(\"Not bound: \" + ~s); }"
+     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { throw new Error(\"Not bound: \" + MACHINE.env[MACHINE.env.length - 1 - ~a].names[~a]); }"
              (CheckToplevelBound!-depth op)
              (CheckToplevelBound!-pos op)
-             (symbol->string (CheckToplevelBound!-name op)))]
+             (CheckToplevelBound!-depth op)
+             (CheckToplevelBound!-pos op))]
     
     [(CheckClosureArity!? op)
      (format "if (! (MACHINE.proc instanceof Closure && MACHINE.proc.arity === ~a)) { if (! (MACHINE.proc instanceof Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }"
@@ -413,12 +411,18 @@ EOF
     
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False)) (ExtendEnvironment/Prefix!-names op)])
-           (format "MACHINE.env.push([~a]);"
+           (format "MACHINE.env.push([~a]);  MACHINE.env[MACHINE.env.length-1].names = [~a];"
                    (string-join (map (lambda: ([n : (U Symbol False)])
                                               (if (symbol? n)
                                                   (format "MACHINE.params.currentNamespace[~s] || Primitives[~s]"
                                                           (symbol->string n) 
                                                           (symbol->string n))
+                                                  "false"))
+                                     names)
+                                ",")
+                   (string-join (map (lambda: ([n : (U Symbol False)])
+                                              (if (symbol? n)
+                                                  (format "~s" (symbol->string n))
                                                   "false"))
                                      names)
                                 ",")))]

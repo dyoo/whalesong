@@ -144,7 +144,7 @@
 
 ;; Simple application
 (test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                    (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0 '+))
+                    (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                     (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 3))
@@ -179,8 +179,7 @@
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 
-                                                                                 (list (make-EnvLexicalReference 0 #f)
-                                                                                       (make-EnvLexicalReference 1 #f))
+                                                                                 (list 0 1)
                                                                                  'closureStart)))
               "MACHINE.val.closedVals[1] + ',' + MACHINE.val.closedVals[0]")
       "hello,world")
@@ -199,8 +198,7 @@
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
-                                                                                 (list (make-EnvLexicalReference 0 #f)
-                                                                                       (make-EnvLexicalReference 1 #f))
+                                                                                 (list 0 1)
                                                                                  'closureStart))
                     (make-PopEnvironment 2 0)
                     (make-GotoStatement (make-Label 'closureStart))
@@ -224,8 +222,7 @@
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
-                                                                                 (list (make-EnvLexicalReference 0 #f)
-                                                                                       (make-EnvLexicalReference 1 #f))
+                                                                                 (list 0 1)
                                                                                  'closureStart))
                     (make-PopEnvironment 2 0)
                     (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))
@@ -247,8 +244,7 @@
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const "world"))
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
-                                                                                  (list (make-EnvLexicalReference 0 #f)
-                                                                                        (make-EnvLexicalReference 1 #f))
+                                                                                  (list 0 1)
                                                                                   'closureStart))
                     (make-PopEnvironment 2 0)
                     (make-PerformStatement (make-CheckClosureArity! 5)))))
@@ -270,8 +266,7 @@
                   (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                  (make-Const "world"))
                   (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
-                                                                                (list (make-EnvLexicalReference 0 #f)
-                                                                                      (make-EnvLexicalReference 1 #f))
+                                                                                (list 0 1)
                                                                                 'closureStart))
                   (make-PopEnvironment 2 0)
                   (make-PerformStatement (make-CheckClosureArity! 1)))))
@@ -312,7 +307,7 @@
 
 ;; Give a primitive procedure in val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0 '+))
+                ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                 ,(make-GotoStatement (make-Label 'end))
@@ -323,7 +318,7 @@
 
 ;; Give a primitive procedure in proc, but test val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0 '+))
+                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
@@ -334,7 +329,7 @@
 
 ;; Give a primitive procedure in proc and test proc
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0 '+))
+                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
                 ,(make-TestAndBranchStatement 'primitive-procedure? 'proc 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
@@ -348,7 +343,7 @@
 ;; Set-toplevel
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(advisor)))
                 ,(make-AssignImmediateStatement 'val (make-Const "Kathi"))
-                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'advisor) (make-Reg 'val)))
+                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val)))
               "MACHINE.env[0][0]")
       "Kathi")
 
@@ -358,13 +353,13 @@
   (let ([dont-care 
          (with-handlers ([void (lambda (exn) (return))])
            (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
-                     ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'some-variable)))))])
+                     ,(make-PerformStatement (make-CheckToplevelBound! 0 0)))))])
     (raise "I expected an error")))
   
 ;; check-toplevel-bound shouldn't fail here.
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(another-advisor)))
                 ,(make-AssignImmediateStatement 'val (make-Const "Shriram"))
-                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0 'another-advisor) (make-Reg 'val))
-                ,(make-PerformStatement (make-CheckToplevelBound! 0 0 'another-advisor)))
+                ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
+                ,(make-PerformStatement (make-CheckToplevelBound! 0 0)))
               "MACHINE.env[0][0]")
       "Shriram")

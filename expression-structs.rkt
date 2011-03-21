@@ -11,8 +11,7 @@
                                Branch Lam Seq App
                                Let1 
                                LetVoid 
-                               InstallValue
-                               #;LetRec))
+                               InstallValue))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)
@@ -23,7 +22,8 @@
                              [pos : Natural])
   #:transparent)
 
-(define-struct: LocalRef ([depth : Natural])
+(define-struct: LocalRef ([depth : Natural]
+                          [unbox? : Boolean])
   #:transparent)
 
 (define-struct: ToplevelSet ([depth : Natural]
@@ -37,7 +37,7 @@
 
 (define-struct: Lam ([num-parameters : Natural]
                      [body : ExpressionCore]
-                     [closure-map : (Listof EnvReference)]) #:transparent)
+                     [closure-map : (Listof Natural)]) #:transparent)
 
 (define-struct: Seq ([actions : (Listof ExpressionCore)]) #:transparent)
 (define-struct: App ([operator : ExpressionCore]
@@ -47,17 +47,14 @@
                       [body : ExpressionCore])
   #:transparent)
 (define-struct: LetVoid ([count : Natural]
-                         [body : ExpressionCore])
+                         [body : ExpressionCore]
+                         [boxes? : Boolean])
   #:transparent)
 
 (define-struct: InstallValue ([depth : Natural]
-                              [body : ExpressionCore])
+                              [body : ExpressionCore]
+                              [boxes? : Boolean])
   #:transparent)
-
-#;(define-struct: LetRec ([count : Natural]
-                          [rhss : (Listof Lam)]
-                          [body : ExpressionCore])
-    #:transparent)
 
 
 

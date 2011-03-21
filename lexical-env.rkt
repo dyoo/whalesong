@@ -11,7 +11,8 @@
          collect-lexical-references
          lexical-references->compile-time-environment
          place-prefix-mask
-         adjust-env-reference-depth)
+         adjust-env-reference-depth
+         env-reference-depth)
 
 
 ;; Find where the variable is located in the lexical environment
@@ -186,3 +187,12 @@
                               (EnvPrefixReference-name target))]
     [(EnvWholePrefixReference? target)
      (make-EnvWholePrefixReference (+ n (EnvWholePrefixReference-depth target)))]))
+
+
+(: env-reference-depth (EnvReference -> Natural))
+(define (env-reference-depth a-ref)
+  (cond
+    [(EnvLexicalReference? a-ref)
+     (EnvLexicalReference-depth a-ref)]
+    [(EnvWholePrefixReference? a-ref)
+     (EnvWholePrefixReference-depth a-ref)]))

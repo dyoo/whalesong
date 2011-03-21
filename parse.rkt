@@ -38,7 +38,8 @@
      (let ([address (find-variable exp cenv)])
        (cond
          [(EnvLexicalReference? address)
-          (make-LocalRef (EnvLexicalReference-depth address))]
+          (make-LocalRef (EnvLexicalReference-depth address)
+                         (EnvLexicalReference-unbox? address))]
          [(EnvPrefixReference? address)
           (make-ToplevelRef (EnvPrefixReference-depth address)
                             (EnvPrefixReference-pos address))]))]
@@ -80,7 +81,7 @@
                    (if (= (length lam-body) 1)
                        (first lam-body)
                        (make-Seq lam-body))
-                   closure-references)))]
+                   (map env-reference-depth closure-references))))]
  
     [(begin? exp)
      (let ([actions (map (lambda (e)
@@ -289,11 +290,12 @@
          (make-LetVoid (length vars)
                        (make-Seq (append 
                                   (map (lambda (rhs index) 
-                                         (make-InstallValue index (parse rhs rhs-cenv)))
+                                         (make-InstallValue index (parse rhs rhs-cenv) #f))
                                        rhss
                                        (build-list (length rhss) (lambda (i) i)))
                                   (list (parse `(begin ,@body)
-                                               (extend-lexical-environment/names cenv vars)))))))])))
+                                               (extend-lexical-environment/names cenv vars)))))
+                       #f))])))
 
 (define (parse-letrec exp cenv)
   (let ([vars (let-variables exp)]
@@ -303,14 +305,15 @@
       [(= 0 (length vars))
        (parse `(begin ,@body) cenv)]
       [else
-       (let ([new-cenv (extend-lexical-environment/names cenv vars)])
+       (let ([new-cenv (extend-lexical-environment/boxed-names cenv vars)])
          (make-LetVoid (length vars)
                        (make-Seq (append 
                                   (map (lambda (rhs index) 
-                                         (make-InstallValue index (parse rhs new-cenv)))
+                                         (make-InstallValue index (parse rhs new-cenv) #t))
                                        rhss
-                                       (build-list (length rhss (lambda (i) i))))
-                                  (list (parse `(begin ,@body) new-cenv))))))])))
+                                       (build-list (length rhss) (lambda (i) i)))
+                                  (list (parse `(begin ,@body) new-cenv))))
+                       #t))])))
 
 
 (define (desugar-let* exp)

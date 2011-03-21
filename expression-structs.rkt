@@ -35,7 +35,8 @@
                         [consequent : ExpressionCore]
                         [alternative : ExpressionCore]) #:transparent)
 
-(define-struct: Lam ([num-parameters : Natural]
+(define-struct: Lam ([name : (U Symbol False)]
+                     [num-parameters : Natural]
                      [body : ExpressionCore]
                      [closure-map : (Listof Natural)]) #:transparent)
 

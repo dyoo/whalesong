@@ -4,6 +4,7 @@
          "lexical-env.rkt"
          "lexical-structs.rkt"
          "helpers.rkt"
+         "parameters.rkt"
          racket/list)
 
 (provide (rename-out (-parse parse)))
@@ -53,7 +54,8 @@
           (make-ToplevelSet (EnvPrefixReference-depth address)
                             (EnvPrefixReference-pos address)
                             (definition-variable exp)
-                            (parse (definition-value exp) cenv))]))]
+                            (parameterize ([current-defined-name (definition-variable exp)])
+                              (parse (definition-value exp) cenv)))]))]
     
     [(if? exp)
      (make-Branch (parse (if-predicate exp) cenv)
@@ -77,7 +79,8 @@
        (let ([lam-body (map (lambda (b)
                               (parse b body-cenv))
                             (lambda-body exp))])
-         (make-Lam (length (lambda-parameters exp))
+         (make-Lam (current-defined-name)
+                   (length (lambda-parameters exp))
                    (if (= (length lam-body) 1)
                        (first lam-body)
                        (make-Seq lam-body))
@@ -282,15 +285,20 @@
       [(= 0 (length vars))
        (parse `(begin ,@body) cenv)]
       [(= 1 (length vars))
-       (make-Let1 (parse (car rhss) (extend-lexical-environment/placeholders cenv 1))
+       (make-Let1 (parameterize ([current-defined-name (first vars)])
+                    (parse (car rhss) (extend-lexical-environment/placeholders cenv 1)))
                   (parse `(begin ,@body)
                          (extend-lexical-environment/names cenv (list (first vars)))))]
       [else
        (let ([rhs-cenv (extend-lexical-environment/placeholders cenv (length vars))])
          (make-LetVoid (length vars)
                        (make-Seq (append 
-                                  (map (lambda (rhs index) 
-                                         (make-InstallValue index (parse rhs rhs-cenv) #f))
+                                  (map (lambda (var rhs index) 
+                                         (make-InstallValue index 
+                                                            (parameterize ([current-defined-name var])
+                                                              (parse rhs rhs-cenv))
+                                                            #f))
+                                       vars
                                        rhss
                                        (build-list (length rhss) (lambda (i) i)))
                                   (list (parse `(begin ,@body)
@@ -308,8 +316,12 @@
        (let ([new-cenv (extend-lexical-environment/boxed-names cenv vars)])
          (make-LetVoid (length vars)
                        (make-Seq (append 
-                                  (map (lambda (rhs index) 
-                                         (make-InstallValue index (parse rhs new-cenv) #t))
+                                  (map (lambda (var rhs index) 
+                                         (make-InstallValue index 
+                                                            (parameterize ([current-defined-name var])
+                                                              (parse rhs new-cenv))
+                                                            #t))
+                                       vars
                                        rhss
                                        (build-list (length rhss) (lambda (i) i)))
                                   (list (parse `(begin ,@body) new-cenv))))

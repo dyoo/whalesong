@@ -3,7 +3,8 @@
          "lexical-structs.rkt"
          "il-structs.rkt"
          "compile.rkt"
-         "typed-parse.rkt")
+         "typed-parse.rkt"
+         "parameters.rkt")
 
 
 (provide get-bootstrapping-code)

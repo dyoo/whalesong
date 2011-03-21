@@ -8,12 +8,9 @@
 (provide (rename-out [-compile compile])
          compile-procedure-call
          append-instruction-sequences
-         current-defined-name
          adjust-target-depth)
 
 
-(: current-defined-name (Parameterof (U Symbol False)))
-(define current-defined-name (make-parameter #f))
 
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
 (define (-compile exp target linkage)
@@ -160,9 +157,8 @@
          [lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
                                                (ToplevelSet-pos exp))])
     (let ([get-value-code
-           (parameterize ([current-defined-name var])
-             (compile (ToplevelSet-value exp) cenv lexical-pos
-                      'next))])
+           (compile (ToplevelSet-value exp) cenv lexical-pos
+                    'next)])
       (end-with-linkage
        linkage
        cenv
@@ -225,7 +221,7 @@
                 (make-MakeCompiledProcedure proc-entry
                                             (Lam-num-parameters exp)
                                             (Lam-closure-map exp)
-                                            (current-defined-name))))))
+                                            (Lam-name exp))))))
           (compile-lambda-body exp proc-entry)
           after-lambda)))
 

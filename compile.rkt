@@ -162,14 +162,14 @@
                                                (ToplevelSet-name exp))])
     (let ([get-value-code
            (parameterize ([current-defined-name var])
-             (compile (Def-value exp) cenv lexical-pos
+             (compile (ToplevelSet-value exp) cenv lexical-pos
                       'next))])
       (end-with-linkage
        linkage
        cenv
        (append-instruction-sequences
         get-value-code
-        (make-instruction-sequence `(,(make-AssignImmediateStatement target (make-Const 'ok)))))))))
+        (make-instruction-sequence `(,(make-AssignImmediateStatement target (make-Const (void))))))))))
 
 
 (: compile-branch (Branch Natural Target Linkage -> InstructionSequence))
@@ -391,8 +391,7 @@
          (make-instruction-sequence
           `(,(make-AssignPrimOpStatement 'val 
                                          (make-GetCompiledProcedureEntry))
-            ,(make-PopEnvironment (ensure-natural (- (lexical-environment-pop-depth cenv linkage)
-                                                     n))
+            ,(make-PopEnvironment (ensure-natural (- cenv n))
                                   n)
             ,(make-GotoStatement (make-Reg 'val))))]
         
@@ -404,18 +403,17 @@
          (error 'compile "return linkage, target not val: ~s" target)]))
 
 
-(: compile-let1 (Let1 CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile-let1 (Let1 Natural Target Linkage -> InstructionSequence))
 (define (compile-let1 exp cenv target linkage)
   (let*: ([rhs-code : InstructionSequence 
-                    (parameterize ([current-defined-name (Let1-name exp)])
-                      (compile (Let1-rhs exp)
-                               (extend-lexical-environment/placeholders cenv 1)
+                    (compile (Let1-rhs exp)
+                               (add1 cenv)
                                (make-EnvLexicalReference 0 #f)
-                               'next))]
+                               'next)
+                    #;(parameterize ([current-defined-name (Let1-name exp)]) ...)]
           [after-let1 : Symbol (make-label 'afterLetOne)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
-          [extended-cenv : CompileTimeEnvironment
-                         (extend-lexical-environment/names cenv (list (Let1-name exp)))]
+          [extended-cenv : Natural (add1 cenv)]
           [let-linkage : Linkage
                        (cond
                          [(eq? linkage 'next)
@@ -442,23 +440,10 @@
 
 (: compile-let-void (LetVoid CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-let-void exp cenv target linkage)
-  (let*: ([n : Natural (length (Let-rhss exp))]
-          [rhs-codes : (Listof InstructionSequence)
-                     (map (lambda: ([rhs : ExpressionCore]
-                                    [i : Natural]
-                                    [name : Symbol])
-                                   (parameterize ([current-defined-name name])
-                                     (compile rhs
-                                              (extend-lexical-environment/placeholders cenv n)
-                                              (make-EnvLexicalReference i #f)
-                                              'next)))
-                          (Let-rhss exp)
-                          (build-list n (lambda: ([i : Natural]) i))
-                          (Let-names exp))]
+  (let*: ([n : Natural (LetVoid-count exp)]
           [after-let : Symbol (make-label 'afterLet)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
-          [extended-cenv : CompileTimeEnvironment
-                         (extend-lexical-environment/names cenv (Let-names exp))]
+          [extended-cenv : Natural (+ cenv (LetVoid-count exp))]
           [let-linkage : Linkage
                        (cond
                          [(eq? linkage 'next)
@@ -469,20 +454,19 @@
                           after-body-code])]
           [body-target : Target (adjust-target-depth target n)]
           [body-code : InstructionSequence
-                     (compile (Let-body exp) extended-cenv body-target let-linkage)])
+                     (compile (LetVoid-body exp) extended-cenv body-target let-linkage)])
          (end-with-linkage 
           linkage
           extended-cenv
           (append-instruction-sequences 
-           (make-instruction-sequence `(,(make-PushEnvironment n #f)))
-           (apply append-instruction-sequences rhs-codes)
+           (make-instruction-sequence `(,(make-PushEnvironment n (LetVoid-boxes? exp))))
            body-code
            after-body-code
            (make-instruction-sequence `(,(make-PopEnvironment n 0)))
            after-let))))
 
-(: compile-letrec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
-(define (compile-letrec exp cenv target linkage)
+#;(: compile-letrec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
+#;(define (compile-letrec exp cenv target linkage)
   (let*: ([n : Natural (length (LetRec-rhss exp))]
           [rhs-codes : (Listof InstructionSequence)
                      (map (lambda: ([rhs : ExpressionCore]
@@ -573,7 +557,6 @@
                                (EnvLexicalReference-unbox? target))]
     [(EnvPrefixReference? target)
      (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
-                              (EnvPrefixReference-pos target)
-                              (EnvPrefixReference-name target))]
+                              (EnvPrefixReference-pos target))]
     [(PrimitivesReference? target)
      target]))

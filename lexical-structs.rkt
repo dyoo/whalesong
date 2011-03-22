@@ -13,12 +13,14 @@
   #:transparent)
 
 
-(define-struct: NamedBinding ([name : Symbol]))
+(define-struct: NamedBinding ([name : Symbol]
+                              [parameter? : Boolean]
+                              [boxed? : Boolean])
+  #:transparent)
 
 
 (define-type CompileTimeEnvironmentEntry (U Prefix ;; a prefix
                                             NamedBinding
-                                            (Boxof NamedBinding) ;; A boxed local
                                             False))
 
 

@@ -66,48 +66,40 @@
      (parse (desugar-cond exp) cenv)]
     
     [(lambda? exp)
-     (let* ([unbound-names (find-unbound-names exp)]
-            [closure-references (collect-lexical-references
-                                 (map (lambda (var)
-                                        (find-variable var cenv))
-                                      unbound-names))]
-            [body-cenv (lexical-references->compile-time-environment
-                        closure-references
-                        cenv
-                        (extend-lexical-environment/names '() (lambda-parameters exp))
-                        unbound-names)])
-       (let ([lam-body (map (lambda (b)
-                              (parse b body-cenv))
-                            (lambda-body exp))])
-         (make-Lam (current-defined-name)
-                   (length (lambda-parameters exp))
-                   (if (= (length lam-body) 1)
-                       (first lam-body)
-                       (make-Seq lam-body))
-                   (map env-reference-depth closure-references))))]
- 
+     (parse-lambda exp cenv)]
+    
     [(begin? exp)
      (let ([actions (map (lambda (e)
                            (parse e cenv))
                          (begin-actions exp))])
-       (cond
-         [(= 1 (length actions))
-          (car actions)]
-         [else
-          (make-Seq actions)]))]
-
+       (seq actions))]
+    
     [(named-let? exp)
      (parse (desugar-named-let exp) cenv)]
     
     [(let*? exp)
      (parse (desugar-let* exp) cenv)]
-
+    
     [(let? exp)
      (parse-let exp cenv)]
     
     [(letrec? exp)
      (parse-letrec exp cenv)]
     
+    [(set!? exp)
+     (let ([address (find-variable (set!-name exp) cenv)])
+       (cond
+         [(EnvLexicalReference? address)
+          (make-InstallValue (EnvLexicalReference-depth address)
+                             (parse (set!-value exp) cenv)
+                             #t)]
+         [(EnvPrefixReference? address)
+          (make-ToplevelSet (EnvPrefixReference-depth address)
+                            (EnvPrefixReference-pos address)
+                            (definition-variable exp)
+                            (parse (set!-value exp) cenv))]))]
+    
+    ;; Remember, this needs to be the last case.
     [(application? exp)
      (let ([cenv-with-scratch-space
             (extend-lexical-environment/placeholders cenv (length (operands exp)))])
@@ -119,9 +111,48 @@
 
 
 
+(define (parse-lambda exp cenv)
+  (let* ([unbound-names (find-unbound-names exp)]
+         [mutated-parameters (list-intersection (find-mutated-names `(begin ,@(lambda-body exp)))
+                                                (lambda-parameters exp))]
+         [closure-references (collect-lexical-references
+                              (map (lambda (var)
+                                     (find-variable var cenv))
+                                   unbound-names))]
+         [body-cenv (lexical-references->compile-time-environment
+                     closure-references
+                     cenv
+                     (extend-lexical-environment/parameter-names '() 
+                                                                 (lambda-parameters exp)
+                                                                 (map (lambda (p)
+                                                                        (and (member p mutated-parameters) #t))
+                                                                      (lambda-parameters exp)))
+                     unbound-names)])
+    (let ([lam-body (foldl (lambda (a-mutated-param code)
+                             (make-BoxEnv (env-reference-depth (find-variable a-mutated-param body-cenv))
+                                          code))
+                           (seq (map (lambda (b)
+                                       (parse b body-cenv))
+                                     (lambda-body exp)))
+                           mutated-parameters)])
+      (make-Lam (current-defined-name)
+                (length (lambda-parameters exp))
+                lam-body
+                (map env-reference-depth closure-references)))))
+
+
+(define (seq codes)
+  (cond
+    [(= 1 (length codes))
+     (first codes)]
+    [else
+     (make-Seq codes)]))
+
+
 
 
 ;; find-unbound-names: Any -> (Listof Symbol)
+;; Fixme: Cache this.
 (define (find-unbound-names exp)
   (unique/eq?
    (let loop ([exp exp])
@@ -170,14 +201,81 @@
                                  (apply append (map loop (let-body exp))))
                          (let-variables exp))]
        
+       [(set!? exp)
+        (cons (set!-name exp)
+              (loop (set!-value exp)))]
+
+       ;; Remember: this needs to be the last case.
+       [(application? exp)
+        (append (loop (operator exp))
+                (apply append (map loop (operands exp))))]
+              
+       [else
+        (error 'find-unbound-names "Unknown expression type ~e" exp)]))))
+
+
+;; find-mutated-names: any -> (listof symbol)
+;; Fixme: cache this.
+;; Produces a set of the free names mutated in the expression.
+(define (find-mutated-names exp)
+  (unique/eq?
+   (let loop ([exp exp])
+     (cond
+       [(self-evaluating? exp)
+        '()]
+       
+       [(quoted? exp)
+        '()]
+       
+       [(variable? exp)
+        '()]
+       
+       [(definition? exp)
+        (loop (definition-value exp))]
+       
+       [(if? exp)
+        (append (loop (if-predicate exp))
+                (loop (if-consequent exp))
+                (loop (if-alternative exp)))]
+       
+       [(cond? exp)
+        (loop (desugar-cond exp))]
+       
+       [(lambda? exp)
+        (list-difference (loop (lambda-body exp))
+                         (lambda-parameters exp))]
+       
+       [(begin? exp)
+        (apply append (map loop (begin-actions exp)))]
+       
+       [(named-let? exp)
+        (loop (desugar-named-let exp))]
+       
+       [(let*? exp)
+        (loop (desugar-let* exp))]
+       
+       [(let? exp)
+        (append (apply append (map loop (let-rhss exp)))
+                (list-difference (apply append (map loop (let-body exp)))
+                                 (let-variables exp)))]
+
+       [(letrec? exp)
+        (list-difference (append (apply append (map loop (let-rhss exp)))
+                                 (apply append (map loop (let-body exp))))
+                         (let-variables exp))]
+       
+       [(set!? exp)
+        (cons (set!-name exp)
+              (loop (set!-value exp)))]
+       
+       ;; Remember, this needs to be the last case.
        [(application? exp)
         (append (loop (operator exp))
                 (apply append (map loop (operands exp))))]
        
        [else
-        (error 'find-unbound-names "Unknown expression type ~e" exp)]))))
-
-
+        (error 'mutated? "Unknown expression type ~e" exp)]))))
+  
 
 
 
@@ -274,7 +372,7 @@
          `(if ,question 
               ,answer
               ,(loop (cdr clauses))))])))
-         
+
 
 
 (define (parse-let exp cenv)
@@ -292,17 +390,17 @@
       [else
        (let ([rhs-cenv (extend-lexical-environment/placeholders cenv (length vars))])
          (make-LetVoid (length vars)
-                       (make-Seq (append 
-                                  (map (lambda (var rhs index) 
-                                         (make-InstallValue index 
-                                                            (parameterize ([current-defined-name var])
-                                                              (parse rhs rhs-cenv))
-                                                            #f))
-                                       vars
-                                       rhss
-                                       (build-list (length rhss) (lambda (i) i)))
-                                  (list (parse `(begin ,@body)
-                                               (extend-lexical-environment/names cenv vars)))))
+                       (seq (append 
+                             (map (lambda (var rhs index) 
+                                    (make-InstallValue index 
+                                                       (parameterize ([current-defined-name var])
+                                                         (parse rhs rhs-cenv))
+                                                       #f))
+                                  vars
+                                  rhss
+                                  (build-list (length rhss) (lambda (i) i)))
+                             (list (parse `(begin ,@body)
+                                          (extend-lexical-environment/names cenv vars)))))
                        #f))])))
 
 (define (parse-letrec exp cenv)
@@ -315,7 +413,7 @@
       [else
        (let ([new-cenv (extend-lexical-environment/boxed-names cenv vars)])
          (make-LetVoid (length vars)
-                       (make-Seq (append 
+                       (seq (append 
                                   (map (lambda (var rhs index) 
                                          (make-InstallValue index 
                                                             (parameterize ([current-defined-name var])
@@ -339,7 +437,7 @@
          `(let ([,(car vars) ,(car rhss)])
             ,(loop (cdr vars) (cdr rhss)))]))))
 
-              
+
 
 
 (define (desugar-named-let exp)
@@ -348,8 +446,8 @@
                ,@(named-let-body exp)))]
      (,(named-let-name exp) ,@(named-let-rhss exp))))
 
-  
-    
+
+
 (define (named-let? exp)
   (and (tagged-list? exp 'let)
        (symbol? (cadr exp))))
@@ -395,3 +493,13 @@
 ;; let -> (listof expr)
 (define (let-body exp)
   (cddr exp))
+
+
+(define (set!? exp)
+  (tagged-list? exp 'set!))
+
+(define (set!-name exp)
+  (cadr exp))
+
+(define (set!-value exp)
+  (caddr exp))

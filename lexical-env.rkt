@@ -6,8 +6,10 @@
 (provide find-variable 
          extend-lexical-environment
          extend-lexical-environment/names
+         extend-lexical-environment/parameter-names
          extend-lexical-environment/boxed-names
          extend-lexical-environment/placeholders
+         
          collect-lexical-references
          lexical-references->compile-time-environment
          place-prefix-mask
@@ -29,7 +31,7 @@
         ([cenv : CompileTimeEnvironment cenv]
          [depth : Natural 0])
         (cond [(empty? cenv)
-               (error 'find-variable "~s not in lexical environment" cenv)]
+               (error 'find-variable "~s not in lexical environment" name)]
               [else
                (let: ([elt : CompileTimeEnvironmentEntry (first cenv)])
                  (cond
@@ -43,14 +45,7 @@
                    [(NamedBinding? elt)
                     (cond
                       [(eq? (NamedBinding-name elt) name)
-                       (make-EnvLexicalReference depth #f)]
-                      [else
-                       (loop (rest cenv) (add1 depth))])]
-
-                   [(box? elt)
-                    (cond
-                      [(eq? (NamedBinding-name (unbox elt)) name)
-                       (make-EnvLexicalReference depth #t)]
+                       (make-EnvLexicalReference depth (NamedBinding-boxed? elt))]
                       [else
                        (loop (rest cenv) (add1 depth))])]
                    
@@ -81,13 +76,18 @@
 
 (: extend-lexical-environment/names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
 (define (extend-lexical-environment/names cenv names)
-  (append (map make-NamedBinding names) cenv))
+  (append (map (lambda: ([n : Symbol]) (make-NamedBinding n #f #f)) names) cenv))
 
+(: extend-lexical-environment/parameter-names (CompileTimeEnvironment (Listof Symbol) (Listof Boolean) -> CompileTimeEnvironment))
+(define (extend-lexical-environment/parameter-names cenv names boxed?)
+  (append (map (lambda: ([n : Symbol]
+                         [b : Boolean]) 
+                        (make-NamedBinding n #t b)) names boxed?) 
+          cenv))
 
 (: extend-lexical-environment/boxed-names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
 (define (extend-lexical-environment/boxed-names cenv names)
-  (append (map (inst box NamedBinding) 
-               (map make-NamedBinding names))
+  (append (map (lambda: ([n : Symbol]) (make-NamedBinding n #f #t)) names)
           cenv))
 
 
@@ -187,10 +187,12 @@
      (make-EnvWholePrefixReference (+ n (EnvWholePrefixReference-depth target)))]))
 
 
-(: env-reference-depth (EnvReference -> Natural))
+(: env-reference-depth ((U EnvLexicalReference EnvPrefixReference EnvWholePrefixReference) -> Natural))
 (define (env-reference-depth a-ref)
   (cond
     [(EnvLexicalReference? a-ref)
      (EnvLexicalReference-depth a-ref)]
+    [(EnvPrefixReference? a-ref)
+     (EnvPrefixReference-depth a-ref)]
     [(EnvWholePrefixReference? a-ref)
      (EnvWholePrefixReference-depth a-ref)]))

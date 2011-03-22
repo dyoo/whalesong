@@ -11,7 +11,8 @@
                                Branch Lam Seq App
                                Let1 
                                LetVoid 
-                               InstallValue))
+                               InstallValue
+                               BoxEnv))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : ExpressionCore]) #:transparent)
@@ -58,6 +59,9 @@
   #:transparent)
 
 
+(define-struct: BoxEnv ([depth : Natural]
+                        [body : ExpressionCore])
+  #:transparent)
 
 
 

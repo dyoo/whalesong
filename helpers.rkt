@@ -1,6 +1,6 @@
 #lang typed/racket/base
 (require racket/list)
-(provide list-union list-difference unique/eq? unique/equal?)
+(provide list-union list-difference list-intersection unique/eq? unique/equal?)
 
 
 (: list-union ((Listof Symbol) (Listof Symbol) -> (Listof Symbol)))
@@ -18,6 +18,14 @@
          (list-difference (cdr s1) s2)]
         [else
          (cons (car s1) (list-difference (cdr s1) s2))]))
+
+(: list-intersection ((Listof Symbol) (Listof Symbol) -> (Listof Symbol)))
+(define (list-intersection s1 s2)
+  (cond [(null? s1) '()]
+        [(memq (car s1) s2)
+         (cons (car s1) (list-intersection (cdr s1) s2))]
+        [else
+         (list-difference (cdr s1) s2)]))
 
 
 ;; Trying to work around what looks like a bug in typed racket:

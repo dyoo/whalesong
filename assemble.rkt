@@ -137,6 +137,8 @@ EOF
       [(CaptureEnvironment? op)
        empty]
       [(CaptureControl? op)
+       empty]
+      [(MakeBoxedEnvironmentValue? op)
        empty]))
   
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
@@ -392,7 +394,10 @@ EOF
              (CaptureEnvironment-skip op))]
     [(CaptureControl? op)
      (format "MACHINE.control.slice(0, MACHINE.control.length - ~a)"
-             (CaptureControl-skip op))]))
+             (CaptureControl-skip op))]
+    [(MakeBoxedEnvironmentValue? op)
+     (format "[MACHINE.env[MACHINE.env.length - 1 - ~a]]"
+             (MakeBoxedEnvironmentValue-depth op))]))
 
 
 (: assemble-op-statement (PrimitiveCommand -> String))

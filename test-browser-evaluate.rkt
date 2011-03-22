@@ -171,5 +171,22 @@ EOF
 
 
 
+
+(test '(begin (define counter 0)
+              (set! counter (add1 counter))
+              (displayln counter))
+      "1\n")
+
+(test '(begin (define x 16)
+              (define (f x)
+                (set! x (add1 x))
+                x)
+              (displayln (f 3))
+              (displayln (f 4))
+              (displayln x))
+      "4\n5\n16\n")
+      
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))

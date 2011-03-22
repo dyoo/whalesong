@@ -406,8 +406,7 @@
                     (compile (Let1-rhs exp)
                                (add1 cenv)
                                (make-EnvLexicalReference 0 #f)
-                               'next)
-                    #;(parameterize ([current-defined-name (Let1-name exp)]) ...)]
+                               'next)]
           [after-let1 : Symbol (make-label 'afterLetOne)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : Natural (add1 cenv)]
@@ -461,49 +460,6 @@
            after-body-code
            (make-instruction-sequence `(,(make-PopEnvironment n 0)))
            after-let))))
-
-#;(: compile-letrec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
-#;(define (compile-letrec exp cenv target linkage)
-  (let*: ([n : Natural (length (LetRec-rhss exp))]
-          [rhs-codes : (Listof InstructionSequence)
-                     (map (lambda: ([rhs : ExpressionCore]
-                                    [i : Natural]
-                                    [name : Symbol])
-                                   (parameterize ([current-defined-name name])
-                                     (compile rhs
-                                              (extend-lexical-environment/boxed-names cenv 
-                                                                                      (LetRec-names exp))
-                                              (make-EnvLexicalReference i #t)
-                                              'next)))
-                          (LetRec-rhss exp)
-                          (build-list n (lambda: ([i : Natural]) i))
-                          (LetRec-names exp))]
-          [after-letrec : Symbol (make-label 'afterLetRec)]
-          [after-body-code : Symbol (make-label 'afterLetBody)]
-          [extended-cenv : CompileTimeEnvironment
-                         (extend-lexical-environment/boxed-names cenv (LetRec-names exp))]
-          [let-linkage : Linkage
-                       (cond
-                         [(eq? linkage 'next)
-                          'next]
-                         [(eq? linkage 'return)
-                          'return]
-                         [(symbol? linkage)
-                          after-body-code])]
-          [body-target : Target (adjust-target-depth target n)]
-          [body-code : InstructionSequence
-                     (compile (LetRec-body exp) extended-cenv body-target let-linkage)])
-         (end-with-linkage 
-          linkage
-          extended-cenv
-          (append-instruction-sequences
-           (make-instruction-sequence `(,(make-PushEnvironment n #t)))
-           (apply append-instruction-sequences rhs-codes)
-           body-code
-           after-body-code
-           (make-instruction-sequence `(,(make-PopEnvironment n 0)))
-           after-letrec))))
-
 
 
 (: compile-install-value (InstallValue Natural Target Linkage -> InstructionSequence))

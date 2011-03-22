@@ -374,7 +374,9 @@
               ,(loop (cdr clauses))))])))
 
 
-
+;;
+;; Fixme: see if the parameter is mutated.  If so, box it.
+;;
 (define (parse-let exp cenv)
   (let ([vars (let-variables exp)]
         [rhss (let-rhss exp)]

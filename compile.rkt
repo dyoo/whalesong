@@ -52,7 +52,9 @@
     [(LetVoid? exp)
      (compile-let-void exp cenv target linkage)]
     [(InstallValue? exp)
-     (compile-install-value exp cenv target linkage)]))
+     (compile-install-value exp cenv target linkage)]
+    [(BoxEnv? exp)
+     (compile-box-environment-value exp cenv target linkage)]))
 
 
 
@@ -513,6 +515,13 @@
 
 
 
+(: compile-box-environment-value (BoxEnv Natural Target Linkage -> InstructionSequence))
+(define (compile-box-environment-value exp cenv target linkage)
+   (append-instruction-sequences
+    (make-instruction-sequence 
+     `(,(make-AssignPrimOpStatement (make-EnvLexicalReference (BoxEnv-depth exp) #f)
+                                    (make-MakeBoxedEnvironmentValue (BoxEnv-depth exp)))))
+    (compile (BoxEnv-body exp) cenv target linkage)))
 
 
 (: append-instruction-sequences (InstructionSequence * -> InstructionSequence))

@@ -314,7 +314,11 @@
                                                               (CaptureEnvironment-skip op))))]
           [(CaptureControl? op)
            (target-updater! m (make-CapturedControl (drop (machine-control m)
-                                                          (CaptureControl-skip op))))])))
+                                                          (CaptureControl-skip op))))]
+          [(MakeBoxedEnvironmentValue? op)
+           (target-updater! m (box (ensure-primitive-value
+                                    (env-ref m (MakeBoxedEnvironmentValue-depth op)))))])))
+
 
 
 

@@ -117,6 +117,7 @@
                                   MakeCompiledProcedure
                                   ApplyPrimitiveProcedure
                                   GetControlStackLabel
+                                  MakeBoxedEnvironmentValue
 
                                   CaptureEnvironment
                                   CaptureControl
@@ -149,6 +150,10 @@
 ;; Gets the return address embedded at the top of the control stack.
 (define-struct: GetControlStackLabel ()
   #:transparent)
+
+(define-struct: MakeBoxedEnvironmentValue ([depth : Natural])
+  #:transparent)
+
 
 ;; Capture the current environment, skipping skip frames.
 (define-struct: CaptureEnvironment ([skip : Natural]))

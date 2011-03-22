@@ -647,6 +647,22 @@
 	     
 
 
+(test '(begin (define counter 0)
+              (set! counter (add1 counter))
+              counter)
+      1)
+
+(test '(begin (define x 16)
+              (define (f x)
+                (set! x (add1 x))
+                x)
+              (list (f 3)
+                    (f 4)
+                    x))
+      (list 4 5 16))
+      
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

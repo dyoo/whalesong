@@ -25,7 +25,7 @@
         [(memq (car s1) s2)
          (cons (car s1) (list-intersection (cdr s1) s2))]
         [else
-         (list-difference (cdr s1) s2)]))
+         (list-intersection (cdr s1) s2)]))
 
 
 ;; Trying to work around what looks like a bug in typed racket:

@@ -309,3 +309,37 @@
                                 (make-App (make-LocalRef 1 #t)
                                           (list (make-LocalRef 2 #t)))))
                               #t)))
+
+(test (parse '(let ([x 0])
+                (lambda ()
+                  (set! x (add1 x)))))
+      (make-Top (make-Prefix '(add1))
+                (make-Let1 (make-Constant 0)
+                           (make-BoxEnv 0
+                                        (make-Lam #f 0 
+                                                  (make-InstallValue 
+                                                   1 
+                                                   (make-App (make-ToplevelRef 1 0)
+                                                             (list (make-LocalRef 2 #t)))
+                                                   #t)
+                                                  '(1 0)))))) ;; x is 0, prefix is 1
+
+
+
+(test (parse '(let ([x 0]
+                    [y 1])
+                (lambda ()
+                  (set! x (add1 x)))))
+      (make-Top (make-Prefix '(add1))
+                (make-LetVoid 2
+                              (make-Seq (list
+                                         (make-InstallValue 0 (make-Constant 0) #t)
+                                         (make-InstallValue 1 (make-Constant 1) #t)
+                                         (make-Lam #f 0 
+                                                   (make-InstallValue 
+                                                    1 
+                                                    (make-App (make-ToplevelRef 1 0)
+                                                              (list (make-LocalRef 2 #t)))
+                                                    #t)
+                                                   '(2 0))))
+                              #t)))

@@ -74,9 +74,12 @@
 
 
 
-(: extend-lexical-environment/names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
-(define (extend-lexical-environment/names cenv names)
-  (append (map (lambda: ([n : Symbol]) (make-NamedBinding n #f #f)) names) cenv))
+(: extend-lexical-environment/names (CompileTimeEnvironment (Listof Symbol) (Listof Boolean) ->
+                                                            CompileTimeEnvironment))
+(define (extend-lexical-environment/names cenv names boxed?)
+  (append (map (lambda: ([n : Symbol]
+                         [b : Boolean]) (make-NamedBinding n #f b)) names boxed?)
+          cenv))
 
 (: extend-lexical-environment/parameter-names (CompileTimeEnvironment (Listof Symbol) (Listof Boolean) -> CompileTimeEnvironment))
 (define (extend-lexical-environment/parameter-names cenv names boxed?)

@@ -385,26 +385,41 @@
       [(= 0 (length vars))
        (parse `(begin ,@body) cenv)]
       [(= 1 (length vars))
-       (make-Let1 (parameterize ([current-defined-name (first vars)])
-                    (parse (car rhss) (extend-lexical-environment/placeholders cenv 1)))
-                  (parse `(begin ,@body)
-                         (extend-lexical-environment/names cenv (list (first vars)))))]
+       (let* ([mutated? (and (member (first vars) (find-mutated-names `(begin ,@body))) #t)]
+              [let-body (parse `(begin ,@body)
+                               (extend-lexical-environment/names 
+                                cenv
+                                (list (first vars))
+                                (list mutated?)))])
+         (make-Let1 (parameterize ([current-defined-name (first vars)])
+                      (parse (car rhss) (extend-lexical-environment/placeholders cenv 1)))
+                    (if mutated?
+                        (make-BoxEnv 0 let-body)
+                        let-body)))]
       [else
-       (let ([rhs-cenv (extend-lexical-environment/placeholders cenv (length vars))])
+       (let* ([rhs-cenv (extend-lexical-environment/placeholders cenv (length vars))]
+              [mutated (find-mutated-names `(begin ,@body))]
+              [any-mutated? (ormap (lambda (n) (and (member n mutated) #t)) vars)])
          (make-LetVoid (length vars)
                        (seq (append 
                              (map (lambda (var rhs index) 
                                     (make-InstallValue index 
                                                        (parameterize ([current-defined-name var])
                                                          (parse rhs rhs-cenv))
-                                                       #f))
+                                                       any-mutated?))
                                   vars
                                   rhss
                                   (build-list (length rhss) (lambda (i) i)))
                              (list (parse `(begin ,@body)
-                                          (extend-lexical-environment/names cenv vars)))))
-                       #f))])))
+                                          (extend-lexical-environment/names 
+                                           cenv vars
+                                           (build-list (length vars) 
+                                                       (lambda (i) 
+                                                         any-mutated?)))))))
+                       any-mutated?))])))
 
+
+;; Letrec's currently doing a set! kind of thing.
 (define (parse-letrec exp cenv)
   (let ([vars (let-variables exp)]
         [rhss (let-rhss exp)]

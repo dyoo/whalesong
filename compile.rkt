@@ -91,9 +91,7 @@
     [(eq? linkage 'return)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
                                                                (make-GetControlStackLabel))
-                                  ,(make-PopEnvironment 
-                                    cenv
-                                    0)
+                                  ,(make-PopEnvironment cenv 0)
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(eq? linkage 'next)
@@ -332,7 +330,7 @@
        (end-with-compiled-application-linkage 
         compiled-linkage
         extended-cenv
-        (compile-proc-appl extended-cenv n target compiled-linkage))
+        (compile-proc-appl cenv extended-cenv n target compiled-linkage))
        
        primitive-branch
        (end-with-linkage
@@ -351,13 +349,13 @@
 
 
 
-(: compile-proc-appl (Natural Natural Target Linkage -> InstructionSequence))
+(: compile-proc-appl (Natural Natural Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Non-tail calls that write to val
 ;;    2.  Calls in argument position that write to the environment
 ;;    3.  Tail calls.
 ;; The Other cases should be excluded.
-(define (compile-proc-appl cenv n target linkage)
+(define (compile-proc-appl cenv-without-args cenv-with-args n target linkage)
   (cond [(and (eq? target 'val)
               (not (eq? linkage 'return)))
          ;; This case happens for a function call that isn't in
@@ -388,16 +386,23 @@
          (make-instruction-sequence
           `(,(make-AssignPrimOpStatement 'val 
                                          (make-GetCompiledProcedureEntry))
-            ,(make-PopEnvironment (ensure-natural (- cenv n))
+            ,(make-PopEnvironment (ensure-natural (- cenv-with-args n))
                                   n)
             ,(make-GotoStatement (make-Reg 'val))))]
         
         [(and (not (eq? target 'val))
               (eq? linkage 'return))
-         ;; This case should be impossible: return linkage should only
-         ;; occur when we're in tail position, and we're in tail position
-         ;; only when the target is the val register.
-         (error 'compile "return linkage, target not val: ~s" target)]))
+         ;; This case happens for set!, which may install the results of an
+         ;; application directly into the environment.
+         (let ([proc-return (make-label 'procReturn)])
+           (end-with-linkage linkage 
+                             cenv-without-args
+                             (make-instruction-sequence
+                              `(,(make-PushControlFrame proc-return)
+                                ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
+                                ,(make-GotoStatement (make-Reg 'val))
+                                ,proc-return
+                                ,(make-AssignImmediateStatement target (make-Reg 'val))))))]))
 
 
 (: compile-let1 (Let1 Natural Target Linkage -> InstructionSequence))

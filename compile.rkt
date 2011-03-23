@@ -395,7 +395,7 @@
          ;; This case happens for set!, which may install the results of an
          ;; application directly into the environment.
          (let ([proc-return (make-label 'procReturn)])
-           (end-with-linkage linkage 
+           (end-with-linkage linkage
                              cenv-without-args
                              (make-instruction-sequence
                               `(,(make-PushControlFrame proc-return)

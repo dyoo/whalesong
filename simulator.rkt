@@ -309,6 +309,7 @@
           
           [(GetControlStackLabel? op)
            (target-updater! m (frame-return (first (machine-control m))))]
+
           [(CaptureEnvironment? op)
            (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
                                                               (CaptureEnvironment-skip op))))]

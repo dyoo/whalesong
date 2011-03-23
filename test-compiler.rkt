@@ -663,6 +663,57 @@
       
 
 
+(test '(begin (define a '(hello))
+              (define b '(world))
+              (define reset!
+                (lambda ()
+                  (set! a '())
+                  (reset!)))
+              (list a b))
+      '(() (world)))
+
+
+(test '(begin (define a '(hello))
+              (define b '(world))
+              (define reset!
+                (lambda ()
+                  (set! b '())))
+              (reset!)
+              (list a b))
+      '((hello) ()))
+
+(test '(begin (define a '(hello))
+              (define b '(world))
+              (define reset!
+                (lambda ()
+                  (set! a '())
+                  'ok))
+              (reset!)
+              (list a b))
+      '(()(world)))
+
+(test '(begin (define a '(hello))
+              (define b '(world))
+              (define reset!
+                (lambda ()
+                  (set! b '())
+                  'ok))
+              (reset!)
+              (list a b))
+      '((hello)()))
+
+
+(test '(begin (define a '(hello))
+              (define b '(world))
+              (define reset!
+                (lambda ()
+                  (set! a '())
+                  (set! b '())))
+              (reset!)
+              (list a b))
+      '(()()))
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

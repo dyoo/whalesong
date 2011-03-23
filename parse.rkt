@@ -88,17 +88,20 @@
     
     [(set!? exp)
      (let ([address (find-variable (set!-name exp) cenv)])
-       (cond
-         [(EnvLexicalReference? address)
-          (make-InstallValue (EnvLexicalReference-depth address)
-                             (parse (set!-value exp) cenv)
-                             #t)]
-         [(EnvPrefixReference? address)
-          (make-ToplevelSet (EnvPrefixReference-depth address)
-                            (EnvPrefixReference-pos address)
-                            (definition-variable exp)
-                            (parse (set!-value exp) cenv))]))]
-    
+       ;; Subtle: this needs to be a sequence here to disable tail calls for the
+       ;; extent of the set!-value.
+       (make-Seq (list (cond
+                         [(EnvLexicalReference? address)
+                          (make-InstallValue (EnvLexicalReference-depth address)
+                                             (parse (set!-value exp) cenv)
+                                             #t)]
+                         [(EnvPrefixReference? address)
+                          (make-ToplevelSet (EnvPrefixReference-depth address)
+                                            (EnvPrefixReference-pos address)
+                                            (definition-variable exp)
+                                            (parse (set!-value exp) cenv))])
+                       (make-Constant (void)))))]
+
     ;; Remember, this needs to be the last case.
     [(application? exp)
      (let ([cenv-with-scratch-space

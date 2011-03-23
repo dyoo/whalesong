@@ -317,11 +317,12 @@
                 (make-Let1 (make-Constant 0)
                            (make-BoxEnv 0
                                         (make-Lam #f 0 
-                                                  (make-InstallValue 
-                                                   1 
-                                                   (make-App (make-ToplevelRef 1 0)
-                                                             (list (make-LocalRef 2 #t)))
-                                                   #t)
+                                                  (make-Seq (list (make-InstallValue 
+                                                                   1 
+                                                                   (make-App (make-ToplevelRef 1 0)
+                                                                             (list (make-LocalRef 2 #t)))
+                                                                   #t)
+                                                                  (make-Constant (void))))
                                                   '(1 0)))))) ;; x is 0, prefix is 1
 
 
@@ -336,10 +337,43 @@
                                          (make-InstallValue 0 (make-Constant 0) #t)
                                          (make-InstallValue 1 (make-Constant 1) #t)
                                          (make-Lam #f 0 
-                                                   (make-InstallValue 
-                                                    1 
-                                                    (make-App (make-ToplevelRef 1 0)
-                                                              (list (make-LocalRef 2 #t)))
-                                                    #t)
+                                                   (make-Seq
+                                                    (list (make-InstallValue 
+                                                           1 
+                                                           (make-App (make-ToplevelRef 1 0)
+                                                                     (list (make-LocalRef 2 #t)))
+                                                           #t)
+                                                          (make-Constant (void))))
                                                    '(2 0))))
                               #t)))
+
+
+
+(test (parse '(begin (define a '(hello))
+                     (define b '(world))
+                     (define reset!
+                       (lambda ()
+                         (set! a '())
+                         (set! b '())))
+                     (reset!)
+                     (list a b)))
+      (make-Top
+       (make-Prefix '(a b list reset!))
+       (make-Seq
+        (list
+         (make-ToplevelSet 0 0 'a (make-Constant '(hello)))
+         (make-ToplevelSet 0 1 'b (make-Constant '(world)))
+         (make-ToplevelSet
+          0
+          3
+          'reset!
+          (make-Lam
+           'reset!
+           0
+           (make-Seq
+             (list
+              (make-Seq (list (make-ToplevelSet 0 0 'a (make-Constant '())) (make-Constant (void))))
+              (make-Seq (list (make-ToplevelSet 0 1 'b (make-Constant '())) (make-Constant (void))))))
+           '(0)))
+         (make-App (make-ToplevelRef 0 3) '())
+         (make-App (make-ToplevelRef 2 2) (list (make-ToplevelRef 2 0) (make-ToplevelRef 2 1)))))))

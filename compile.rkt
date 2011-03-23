@@ -392,18 +392,11 @@
         
         [(and (not (eq? target 'val))
               (eq? linkage 'return))
-         ;; This case happens for set!, which may install the results of an
-         ;; application directly into the environment.
-         (let ([proc-return (make-label 'procReturn)])
-           (end-with-linkage linkage
-                             cenv-without-args
-                             (make-instruction-sequence
-                              `(,(make-PushControlFrame proc-return)
-                                ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                                ,(make-GotoStatement (make-Reg 'val))
-                                ,proc-return
-                                ,(make-AssignImmediateStatement target (make-Reg 'val))))))]))
-
+         ;; This case should be impossible: return linkage should only
+         ;; occur when we're in tail position, and we're in tail position
+         ;; only when the target is the val register.
+         (error 'compile "return linkage, target not val: ~s" target)]))
+         
 
 (: compile-let1 (Let1 Natural Target Linkage -> InstructionSequence))
 (define (compile-let1 exp cenv target linkage)

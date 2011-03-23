@@ -667,8 +667,8 @@
               (define b '(world))
               (define reset!
                 (lambda ()
-                  (set! a '())
-                  (reset!)))
+                  (set! a '())))
+              (reset!)
               (list a b))
       '(() (world)))
 
@@ -688,9 +688,8 @@
                 (lambda ()
                   (set! a '())
                   'ok))
-              (reset!)
-              (list a b))
-      '(()(world)))
+              (list a b (reset!) a b))
+      '((hello) (world) ok () (world)))
 
 (test '(begin (define a '(hello))
               (define b '(world))

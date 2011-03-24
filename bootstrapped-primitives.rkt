@@ -46,8 +46,8 @@
        ,(make-PopEnvironment 2 0)))
     
     ;; Finally, do a tail call into f.
-    (compile-procedure-call 0
-                            1
+    (compile-procedure-call '()
+                            '(?)
                             1 
                             'val
                             'return)

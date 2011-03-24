@@ -14,7 +14,7 @@
     (make-Top prefix (parse exp (extend-lexical-environment '() prefix)))))
 
 
-;; find-prefix: CompileTimeEnvironment -> Natural
+;; find-prefix: ParseTimeEnvironment -> Natural
 (define (find-prefix cenv)
   (cond
     [(empty? cenv)
@@ -25,7 +25,7 @@
      (add1 (find-prefix (rest cenv)))]))
 
 
-;; parse: Any CompileTimeEnvironment -> ExpressionCore
+;; parse: Any ParseTimeEnvironment -> ExpressionCore
 ;; Compile an expression.
 (define (parse exp cenv)
   (cond

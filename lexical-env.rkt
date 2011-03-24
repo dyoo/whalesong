@@ -18,7 +18,7 @@
 
 
 ;; Find where the variable is located in the lexical environment
-(: find-variable (Symbol CompileTimeEnvironment -> LexicalAddress))
+(: find-variable (Symbol ParseTimeEnvironment -> LexicalAddress))
 (define (find-variable name cenv)
   (: find-pos (Symbol (Listof (U Symbol False)) -> Natural))
   (define (find-pos sym los)
@@ -28,12 +28,12 @@
       [else
        (add1 (find-pos sym (cdr los)))]))
   (let: loop : LexicalAddress
-        ([cenv : CompileTimeEnvironment cenv]
+        ([cenv : ParseTimeEnvironment cenv]
          [depth : Natural 0])
         (cond [(empty? cenv)
                (error 'find-variable "~s not in lexical environment" name)]
               [else
-               (let: ([elt : CompileTimeEnvironmentEntry (first cenv)])
+               (let: ([elt : ParseTimeEnvironmentEntry (first cenv)])
                  (cond
                    [(Prefix? elt)
                     (cond [(member name (Prefix-names elt))
@@ -67,35 +67,35 @@
 
 
 (: extend-lexical-environment 
-   (CompileTimeEnvironment CompileTimeEnvironmentEntry -> CompileTimeEnvironment))
+   (ParseTimeEnvironment ParseTimeEnvironmentEntry -> ParseTimeEnvironment))
 ;; Extends the lexical environment with procedure bindings.
 (define (extend-lexical-environment cenv extension)
   (cons extension cenv))
 
 
 
-(: extend-lexical-environment/names (CompileTimeEnvironment (Listof Symbol) (Listof Boolean) ->
-                                                            CompileTimeEnvironment))
+(: extend-lexical-environment/names (ParseTimeEnvironment (Listof Symbol) (Listof Boolean) ->
+                                                            ParseTimeEnvironment))
 (define (extend-lexical-environment/names cenv names boxed?)
   (append (map (lambda: ([n : Symbol]
                          [b : Boolean]) (make-NamedBinding n #f b)) names boxed?)
           cenv))
 
-(: extend-lexical-environment/parameter-names (CompileTimeEnvironment (Listof Symbol) (Listof Boolean) -> CompileTimeEnvironment))
+(: extend-lexical-environment/parameter-names (ParseTimeEnvironment (Listof Symbol) (Listof Boolean) -> ParseTimeEnvironment))
 (define (extend-lexical-environment/parameter-names cenv names boxed?)
   (append (map (lambda: ([n : Symbol]
                          [b : Boolean]) 
                         (make-NamedBinding n #t b)) names boxed?) 
           cenv))
 
-(: extend-lexical-environment/boxed-names (CompileTimeEnvironment (Listof Symbol) -> CompileTimeEnvironment))
+(: extend-lexical-environment/boxed-names (ParseTimeEnvironment (Listof Symbol) -> ParseTimeEnvironment))
 (define (extend-lexical-environment/boxed-names cenv names)
   (append (map (lambda: ([n : Symbol]) (make-NamedBinding n #f #t)) names)
           cenv))
 
 
 (: extend-lexical-environment/placeholders
-   (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
+   (ParseTimeEnvironment Natural -> ParseTimeEnvironment))
 ;; Add placeholders to the lexical environment (This represents what happens during procedure application.)
 (define (extend-lexical-environment/placeholders cenv n)
   (append (build-list n (lambda: ([i : Natural]) #f))
@@ -131,13 +131,13 @@
 
 
 
-(: lexical-references->compile-time-environment ((Listof EnvReference) CompileTimeEnvironment CompileTimeEnvironment
+(: lexical-references->compile-time-environment ((Listof EnvReference) ParseTimeEnvironment ParseTimeEnvironment
                                                                      (Listof Symbol)
-                                                                       -> CompileTimeEnvironment))
+                                                                       -> ParseTimeEnvironment))
 ;; Creates a lexical environment containing the closure's bindings.
 (define (lexical-references->compile-time-environment refs cenv new-cenv symbols-to-keep)
-  (let: loop : CompileTimeEnvironment ([refs : (Listof EnvReference) (reverse refs)]
-                                       [new-cenv : CompileTimeEnvironment new-cenv])
+  (let: loop : ParseTimeEnvironment ([refs : (Listof EnvReference) (reverse refs)]
+                                       [new-cenv : ParseTimeEnvironment new-cenv])
         (cond
           [(empty? refs)
            new-cenv]

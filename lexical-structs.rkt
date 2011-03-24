@@ -19,7 +19,7 @@
   #:transparent)
 
 
-(define-type CompileTimeEnvironmentEntry (U Prefix ;; a prefix
+(define-type ParseTimeEnvironmentEntry (U Prefix ;; a prefix
                                             NamedBinding
                                             False))
 
@@ -28,7 +28,7 @@
 
 ;; A compile-time environment is a (listof (listof symbol)).
 ;; A lexical address is either a 2-tuple (depth pos), or 'not-found.
-(define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
+(define-type ParseTimeEnvironment (Listof ParseTimeEnvironmentEntry))
 
 ;; A lexical address is a reference to an value in the environment stack.
 (define-type LexicalAddress (U EnvLexicalReference EnvPrefixReference))

@@ -309,8 +309,8 @@ var MACHINE = { callsBeforeTrampoline: 100,
 		running : false,
 		params: { currentDisplayer: function(v) {},
 
-			  currentSuccessHandler: function(v) {},
-			  currentErrorHandler: function(e) {},
+			  currentSuccessHandler: function(MACHINE) {},
+			  currentErrorHandler: function(MACHINE, exn) {},
 
 			  currentNamespace: {},
 
@@ -379,7 +379,7 @@ var trampoline = function(MACHINE, initialJump) {
 		}
             } else {
 		MACHINE.running = false;
-	        return MACHINE.params.currentErrorHandler(e);
+	        return MACHINE.params.currentErrorHandler(MACHINE, e);
             }
         }
     }

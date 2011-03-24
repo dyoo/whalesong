@@ -26,8 +26,8 @@
                        (displayln (assemble-basic-block basic-block) op)
                        (newline op))
               basic-blocks)
-    (fprintf op "MACHINE.params.currentErrorHandler = function(e) { fail(e); };\n")
-    (fprintf op "MACHINE.params.currentSuccessHandler = function(MACHINE) { success(MACHINE.val); };\n")
+    (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
+    (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
     (fprintf op #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {

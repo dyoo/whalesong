@@ -24,6 +24,9 @@
 
 
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
+;; Generates the instruction-sequence stream.
+;; Note: the toplevel generates the lambda body streams at the head, and then the
+;; rest of the instruction stream.
 (define (-compile exp target linkage)
   (let ([after-lam-bodies (make-label 'afterLamBodies)])
     (statements
@@ -363,12 +366,14 @@
              [(eq? static-knowledge '?)
               (default)]
              [(StaticallyKnownLam? static-knowledge)
-              (unless (= n (StaticallyKnownLam-arity static-knowledge))
+              ;; Currently disabling the static analysis stuff till I get error trapping working first.
+              (default)
+              #;(unless (= n (StaticallyKnownLam-arity static-knowledge))
                 (error 'arity-mismatch "Expected ~s, received ~s" (StaticallyKnownLam-arity static-knowledge)
                        n))
               ;; FIXME: do the arity check here...
               #;(printf "I'm here!\n")
-              (compile-procedure-call/statically-known-lam extended-cenv 
+              #;(compile-procedure-call/statically-known-lam extended-cenv 
                                                            n
                                                            target
                                                            linkage)]))]

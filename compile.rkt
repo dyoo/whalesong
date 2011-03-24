@@ -25,11 +25,64 @@
 
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
 (define (-compile exp target linkage)
+  (let ([after-lam-bodies (make-label 'afterLamBodies)])
     (statements
-     (compile exp
-              '()
-              target 
-              linkage)))
+     (append-instruction-sequences (make-instruction-sequence 
+                                    `(,(make-GotoStatement (make-Label after-lam-bodies))))
+                                   (compile-lambda-bodies (collect-all-lams exp))
+                                   after-lam-bodies
+                                   (compile exp
+                                            '()
+                                            target 
+                                            linkage)))))
+
+
+
+
+
+(: collect-all-lams (ExpressionCore -> (Listof Lam)))
+;; Finds all the lambdas in the expression.
+(define (collect-all-lams exp)
+  (let: loop : (Listof Lam) ([exp : ExpressionCore exp])
+        (cond
+          [(Top? exp)
+           (loop (Top-code exp))]
+          [(Constant? exp)
+           '()]
+          [(LocalRef? exp)
+           '()]
+          [(ToplevelRef? exp)
+           '()]
+          [(ToplevelSet? exp)
+           (loop (ToplevelSet-value exp))]
+          [(Branch? exp)
+           (append (loop (Branch-predicate exp))
+                   (loop (Branch-consequent exp))
+                   (loop (Branch-alternative exp)))]
+          [(Lam? exp)
+           (cons exp (loop (Lam-body exp)))]
+          [(Seq? exp)
+           (apply append (map loop (Seq-actions exp)))]
+          [(App? exp)
+           (append (loop (App-operator exp))
+                   (apply append (map loop (App-operands exp))))]
+          [(Let1? exp)
+           (append (loop (Let1-rhs exp))
+                   (loop (Let1-body exp)))]
+          [(LetVoid? exp)
+           (loop (LetVoid-body exp))]
+          [(InstallValue? exp)
+           (loop (InstallValue-body exp))]
+          [(BoxEnv? exp)
+           '()])))
+         
+    
+
+
+
+
+
+
 
 
 
@@ -215,34 +268,25 @@
 (: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Write out code for lambda expressions.
 ;; The lambda will close over the free variables.
+;; Assumption: all of the lambda bodies have already been written out at the top, in -compile.
 (define (compile-lambda exp cenv target linkage) 
-  (let*: ([proc-entry : Symbol (Lam-entry-label exp) #;(make-label 'entry)]
-          [after-lambda : Symbol (make-label 'afterLambda)]
-          [lambda-linkage : Linkage
-                          (if (eq? linkage 'next)
-                              after-lambda
-                              linkage)])
-         (append-instruction-sequences
-          (end-with-linkage 
-           lambda-linkage
-           cenv
-           (make-instruction-sequence 
-            `(,(make-AssignPrimOpStatement 
-                target
-                (make-MakeCompiledProcedure proc-entry
-                                            (Lam-num-parameters exp)
-                                            (Lam-closure-map exp)
-                                            (Lam-name exp))))))
-          (compile-lambda-body exp proc-entry)
-          after-lambda)))
+  (end-with-linkage 
+   linkage
+   cenv
+   (make-instruction-sequence 
+    `(,(make-AssignPrimOpStatement 
+        target
+        (make-MakeCompiledProcedure (Lam-entry-label exp)
+                                    (Lam-num-parameters exp)
+                                    (Lam-closure-map exp)
+                                    (Lam-name exp)))))))
 
-
-(: compile-lambda-body (Lam Linkage -> InstructionSequence))
+(: compile-lambda-body (Lam -> InstructionSequence))
 ;; Compiles the body of the lambda in the appropriate environment.
-(define (compile-lambda-body exp proc-entry)
+(define (compile-lambda-body exp)
   (append-instruction-sequences
    (make-instruction-sequence 
-    `(,proc-entry
+    `(,(Lam-entry-label exp)
       ,(make-PerformStatement (make-InstallClosureValues!))))
    (compile (Lam-body exp)
             (build-list (+ (Lam-num-parameters exp)
@@ -250,6 +294,19 @@
                         (lambda: ([i : Natural]) '?))
             'val
             'return)))
+
+
+
+(: compile-lambda-bodies ((Listof Lam) -> InstructionSequence))
+;; Compile several lambda bodies, back to back.
+(define (compile-lambda-bodies exps)
+  (cond
+    [(empty? exps)
+     (make-instruction-sequence '())]
+    [else
+     (append-instruction-sequences (compile-lambda-body (first exps))
+                                   (compile-lambda-bodies (rest exps)))]))
+
 
          
 

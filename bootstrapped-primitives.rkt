@@ -46,11 +46,11 @@
        ,(make-PopEnvironment 2 0)))
     
     ;; Finally, do a tail call into f.
-    (compile-procedure-call '()
-                            '(?)
-                            1 
-                            'val
-                            'return)
+    (compile-general-procedure-call '()
+                                    '(?)
+                                    1 
+                                    'val
+                                    'return)
     
     ;; The code for the continuation coe follows.  It's supposed to
     ;; abandon the current continuation, initialize the control and environment, and then jump.

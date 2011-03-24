@@ -6,7 +6,7 @@
          racket/list)
 
 (provide (rename-out [-compile compile])
-         compile-procedure-call
+         compile-general-procedure-call
          append-instruction-sequences
          adjust-target-depth)
 
@@ -259,50 +259,64 @@
 ;; 2. We may have a static location to jump to if the operator is lexically scoped.
 (: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-application exp cenv target linkage) 
-       (let* ([extended-cenv (append (map (lambda: ([op : ExpressionCore])
-                                                   '?)
-                                          (App-operands exp))
-                                     cenv)]
-              [proc-code (compile (App-operator exp)
-                                  extended-cenv 
-                                  (if (empty? (App-operands exp))
-                                      'proc
-                                      (make-EnvLexicalReference 
-                                       (ensure-natural (sub1 (length (App-operands exp))))
-                                       #f))
-                                  'next)]
-              [operand-codes (map (lambda: ([operand : Expression]
-                                            [target : Target])
-                                           (compile operand extended-cenv target 'next))
-                                  (App-operands exp)
-                                  (build-list (length (App-operands exp))
-                                              (lambda: ([i : Natural])
-                                                       (if (< i (sub1 (length (App-operands exp))))
-                                                           (make-EnvLexicalReference i #f)
-                                                           'val))))])
-         
-         (append-instruction-sequences
-          (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
-          proc-code
-          (juggle-operands operand-codes)
-          
-          (let: ([operator : ExpressionCore (App-operator exp)])
-                (cond
-                  [(and (LocalRef? operator) (not (LocalRef-unbox? operator)))
-                   (printf "I statically know the operator is: ~s\n" 
-                           (list-ref extended-cenv (LocalRef-depth operator)))
-                   (compile-procedure-call/statically-known-lam extended-cenv 
-                                                                (length (App-operands exp))
-                                                                target
-                                                                linkage)]
-                  
-                  [else
-                   (compile-procedure-call cenv 
-                                           extended-cenv 
-                                           (length (App-operands exp)) 
-                                           target linkage)])))))
+  (let* ([extended-cenv (append (map (lambda: ([op : ExpressionCore])
+                                              '?)
+                                     (App-operands exp))
+                                cenv)]
+         [proc-code (compile (App-operator exp)
+                             extended-cenv 
+                             (if (empty? (App-operands exp))
+                                 'proc
+                                 (make-EnvLexicalReference 
+                                  (ensure-natural (sub1 (length (App-operands exp))))
+                                  #f))
+                             'next)]
+         [operand-codes (map (lambda: ([operand : Expression]
+                                       [target : Target])
+                                      (compile operand extended-cenv target 'next))
+                             (App-operands exp)
+                             (build-list (length (App-operands exp))
+                                         (lambda: ([i : Natural])
+                                                  (if (< i (sub1 (length (App-operands exp))))
+                                                      (make-EnvLexicalReference i #f)
+                                                      'val))))])
+    
+    (append-instruction-sequences
+     (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+     proc-code
+     (juggle-operands operand-codes)
+     (compile-procedure-call (App-operator exp) cenv extended-cenv (length (App-operands exp))
+                             target linkage))))
 
 
+(: compile-procedure-call
+   (ExpressionCore CompileTimeEnvironment CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(define (compile-procedure-call operator cenv-before-args extended-cenv n target linkage)
+  (define (default)
+    (compile-general-procedure-call cenv-before-args 
+                                    extended-cenv 
+                                    n
+                                    target linkage))
+  (cond
+    [(and (LocalRef? operator) (not (LocalRef-unbox? operator)))
+     (let: ([static-knowledge : CompileTimeEnvironmentEntry (list-ref extended-cenv (LocalRef-depth operator))])
+           (cond
+             [(eq? static-knowledge 'prefix)
+              (default)]
+             [(eq? static-knowledge '?)
+              (default)]
+             [(StaticallyKnownLam? static-knowledge)
+              (unless (= n (StaticallyKnownLam-arity static-knowledge))
+                (error 'arity-mismatch "Expected ~s, received ~s" (StaticallyKnownLam-arity static-knowledge)
+                       n))
+              ;; FIXME: do the arity check here...
+              #;(printf "I'm here!\n")
+              (compile-procedure-call/statically-known-lam extended-cenv 
+                                                           n
+                                                           target
+                                                           linkage)]))]
+    [else
+     (default)]))
 
 (: juggle-operands ((Listof InstructionSequence) -> InstructionSequence))
 ;; Installs the operators.  At the end of this,
@@ -332,7 +346,7 @@
 
 
 
-(: compile-procedure-call (CompileTimeEnvironment CompileTimeEnvironment
+(: compile-general-procedure-call (CompileTimeEnvironment CompileTimeEnvironment
                                    Natural Target Linkage 
                                    ->
                                    InstructionSequence))
@@ -340,7 +354,7 @@
 ;; n is the number of arguments passed in.
 ;; cenv is the compile-time enviroment before arguments have been shifted in.
 ;; extended-cenv is the compile-time environment after arguments have been shifted in.
-(define (compile-procedure-call cenv extended-cenv n target linkage)
+(define (compile-general-procedure-call cenv extended-cenv n target linkage)
   (let ([primitive-branch (make-label 'primitiveBranch)]
         [compiled-branch (make-label 'compiledBranch)]
         [after-call (make-label 'afterCall)])

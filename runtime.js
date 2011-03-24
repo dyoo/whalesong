@@ -17,6 +17,7 @@ var Frame = function(label, proc) {
 };
 
 
+
 // A closure consists of its free variables as well as a label
 // into its text segment.
 var Closure = function(label, arity, closedVals, displayName) {
@@ -25,6 +26,8 @@ var Closure = function(label, arity, closedVals, displayName) {
     this.closedVals = closedVals;
     this.displayName = displayName;
 };
+
+// A primitive function is just a Javascript function.
 
 
 
@@ -305,7 +308,10 @@ var MACHINE = { callsBeforeTrampoline: 100,
 		control : [],
 		running : false,
 		params: { currentDisplayer: function(v) {},
+
+			  currentSuccessHandler: function(v) {},
 			  currentErrorHandler: function(e) {},
+
 			  currentNamespace: {},
 
 			  // These parameters control how often
@@ -344,7 +350,7 @@ var recomputeMaxNumBouncesBeforeYield = function(observedDelay) {
 };
 
 
-var trampoline = function(MACHINE, initialJump, success, fail) {
+var trampoline = function(MACHINE, initialJump) {
     var thunk = initialJump;
     var startTime = (new Date()).valueOf();
     MACHINE.callsBeforeTrampoline = 100;
@@ -366,17 +372,17 @@ var trampoline = function(MACHINE, initialJump, success, fail) {
 			(new Date()).valueOf() - startTime);
 		    setTimeout(
 			function() {
-			    trampoline(MACHINE, thunk, success, fail);
+			    trampoline(MACHINE, thunk);
 			},
 			0);
 		    return;
 		}
             } else {
 		MACHINE.running = false;
-	        return fail(e);
+	        return MACHINE.params.currentErrorHandler(e);
             }
         }
     }
     MACHINE.running = false;
-    return success();
+    return MACHINE.params.currentSuccessHandler(MACHINE);
 };

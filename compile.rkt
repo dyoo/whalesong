@@ -12,15 +12,24 @@
 
 
 
+;; We try to keep at compile time a mapping from environment positions to
+;; statically known things, to generate better code.
+(define-struct: StaticallyKnownLam ([entry : Symbol]
+                                    [arity : Natural]) #:transparent)
+(define-type CompileTimeEnvironmentEntry (U '? 'prefix StaticallyKnownLam))
+(define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
+
+
+
 
 
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
 (define (-compile exp target linkage)
-  (statements
-   (compile exp
-            '()
-            target 
-            linkage)))
+    (statements
+     (compile exp
+              '()
+              target 
+              linkage)))
 
 
 
@@ -207,7 +216,7 @@
 ;; Write out code for lambda expressions.
 ;; The lambda will close over the free variables.
 (define (compile-lambda exp cenv target linkage) 
-  (let*: ([proc-entry : Symbol (make-label 'entry)]
+  (let*: ([proc-entry : Symbol (Lam-entry-label exp) #;(make-label 'entry)]
           [after-lambda : Symbol (make-label 'afterLambda)]
           [lambda-linkage : Linkage
                           (if (eq? linkage 'next)
@@ -250,11 +259,6 @@
 ;; 2. We may have a static location to jump to if the operator is lexically scoped.
 (: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-application exp cenv target linkage) 
-  (let ([operator (App-operator exp)])
-    (cond
-      ;; FIXME: add special cases here.
-      
-      [else
        (let* ([extended-cenv (append (map (lambda: ([op : ExpressionCore])
                                                    '?)
                                           (App-operands exp))
@@ -281,10 +285,22 @@
           (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
           proc-code
           (juggle-operands operand-codes)
-          (compile-procedure-call cenv 
-                                  extended-cenv 
-                                  (length (App-operands exp)) 
-                                  target linkage)))])))
+          
+          (let: ([operator : ExpressionCore (App-operator exp)])
+                (cond
+                  [(and (LocalRef? operator) (not (LocalRef-unbox? operator)))
+                   (printf "I statically know the operator is: ~s\n" 
+                           (list-ref extended-cenv (LocalRef-depth operator)))
+                   (compile-procedure-call/statically-known-lam extended-cenv 
+                                                                (length (App-operands exp))
+                                                                target
+                                                                linkage)]
+                  
+                  [else
+                   (compile-procedure-call cenv 
+                                           extended-cenv 
+                                           (length (App-operands exp)) 
+                                           target linkage)])))))
 
 
 
@@ -359,6 +375,15 @@
        after-call))))
 
 
+(: compile-procedure-call/statically-known-lam 
+   (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(define (compile-procedure-call/statically-known-lam extended-cenv n target linkage)
+  (end-with-compiled-application-linkage 
+   linkage
+   extended-cenv
+   (compile-proc-appl extended-cenv n target linkage)))
+
+
 
 (: compile-proc-appl (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
@@ -409,16 +434,26 @@
          (error 'compile "return linkage, target not val: ~s" target)]))
          
 
+(: extract-static-knowledge (ExpressionCore ->  CompileTimeEnvironmentEntry))
+(define (extract-static-knowledge exp)
+  (cond
+    [(Lam? exp)
+     (make-StaticallyKnownLam (Lam-entry-label exp)
+                              (Lam-num-parameters exp))]
+    [else
+     '?]))
+
+  
 (: compile-let1 (Let1 CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-let1 exp cenv target linkage)
   (let*: ([rhs-code : InstructionSequence 
                     (compile (Let1-rhs exp)
-                               (cons '? cenv)
-                               (make-EnvLexicalReference 0 #f)
-                               'next)]
+                             (cons '? cenv)
+                             (make-EnvLexicalReference 0 #f)
+                             'next)]
           [after-let1 : Symbol (make-label 'afterLetOne)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
-          [extended-cenv : CompileTimeEnvironment (cons '? cenv)]
+          [extended-cenv : CompileTimeEnvironment (cons (extract-static-knowledge (Let1-rhs exp)) cenv)]
           [let-linkage : Linkage
                        (cond
                          [(eq? linkage 'next)
@@ -449,7 +484,7 @@
           [after-let : Symbol (make-label 'afterLet)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment (append (build-list (LetVoid-count exp) 
-                                                       (lambda: ([i : Natural]) '?))
+                                                                      (lambda: ([i : Natural]) '?))
                                            cenv)]
           [let-linkage : Linkage
                        (cond
@@ -536,4 +571,3 @@
 
 
 
-(define-type CompileTimeEnvironment (Listof (U '? 'prefix)))

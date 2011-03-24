@@ -13,6 +13,7 @@
        (syntax/loc #'stx
          (begin
            (printf "Running ~s ...\n" (syntax->datum #'expr))
+           (set-private-lam-label-counter! 0)
            (let ([expected expt]
                  [actual 
                   (with-handlers ([void
@@ -88,15 +89,15 @@
 
 (test (parse '(lambda (x y z) x))
       (make-Top (make-Prefix '())
-                (make-Lam #f 3 (make-LocalRef 0 #f) '())))
+                (make-Lam #f 3 (make-LocalRef 0 #f) '() 'lamEntry1)))
 
 (test (parse '(lambda (x y z) y))
       (make-Top (make-Prefix '())
-                (make-Lam #f 3 (make-LocalRef 1 #f) '())))
+                (make-Lam #f 3 (make-LocalRef 1 #f) '() 'lamEntry1)))
 
 (test (parse '(lambda (x y z) z))
       (make-Top (make-Prefix '())
-                (make-Lam #f 3 (make-LocalRef 2 #f) '())))
+                (make-Lam #f 3 (make-LocalRef 2 #f) '() 'lamEntry1)))
 
 
 (test (parse '(lambda (x y z) x y z))
@@ -104,14 +105,16 @@
                 (make-Lam #f 3 (make-Seq (list (make-LocalRef 0 #f)
                                             (make-LocalRef 1 #f)
                                             (make-LocalRef 2 #f)))
-                          '())))
+                          '()
+                          'lamEntry1)))
 
 (test (parse '(lambda (x y z) k))
       (make-Top (make-Prefix '(k))
                 (make-Lam #f 
                           3 
                           (make-ToplevelRef 0 0 )
-                          '(0))))
+                          '(0)
+                          'lamEntry1)))
 
 (test (parse '(lambda (x y z) k x y z))
       (make-Top (make-Prefix '(k))
@@ -120,7 +123,8 @@
                                             (make-LocalRef 1 #f)
                                             (make-LocalRef 2 #f)
                                             (make-LocalRef 3 #f)))
-                          '(0))))
+                          '(0)
+                          'lamEntry1)))
 
 (test (parse '(lambda (x)
                 (lambda (y)
@@ -139,11 +143,12 @@
                                                          (make-LocalRef 3 #f)
                                                          (make-ToplevelRef 0 0)))
                                               '(0 1 2) ;; w x y
-                                              )
+                                              'lamEntry1)
                                     
                                     '(0 1) ;; w x
-                                    )
-                          '(0))))
+                                    'lamEntry2)
+                          '(0)
+                          'lamEntry3)))
 
 (test (parse '(lambda (x)
                 (lambda (y)
@@ -152,8 +157,10 @@
                 (make-Lam #f 1
                           (make-Lam #f 1
                                     (make-LocalRef 0 #f)
-                                    '(0))
-                          (list))))
+                                    '(0)
+                                    'lamEntry1)
+                          (list)
+                          'lamEntry2)))
 
 (test (parse '(lambda (x)
                 (lambda (y)
@@ -162,8 +169,10 @@
                 (make-Lam #f 1
                           (make-Lam #f 1
                                     (make-LocalRef 0 #f)
-                                    (list))
-                          (list))))
+                                    (list)
+                                    'lamEntry1)
+                          (list)
+                          'lamEntry2)))
 
 (test (parse '(+ x x))
       (make-Top (make-Prefix '(+ x))
@@ -178,7 +187,8 @@
                           (make-App (make-ToplevelRef 2 0)
                                     (list (make-LocalRef 3 #f)
                                           (make-LocalRef 3 #f)))
-                          '(0))))
+                          '(0)
+                          'lamEntry1)))
 
 (test (parse '(lambda (x) 
                 (+ (* x x) x)))
@@ -192,7 +202,8 @@
                                                (list (make-LocalRef 5 #f)
                                                      (make-LocalRef 5 #f)))
                                      (make-LocalRef 3 #f)))
-                          '(0))))
+                          '(0)
+                          'lamEntry1)))
 
 (test (parse '(let ()
                 x))
@@ -275,10 +286,10 @@
                               (make-Seq 
                                (list 
                                 (make-InstallValue 0
-                                                   (make-Lam 'x 1 (make-LocalRef 0 #f) '())
+                                                   (make-Lam 'x 1 (make-LocalRef 0 #f) '() 'lamEntry1)
                                                    #t)
                                 (make-InstallValue 1 
-                                                   (make-Lam 'y 1 (make-LocalRef 0 #f) '())
+                                                   (make-Lam 'y 1 (make-LocalRef 0 #f) '() 'lamEntry2)
                                                    #t)
                                 ;; stack layout: ??? x y
                                 (make-App (make-LocalRef 1 #t)
@@ -297,13 +308,15 @@
                                                    (make-Lam 'x 1
                                                              (make-App (make-LocalRef 1 #t) 
                                                                        (list (make-LocalRef 2 #f)))
-                                                             '(1))
+                                                             '(1)
+                                                             'lamEntry1)
                                                    #t)
                                 (make-InstallValue 1 
                                                    (make-Lam 'y 1 
                                                              (make-App (make-LocalRef 2 #f)
                                                                        (list (make-LocalRef 1 #t)))
-                                                             '(1))
+                                                             '(1)
+                                                             'lamEntry2)
                                                    #t)
                                 ;; stack layout: ??? x y
                                 (make-App (make-LocalRef 1 #t)
@@ -323,7 +336,8 @@
                                                                              (list (make-LocalRef 2 #t)))
                                                                    #t)
                                                                   (make-Constant (void))))
-                                                  '(1 0)))))) ;; x is 0, prefix is 1
+                                                  '(1 0)
+                                                  'lamEntry1))))) ;; x is 0, prefix is 1
 
 
 
@@ -344,7 +358,8 @@
                                                                      (list (make-LocalRef 2 #t)))
                                                            #t)
                                                           (make-Constant (void))))
-                                                   '(2 0))))
+                                                   '(2 0)
+                                                   'lamEntry1)))
                               #t)))
 
 
@@ -374,6 +389,7 @@
              (list
               (make-Seq (list (make-ToplevelSet 0 0 'a (make-Constant '())) (make-Constant (void))))
               (make-Seq (list (make-ToplevelSet 0 1 'b (make-Constant '())) (make-Constant (void))))))
-           '(0)))
+           '(0)
+           'lamEntry1))
          (make-App (make-ToplevelRef 0 3) '())
          (make-App (make-ToplevelRef 2 2) (list (make-ToplevelRef 2 0) (make-ToplevelRef 2 1)))))))

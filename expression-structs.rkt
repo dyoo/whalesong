@@ -39,7 +39,8 @@
 (define-struct: Lam ([name : (U Symbol False)]
                      [num-parameters : Natural]
                      [body : ExpressionCore]
-                     [closure-map : (Listof Natural)]) #:transparent)
+                     [closure-map : (Listof Natural)]
+                     [entry-label : Symbol]) #:transparent)
 
 (define-struct: Seq ([actions : (Listof ExpressionCore)]) #:transparent)
 (define-struct: App ([operator : ExpressionCore]

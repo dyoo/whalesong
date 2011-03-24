@@ -7,7 +7,10 @@
          "parameters.rkt"
          racket/list)
 
-(provide (rename-out (-parse parse)))
+(provide (rename-out (-parse parse))
+         
+         ;; meant for tests
+         set-private-lam-label-counter!)
 
 (define (-parse exp)
   (let* ([prefix (make-Prefix (find-unbound-names exp))])
@@ -141,7 +144,17 @@
       (make-Lam (current-defined-name)
                 (length (lambda-parameters exp))
                 lam-body
-                (map env-reference-depth closure-references)))))
+                (map env-reference-depth closure-references)
+                (fresh-lam-label)))))
+
+
+(define lam-label-counter 0)
+(define (set-private-lam-label-counter! x)
+  (set! lam-label-counter x))
+(define fresh-lam-label
+    (lambda ()
+      (set! lam-label-counter (add1 lam-label-counter))
+      (string->symbol (format "lamEntry~a" lam-label-counter))))
 
 
 (define (seq codes)

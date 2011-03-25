@@ -278,50 +278,76 @@
       (make-Top (make-Prefix '()) (make-Constant 42)))
 
 
+
+
+(test (parse '(letrec ([omega (lambda () (omega))])
+                (omega)))
+      (make-Top (make-Prefix '())
+                (make-LetRec (list (make-Lam 'omega 0 (make-App (make-LocalRef 0 #f) 
+                                                                (list)) '(0) 'lamEntry1))
+                             (make-App (make-LocalRef 0 #f) (list)))))
+
+
+
+(test (parse '(letrec ([a (lambda () (b))]
+                       [b (lambda () (c))]
+                       [c (lambda () (a))])
+                (a)))
+      (make-Top (make-Prefix '())
+                (make-LetRec (list (make-Lam 'a 0 (make-App (make-LocalRef 0 #f) '()) '(1) 'lamEntry1)
+                                   (make-Lam 'b 0 (make-App (make-LocalRef 0 #f) '()) '(0) 'lamEntry2)
+                                   (make-Lam 'c 0 (make-App (make-LocalRef 0 #f) '()) '(2) 'lamEntry3))
+                             (make-App (make-LocalRef 2 #f) '()))))
+
+
+
 (test (parse '(letrec ([x (lambda (x) x)]
                        [y (lambda (x) x)])
+                (set! x x)
                 (x y)))
       (make-Top (make-Prefix '())
                 (make-LetVoid 2
                               (make-Seq 
                                (list 
-                                (make-InstallValue 0
+                                (make-InstallValue 1
                                                    (make-Lam 'x 1 (make-LocalRef 0 #f) '() 'lamEntry1)
                                                    #t)
-                                (make-InstallValue 1 
+                                (make-InstallValue 0 
                                                    (make-Lam 'y 1 (make-LocalRef 0 #f) '() 'lamEntry2)
                                                    #t)
                                 ;; stack layout: ??? x y
-                                (make-App (make-LocalRef 1 #t)
-                                          (list (make-LocalRef 2 #t)))))
+                                (make-Seq (list (make-Seq (list (make-InstallValue 1 (make-LocalRef 1 #t) #t)
+                                                                (make-Constant (void))))
+                                                (make-App (make-LocalRef 2 #t)
+                                                          (list (make-LocalRef 1 #t)))))))
                               #t)))
 
 
-(test (parse '(letrec ([x (lambda (x) (y x))]
+#;(test (parse '(letrec ([x (lambda (x) (y x))]
                        [y (lambda (x) (x y))])
-                (x y)))
-      (make-Top (make-Prefix '())
-                (make-LetVoid 2
-                              (make-Seq 
-                               (list 
-                                (make-InstallValue 0
-                                                   (make-Lam 'x 1
-                                                             (make-App (make-LocalRef 1 #t) 
-                                                                       (list (make-LocalRef 2 #f)))
-                                                             '(1)
-                                                             'lamEntry1)
-                                                   #t)
-                                (make-InstallValue 1 
-                                                   (make-Lam 'y 1 
-                                                             (make-App (make-LocalRef 2 #f)
-                                                                       (list (make-LocalRef 1 #t)))
-                                                             '(1)
-                                                             'lamEntry2)
-                                                   #t)
-                                ;; stack layout: ??? x y
-                                (make-App (make-LocalRef 1 #t)
-                                          (list (make-LocalRef 2 #t)))))
-                              #t)))
+                  (x y)))
+        (make-Top (make-Prefix '())
+                  (make-LetVoid 2
+                                (make-Seq 
+                                 (list 
+                                  (make-InstallValue 0
+                                                     (make-Lam 'x 1
+                                                               (make-App (make-LocalRef 1 #t) 
+                                                                         (list (make-LocalRef 2 #f)))
+                                                               '(1)
+                                                               'lamEntry1)
+                                                     #t)
+                                  (make-InstallValue 1 
+                                                     (make-Lam 'y 1 
+                                                               (make-App (make-LocalRef 2 #f)
+                                                                         (list (make-LocalRef 1 #t)))
+                                                               '(1)
+                                                               'lamEntry2)
+                                                     #t)
+                                  ;; stack layout: ??? x y
+                                  (make-App (make-LocalRef 1 #t)
+                                            (list (make-LocalRef 2 #t)))))
+                                #t)))
 
 (test (parse '(let ([x 0])
                 (lambda ()

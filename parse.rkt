@@ -455,8 +455,10 @@
          ;; Semantics: allocate a closure shell for each lambda form in procs.
          ;; Install them in reverse order, so that the closure shell for the last element
          ;; in procs is at stack position 0.
-         (make-LetRec (map (lambda (rhs) (parse rhs new-cenv))
-                           rhss)
+         (make-LetRec (map (lambda (rhs name) (parameterize ([current-defined-name name])
+                                                (parse rhs new-cenv)))
+                           rhss
+                           vars)
                       (parse `(begin ,@body) new-cenv)))]
       [else
        (let ([new-cenv  (extend-lexical-environment/boxed-names cenv (reverse vars))])

@@ -713,6 +713,26 @@
       '(()()))
 
 
+(let ([op (open-output-string)])
+  (parameterize ([current-simulated-output-port op])
+    (test 
+     '(letrec ([a (lambda (x)
+                    (display "a") (display x) (c (add1 x)))]
+               [b (lambda (k)
+                    (display "b") (display k) (e (add1 k)))]
+               [c (lambda (y)
+                    (display "c") (display y) (b (add1 y)))]
+               [d (lambda (z)
+                    (display "d") (display z) z)]
+               [e (lambda (x)
+                    (display "e") (display x) (d (add1 x)))])
+        (a 0))
+     4))
+  (unless (string=? "a0c1b2e3d4" (get-output-string op))
+    (error 'letrec-failed)))
+      
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

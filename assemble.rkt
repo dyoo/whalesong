@@ -156,6 +156,8 @@ EOF
       [(RestoreEnvironment!? op)
        empty]
       [(RestoreControl!? op)
+       empty]
+      [(FixClosureShellMap!? op)
        empty]))
   
   (unique/eq?
@@ -440,7 +442,17 @@ EOF
     [(RestoreEnvironment!? op)
      "MACHINE.env = MACHINE.env[MACHINE.env.length - 2].slice(0);"]
     [(RestoreControl!? op)
-     "MACHINE.control = MACHINE.env[MACHINE.env.length - 1].slice(0);"]))
+     "MACHINE.control = MACHINE.env[MACHINE.env.length - 1].slice(0);"]
+    [(FixClosureShellMap!? op)
+     (format "MACHINE.env[MACHINE.env.length - 1 - ~a].closedVals = [~a]"
+             (FixClosureShellMap!-depth op)
+              (string-join (map assemble-env-reference/closure-capture 
+                               ;; The closure values are in reverse order
+                               ;; to make it easier to push, in bulk, into
+                               ;; the environment (which is also in reversed order)
+                               ;; during install-closure-values.
+                               (reverse (FixClosureShellMap!-closed-vals op)))
+                          ", "))]))
 
 
 (: assemble-input (OpArg -> String))

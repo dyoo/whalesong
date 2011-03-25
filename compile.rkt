@@ -396,14 +396,14 @@
               (default)]
              [(StaticallyKnownLam? static-knowledge)
               ;; Currently disabling the static analysis stuff till I get error trapping working first.
-              (default)
-              #;(unless (= n (StaticallyKnownLam-arity static-knowledge))
+              #;(default)
+              (unless (= n (StaticallyKnownLam-arity static-knowledge))
                 (error 'arity-mismatch "Expected ~s, received ~s" 
                        (StaticallyKnownLam-arity static-knowledge)
                        n))
               ;; FIXME: do the arity check here...
               #;(printf "I'm here with ~s\n" static-knowledge)
-              #;(compile-procedure-call/statically-known-lam static-knowledge 
+              (compile-procedure-call/statically-known-lam static-knowledge 
                                                            extended-cenv 
                                                            n
                                                            target

@@ -77,7 +77,10 @@
           [(InstallValue? exp)
            (loop (InstallValue-body exp))]
           [(BoxEnv? exp)
-           '()])))
+           '()]
+          [(LetRec? exp)
+           (append (apply append (map loop (LetRec-procs exp)))
+                   (loop (LetRec-body exp)))])))
          
     
 
@@ -121,7 +124,9 @@
     [(InstallValue? exp)
      (compile-install-value exp cenv target linkage)]
     [(BoxEnv? exp)
-     (compile-box-environment-value exp cenv target linkage)]))
+     (compile-box-environment-value exp cenv target linkage)]
+    [(LetRec? exp)
+     (compile-let-rec exp cenv target linkage)]))
 
 
 
@@ -582,6 +587,56 @@
            after-body-code
            (make-instruction-sequence `(,(make-PopEnvironment n 0)))
            after-let))))
+
+
+
+(: compile-let-rec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-let-rec exp cenv target linkage)
+  (let*: ([extended-cenv : CompileTimeEnvironment (append (map extract-static-knowledge
+                                                              (reverse (LetRec-procs exp)))
+                                                         cenv)]
+         [n : Natural (length (LetRec-procs exp))]
+         [after-body-code : Linkage (make-label 'afterBodyCode)]
+         [letrec-linkage : Linkage (cond
+                                     [(eq? linkage 'next)
+                                      'next]
+                                     [(eq? linkage 'return)
+                                      'return]
+                                     [(symbol? linkage)
+                                      after-body-code])])
+        (end-with-linkage
+         linkage
+         extended-cenv
+         (append-instruction-sequences
+          (make-instruction-sequence `(,(make-PushEnvironment n #f)))
+          
+          ;; Install each of the closure shells
+          (apply append-instruction-sequences
+                 (map (lambda: ([lam : Lam]
+                                [i : Natural])
+                               (compile-lambda lam 
+                                               extended-cenv
+                                               (make-EnvLexicalReference i #f) 
+                                               'next))
+                      (LetRec-procs exp)
+                      (build-list n (lambda: ([i : Natural]) (ensure-natural (- n 1 i))))))
+          
+          ;; Fix the closure maps of each
+          (apply append-instruction-sequences
+                 (map (lambda: ([lam : Lam]
+                                [i : Natural])
+                               (make-instruction-sequence 
+                                `(,(make-PerformStatement 
+                                    (make-FixClosureShellMap! i (Lam-closure-map lam))))))
+                               
+                      (LetRec-procs exp)
+                      (build-list n (lambda: ([i : Natural]) (ensure-natural (- n 1 i))))))
+          
+          ;; Compile the body
+          (compile (LetRec-body exp) extended-cenv (adjust-target-depth target n) letrec-linkage)
+          after-body-code
+          (make-instruction-sequence `(,(make-PopEnvironment n 0)))))))
+  
 
 
 (: compile-install-value (InstallValue CompileTimeEnvironment Target Linkage -> InstructionSequence))

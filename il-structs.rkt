@@ -199,6 +199,11 @@
 (define-struct: InstallClosureValues! ()
   #:transparent)
 
+(define-struct: FixClosureShellMap! (;; depth: where the closure shell is located in the environment
+                                     [depth : Natural] 
+                                     
+                                     [closed-vals : (Listof Natural)])
+  #:transparent)
 
 ;; Changes over the control located at the given argument from the structure in env[1]
 (define-struct: RestoreControl! ())
@@ -213,6 +218,7 @@
                                CheckClosureArity!
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!
+                               FixClosureShellMap!
                                
                                RestoreEnvironment!
                                RestoreControl!))

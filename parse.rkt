@@ -437,25 +437,40 @@
 
 ;; Letrec's currently doing a set! kind of thing.
 (define (parse-letrec exp cenv)
-  (let ([vars (let-variables exp)]
-        [rhss (let-rhss exp)]
-        [body (let-body exp)])
+  (let* ([vars (let-variables exp)]
+         [rhss (let-rhss exp)]
+         [body (let-body exp)]
+         [n (length vars)])
     (cond 
       [(= 0 (length vars))
        (parse `(begin ,@body) cenv)]
+      [(and (andmap lambda? rhss)
+            (empty? (list-intersection 
+                     vars
+                     (append (find-mutated-names body)
+                             (apply append (map find-mutated-names rhss))))))
+       (let ([new-cenv  (extend-lexical-environment/names cenv 
+                                                          (reverse vars)
+                                                          (build-list n (lambda (i) #f)))])
+         ;; Semantics: allocate a closure shell for each lambda form in procs.
+         ;; Install them in reverse order, so that the closure shell for the last element
+         ;; in procs is at stack position 0.
+         (make-LetRec (map (lambda (rhs) (parse rhs new-cenv))
+                           rhss)
+                      (parse `(begin ,@body) new-cenv)))]
       [else
-       (let ([new-cenv (extend-lexical-environment/boxed-names cenv vars)])
+       (let ([new-cenv  (extend-lexical-environment/boxed-names cenv (reverse vars))])
          (make-LetVoid (length vars)
                        (seq (append 
-                                  (map (lambda (var rhs index) 
-                                         (make-InstallValue index 
-                                                            (parameterize ([current-defined-name var])
-                                                              (parse rhs new-cenv))
-                                                            #t))
-                                       vars
-                                       rhss
-                                       (build-list (length rhss) (lambda (i) i)))
-                                  (list (parse `(begin ,@body) new-cenv))))
+                             (map (lambda (var rhs index) 
+                                    (make-InstallValue (- n 1 index)
+                                                       (parameterize ([current-defined-name var])
+                                                         (parse rhs new-cenv))
+                                                       #t))
+                                  vars
+                                  rhss
+                                  (build-list (length rhss) (lambda (i) i)))
+                             (list (parse `(begin ,@body) new-cenv))))
                        #t))])))
 
 

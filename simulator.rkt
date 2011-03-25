@@ -232,6 +232,13 @@
                     (error 'step-perform "Procedure register doesn't hold a procedure: ~s"
                            a-proc)]))]
           
+          [(FixClosureShellMap!? op)
+           (let: ([a-closure-shell : closure (ensure-closure (env-ref m (FixClosureShellMap!-depth op)))])
+                 (set-closure-vals! a-closure-shell
+                                    (map (lambda: ([d : Natural]) (env-ref m d))
+                                         (FixClosureShellMap!-closed-vals op)))
+                 'ok)]
+          
           [(RestoreControl!? op)
            (set-machine-control! m (CapturedControl-frames (ensure-CapturedControl (env-ref m 0))))
            'ok]
@@ -385,6 +392,11 @@
       v
       (error 'ensure-closure)))
 
+(: ensure-closure (SlotValue -> closure))
+(define (ensure-closure v)
+  (if (closure? v)
+      v
+      (error 'ensure-closure)))
 
 
 (: ensure-symbol (Any -> Symbol))

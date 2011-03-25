@@ -77,7 +77,8 @@
                          [arity : Natural]
                          [vals : (Listof SlotValue)]
                          [display-name : (U Symbol False)])
-  #:transparent)
+  #:transparent
+  #:mutable)
 
 
 

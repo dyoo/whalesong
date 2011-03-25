@@ -11,6 +11,7 @@
                                Branch Lam Seq App
                                Let1 
                                LetVoid 
+                               LetRec
                                InstallValue
                                BoxEnv))
 
@@ -52,6 +53,10 @@
 (define-struct: LetVoid ([count : Natural]
                          [body : ExpressionCore]
                          [boxes? : Boolean])
+  #:transparent)
+
+(define-struct: LetRec ([procs : (Listof Lam)]
+                        [body : ExpressionCore])
   #:transparent)
 
 (define-struct: InstallValue ([depth : Natural]

@@ -39,17 +39,20 @@
                                             target 
                                             linkage)))))
 
+(define-struct: lam+cenv ([lam : Lam]
+                          [cenv : CompileTimeEnvironment]))
 
 
-
-
-(: collect-all-lams (ExpressionCore -> (Listof Lam)))
+(: collect-all-lams (ExpressionCore -> (Listof lam+cenv)))
 ;; Finds all the lambdas in the expression.
 (define (collect-all-lams exp)
-  (let: loop : (Listof Lam) ([exp : ExpressionCore exp])
+  (let: loop : (Listof lam+cenv)
+        ([exp : ExpressionCore exp]
+         [cenv : CompileTimeEnvironment '()])
+       
         (cond
           [(Top? exp)
-           (loop (Top-code exp))]
+           (loop (Top-code exp) (cons 'prefix cenv))]
           [(Constant? exp)
            '()]
           [(LocalRef? exp)
@@ -57,36 +60,54 @@
           [(ToplevelRef? exp)
            '()]
           [(ToplevelSet? exp)
-           (loop (ToplevelSet-value exp))]
+           (loop (ToplevelSet-value exp) cenv)]
           [(Branch? exp)
-           (append (loop (Branch-predicate exp))
-                   (loop (Branch-consequent exp))
-                   (loop (Branch-alternative exp)))]
+           (append (loop (Branch-predicate exp) cenv)
+                   (loop (Branch-consequent exp) cenv)
+                   (loop (Branch-alternative exp) cenv))]
           [(Lam? exp)
-           (cons exp (loop (Lam-body exp)))]
+           (cons (make-lam+cenv exp cenv)
+                 (loop (Lam-body exp) 
+                       (extract-lambda-cenv exp cenv)))]
           [(Seq? exp)
-           (apply append (map loop (Seq-actions exp)))]
+           (apply append (map (lambda: ([e : ExpressionCore]) (loop e cenv))
+                              (Seq-actions exp)))]
           [(App? exp)
-           (append (loop (App-operator exp))
-                   (apply append (map loop (App-operands exp))))]
+           (let ([new-cenv (append (build-list (length (App-operands exp)) (lambda: ([i : Natural]) '?))
+                                   cenv)])
+             (append (loop (App-operator exp) new-cenv)
+                     (apply append (map (lambda: ([e : ExpressionCore]) (loop e new-cenv)) (App-operands exp)))))]
           [(Let1? exp)
-           (append (loop (Let1-rhs exp))
-                   (loop (Let1-body exp)))]
+           (append (loop (Let1-rhs exp)
+                         (cons '? cenv))
+                   (loop (Let1-body exp) 
+                         (cons (extract-static-knowledge (Let1-rhs exp)) 
+                               cenv)))]
           [(LetVoid? exp)
-           (loop (LetVoid-body exp))]
+           (loop (LetVoid-body exp) 
+                 (append (build-list (LetVoid-count exp) (lambda: ([i : Natural]) '?))
+                         cenv))]
           [(InstallValue? exp)
-           (loop (InstallValue-body exp))]
+           (loop (InstallValue-body exp) cenv)]
           [(BoxEnv? exp)
            '()]
           [(LetRec? exp)
-           (append (apply append (map loop (LetRec-procs exp)))
-                   (loop (LetRec-body exp)))])))
+           (let ([new-cenv (append (map extract-static-knowledge (reverse (LetRec-procs exp)))
+                                   cenv)])
+             (append (apply append 
+                            (map (lambda: ([lam : Lam])
+                                          (loop lam new-cenv))
+                                 (LetRec-procs exp)))
+                     (loop (LetRec-body exp) new-cenv)))])))
          
     
 
-
-
-
+(: extract-lambda-cenv (Lam CompileTimeEnvironment -> CompileTimeEnvironment))
+(define (extract-lambda-cenv lam cenv)
+  (append (map (lambda: ([d : Natural])
+                        (list-ref cenv d))
+               (Lam-closure-map lam))
+          (build-list (Lam-num-parameters lam) (lambda: ([i : Natural]) '?))))
 
 
 
@@ -289,15 +310,17 @@
                                     (Lam-closure-map exp)
                                     (Lam-name exp)))))))
 
-(: compile-lambda-body (Lam -> InstructionSequence))
+(: compile-lambda-body (Lam CompileTimeEnvironment -> InstructionSequence))
 ;; Compiles the body of the lambda in the appropriate environment.
-(define (compile-lambda-body exp)
+(define (compile-lambda-body exp cenv)
   (append-instruction-sequences
    (make-instruction-sequence 
     `(,(Lam-entry-label exp)
       ,(make-PerformStatement (make-InstallClosureValues!))))
    (compile (Lam-body exp)
-            (append (map (lambda: ([d : Natural]) '?) (Lam-closure-map exp))
+            (append (map (lambda: ([d : Natural]) 
+                                  (list-ref cenv d))
+                         (Lam-closure-map exp))
                     ;; fixme: We need to capture the cenv so we can maintain static knowledge
                     (build-list (Lam-num-parameters exp) (lambda: ([i : Natural]) '?)))
             'val
@@ -305,14 +328,15 @@
 
 
 
-(: compile-lambda-bodies ((Listof Lam) -> InstructionSequence))
+(: compile-lambda-bodies ((Listof lam+cenv) -> InstructionSequence))
 ;; Compile several lambda bodies, back to back.
 (define (compile-lambda-bodies exps)
   (cond
     [(empty? exps)
      (make-instruction-sequence '())]
     [else
-     (append-instruction-sequences (compile-lambda-body (first exps))
+     (append-instruction-sequences (compile-lambda-body (lam+cenv-lam (first exps))
+                                                        (lam+cenv-cenv (first exps)))
                                    (compile-lambda-bodies (rest exps)))]))
 
 

@@ -14,7 +14,7 @@
 
 ;; We try to keep at compile time a mapping from environment positions to
 ;; statically known things, to generate better code.
-(define-struct: StaticallyKnownLam ([entry : Symbol]
+(define-struct: StaticallyKnownLam ([entry-point : Symbol]
                                     [arity : Natural]) #:transparent)
 (define-type CompileTimeEnvironmentEntry (U '? 'prefix StaticallyKnownLam))
 (define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
@@ -297,9 +297,9 @@
     `(,(Lam-entry-label exp)
       ,(make-PerformStatement (make-InstallClosureValues!))))
    (compile (Lam-body exp)
-            (build-list (+ (Lam-num-parameters exp)
-                           (length (Lam-closure-map exp)))
-                        (lambda: ([i : Natural]) '?))
+            (append (map (lambda: ([d : Natural]) '?) (Lam-closure-map exp))
+                    ;; fixme: We need to capture the cenv so we can maintain static knowledge
+                    (build-list (Lam-num-parameters exp) (lambda: ([i : Natural]) '?)))
             'val
             'return)))
 
@@ -374,11 +374,13 @@
               ;; Currently disabling the static analysis stuff till I get error trapping working first.
               (default)
               #;(unless (= n (StaticallyKnownLam-arity static-knowledge))
-                (error 'arity-mismatch "Expected ~s, received ~s" (StaticallyKnownLam-arity static-knowledge)
+                (error 'arity-mismatch "Expected ~s, received ~s" 
+                       (StaticallyKnownLam-arity static-knowledge)
                        n))
               ;; FIXME: do the arity check here...
-              #;(printf "I'm here!\n")
-              #;(compile-procedure-call/statically-known-lam extended-cenv 
+              #;(printf "I'm here with ~s\n" static-knowledge)
+              #;(compile-procedure-call/statically-known-lam static-knowledge 
+                                                           extended-cenv 
                                                            n
                                                            target
                                                            linkage)]))]
@@ -438,7 +440,7 @@
        (end-with-compiled-application-linkage 
         compiled-linkage
         extended-cenv
-        (compile-proc-appl extended-cenv n target compiled-linkage))
+        (compile-proc-appl extended-cenv (make-Reg 'val) n target compiled-linkage))
        
        primitive-branch
        (end-with-linkage
@@ -457,22 +459,30 @@
 
 
 (: compile-procedure-call/statically-known-lam 
-   (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
-(define (compile-procedure-call/statically-known-lam extended-cenv n target linkage)
-  (end-with-compiled-application-linkage 
-   linkage
-   extended-cenv
-   (compile-proc-appl extended-cenv n target linkage)))
+   (StaticallyKnownLam CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(define (compile-procedure-call/statically-known-lam static-knowledge extended-cenv n target linkage)
+  (let* ([after-call (make-label 'afterCall)]
+         [compiled-linkage (if (eq? linkage 'next) after-call linkage)])
+    (append-instruction-sequences
+     (end-with-compiled-application-linkage 
+      compiled-linkage
+      extended-cenv
+      (compile-proc-appl extended-cenv 
+                         (make-Label (StaticallyKnownLam-entry-point static-knowledge))
+                         n 
+                         target
+                         compiled-linkage))
+     after-call)))
+    
 
 
-
-(: compile-proc-appl (CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(: compile-proc-appl (CompileTimeEnvironment (U Label Reg) Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Non-tail calls that write to val
 ;;    2.  Calls in argument position that write to the environment
 ;;    3.  Tail calls.
 ;; The Other cases should be excluded.
-(define (compile-proc-appl cenv-with-args n target linkage)
+(define (compile-proc-appl cenv-with-args entry-point n target linkage)
   (cond [(and (eq? target 'val)
               (not (eq? linkage 'return)))
          ;; This case happens for a function call that isn't in
@@ -480,7 +490,7 @@
          (make-instruction-sequence 
           `(,(make-PushControlFrame linkage)
             ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-            ,(make-GotoStatement (make-Reg 'val))))]
+            ,(make-GotoStatement entry-point)))]
         
         [(and (not (eq? target 'val))
               (not (eq? linkage 'return)))
@@ -490,7 +500,7 @@
            (make-instruction-sequence
             `(,(make-PushControlFrame proc-return)
               ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-              ,(make-GotoStatement (make-Reg 'val))
+              ,(make-GotoStatement entry-point)
               ,proc-return
               ,(make-AssignImmediateStatement target (make-Reg 'val))
               ,(make-GotoStatement (make-Label linkage)))))]
@@ -505,7 +515,7 @@
                                          (make-GetCompiledProcedureEntry))
             ,(make-PopEnvironment (ensure-natural (- (length cenv-with-args) n))
                                   n)
-            ,(make-GotoStatement (make-Reg 'val))))]
+            ,(make-GotoStatement entry-point)))]
         
         [(and (not (eq? target 'val))
               (eq? linkage 'return))

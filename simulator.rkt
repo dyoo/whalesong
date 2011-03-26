@@ -217,10 +217,13 @@
           [(ExtendEnvironment/Prefix!? op)
            (env-push! m 
                       (make-toplevel (ExtendEnvironment/Prefix!-names op)
-                                     (map (lambda: ([id/false : (U Symbol False)])
-                                                   (if (symbol? id/false)
-                                                       (lookup-primitive id/false)
-                                                       #f))
+                                     (map (lambda: ([name : (U Symbol ModuleVariable False)])
+                                                   (cond [(symbol? name)
+                                                          (lookup-primitive name)]
+                                                         [(ModuleVariable? name)
+                                                          (lookup-primitive (ModuleVariable-name name))]
+                                                         [(eq? name #f)
+                                                          (make-undefined)]))
                                           (ExtendEnvironment/Prefix!-names op))))]
           
           [(InstallClosureValues!? op)

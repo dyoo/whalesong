@@ -64,8 +64,7 @@
                                    #'stx))
              (printf "ok. ~s steps.\n\n" num-steps)))))]))
 
-(current-simulated-output-port (current-output-port))
 
 (test (read (open-input-file "tests/conform/program0.sch"))
-        (port->string (open-input-file "tests/conform/expected0.txt"))
-        #:debug? #f)
+      (port->string (open-input-file "tests/conform/expected0.txt"))
+      #:debug? #f)

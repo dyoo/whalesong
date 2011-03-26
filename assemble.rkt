@@ -415,24 +415,31 @@ EOF
     
     [(CheckClosureArity!? op)
      (format "if (! (MACHINE.proc instanceof Closure && MACHINE.proc.arity === ~a)) { if (! (MACHINE.proc instanceof Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }"
-             (CheckClosureArity!-arity op)
-             )]
+             (CheckClosureArity!-arity op))]
     
     [(ExtendEnvironment/Prefix!? op)
-     (let: ([names : (Listof (U Symbol False)) (ExtendEnvironment/Prefix!-names op)])
+     (let: ([names : (Listof (U Symbol False ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
            (format "MACHINE.env.push([~a]);  MACHINE.env[MACHINE.env.length-1].names = [~a];"
-                   (string-join (map (lambda: ([n : (U Symbol False)])
-                                              (if (symbol? n)
-                                                  (format "MACHINE.params.currentNamespace[~s] || Primitives[~s]"
-                                                          (symbol->string n) 
-                                                          (symbol->string n))
-                                                  "false"))
+                   (string-join (map (lambda: ([n : (U Symbol False ModuleVariable)])
+                                              (cond [(symbol? n)
+                                                     (format "MACHINE.params.currentNamespace[~s] || Primitives[~s]"
+                                                             (symbol->string n) 
+                                                             (symbol->string n))]
+                                                    [(eq? n #f)
+                                                     "false"]
+                                                    [(ModuleVariable? n)
+                                                     (format "Primitives[~s]"
+                                                             (symbol->string (ModuleVariable-name n)))]))
                                      names)
                                 ",")
-                   (string-join (map (lambda: ([n : (U Symbol False)])
-                                              (if (symbol? n)
-                                                  (format "~s" (symbol->string n))
-                                                  "false"))
+                   (string-join (map (lambda: ([n : (U Symbol False ModuleVariable)])
+                                              (cond
+                                                [(symbol? n)
+                                                 (format "~s" (symbol->string n))]
+                                                [(eq? n #f)
+                                                 "false"]
+                                                [(ModuleVariable? n)
+                                                 (format "~s" (symbol->string (ModuleVariable-name n)))]))
                                      names)
                                 ",")))]
     

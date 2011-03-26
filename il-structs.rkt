@@ -187,7 +187,7 @@
 
 ;; Extends the environment with a prefix that holds
 ;; lookups to the namespace.
-(define-struct: ExtendEnvironment/Prefix! ([names : (Listof (U Symbol False))])
+(define-struct: ExtendEnvironment/Prefix! ([names : (Listof (U Symbol ModuleVariable False))])
   #:transparent)
 
 ;; Adjusts the environment by pushing the values in the

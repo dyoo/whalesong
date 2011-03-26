@@ -17,6 +17,21 @@
     (make-Top prefix (parse exp (extend-lexical-environment '() prefix)))))
 
 
+;; a language maps identifiers to module variables.
+(define current-language (make-parameter '(+)))
+;; lookup-in-current-language: symbol -> (or ModuleVariable #f)
+(define (lookup-in-current-language sym)
+  (cond
+    [(current-language)
+     => (lambda (lang)
+          (if (member sym (lang))
+              (make-ModuleVariable sym '#%kernel)
+              #f))]
+    [else
+     #f]))
+
+
+
 ;; find-prefix: ParseTimeEnvironment -> Natural
 (define (find-prefix cenv)
   (cond

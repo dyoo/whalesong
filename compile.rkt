@@ -161,7 +161,7 @@
 
 (: compile-top (Top CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-top top cenv target linkage)
-  (let*: ([names : (Listof (U Symbol False)) (Prefix-names (Top-prefix top))])
+  (let*: ([names : (Listof (U Symbol ModuleVariable False)) (Prefix-names (Top-prefix top))])
          (append-instruction-sequences
           (make-instruction-sequence 
            `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))

@@ -3,6 +3,7 @@
 (require "expression-structs.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
+         racket/bool
          racket/list)
 
 (provide (rename-out [-compile compile])
@@ -356,20 +357,33 @@
 ;; This includes:
 ;;     Known closure
 ;;     Known kernel primitive
-;;     Finally, general procedure application.
+;;  In the general case, we do general procedure application.
 (define (compile-application exp cenv target linkage) 
   (let ([extended-cenv (append (map (lambda: ([op : ExpressionCore])
                                              '?)
                                     (App-operands exp))
                                cenv)])
+    (define (default)
+      (compile-general-application exp cenv extended-cenv target linkage))
+    
     (let: ([op-knowledge : CompileTimeEnvironmentEntry
                          (extract-static-knowledge (App-operator exp)
                                                    extended-cenv)])
           (cond
             [(eq? op-knowledge '?)
-             (compile-general-application exp cenv extended-cenv target linkage)]
+             (default)]
             [(ModuleVariable? op-knowledge)
-             (compile-general-application exp cenv extended-cenv target linkage)]
+             (cond
+               [(symbol=? (ModuleVariable-module-path op-knowledge) '#%kernel)
+                (let ([op (ModuleVariable-name op-knowledge)])
+                  (cond [(KernelPrimitiveName? op)
+                         (compile-kernel-primitive-application 
+                          op
+                          exp cenv extended-cenv target linkage)]
+                        [else
+                         (default)]))]
+               [else
+                (default)])]
             [(StaticallyKnownLam? op-knowledge)
              (compile-statically-known-lam-application op-knowledge exp cenv extended-cenv target linkage)]
             [(Prefix? op-knowledge)
@@ -404,6 +418,37 @@
                                      (length (App-operands exp))
                                      target
                                      linkage))))
+
+
+(: compile-kernel-primitive-application
+   (KernelPrimitiveName App CompileTimeEnvironment CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-kernel-primitive-application kernel-op exp cenv extended-cenv target linkage)
+  (let* ([n (length (App-operands exp))]
+         [operand-poss
+          (build-list (length (App-operands exp))
+                      (lambda: ([i : Natural])
+                               (make-EnvLexicalReference i #f)))]
+         [operand-codes (map (lambda: ([operand : Expression]
+                                       [target : Target])
+                                      (compile operand extended-cenv target 'next))
+                             (App-operands exp)
+                             operand-poss)])
+    
+    (end-with-linkage 
+     linkage cenv
+     (append-instruction-sequences
+      (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+      (apply append-instruction-sequences operand-codes)
+      (make-instruction-sequence 
+       `(,(make-AssignPrimOpStatement 
+           ;; Optimization: we put the result directly in the registers, or in
+           ;; the appropriate spot on the stack.  This takes into account the popenviroment
+           ;; that happens right afterwards.
+           (adjust-target-depth target n)                     
+           (make-CallKernelPrimitiveProcedure kernel-op operand-poss))
+         ,(make-PopEnvironment n 0)))))))
+
+
 
 (: compile-statically-known-lam-application 
    (StaticallyKnownLam App CompileTimeEnvironment CompileTimeEnvironment Target Linkage 

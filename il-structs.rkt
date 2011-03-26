@@ -53,8 +53,10 @@
 
 ;; instruction sequences
 (define-type UnlabeledStatement (U 
+                                 
                                  AssignImmediateStatement
                                  AssignPrimOpStatement
+                                 
                                  PerformStatement
                                  
                                  GotoStatement
@@ -116,12 +118,14 @@
 (define-type PrimitiveOperator (U GetCompiledProcedureEntry
                                   MakeCompiledProcedure
                                   ApplyPrimitiveProcedure
+
                                   GetControlStackLabel
                                   MakeBoxedEnvironmentValue
 
                                   CaptureEnvironment
                                   CaptureControl
-                                  ))
+                                  
+                                  CallKernelPrimitiveProcedure))
 
 ;; Gets the label from the closure stored in the 'proc register and returns it.
 (define-struct: GetCompiledProcedureEntry ()
@@ -141,6 +145,14 @@
 ;; to that primitive.
 (define-struct: ApplyPrimitiveProcedure ([arity : Natural])
   #:transparent)
+
+
+(define-type KernelPrimitiveName (U '+))
+
+(define-struct: CallKernelPrimitiveProcedure ([operator : KernelPrimitiveName]
+                                              [operands : (Listof OpArg)])
+  #:transparent)
+
 
 
 ;; Gets the return address embedded at the top of the control stack.

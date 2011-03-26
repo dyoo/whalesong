@@ -140,6 +140,8 @@ EOF
       [(CaptureControl? op)
        empty]
       [(MakeBoxedEnvironmentValue? op)
+       empty]
+      [(CallKernelPrimitiveProcedure? op)
        empty]))
   
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
@@ -327,6 +329,8 @@ EOF
                "null"]
               [(empty? val)
                (format "Primitives.null")]
+              [(number? val)
+               (format "(~s)" val)]
               [else
                (format "~s" val)])))
 
@@ -391,15 +395,32 @@ EOF
     
     [(GetControlStackLabel? op)
      (format "MACHINE.control[MACHINE.control.length-1].label")]
+    
     [(CaptureEnvironment? op)
      (format "MACHINE.env.slice(0, MACHINE.env.length - ~a)"
              (CaptureEnvironment-skip op))]
+    
     [(CaptureControl? op)
      (format "MACHINE.control.slice(0, MACHINE.control.length - ~a)"
              (CaptureControl-skip op))]
+    
     [(MakeBoxedEnvironmentValue? op)
      (format "[MACHINE.env[MACHINE.env.length - 1 - ~a]]"
-             (MakeBoxedEnvironmentValue-depth op))]))
+             (MakeBoxedEnvironmentValue-depth op))]
+
+    [(CallKernelPrimitiveProcedure? op)
+     (open-code-kernel-primitive-procedure op)]))
+
+
+(: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
+(define (open-code-kernel-primitive-procedure op)
+  (let: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
+         [rand-vals : (Listof String) (map assemble-input (CallKernelPrimitiveProcedure-operands op))])
+        (cond
+          [(eq? operator '+)
+           ;; FIXME: this needs to check that all the values are numbers!
+           (string-join rand-vals " + ")])))
+
 
 
 (: assemble-op-statement (PrimitiveCommand -> String))

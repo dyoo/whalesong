@@ -349,70 +349,94 @@
                                    (compile-lambda-bodies (rest exps)))]))
 
 
-         
-
-
-;; FIXME: I need to implement important special cases.
-;; 1. We may be able to open-code if the operator is primitive
-;; 2. We may have a static location to jump to if the operator is lexically scoped.
 (: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiles procedure application
+;; Special cases: if we know something about the operator, the compiler will special case.
+;; This includes:
+;;     Known closure
+;;     Known kernel primitive
+;;     Finally, general procedure application.
 (define (compile-application exp cenv target linkage) 
-  (let* ([extended-cenv (append (map (lambda: ([op : ExpressionCore])
-                                              '?)
-                                     (App-operands exp))
-                                cenv)]
-         [proc-code (compile (App-operator exp)
-                             extended-cenv 
-                             (if (empty? (App-operands exp))
-                                 'proc
-                                 (make-EnvLexicalReference 
-                                  (ensure-natural (sub1 (length (App-operands exp))))
-                                  #f))
-                             'next)]
-         [operand-codes (map (lambda: ([operand : Expression]
-                                       [target : Target])
-                                      (compile operand extended-cenv target 'next))
-                             (App-operands exp)
-                             (build-list (length (App-operands exp))
-                                         (lambda: ([i : Natural])
-                                                  (if (< i (sub1 (length (App-operands exp))))
-                                                      (make-EnvLexicalReference i #f)
-                                                      'val))))])
-    
+  (let ([extended-cenv (append (map (lambda: ([op : ExpressionCore])
+                                             '?)
+                                    (App-operands exp))
+                               cenv)])
+    (let: ([op-knowledge : (U '? StaticallyKnownLam)
+                         (extract-static-knowledge (App-operator exp)
+                                                   extended-cenv)])
+          (cond
+            [(eq? op-knowledge '?)
+             (compile-general-application exp cenv extended-cenv target linkage)]
+            [(StaticallyKnownLam? op-knowledge)
+             (compile-statically-known-lam-application op-knowledge exp cenv extended-cenv target linkage)]))))
+
+
+(: compile-general-application (App CompileTimeEnvironment CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-general-application exp cenv extended-cenv target linkage)
+  (let ([proc-code (compile (App-operator exp)
+                            extended-cenv 
+                            (if (empty? (App-operands exp))
+                                'proc
+                                (make-EnvLexicalReference 
+                                 (ensure-natural (sub1 (length (App-operands exp))))
+                                 #f))
+                            'next)]
+        [operand-codes (map (lambda: ([operand : Expression]
+                                      [target : Target])
+                                     (compile operand extended-cenv target 'next))
+                            (App-operands exp)
+                            (build-list (length (App-operands exp))
+                                        (lambda: ([i : Natural])
+                                                 (if (< i (sub1 (length (App-operands exp))))
+                                                     (make-EnvLexicalReference i #f)
+                                                     'val))))])    
     (append-instruction-sequences
      (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
      proc-code
      (juggle-operands operand-codes)
-     (compile-procedure-call (App-operator exp) cenv extended-cenv (length (App-operands exp))
-                             target linkage))))
+     (compile-general-procedure-call cenv 
+                                     extended-cenv 
+                                     (length (App-operands exp))
+                                     target
+                                     linkage))))
 
-
-(: compile-procedure-call
-   (ExpressionCore CompileTimeEnvironment CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
-(define (compile-procedure-call operator cenv-before-args extended-cenv n target linkage)
-  (define (default)
-    (compile-general-procedure-call cenv-before-args 
-                                    extended-cenv 
-                                    n
-                                    target linkage))
-  (let: ([static-knowledge : (U '? StaticallyKnownLam)
-                           (extract-static-knowledge operator extended-cenv)])
-        (cond
-          [(eq? static-knowledge '?)
-           (default)]
-          #;[(ModuleVariable? static-knowledge)
-           (default)]
-          [(StaticallyKnownLam? static-knowledge)
-           (unless (= n (StaticallyKnownLam-arity static-knowledge))
-             (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
-                    (StaticallyKnownLam-name static-knowledge)
-                    (StaticallyKnownLam-arity static-knowledge)
-                    n))
-           (compile-procedure-call/statically-known-lam static-knowledge 
-                                                        extended-cenv 
-                                                        n
-                                                        target
-                                                        linkage)])))
+(: compile-statically-known-lam-application 
+   (StaticallyKnownLam App CompileTimeEnvironment CompileTimeEnvironment Target Linkage 
+                       -> InstructionSequence))
+(define (compile-statically-known-lam-application static-knowledge exp cenv extended-cenv target linkage)
+  (unless (= (length (App-operands exp)) 
+             (StaticallyKnownLam-arity static-knowledge))
+    (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
+           (StaticallyKnownLam-name static-knowledge)
+           (StaticallyKnownLam-arity static-knowledge)
+           (length (App-operands exp))))
+     
+  (let ([proc-code (compile (App-operator exp)
+                            extended-cenv 
+                            (if (empty? (App-operands exp))
+                                'proc
+                                (make-EnvLexicalReference 
+                                 (ensure-natural (sub1 (length (App-operands exp))))
+                                 #f))
+                            'next)]
+        [operand-codes (map (lambda: ([operand : Expression]
+                                      [target : Target])
+                                     (compile operand extended-cenv target 'next))
+                            (App-operands exp)
+                            (build-list (length (App-operands exp))
+                                        (lambda: ([i : Natural])
+                                                 (if (< i (sub1 (length (App-operands exp))))
+                                                     (make-EnvLexicalReference i #f)
+                                                     'val))))])    
+    (append-instruction-sequences
+     (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+     proc-code
+     (juggle-operands operand-codes)
+     (compile-procedure-call/statically-known-lam static-knowledge 
+                                                  extended-cenv 
+                                                  (length (App-operands exp))
+                                                  target
+                                                  linkage))))
 
 
 (: juggle-operands ((Listof InstructionSequence) -> InstructionSequence))

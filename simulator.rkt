@@ -327,8 +327,23 @@
                                                           (CaptureControl-skip op))))]
           [(MakeBoxedEnvironmentValue? op)
            (target-updater! m (box (ensure-primitive-value
-                                    (env-ref m (MakeBoxedEnvironmentValue-depth op)))))])))
+                                    (env-ref m (MakeBoxedEnvironmentValue-depth op)))))]
+          
+          [(CallKernelPrimitiveProcedure? op)
+           (target-updater! m (evaluate-kernel-primitive-procedure-call m op))])))
 
+
+
+(: evaluate-kernel-primitive-procedure-call (machine CallKernelPrimitiveProcedure -> PrimitiveValue))
+(define (evaluate-kernel-primitive-procedure-call m op)
+  (let: ([op : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
+         [rand-vals : (Listof SlotValue)
+                    (map (lambda: ([a : OpArg])
+                                  (evaluate-oparg m a))
+                         (CallKernelPrimitiveProcedure-operands op))])
+        (cond
+          [(eq? op '+)
+           (apply + (map ensure-number rand-vals))])))
 
 
 
@@ -424,6 +439,13 @@
   (if (>= x 0)
       x
       (error 'ensure-natural)))
+
+(: ensure-number (Any -> Number))
+(define (ensure-number x)
+  (if (number? x)
+      x
+      (error 'ensure-number "Not a number: ~s" x)))
+
 
 (: ensure-CapturedControl (Any -> CapturedControl))
 (define (ensure-CapturedControl x)

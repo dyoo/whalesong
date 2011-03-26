@@ -147,7 +147,13 @@
   #:transparent)
 
 
-(define-type KernelPrimitiveName (U '+))
+
+;; The following are primitives that the compiler knows about:
+(define-type KernelPrimitiveName (U '+
+                                    'add1
+                                    'sub1
+                                    '<
+                                    '<=))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 
 

@@ -333,7 +333,6 @@
            (target-updater! m (evaluate-kernel-primitive-procedure-call m op))])))
 
 
-
 (: evaluate-kernel-primitive-procedure-call (machine CallKernelPrimitiveProcedure -> PrimitiveValue))
 (define (evaluate-kernel-primitive-procedure-call m op)
   (let: ([op : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
@@ -341,10 +340,30 @@
                     (map (lambda: ([a : OpArg])
                                   (evaluate-oparg m a))
                          (CallKernelPrimitiveProcedure-operands op))])
-        (cond
-          [(eq? op '+)
-           (apply + (map ensure-number rand-vals))])))
+        (case op
+          [(+)
+           (apply + (map ensure-number rand-vals))]
+          [(add1)
+           (add1 (ensure-number (first rand-vals)))]
+          [(sub1)
+           (sub1 (ensure-number (first rand-vals)))]
+          [(<)
+           (chain-compare < (map ensure-real-number rand-vals))]
+          [(<=)   
+           (chain-compare <= (map ensure-real-number rand-vals))]
+          [else
+           (error 'evaluate-kernel-primitive-procedure-call "missing operator: ~s\n" op)])))
 
+(: chain-compare (All (A) (A A -> Boolean) (Listof A) -> Boolean))
+(define (chain-compare f vals)
+  (cond
+    [(empty? vals)
+     #t]
+    [(empty? (rest vals))
+     #t]
+    [else
+     (and (f (first vals) (second vals))
+          (chain-compare f (rest vals)))]))
 
 
 
@@ -445,6 +464,15 @@
   (if (number? x)
       x
       (error 'ensure-number "Not a number: ~s" x)))
+
+
+
+(: ensure-real-number (Any -> Real))
+(define (ensure-real-number x)
+  (if (real? x)
+      x
+      (error 'ensure-number "Not a number: ~s" x)))
+
 
 
 (: ensure-CapturedControl (Any -> CapturedControl))

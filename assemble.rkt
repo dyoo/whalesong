@@ -412,14 +412,48 @@ EOF
      (open-code-kernel-primitive-procedure op)]))
 
 
+;; FIXME: this needs to check that the domains are good!
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
 (define (open-code-kernel-primitive-procedure op)
   (let: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
          [rand-vals : (Listof String) (map assemble-input (CallKernelPrimitiveProcedure-operands op))])
         (cond
           [(eq? operator '+)
-           ;; FIXME: this needs to check that all the values are numbers!
-           (string-join rand-vals " + ")])))
+           (cond [(empty? rand-vals)
+                  "0"]
+                 [else
+                  (string-append "(" (string-join rand-vals " + ") ")")])]
+          [(eq? operator 'add1)
+           (unless (= 1 (length rand-vals))
+             (error 'add1 "Expected one argument"))
+           (format "(~a + 1)" (first rand-vals))]
+          [(eq? operator 'sub1)
+           (unless (= 1 (length rand-vals))
+             (error 'sub1 "Expected one argument"))
+           (format "(~a - 1)" (first rand-vals))]
+          [(eq? operator '<)
+           (unless (> (length rand-vals) 0)
+             (error '< "Expected at least one argument"))
+           (assemble-chain "<" rand-vals)]
+          [(eq? operator '<=)
+           (unless (> (length rand-vals) 0)
+             (error '<= "Expected at least one argument"))
+           (assemble-chain "<=" rand-vals)])))
+
+(: assemble-chain (String (Listof String) -> String))
+(define (assemble-chain rator rands)
+  (string-append "("
+                 (string-join (let: loop : (Listof String) ([rands : (Listof String) rands])
+                                (cond
+                                  [(empty? rands)
+                                   '()]
+                                  [(empty? (rest rands))
+                                   '()]
+                                  [else
+                                   (cons (format "(~a ~a ~a)" (first rands) rator (second rands))
+                                         (loop (rest rands)))]))
+                              "&&")
+                 ")"))
 
 
 

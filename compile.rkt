@@ -81,7 +81,7 @@
            (append (loop (Let1-rhs exp)
                          (cons '? cenv))
                    (loop (Let1-body exp) 
-                         (cons (extract-static-knowledge (Let1-rhs exp)) 
+                         (cons (extract-static-knowledge (Let1-rhs exp) (cons '? cenv)) 
                                cenv)))]
           [(LetVoid? exp)
            (loop (LetVoid-body exp) 
@@ -92,7 +92,13 @@
           [(BoxEnv? exp)
            '()]
           [(LetRec? exp)
-           (let ([new-cenv (append (map extract-static-knowledge (reverse (LetRec-procs exp)))
+           (let ([new-cenv (append (map (lambda: ([p : Lam]) 
+                                          (extract-static-knowledge 
+                                           p 
+                                           (append (build-list (length (LetRec-procs exp))
+                                                               (lambda: ([i : Natural]) '?))
+                                                   cenv)))
+                                        (reverse (LetRec-procs exp)))
                                    cenv)])
              (append (apply append 
                             (map (lambda: ([lam : Lam])
@@ -549,12 +555,14 @@
          (error 'compile "return linkage, target not val: ~s" target)]))
          
 
-(: extract-static-knowledge (ExpressionCore ->  CompileTimeEnvironmentEntry))
-(define (extract-static-knowledge exp)
+(: extract-static-knowledge (ExpressionCore CompileTimeEnvironment ->  CompileTimeEnvironmentEntry))
+(define (extract-static-knowledge exp cenv)
   (cond
     [(Lam? exp)
      (make-StaticallyKnownLam (Lam-entry-label exp)
                               (Lam-num-parameters exp))]
+    [(LocalRef? exp)
+     (list-ref cenv (LocalRef-depth exp))]
     [else
      '?]))
 
@@ -568,7 +576,9 @@
                              'next)]
           [after-let1 : Symbol (make-label 'afterLetOne)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
-          [extended-cenv : CompileTimeEnvironment (cons (extract-static-knowledge (Let1-rhs exp)) cenv)]
+          [extended-cenv : CompileTimeEnvironment (cons (extract-static-knowledge (Let1-rhs exp)
+                                                                                  (cons '? cenv))
+                                                        cenv)]
           [let-linkage : Linkage
                        (cond
                          [(eq? linkage 'next)
@@ -626,7 +636,13 @@
 
 (: compile-let-rec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-let-rec exp cenv target linkage)
-  (let*: ([extended-cenv : CompileTimeEnvironment (append (map extract-static-knowledge
+  (let*: ([extended-cenv : CompileTimeEnvironment (append (map (lambda: ([p : Lam])
+                                                                 (extract-static-knowledge 
+                                                                  p
+                                                                  (append (build-list (length (LetRec-procs exp))
+                                                                                      (lambda: ([i : Natural])
+                                                                                               '?))
+                                                                          cenv)))
                                                               (reverse (LetRec-procs exp)))
                                                          cenv)]
          [n : Natural (length (LetRec-procs exp))]

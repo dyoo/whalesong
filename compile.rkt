@@ -482,7 +482,7 @@
              ;; the appropriate spot on the stack.  This takes into account the popenviroment
              ;; that happens right afterwards.
              (adjust-target-depth target n)                     
-             (make-ApplyPrimitiveProcedure n after-call))
+             (make-ApplyPrimitiveProcedure n))
            ,(make-PopEnvironment n 0))))
 
        after-call))))

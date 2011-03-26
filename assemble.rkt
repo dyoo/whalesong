@@ -132,7 +132,7 @@ EOF
       [(MakeCompiledProcedure? op)
        (list (MakeCompiledProcedure-label op))]
       [(ApplyPrimitiveProcedure? op)
-       (list (ApplyPrimitiveProcedure-label op))]
+       empty]
       [(GetControlStackLabel? op)
        empty]
       [(CaptureEnvironment? op)
@@ -386,9 +386,8 @@ EOF
              (assemble-display-name (MakeCompiledProcedure-display-name op)))]
     
     [(ApplyPrimitiveProcedure? op)
-     (format "MACHINE.proc(~a, ~a)"
-             (ApplyPrimitiveProcedure-arity op)
-             (ApplyPrimitiveProcedure-label op))]
+     (format "MACHINE.proc(MACHINE, ~a)"
+             (ApplyPrimitiveProcedure-arity op))]
     
     [(GetControlStackLabel? op)
      (format "MACHINE.control[MACHINE.control.length-1].label")]

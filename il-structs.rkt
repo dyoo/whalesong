@@ -139,11 +139,7 @@
 ;; Applies the primitive procedure that's stored in the proc register, using
 ;; the arity number of values that are bound in the environment as arguments
 ;; to that primitive.
-;; 
-;; If the primitive needs to capture the current continuation, it can get the
-;; immediate address at label.
-(define-struct: ApplyPrimitiveProcedure ([arity : Natural]
-                                         [label : Symbol])
+(define-struct: ApplyPrimitiveProcedure ([arity : Natural])
   #:transparent)
 
 

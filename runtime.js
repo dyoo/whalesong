@@ -34,16 +34,16 @@ var Closure = function(label, arity, closedVals, displayName) {
 var Primitives = (function() {
     var NULL = [];
     return {
-	'display': function(arity, returnLabel) {
+	'display': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
             MACHINE.params.currentDisplayer(firstArg);
 	},
 
-	'newline': function(arity, returnLabel) {
+	'newline': function(MACHINE, arity) {
             MACHINE.params.currentDisplayer("\n");
 	},
 
-	'displayln': function(arity, returnLabel){
+	'displayln': function(MACHINE, arity){
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
             MACHINE.params.currentDisplayer(firstArg);
             MACHINE.params.currentDisplayer("\n");
@@ -53,68 +53,68 @@ var Primitives = (function() {
 
 	'e' : Math.E,
 
-	'=': function(arity, returnLabel) {
+	'=': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
             return firstArg === secondArg;
 	},
 
-	'<': function(arity, returnLabel) {
+	'<': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg < secondArg;
 	},
 
-	'>': function(arity, returnLabel) {
+	'>': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg > secondArg;
 	},
 
-	'<=': function(arity, returnLabel) {
+	'<=': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg <= secondArg;
 	},
 
-	'>=': function(arity, returnLabel) {
+	'>=': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg >= secondArg;
 	},
 	
-	'+': function(arity, returnLabel) {
+	'+': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 
             return firstArg + secondArg;
 	},
 	
-	'*': function(arity, returnLabel) {
+	'*': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
             return firstArg * secondArg;
 	},
 	
-	'-': function(arity, returnLabel) {
+	'-': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
             return firstArg - secondArg;
 	},
 	
-	'/': function(arity, returnLabel) {
+	'/': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg / secondArg;
 	},
 
-	'cons': function(arity, returnLabel) {
+	'cons': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return [firstArg, secondArg];
 	},
 
-	'list': function(arity, returnLabel) {
+	'list': function(MACHINE, arity) {
 	    var result = NULL;
 	    for (var i = 0; i < arity; i++) {
 		result = [MACHINE.env[MACHINE.env.length - (arity - i)],
@@ -123,62 +123,62 @@ var Primitives = (function() {
 	    return result;
 	},
 
-	'car': function(arity, returnLabel) {
+	'car': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg[0];
 	},
 
-	'cdr': function(arity, returnLabel) {
+	'cdr': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg[1];
 	},
 
-	'pair?': function(arity, returnLabel) {
+	'pair?': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return (typeof(firstArg) == 'object' && 
 		    firstArg.length === 2);
 	},
 
-	'set-car!': function(arity, returnLabel) {
+	'set-car!': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    firstArg[0] = secondArg;
 	},
 
-	'set-cdr!': function(arity, returnLabel) {
+	'set-cdr!': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    firstArg[1] = secondArg;
 	},
 	
-	'not': function(arity, returnLabel) {
+	'not': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return (!firstArg);
 	},
 
 	'null' : NULL,
 
-	'null?': function(arity, returnLabel) {
+	'null?': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg === NULL;
 	},
 
-	'add1': function(arity, returnLabel) {
+	'add1': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg + 1;
 	},
 
-	'sub1': function(arity, returnLabel) {
+	'sub1': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg - 1;
 	},
 
-	'zero?': function(arity, returnLabel) {
+	'zero?': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg === 0;
 	},
 
-	'vector': function(arity, returnLabel) {
+	'vector': function(MACHINE, arity) {
 	    var i;
 	    var result = [];
 	    for (i = 0; i < arity; i++) {
@@ -187,7 +187,7 @@ var Primitives = (function() {
 	    return result;
 	},
 
-	'vector->list': function(arity, returnLabel) {
+	'vector->list': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var i;
 	    var result = NULL;
@@ -197,7 +197,7 @@ var Primitives = (function() {
 	    return result;
 	},
 	
-	'list->vector': function(arity, returnLabel) {
+	'list->vector': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var result = [];
 	    while (firstArg !== NULL) {
@@ -207,13 +207,13 @@ var Primitives = (function() {
 	    return result;
 	},
 
-	'vector-ref': function(arity, returnLabel) {
+	'vector-ref': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg[secondArg];
 	},
 
-	'vector-set!': function(arity, returnLabel) {
+	'vector-set!': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    var thirdArg = MACHINE.env[MACHINE.env.length-3];
@@ -221,17 +221,17 @@ var Primitives = (function() {
 	    return null;
 	},
 
-	'symbol?': function(arity, returnLabel) {
+	'symbol?': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return typeof(firstArg) === 'string';
 	},
 
-	'symbol->string': function(arity, returnLabel) {
+	'symbol->string': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg;
 	},
 
-	'string-append': function(arity, returnLabel) {
+	'string-append': function(MACHINE, arity) {
 	    var buffer = [];
 	    var i;
 	    for (i = 0; i < arity; i++) {
@@ -240,41 +240,41 @@ var Primitives = (function() {
 	    return buffer.join('');
 	},
 
-	'string-length': function(arity, returnLabel) {
+	'string-length': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg.length;
 	},
 	
-	'box': function(arity, returnLabel) {
+	'box': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var result = [firstArg];
 	    return result;
 	},
 
-	'unbox': function(arity, returnLabel) {
+	'unbox': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    return firstArg[0];
         },
 
-	'set-box!': function(arity, returnLabel) {
+	'set-box!': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    firstArg[0] = secondArg;
 	    return;
 	},
 
-	'void': function(arity, returnLabel) {
+	'void': function(MACHINE, arity) {
 	    return;
 	},
 
 
-	'eq?': function(arity, returnLabel) {
+	'eq?': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return firstArg === secondArg;
 	},
 
-	'equal?': function(arity, returnLabel) {
+	'equal?': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    var lset = [firstArg], rset = [secondArg];

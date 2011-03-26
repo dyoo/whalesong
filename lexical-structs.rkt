@@ -13,7 +13,7 @@
   #:transparent)
 
 (define-struct: ModuleVariable ([name : Symbol]
-                                [module-path : 'kernel])
+                                [module-path : Symbol])
   #:transparent)
 
 

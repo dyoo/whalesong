@@ -39,11 +39,20 @@
                (let: ([elt : ParseTimeEnvironmentEntry (first cenv)])
                  (cond
                    [(Prefix? elt)
-                    (cond [(member name (Prefix-names elt))
-                           (make-EnvPrefixReference depth 
-                                                    (find-pos name (Prefix-names elt)))]
-                          [else
-                           (loop (rest cenv) (add1 depth))])]
+                    (let: prefix-loop : LexicalAddress
+                          ([names : (Listof (U Symbol False ModuleVariable)) (Prefix-names elt)]
+                                       [pos : Natural 0])
+                          (cond [(empty? names)
+                                 (loop (rest cenv) (add1 depth))]
+                                [else
+                                 (let: ([n : (U Symbol False ModuleVariable) (first names)])
+                                       (cond
+                                         [(and (symbol? n) (eq? name n))
+                                          (make-EnvPrefixReference depth pos)]
+                                         [(and (ModuleVariable? n) (eq? name (ModuleVariable-name n)))
+                                          (make-EnvPrefixReference depth pos)]
+                                         [else
+                                          (prefix-loop (rest names) (add1 pos))]))]))]
                    
                    [(NamedBinding? elt)
                     (cond

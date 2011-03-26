@@ -175,14 +175,15 @@
                           'lamEntry2)))
 
 (test (parse '(+ x x))
-      (make-Top (make-Prefix '(+ x))
+      (make-Top (make-Prefix `(,(make-ModuleVariable '+ '#%kernel) 
+                               x))
                 (make-App (make-ToplevelRef 2 0)
                           (list (make-ToplevelRef 2 1)
                                 (make-ToplevelRef 2 1)))))
   
 
 (test (parse '(lambda (x) (+ x x)))
-      (make-Top (make-Prefix '(+))
+      (make-Top (make-Prefix `(,(make-ModuleVariable '+ '#%kernel)))
                 (make-Lam #f 1
                           (make-App (make-ToplevelRef 2 0)
                                     (list (make-LocalRef 3 #f)
@@ -192,7 +193,8 @@
 
 (test (parse '(lambda (x) 
                 (+ (* x x) x)))
-      (make-Top (make-Prefix '(* +))
+      (make-Top (make-Prefix `(,(make-ModuleVariable '* '#%kernel)
+                               ,(make-ModuleVariable '+ '#%kernel)))
                 (make-Lam #f 1
                           ;; stack layout: [???, ???, prefix, x]
                           (make-App (make-ToplevelRef 2 1)
@@ -251,7 +253,7 @@
 (test (parse '(let* ([x 3]
                      [x (add1 x)])
                 (add1 x)))
-      (make-Top (make-Prefix '(add1))
+      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 '#%kernel)))
                 
                 ;; stack layout: [prefix]
                 
@@ -352,7 +354,7 @@
 (test (parse '(let ([x 0])
                 (lambda ()
                   (set! x (add1 x)))))
-      (make-Top (make-Prefix '(add1))
+      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 '#%kernel)))
                 (make-Let1 (make-Constant 0)
                            (make-BoxEnv 0
                                         (make-Lam #f 0 
@@ -371,7 +373,7 @@
                     [y 1])
                 (lambda ()
                   (set! x (add1 x)))))
-      (make-Top (make-Prefix '(add1))
+      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 '#%kernel)))
                 (make-LetVoid 2
                               (make-Seq (list
                                          (make-InstallValue 0 (make-Constant 0) #t)
@@ -399,7 +401,7 @@
                      (reset!)
                      (list a b)))
       (make-Top
-       (make-Prefix '(a b list reset!))
+       (make-Prefix `(a b ,(make-ModuleVariable 'list '#%kernel) reset!))
        (make-Seq
         (list
          (make-ToplevelSet 0 0 'a (make-Constant '(hello)))

@@ -13,18 +13,45 @@
          set-private-lam-label-counter!)
 
 (define (-parse exp)
-  (let* ([prefix (make-Prefix (find-unbound-names exp))])
+  (let* ([prefix (construct-the-prefix exp)])
     (make-Top prefix (parse exp (extend-lexical-environment '() prefix)))))
 
 
+
+(define (construct-the-prefix exp)
+  (let ([unbound-names (find-unbound-names exp)]
+        [mutated-names (find-mutated-names exp)])
+    (make-Prefix (map (lambda (s)
+                        (cond
+                          [(member s mutated-names)
+                           s]
+                          [(lookup-in-current-language s)
+                           =>
+                           (lambda (mv) mv)]
+                          [else
+                           s]))
+                      unbound-names))))
+
+
+
 ;; a language maps identifiers to module variables.
-(define current-language (make-parameter '(+)))
+(define current-language 
+  (make-parameter '(display newline displayln pi e
+                            = < > <= >= + * - / cons
+                            list car cdr pair? set-car!
+                            set-cdr! not null null?
+                            add1 sub1 zero? vector
+                            vector->list list->vector
+                            vector-ref vector-set! symbol?
+                            symbol->string string-append
+                            string-length box unbox set-box!
+                            void eq? equal?)))
 ;; lookup-in-current-language: symbol -> (or ModuleVariable #f)
 (define (lookup-in-current-language sym)
   (cond
     [(current-language)
      => (lambda (lang)
-          (if (member sym (lang))
+          (if (member sym lang)
               (make-ModuleVariable sym '#%kernel)
               #f))]
     [else

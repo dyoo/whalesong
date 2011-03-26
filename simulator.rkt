@@ -309,7 +309,6 @@
                                                         (current-simulated-output-port)])
                                           (apply (primitive-proc-f prim)
                                                  m
-                                                 (ApplyPrimitiveProcedure-label op)
                                                  args))))]
                    [else
                     (error 'apply-primitive-procedure)]))]

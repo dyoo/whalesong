@@ -472,7 +472,7 @@
                         ,(make-PushEnvironment 2 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 126389))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 42))
-                        ,(make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure 2 'after))
+                        ,(make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure 2))
                         after))])
   (test (machine-val (run m))
         (+ 126389 42))

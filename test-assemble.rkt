@@ -154,7 +154,7 @@
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const 4))
                     (make-AssignPrimOpStatement 'val
-                                                (make-ApplyPrimitiveProcedure 2 'done))
+                                                (make-ApplyPrimitiveProcedure 2))
                     'done))
       "7")
 

@@ -14,9 +14,10 @@
 
 ;; We try to keep at compile time a mapping from environment positions to
 ;; statically known things, to generate better code.
-(define-struct: StaticallyKnownLam ([entry-point : Symbol]
+(define-struct: StaticallyKnownLam ([name : (U Symbol False)]
+                                    [entry-point : Symbol]
                                     [arity : Natural]) #:transparent)
-(define-type CompileTimeEnvironmentEntry (U '? 'prefix StaticallyKnownLam))
+(define-type CompileTimeEnvironmentEntry (U '? Prefix StaticallyKnownLam))
 (define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
 
 
@@ -52,7 +53,7 @@
        
         (cond
           [(Top? exp)
-           (loop (Top-code exp) (cons 'prefix cenv))]
+           (loop (Top-code exp) (cons (Top-prefix exp) cenv))]
           [(Constant? exp)
            '()]
           [(LocalRef? exp)
@@ -164,7 +165,7 @@
          (append-instruction-sequences
           (make-instruction-sequence 
            `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
-          (compile (Top-code top) (cons 'prefix cenv) target linkage))))
+          (compile (Top-code top) (cons (Top-prefix top) cenv) target linkage))))
 
 
 
@@ -396,19 +397,16 @@
     [(and (LocalRef? operator) (not (LocalRef-unbox? operator)))
      (let: ([static-knowledge : CompileTimeEnvironmentEntry (list-ref extended-cenv (LocalRef-depth operator))])
            (cond
-             [(eq? static-knowledge 'prefix)
-              (default)]
              [(eq? static-knowledge '?)
               (default)]
+             [(Prefix? static-knowledge)
+              (default)]
              [(StaticallyKnownLam? static-knowledge)
-              ;; Currently disabling the static analysis stuff till I get error trapping working first.
-              #;(default)
               (unless (= n (StaticallyKnownLam-arity static-knowledge))
-                (error 'arity-mismatch "Expected ~s, received ~s" 
+                (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
+                       (StaticallyKnownLam-name static-knowledge)
                        (StaticallyKnownLam-arity static-knowledge)
                        n))
-              ;; FIXME: do the arity check here...
-              #;(printf "I'm here with ~s\n" static-knowledge)
               (compile-procedure-call/statically-known-lam static-knowledge 
                                                            extended-cenv 
                                                            n
@@ -559,7 +557,8 @@
 (define (extract-static-knowledge exp cenv)
   (cond
     [(Lam? exp)
-     (make-StaticallyKnownLam (Lam-entry-label exp)
+     (make-StaticallyKnownLam (Lam-name exp)
+                              (Lam-entry-label exp)
                               (Lam-num-parameters exp))]
     [(LocalRef? exp)
      (list-ref cenv (LocalRef-depth exp))]

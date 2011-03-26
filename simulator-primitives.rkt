@@ -28,7 +28,7 @@
                          (syntax->list #'(name ...)))])
        (syntax/loc stx
          (let ([prim-name (make-primitive-proc 
-                           (lambda (machine return-label . args)
+                           (lambda (machine . args)
                              (apply name args)))]
                ...)
            (lambda (n)

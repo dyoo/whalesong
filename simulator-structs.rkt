@@ -67,7 +67,7 @@
 
 
 ;; Primitive procedure wrapper
-(define-struct: primitive-proc ([f : (machine Symbol PrimitiveValue * -> PrimitiveValue)])
+(define-struct: primitive-proc ([f : (machine PrimitiveValue * -> PrimitiveValue)])
   #:transparent)
 
 

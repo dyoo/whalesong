@@ -17,7 +17,9 @@
 (define-struct: StaticallyKnownLam ([name : (U Symbol False)]
                                     [entry-point : Symbol]
                                     [arity : Natural]) #:transparent)
+
 (define-type CompileTimeEnvironmentEntry (U '? Prefix StaticallyKnownLam))
+
 (define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
 
 
@@ -393,27 +395,25 @@
                                     extended-cenv 
                                     n
                                     target linkage))
-  (cond
-    [(and (LocalRef? operator) (not (LocalRef-unbox? operator)))
-     (let: ([static-knowledge : CompileTimeEnvironmentEntry (list-ref extended-cenv (LocalRef-depth operator))])
-           (cond
-             [(eq? static-knowledge '?)
-              (default)]
-             [(Prefix? static-knowledge)
-              (default)]
-             [(StaticallyKnownLam? static-knowledge)
-              (unless (= n (StaticallyKnownLam-arity static-knowledge))
-                (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
-                       (StaticallyKnownLam-name static-knowledge)
-                       (StaticallyKnownLam-arity static-knowledge)
-                       n))
-              (compile-procedure-call/statically-known-lam static-knowledge 
-                                                           extended-cenv 
-                                                           n
-                                                           target
-                                                           linkage)]))]
-    [else
-     (default)]))
+  (let: ([static-knowledge : (U '? StaticallyKnownLam)
+                           (extract-static-knowledge operator extended-cenv)])
+        (cond
+          [(eq? static-knowledge '?)
+           (default)]
+          #;[(ModuleVariable? static-knowledge)
+           (default)]
+          [(StaticallyKnownLam? static-knowledge)
+           (unless (= n (StaticallyKnownLam-arity static-knowledge))
+             (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
+                    (StaticallyKnownLam-name static-knowledge)
+                    (StaticallyKnownLam-arity static-knowledge)
+                    n))
+           (compile-procedure-call/statically-known-lam static-knowledge 
+                                                        extended-cenv 
+                                                        n
+                                                        target
+                                                        linkage)])))
+
 
 (: juggle-operands ((Listof InstructionSequence) -> InstructionSequence))
 ;; Installs the operators.  At the end of this,
@@ -553,15 +553,32 @@
          (error 'compile "return linkage, target not val: ~s" target)]))
          
 
-(: extract-static-knowledge (ExpressionCore CompileTimeEnvironment ->  CompileTimeEnvironmentEntry))
+(: extract-static-knowledge (ExpressionCore CompileTimeEnvironment ->  
+                                            (U StaticallyKnownLam '?)))
 (define (extract-static-knowledge exp cenv)
   (cond
     [(Lam? exp)
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
                               (Lam-num-parameters exp))]
-    [(LocalRef? exp)
-     (list-ref cenv (LocalRef-depth exp))]
+    [(and (LocalRef? exp) 
+          (not (LocalRef-unbox? exp)))
+     (let ([entry (list-ref cenv (LocalRef-depth exp))])
+       (cond
+         [(StaticallyKnownLam? entry)
+          entry]
+         [else
+          '?]))]
+    [(ToplevelRef? exp)
+     (let: ([name : (U Symbol False ModuleVariable)
+                  (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
+                            (ToplevelRef-pos exp))])
+           (cond
+             [(ModuleVariable? name)
+              ;; fixme
+              '?]
+             [else
+              '?]))]
     [else
      '?]))
 
@@ -728,6 +745,12 @@
   (if (>= n 0)
       n
       (error 'ensure-natural "Not a natural: ~s\n" n)))
+
+(: ensure-prefix (CompileTimeEnvironmentEntry -> Prefix))
+(define (ensure-prefix x)
+  (if (Prefix? x)
+      x
+      (error 'ensure-prefix "Not a prefix: ~s" x)))
 
 
 

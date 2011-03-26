@@ -148,6 +148,8 @@
 
 
 (define-type KernelPrimitiveName (U '+))
+(define-predicate KernelPrimitiveName? KernelPrimitiveName)
+
 
 (define-struct: CallKernelPrimitiveProcedure ([operator : KernelPrimitiveName]
                                               [operands : (Listof OpArg)])

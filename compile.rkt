@@ -18,7 +18,8 @@
                                     [entry-point : Symbol]
                                     [arity : Natural]) #:transparent)
 
-(define-type CompileTimeEnvironmentEntry (U '? Prefix StaticallyKnownLam))
+(define-type CompileTimeEnvironmentEntry 
+  (U '? Prefix StaticallyKnownLam ModuleVariable))
 
 (define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
 
@@ -361,14 +362,18 @@
                                              '?)
                                     (App-operands exp))
                                cenv)])
-    (let: ([op-knowledge : (U '? StaticallyKnownLam)
+    (let: ([op-knowledge : CompileTimeEnvironmentEntry
                          (extract-static-knowledge (App-operator exp)
                                                    extended-cenv)])
           (cond
             [(eq? op-knowledge '?)
              (compile-general-application exp cenv extended-cenv target linkage)]
+            [(ModuleVariable? op-knowledge)
+             (compile-general-application exp cenv extended-cenv target linkage)]
             [(StaticallyKnownLam? op-knowledge)
-             (compile-statically-known-lam-application op-knowledge exp cenv extended-cenv target linkage)]))))
+             (compile-statically-known-lam-application op-knowledge exp cenv extended-cenv target linkage)]
+            [(Prefix? op-knowledge)
+             (error 'impossible)]))))
 
 
 (: compile-general-application (App CompileTimeEnvironment CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -577,8 +582,10 @@
          (error 'compile "return linkage, target not val: ~s" target)]))
          
 
+
 (: extract-static-knowledge (ExpressionCore CompileTimeEnvironment ->  
-                                            (U StaticallyKnownLam '?)))
+                                            CompileTimeEnvironmentEntry))
+;; Statically determines what we know about exp, given the compile time environment.
 (define (extract-static-knowledge exp cenv)
   (cond
     [(Lam? exp)
@@ -599,8 +606,7 @@
                             (ToplevelRef-pos exp))])
            (cond
              [(ModuleVariable? name)
-              ;; fixme
-              '?]
+              name]
              [else
               '?]))]
     [else

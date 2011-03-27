@@ -321,13 +321,34 @@
                                     (Lam-closure-map exp)
                                     (Lam-name exp)))))))
 
+
+(: compile-lambda-shell (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Write out code for lambda expressions, minus the closure map.
+;; Assumption: all of the lambda bodies have already been written out at the top, in -compile.
+(define (compile-lambda-shell exp cenv target linkage) 
+  (end-with-linkage 
+   linkage
+   cenv
+   (make-instruction-sequence 
+    `(,(make-AssignPrimOpStatement 
+        target
+        (make-MakeCompiledProcedureShell (Lam-entry-label exp)
+                                         (Lam-num-parameters exp)
+                                         (Lam-name exp)))))))
+
+
 (: compile-lambda-body (Lam CompileTimeEnvironment -> InstructionSequence))
 ;; Compiles the body of the lambda in the appropriate environment.
 (define (compile-lambda-body exp cenv)
   (append-instruction-sequences
+   
    (make-instruction-sequence 
-    `(,(Lam-entry-label exp)
-      ,(make-PerformStatement (make-InstallClosureValues!))))
+    `(,(Lam-entry-label exp)))
+
+   (if (not (empty? (Lam-closure-map exp)))
+       (make-instruction-sequence `(,(make-PerformStatement (make-InstallClosureValues!))))
+       empty-instruction-sequence)
+   
    (compile (Lam-body exp)
             (append (map (lambda: ([d : Natural]) 
                                   (list-ref cenv d))
@@ -412,7 +433,9 @@
                                                      (make-EnvLexicalReference i #f)
                                                      'val))))])    
     (append-instruction-sequences
-     (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+     (if (not (empty? (App-operands exp)))
+         (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+         empty-instruction-sequence)
      proc-code
      (juggle-operands operand-codes)
      (compile-general-procedure-call cenv 
@@ -550,15 +573,18 @@
        (end-with-linkage
         linkage
         cenv
-        (make-instruction-sequence 
-         `(,(make-AssignPrimOpStatement 
-             ;; Optimization: we put the result directly in the registers, or in
-             ;; the appropriate spot on the stack.  This takes into account the popenviroment
-             ;; that happens right afterwards.
-             (adjust-target-depth target n)                     
-             (make-ApplyPrimitiveProcedure n))
-           ,(make-PopEnvironment n 0))))
-
+        (append-instruction-sequences
+         (make-instruction-sequence 
+          `(,(make-AssignPrimOpStatement 
+              ;; Optimization: we put the result directly in the registers, or in
+              ;; the appropriate spot on the stack.  This takes into account the popenviroment
+              ;; that happens right afterwards.
+              (adjust-target-depth target n)                     
+              (make-ApplyPrimitiveProcedure n))))
+         (if (not (= n 0))
+             (make-instruction-sequence
+              `(,(make-PopEnvironment n 0)))
+             empty-instruction-sequence)))
        after-call))))
 
 
@@ -729,15 +755,16 @@
 
 (: compile-let-rec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-let-rec exp cenv target linkage)
-  (let*: ([extended-cenv : CompileTimeEnvironment (append (map (lambda: ([p : Lam])
-                                                                 (extract-static-knowledge 
-                                                                  p
-                                                                  (append (build-list (length (LetRec-procs exp))
-                                                                                      (lambda: ([i : Natural])
-                                                                                               '?))
-                                                                          cenv)))
-                                                              (reverse (LetRec-procs exp)))
-                                                         cenv)]
+  (let*: ([extended-cenv : CompileTimeEnvironment
+                         (append (map (lambda: ([p : Lam])
+                                               (extract-static-knowledge 
+                                                p
+                                                (append (build-list (length (LetRec-procs exp))
+                                                                    (lambda: ([i : Natural])
+                                                                             '?))
+                                                        cenv)))
+                                      (reverse (LetRec-procs exp)))
+                                 cenv)]
          [n : Natural (length (LetRec-procs exp))]
          [after-body-code : Linkage (make-label 'afterBodyCode)]
          [letrec-linkage : Linkage (cond
@@ -757,10 +784,10 @@
           (apply append-instruction-sequences
                  (map (lambda: ([lam : Lam]
                                 [i : Natural])
-                               (compile-lambda lam 
-                                               extended-cenv
-                                               (make-EnvLexicalReference i #f) 
-                                               'next))
+                               (compile-lambda-shell lam 
+                                                     extended-cenv
+                                                     (make-EnvLexicalReference i #f) 
+                                                     'next))
                       (LetRec-procs exp)
                       (build-list n (lambda: ([i : Natural]) (ensure-natural (- n 1 i))))))
           

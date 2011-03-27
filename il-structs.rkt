@@ -117,6 +117,7 @@
 ;; The operators that return values, that are used in AssignPrimopStatement.
 (define-type PrimitiveOperator (U GetCompiledProcedureEntry
                                   MakeCompiledProcedure
+                                  MakeCompiledProcedureShell
                                   ApplyPrimitiveProcedure
 
                                   GetControlStackLabel
@@ -139,6 +140,14 @@
                                        [closed-vals : (Listof Natural)]
                                        [display-name : (U Symbol False)])
   #:transparent)
+
+;; Constructs a closure shell.  Like MakeCompiledProcedure, but doesn't
+;; bother with trying to capture the free variables.
+(define-struct: MakeCompiledProcedureShell ([label : Symbol]
+                                            [arity : Natural]
+                                            [display-name : (U Symbol False)])
+  #:transparent)
+
 
 ;; Applies the primitive procedure that's stored in the proc register, using
 ;; the arity number of values that are bound in the environment as arguments

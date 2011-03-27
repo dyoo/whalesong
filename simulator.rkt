@@ -300,6 +300,12 @@
                                             (map (lambda: ([d : Natural]) (env-ref m d))
                                                  (MakeCompiledProcedure-closed-vals op))
                                             (MakeCompiledProcedure-display-name op)))]
+
+          [(MakeCompiledProcedureShell? op)
+           (target-updater! m (make-closure (MakeCompiledProcedureShell-label op)
+                                            (MakeCompiledProcedureShell-arity op)
+                                            '()
+                                            (MakeCompiledProcedureShell-display-name op)))]
           
           [(ApplyPrimitiveProcedure? op)
            (let: ([prim : SlotValue (machine-proc m)]

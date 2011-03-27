@@ -131,6 +131,8 @@ EOF
        empty]
       [(MakeCompiledProcedure? op)
        (list (MakeCompiledProcedure-label op))]
+      [(MakeCompiledProcedureShell? op)
+       (list (MakeCompiledProcedureShell-label op))]
       [(ApplyPrimitiveProcedure? op)
        empty]
       [(GetControlStackLabel? op)
@@ -388,6 +390,12 @@ EOF
                                (reverse (MakeCompiledProcedure-closed-vals op)))
                           ", ")
              (assemble-display-name (MakeCompiledProcedure-display-name op)))]
+    
+    [(MakeCompiledProcedureShell? op)
+     (format "new Closure(~a, ~a, undefined, ~a)"
+             (MakeCompiledProcedureShell-label op)
+             (MakeCompiledProcedureShell-arity op)
+             (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     
     [(ApplyPrimitiveProcedure? op)
      (format "MACHINE.proc(MACHINE, ~a)"

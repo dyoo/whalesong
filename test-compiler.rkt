@@ -733,6 +733,26 @@
       
 
 
+
+
+
+(test '(letrec ([sum-iter (lambda (x acc)
+                               (if (= x 0)
+                                   acc
+                                   (let* ([y (sub1 x)]
+                                          [z (+ x acc)])
+                                     (sum-iter y z))))])
+            (sum-iter 300 0))
+        45150
+        #:stack-limit 10
+        #:control-limit 1)
+
+
+
+
+
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

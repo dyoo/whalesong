@@ -377,12 +377,14 @@
                [(symbol=? (ModuleVariable-module-path op-knowledge) '#%kernel)
                 (let ([op (ModuleVariable-name op-knowledge)])
                   (cond [(KernelPrimitiveName? op)
+                         #;(printf "Open coded: ~s\n" (ModuleVariable-name op-knowledge))
                          (compile-kernel-primitive-application 
                           op
                           exp cenv extended-cenv target linkage)]
                         [else
                          (default)]))]
                [else
+                #;(printf "Candidate for open coding: ~s\n" (ModuleVariable-name op-knowledge))
                 (default)])]
             [(StaticallyKnownLam? op-knowledge)
              (compile-statically-known-lam-application op-knowledge exp cenv extended-cenv target linkage)]

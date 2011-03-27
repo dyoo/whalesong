@@ -447,6 +447,8 @@
 
 (: compile-kernel-primitive-application
    (KernelPrimitiveName App CompileTimeEnvironment CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Special case of application, where the operator is statically known to be in the set
+;; of hardcoded primitives.
 (define (compile-kernel-primitive-application kernel-op exp cenv extended-cenv target linkage)
   (let* ([n (length (App-operands exp))]
          [operand-poss
@@ -458,24 +460,68 @@
                                       (compile operand extended-cenv target 'next))
                              (App-operands exp)
                              operand-poss)])
-    
-    (end-with-linkage 
-     linkage cenv
-     (append-instruction-sequences
-      (if (not (empty? (App-operands exp)))
-          (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
-          empty-instruction-sequence)
-      (apply append-instruction-sequences operand-codes)
-      (make-instruction-sequence 
-       `(,(make-AssignPrimOpStatement 
-           ;; Optimization: we put the result directly in the registers, or in
-           ;; the appropriate spot on the stack.  This takes into account the popenviroment
-           ;; that happens right afterwards.
-           (adjust-target-depth target n)                     
-           (make-CallKernelPrimitiveProcedure kernel-op operand-poss))))
-      (if (> n 0)
-          (make-instruction-sequence `(,(make-PopEnvironment n 0)))
-          empty-instruction-sequence)))))
+    (cond 
+      ;; Special case optimization: we can avoid pushing the stack altogether
+      [(all-operands-are-constant-or-stack-references (App-operands exp))
+       => (lambda (opargs)
+            (end-with-linkage
+             linkage cenv
+             (make-instruction-sequence
+              `(,(make-AssignPrimOpStatement
+                  target
+                  (make-CallKernelPrimitiveProcedure kernel-op (map (lambda: ([arg : OpArg])
+                                                                             (adjust-oparg-depth arg (- n)))
+                                                                    opargs)))))))]
+      [else
+       (end-with-linkage 
+        linkage cenv
+        (append-instruction-sequences
+         
+         (if (not (empty? (App-operands exp)))
+             (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+             empty-instruction-sequence)
+         
+         (apply append-instruction-sequences operand-codes)
+         
+         (make-instruction-sequence 
+          `(,(make-AssignPrimOpStatement 
+              ;; Optimization: we put the result directly in the registers, or in
+              ;; the appropriate spot on the stack.  This takes into account the popenviroment
+              ;; that happens right afterwards.
+              (adjust-target-depth target n)                     
+              (make-CallKernelPrimitiveProcedure kernel-op operand-poss))))
+         
+         (if (> n 0)
+             (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+             empty-instruction-sequence)))])))
+
+
+
+(: all-operands-are-constant-or-stack-references ((Listof ExpressionCore) -> (U False (Listof OpArg))))
+;; Produces a list of OpArgs if all the operands are particularly simple, and false otherwise.
+(define (all-operands-are-constant-or-stack-references rands)
+  (cond [(andmap (lambda: ([rand : ExpressionCore])
+                          (or (Const? rand)
+                              (LocalRef? rand)
+                              (ToplevelRef? rand)))
+                 rands)
+         (map (lambda: ([e : ExpressionCore])
+                       (cond
+                         [(Const? e)
+                          e]
+                         [(LocalRef? e)
+                          (make-EnvLexicalReference (LocalRef-depth e)
+                                                    (LocalRef-unbox? e))]
+                         [(ToplevelRef? e)
+                          (make-EnvPrefixReference (ToplevelRef-depth e)
+                                                   (ToplevelRef-pos e))]
+                         [else 
+                          (error 'all-operands-are-constant "Impossible")]))
+              rands)]
+        [else #f]))
+
+
+
 
 
 
@@ -893,6 +939,20 @@
      target]))
 
 
-
-
-
+(: adjust-oparg-depth (OpArg Integer -> OpArg))
+(define (adjust-oparg-depth arg n)
+  (cond
+    [(Const? arg)
+     arg]
+    [(Reg? arg)
+     arg]
+    [(Label? arg)
+     arg]
+    [(EnvLexicalReference? arg)
+     (make-EnvLexicalReference (ensure-natural (+ n (EnvLexicalReference-depth arg)))
+                               (EnvLexicalReference-unbox? arg))]
+    [(EnvPrefixReference? arg)
+     (make-EnvPrefixReference (ensure-natural (+ n (EnvPrefixReference-depth arg)))
+                              (EnvPrefixReference-pos arg))]
+    [(EnvWholePrefixReference? arg)
+     (make-EnvWholePrefixReference (ensure-natural (+ n (EnvWholePrefixReference-depth arg))))]))

@@ -1,0 +1,15 @@
+Some possible optimizations:
+
+
+Application:
+
+    If any of the operands are constant (either by being variable
+    lookups or literal constants), and if all of them are side-effect
+    free, then juggle-operands might not be necessary.
+    
+    In a self-application, it's not necessary to compute the operator,
+    since the value is in the top control frame.
+
+    For a kernel primitive call, if all of the operands are all
+    constant or stack references, there's no need to push for fresh
+    stack space.

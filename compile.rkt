@@ -462,7 +462,9 @@
     (end-with-linkage 
      linkage cenv
      (append-instruction-sequences
-      (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+      (if (not (empty? (App-operands exp)))
+          (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+          empty-instruction-sequence)
       (apply append-instruction-sequences operand-codes)
       (make-instruction-sequence 
        `(,(make-AssignPrimOpStatement 
@@ -470,8 +472,10 @@
            ;; the appropriate spot on the stack.  This takes into account the popenviroment
            ;; that happens right afterwards.
            (adjust-target-depth target n)                     
-           (make-CallKernelPrimitiveProcedure kernel-op operand-poss))
-         ,(make-PopEnvironment n 0)))))))
+           (make-CallKernelPrimitiveProcedure kernel-op operand-poss))))
+      (if (> n 0)
+          (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+          empty-instruction-sequence)))))
 
 
 
@@ -504,7 +508,9 @@
                                                      (make-EnvLexicalReference i #f)
                                                      'val))))])    
     (append-instruction-sequences
-     (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+     (if (not (empty? (App-operands exp)))
+         (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+         empty-instruction-sequence)
      proc-code
      (juggle-operands operand-codes)
      (compile-procedure-call/statically-known-lam static-knowledge 
@@ -640,12 +646,16 @@
          ;; This case happens when we're in tail position.
          ;; We clean up the stack right before the jump, and do not add
          ;; to the control stack.
-         (make-instruction-sequence
-          `(,(make-AssignPrimOpStatement 'val 
-                                         (make-GetCompiledProcedureEntry))
-            ,(make-PopEnvironment (ensure-natural (- (length cenv-with-args) n))
-                                  n)
-            ,(make-GotoStatement entry-point)))]
+         (let: ([num-slots-to-delete : Natural (ensure-natural (- (length cenv-with-args) n))])
+               (append-instruction-sequences
+                (make-instruction-sequence
+                 `(,(make-AssignPrimOpStatement 'val 
+                                                (make-GetCompiledProcedureEntry))))
+                (if (> num-slots-to-delete 0)
+                    (make-instruction-sequence `(,(make-PopEnvironment num-slots-to-delete n)))
+                    empty-instruction-sequence)
+                (make-instruction-sequence
+                 `(,(make-GotoStatement entry-point)))))]
         
         [(and (not (eq? target 'val))
               (eq? linkage 'return))
@@ -745,10 +755,14 @@
           linkage
           extended-cenv
           (append-instruction-sequences 
-           (make-instruction-sequence `(,(make-PushEnvironment n (LetVoid-boxes? exp))))
+           (if (> n 0)
+               (make-instruction-sequence `(,(make-PushEnvironment n (LetVoid-boxes? exp))))
+               empty-instruction-sequence)
            body-code
            after-body-code
-           (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+           (if (> n 0)
+               (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+               empty-instruction-sequence)
            after-let))))
 
 
@@ -778,7 +792,9 @@
          linkage
          extended-cenv
          (append-instruction-sequences
-          (make-instruction-sequence `(,(make-PushEnvironment n #f)))
+          (if (> n 0)
+              (make-instruction-sequence `(,(make-PushEnvironment n #f)))
+              empty-instruction-sequence)
           
           ;; Install each of the closure shells
           (apply append-instruction-sequences
@@ -805,7 +821,9 @@
           ;; Compile the body
           (compile (LetRec-body exp) extended-cenv (adjust-target-depth target n) letrec-linkage)
           after-body-code
-          (make-instruction-sequence `(,(make-PopEnvironment n 0)))))))
+          (if (> n 0)
+              (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+              empty-instruction-sequence)))))
   
 
 

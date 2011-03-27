@@ -20,6 +20,7 @@
 (require/typed "simulator-helpers.rkt"
                [ensure-primitive-value-box (SlotValue -> (Boxof PrimitiveValue))]
                [ensure-primitive-value (SlotValue -> PrimitiveValue)]
+               [ensure-list (Any -> PrimitiveValue)]
                [racket->PrimitiveValue (Any -> PrimitiveValue)])
              
 
@@ -336,9 +337,9 @@
 (: evaluate-kernel-primitive-procedure-call (machine CallKernelPrimitiveProcedure -> PrimitiveValue))
 (define (evaluate-kernel-primitive-procedure-call m op)
   (let: ([op : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
-         [rand-vals : (Listof SlotValue)
+         [rand-vals : (Listof PrimitiveValue)
                     (map (lambda: ([a : OpArg])
-                                  (evaluate-oparg m a))
+                                  (ensure-primitive-value (evaluate-oparg m a)))
                          (CallKernelPrimitiveProcedure-operands op))])
         (case op
           [(+)
@@ -351,6 +352,16 @@
            (chain-compare < (map ensure-real-number rand-vals))]
           [(<=)   
            (chain-compare <= (map ensure-real-number rand-vals))]
+          [(=)
+           (chain-compare = (map ensure-real-number rand-vals))]
+          [(cons)
+           (make-MutablePair (first rand-vals) (ensure-list (second rand-vals)))]
+          [(car)
+           (MutablePair-h (ensure-mutable-pair (first rand-vals)))]
+          [(cdr)
+           (MutablePair-t (ensure-mutable-pair (first rand-vals)))]
+          [(null?)
+           (null? (first rand-vals))]
           [else
            (error 'evaluate-kernel-primitive-procedure-call "missing operator: ~s\n" op)])))
 
@@ -472,6 +483,13 @@
   (if (real? x)
       x
       (error 'ensure-number "Not a number: ~s" x)))
+
+
+(: ensure-mutable-pair (Any -> MutablePair))
+(define (ensure-mutable-pair x)
+  (if (MutablePair? x)
+      x
+      (error 'ensure-mutable-pair "not a mutable pair: ~s" x)))
 
 
 

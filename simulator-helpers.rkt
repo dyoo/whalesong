@@ -3,6 +3,7 @@
 (require "simulator-structs.rkt")
 (provide ensure-primitive-value-box
          ensure-primitive-value
+         ensure-list
          PrimitiveValue->racket
          racket->PrimitiveValue)
 (define (ensure-primitive-value-box x)
@@ -42,6 +43,17 @@
       [else
        (error 'ensure-primitive-value "~s" v)])))
 
+
+(define (ensure-list v)
+  (cond
+    [(null? v)
+     v]
+    [(and (MutablePair? v)
+          (PrimitiveValue? (MutablePair-h v))
+          (PrimitiveValue? (MutablePair-t v)))
+     v]
+    [else
+     (error 'ensure-list)]))
 
 
 (define (PrimitiveValue->racket v)

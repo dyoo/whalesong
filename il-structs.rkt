@@ -153,7 +153,14 @@
                                     'add1
                                     'sub1
                                     '<
-                                    '<=))
+                                    '<=
+                                    '=
+                                    
+                                    'cons
+                                    'car
+                                    'cdr
+                                    'null?
+                                    ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 
 

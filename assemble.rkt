@@ -417,28 +417,50 @@ EOF
 (define (open-code-kernel-primitive-procedure op)
   (let: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
          [rand-vals : (Listof String) (map assemble-input (CallKernelPrimitiveProcedure-operands op))])
-        (cond
-          [(eq? operator '+)
+        (case operator
+          [(+)
            (cond [(empty? rand-vals)
                   "0"]
                  [else
                   (string-append "(" (string-join rand-vals " + ") ")")])]
-          [(eq? operator 'add1)
+          [(add1)
            (unless (= 1 (length rand-vals))
              (error 'add1 "Expected one argument"))
            (format "(~a + 1)" (first rand-vals))]
-          [(eq? operator 'sub1)
+          [(sub1)
            (unless (= 1 (length rand-vals))
              (error 'sub1 "Expected one argument"))
            (format "(~a - 1)" (first rand-vals))]
-          [(eq? operator '<)
+          [(<)
            (unless (> (length rand-vals) 0)
              (error '< "Expected at least one argument"))
            (assemble-chain "<" rand-vals)]
-          [(eq? operator '<=)
+          [(<=)
            (unless (> (length rand-vals) 0)
              (error '<= "Expected at least one argument"))
-           (assemble-chain "<=" rand-vals)])))
+           (assemble-chain "<=" rand-vals)]
+          [(=)
+           (unless (> (length rand-vals) 0)
+             (error '= "Expected at least one argument"))
+           (assemble-chain "==" rand-vals)]
+          [(cons)
+           (unless (= (length rand-vals) 2)
+             (error 'cons "Expected two arguments"))
+           (format "[~a, ~a]" (first rand-vals) (second rand-vals))]
+          [(car)
+           (unless (= (length rand-vals) 1)
+             (error 'car "Expected one argument"))
+           (format "(~a)[0]" (first rand-vals))]
+          [(cdr)
+           (unless (= (length rand-vals) 1)
+             (error 'cdr "Expected one argument"))
+           (format "(~a)[1]" (first rand-vals))]
+          [(null?)
+           (unless (= (length rand-vals) 1)
+             (error 'null? "Expected one argument"))
+           (format "(~a === Primitives.null)"
+                   (first rand-vals))])))
+
 
 (: assemble-chain (String (Listof String) -> String))
 (define (assemble-chain rator rands)

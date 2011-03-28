@@ -279,10 +279,19 @@
 
 
 
+
 ;; Linkage
-(define-type Linkage (U 'return 
-                        'next
-                        Symbol))
+(define-struct: NextLinkage ())
+(define next-linkage (make-NextLinkage))
+
+(define-struct: ReturnLinkage ())
+(define return-linkage (make-ReturnLinkage))
+
+(define-struct: LabelLinkage ([label : Symbol]))
+
+(define-type Linkage (U NextLinkage
+                        ReturnLinkage
+                        LabelLinkage))
 
 
 

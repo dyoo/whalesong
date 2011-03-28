@@ -3,11 +3,12 @@
 (require "simulator.rkt"
          "simulator-structs.rkt"
          "compile.rkt"
-         "parse.rkt")
+         "parse.rkt"
+         "il-structs.rkt")
 
 
 (define (run-compiler code)
-  (compile (parse code) 'val 'next))
+  (compile (parse code) 'val next-linkage))
   
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.

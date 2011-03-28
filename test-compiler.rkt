@@ -4,11 +4,12 @@
          "simulator-structs.rkt"
          "simulator-helpers.rkt"
          "compile.rkt"
-         "parse.rkt")
+         "parse.rkt"
+         "il-structs.rkt")
 
 
 (define (run-compiler code)
-  (compile (parse code) 'val 'next))
+  (compile (parse code) 'val next-linkage))
   
 
 ;; Test out the compiler, using the simulator.

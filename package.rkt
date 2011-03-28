@@ -19,7 +19,7 @@
   (assemble/write-invoke (append (get-bootstrapping-code)
 				 (compile (parse source-code)
 					  'val
-					  'next))
+					  next-linkage))
                          op)
   (fprintf op ";\n"))
 

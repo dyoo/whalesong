@@ -50,7 +50,7 @@
                                     '(?)
                                     1 
                                     'val
-                                    'return)
+                                    return-linkage)
     
     ;; The code for the continuation coe follows.  It's supposed to
     ;; abandon the current continuation, initialize the control and environment, and then jump.
@@ -67,7 +67,7 @@
 (define (make-bootstrapped-primitive-code name src)
   (parameterize ([current-defined-name name])
     (append
-     (compile (parse src) (make-PrimitivesReference name) 'next)
+     (compile (parse src) (make-PrimitivesReference name) next-linkage)
      ;; Remove the prefix after the Primitives assignment.
      `(,(make-PopEnvironment 1 0)))))
 

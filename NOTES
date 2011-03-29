@@ -1,15 +1,65 @@
-Some possible optimizations:
-
-
-Application:
+Some possible optimizations with application:
 
     If any of the operands are constant (either by being variable
     lookups or literal constants), and if all of them are side-effect
     free, then juggle-operands might not be necessary.
     
     In a self-application, it's not necessary to compute the operator,
-    since the value is in the top control frame.
+    since the value is in the top control frame.  A parameterization
+    can maintain the current lam in the top of the control frame.
+    Given that, then there's no need to juggle operands either, since
+    we can grab the operator afterwards and put it in place.
 
     For a kernel primitive call, if all of the operands are all
-    constant or stack references, there's no need to push for fresh
-    stack space.
+    constant, stack references, or kernel primitive calls, then
+    there's no need to push for fresh stack space.
+
+
+
+
+Multiple values
+
+There's interplay between compile-proc-appl and the linkage compiling
+functions compile-linkage and compile-application-linkage.  When we
+deal with multiple values, we'll have to do something here to make the
+values efficient.  There's a paper by J. Michael Ashley and R. Kent
+Dybvig called "An Efficient Implementation of Multiple Return Values
+in Scheme" that I'll need to read.
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.39.1668&rep=rep1&type=pdf
+
+
+
+
+
+Open coding:
+
+I want to be able to write the definitions of kernel primitives once,
+and reuse those definitions for both the open-coding as well as the
+real runtime.  I also need to be able to encode the type checks.  I
+want to be able to say:
+
+
+(make-kernel-primitive '+
+                       (arity 0 #t)
+
+                       (lambda (args)
+			 (values (mapi (lambda (arg i)
+					 (test arg i number?))
+				       arg)
+				 (string-join args "+"))))
+
+and have it magically generate the definitions for the open-coding
+primitive as well as:
+
+    PRIMITIVES["+"] = function(MACHINE, arity) {
+                          var result = 0;
+                          for (var i = 0 ; i < arity; i++) {
+                              test(isNumber(MACHINE.env[MACHINE.env.length - 1 - i]),
+                                   i,
+                                   "number");
+                              result += MACHINE.env[MACHINE.env.length - 1 - i];
+			  }
+                          return result;
+                      };
+
+Is this completely unrealistic?  I have to see how Rabbit and Orbit do this.

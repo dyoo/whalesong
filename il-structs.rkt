@@ -167,11 +167,15 @@
                                     '<
                                     '<=
                                     '=
+                                    '>
+                                    '>=
                                     'cons
                                     'car
                                     'cdr
                                     'list
                                     'null?
+                                    'not
+                                    'eq?
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

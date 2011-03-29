@@ -473,6 +473,14 @@ EOF
            (unless (> (length rand-vals) 0)
              (error '= "Expected at least one argument"))
            (assemble-chain "==" rand-vals)]
+          [(>)
+           (unless (> (length rand-vals) 0)
+             (error '> "Expected at least one argument"))
+           (assemble-chain ">" rand-vals)]
+          [(>=)
+           (unless (> (length rand-vals) 0)
+             (error '>= "Expected at least one argument"))
+           (assemble-chain ">=" rand-vals)]
           [(cons)
            (unless (= (length rand-vals) 2)
              (error 'cons "Expected two arguments"))
@@ -496,7 +504,15 @@ EOF
            (unless (= (length rand-vals) 1)
              (error 'null? "Expected one argument"))
            (format "(~a === Primitives.null)"
-                   (first rand-vals))])))
+                   (first rand-vals))]
+          [(not)
+           (unless (= (length rand-vals) 1)
+             (error 'not? "Expected one argument"))
+           (format "(!~a)" (first rand-vals))]
+          [(eq?)
+           (unless (= (length rand-vals) 2)
+             (error 'eq? "Expected 2 arguments"))
+           (format "(~a === ~a)" (first rand-vals) (second rand-vals))])))
 
 
 (: assemble-chain (String (Listof String) -> String))

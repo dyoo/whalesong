@@ -366,6 +366,10 @@
            (chain-compare <= (map ensure-real-number rand-vals))]
           [(=)
            (chain-compare = (map ensure-real-number rand-vals))]
+          [(>)
+           (chain-compare > (map ensure-real-number rand-vals))]
+          [(>=)   
+           (chain-compare >= (map ensure-real-number rand-vals))]
           [(cons)
            (make-MutablePair (first rand-vals) (ensure-list (second rand-vals)))]
           [(car)
@@ -380,6 +384,10 @@
                                       (loop (rest rand-vals)))]))]
           [(null?)
            (null? (first rand-vals))]
+          [(not)
+           (not (first rand-vals))]
+          [(eq?)
+           (eq? (first rand-vals) (second rand-vals))]
           [else
            (error 'evaluate-kernel-primitive-procedure-call "missing operator: ~s\n" op)])))
 

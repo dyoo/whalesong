@@ -325,6 +325,7 @@
      Prefix      ;; placeholder: necessary since the toplevel lives in the environment too
      StaticallyKnownLam ;; The value is a known lam
      ModuleVariable     ;; The value is a known module variable
+     Const
      ))
 
 (define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))

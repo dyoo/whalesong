@@ -209,7 +209,7 @@
 (: maybe-typecheck-operand (OperandDomain Natural String CompileTimeEnvironmentEntry -> String))
 (define (maybe-typecheck-operand domain-type position operand-string knowledge)
   (cond
-    [#t #;(redundant-check? domain-type knowledge)
+    [(redundant-check? domain-type knowledge)
      operand-string]
     [else
      (assemble-domain-check domain-type operand-string position)]))
@@ -217,9 +217,22 @@
 
 (: redundant-check? (OperandDomain CompileTimeEnvironmentEntry -> Boolean))
 (define (redundant-check? domain-type knowledge)
-  #f)
+  (cond [(Const? knowledge)
+         (case domain-type
+           [(number)
+            (number? (Const-const knowledge))]
+           [(string)
+            (string? (Const-const knowledge))]
+           [(box)
+            (box? (Const-const knowledge))]
+           [(list)
+            (list? (Const-const knowledge))]
+           [(pair)
+            (pair? (Const-const knowledge))])]
+        [else
+         #f]))
 
 
-         (: repeat (All (A) (A Natural -> (Listof A))))
+(: repeat (All (A) (A Natural -> (Listof A))))
 (define (repeat x n)
   (build-list n (lambda (i) x)))

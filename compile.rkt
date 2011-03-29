@@ -396,7 +396,9 @@
             [(StaticallyKnownLam? op-knowledge)
              (compile-statically-known-lam-application op-knowledge exp cenv extended-cenv target linkage)]
             [(Prefix? op-knowledge)
-             (error 'impossible)]))))
+             (error 'impossible)]
+            [(Const? op-knowledge)
+             (error 'application "Can't apply constant ~s as a function" (Const-const op-knowledge))]))))
 
 
 (: compile-general-application (App CompileTimeEnvironment CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -754,6 +756,8 @@
               name]
              [else
               '?]))]
+    [(Constant? exp)
+     (make-Const (Constant-v exp))]
     [else
      '?]))
 

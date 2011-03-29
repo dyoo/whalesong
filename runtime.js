@@ -31,6 +31,26 @@ var Closure = function(label, arity, closedVals, displayName) {
 
 
 
+
+// testArgument: (X -> boolean) X number string string -> boolean
+// Produces true if val is true, and otherwise raises an error.
+var testArgument = function(expectedTypeName,
+			    predicate, 			    
+			    val, 
+			    position, 
+			    callerName) {
+    if (predicate(val)) {
+	return true;
+    }
+    throw new Error(callerName + ": expected " + expectedTypeName
+		    + " as argument #" + position 
+		    + " but received " + val + " instead");
+};
+
+var isNumber = function(x) { return typeof(x) === 'number'; };
+
+
+
 var Primitives = (function() {
     var NULL = [];
     return {
@@ -56,55 +76,90 @@ var Primitives = (function() {
 	'=': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    testArgument('number', isNumber, firstArg, 0, '=');
+	    testArgument('number', isNumber, secondArg, 1, '=');
             return firstArg === secondArg;
 	},
 
 	'<': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    testArgument('number', isNumber, firstArg, 0, '<');
+	    testArgument('number', isNumber, secondArg, 1, '<');
 	    return firstArg < secondArg;
 	},
 
 	'>': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    testArgument('number', isNumber, firstArg, 0, '>');
+	    testArgument('number', isNumber, secondArg, 1, '>');
 	    return firstArg > secondArg;
 	},
 
 	'<=': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    testArgument('number', isNumber, firstArg, 0, '<=');
+	    testArgument('number', isNumber, secondArg, 1, '<=');
 	    return firstArg <= secondArg;
 	},
 
 	'>=': function(MACHINE, arity) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    testArgument('number', isNumber, firstArg, 0, '>=');
+	    testArgument('number', isNumber, secondArg, 1, '>=');
 	    return firstArg >= secondArg;
 	},
 	
 	'+': function(MACHINE, arity) {
 	    var result = 0;
-	    while (arity > 0) {
-		result += MACHINE.env[MACHINE.env.length - arity];
-		arity--;
+	    var i = 0;
+	    for (i=0; i < arity; i++) {
+		testArgument(
+		    'number',
+		    isNumber, 
+		    MACHINE.env[MACHINE.env.length - 1 - i],
+		    i,
+		    '+');
+		result += MACHINE.env[MACHINE.env.length - 1 - i],
 	    };
 	    return result;
 	},
 	
 	'*': function(MACHINE, arity) {
 	    var result = 1;
-	    while (arity > 0) {
-		result *= MACHINE.env[MACHINE.env.length - arity];
-		arity--;
-	    };
+	    var i = 0;
+	    for (i=0; i < arity; i++) {
+		testArgument(
+		    'number',
+		    isNumber, 
+		    MACHINE.env[MACHINE.env.length - 1 - i],
+		    i,
+		    '*');
+		result *= MACHINE.env[MACHINE.env.length - 1 - i],
+	    }
+	    return result;
 	},
 	
 	'-': function(MACHINE, arity) {
 	    if (arity === 0) { throw new Error(); }
-	    if (arity === 1) { return -(MACHINE.env[MACHINE.env.length-1]); }
+	    if (arity === 1) { 
+		testArgument('number',
+			     isNumber,
+			     MACHINE.env[MACHINE.env.length-1],
+			     0,
+			     '-');
+		return -(MACHINE.env[MACHINE.env.length-1]);
+	    }
 	    var result = MACHINE.env[MACHINE.env.length - 1];
 	    for (var i = 1; i < arity; i++) {
+		testArgument('number',
+			     isNumber,
+			     MACHINE.env[MACHINE.env.length-1-i],
+			     i,
+			     '-');
 		result -= MACHINE.env[MACHINE.env.length - 1 - i];
 	    }
 	    return result;
@@ -112,6 +167,11 @@ var Primitives = (function() {
 	
 	'/': function(MACHINE, arity) {
 	    if (arity === 0) { throw new Error(); }
+	    testArgument('number',
+			 isNumber,
+			 MACHINE.env[MACHINE.env.length - 1],
+			 0,
+			 '/');
 	    var result = MACHINE.env[MACHINE.env.length - 1];
 	    for (var i = 1; i < arity; i++) {
 		result /= MACHINE.env[MACHINE.env.length - 1 - i];

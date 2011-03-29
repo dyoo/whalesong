@@ -350,6 +350,12 @@
         (case op
           [(+)
            (apply + (map ensure-number rand-vals))]
+          [(-)
+           (apply - (ensure-number (first rand-vals)) (map ensure-number (rest rand-vals)))]
+          [(*)
+           (apply * (map ensure-number rand-vals))]
+          [(/)
+           (apply / (ensure-number (first rand-vals)) (map ensure-number (rest rand-vals)))]
           [(add1)
            (add1 (ensure-number (first rand-vals)))]
           [(sub1)
@@ -366,6 +372,12 @@
            (MutablePair-h (ensure-mutable-pair (first rand-vals)))]
           [(cdr)
            (MutablePair-t (ensure-mutable-pair (first rand-vals)))]
+          [(list)
+           (let: loop : PrimitiveValue ([rand-vals : (Listof PrimitiveValue) rand-vals])
+             (cond [(empty? rand-vals)
+                    null]
+                   [(make-MutablePair (first rand-vals)
+                                      (loop (rest rand-vals)))]))]
           [(null?)
            (null? (first rand-vals))]
           [else

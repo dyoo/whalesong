@@ -84,28 +84,39 @@ var Primitives = (function() {
 	},
 	
 	'+': function(MACHINE, arity) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-
-            return firstArg + secondArg;
+	    var result = 0;
+	    while (arity > 0) {
+		result += MACHINE.env[MACHINE.env.length - arity];
+		arity--;
+	    };
+	    return result;
 	},
 	
 	'*': function(MACHINE, arity) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-            return firstArg * secondArg;
+	    var result = 1;
+	    while (arity > 0) {
+		result *= MACHINE.env[MACHINE.env.length - arity];
+		arity--;
+	    };
 	},
 	
 	'-': function(MACHINE, arity) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-            return firstArg - secondArg;
+	    if (arity === 0) { throw new Error(); }
+	    if (arity === 1) { return -(MACHINE.env[MACHINE.env.length-1]); }
+	    var result = MACHINE.env[MACHINE.env.length - 1];
+	    for (var i = 1; i < arity; i++) {
+		result -= MACHINE.env[MACHINE.env.length - 1 - i];
+	    }
+	    return result;
 	},
 	
 	'/': function(MACHINE, arity) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    return firstArg / secondArg;
+	    if (arity === 0) { throw new Error(); }
+	    var result = MACHINE.env[MACHINE.env.length - 1];
+	    for (var i = 1; i < arity; i++) {
+		result /= MACHINE.env[MACHINE.env.length - 1 - i];
+	    }
+	    return result;
 	},
 
 	'cons': function(MACHINE, arity) {

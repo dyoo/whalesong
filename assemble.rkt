@@ -431,11 +431,28 @@ EOF
         (case operator
           [(+)
            (cond [(empty? rand-vals)
-                  "(0)"]
+                  "0"]
                  [else
                   (string-append "(" 
                                  (string-join rand-vals " + ") 
                                  ")")])]
+          [(-)
+           (cond [(empty? rand-vals)
+                  (error '- "Expects at least 1 argument, given 0")]
+                 [(empty? (rest rand-vals))
+                  (format "(-(~a))" (first rand-vals))]
+                 [else
+                  (string-append "(" (string-join rand-vals "-") ")")])]
+          [(*)
+           (cond [(empty? rand-vals)
+                  "1"]
+                 [else
+                  (string-append "(" (string-join rand-vals "*") ")")])]
+          [(/)
+           (cond [(empty? rand-vals)
+                  (error '/ "Expects at least 1 argument, given 0")]
+                 [else
+                  (string-append "(" (string-join rand-vals "/") ")")])]
           [(add1)
            (unless (= 1 (length rand-vals))
              (error 'add1 "Expected one argument"))
@@ -468,6 +485,13 @@ EOF
            (unless (= (length rand-vals) 1)
              (error 'cdr "Expected one argument"))
            (format "(~a)[1]" (first rand-vals))]
+          [(list)
+           (let loop ([rand-vals rand-vals])
+             (cond
+               [(empty? rand-vals)
+                "Primitives.null"]
+               [else
+                (format "[~a,~a]" (first rand-vals) (loop (rest rand-vals)))]))]
           [(null?)
            (unless (= (length rand-vals) 1)
              (error 'null? "Expected one argument"))

@@ -170,6 +170,7 @@
                                     'cons
                                     'car
                                     'cdr
+                                    'list
                                     'null?
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)

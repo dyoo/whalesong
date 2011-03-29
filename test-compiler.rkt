@@ -140,6 +140,14 @@
 (test '(/ 10 5)
       2)
 
+(test '(- 1 2)
+      -1)
+
+(test '(- 3)
+      -3)
+
+(test '(*)
+      1)
 
 ;; composition of square
 (test '(begin (define (f x)

@@ -172,7 +172,7 @@ var Primitives = (function() {
 	},
 	
 	'/': function(MACHINE, arity) {
-	    if (arity === 0) { raise(new Error();) }
+	    if (arity === 0) { raise(new Error()); }
 	    testArgument('number',
 			 isNumber,
 			 MACHINE.env[MACHINE.env.length - 1],

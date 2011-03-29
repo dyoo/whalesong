@@ -172,10 +172,10 @@
   (let ([test-string 
          (case domain
            [(number)
-            (format "typeof(~a) === 'number'"
+            (format "(typeof(~a) === 'number')"
                     operand-string)]             
            [(string)
-            (format "typeof(~a) === 'string'"
+            (format "(typeof(~a) === 'string')"
                     operand-string)]
            [(list)
             (format "(~a === [] || (typeof(~a) === 'object' && (~a).length === 2))"
@@ -183,10 +183,10 @@
            [(pair)
             (format "(typeof(~a) === 'object' && (~a).length === 2)"
                     operand-string operand-string)])])
-    (format "(~a ? ~a : raise(new Error('Expected ' + ~a + ' as argument ' + ~s + ' but received ' + ~a)))"
+    (format "((~a) ? (~a) : raise(new Error('Expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
             test-string
             operand-string
-            domain
+            (symbol->string domain)
             pos
             operand-string)))
 
@@ -209,7 +209,7 @@
 (: maybe-typecheck-operand (OperandDomain Natural String CompileTimeEnvironmentEntry -> String))
 (define (maybe-typecheck-operand domain-type position operand-string knowledge)
   (cond
-    [(redundant-check? domain-type knowledge)
+    [#t #;(redundant-check? domain-type knowledge)
      operand-string]
     [else
      (assemble-domain-check domain-type operand-string position)]))

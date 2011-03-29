@@ -27,6 +27,8 @@ var Closure = function(label, arity, closedVals, displayName) {
     this.displayName = displayName;
 };
 
+
+
 // A primitive function is just a Javascript function.
 
 
@@ -42,13 +44,17 @@ var testArgument = function(expectedTypeName,
     if (predicate(val)) {
 	return true;
     }
-    throw new Error(callerName + ": expected " + expectedTypeName
-		    + " as argument #" + position 
-		    + " but received " + val + " instead");
+    else {
+	raise(new Error(callerName + ": expected " + expectedTypeName
+			+ " as argument #" + position 
+			+ " but received " + val + " instead"));
+    }
 };
 
 var isNumber = function(x) { return typeof(x) === 'number'; };
 
+
+var raise = function(e) { throw e; }
 
 
 var Primitives = (function() {
@@ -144,7 +150,7 @@ var Primitives = (function() {
 	},
 	
 	'-': function(MACHINE, arity) {
-	    if (arity === 0) { throw new Error(); }
+	    if (arity === 0) { raise(new Error()); }
 	    if (arity === 1) { 
 		testArgument('number',
 			     isNumber,
@@ -166,7 +172,7 @@ var Primitives = (function() {
 	},
 	
 	'/': function(MACHINE, arity) {
-	    if (arity === 0) { throw new Error(); }
+	    if (arity === 0) { raise(new Error();) }
 	    testArgument('number',
 			 isNumber,
 			 MACHINE.env[MACHINE.env.length - 1],

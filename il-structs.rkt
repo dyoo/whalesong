@@ -181,7 +181,8 @@
 
 
 (define-struct: CallKernelPrimitiveProcedure ([operator : KernelPrimitiveName]
-                                              [operands : (Listof OpArg)])
+                                              [operands : (Listof OpArg)]
+                                              [operands-knowledge : (Listof CompileTimeEnvironmentEntry)])
   #:transparent)
 
 
@@ -299,6 +300,34 @@
 (define-type Linkage (U NextLinkage
                         ReturnLinkage
                         LabelLinkage))
+
+
+
+
+
+
+
+
+
+
+
+
+;; Static knowledge about a value
+
+;; We try to keep at compile time a mapping from environment positions to
+;; statically known things, to generate better code.
+(define-struct: StaticallyKnownLam ([name : (U Symbol False)]
+                                    [entry-point : Symbol]
+                                    [arity : Natural]) #:transparent)
+
+(define-type CompileTimeEnvironmentEntry 
+  (U '?          ;; no knowledge
+     Prefix      ;; placeholder: necessary since the toplevel lives in the environment too
+     StaticallyKnownLam ;; The value is a known lam
+     ModuleVariable     ;; The value is a known module variable
+     ))
+
+(define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
 
 
 

@@ -13,19 +13,6 @@
 
 
 
-;; We try to keep at compile time a mapping from environment positions to
-;; statically known things, to generate better code.
-(define-struct: StaticallyKnownLam ([name : (U Symbol False)]
-                                    [entry-point : Symbol]
-                                    [arity : Natural]) #:transparent)
-
-(define-type CompileTimeEnvironmentEntry 
-  (U '? Prefix StaticallyKnownLam ModuleVariable))
-
-(define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
-
-
-
 
 
 (: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
@@ -450,17 +437,11 @@
 ;; of hardcoded primitives.
 (define (compile-kernel-primitive-application kernel-op exp cenv extended-cenv target linkage)
   (let* ([n (length (App-operands exp))]
-         [operand-poss
-          (build-list (length (App-operands exp))
-                      (lambda: ([i : Natural])
-                               (make-EnvLexicalReference i #f)))]
-         [operand-codes (map (lambda: ([operand : Expression]
-                                       [target : Target])
-                                      (compile operand extended-cenv target next-linkage))
-                             (App-operands exp)
-                             operand-poss)])
+         [operand-knowledge (map (lambda: ([arg : ExpressionCore])
+                                          (extract-static-knowledge arg extended-cenv))
+                                 (App-operands exp))])
     (cond 
-      ;; Special case optimization: we can avoid pushing the stack altogether
+      ;; Special case optimization: we can avoid touching the stack altogether
       [(all-operands-are-constant-or-stack-references (App-operands exp))
        => (lambda (opargs)
             (end-with-linkage
@@ -468,31 +449,43 @@
              (make-instruction-sequence
               `(,(make-AssignPrimOpStatement
                   target
-                  (make-CallKernelPrimitiveProcedure kernel-op (map (lambda: ([arg : OpArg])
-                                                                             (adjust-oparg-depth arg (- n)))
-                                                                    opargs)))))))]
+                  (make-CallKernelPrimitiveProcedure kernel-op 
+                                                     (map (lambda: ([arg : OpArg])
+                                                                   (adjust-oparg-depth arg (- n)))
+                                                          opargs)
+                                                     operand-knowledge))))))]
       [else
-       (end-with-linkage 
-        linkage cenv
-        (append-instruction-sequences
-         
-         (if (not (empty? (App-operands exp)))
-             (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
-             empty-instruction-sequence)
-         
-         (apply append-instruction-sequences operand-codes)
-         
-         (make-instruction-sequence 
-          `(,(make-AssignPrimOpStatement 
-              ;; Optimization: we put the result directly in the registers, or in
-              ;; the appropriate spot on the stack.  This takes into account the popenviroment
-              ;; that happens right afterwards.
-              (adjust-target-depth target n)                     
-              (make-CallKernelPrimitiveProcedure kernel-op operand-poss))))
-         
-         (if (> n 0)
-             (make-instruction-sequence `(,(make-PopEnvironment n 0)))
-             empty-instruction-sequence)))])))
+       (let* ([operand-poss
+               (build-list (length (App-operands exp))
+                           (lambda: ([i : Natural])
+                                    (make-EnvLexicalReference i #f)))]
+              [operand-codes (map (lambda: ([operand : Expression]
+                                            [target : Target])
+                                           (compile operand extended-cenv target next-linkage))
+                                  (App-operands exp)
+                                  operand-poss)])
+         (end-with-linkage 
+          linkage cenv
+          (append-instruction-sequences
+           
+           (if (not (empty? (App-operands exp)))
+               (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+               empty-instruction-sequence)
+           
+           (apply append-instruction-sequences operand-codes)
+           
+           (make-instruction-sequence 
+            `(,(make-AssignPrimOpStatement 
+                ;; Optimization: we put the result directly in the registers, or in
+                ;; the appropriate spot on the stack.  This takes into account the popenviroment
+                ;; that happens right afterwards.
+                (adjust-target-depth target n)                     
+                (make-CallKernelPrimitiveProcedure kernel-op 
+                                                   operand-poss
+                                                   operand-knowledge))))
+           (if (> n 0)
+               (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+               empty-instruction-sequence))))])))
 
 
 

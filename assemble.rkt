@@ -2,6 +2,8 @@
 (require "il-structs.rkt"
          "lexical-structs.rkt"
          "helpers.rkt"
+         "assemble-helpers.rkt"
+         "assemble-open-coded.rkt"
          racket/string
          racket/list)
 
@@ -218,21 +220,7 @@ EOF
           (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))
                        "\n")))
 
-(: assemble-oparg (OpArg -> String))
-(define (assemble-oparg v)
-  (cond 
-    [(Reg? v)
-     (assemble-reg v)]
-    [(Label? v)
-     (assemble-label v)]
-    [(Const? v)
-     (assemble-const v)]
-    [(EnvLexicalReference? v)
-     (assemble-lexical-reference v)]
-    [(EnvPrefixReference? v)
-     (assemble-prefix-reference v)]
-    [(EnvWholePrefixReference? v)
-     (assemble-whole-prefix-reference v)]))
+
 
 
 (: assemble-statement (UnlabeledStatement -> String))
@@ -300,63 +288,9 @@ EOF
 
 
 
-(: assemble-target (Target -> String))
-(define (assemble-target target)
-  (cond
-    [(eq? target 'proc)
-     "MACHINE.proc"]
-    [(eq? target 'val)
-     "MACHINE.val"]
-    [(EnvLexicalReference? target)
-     (assemble-lexical-reference target)]
-    [(EnvPrefixReference? target)
-     (assemble-prefix-reference target)]
-    [(PrimitivesReference? target)
-     (format "Primitives[~s]" (symbol->string (PrimitivesReference-name target)))]))
 
 
 
-
-;; fixme: use js->string
-(: assemble-const (Const -> String))
-(define (assemble-const stmt)
-  (let: loop : String ([val : Any (Const-const stmt)])
-        (cond [(symbol? val)
-               (format "~s" (symbol->string val))]
-              [(pair? val)
-               (format "[~a, ~a]" 
-                       (loop (car val))
-                       (loop (cdr val)))]
-              [(boolean? val)
-               (if val "true" "false")]
-              [(void? val)
-               "null"]
-              [(empty? val)
-               (format "Primitives.null")]
-              [(number? val)
-               (format "(~s)" val)]
-              [else
-               (format "~s" val)])))
-
-
-(: assemble-lexical-reference (EnvLexicalReference -> String))
-(define (assemble-lexical-reference a-lex-ref)
-  (if (EnvLexicalReference-unbox? a-lex-ref)
-      (format "MACHINE.env[MACHINE.env.length - 1 - ~a][0]"
-              (EnvLexicalReference-depth a-lex-ref))
-      (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-              (EnvLexicalReference-depth a-lex-ref))))
-
-(: assemble-prefix-reference (EnvPrefixReference -> String))
-(define (assemble-prefix-reference a-ref)
-  (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"
-          (EnvPrefixReference-depth a-ref)
-          (EnvPrefixReference-pos a-ref)))
-
-(: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
-(define (assemble-whole-prefix-reference a-prefix-ref)
-  (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-          (EnvWholePrefixReference-depth a-prefix-ref)))
 
 
 (: assemble-env-reference/closure-capture (Natural -> String))
@@ -423,112 +357,6 @@ EOF
 
 
 
-;; FIXME: this needs to check that the domains are good!
-(: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
-(define (open-code-kernel-primitive-procedure op)
-  (let: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
-         [rand-vals : (Listof String) (map assemble-input (CallKernelPrimitiveProcedure-operands op))])
-        (case operator
-          [(+)
-           (cond [(empty? rand-vals)
-                  "0"]
-                 [else
-                  (string-append "(" 
-                                 (string-join rand-vals " + ") 
-                                 ")")])]
-          [(-)
-           (cond [(empty? rand-vals)
-                  (error '- "Expects at least 1 argument, given 0")]
-                 [(empty? (rest rand-vals))
-                  (format "(-(~a))" (first rand-vals))]
-                 [else
-                  (string-append "(" (string-join rand-vals "-") ")")])]
-          [(*)
-           (cond [(empty? rand-vals)
-                  "1"]
-                 [else
-                  (string-append "(" (string-join rand-vals "*") ")")])]
-          [(/)
-           (cond [(empty? rand-vals)
-                  (error '/ "Expects at least 1 argument, given 0")]
-                 [else
-                  (string-append "(" (string-join rand-vals "/") ")")])]
-          [(add1)
-           (unless (= 1 (length rand-vals))
-             (error 'add1 "Expected one argument"))
-           (format "(~a + 1)" (first rand-vals))]
-          [(sub1)
-           (unless (= 1 (length rand-vals))
-             (error 'sub1 "Expected one argument"))
-           (format "(~a - 1)" (first rand-vals))]
-          [(<)
-           (unless (> (length rand-vals) 0)
-             (error '< "Expected at least one argument"))
-           (assemble-chain "<" rand-vals)]
-          [(<=)
-           (unless (> (length rand-vals) 0)
-             (error '<= "Expected at least one argument"))
-           (assemble-chain "<=" rand-vals)]
-          [(=)
-           (unless (> (length rand-vals) 0)
-             (error '= "Expected at least one argument"))
-           (assemble-chain "==" rand-vals)]
-          [(>)
-           (unless (> (length rand-vals) 0)
-             (error '> "Expected at least one argument"))
-           (assemble-chain ">" rand-vals)]
-          [(>=)
-           (unless (> (length rand-vals) 0)
-             (error '>= "Expected at least one argument"))
-           (assemble-chain ">=" rand-vals)]
-          [(cons)
-           (unless (= (length rand-vals) 2)
-             (error 'cons "Expected two arguments"))
-           (format "[~a, ~a]" (first rand-vals) (second rand-vals))]
-          [(car)
-           (unless (= (length rand-vals) 1)
-             (error 'car "Expected one argument"))
-           (format "(~a)[0]" (first rand-vals))]
-          [(cdr)
-           (unless (= (length rand-vals) 1)
-             (error 'cdr "Expected one argument"))
-           (format "(~a)[1]" (first rand-vals))]
-          [(list)
-           (let loop ([rand-vals rand-vals])
-             (cond
-               [(empty? rand-vals)
-                "Primitives.null"]
-               [else
-                (format "[~a,~a]" (first rand-vals) (loop (rest rand-vals)))]))]
-          [(null?)
-           (unless (= (length rand-vals) 1)
-             (error 'null? "Expected one argument"))
-           (format "(~a === Primitives.null)"
-                   (first rand-vals))]
-          [(not)
-           (unless (= (length rand-vals) 1)
-             (error 'not? "Expected one argument"))
-           (format "(!~a)" (first rand-vals))]
-          [(eq?)
-           (unless (= (length rand-vals) 2)
-             (error 'eq? "Expected 2 arguments"))
-           (format "(~a === ~a)" (first rand-vals) (second rand-vals))])))
-
-
-(: assemble-chain (String (Listof String) -> String))
-(define (assemble-chain rator rands)
-  (string-append "("
-                 (string-join (let: loop : (Listof String) ([rands : (Listof String) rands])
-                                (cond
-                                  [(empty? rands)
-                                   '()]
-                                  [(empty? (rest rands))
-                                   '()]
-                                  [else
-                                   (cons (format "(~a ~a ~a)" (first rands) rator (second rands))
-                                         (loop (rest rands)))]))
-                              "&&")
-                 ")"))
 
 
 
@@ -591,21 +419,6 @@ EOF
                           ", "))]))
 
 
-(: assemble-input (OpArg -> String))
-(define (assemble-input an-input)
-  (cond
-    [(Reg? an-input)
-     (assemble-reg an-input)]
-    [(Const? an-input)
-     (assemble-const an-input)]
-    [(Label? an-input)
-     (assemble-label an-input)]
-    [(EnvLexicalReference? an-input)
-     (assemble-lexical-reference an-input)]
-    [(EnvPrefixReference? an-input)
-     (assemble-prefix-reference an-input)]
-    [(EnvWholePrefixReference? an-input)
-     (assemble-whole-prefix-reference an-input)]))
 
 (: assemble-location ((U Reg Label) -> String))
 (define (assemble-location a-location)
@@ -615,10 +428,4 @@ EOF
     [(Label? a-location)
      (assemble-label a-location)]))
 
-(: assemble-reg (Reg -> String))
-(define (assemble-reg a-reg)
-  (string-append "MACHINE." (symbol->string (Reg-name a-reg))))
 
-(: assemble-label (Label -> String))
-(define (assemble-label a-label)
-  (symbol->string (Label-name a-label)))

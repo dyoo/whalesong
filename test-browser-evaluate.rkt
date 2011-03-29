@@ -48,6 +48,12 @@ EOF
                                      #'stx)))
              (printf " ok (~a milliseconds)\n" (evaluated-t result))))))]))
 
+(test '(display 42)
+      "42")
+
+(test '(display (+ 3 4))
+      "7")
+
 (test '(begin (define (f x) 
                 (if (= x 0)
                     0

@@ -500,14 +500,14 @@
 ;; Produces a list of OpArgs if all the operands are particularly simple, and false otherwise.
 (define (all-operands-are-constant-or-stack-references rands)
   (cond [(andmap (lambda: ([rand : ExpressionCore])
-                          (or (Const? rand)
+                          (or (Constant? rand)
                               (LocalRef? rand)
                               (ToplevelRef? rand)))
                  rands)
          (map (lambda: ([e : ExpressionCore])
                        (cond
-                         [(Const? e)
-                          e]
+                         [(Constant? e)
+                          (make-Const (Constant-v e))]
                          [(LocalRef? e)
                           (make-EnvLexicalReference (LocalRef-depth e)
                                                     (LocalRef-unbox? e))]

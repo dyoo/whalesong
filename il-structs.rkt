@@ -159,12 +159,14 @@
 
 ;; The following are primitives that the compiler knows about:
 (define-type KernelPrimitiveName (U '+
+                                    '-
+                                    '*
+                                    '/
                                     'add1
                                     'sub1
                                     '<
                                     '<=
                                     '=
-                                    
                                     'cons
                                     'car
                                     'cdr

@@ -422,6 +422,7 @@ EOF
      (open-code-kernel-primitive-procedure op)]))
 
 
+
 ;; FIXME: this needs to check that the domains are good!
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
 (define (open-code-kernel-primitive-procedure op)
@@ -430,9 +431,11 @@ EOF
         (case operator
           [(+)
            (cond [(empty? rand-vals)
-                  "0"]
+                  "(0)"]
                  [else
-                  (string-append "(" (string-join rand-vals " + ") ")")])]
+                  (string-append "(" 
+                                 (string-join rand-vals " + ") 
+                                 ")")])]
           [(add1)
            (unless (= 1 (length rand-vals))
              (error 'add1 "Expected one argument"))

@@ -123,7 +123,7 @@ var Primitives = (function() {
 		    MACHINE.env[MACHINE.env.length - 1 - i],
 		    i,
 		    '+');
-		result += MACHINE.env[MACHINE.env.length - 1 - i],
+		result += MACHINE.env[MACHINE.env.length - 1 - i];
 	    };
 	    return result;
 	},
@@ -138,7 +138,7 @@ var Primitives = (function() {
 		    MACHINE.env[MACHINE.env.length - 1 - i],
 		    i,
 		    '*');
-		result *= MACHINE.env[MACHINE.env.length - 1 - i],
+		result *= MACHINE.env[MACHINE.env.length - 1 - i];
 	    }
 	    return result;
 	},

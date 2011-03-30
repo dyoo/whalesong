@@ -70,7 +70,7 @@
      (add1 (find-prefix (rest cenv)))]))
 
 
-;; parse: Any ParseTimeEnvironment -> ExpressionCore
+;; parse: Any ParseTimeEnvironment -> Expression
 ;; Compile an expression.
 (define (parse exp cenv)
   (cond

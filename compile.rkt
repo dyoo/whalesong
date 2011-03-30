@@ -15,7 +15,7 @@
 
 
 
-(: -compile (ExpressionCore Target Linkage -> (Listof Statement)))
+(: -compile (Expression Target Linkage -> (Listof Statement)))
 ;; Generates the instruction-sequence stream.
 ;; Note: the toplevel generates the lambda body streams at the head, and then the
 ;; rest of the instruction stream.
@@ -35,11 +35,11 @@
                           [cenv : CompileTimeEnvironment]))
 
 
-(: collect-all-lams (ExpressionCore -> (Listof lam+cenv)))
+(: collect-all-lams (Expression -> (Listof lam+cenv)))
 ;; Finds all the lambdas in the expression.
 (define (collect-all-lams exp)
   (let: loop : (Listof lam+cenv)
-        ([exp : ExpressionCore exp]
+        ([exp : Expression exp]
          [cenv : CompileTimeEnvironment '()])
         
         (cond
@@ -62,13 +62,13 @@
                  (loop (Lam-body exp) 
                        (extract-lambda-cenv exp cenv)))]
           [(Seq? exp)
-           (apply append (map (lambda: ([e : ExpressionCore]) (loop e cenv))
+           (apply append (map (lambda: ([e : Expression]) (loop e cenv))
                               (Seq-actions exp)))]
           [(App? exp)
            (let ([new-cenv (append (build-list (length (App-operands exp)) (lambda: ([i : Natural]) '?))
                                    cenv)])
              (append (loop (App-operator exp) new-cenv)
-                     (apply append (map (lambda: ([e : ExpressionCore]) (loop e new-cenv)) (App-operands exp)))))]
+                     (apply append (map (lambda: ([e : Expression]) (loop e new-cenv)) (App-operands exp)))))]
           [(Let1? exp)
            (append (loop (Let1-rhs exp)
                          (cons '? cenv))
@@ -111,7 +111,7 @@
 
 
 
-(: compile (ExpressionCore CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(: compile (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles an expression into an instruction sequence.
 (define (compile exp cenv target linkage)
   (cond
@@ -366,7 +366,7 @@
 ;;     Known kernel primitive
 ;;  In the general case, we do general procedure application.
 (define (compile-application exp cenv target linkage) 
-  (let ([extended-cenv (append (map (lambda: ([op : ExpressionCore])
+  (let ([extended-cenv (append (map (lambda: ([op : Expression])
                                              '?)
                                     (App-operands exp))
                                cenv)])
@@ -439,7 +439,7 @@
 ;; of hardcoded primitives.
 (define (compile-kernel-primitive-application kernel-op exp cenv extended-cenv target linkage)
   (let* ([n (length (App-operands exp))]
-         [operand-knowledge (map (lambda: ([arg : ExpressionCore])
+         [operand-knowledge (map (lambda: ([arg : Expression])
                                           (extract-static-knowledge arg extended-cenv))
                                  (App-operands exp))])
     (cond 
@@ -491,15 +491,15 @@
 
 
 
-(: all-operands-are-constant-or-stack-references ((Listof ExpressionCore) -> (U False (Listof OpArg))))
+(: all-operands-are-constant-or-stack-references ((Listof Expression) -> (U False (Listof OpArg))))
 ;; Produces a list of OpArgs if all the operands are particularly simple, and false otherwise.
 (define (all-operands-are-constant-or-stack-references rands)
-  (cond [(andmap (lambda: ([rand : ExpressionCore])
+  (cond [(andmap (lambda: ([rand : Expression])
                           (or (Constant? rand)
                               (LocalRef? rand)
                               (ToplevelRef? rand)))
                  rands)
-         (map (lambda: ([e : ExpressionCore])
+         (map (lambda: ([e : Expression])
                        (cond
                          [(Constant? e)
                           (make-Const (Constant-v e))]
@@ -730,7 +730,7 @@
 
 
 
-(: extract-static-knowledge (ExpressionCore CompileTimeEnvironment ->  
+(: extract-static-knowledge (Expression CompileTimeEnvironment ->  
                                             CompileTimeEnvironmentEntry))
 ;; Statically determines what we know about exp, given the compile time environment.
 (define (extract-static-knowledge exp cenv)

@@ -5,7 +5,7 @@
 
 ;; Expressions
 
-(define-type ExpressionCore (U Top Constant 
+(define-type Expression (U Top Constant 
                                ToplevelRef LocalRef
                                ToplevelSet
                                Branch Lam Seq App
@@ -16,7 +16,7 @@
                                BoxEnv))
 
 (define-struct: Top ([prefix : Prefix]
-                     [code : ExpressionCore]) #:transparent)
+                     [code : Expression]) #:transparent)
 
 (define-struct: Constant ([v : Any]) #:transparent)
 
@@ -31,42 +31,42 @@
 (define-struct: ToplevelSet ([depth : Natural]
                              [pos : Natural]
                              [name : Symbol] 
-                             [value : ExpressionCore]) #:transparent)
+                             [value : Expression]) #:transparent)
 
-(define-struct: Branch ([predicate : ExpressionCore]
-                        [consequent : ExpressionCore]
-                        [alternative : ExpressionCore]) #:transparent)
+(define-struct: Branch ([predicate : Expression]
+                        [consequent : Expression]
+                        [alternative : Expression]) #:transparent)
 
 (define-struct: Lam ([name : (U Symbol False)]
                      [num-parameters : Natural]
-                     [body : ExpressionCore]
+                     [body : Expression]
                      [closure-map : (Listof Natural)]
                      [entry-label : Symbol]) #:transparent)
 
-(define-struct: Seq ([actions : (Listof ExpressionCore)]) #:transparent)
-(define-struct: App ([operator : ExpressionCore]
-                     [operands : (Listof ExpressionCore)]) #:transparent)
+(define-struct: Seq ([actions : (Listof Expression)]) #:transparent)
+(define-struct: App ([operator : Expression]
+                     [operands : (Listof Expression)]) #:transparent)
 
-(define-struct: Let1 ([rhs : ExpressionCore]
-                      [body : ExpressionCore])
+(define-struct: Let1 ([rhs : Expression]
+                      [body : Expression])
   #:transparent)
 (define-struct: LetVoid ([count : Natural]
-                         [body : ExpressionCore]
+                         [body : Expression]
                          [boxes? : Boolean])
   #:transparent)
 
 (define-struct: LetRec ([procs : (Listof Lam)]
-                        [body : ExpressionCore])
+                        [body : Expression])
   #:transparent)
 
 (define-struct: InstallValue ([depth : Natural]
-                              [body : ExpressionCore]
+                              [body : Expression]
                               [box? : Boolean])
   #:transparent)
 
 
 (define-struct: BoxEnv ([depth : Natural]
-                        [body : ExpressionCore])
+                        [body : Expression])
   #:transparent)
 
 
@@ -80,6 +80,3 @@
 
 (: rest-exps ((Listof Expression) -> (Listof Expression)))
 (define (rest-exps seq) (cdr seq))
-
-
-(define-type Expression (U ExpressionCore))

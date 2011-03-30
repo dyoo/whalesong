@@ -207,6 +207,7 @@
 
 
 (: maybe-typecheck-operand (OperandDomain Natural String CompileTimeEnvironmentEntry -> String))
+;; Adds typechecks if we can't prove that the operand is of the required type.
 (define (maybe-typecheck-operand domain-type position operand-string knowledge)
   (cond
     [(redundant-check? domain-type knowledge)
@@ -216,6 +217,7 @@
 
 
 (: redundant-check? (OperandDomain CompileTimeEnvironmentEntry -> Boolean))
+;; Produces true if we know the knowledge implies the domain-type.
 (define (redundant-check? domain-type knowledge)
   (cond [(Const? knowledge)
          (case domain-type

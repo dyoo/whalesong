@@ -436,8 +436,8 @@
 
 (: compile-kernel-primitive-application
    (KernelPrimitiveName App CompileTimeEnvironment CompileTimeEnvironment Target Linkage -> InstructionSequence))
-;; Special case of application, where the operator is statically known to be in the set
-;; of hardcoded primitives.
+;; This is a special case of application, where the operator is statically
+;; known to be in the set of hardcoded primitives.
 (define (compile-kernel-primitive-application kernel-op exp cenv extended-cenv target linkage)
   (let* ([n (length (App-operands exp))]
          [expected-operand-types (kernel-primitive-expected-operand-types kernel-op n)]
@@ -450,7 +450,8 @@
                            (kernel-primitive-expected-operand-types kernel-op n)
                            operand-knowledge)])
     (cond 
-      ;; Special case optimization: we can avoid touching the stack altogether
+      ;; Special case optimization: we can avoid touching the stack for constant
+      ;; arguments.
       [(all-operands-are-constant-or-stack-references (App-operands exp))
        => (lambda (opargs)
             (end-with-linkage
@@ -1007,3 +1008,59 @@
                               (EnvPrefixReference-pos arg))]
     [(EnvWholePrefixReference? arg)
      (make-EnvWholePrefixReference (ensure-natural (+ n (EnvWholePrefixReference-depth arg))))]))
+
+
+(: adjust-expression-depth (Expression Integer -> Expression))
+(define (adjust-expression-depth exp n)
+  (cond
+    [(Top? exp)
+     (make-Top (Top-prefix exp)
+               (adjust-expression-depth (Top-code exp) n))]
+    
+    [(Constant? exp)
+     exp]
+    
+    [(ToplevelRef? exp)
+     (make-ToplevelRef (ensure-natural (+ n (ToplevelRef-depth exp)))
+                       (ToplevelRef-pos exp))]
+    
+    [(LocalRef? exp)
+     (make-LocalRef (ensure-natural (+ n (LocalRef-depth exp))))]
+
+    [(ToplevelSet? exp)
+     (make-ToplevelSet (ensure-natural (+ n (ToplevelSet-depth exp)))
+                       (ToplevelSet-pos exp)
+                       (ToplevelSet-name exp)
+                       (adjust-expression-depth (ToplevelSet-value exp) n))]
+
+    [(Branch? exp)
+     (make-Branch (adjust-expression-depth (Branch-predicate exp) n)
+                  (adjust-expression-depth (Branch-consequent exp) n)
+                  (adjust-expression-depth (Branch-alternative exp) n))]
+
+    [(Lam? exp)
+     (make-Lam (Lam-name exp)
+               (Lam-num-parameters exp)
+               (Lam-body exp)
+               (map (lambda: ([d : Natural]) (ensure-natural (+ n d)))
+                    (Lam-closure-map exp))
+               (Lam-entry-label exp))]
+    [(Seq? exp)
+     (make-Seq (map (lambda: ([action : Expression])
+                             (adjust-expression-depth action n))
+                    (Seq-actions exp)))]
+
+    [(App? exp)
+     ...]
+    [(Let1? exp)
+     ...]
+    [(LetVoid? exp)
+     ...]
+    [(LetRec? exp)
+     ...]
+    [(InstallValue? exp)
+     ...]
+    [(BoxEnv? exp)
+     ...]))
+    
+    ...))

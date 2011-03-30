@@ -1,7 +1,8 @@
 #lang typed/racket/base
 (provide (all-defined-out))
 
-(require "lexical-structs.rkt")
+(require "lexical-structs.rkt"
+         "kernel-primitives.rkt")
 
 
 
@@ -157,32 +158,16 @@
 
 
 
-;; The following are primitives that the compiler knows about:
-(define-type KernelPrimitiveName (U '+
-                                    '-
-                                    '*
-                                    '/
-                                    'add1
-                                    'sub1
-                                    '<
-                                    '<=
-                                    '=
-                                    '>
-                                    '>=
-                                    'cons
-                                    'car
-                                    'cdr
-                                    'list
-                                    'null?
-                                    'not
-                                    'eq?
-                                    ))
-(define-predicate KernelPrimitiveName? KernelPrimitiveName)
+
+
 
 
 (define-struct: CallKernelPrimitiveProcedure ([operator : KernelPrimitiveName]
+
                                               [operands : (Listof OpArg)]
-                                              [operands-knowledge : (Listof CompileTimeEnvironmentEntry)])
+                                              [expected-operand-types : (Listof OperandDomain)]
+                                              ;; For each operand, #t will add code to typecheck the operand
+                                              [typechecks? : (Listof Boolean)])
   #:transparent)
 
 

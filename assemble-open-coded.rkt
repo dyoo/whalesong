@@ -3,6 +3,7 @@
 (require "il-structs.rkt"
          "lexical-structs.rkt"
          "assemble-helpers.rkt"
+         "kernel-primitives.rkt"
          racket/string
          racket/list)
 
@@ -160,11 +161,6 @@
 
 
 
-(define-type OperandDomain (U 'number
-                              'string
-                              'box
-                              'list
-                              'pair))
 
 
 (: assemble-domain-check (OperandDomain String Natural -> String))

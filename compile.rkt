@@ -3,6 +3,7 @@
 (require "expression-structs.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
+         "kernel-primitives.rkt"
          racket/bool
          racket/list)
 
@@ -439,9 +440,15 @@
 ;; of hardcoded primitives.
 (define (compile-kernel-primitive-application kernel-op exp cenv extended-cenv target linkage)
   (let* ([n (length (App-operands exp))]
+         [expected-operand-types (kernel-primitive-expected-operand-types kernel-op n)]
          [operand-knowledge (map (lambda: ([arg : Expression])
                                           (extract-static-knowledge arg extended-cenv))
-                                 (App-operands exp))])
+                                 (App-operands exp))]
+         [typechecks? (map (lambda: ([dom : OperandDomain]
+                                     [known : CompileTimeEnvironmentEntry])
+                                    (not (redundant-check? dom known)))
+                           (kernel-primitive-expected-operand-types kernel-op n)
+                           operand-knowledge)])
     (cond 
       ;; Special case optimization: we can avoid touching the stack altogether
       [(all-operands-are-constant-or-stack-references (App-operands exp))
@@ -455,7 +462,8 @@
                                                      (map (lambda: ([arg : OpArg])
                                                                    (adjust-oparg-depth arg (- n)))
                                                           opargs)
-                                                     operand-knowledge))))))]
+                                                     expected-operand-types
+                                                     typechecks?))))))]
       [else
        (let* ([operand-poss
                (build-list (length (App-operands exp))
@@ -484,11 +492,33 @@
                 (adjust-target-depth target n)                     
                 (make-CallKernelPrimitiveProcedure kernel-op 
                                                    operand-poss
-                                                   operand-knowledge))))
+                                                   expected-operand-types
+                                                   typechecks?))))
+           
            (if (> n 0)
                (make-instruction-sequence `(,(make-PopEnvironment n 0)))
                empty-instruction-sequence))))])))
 
+
+(: redundant-check? (OperandDomain CompileTimeEnvironmentEntry -> Boolean))
+;; Produces true if we know the knowledge implies the domain-type.
+(define (redundant-check? domain-type knowledge)
+  (cond [(Const? knowledge)
+         (case domain-type
+           [(number)
+            (number? (Const-const knowledge))]
+           [(string)
+            (string? (Const-const knowledge))]
+           [(box)
+            (box? (Const-const knowledge))]
+           [(list)
+            (list? (Const-const knowledge))]
+           [(pair)
+            (pair? (Const-const knowledge))]
+           [(any)
+            #t])]
+        [else
+         #f]))
 
 
 (: all-operands-are-constant-or-stack-references ((Listof Expression) -> (U False (Listof OpArg))))

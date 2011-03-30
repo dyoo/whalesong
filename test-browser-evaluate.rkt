@@ -303,6 +303,11 @@ EOF
       "4\n5\n16\n")
       
 
+(test/exn '(let ([x 0])
+             (set! x "foo")
+             (add1 x))
+          "Error: Expected number as argument 1 but received foo")
+
 
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))

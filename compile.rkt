@@ -774,14 +774,8 @@
     [(and (LocalRef? exp) 
           (not (LocalRef-unbox? exp)))
      (let ([entry (list-ref cenv (LocalRef-depth exp))])
-       (printf "~s\n" entry)
-       (cond
-         [(StaticallyKnownLam? entry)
-          entry]
-         [(Const? entry)
-          entry]
-         [else
-          '?]))]
+       entry)]
+    
     [(ToplevelRef? exp)
      (let: ([name : (U Symbol False ModuleVariable)
                   (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
@@ -791,8 +785,10 @@
               name]
              [else
               '?]))]
+    
     [(Constant? exp)
      (make-Const (Constant-v exp))]
+    
     [else
      '?]))
 

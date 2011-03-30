@@ -9,6 +9,7 @@
          "lexical-structs.rkt"
          "simulator-structs.rkt"
          "bootstrapped-primitives.rkt"
+         "kernel-primitives.rkt"
          racket/list
          racket/match
          (for-syntax racket/base))

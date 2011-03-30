@@ -32,7 +32,6 @@ EOF
                     
                     )))
 
-;; test-find-toplevel-variables
 (define-syntax (test stx)
   (syntax-case stx ()
     [(_ s exp)
@@ -48,11 +47,122 @@ EOF
                                      #'stx)))
              (printf " ok (~a milliseconds)\n" (evaluated-t result))))))]))
 
+(define-syntax (test/exn stx)
+  (syntax-case stx ()
+    [(_ s exp)
+     (with-syntax ([stx stx])
+       (syntax/loc #'stx
+         (begin
+           (printf "running test...")
+           (let ([an-error-happened 
+                  (with-handlers ([error-happened?
+                                   (lambda (exn)
+                                     exn)])
+                    (let ([r (evaluate s)])
+                      (raise-syntax-error #f (format "Expected exception, but got ~s" r)
+                                          #'stx)))]) 
+             (unless (string=? exp (error-happened-str an-error-happened))
+               (printf " error!\n")
+               (raise-syntax-error #f (format "Expected ~s, got ~s" exp (error-happened-str an-error-happened))
+                                   #'stx))
+             (printf " ok (~a milliseconds)\n" (error-happened-t an-error-happened))))))]))
+
+
+
 (test '(display 42)
       "42")
 
 (test '(display (+ 3 4))
       "7")
+
+(test/exn (evaluate '(+ "hello" 3))
+          "Error: Expected number as argument 1 but received hello")
+
+
+(test '(display (/ 100 4))
+      "25")
+(test/exn (evaluate '(/ 3 'four))
+          "Error: Expected number as argument 2 but received four")
+
+
+(test '(display (- 1))
+      "-1")
+
+(test/exn '(- 'one)
+          "Error: Expected number as argument 1 but received one")
+
+(test '(display (- 5 4))
+      "1")
+
+(test '(display (* 3 17))
+      "51")
+
+(test/exn '(* "three" 17)
+          "Error: Expected number as argument 1 but received three")
+
+(test '(display '#t)
+      "true")
+
+(test '(display '#f)
+      "false")
+
+(test '(displayln (not #t))
+      "false\n")
+
+(test '(displayln (not #f))
+      "true\n")
+
+(test '(displayln (not 3))
+      "false\n")
+
+(test '(displayln (not (not 3)))
+      "true\n")
+
+(test '(displayln (add1 1))
+      "2\n")
+
+(test/exn '(displayln (add1 "0"))
+          "Error: Expected number as argument 1 but received 0")
+
+(test '(displayln (sub1 1))
+      "0\n")
+
+(test/exn '(displayln (sub1 "0"))
+          "Error: Expected number as argument 1 but received 0")
+
+(test '(displayln (< 1 2))
+      "true\n")
+
+(test '(displayln (<= 1 2))
+      "true\n")
+
+(test '(displayln (= 1 2))
+      "false\n")
+
+(test '(displayln (> 1 2))
+      "false\n")
+
+(test '(displayln (>= 1 2))
+      "false\n")
+
+(test '(displayln (car (cons 3 4)))
+      "3\n")
+
+(test '(displayln (cdr (cons 3 4)))
+      "4\n")
+
+(test '(displayln (let ([x (cons 5 6)])
+                    (car x)))
+      "5\n")
+
+(test '(displayln (let ([x (cons 5 6)])
+                    (cdr x)))
+      "6\n")
+
+(test '(displayln (length (list 'hello 4 5)))
+      "3\n")
+
+
 
 (test '(begin (define (f x) 
                 (if (= x 0)

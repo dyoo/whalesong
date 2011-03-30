@@ -235,7 +235,7 @@ var comet = function() {
                             "&b=" + encodeURIComponent(String(BrowserDetect.browser + ' ' + BrowserDetect.version + '/' + BrowserDetect.OS)));
                     };
 
-                    var onFail = function(e) {
+                    var onFail = function(machine, e) {
                         endTime = new Date();
                         sendRequest("/eval", function(req) { setTimeout(comet, 0); },
                             "e=" + encodeURIComponent(String(e)) +

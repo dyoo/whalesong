@@ -503,22 +503,24 @@
 (: redundant-check? (OperandDomain CompileTimeEnvironmentEntry -> Boolean))
 ;; Produces true if we know the knowledge implies the domain-type.
 (define (redundant-check? domain-type knowledge)
-  (cond [(Const? knowledge)
-         (case domain-type
-           [(number)
-            (number? (Const-const knowledge))]
-           [(string)
-            (string? (Const-const knowledge))]
-           [(box)
-            (box? (Const-const knowledge))]
-           [(list)
-            (list? (Const-const knowledge))]
-           [(pair)
-            (pair? (Const-const knowledge))]
-           [(any)
-            #t])]
-        [else
-         #f]))
+  (cond
+    [(eq? domain-type 'any)
+     #t]
+    [else
+     (cond [(Const? knowledge)
+            (case domain-type
+              [(number)
+               (number? (Const-const knowledge))]
+              [(string)
+               (string? (Const-const knowledge))]
+              [(box)
+               (box? (Const-const knowledge))]
+              [(list)
+               (list? (Const-const knowledge))]
+              [(pair)
+               (pair? (Const-const knowledge))])]
+           [else
+            #f])]))
 
 
 (: all-operands-are-constant-or-stack-references ((Listof Expression) -> (U False (Listof OpArg))))

@@ -13,135 +13,82 @@
 
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
 (define (open-code-kernel-primitive-procedure op)
-  (let: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
-         [rand-knowledge : (Listof CompileTimeEnvironmentEntry)
-                        (CallKernelPrimitiveProcedure-operands-knowledge op)]
-         [rand-vals : (Listof String) (map assemble-input (CallKernelPrimitiveProcedure-operands op))])
+  (let*: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
+          [operands : (Listof String) (map assemble-input (CallKernelPrimitiveProcedure-operands op))]
+          [checked-operands : (Listof String)
+                            (map maybe-typecheck-operand
+                                 (CallKernelPrimitiveProcedure-expected-operand-types op)
+                                 (build-list (length operands) (lambda: ([i : Natural]) i))
+                                 operands
+                                 (CallKernelPrimitiveProcedure-typechecks? op))])
         (case operator
-          
           [(+)
-           (let ([checked-rands (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                          rand-vals 
-                                                          rand-knowledge)])
-                 (cond [(empty? rand-vals)
-                        "0"]
-                       [else
-                        (string-append "(" (string-join checked-rands " + ") ")")]))]
+           (cond [(empty? checked-operands)
+                  "0"]
+                 [else
+                  (string-append "(" (string-join checked-operands " + ") ")")])]
           
           [(-)
-           (let ([checked-rands (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                          rand-vals 
-                                                          rand-knowledge)])
-             (cond [(empty? rand-vals)
-                    (error '- "Expects at least 1 argument, given 0")]
-                   [(empty? (rest rand-vals))
-                    (format "(-(~a))" (first rand-vals))]
-                   [else
-                    (string-append "(" (string-join checked-rands "-") ")")]))]
-
+           (cond [(empty? (rest checked-operands))
+                  (format "(-(~a))" (first checked-operands))]
+                 [else
+                  (string-append "(" (string-join checked-operands "-") ")")])]
+          
           [(*)
-           (let ([checked-rands (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                          rand-vals 
-                                                          rand-knowledge)])
-             (cond [(empty? rand-vals)
-                    "1"]
-                   [else
-                    (string-append "(" (string-join checked-rands "*") ")")]))]
+           (cond [(empty? checked-operands)
+                  "1"]
+                 [else
+                  (string-append "(" (string-join checked-operands "*") ")")])]
 
           [(/)
-           (let ([checked-rands (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                          rand-vals 
-                                                          rand-knowledge)])
-             (cond [(empty? rand-vals)
-                    (error '/ "Expects at least 1 argument, given 0")]
-                   [else
-                    (string-append "(" (string-join checked-rands "/") ")")]))]
+           (string-append "(" (string-join checked-operands "/") ")")]
 
           [(add1)
-           (unless (= 1 (length rand-vals))
-             (error 'add1 "Expected one argument"))
-           (format "(~a + 1)" 
-                   (maybe-typecheck-operand 'number 0 (first rand-vals) (first rand-knowledge)))]
+           (format "(~a + 1)" (first checked-operands))]
           
           [(sub1)
-           (unless (= 1 (length rand-vals))
-             (error 'sub1 "Expected one argument"))
-           (format "(~a - 1)" 
-                   (maybe-typecheck-operand 'number 0 (first rand-vals) (first rand-knowledge)))]
+           (format "(~a - 1)" (first checked-operands))]
           
           [(<)
-           (unless (> (length rand-vals) 0)
-             (error '< "Expected at least one argument"))
-           (assemble-chain "<" (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                         rand-vals
-                                                         rand-knowledge))]
+           (assemble-chain "<" checked-operands)]
+
           [(<=)
-           (unless (> (length rand-vals) 0)
-             (error '<= "Expected at least one argument"))
-           (assemble-chain "<=" (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                         rand-vals
-                                                         rand-knowledge))]
+           (assemble-chain "<=" checked-operands)]
           
           [(=)
-           (unless (> (length rand-vals) 0)
-             (error '= "Expected at least one argument"))
-           (assemble-chain "==" (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                         rand-vals
-                                                         rand-knowledge))]
+           (assemble-chain "===" checked-operands)]
           
           [(>)
-           (unless (> (length rand-vals) 0)
-             (error '> "Expected at least one argument"))
-           (assemble-chain ">" (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                         rand-vals
-                                                         rand-knowledge))]
+           (assemble-chain ">" checked-operands)]
           
           [(>=)
-           (unless (> (length rand-vals) 0)
-             (error '>= "Expected at least one argument"))
-           (assemble-chain ">=" (maybe-typecheck-operands (repeat 'number (length rand-vals))
-                                                         rand-vals
-                                                         rand-knowledge))]
+           (assemble-chain ">=" checked-operands)]
           
           [(cons)
-           (unless (= (length rand-vals) 2)
-             (error 'cons "Expected two arguments"))
-           (format "[~a, ~a]" (first rand-vals) (second rand-vals))]
+           (format "[~a, ~a]" (first checked-operands) (second checked-operands))]
 
           [(car)
-           (unless (= (length rand-vals) 1)
-             (error 'car "Expected one argument"))
-           (format "(~a)[0]" (maybe-typecheck-operand 'pair 0 (first rand-vals)
-                                                      (first rand-knowledge)))]
+           (format "(~a)[0]" (first checked-operands))]
           
           [(cdr)
-           (unless (= (length rand-vals) 1)
-             (error 'cdr "Expected one argument"))
-           (format "(~a)[1]" (maybe-typecheck-operand 'pair 0 (first rand-vals)
-                                                      (first rand-knowledge)))]
+           (format "(~a)[1]" (first checked-operands))]
           
           [(list)
-           (let loop ([rand-vals rand-vals])
+           (let loop ([checked-operands checked-operands])
              (cond
-               [(empty? rand-vals)
+               [(empty? checked-operands)
                 "Primitives.null"]
                [else
-                (format "[~a,~a]" (first rand-vals) (loop (rest rand-vals)))]))]
+                (format "[~a,~a]" (first checked-operands) (loop (rest checked-operands)))]))]
           
           [(null?)
-           (unless (= (length rand-vals) 1)
-             (error 'null? "Expected one argument"))
-           (format "(~a === Primitives.null)"
-                   (first rand-vals))]
+           (format "(~a === Primitives.null)" (first checked-operands))]
+
           [(not)
-           (unless (= (length rand-vals) 1)
-             (error 'not? "Expected one argument"))
-           (format "(!~a)" (first rand-vals))]
+           (format "(!(~a))" (first checked-operands))]
           
           [(eq?)
-           (unless (= (length rand-vals) 2)
-             (error 'eq? "Expected 2 arguments"))
-           (format "(~a === ~a)" (first rand-vals) (second rand-vals))])))
+           (format "(~a === ~a)" (first checked-operands) (second checked-operands))])))
 
 
 (: assemble-chain (String (Listof String) -> String))
@@ -165,72 +112,40 @@
 
 (: assemble-domain-check (OperandDomain String Natural -> String))
 (define (assemble-domain-check domain operand-string pos)
-  (let ([test-string 
-         (case domain
-           [(number)
-            (format "(typeof(~a) === 'number')"
-                    operand-string)]             
-           [(string)
-            (format "(typeof(~a) === 'string')"
-                    operand-string)]
-           [(list)
-            (format "(~a === [] || (typeof(~a) === 'object' && (~a).length === 2))"
-                    operand-string operand-string operand-string)]
-           [(pair)
-            (format "(typeof(~a) === 'object' && (~a).length === 2)"
-                    operand-string operand-string)])])
-    (format "((~a) ? (~a) : raise(new Error('Expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
-            test-string
-            operand-string
-            (symbol->string domain)
-            pos
-            operand-string)))
-
-(: maybe-typecheck-operands ((Listof OperandDomain) 
-                             (Listof String) 
-                             (Listof CompileTimeEnvironmentEntry) -> (Listof String)))
-(define (maybe-typecheck-operands expected-domains rand-vals rand-knowledge)
-  (map (lambda: ([rand : String]
-                 [expected-domain : OperandDomain]
-                 [knowledge : CompileTimeEnvironmentEntry]
-                 [position : Natural])
-                (maybe-typecheck-operand expected-domain position rand knowledge))
-       rand-vals
-       expected-domains
-       rand-knowledge
-       (build-list (length rand-vals)
-                   (lambda: ([i : Natural]) i))))
-
-
-(: maybe-typecheck-operand (OperandDomain Natural String CompileTimeEnvironmentEntry -> String))
-;; Adds typechecks if we can't prove that the operand is of the required type.
-(define (maybe-typecheck-operand domain-type position operand-string knowledge)
   (cond
-    [(redundant-check? domain-type knowledge)
+    [(eq? domain 'any)
      operand-string]
     [else
-     (assemble-domain-check domain-type operand-string position)]))
+     (let: ([test-string : String
+                         (case domain
+                           [(number)
+                            (format "(typeof(~a) === 'number')"
+                                    operand-string)]             
+                           [(string)
+                            (format "(typeof(~a) === 'string')"
+                                    operand-string)]
+                           [(list)
+                            (format "(~a === [] || (typeof(~a) === 'object' && (~a).length === 2))"
+                                    operand-string operand-string operand-string)]
+                           [(pair)
+                            (format "(typeof(~a) === 'object' && (~a).length === 2)"
+                                    operand-string operand-string)]
+                           [(box)
+                            (format "(typeof(~a) === 'object' && (~a).length === 1)"
+                                    operand-string operand-string)])])
+           (format "((~a) ? (~a) : raise(new Error('Expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
+                   test-string
+                   operand-string
+                   (symbol->string domain)
+                   (add1 pos)
+                   operand-string))]))
 
 
-(: redundant-check? (OperandDomain CompileTimeEnvironmentEntry -> Boolean))
-;; Produces true if we know the knowledge implies the domain-type.
-(define (redundant-check? domain-type knowledge)
-  (cond [(Const? knowledge)
-         (case domain-type
-           [(number)
-            (number? (Const-const knowledge))]
-           [(string)
-            (string? (Const-const knowledge))]
-           [(box)
-            (box? (Const-const knowledge))]
-           [(list)
-            (list? (Const-const knowledge))]
-           [(pair)
-            (pair? (Const-const knowledge))])]
-        [else
-         #f]))
-
-
-(: repeat (All (A) (A Natural -> (Listof A))))
-(define (repeat x n)
-  (build-list n (lambda (i) x)))
+(: maybe-typecheck-operand (OperandDomain Natural String Boolean -> String))
+;; Adds typechecks if we can't prove that the operand is of the required type.
+(define (maybe-typecheck-operand domain-type position operand-string typecheck?)
+  (cond
+    [typecheck?
+     (assemble-domain-check domain-type operand-string position)]
+    [else
+     operand-string]))

@@ -763,7 +763,7 @@
 
 
 (: extract-static-knowledge (Expression CompileTimeEnvironment ->  
-                                            CompileTimeEnvironmentEntry))
+                                        CompileTimeEnvironmentEntry))
 ;; Statically determines what we know about exp, given the compile time environment.
 (define (extract-static-knowledge exp cenv)
   (cond
@@ -774,8 +774,11 @@
     [(and (LocalRef? exp) 
           (not (LocalRef-unbox? exp)))
      (let ([entry (list-ref cenv (LocalRef-depth exp))])
+       (printf "~s\n" entry)
        (cond
          [(StaticallyKnownLam? entry)
+          entry]
+         [(Const? entry)
           entry]
          [else
           '?]))]

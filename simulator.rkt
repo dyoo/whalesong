@@ -372,7 +372,7 @@
           [(>=)   
            (chain-compare >= (map ensure-real-number rand-vals))]
           [(cons)
-           (make-MutablePair (first rand-vals) (ensure-list (second rand-vals)))]
+           (make-MutablePair (first rand-vals) (second rand-vals))]
           [(car)
            (MutablePair-h (ensure-mutable-pair (first rand-vals)))]
           [(cdr)

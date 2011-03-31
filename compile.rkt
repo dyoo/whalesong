@@ -478,11 +478,9 @@
 
                 [(operand-knowledge)
                  (append (map (lambda: ([arg : Expression])
-                                       (printf "looking up ~s in ~s\n" arg extended-cenv)
                                        (extract-static-knowledge arg extended-cenv))
                               constant-operands)
                          (map (lambda: ([arg : Expression])
-                                       (printf "looking up ~s in ~s\n" arg extended-cenv)
                                        (extract-static-knowledge arg extended-cenv))
                               rest-operands))]
                 
@@ -527,19 +525,16 @@
     (end-with-linkage
      linkage cenv
      (append-instruction-sequences
-      
       stack-pushing-code
       rest-operand-code
-     
       (make-instruction-sequence
        `(,(make-AssignPrimOpStatement
            target
-           (make-CallKernelPrimitiveProcedure kernel-op 
-                                              (append constant-operand-poss
-                                                      rest-operand-poss)
-                                              expected-operand-types
-                                              typechecks?))))
-      
+           (make-CallKernelPrimitiveProcedure 
+            kernel-op 
+            (append constant-operand-poss rest-operand-poss)
+            expected-operand-types
+            typechecks?))))
       stack-popping-code))))
      
     

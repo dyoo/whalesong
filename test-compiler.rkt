@@ -271,7 +271,35 @@
                         (tak (- z 1) x y))))
              (tak 18 12 6))
       7)
-      
+
+(test '((let* ([x 42]
+               [f (lambda () x)])
+          f))
+      42)
+
+(test '((let* ([x 42]
+               [y 43]
+               [f (lambda () (list x y))])
+          f))
+      (list 42 43))
+
+(test '(begin (define (m f l)
+                (if (null? l)
+                    l
+                    (cons (f (car l))
+                          (m f (cdr l)))))
+              (m (lambda (x) (add1 x)) '(2 3 4 5)))
+      '(3 4 5 6))
+
+
+(test '(+ (+ 3 4)
+          6)
+      (+ 3 4 6))
+
+(test '(+ (+ 3 (+ 4 5))
+          6)
+      (+ 3 4 5 6))
+
 
 ;; deriv
 (test '(begin (define (deriv-aux a) (list '/ (deriv a) a))

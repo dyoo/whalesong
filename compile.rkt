@@ -972,6 +972,12 @@
       x
       (error 'ensure-prefix "Not a prefix: ~s" x)))
 
+(: ensure-lam (Any -> Lam))
+(define (ensure-lam x)
+  (if (Lam? x)
+      x
+      (error 'ensure-lam "Not a Lam: ~s" x)))
+
 
 
 (: adjust-target-depth (Target Natural -> Target))
@@ -996,10 +1002,13 @@
   (cond
     [(Const? arg)
      arg]
+    
     [(Reg? arg)
      arg]
+    
     [(Label? arg)
      arg]
+    
     [(EnvLexicalReference? arg)
      (make-EnvLexicalReference (ensure-natural (+ n (EnvLexicalReference-depth arg)))
                                (EnvLexicalReference-unbox? arg))]
@@ -1010,28 +1019,42 @@
      (make-EnvWholePrefixReference (ensure-natural (+ n (EnvWholePrefixReference-depth arg))))]))
 
 
-(: adjust-expression-depth (Expression Integer Natural -> Expression))
+
+
+(: adjust-expression-depth (Expression Natural Natural -> Expression))
+;; Redirects references to the stack to route around a region of size n.
+;; The region begins at offset skip into the environment.
 (define (adjust-expression-depth exp n skip)
   (cond
     [(Top? exp)
      (make-Top (Top-prefix exp)
-               (adjust-expression-depth (Top-code exp) n skip))]
+               (adjust-expression-depth (Top-code exp) n (add1 skip)))]
     
     [(Constant? exp)
      exp]
     
     [(ToplevelRef? exp)
-     (make-ToplevelRef (ensure-natural (+ n (ToplevelRef-depth exp)))
-                       (ToplevelRef-pos exp))]
+     (if (< (ToplevelRef-depth exp) skip)
+         exp
+         (make-ToplevelRef (ensure-natural (- (ToplevelRef-depth exp) n))
+                           (ToplevelRef-pos exp)))]
     
     [(LocalRef? exp)
-     (make-LocalRef (ensure-natural (+ n (LocalRef-depth exp))))]
+     (if (< (LocalRef-depth exp) skip)
+         exp
+         (make-LocalRef (ensure-natural (- (LocalRef-depth exp) n))
+                        (LocalRef-unbox? exp)))]
 
     [(ToplevelSet? exp)
-     (make-ToplevelSet (ensure-natural (+ n (ToplevelSet-depth exp)))
-                       (ToplevelSet-pos exp)
-                       (ToplevelSet-name exp)
-                       (adjust-expression-depth (ToplevelSet-value exp) n skip))]
+     (if (< (ToplevelSet-depth exp) skip)
+         (make-ToplevelSet (ToplevelSet-depth exp)
+                           (ToplevelSet-pos exp)
+                           (ToplevelSet-name exp)
+                           (adjust-expression-depth (ToplevelSet-value exp) n skip))
+         (make-ToplevelSet (ensure-natural (- (ToplevelSet-depth exp) n))
+                           (ToplevelSet-pos exp)
+                           (ToplevelSet-name exp)
+                           (adjust-expression-depth (ToplevelSet-value exp) n skip)))]
 
     [(Branch? exp)
      (make-Branch (adjust-expression-depth (Branch-predicate exp) n skip)
@@ -1042,7 +1065,10 @@
      (make-Lam (Lam-name exp)
                (Lam-num-parameters exp)
                (Lam-body exp)
-               (map (lambda: ([d : Natural]) (ensure-natural (+ n d)))
+               (map (lambda: ([d : Natural]) 
+                             (if (< d skip)
+                                 d
+                                 (ensure-natural (- d n))))
                     (Lam-closure-map exp))
                (Lam-entry-label exp))]
     
@@ -1052,35 +1078,56 @@
                     (Seq-actions exp)))]
 
     [(App? exp)
-     (make-App (adjust-expression-depth (App-operator exp) n)
+     (make-App (adjust-expression-depth (App-operator exp) n 
+                                        (+ skip (length (App-operands exp))))
                (map (lambda: ([operand : Expression])
-                             (adjust-expression-depth operand n skip))
+                             (adjust-expression-depth 
+                              operand n (+ skip (length (App-operands exp)))))
                     (App-operands exp)))]
     
     [(Let1? exp)
      (make-Let1 (adjust-expression-depth (Let1-rhs exp) n (add1 skip))
-                (adjust-expression-depth (Let1-body exp) n) (add1 skip))]
+                (adjust-expression-depth (Let1-body exp) n (add1 skip)))]
  
     [(LetVoid? exp)
      (make-LetVoid (LetVoid-count exp)
-                   (adjust-expression-depth (LetVoid-body exp) (+ (LetVoid-count exp) n))
+                   (adjust-expression-depth (LetVoid-body exp) 
+                                            n
+                                            (+ skip (LetVoid-count exp)))
                    (LetVoid-boxes? exp))]
 
     [(LetRec? exp)
-     (make-LetRec (map (lambda: ([proc : Lam]) 
-                                (adjust-expression-depth 
-                                 proc n 
-                                 (+ (length (LetRec-procs exp))
-                                    skip)))
-                       (LetRec-procs exp))
+     (make-LetRec (let: loop : (Listof Lam) ([procs : (Listof Lam) (LetRec-procs exp)])
+                        (cond
+                          [(empty? procs)
+                           '()]
+                          [else
+                           (cons (ensure-lam (adjust-expression-depth 
+                                              (first procs)
+                                              n 
+                                              (+ skip (length (LetRec-procs exp)))))
+                                 (loop (rest procs)))]))
                   (adjust-expression-depth (LetRec-body exp) n 
-                                           (+ (length (LetRec-procs exp))
-                                              skip)))]
+                                           (+ skip (length (LetRec-procs exp)))))]
     
     [(InstallValue? exp)
-     ...]
-    
+     (if (< (InstallValue-depth exp) skip)
+         (make-InstallValue (InstallValue-depth exp)
+                            (adjust-expression-depth (InstallValue-body exp)
+                                                     n
+                                                     skip)
+                            (InstallValue-box? exp))
+         (make-InstallValue (ensure-natural (- (InstallValue-depth exp) n))
+                            (adjust-expression-depth (InstallValue-body exp)
+                                                     n
+                                                     skip)
+                            (InstallValue-box? exp)))]
+
     [(BoxEnv? exp)
-     ...]))
+     (if (< (BoxEnv-depth exp) skip)
+         (make-BoxEnv (BoxEnv-depth exp)
+                      (adjust-expression-depth (BoxEnv-body exp) n skip))
+         (make-BoxEnv (ensure-natural (- (BoxEnv-depth exp) n))
+                      (adjust-expression-depth (BoxEnv-body exp) n skip)))]))
+
     
-    ...))

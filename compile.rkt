@@ -483,8 +483,8 @@
              (kernel-primitive-expected-operand-types kernel-op n)]
             [operand-poss
              (simple-operands->opargs (map (lambda: ([op : Expression])
-                                               (adjust-expression-depth op n n))
-                                             (App-operands exp)))])
+                                                    (adjust-expression-depth op n n))
+                                           (App-operands exp)))])
        (end-with-linkage
         linkage cenv
         (make-instruction-sequence

@@ -788,6 +788,83 @@
 
 
 
+(test '(begin
+           (define (make-gen gen) 
+             (let ([cont (box #f)])     
+               (lambda ()
+                 (call/cc (lambda (caller)
+                            (if (unbox cont)
+                                ((unbox cont) caller)
+                                (gen (lambda (v)
+                                       (call/cc (lambda (gen-k)
+                                                  (begin
+                                                    (set-box! cont gen-k)
+                                                    (caller v))))))))))))
+           
+           (define g1 (make-gen (lambda (return)
+                                  (return "a")
+                                  (return "b")
+                                  (return "c"))))
+        
+           (list (g1)))
+        (list "a"))
+
+
+
+;; FIXME: this test is failing.  I think we need prompts to delimit
+;; the continuation capture.
+#;(test '(begin
+           (define (make-gen gen) 
+             (let ([cont (box #f)])     
+               (lambda ()
+                 (call/cc (lambda (caller)
+                            (if (unbox cont)
+                                ((unbox cont) caller)
+                                (gen (lambda (v)
+                                       (call/cc (lambda (gen-k)
+                                                  (begin
+                                                    (set-box! cont gen-k)
+                                                    (caller v))))))))))))
+           
+           (define g1 (make-gen (lambda (return)
+                                  (return "a")
+                                  (return "b")
+                                  (return "c"))))
+           
+           (g1)
+           (g1))
+        "b")
+
+
+
+;; FIXME: this test is failing.  I think we need prompts to delimit
+;; the continuation capture.
+#;(test '(begin
+           (define (make-gen gen) 
+             (let ([cont (box #f)])     
+               (lambda ()
+                 (call/cc (lambda (caller)
+                            (if (unbox cont)
+                                ((unbox cont) caller)
+                                (gen (lambda (v)
+                                       (call/cc (lambda (gen-k)
+                                                  (begin
+                                                    (set-box! cont gen-k)
+                                                    (caller v))))))))))))
+           
+           (define g1 (make-gen (lambda (return)
+                                  (return "a")
+                                  (return "b")
+                                  (return "c"))))
+        
+           (displayln (g1))
+           (displayln (g1))
+           (displayln (g1)))
+        "a\nb\nc\n")
+
+
+
+
 
 
 #;(test (read (open-input-file "tests/conform/program0.sch"))

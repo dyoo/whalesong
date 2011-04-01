@@ -14,7 +14,7 @@
 
 (define (-parse exp)
   (let* ([prefix (construct-the-prefix exp)])
-    (make-Top prefix (parse exp (extend-lexical-environment '() prefix)))))
+    (make-Top prefix (parse exp (extend-lexical-environment '() prefix) #t))))
 
 
 
@@ -72,7 +72,7 @@
 
 ;; parse: Any ParseTimeEnvironment -> Expression
 ;; Compile an expression.
-(define (parse exp cenv)
+(define (parse exp cenv at-toplevel?)
   (cond
     [(self-evaluating? exp)
      (make-Constant exp)]
@@ -100,30 +100,30 @@
                             (EnvPrefixReference-pos address)
                             (definition-variable exp)
                             (parameterize ([current-defined-name (definition-variable exp)])
-                              (parse (definition-value exp) cenv)))]))]
+                              (parse (definition-value exp) cenv #f)))]))]
     
     [(if? exp)
-     (make-Branch (parse (if-predicate exp) cenv)
-                  (parse (if-consequent exp) cenv)
-                  (parse (if-alternative exp) cenv))]
+     (make-Branch (parse (if-predicate exp) cenv #f)
+                  (parse (if-consequent exp) cenv #f)
+                  (parse (if-alternative exp) cenv #f))]
     
     [(cond? exp)
-     (parse (desugar-cond exp) cenv)]
+     (parse (desugar-cond exp) cenv #f)]
     
     [(lambda? exp)
      (parse-lambda exp cenv)]
     
     [(begin? exp)
      (let ([actions (map (lambda (e)
-                           (parse e cenv))
+                           (parse e cenv at-toplevel?))
                          (begin-actions exp))])
-       (seq actions))]
+       ((if at-toplevel? make-Splice seq) actions))]
     
     [(named-let? exp)
-     (parse (desugar-named-let exp) cenv)]
+     (parse (desugar-named-let exp) cenv #f)]
     
     [(let*? exp)
-     (parse (desugar-let* exp) cenv)]
+     (parse (desugar-let* exp) cenv #f)]
     
     [(let? exp)
      (parse-let exp cenv)]
@@ -138,21 +138,21 @@
        (make-Seq (list (cond
                          [(EnvLexicalReference? address)
                           (make-InstallValue (EnvLexicalReference-depth address)
-                                             (parse (set!-value exp) cenv)
+                                             (parse (set!-value exp) cenv #f)
                                              #t)]
                          [(EnvPrefixReference? address)
                           (make-ToplevelSet (EnvPrefixReference-depth address)
                                             (EnvPrefixReference-pos address)
                                             (definition-variable exp)
-                                            (parse (set!-value exp) cenv))])
+                                            (parse (set!-value exp) cenv #f))])
                        (make-Constant (void)))))]
 
     ;; Remember, this needs to be the last case.
     [(application? exp)
      (let ([cenv-with-scratch-space
             (extend-lexical-environment/placeholders cenv (length (operands exp)))])
-       (make-App (parse (operator exp) cenv-with-scratch-space)
-                 (map (lambda (rand) (parse rand cenv-with-scratch-space))
+       (make-App (parse (operator exp) cenv-with-scratch-space #f)
+                 (map (lambda (rand) (parse rand cenv-with-scratch-space #f))
                       (operands exp))))]
     [else
      (error 'compile "Unknown expression type ~e" exp)]))
@@ -180,7 +180,7 @@
                              (make-BoxEnv (env-reference-depth (find-variable a-mutated-param body-cenv))
                                           code))
                            (seq (map (lambda (b)
-                                       (parse b body-cenv))
+                                       (parse b body-cenv #f))
                                      (lambda-body exp)))
                            mutated-parameters)])
       (make-Lam (current-defined-name)
@@ -441,16 +441,17 @@
         [body (let-body exp)])
     (cond 
       [(= 0 (length vars))
-       (parse `(begin ,@body) cenv)]
+       (parse `(begin ,@body) cenv #f)]
       [(= 1 (length vars))
        (let* ([mutated? (and (member (first vars) (find-mutated-names `(begin ,@body))) #t)]
               [let-body (parse `(begin ,@body)
                                (extend-lexical-environment/names 
                                 cenv
                                 (list (first vars))
-                                (list mutated?)))])
+                                (list mutated?))
+                               #f)])
          (make-Let1 (parameterize ([current-defined-name (first vars)])
-                      (parse (car rhss) (extend-lexical-environment/placeholders cenv 1)))
+                      (parse (car rhss) (extend-lexical-environment/placeholders cenv 1) #f))
                     (if mutated?
                         (make-BoxEnv 0 let-body)
                         let-body)))]
@@ -463,7 +464,7 @@
                              (map (lambda (var rhs index) 
                                     (make-InstallValue index 
                                                        (parameterize ([current-defined-name var])
-                                                         (parse rhs rhs-cenv))
+                                                         (parse rhs rhs-cenv #f))
                                                        any-mutated?))
                                   vars
                                   rhss
@@ -473,7 +474,8 @@
                                            cenv vars
                                            (build-list (length vars) 
                                                        (lambda (i) 
-                                                         any-mutated?)))))))
+                                                         any-mutated?)))
+                                          #f))))
                        any-mutated?))])))
 
 
@@ -485,7 +487,7 @@
          [n (length vars)])
     (cond 
       [(= 0 (length vars))
-       (parse `(begin ,@body) cenv)]
+       (parse `(begin ,@body) cenv #f)]
       [(and (andmap lambda? rhss)
             (empty? (list-intersection 
                      vars
@@ -498,10 +500,10 @@
          ;; Install them in reverse order, so that the closure shell for the last element
          ;; in procs is at stack position 0.
          (make-LetRec (map (lambda (rhs name) (parameterize ([current-defined-name name])
-                                                (parse rhs new-cenv)))
+                                                (parse rhs new-cenv #f)))
                            rhss
                            vars)
-                      (parse `(begin ,@body) new-cenv)))]
+                      (parse `(begin ,@body) new-cenv #f)))]
       [else
        (let ([new-cenv  (extend-lexical-environment/boxed-names cenv (reverse vars))])
          (make-LetVoid (length vars)
@@ -509,12 +511,12 @@
                              (map (lambda (var rhs index) 
                                     (make-InstallValue (- n 1 index)
                                                        (parameterize ([current-defined-name var])
-                                                         (parse rhs new-cenv))
+                                                         (parse rhs new-cenv #f))
                                                        #t))
                                   vars
                                   rhss
                                   (build-list (length rhss) (lambda (i) i)))
-                             (list (parse `(begin ,@body) new-cenv))))
+                             (list (parse `(begin ,@body) new-cenv #f))))
                        #t))])))
 
 

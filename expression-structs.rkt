@@ -8,7 +8,7 @@
 (define-type Expression (U Top Constant 
                                ToplevelRef LocalRef
                                ToplevelSet
-                               Branch Lam Seq App
+                               Branch Lam Seq Splice App
                                Let1 
                                LetVoid 
                                LetRec
@@ -44,6 +44,7 @@
                      [entry-label : Symbol]) #:transparent)
 
 (define-struct: Seq ([actions : (Listof Expression)]) #:transparent)
+(define-struct: Splice ([actions : (Listof Expression)]) #:transparent)
 (define-struct: App ([operator : Expression]
                      [operands : (Listof Expression)]) #:transparent)
 

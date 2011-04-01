@@ -42,7 +42,7 @@
 
 (test (parse '(begin hello world))
       (make-Top (make-Prefix '(hello world)) 
-                (make-Seq (list (make-ToplevelRef 0 0)
+                (make-Splice (list (make-ToplevelRef 0 0)
                                 (make-ToplevelRef 0 1)))))
 
 (test (parse '(define x y))
@@ -52,8 +52,8 @@
 (test (parse '(begin (define x 42)
                      (define y x)))
       (make-Top (make-Prefix '(x y))
-                (make-Seq (list (make-ToplevelSet 0 0 'x (make-Constant 42))
-                                (make-ToplevelSet 0 1 'y (make-ToplevelRef 0 0))))))
+                (make-Splice (list (make-ToplevelSet 0 0 'x (make-Constant 42))
+                                   (make-ToplevelSet 0 1 'y (make-ToplevelRef 0 0))))))
 
 (test (parse '(if x y z))
       (make-Top (make-Prefix '(x y z))
@@ -402,7 +402,7 @@
                      (list a b)))
       (make-Top
        (make-Prefix `(a b ,(make-ModuleVariable 'list '#%kernel) reset!))
-       (make-Seq
+       (make-Splice
         (list
          (make-ToplevelSet 0 0 'a (make-Constant '(hello)))
          (make-ToplevelSet 0 1 'b (make-Constant '(world)))

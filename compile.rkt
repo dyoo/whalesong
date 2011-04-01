@@ -65,6 +65,9 @@
           [(Seq? exp)
            (apply append (map (lambda: ([e : Expression]) (loop e cenv))
                               (Seq-actions exp)))]
+          [(Splice? exp)
+           (apply append (map (lambda: ([e : Expression]) (loop e cenv))
+                              (Splice-actions exp)))]
           [(App? exp)
            (let ([new-cenv (append (build-list (length (App-operands exp)) (lambda: ([i : Natural]) '?))
                                    cenv)])
@@ -135,6 +138,11 @@
                        cenv
                        target
                        linkage)]
+    [(Splice? exp)
+     (compile-splice (Splice-actions exp)
+                     cenv
+                     target
+                     linkage)]
     [(App? exp)
      (compile-application exp cenv target linkage)]
     [(Let1? exp)
@@ -290,6 +298,26 @@
       (compile (first-exp seq) cenv target linkage)
       (append-instruction-sequences (compile (first-exp seq) cenv target next-linkage)
                                     (compile-sequence (rest-exps seq) cenv target linkage))))
+
+
+(: compile-splice ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Wrap a continuation prompt around each of the expressions.
+(define (compile-splice seq cenv target linkage) 
+  (cond [(last-exp? seq)
+         (end-with-linkage 
+          linkage
+          cenv
+          (append-instruction-sequences 
+           #;(make-instruction-sequence `(,(make-PushPrompt)))
+           (compile (first-exp seq) cenv target next-linkage)
+           #;(make-instruction-sequence `(,(make-PushPrompt)))))]
+        [else
+         (append-instruction-sequences 
+          #;(make-instruction-sequence `(,(make-PushPrompt)))
+          (compile (first-exp seq) cenv target next-linkage)
+          #;(make-instruction-sequence `(,(make-PushPrompt)))
+          (compile-splice (rest-exps seq) cenv target linkage))]))
+
 
 
 (: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -1196,6 +1224,11 @@
      (make-Seq (map (lambda: ([action : Expression])
                              (adjust-expression-depth action n skip))
                     (Seq-actions exp)))]
+
+    [(Splice? exp)
+     (make-Splice (map (lambda: ([action : Expression])
+                                (adjust-expression-depth action n skip))
+                       (Splice-actions exp)))]
     
     [(App? exp)
      (make-App (adjust-expression-depth (App-operator exp) n 

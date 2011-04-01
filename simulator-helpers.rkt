@@ -28,7 +28,7 @@
        v]
       [(null? v)
        v]
-      [(void? v)
+      [(VoidValue? v)
        v]
       [(MutablePair? v)
        v]
@@ -68,8 +68,8 @@
      v]
     [(null? v)
      v]
-    [(void? v)
-     v]
+    [(VoidValue? v)
+     (void)]
     [(undefined? v)
      (letrec ([x x]) x)]
     [(primitive-proc? v)
@@ -96,7 +96,7 @@
     [(null? v)
      v]
     [(void? v)
-     v]
+     the-void-value]
     [(eq? v (letrec ([x x]) x))
      (make-undefined)]
     [(procedure? v)

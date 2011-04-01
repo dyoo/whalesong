@@ -83,29 +83,32 @@
 (: step! (machine -> 'ok))
 ;; Take one simulation step.
 (define (step! m)
-  (let: ([i : Statement (current-instruction m)])
-        (cond
-          [(symbol? i)
-           'ok]
-          [(AssignImmediateStatement? i)
-           (step-assign-immediate! m i)]
-          [(AssignPrimOpStatement? i)
-           (step-assign-primitive-operation! m i)]
-          [(PerformStatement? i)
-           (step-perform! m i)]
-          [(GotoStatement? i)
-           (step-goto! m i)]
-          [(TestAndBranchStatement? i)
-           (step-test-and-branch! m i)]
-          [(PopEnvironment? i)
-           (step-pop-environment! m i)]
-          [(PushEnvironment? i)
-           (step-push-environment! m i)]
-          [(PushControlFrame? i)
-           (step-push-control-frame! m i)]
-          [(PopControlFrame? i)
-           (step-pop-control-frame! m i)]))
-  (increment-pc! m))
+  (let*: ([i : Statement (current-instruction m)]
+          [result : 'ok
+                  (cond
+                    [(symbol? i)
+                     'ok]
+                    [(AssignImmediateStatement? i)
+                     (step-assign-immediate! m i)]
+                    [(AssignPrimOpStatement? i)
+                     (step-assign-primitive-operation! m i)]
+                    [(PerformStatement? i)
+                     (step-perform! m i)]
+                    [(GotoStatement? i)
+                     (step-goto! m i)]
+                    [(TestAndBranchStatement? i)
+                     (step-test-and-branch! m i)]
+                    [(PopEnvironment? i)
+                     (step-pop-environment! m i)]
+                    [(PushEnvironment? i)
+                     (step-push-environment! m i)]
+                    [(PushControlFrame? i)
+                     (step-push-control-frame! m i)]
+                    [(PushControlFrame/Prompt? i)
+                     (step-push-control-frame/prompt! m i)]
+                    [(PopControlFrame? i)
+                     (step-pop-control-frame! m i)])])
+         (increment-pc! m)))
 
 
 
@@ -149,8 +152,20 @@
 
 (: step-push-control-frame! (machine PushControlFrame -> 'ok))
 (define (step-push-control-frame! m stmt)
-  (control-push! m (make-frame (PushControlFrame-label stmt)
-                               (ensure-closure-or-false (machine-proc m)))))
+  (control-push! m (make-CallFrame (PushControlFrame-label stmt)
+                                   (ensure-closure-or-false (machine-proc m)))))
+
+(: step-push-control-frame/prompt! (machine PushControlFrame/Prompt -> 'ok))
+(define (step-push-control-frame/prompt! m stmt)
+  (control-push! m (make-PromptFrame
+                    (let ([tag (PushControlFrame/Prompt-tag stmt)])
+                      (cond 
+                        [(DefaultContinuationPromptTag? tag)
+                         default-continuation-prompt-tag-value]
+                        [(OpArg? tag)
+                         (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))])))))
+                        
+  
 
 (: step-pop-control-frame! (machine PopControlFrame -> 'ok))
 (define (step-pop-control-frame! m stmt)
@@ -325,7 +340,7 @@
                     (error 'apply-primitive-procedure)]))]
           
           [(GetControlStackLabel? op)
-           (target-updater! m (frame-return (first (machine-control m))))]
+           (target-updater! m (CallFrame-return (ensure-CallFrame (first (machine-control m)))))]
 
           [(CaptureEnvironment? op)
            (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
@@ -381,7 +396,8 @@
            (let: loop : PrimitiveValue ([rand-vals : (Listof PrimitiveValue) rand-vals])
              (cond [(empty? rand-vals)
                     null]
-                   [(make-MutablePair (first rand-vals)
+                   [else
+                    (make-MutablePair (first rand-vals)
                                       (loop (rest rand-vals)))]))]
           [(null?)
            (null? (first rand-vals))]
@@ -453,11 +469,12 @@
      (let: ([v : SlotValue
                (list-ref (machine-env m) (EnvWholePrefixReference-depth an-oparg))])
            (cond
-             [(PrimitiveValue? v)
-              (error 'evaluate-oparg "Internal error: primitive value at depth ~s"
-                     (EnvWholePrefixReference-depth an-oparg))]
              [(toplevel? v)
-              v]))]))
+              v]
+             [else
+              (error 'evaluate-oparg "Internal error: not a toplevel at depth ~s: ~s"
+                     (EnvWholePrefixReference-depth an-oparg)
+                     v)]))]))
 
 
 (: ensure-closure-or-false (SlotValue -> (U closure #f)))
@@ -471,6 +488,18 @@
   (if (closure? v)
       v
       (error 'ensure-closure)))
+
+(: ensure-CallFrame (Any -> CallFrame))
+(define (ensure-CallFrame v)
+  (if (CallFrame? v)
+      v
+      (error 'ensure-CallFrame "not a CallFrame: ~s" v)))
+
+(: ensure-continuation-prompt-tag-value (Any -> ContinuationPromptTagValue))
+(define (ensure-continuation-prompt-tag-value v)
+  (if (ContinuationPromptTagValue? v)
+      v
+      (error 'ensure-ContinuationPromptTagValue "not a ContinuationPromptTagValue: ~s" v)))
 
 
 (: ensure-symbol (Any -> Symbol))

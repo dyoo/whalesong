@@ -308,14 +308,16 @@
           linkage
           cenv
           (append-instruction-sequences 
-           #;(make-instruction-sequence `(,(make-PushPrompt)))
+           (make-instruction-sequence `(,(make-PushControlFrame/Prompt
+                                          default-continuation-prompt-tag)))
            (compile (first-exp seq) cenv target next-linkage)
-           #;(make-instruction-sequence `(,(make-PushPrompt)))))]
+           (make-instruction-sequence `(,(make-PopControlFrame)))))]
         [else
          (append-instruction-sequences 
-          #;(make-instruction-sequence `(,(make-PushPrompt)))
+          (make-instruction-sequence `(,(make-PushControlFrame/Prompt
+                                         (make-DefaultContinuationPromptTag))))
           (compile (first-exp seq) cenv target next-linkage)
-          #;(make-instruction-sequence `(,(make-PushPrompt)))
+          (make-instruction-sequence `(,(make-PopControlFrame)))
           (compile-splice (rest-exps seq) cenv target linkage))]))
 
 

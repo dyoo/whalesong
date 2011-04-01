@@ -66,6 +66,7 @@
                                  PopEnvironment
                                  PushEnvironment
                                  PushControlFrame
+                                 PushControlFrame/Prompt
                                  PopControlFrame))
 
 (define-type Statement (U UnlabeledStatement
@@ -97,6 +98,19 @@
 ;; this call, as the control frame will hold onto the called procedure record.
 (define-struct: PushControlFrame ([label : Symbol]) 
   #:transparent)
+
+(define-struct: PushControlFrame/Prompt ([tag : (U OpArg DefaultContinuationPromptTag)]
+                                         ;; TODO: add handler and arguments
+                                         )
+  #:transparent)
+
+(define-struct: DefaultContinuationPromptTag ()
+  #:transparent)
+(define default-continuation-prompt-tag 
+  (make-DefaultContinuationPromptTag))
+
+
+
 
 (define-struct: GotoStatement ([target : (U Label Reg)]) 
   #:transparent)
@@ -326,3 +340,6 @@
                             [stmts : (Listof UnlabeledStatement)]) 
   #:transparent)
 
+
+
+(define-predicate OpArg? OpArg)

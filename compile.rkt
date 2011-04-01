@@ -21,7 +21,8 @@
 ;; Note: the toplevel generates the lambda body streams at the head, and then the
 ;; rest of the instruction stream.
 (define (-compile exp target linkage)
-  (let ([after-lam-bodies (make-label 'afterLamBodies)])
+  (let ([after-lam-bodies (make-label 'afterLamBodies)]
+        [before-pop-prompt (make-label 'beforePopPrompt)])
     (statements
      (end-with-linkage 
       linkage '() 
@@ -30,11 +31,15 @@
                                     (compile-lambda-bodies (collect-all-lams exp))
                                     after-lam-bodies
                                     (make-instruction-sequence
-                                     `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag)))
+                                     `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                                                      before-pop-prompt)))
                                     (compile exp
                                              '()
                                              target 
-                                             next-linkage)
+                                             (make-LabelLinkage before-pop-prompt))
+
+                                    before-pop-prompt
+
                                     (make-instruction-sequence
                                      `(,(make-PopControlFrame))))))))
 
@@ -310,21 +315,28 @@
 ;; Wrap a continuation prompt around each of the expressions.
 (define (compile-splice seq cenv target linkage) 
   (cond [(last-exp? seq)
-         (end-with-linkage 
-          linkage
-          cenv
-          (append-instruction-sequences 
-           (make-instruction-sequence `(,(make-PushControlFrame/Prompt
-                                          default-continuation-prompt-tag)))
-           (compile (first-exp seq) cenv target next-linkage)
-           (make-instruction-sequence `(,(make-PopControlFrame)))))]
+         (let ([before-pop-prompt (make-label 'beforePromptPop)])
+           (end-with-linkage 
+            linkage
+            cenv
+            (append-instruction-sequences 
+             (make-instruction-sequence `(,(make-PushControlFrame/Prompt
+                                            default-continuation-prompt-tag
+                                            before-pop-prompt
+                                            )))
+             (compile (first-exp seq) cenv target next-linkage)
+             before-pop-prompt
+             (make-instruction-sequence `(,(make-PopControlFrame))))))]
         [else
-         (append-instruction-sequences 
-          (make-instruction-sequence `(,(make-PushControlFrame/Prompt
-                                         (make-DefaultContinuationPromptTag))))
-          (compile (first-exp seq) cenv target next-linkage)
-          (make-instruction-sequence `(,(make-PopControlFrame)))
-          (compile-splice (rest-exps seq) cenv target linkage))]))
+         (let ([before-pop-prompt (make-label 'beforePromptPop)])
+           (append-instruction-sequences 
+            (make-instruction-sequence `(,(make-PushControlFrame/Prompt
+                                           (make-DefaultContinuationPromptTag)
+                                           before-pop-prompt)))
+            (compile (first-exp seq) cenv target next-linkage)
+            before-pop-prompt
+            (make-instruction-sequence `(,(make-PopControlFrame)))
+            (compile-splice (rest-exps seq) cenv target linkage)))]))
 
 
 

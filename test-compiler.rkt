@@ -826,7 +826,7 @@
 
 
 ;; This should produce 0 because there needs to be a continuation prompt around each evaluation.
-#;(test '(begin 
+(test '(begin 
            (define cont #f)
            (define n 0)
            (call/cc (lambda (x) (set! cont x)))

@@ -163,7 +163,8 @@
                         [(DefaultContinuationPromptTag? tag)
                          default-continuation-prompt-tag-value]
                         [(OpArg? tag)
-                         (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))])))))
+                         (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))]))
+                    (PushControlFrame/Prompt-label stmt))))
                         
   
 
@@ -267,7 +268,7 @@
                                   default-continuation-prompt-tag-value]
                                  [(OpArg? tag)
                                   (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))]))])
-                 (set-machine-control! m (append 
+                 (set-machine-control! m (compose-continuation-frames 
                                           (CapturedControl-frames (ensure-CapturedControl (env-ref m 0)))
                                           (drop-continuation-to-tag (machine-control m)
                                                                     tag-value)))
@@ -277,6 +278,34 @@
            (set-machine-env! m (CapturedEnvironment-vals (ensure-CapturedEnvironment (env-ref m 1))))
            (set-machine-stack-size! m (length (machine-env m)))
            'ok])))
+
+
+
+(: compose-continuation-frames ((Listof frame) (Listof frame) -> (Listof frame)))
+;; Stitch together the continuation.  A PromptFrame must exist at the head of frames-2.
+(define (compose-continuation-frames frames-1 frames-2)
+  (let ([prompt-frame (ensure-prompt-frame (first frames-2))]
+        [last-frame (last frames-1)])
+    (let ([result
+           (append #;frames-1 
+                   (drop-right frames-1 1)
+                   (list (cond
+                           [(CallFrame? last-frame)
+                            last-frame #; (update-call-frame-return last-frame (PromptFrame-label prompt-frame))]
+                           [(PromptFrame? last-frame)
+                            last-frame]))
+                   frames-2)])
+      ;(displayln frames-1)
+      ;(displayln frames-2)
+      ;(displayln result)
+      result)))
+
+(: update-call-frame-return (CallFrame Symbol -> CallFrame))
+(define (update-call-frame-return a-call-frame a-return)
+  (make-CallFrame a-return 
+                  (CallFrame-proc a-call-frame)))
+
+
 
 
 (: get-target-updater (Target -> (machine SlotValue -> 'ok)))
@@ -612,6 +641,11 @@
       x
       (error 'ensure-mutable-pair "not a mutable pair: ~s" x)))
 
+(: ensure-prompt-frame (Any -> PromptFrame))
+(define (ensure-prompt-frame x)
+  (if (PromptFrame? x)
+      x
+      (error 'ensure-prompt-frame "not a PromptFrame: ~s" x)))
 
 
 (: ensure-CapturedControl (Any -> CapturedControl))

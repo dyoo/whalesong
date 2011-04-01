@@ -63,7 +63,8 @@
                            ;; TODO: add continuation marks
                            )
   #:transparent)
-(define-struct: PromptFrame ([tag : ContinuationPromptTagValue])
+(define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
+                             [label : Symbol])
   #:transparent)
 
 (define-struct: ContinuationPromptTagValue ([name : Symbol])

@@ -100,6 +100,7 @@
   #:transparent)
 
 (define-struct: PushControlFrame/Prompt ([tag : (U OpArg DefaultContinuationPromptTag)]
+                                         [label : Symbol]
                                          ;; TODO: add handler and arguments
                                          )
   #:transparent)

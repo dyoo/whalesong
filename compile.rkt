@@ -533,7 +533,7 @@
                     (kernel-primitive-expected-operand-types kernel-op n)]
                    
                    [(constant-operands rest-operands)
-                    (split-operands-by-constant-or-stack-references 
+                    (split-operands-by-constants 
                      (App-operands exp))]
                    
                    ;; here, we rewrite the stack references so they assume no scratch space
@@ -668,13 +668,15 @@
             #f])]))
 
 
-(: split-operands-by-constant-or-stack-references 
+(: split-operands-by-constants 
    ((Listof Expression)  -> 
                          (values (Listof (U Constant LocalRef ToplevelRef))
                                  (Listof Expression))))
 ;; Splits off the list of operations into two: a prefix of constant
 ;; or simple expressions, and the remainder.
-(define (split-operands-by-constant-or-stack-references rands)
+;; TODO: if we can statically determine what arguments are immutable, regardless of
+;; side effects, we can do a much better job here...
+(define (split-operands-by-constants rands)
   (let: loop : (values (Listof (U Constant LocalRef ToplevelRef)) (Listof Expression))
         ([rands : (Listof Expression) rands]
          [constants : (Listof (U Constant LocalRef ToplevelRef))
@@ -683,7 +685,9 @@
                (values (reverse constants) empty)]
               [else (let ([e (first rands)])
                       (if (or (Constant? e)
-                              (and (LocalRef? e) (not (LocalRef-unbox? e))) 
+                              
+                              ;; These two are commented out because it's not sound otherwise.
+                              #;(and (LocalRef? e) (not (LocalRef-unbox? e))) 
                               #;(and (ToplevelRef? e)
                                      (let ([prefix (ensure-prefix 
                                                     (list-ref cenv (ToplevelRef-depth e)))])

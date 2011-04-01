@@ -325,6 +325,30 @@
                               #t)))
 
 
+
+
+;; This hsould only show 0, because there should be a prompt that controls continuation capture
+#;(test '(begin (define cont #f)
+                (define n 0)
+                (call/cc (lambda (x) (set! cont x)))
+                (displayln n) 
+                (set! n (add1 n))
+                (when (< n 10)
+                  (cont))))
+
+
+;; This should show the numbers 0 through 10
+#;(test '(begin (define (f)
+                  (define cont #f)
+                  (define n 0)
+                  (call/cc (lambda (x) (set! cont x)))
+                  (displayln n) 
+                  (set! n (add1 n))
+                  (when (< n 10)
+                    (cont)))
+                (f)))
+
+
 #;(test (parse '(letrec ([x (lambda (x) (y x))]
                        [y (lambda (x) (x y))])
                   (x y)))

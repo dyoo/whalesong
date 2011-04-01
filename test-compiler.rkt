@@ -811,6 +811,34 @@
 
 
 
+
+
+(test '(begin (define (f)
+                  (define cont #f)
+                  (define n 0)
+                  (call/cc (lambda (x) (set! cont x)))
+                  (set! n (add1 n))
+                  (if (< n 10)
+                    (cont 'dontcare))
+                  n)
+                (f))
+        10)
+
+
+;; This should produce 0 because there needs to be a continuation prompt around each evaluation.
+#;(test '(begin 
+           (define cont #f)
+           (define n 0)
+           (call/cc (lambda (x) (set! cont x)))
+           (set! n (add1 n))
+           (if (< n 10)
+             (cont 'dontcare))
+           n)
+        0)
+
+
+
+
 ;; FIXME: this test is failing.  I think we need prompts to delimit
 ;; the continuation capture.
 #;(test '(begin

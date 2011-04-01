@@ -198,7 +198,8 @@
 (define-struct: CaptureEnvironment ([skip : Natural]))
 
 ;; Capture the control stack, skipping skip frames.
-(define-struct: CaptureControl ([skip : Natural]))
+(define-struct: CaptureControl ([skip : Natural]
+                                [tag : (U DefaultContinuationPromptTag OpArg)]))
 
 
 
@@ -245,7 +246,7 @@
   #:transparent)
 
 ;; Changes over the control located at the given argument from the structure in env[1]
-(define-struct: RestoreControl! ())
+(define-struct: RestoreControl! ([tag : (U DefaultContinuationPromptTag OpArg)]))
 
 ;; Changes over the environment located at the given argument from the structure in env[0]
 (define-struct: RestoreEnvironment! ())

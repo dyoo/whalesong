@@ -23,14 +23,20 @@
 (define (-compile exp target linkage)
   (let ([after-lam-bodies (make-label 'afterLamBodies)])
     (statements
-     (append-instruction-sequences (make-instruction-sequence 
-                                    `(,(make-GotoStatement (make-Label after-lam-bodies))))
-                                   (compile-lambda-bodies (collect-all-lams exp))
-                                   after-lam-bodies
-                                   (compile exp
-                                            '()
-                                            target 
-                                            linkage)))))
+     (end-with-linkage 
+      linkage '() 
+      (append-instruction-sequences (make-instruction-sequence 
+                                     `(,(make-GotoStatement (make-Label after-lam-bodies))))
+                                    (compile-lambda-bodies (collect-all-lams exp))
+                                    after-lam-bodies
+                                    (make-instruction-sequence
+                                     `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag)))
+                                    (compile exp
+                                             '()
+                                             target 
+                                             next-linkage)
+                                    (make-instruction-sequence
+                                     `(,(make-PopControlFrame))))))))
 
 (define-struct: lam+cenv ([lam : Lam]
                           [cenv : CompileTimeEnvironment]))

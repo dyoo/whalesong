@@ -34,7 +34,7 @@
        ;; Next, capture the envrionment and the current continuation closure,.
        ,(make-PushEnvironment 2 #f)
        ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0 #f) 
-                                    (make-CaptureControl 0))
+                                    (make-CaptureControl 0 default-continuation-prompt-tag))
        ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1 #f)
                                     ;; When capturing, skip over f and the two slots we just added.
                                     (make-CaptureEnvironment 3))
@@ -52,12 +52,13 @@
                                     'val
                                     return-linkage)
     
-    ;; The code for the continuation coe follows.  It's supposed to
+    ;; The code for the continuation code follows.  It's supposed to
     ;; abandon the current continuation, initialize the control and environment, and then jump.
     (make-instruction-sequence `(,call/cc-closure-entry
                                  ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
                                  ,(make-PerformStatement (make-InstallClosureValues!))
-                                 ,(make-PerformStatement (make-RestoreControl!))
+                                 ,(make-PerformStatement 
+                                   (make-RestoreControl! default-continuation-prompt-tag))
                                  ,(make-PerformStatement (make-RestoreEnvironment!))
                                  ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
                                  ,(make-PopControlFrame)

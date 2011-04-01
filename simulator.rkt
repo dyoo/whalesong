@@ -260,8 +260,18 @@
                  'ok)]
           
           [(RestoreControl!? op)
-           (set-machine-control! m (CapturedControl-frames (ensure-CapturedControl (env-ref m 0))))
-           'ok]
+           (let: ([tag-value : ContinuationPromptTagValue
+                             (let ([tag (RestoreControl!-tag op)])
+                               (cond
+                                 [(DefaultContinuationPromptTag? tag)
+                                  default-continuation-prompt-tag-value]
+                                 [(OpArg? tag)
+                                  (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))]))])
+                 (set-machine-control! m (append 
+                                          (CapturedControl-frames (ensure-CapturedControl (env-ref m 0)))
+                                          (drop-continuation-to-tag (machine-control m)
+                                                                    tag-value)))
+                 'ok)]
 
           [(RestoreEnvironment!? op)
            (set-machine-env! m (CapturedEnvironment-vals (ensure-CapturedEnvironment (env-ref m 1))))
@@ -346,14 +356,69 @@
            (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
                                                               (CaptureEnvironment-skip op))))]
           [(CaptureControl? op)
-           (target-updater! m (make-CapturedControl (drop (machine-control m)
-                                                          (CaptureControl-skip op))))]
+           (target-updater! m (evaluate-continuation-capture m op))]
+          
           [(MakeBoxedEnvironmentValue? op)
            (target-updater! m (box (ensure-primitive-value
                                     (env-ref m (MakeBoxedEnvironmentValue-depth op)))))]
           
           [(CallKernelPrimitiveProcedure? op)
            (target-updater! m (evaluate-kernel-primitive-procedure-call m op))])))
+
+
+(: evaluate-continuation-capture (machine CaptureControl -> SlotValue))
+(define (evaluate-continuation-capture m op)
+  (let: ([frames : (Listof frame) (drop (machine-control m)
+                                        (CaptureControl-skip op))]
+         [tag : ContinuationPromptTagValue
+              (let ([tag (CaptureControl-tag op)])
+                (cond
+                  [(DefaultContinuationPromptTag? tag)
+                   default-continuation-prompt-tag-value]
+                  [(OpArg? tag)
+                   (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))]))])
+        (make-CapturedControl (take-continuation-to-tag frames tag))))
+
+
+(: take-continuation-to-tag ((Listof frame) ContinuationPromptTagValue -> (Listof frame)))
+(define (take-continuation-to-tag frames tag)
+  (cond
+    [(empty? frames)
+     (error 'trim-continuation-at-tag "Unable to find continuation tag value ~s" tag)]
+    [else
+     (let ([a-frame (first frames)])
+       (cond
+         [(CallFrame? a-frame)
+          (cons a-frame (take-continuation-to-tag (rest frames) tag))]
+         [(PromptFrame? a-frame)
+          (cond
+            [(eq? (PromptFrame-tag a-frame) tag)
+             '()]
+            [else
+             (cons a-frame (take-continuation-to-tag (rest frames) tag))])]))]))
+
+
+(: drop-continuation-to-tag ((Listof frame) ContinuationPromptTagValue -> (Listof frame)))
+;; Drops continuation frames until we reach the appropriate one.
+(define (drop-continuation-to-tag frames tag)
+  (cond
+    [(empty? frames)
+     (error 'trim-continuation-at-tag "Unable to find continuation tag value ~s" tag)]
+    [else
+     (let ([a-frame (first frames)])
+       (cond
+         [(CallFrame? a-frame)
+          (drop-continuation-to-tag (rest frames) tag)]
+         [(PromptFrame? a-frame)
+          (cond
+            [(eq? (PromptFrame-tag a-frame) tag)
+             frames]
+            [else
+             (drop-continuation-to-tag (rest frames) tag)])]))]))
+
+
+
+
 
 
 (: evaluate-kernel-primitive-procedure-call (machine CallKernelPrimitiveProcedure -> PrimitiveValue))

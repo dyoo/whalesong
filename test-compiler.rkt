@@ -244,6 +244,7 @@
                         1
                         (* x (f (sub1 x)))))])
         (f 1000))
+      #:control-limit 3
       #:stack-limit 8)
 
 
@@ -300,6 +301,25 @@
 (test '(+ (+ 3 (+ 4 5))
           6)
       (+ 3 4 5 6))
+
+
+
+(test '(begin 
+         (define (foo y)
+           y)
+         (define (sum-iter x acc)
+           (if (= x 0)
+               acc
+               (let* ([y (sub1 x)]
+                      [z (+ x acc)])
+                 (foo y)
+                 (sum-iter y z))))
+         (sum-iter 300 0))
+      45150
+      #:stack-limit 8
+      #:control-limit 4)
+
+
 
 
 ;; deriv
@@ -581,6 +601,11 @@
       #:control-limit 3)
 
 
+
+
+
+
+
 #;(test '(let ([x 16])
         (call/cc (lambda (k) (+ x x))))
       32
@@ -773,6 +798,72 @@
   (unless (string=? "a0c1b2e3d4" (get-output-string op))
     (error 'letrec-failed)))
       
+
+(test '(letrec ([a (lambda ()
+                     (b))]
+                [b (lambda ()
+                     (c))]
+                [c (lambda ()
+                     (d))]
+                [d (lambda ()
+                     (e))]
+                [e (lambda ()
+                     (f))]
+                [f (lambda ()
+                     (g))]
+                [g (lambda ()
+                     "gee!")])
+         (a))
+      "gee!"
+      #:stack-limit 9
+      #:control-limit 2)
+
+
+
+(test '(letrec ([a (lambda ()
+                     (b))]
+                [b (lambda ()
+                     (c))]
+                [c (lambda ()
+                     (d))]
+                [d (lambda ()
+                     (e))]
+                [e (lambda ()
+                     (f))]
+                [f (lambda ()
+                     (g))]
+                [g (lambda ()
+                     "gee!")]
+                [h (lambda ()
+                     "ho!")])
+         (a))
+      "gee!"
+      #:stack-limit 12
+      #:control-limit 2)
+
+
+
+
+(test '(letrec ([a (lambda (lst)
+                       (b (cons "a" lst)))]
+                  [b (lambda (lst)
+                       (c (cons "b" lst)))]
+                  [c (lambda (lst)
+                       (d (cons "c" lst)))]
+                  [d (lambda (lst)
+                       (e (cons "d" lst)))]
+                  [e (lambda (lst)
+                       (f (cons "e" lst)))]
+                  [f (lambda (lst)
+                       (g (cons "f" lst)))]
+                  [g (lambda (lst)
+                       (cons "gee!" lst))])
+           (a '()))
+        '("gee!" "f" "e" "d" "c" "b" "a")
+        #:stack-limit 12
+        #:control-limit 2)
+
+
 
 
 

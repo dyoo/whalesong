@@ -284,26 +284,8 @@
 (: compose-continuation-frames ((Listof frame) (Listof frame) -> (Listof frame)))
 ;; Stitch together the continuation.  A PromptFrame must exist at the head of frames-2.
 (define (compose-continuation-frames frames-1 frames-2)
-  (let ([prompt-frame (ensure-prompt-frame (first frames-2))]
-        [last-frame (last frames-1)])
-    (let ([result
-           (append #;frames-1 
-                   (drop-right frames-1 1)
-                   (list (cond
-                           [(CallFrame? last-frame)
-                            last-frame #; (update-call-frame-return last-frame (PromptFrame-label prompt-frame))]
-                           [(PromptFrame? last-frame)
-                            last-frame]))
-                   frames-2)])
-      ;(displayln frames-1)
-      ;(displayln frames-2)
-      ;(displayln result)
-      result)))
+  (append frames-1 frames-2))
 
-(: update-call-frame-return (CallFrame Symbol -> CallFrame))
-(define (update-call-frame-return a-call-frame a-return)
-  (make-CallFrame a-return 
-                  (CallFrame-proc a-call-frame)))
 
 
 
@@ -379,7 +361,12 @@
                     (error 'apply-primitive-procedure)]))]
           
           [(GetControlStackLabel? op)
-           (target-updater! m (CallFrame-return (ensure-CallFrame (first (machine-control m)))))]
+           (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
+                                (cond
+                                  [(PromptFrame? frame)
+                                   (PromptFrame-return frame)]
+                                  [(CallFrame? frame)
+                                   (CallFrame-return frame)])))]
 
           [(CaptureEnvironment? op)
            (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
@@ -646,6 +633,12 @@
   (if (PromptFrame? x)
       x
       (error 'ensure-prompt-frame "not a PromptFrame: ~s" x)))
+
+(: ensure-frame (Any -> frame))
+(define (ensure-frame x)
+  (if (frame? x)
+      x
+      (error 'ensure-frame "not a frame: ~s" x)))
 
 
 (: ensure-CapturedControl (Any -> CapturedControl))

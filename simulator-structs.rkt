@@ -64,7 +64,7 @@
                            )
   #:transparent)
 (define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
-                             [label : Symbol])
+                             [return : Symbol])
   #:transparent)
 
 (define-struct: ContinuationPromptTagValue ([name : Symbol])
@@ -109,3 +109,4 @@
 
 
 (define-predicate PrimitiveValue? PrimitiveValue)
+(define-predicate frame? frame)

@@ -33,15 +33,8 @@
                                     (make-instruction-sequence
                                      `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
                                                                       before-pop-prompt)))
-                                    (compile exp
-                                             '()
-                                             target 
-                                             (make-LabelLinkage before-pop-prompt))
-
-                                    before-pop-prompt
-
-                                    (make-instruction-sequence
-                                     `(,(make-PopControlFrame))))))))
+                                    (compile exp '() target prompt-linkage)
+                                    before-pop-prompt)))))
 
 (define-struct: lam+cenv ([lam : Lam]
                           [cenv : CompileTimeEnvironment]))
@@ -205,6 +198,10 @@
                                   ,(make-PopEnvironment (length cenv) 0)
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
+    [(PromptLinkage? linkage)
+     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                                  ,(make-PopControlFrame)
+                                  ,(make-GotoStatement (make-Reg 'proc))))]
     [(NextLinkage? linkage)
      empty-instruction-sequence]
     [(LabelLinkage? linkage)
@@ -219,6 +216,11 @@
     [(ReturnLinkage? linkage)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
                                   ,(make-PopControlFrame)
+                                  ,(make-GotoStatement (make-Reg 'proc))))]
+    [(PromptLinkage? linkage)
+     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                                  ,(make-PopControlFrame)
+                                  ,(make-PopEnvironment (length cenv) 0)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(NextLinkage? linkage)
      (make-instruction-sequence `(,(make-PopEnvironment (length cenv) 0)))]
@@ -322,20 +324,17 @@
             (append-instruction-sequences 
              (make-instruction-sequence `(,(make-PushControlFrame/Prompt
                                             default-continuation-prompt-tag
-                                            before-pop-prompt
-                                            )))
-             (compile (first-exp seq) cenv target next-linkage)
-             before-pop-prompt
-             (make-instruction-sequence `(,(make-PopControlFrame))))))]
+                                            before-pop-prompt)))
+             (compile (first-exp seq) cenv target prompt-linkage)
+             before-pop-prompt)))]
         [else
          (let ([before-pop-prompt (make-label 'beforePromptPop)])
            (append-instruction-sequences 
             (make-instruction-sequence `(,(make-PushControlFrame/Prompt
                                            (make-DefaultContinuationPromptTag)
                                            before-pop-prompt)))
-            (compile (first-exp seq) cenv target next-linkage)
+            (compile (first-exp seq) cenv target prompt-linkage)
             before-pop-prompt
-            (make-instruction-sequence `(,(make-PopControlFrame)))
             (compile-splice (rest-exps seq) cenv target linkage)))]))
 
 
@@ -887,6 +886,28 @@
             (error 'compile "return linkage, target not val: ~s" target)])]
         
         
+         [(PromptLinkage? linkage)
+          (cond [(eq? target 'val)
+                 ;; This case happens for a function call that isn't in
+                 ;; tail position.
+                 (let ([proc-return (make-label 'procReturn)])
+                   (make-instruction-sequence 
+                    `(,(make-PushControlFrame proc-return)
+                      ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
+                      ,(make-GotoStatement entry-point)
+                      ,proc-return)))]
+                
+                [else
+                 ;; This case happens for evaluating arguments, since the
+                 ;; arguments are being installed into the scratch space.
+                 (let ([proc-return (make-label 'procReturn)])
+                   (make-instruction-sequence
+                    `(,(make-PushControlFrame proc-return)
+                      ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
+                      ,(make-GotoStatement entry-point)
+                      ,proc-return
+                      ,(make-AssignImmediateStatement target (make-Reg 'val)))))])]
+        
         [(NextLinkage? linkage)
          (cond [(eq? target 'val)
                 ;; This case happens for a function call that isn't in
@@ -984,6 +1005,8 @@
                           linkage]
                          [(ReturnLinkage? linkage)
                           linkage]
+                         [(PromptLinkage? linkage)
+                          linkage]
                          [(LabelLinkage? linkage)
                           after-body-code])]
           [body-target : Target (adjust-target-depth target 1)]
@@ -1015,6 +1038,8 @@
                          [(NextLinkage? linkage)
                           linkage]
                          [(ReturnLinkage? linkage)
+                          linkage]
+                         [(PromptLinkage? linkage)
                           linkage]
                          [(LabelLinkage? linkage)
                           after-body-code])]
@@ -1055,6 +1080,8 @@
                                       [(NextLinkage? linkage)
                                        linkage]
                                       [(ReturnLinkage? linkage)
+                                       linkage]
+                                      [(PromptLinkage? linkage)
                                        linkage]
                                       [(LabelLinkage? linkage)
                                        after-body-code])])

@@ -46,7 +46,7 @@
     [(EnvPrefixReference? target)
      (assemble-prefix-reference target)]
     [(PrimitivesReference? target)
-     (format "Primitives[~s]" (symbol->string (PrimitivesReference-name target)))]))
+     (format "MACHINE.primitives[~s]" (symbol->string (PrimitivesReference-name target)))]))
 
 
 

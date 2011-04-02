@@ -41,8 +41,9 @@
                             [code
                              (string-append
                               "(function() { "
-                              
+
                               runtime
+                              "var MACHINE = new plt.runtime.Machine();\n"
 
                               "return function(success, fail, params){" 
 			      snippet
@@ -58,11 +59,10 @@
                         (lambda (a-statement+inspector op)
                           (let* ([a-statement (car a-statement+inspector)]
                                  [inspector (cdr a-statement+inspector)])
-                            
-                            (display "(function() { " op)
-                            
+
                             (display runtime op)
-                            
+                            (display "var MACHINE = new plt.runtime.Machine();\n" op)                           
+                            (display "(function() { " op)
                             (display "var myInvoke = " op)
                             (assemble/write-invoke a-statement op)
                             (display ";" op)

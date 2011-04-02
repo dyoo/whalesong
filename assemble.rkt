@@ -24,6 +24,7 @@
   (let ([basic-blocks (fracture stmts)])
     (fprintf op "(function(MACHINE, success, fail, params) {\n")
     (fprintf op "var param;\n")
+    (fprintf op "var RUNTIME = plt.runtime;\n")
     (for-each (lambda: ([basic-block : BasicBlock])
                        (displayln (assemble-basic-block basic-block) op)
                        (newline op))
@@ -38,7 +39,7 @@ for (param in params) {
 }
 EOF
              )
-    (fprintf op "trampoline(MACHINE, ~a); })"
+    (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
              (BasicBlock-name (first basic-blocks)))))
 
 
@@ -265,10 +266,10 @@ EOF
       (assemble-jump (GotoStatement-target stmt))]
 
      [(PushControlFrame? stmt)
-      (format "MACHINE.control.push(new CallFrame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
+      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
-      (format "MACHINE.control.push(new PromptFrame(~a, ~a));" 
+      (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a, ~a));" 
               (PushControlFrame/Prompt-label stmt)
               (let ([tag (PushControlFrame/Prompt-tag stmt)])
                 (cond
@@ -332,7 +333,7 @@ EOF
      "MACHINE.proc.label"]
     
     [(MakeCompiledProcedure? op)
-     (format "new Closure(~a, ~a, [~a], ~a)"
+     (format "new RUNTIME.Closure(~a, ~a, [~a], ~a)"
              (MakeCompiledProcedure-label op)
              (MakeCompiledProcedure-arity op)
              (string-join (map assemble-env-reference/closure-capture 
@@ -345,7 +346,7 @@ EOF
              (assemble-display-name (MakeCompiledProcedure-display-name op)))]
     
     [(MakeCompiledProcedureShell? op)
-     (format "new Closure(~a, ~a, undefined, ~a)"
+     (format "new RUNTIME.Closure(~a, ~a, undefined, ~a)"
              (MakeCompiledProcedureShell-label op)
              (MakeCompiledProcedureShell-arity op)
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
@@ -362,7 +363,7 @@ EOF
              (CaptureEnvironment-skip op))]
     
     [(CaptureControl? op)
-     (format "captureControl(MACHINE, ~a, ~a)"
+     (format "RUNTIME.captureControl(MACHINE, ~a, ~a)"
              (CaptureControl-skip op)
              (let ([tag (CaptureControl-tag op)])
                (cond [(DefaultContinuationPromptTag? tag)
@@ -381,7 +382,7 @@ EOF
 
 (: assemble-default-continuation-prompt-tag (-> String))
 (define (assemble-default-continuation-prompt-tag)
-  "DEFAULT_CONTINUATION_PROMPT_TAG")
+  "RUNTIME.DEFAULT_CONTINUATION_PROMPT_TAG")
 
 
 
@@ -399,7 +400,7 @@ EOF
              (CheckToplevelBound!-pos op))]
     
     [(CheckClosureArity!? op)
-     (format "if (! (MACHINE.proc instanceof Closure && MACHINE.proc.arity === ~a)) { if (! (MACHINE.proc instanceof Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }"
+     (format "if (! (MACHINE.proc instanceof RUNTIME.Closure && MACHINE.proc.arity === ~a)) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }"
              (CheckClosureArity!-arity op))]
     
     [(ExtendEnvironment/Prefix!? op)
@@ -407,13 +408,13 @@ EOF
            (format "MACHINE.env.push([~a]);  MACHINE.env[MACHINE.env.length-1].names = [~a];"
                    (string-join (map (lambda: ([n : (U Symbol False ModuleVariable)])
                                               (cond [(symbol? n)
-                                                     (format "MACHINE.params.currentNamespace[~s] || Primitives[~s]"
+                                                     (format "MACHINE.params.currentNamespace[~s] || MACHINE.primitives[~s]"
                                                              (symbol->string n) 
                                                              (symbol->string n))]
                                                     [(eq? n #f)
                                                      "false"]
                                                     [(ModuleVariable? n)
-                                                     (format "Primitives[~s]"
+                                                     (format "MACHINE.primitives[~s]"
                                                              (symbol->string (ModuleVariable-name n)))]))
                                      names)
                                 ",")
@@ -433,7 +434,7 @@ EOF
     [(RestoreEnvironment!? op)
      "MACHINE.env = MACHINE.env[MACHINE.env.length - 2].slice(0);"]
     [(RestoreControl!? op)
-     (format "restoreControl(MACHINE, ~a);"
+     (format "RUNTIME.restoreControl(MACHINE, ~a);"
              (let ([tag (RestoreControl!-tag op)])
                (cond
                  [(DefaultContinuationPromptTag? tag)

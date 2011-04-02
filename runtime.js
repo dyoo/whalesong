@@ -11,10 +11,16 @@
 // No error trapping at the moment.
 
 
-var Frame = function(label, proc) {
+var CallFrame = function(label, proc) {
     this.label = label;
     this.proc = proc;
 };
+
+var PromptFrame = function(label, tag) {
+    this.label = label;
+    this.tag = tag;
+};
+
 
 
 
@@ -26,6 +32,14 @@ var Closure = function(label, arity, closedVals, displayName) {
     this.closedVals = closedVals;
     this.displayName = displayName;
 };
+
+var ContinuationPromptTag = function(name) {
+    this.name = name;
+};
+
+var DEFAULT_CONTINUATION_PROMPT_TAG = 
+    new ContinuationPromptTag("default-continuation-prompt-tag");
+
 
 
 
@@ -50,6 +64,37 @@ var testArgument = function(expectedTypeName,
 			+ " but received " + val + " instead"));
     }
 };
+
+
+
+
+var captureControl = function(MACHINE, skip, tag) {
+    var i;
+    for (i = MACHINE.control.length - skip - 1; i >= 0; i--) {
+	if (MACHINE.control[i].tag === tag) {
+	    return MACHINE.control.slice(i, MACHINE.control.length - skip);
+	}
+    } 
+    raise(new Error("captureControl: unable to find tag " + tag));
+};
+
+
+var restoreControl = function(MACHINE, tag) {
+    var i;
+    for (i = MACHINE.control.length - 1; i >= 0; i--) {
+	if (MACHINE.control[i].tag === tag) {
+	    MACHINE.control = 
+		MACHINE.control.slice(0, i+1).concat(
+		    MACHINE.env[MACHINE.env.length - 1].slice(0));
+	    return;
+	}
+    }
+    raise(new Error("restoreControl: unable to find tag " + tag));     
+
+}
+
+
+
 
 var isNumber = function(x) { return typeof(x) === 'number'; };
 

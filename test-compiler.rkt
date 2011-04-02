@@ -892,7 +892,7 @@
 
 
 
-#;(test '(begin
+(test '(begin
            (define (make-gen gen) 
              (let ([cont (box #f)])     
                (lambda ()
@@ -913,13 +913,13 @@
            (list (g1)))
       
         (list "a")
-        #:with-bootstrapping #t)
+        #:with-bootstrapping? #t)
 
 
 
 
 
-#;(test '(begin (define (f)
+(test '(begin (define (f)
                   (define cont #f)
                   (define n 0)
                   (call/cc (lambda (x) (set! cont x)))
@@ -929,11 +929,12 @@
                   n)
                 (f))
         10
-        #:with-bootstrapping #t)
+        #:with-bootstrapping? #t)
 
 
-;; This should produce 0 because there needs to be a continuation prompt around each evaluation.
-#;(test '(begin 
+;; This should produce 1 because there's a continuation prompt around each evaluation,
+;; and the call/cc cuts off at the prompt.
+(test '(begin 
            (define cont #f)
            (define n 0)
            (call/cc (lambda (x) (set! cont x)))
@@ -941,63 +942,63 @@
            (if (< n 10)
              (cont 'dontcare))
            n)
-        0
+        1
         #:with-bootstrapping? #t)
 
 
 
-
-;; FIXME: this test is failing.  I think we need prompts to delimit
-;; the continuation capture.
-#;(test '(begin
-           (define (make-gen gen) 
-             (let ([cont (box #f)])     
-               (lambda ()
-                 (call/cc (lambda (caller)
-                            (if (unbox cont)
-                                ((unbox cont) caller)
-                                (gen (lambda (v)
-                                       (call/cc (lambda (gen-k)
-                                                  (begin
-                                                    (set-box! cont gen-k)
-                                                    (caller v))))))))))))
-           
-           (define g1 (make-gen (lambda (return)
-                                  (return "a")
-                                  (return "b")
-                                  (return "c"))))
-           
-           (g1)
-           (g1))
-        "b")
+(test '(begin
+         (define (make-gen gen) 
+           (let ([cont (box #f)])     
+             (lambda ()
+               (call/cc (lambda (caller)
+                          (if (unbox cont)
+                              ((unbox cont) caller)
+                              (gen (lambda (v)
+                                     (call/cc (lambda (gen-k)
+                                                (begin
+                                                  (set-box! cont gen-k)
+                                                  (caller v))))))))))))
+         
+         (define g1 (make-gen (lambda (return)
+                                (return "a")
+                                (return "b")
+                                (return "c"))))
+         
+         (g1)
+         (g1))
+      "b"
+      #:with-bootstrapping? #t)
 
 
 
-;; FIXME: this test is failing.  I think we need prompts to delimit
-;; the continuation capture.
-#;(test '(begin
-           (define (make-gen gen) 
-             (let ([cont (box #f)])     
-               (lambda ()
-                 (call/cc (lambda (caller)
-                            (if (unbox cont)
-                                ((unbox cont) caller)
-                                (gen (lambda (v)
-                                       (call/cc (lambda (gen-k)
-                                                  (begin
-                                                    (set-box! cont gen-k)
-                                                    (caller v))))))))))))
-           
-           (define g1 (make-gen (lambda (return)
-                                  (return "a")
-                                  (return "b")
-                                  (return "c"))))
-        
-           (displayln (g1))
-           (displayln (g1))
-           (displayln (g1)))
-        "a\nb\nc\n"
-        #:with-bootstrapping #t)
+(let ([op (open-output-string)])
+  (parameterize ([current-simulated-output-port op])
+    (test '(begin
+             (define (make-gen gen) 
+               (let ([cont (box #f)])     
+                 (lambda ()
+                   (call/cc (lambda (caller)
+                              (if (unbox cont)
+                                  ((unbox cont) caller)
+                                  (gen (lambda (v)
+                                         (call/cc (lambda (gen-k)
+                                                    (begin
+                                                      (set-box! cont gen-k)
+                                                      (caller v))))))))))))
+             
+             (define g1 (make-gen (lambda (return)
+                                    (return "a")
+                                    (return "b")
+                                    (return "c"))))
+             
+             (displayln (g1))
+             (displayln (g1))
+             (displayln (g1)))
+          (void)
+          #:with-bootstrapping? #t))
+  (unless (string=? (get-output-string op) "a\nb\nc\n")
+    (error 'failure)))
 
 
 

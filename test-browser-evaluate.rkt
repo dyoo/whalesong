@@ -38,7 +38,7 @@ EOF
      (with-syntax ([stx stx])
        (syntax/loc #'stx
          (begin
-           (printf "running test...")
+           (printf "running test... ~s" (syntax->datum #'stx))
            (let ([result (evaluate s)])
              (let ([output (evaluated-stdout result)])
                (unless (string=? output exp)

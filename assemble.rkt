@@ -204,7 +204,11 @@ EOF
                              empty]
                             [(PushControlFrame? stmt)
                              (list (PushControlFrame-label stmt))]
+                            [(PushControlFrame/Prompt? stmt)
+                             (list (PushControlFrame/Prompt-label stmt))]
                             [(PopControlFrame? stmt)
+                             empty]
+                            [(PopControlFrame/Prompt? stmt)
                              empty])
                           (loop (rest stmts))))]))))
 
@@ -261,8 +265,20 @@ EOF
       (assemble-jump (GotoStatement-target stmt))]
 
      [(PushControlFrame? stmt)
-      (format "MACHINE.control.push(new Frame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
+      (format "MACHINE.control.push(new CallFrame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
+     [(PushControlFrame/Prompt? stmt)
+      ;; fixme: use a different frame structure
+      (format "MACHINE.control.push(new PromptFrame(~a, ~a));" 
+              (PushControlFrame/Prompt-label stmt)
+              (let ([tag (PushControlFrame/Prompt-tag stmt)])
+                (cond
+                  [(DefaultContinuationPromptTag? tag)
+                   (assemble-default-continuation-prompt-tag)]
+                  [(OpArg? tag)
+                   (assemble-oparg tag)])))]
      [(PopControlFrame? stmt)
+      "MACHINE.control.pop();"]
+     [(PopControlFrame/Prompt? stmt)
       "MACHINE.control.pop();"]
      [(PushEnvironment? stmt)
       (format "MACHINE.env.push(~a);" (string-join
@@ -345,8 +361,14 @@ EOF
              (CaptureEnvironment-skip op))]
     
     [(CaptureControl? op)
-     (format "MACHINE.control.slice(0, MACHINE.control.length - ~a)"
-             (CaptureControl-skip op))]
+     (format "captureControl(MACHINE, ~a, ~a)"
+             (CaptureControl-skip op)
+             (let ([tag (CaptureControl-tag op)])
+               (cond [(DefaultContinuationPromptTag? tag)
+                      (assemble-default-continuation-prompt-tag)]
+                     [(OpArg? tag)
+                      (assemble-oparg tag)])))]
+
     
     [(MakeBoxedEnvironmentValue? op)
      (format "[MACHINE.env[MACHINE.env.length - 1 - ~a]]"
@@ -355,6 +377,10 @@ EOF
     [(CallKernelPrimitiveProcedure? op)
      (open-code-kernel-primitive-procedure op)]))
 
+
+(: assemble-default-continuation-prompt-tag (-> String))
+(define (assemble-default-continuation-prompt-tag)
+  "DEFAULT_CONTINUATION_PROMPT_TAG")
 
 
 
@@ -406,7 +432,13 @@ EOF
     [(RestoreEnvironment!? op)
      "MACHINE.env = MACHINE.env[MACHINE.env.length - 2].slice(0);"]
     [(RestoreControl!? op)
-     "MACHINE.control = MACHINE.env[MACHINE.env.length - 1].slice(0);"]
+     (format "restoreControl(MACHINE, ~a);"
+             (let ([tag (RestoreControl!-tag op)])
+               (cond
+                 [(DefaultContinuationPromptTag? tag)
+                  (assemble-default-continuation-prompt-tag)]
+                 [(OpArg? tag)
+                  (assemble-oparg tag)])))]
     [(FixClosureShellMap!? op)
      (format "MACHINE.env[MACHINE.env.length - 1 - ~a].closedVals = [~a]"
              (FixClosureShellMap!-depth op)

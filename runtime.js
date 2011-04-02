@@ -1,6 +1,6 @@
-if(this['plt'] === undefined) {
-    this['plt'] = {};
-}
+    if(this['plt'] === undefined) {
+	this['plt'] = {};
+    }
 
 
 // All of the values here are namespaced under "plt.runtime".
@@ -9,6 +9,29 @@ if(this['plt'] === undefined) {
     this['plt']['runtime'] = {};
     var exports = this['plt']['runtime'];
 
+
+
+    // Type helpers
+    //
+    // Defines inheritance between prototypes.
+    var heir = function(parentPrototype) {
+	var f = function() {}
+	f.prototype = parentPrototype;
+	return new f();
+    };
+
+    // Consumes a class and creates a predicate that recognizes subclasses.
+    var makeClassPredicate = function(aClass) {
+	return function(x) { return x instanceof aClass; };
+    };
+
+
+    var isNumber = function(x) { return typeof(x) === 'number'; };
+
+    var isPair = function(x) { return (typeof(x) == 'object' && 
+				       x.length === 2) }
+    var isVector = function(x) { return (typeof(x) == 'object' && 
+					 x.length !== undefined) }
 
     var Machine = function() {
 	this.callsBeforeTrampoline = 100;
@@ -19,6 +42,7 @@ if(this['plt'] === undefined) {
 	this.running = false;
 	this.params = { currentDisplayer: function(v) {},
 			
+			currentOutputPort: new StandardOutputPort(),
 			currentSuccessHandler: function(MACHINE) {},
 			currentErrorHandler: function(MACHINE, exn) {},
 			
@@ -43,6 +67,8 @@ if(this['plt'] === undefined) {
     };
 
 
+
+    var Frame = function() {};
     // Control stack elements:
 
     // A CallFrame represents a call stack frame.
@@ -50,12 +76,45 @@ if(this['plt'] === undefined) {
 	this.label = label;
 	this.proc = proc;
     };
+    CallFrame.prototype = heir(Frame.prototype);
 
     // PromptFrame represents a prompt frame.
     var PromptFrame = function(label, tag) {
 	this.label = label;
 	this.tag = tag; // ContinuationPromptTag
     };
+    PromptFrame.prototype = heir(Frame.prototype);
+
+
+
+
+
+
+
+
+    var OutputPort = function() {};
+    var isOutputPort = makeClassPredicate(OutputPort);
+
+
+    var StandardOutputPort = function() {};
+    StandardOutputPort.prototype = heir(OutputPort.prototype);
+    StandardOutputPort.prototype.write = function(MACHINE, v) {
+	MACHINE.params.currentDisplayer(v);
+    };
+
+
+
+    var OutputStringPort = function() {
+	this.buf = [];
+    };
+    OutputStringPort.prototype = heir(OutputPort.prototype);
+    OutputStringPort.prototype.write = function(MACHINE, v) {
+	this.buf.push(String(v));
+    };
+    OutputStringPort.prototype.getOutputString = function() {
+	return this.buf.join('');
+    };
+    var isOutputStringPort = makeClassPredicate(OutputStringPort);
 
 
 
@@ -86,6 +145,11 @@ if(this['plt'] === undefined) {
 
 
 
+
+
+
+
+
     // A continuation prompt tag labels a prompt frame.
     var ContinuationPromptTag = function(name) {
 	this.name = name;
@@ -100,8 +164,6 @@ if(this['plt'] === undefined) {
 
 
     var NULL = [];
-
-
 
 
     var raise = function(e) { throw e; }
@@ -123,6 +185,15 @@ if(this['plt'] === undefined) {
 	    raise(new Error(callerName + ": expected " + expectedTypeName
 			    + " as argument #" + position 
 			    + " but received " + val + " instead"));
+	}
+    };
+
+    var testArity = function(callerName, observed, minimum, maximum) {
+	if (observed < minimum || observed > maximum) {
+	    raise(new Error(callerName + ": expected at least " + minimum
+			    + " arguments "
+			    + " but received " + observer));
+
 	}
     };
 
@@ -165,7 +236,6 @@ if(this['plt'] === undefined) {
 
 
 
-    var isNumber = function(x) { return typeof(x) === 'number'; };
 
 
     
@@ -173,324 +243,378 @@ if(this['plt'] === undefined) {
     // Primtitives are the set of primitive values.  Not all primitives
     // are coded here; several of them (including call/cc) are injected by
     // the bootstrapping code.
-    var Primitives = (function() {
-	return {
-	    'display': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		MACHINE.params.currentDisplayer(firstArg);
-	    },
+    var Primitives = {};
+    Primitives['display'] = function(MACHINE, arity) {
+	testArity('display', arity, 1, 2);
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var outputPort = MACHINE.params.currentOutputPort;
+	if (arity == 2) { 
+	    outputPort = MACHINE.env[MACHINE.env.length-2];
+	}
+	outputPort.write(MACHINE, firstArg);
+    };
 
-	    'newline': function(MACHINE, arity) {
-		MACHINE.params.currentDisplayer("\n");
-	    },
+    Primitives['newline'] = function(MACHINE, arity) {
+	testArity('newline', arity, 0, 1);
+	var outputPort = MACHINE.params.currentOutputPort;
+	if (arity == 1) { 
+	    outputPort = MACHINE.env[MACHINE.env.length-1];
+	}
+	outputPort.write(MACHINE, "\n");
+    };
 
-	    'displayln': function(MACHINE, arity){
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		MACHINE.params.currentDisplayer(firstArg);
-		MACHINE.params.currentDisplayer("\n");
-	    },
+    Primitives['displayln'] = function(MACHINE, arity){
+	testArity('displayln', arity, 1, 2);
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var outputPort = MACHINE.params.currentOutputPort;
+	if (arity == 2) { 
+	    outputPort = MACHINE.env[MACHINE.env.length-2];
+	}
+	outputPort.write(MACHINE, firstArg);
+	outputPort.write(MACHINE, "\n");
+    };
 
-	    'pi' : Math.PI,
+    Primitives['pi'] = Math.PI;
 
-	    'e' : Math.E,
+    Primitives['e'] = Math.E;
 
-	    '=': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		testArgument('number', isNumber, firstArg, 0, '=');
-		testArgument('number', isNumber, secondArg, 1, '=');
-		return firstArg === secondArg;
-	    },
+    Primitives['='] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	testArgument('number', isNumber, firstArg, 0, '=');
+	testArgument('number', isNumber, secondArg, 1, '=');
+	return firstArg === secondArg;
+    };
 
-	    '<': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		testArgument('number', isNumber, firstArg, 0, '<');
-		testArgument('number', isNumber, secondArg, 1, '<');
-		return firstArg < secondArg;
-	    },
+    Primitives['<'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	testArgument('number', isNumber, firstArg, 0, '<');
+	testArgument('number', isNumber, secondArg, 1, '<');
+	return firstArg < secondArg;
+    };
 
-	    '>': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		testArgument('number', isNumber, firstArg, 0, '>');
-		testArgument('number', isNumber, secondArg, 1, '>');
-		return firstArg > secondArg;
-	    },
+    Primitives['>'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	testArgument('number', isNumber, firstArg, 0, '>');
+	testArgument('number', isNumber, secondArg, 1, '>');
+	return firstArg > secondArg;
+    };
 
-	    '<=': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		testArgument('number', isNumber, firstArg, 0, '<=');
-		testArgument('number', isNumber, secondArg, 1, '<=');
-		return firstArg <= secondArg;
-	    },
+    Primitives['<='] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	testArgument('number', isNumber, firstArg, 0, '<=');
+	testArgument('number', isNumber, secondArg, 1, '<=');
+	return firstArg <= secondArg;
+    };
 
-	    '>=': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		testArgument('number', isNumber, firstArg, 0, '>=');
-		testArgument('number', isNumber, secondArg, 1, '>=');
-		return firstArg >= secondArg;
-	    },
-	    
-	    '+': function(MACHINE, arity) {
-		var result = 0;
-		var i = 0;
-		for (i=0; i < arity; i++) {
-		    testArgument(
-			'number',
-			isNumber, 
-			MACHINE.env[MACHINE.env.length - 1 - i],
-			i,
-			'+');
-		    result += MACHINE.env[MACHINE.env.length - 1 - i];
-		};
-		return result;
-	    },
-	    
-	    '*': function(MACHINE, arity) {
-		var result = 1;
-		var i = 0;
-		for (i=0; i < arity; i++) {
-		    testArgument(
-			'number',
-			isNumber, 
-			MACHINE.env[MACHINE.env.length - 1 - i],
-			i,
-			'*');
-		    result *= MACHINE.env[MACHINE.env.length - 1 - i];
-		}
-		return result;
-	    },
-	    
-	    '-': function(MACHINE, arity) {
-		if (arity === 0) { raise(new Error()); }
-		if (arity === 1) { 
-		    testArgument('number',
-				 isNumber,
-				 MACHINE.env[MACHINE.env.length-1],
-				 0,
-				 '-');
-		    return -(MACHINE.env[MACHINE.env.length-1]);
-		}
-		var result = MACHINE.env[MACHINE.env.length - 1];
-		for (var i = 1; i < arity; i++) {
-		    testArgument('number',
-				 isNumber,
-				 MACHINE.env[MACHINE.env.length-1-i],
-				 i,
-				 '-');
-		    result -= MACHINE.env[MACHINE.env.length - 1 - i];
-		}
-		return result;
-	    },
-	    
-	    '/': function(MACHINE, arity) {
-		if (arity === 0) { raise(new Error()); }
-		testArgument('number',
-			     isNumber,
-			     MACHINE.env[MACHINE.env.length - 1],
-			     0,
-			     '/');
-		var result = MACHINE.env[MACHINE.env.length - 1];
-		for (var i = 1; i < arity; i++) {
-		    result /= MACHINE.env[MACHINE.env.length - 1 - i];
-		}
-		return result;
-	    },
-
-	    'cons': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		return [firstArg, secondArg];
-	    },
-
-	    'list': function(MACHINE, arity) {
-		var result = NULL;
-		for (var i = 0; i < arity; i++) {
-		    result = [MACHINE.env[MACHINE.env.length - (arity - i)],
-			      result];
-		}
-		return result;
-	    },
-
-	    'car': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg[0];
-	    },
-
-	    'cdr': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg[1];
-	    },
-
-	    'pair?': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return (typeof(firstArg) == 'object' && 
-			firstArg.length === 2);
-	    },
-
-	    'set-car!': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		firstArg[0] = secondArg;
-	    },
-
-	    'set-cdr!': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		firstArg[1] = secondArg;
-	    },
-	    
-	    'not': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return (!firstArg);
-	    },
-
-	    'null' : NULL,
-
-	    'null?': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg === NULL;
-	    },
-
-	    'add1': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg + 1;
-	    },
-
-	    'sub1': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg - 1;
-	    },
-
-	    'zero?': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg === 0;
-	    },
-
-	    'vector': function(MACHINE, arity) {
-		var i;
-		var result = [];
-		for (i = 0; i < arity; i++) {
-		    result.push(MACHINE.env[MACHINE.env.length-1-i]);
-		}
-		return result;
-	    },
-
-	    'vector->list': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var i;
-		var result = NULL;
-		for (i = 0; i < firstArg.length; i++) {
-		    result = [firstArg[firstArg.length - 1 - i], result];
-		}
-		return result;
-	    },
-	    
-	    'list->vector': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var result = [];
-		while (firstArg !== NULL) {
-		    result.push(firstArg[0]);
-		    firstArg = firstArg[1];
-		}
-		return result;
-	    },
-
-	    'vector-ref': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		return firstArg[secondArg];
-	    },
-
-	    'vector-set!': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		var thirdArg = MACHINE.env[MACHINE.env.length-3];
-		firstArg[secondArg] = thirdArg;
-		return null;
-	    },
-
-	    'symbol?': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return typeof(firstArg) === 'string';
-	    },
-
-	    'symbol->string': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg;
-	    },
-
-	    'string-append': function(MACHINE, arity) {
-		var buffer = [];
-		var i;
-		for (i = 0; i < arity; i++) {
-		    buffer.push(MACHINE.env[MACHINE.env.length - 1 - i]);
-		}
-		return buffer.join('');
-	    },
-
-	    'string-length': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg.length;
-	    },
-	    
-	    'box': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var result = [firstArg];
-		return result;
-	    },
-
-	    'unbox': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		return firstArg[0];
-            },
-
-	    'set-box!': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		firstArg[0] = secondArg;
-		return;
-	    },
-
-	    'void': function(MACHINE, arity) {
-		return;
-	    },
-
-
-	    'eq?': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		return firstArg === secondArg;
-	    },
-
-	    'equal?': function(MACHINE, arity) {
-		var firstArg = MACHINE.env[MACHINE.env.length-1];
-		var secondArg = MACHINE.env[MACHINE.env.length-2];
-		var lset = [firstArg], rset = [secondArg];
-		while (lset.length !== 0 && rset.length !== 0) {
-		    var lhs = lset.pop();
-		    var rhs = rset.pop();
-		    if (lhs === rhs) {
-			continue;
-		    } else if (typeof(lhs) === 'object' &&
-			       typeof(rhs) === 'object' &&
-			       typeof(lhs.length) === 'number' &&
-			       typeof(rhs.length) === 'number' &&
-			       lhs.length === rhs.length) {
-			lset.push.apply(lset, lhs);
-			rset.push.apply(rset, rhs);
-		    } else {
-			return false;
-		    }
-		}
-		return true;
-	    }
+    Primitives['>='] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	testArgument('number', isNumber, firstArg, 0, '>=');
+	testArgument('number', isNumber, secondArg, 1, '>=');
+	return firstArg >= secondArg;
+    };
+    
+    Primitives['+'] = function(MACHINE, arity) {
+	var result = 0;
+	var i = 0;
+	for (i=0; i < arity; i++) {
+	    testArgument(
+		'number',
+		isNumber, 
+		MACHINE.env[MACHINE.env.length - 1 - i],
+		i,
+		'+');
+	    result += MACHINE.env[MACHINE.env.length - 1 - i];
 	};
-    })();
+	return result;
+    };
+    
+    Primitives['*'] = function(MACHINE, arity) {
+	var result = 1;
+	var i = 0;
+	for (i=0; i < arity; i++) {
+	    testArgument(
+		'number',
+		isNumber, 
+		MACHINE.env[MACHINE.env.length - 1 - i],
+		i,
+		'*');
+	    result *= MACHINE.env[MACHINE.env.length - 1 - i];
+	}
+	return result;
+    };
+    
+    Primitives['-'] = function(MACHINE, arity) {
+	if (arity === 0) { raise(new Error()); }
+	if (arity === 1) { 
+	    testArgument('number',
+			 isNumber,
+			 MACHINE.env[MACHINE.env.length-1],
+			 0,
+			 '-');
+	    return -(MACHINE.env[MACHINE.env.length-1]);
+	}
+	var result = MACHINE.env[MACHINE.env.length - 1];
+	for (var i = 1; i < arity; i++) {
+	    testArgument('number',
+			 isNumber,
+			 MACHINE.env[MACHINE.env.length-1-i],
+			 i,
+			 '-');
+	    result -= MACHINE.env[MACHINE.env.length - 1 - i];
+	}
+	return result;
+    };
+    
+    Primitives['/'] = function(MACHINE, arity) {
+	if (arity === 0) { raise(new Error()); }
+	testArgument('number',
+		     isNumber,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     '/');
+	var result = MACHINE.env[MACHINE.env.length - 1];
+	for (var i = 1; i < arity; i++) {
+	    result /= MACHINE.env[MACHINE.env.length - 1 - i];
+	}
+	return result;
+    };
 
+    Primitives['cons'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	return [firstArg, secondArg];
+    };
+
+    Primitives['list'] = function(MACHINE, arity) {
+	var result = NULL;
+	for (var i = 0; i < arity; i++) {
+	    result = [MACHINE.env[MACHINE.env.length - (arity - i)],
+		      result];
+	}
+	return result;
+    };
+
+    Primitives['car'] = function(MACHINE, arity) {
+	testArgument('pair',
+		     isPair,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'car');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg[0];
+    };
+
+    Primitives['cdr'] = function(MACHINE, arity) {
+	testArgument('pair',
+		     isPair,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'cdr');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg[1];
+    };
+
+    Primitives['pair?'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return isPair(firstArg);
+    };
+
+    Primitives['set-car!'] = function(MACHINE, arity) {
+	testArgument('pair',
+		     isPair,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'set-car!');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	firstArg[0] = secondArg;
+    };
+
+    Primitives['set-cdr!'] = function(MACHINE, arity) {
+	testArgument('pair',
+		     isPair,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'set-cdr!');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	firstArg[1] = secondArg;
+    };
+    
+    Primitives['not'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return (!firstArg);
+    };
+
+    Primitives['null'] = NULL;
+
+    Primitives['null?'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg === NULL;
+    };
+
+    Primitives['add1'] = function(MACHINE, arity) {
+	testArgument('number',
+		     isNumber,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'add1');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg + 1;
+    };
+
+    Primitives['sub1'] = function(MACHINE, arity) {
+	testArgument('number',
+		     isNumber,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'sub1');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg - 1;
+    };
+
+    Primitives['zero?'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg === 0;
+    };
+
+    Primitives['vector'] = function(MACHINE, arity) {
+	var i;
+	var result = [];
+	for (i = 0; i < arity; i++) {
+	    result.push(MACHINE.env[MACHINE.env.length-1-i]);
+	}
+	return result;
+    };
+
+    Primitives['vector->list'] = function(MACHINE, arity) {
+	testArgument('vector',
+		     isVector,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'vector->list');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var i;
+	var result = NULL;
+	for (i = 0; i < firstArg.length; i++) {
+	    result = [firstArg[firstArg.length - 1 - i], result];
+	}
+	return result;
+    };
+    
+    Primitives['list->vector'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var result = [];
+	while (firstArg !== NULL) {
+	    result.push(firstArg[0]);
+	    firstArg = firstArg[1];
+	}
+	return result;
+    };
+
+    Primitives['vector-ref'] = function(MACHINE, arity) {
+	testArgument('vector',
+		     isVector,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'vector-ref');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	return firstArg[secondArg];
+    };
+
+    Primitives['vector-set!'] = function(MACHINE, arity) {
+	testArgument('vector',
+		     isVector,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'vector-set!');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	var thirdArg = MACHINE.env[MACHINE.env.length-3];
+	firstArg[secondArg] = thirdArg;
+	return null;
+    };
+
+    Primitives['symbol?'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return typeof(firstArg) === 'string';
+    };
+
+    Primitives['symbol->string'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg;
+    };
+
+    Primitives['string-append'] = function(MACHINE, arity) {
+	var buffer = [];
+	var i;
+	for (i = 0; i < arity; i++) {
+	    buffer.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+	}
+	return buffer.join('');
+    };
+
+    Primitives['string-length'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg.length;
+    };
+    
+    Primitives['box'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var result = [firstArg];
+	return result;
+    };
+
+    Primitives['unbox'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg[0];
+    };
+
+    Primitives['set-box!'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	firstArg[0] = secondArg;
+	return;
+    };
+
+    Primitives['void'] = function(MACHINE, arity) {
+	return;
+    };
+
+    Primitives['eq?'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	return firstArg === secondArg;
+    };
+
+    Primitives['equal?'] = function(MACHINE, arity) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	var lset = [firstArg], rset = [secondArg];
+	while (lset.length !== 0 && rset.length !== 0) {
+	    var lhs = lset.pop();
+	    var rhs = rset.pop();
+	    if (lhs === rhs) {
+		continue;
+	    } else if (typeof(lhs) === 'object' &&
+		       typeof(rhs) === 'object' &&
+		       typeof(lhs.length) === 'number' &&
+		       typeof(rhs.length) === 'number' &&
+		       lhs.length === rhs.length) {
+		lset.push.apply(lset, lhs);
+		rset.push.apply(rset, rhs);
+	    } else {
+		return false;
+	    }
+	}
+	return true;
+    };
 
 
 
@@ -554,18 +678,31 @@ if(this['plt'] === undefined) {
 
 
     // Exports
-    exports.Machine = Machine;
-    exports.CallFrame = CallFrame;
-    exports.PromptFrame = PromptFrame;
-    exports.Closure = Closure;
-    exports.ContinuationPromptTag = ContinuationPromptTag;
-    exports.DEFAULT_CONTINUATION_PROMPT_TAG = DEFAULT_CONTINUATION_PROMPT_TAG;
-    exports.testArgument = testArgument;
-    exports.captureControl = captureControl;
-    exports.restoreControl = restoreControl;
-    exports.isNumber = isNumber;
-    exports.raise = raise;
-    exports.NULL = NULL;
-    exports.trampoline = trampoline;
+    exports['Machine'] = Machine;
+    exports['CallFrame'] = CallFrame;
+    exports['PromptFrame'] = PromptFrame;
+    exports['Closure'] = Closure;
+    exports['ContinuationPromptTag'] = ContinuationPromptTag;
+    exports['DEFAULT_CONTINUATION_PROMPT_TAG'] = 
+	DEFAULT_CONTINUATION_PROMPT_TAG;
+    exports['NULL'] = NULL;
+
+    exports['testArgument'] = testArgument;
+    exports['testArity'] = testArity;
+    exports['raise'] = raise;
+
+    exports['captureControl'] = captureControl;
+    exports['restoreControl'] = restoreControl;
+
+    exports['isNumber'] = isNumber;
+    exports['isPair'] = isPair;
+    exports['isVector'] = isVector;
+    exports['isOutputPort'] = isOutputPort;
+    exports['isOutputStringPort'] = isOutputStringPort;
+
+    exports['heir'] = heir;
+    exports['makeClassPredicate'] = makeClassPredicate;
+
+    exports['trampoline'] = trampoline;
 
 }).call(this);

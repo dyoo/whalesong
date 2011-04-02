@@ -68,9 +68,7 @@
 (define (make-bootstrapped-primitive-code name src)
   (parameterize ([current-defined-name name])
     (append
-     (compile (parse src) (make-PrimitivesReference name) next-linkage)
-     ;; Remove the prefix after the Primitives assignment.
-     `(,(make-PopEnvironment 1 0)))))
+     (compile (parse src) (make-PrimitivesReference name) next-linkage))))
 
 
 

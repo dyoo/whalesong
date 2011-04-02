@@ -119,6 +119,10 @@
                      (apply newline args)
                      the-void-value))
 
+(define my-vector-set! (lambda args
+                         (apply vector-set! args)
+                         the-void-value))
+
 
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= 
                                                      sub1
@@ -156,7 +160,7 @@
                                                      (my-set-box! set-box!)
                                                      
                                                      vector
-                                                     vector-set!
+                                                     (my-vector-set! vector-set!)
                                                      vector-ref
                                                      (my-vector->list vector->list)
                                                      (my-list->vector list->vector)

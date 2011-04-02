@@ -70,9 +70,10 @@ var testArgument = function(expectedTypeName,
 
 var captureControl = function(MACHINE, skip, tag) {
     var i;
-    for (i = MACHINE.control.length - skip - 1; i >= 0; i--) {
+    for (i = MACHINE.control.length - 1 - skip; i >= 0; i--) {
 	if (MACHINE.control[i].tag === tag) {
-	    return MACHINE.control.slice(i, MACHINE.control.length - skip);
+	    return MACHINE.control.slice(i + 1,
+					 MACHINE.control.length - skip);
 	}
     } 
     raise(new Error("captureControl: unable to find tag " + tag));
@@ -85,7 +86,7 @@ var restoreControl = function(MACHINE, tag) {
 	if (MACHINE.control[i].tag === tag) {
 	    MACHINE.control = 
 		MACHINE.control.slice(0, i+1).concat(
-		    MACHINE.env[MACHINE.env.length - 1].slice(0));
+		    MACHINE.env[MACHINE.env.length - 1]);
 	    return;
 	}
     }

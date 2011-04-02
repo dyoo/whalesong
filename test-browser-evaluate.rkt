@@ -69,16 +69,6 @@ EOF
 
 
 
-(test '(begin (define program (lambda ()
-                                (let ((y (call/cc (lambda (c) c))))
-                                  (display 1)
-                                  (call/cc (lambda (c) (y c)))
-                                  (display 2)
-                                  (call/cc (lambda (c) (y c)))
-                                  (display 3))))
-              (program))
-      "11213")
-
 
 (test '(display 42)
       "42")
@@ -227,6 +217,19 @@ EOF
                         (tak (- z 1) x y))))
              (displayln (tak 18 12 6)))
         "7\n")
+
+
+
+(test '(begin (displayln (+ 42 (call/cc (lambda (k) 3)))) )
+      "45\n")
+
+
+(test '(begin (displayln (+ 42 (call/cc (lambda (k) (k 100) 3)))) )
+      "142\n")
+
+(test '(begin (displayln (+ 42 (call/cc (lambda (k) 100 (k 3))))) )
+      "45\n")
+
 
 (test '(begin (define program (lambda ()
                                 (let ((y (call/cc (lambda (c) c))))

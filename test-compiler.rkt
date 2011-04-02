@@ -1001,7 +1001,18 @@
     (error 'failure)))
 
 
-
+(test '(begin (define K #f)
+              (let ([x 3]
+                    [y 4]
+                    [z 5])
+                (+ x y z (call/cc (lambda (r)
+                                    (set! K r)
+                                    0))))
+              (let* ([a 0]
+                     [b 1])
+                (+ 1024 (K 17))))
+      29
+      #:with-bootstrapping? #t)
 
 
 

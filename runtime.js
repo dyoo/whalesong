@@ -99,9 +99,12 @@ if(this['plt'] === undefined) {
 	new ContinuationPromptTag("default-continuation-prompt-tag");
 
 
+    var NULL = [];
 
-    // A primitive function is just a Javascript function.
 
+
+
+    var raise = function(e) { throw e; }
 
 
 
@@ -165,10 +168,6 @@ if(this['plt'] === undefined) {
     var isNumber = function(x) { return typeof(x) === 'number'; };
 
 
-    var raise = function(e) { throw e; }
-
-
-    var NULL = [];
     
 
     // Primtitives are the set of primitive values.  Not all primitives

@@ -65,7 +65,7 @@
               [(void? val)
                "null"]
               [(empty? val)
-               (format "Primitives.null")]
+               (format "RUNTIME.NULL")]
               [(number? val)
                (format "(~s)" val)]
               [else

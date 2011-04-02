@@ -77,12 +77,12 @@
            (let loop ([checked-operands checked-operands])
              (cond
                [(empty? checked-operands)
-                "Primitives.null"]
+                "RUNTIME.NULL"]
                [else
                 (format "[~a,~a]" (first checked-operands) (loop (rest checked-operands)))]))]
           
           [(null?)
-           (format "(~a === Primitives.null)" (first checked-operands))]
+           (format "(~a === RUNTIME.NULL)" (first checked-operands))]
 
           [(not)
            (format "(!(~a))" (first checked-operands))]
@@ -133,7 +133,7 @@
                            [(box)
                             (format "(typeof(~a) === 'object' && (~a).length === 1)"
                                     operand-string operand-string)])])
-           (format "((~a) ? (~a) : raise(new Error('Expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
+           (format "((~a) ? (~a) : RUNTIME.raise(new Error('Expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
                    test-string
                    operand-string
                    (symbol->string domain)

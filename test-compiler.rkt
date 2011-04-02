@@ -606,42 +606,42 @@
 
 
 
-#;(test '(let ([x 16])
-        (call/cc (lambda (k) (+ x x))))
+(test '(let ([x 16])
+           (call/cc (lambda (k) (+ x x))))
       32
       #:with-bootstrapping? #t)
 
 
-#;(test '(add1 (let ([x 16])
-              (call/cc (lambda (k) 
-                         (k 0)
-                         (+ x x)))))
+(test '(add1 (let ([x 16])
+               (call/cc (lambda (k) 
+                          (k 0)
+                          (+ x x)))))
       1
       #:with-bootstrapping? #t)
 
 
 ;; Reference:  http://lists.racket-lang.org/users/archive/2009-January/029812.html
-#;(let ([op (open-output-string)])
+(let ([op (open-output-string)])
   (parameterize ([current-simulated-output-port op])
     (test '(begin (define program (lambda ()
-                                 (let ((y (call/cc (lambda (c) c))))
-                                   (display 1)
-                                   (call/cc (lambda (c) (y c)))
-                                   (display 2)
-                                   (call/cc (lambda (c) (y c)))
-                                   (display 3))))
-               (program))
-        (void)
-        #:with-bootstrapping? #t)
+                                    (let ((y (call/cc (lambda (c) c))))
+                                      (display 1)
+                                      (call/cc (lambda (c) (y c)))
+                                      (display 2)
+                                      (call/cc (lambda (c) (y c)))
+                                      (display 3))))
+                  (program))
+          (void)
+          #:with-bootstrapping? #t)
     (unless (string=? (get-output-string op)
                       "11213")
       (error "puzzle failed: ~s" (get-output-string op)))))
-                
+
 
 
 
 ;; ctak
-#;(test '(begin
+(test '(begin
         (define (ctak x y z)
           (call-with-current-continuation
            (lambda (k)

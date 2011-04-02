@@ -877,8 +877,7 @@
                     `(,(make-PushControlFrame proc-return)
                       ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
                       ,(make-GotoStatement entry-point)
-                      ,proc-return
-                      #;,(make-PopEnvironment n 0))))]
+                      ,proc-return)))]
                 
                 [else
                  ;; This case happens for evaluating arguments, since the

@@ -89,7 +89,7 @@
           [(InstallValue? exp)
            (loop (InstallValue-body exp) cenv)]
           [(BoxEnv? exp)
-           '()]
+           (loop (BoxEnv-body exp) cenv)]
           [(LetRec? exp)
            (let ([new-cenv (append (map (lambda: ([p : Lam]) 
                                                  (extract-static-knowledge 

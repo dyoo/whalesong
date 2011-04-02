@@ -790,6 +790,14 @@
         #:control-limit 3)
 
 
+(test '(begin (define counter
+                (let ([x 0])
+                  (lambda ()
+                    (set! x (add1 x))
+                    x)))
+              (list (counter) (counter) (counter)))
+      '(1 2 3))
+
 
 
 

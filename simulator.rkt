@@ -38,7 +38,7 @@
 (define new-machine
   (case-lambda: 
     [([program-text : (Listof Statement)])
-     (new-machine program-text #t)]
+     (new-machine program-text #f)]
     [([program-text : (Listof Statement)]
       [with-bootstrapping-code? : Boolean])
      (let*: ([after-bootstrapping : Symbol (make-label 'afterBootstrapping)]
@@ -107,6 +107,8 @@
                     [(PushControlFrame/Prompt? i)
                      (step-push-control-frame/prompt! m i)]
                     [(PopControlFrame? i)
+                     (step-pop-control-frame! m i)]
+                    [(PopControlFrame/Prompt? i)
                      (step-pop-control-frame! m i)])])
          (increment-pc! m)))
 
@@ -168,7 +170,7 @@
                         
   
 
-(: step-pop-control-frame! (machine PopControlFrame -> 'ok))
+(: step-pop-control-frame! (machine (U PopControlFrame PopControlFrame/Prompt) -> 'ok))
 (define (step-pop-control-frame! m stmt)
   (let: ([l : Symbol (control-pop! m)])
         'ok))

@@ -24,17 +24,16 @@
   (let ([after-lam-bodies (make-label 'afterLamBodies)]
         [before-pop-prompt (make-label 'beforePopPrompt)])
     (statements
-     (end-with-linkage 
-      linkage '() 
-      (append-instruction-sequences (make-instruction-sequence 
-                                     `(,(make-GotoStatement (make-Label after-lam-bodies))))
-                                    (compile-lambda-bodies (collect-all-lams exp))
-                                    after-lam-bodies
-                                    (make-instruction-sequence
-                                     `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                                                      before-pop-prompt)))
-                                    (compile exp '() target prompt-linkage)
-                                    before-pop-prompt)))))
+     (append-instruction-sequences (make-instruction-sequence 
+                                    `(,(make-GotoStatement (make-Label after-lam-bodies))))
+                                   (compile-lambda-bodies (collect-all-lams exp))
+                                   after-lam-bodies
+                                   
+                                   (make-instruction-sequence
+                                    `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                                                     before-pop-prompt)))
+                                   (compile exp '() target prompt-linkage)
+                                   before-pop-prompt))))
 
 (define-struct: lam+cenv ([lam : Lam]
                           [cenv : CompileTimeEnvironment]))
@@ -166,10 +165,14 @@
 (: compile-top (Top CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-top top cenv target linkage)
   (let*: ([names : (Listof (U Symbol ModuleVariable False)) (Prefix-names (Top-prefix top))])
-         (append-instruction-sequences
-          (make-instruction-sequence 
-           `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
-          (compile (Top-code top) (cons (Top-prefix top) cenv) target linkage))))
+         (end-with-linkage 
+          linkage cenv
+          (append-instruction-sequences
+           (make-instruction-sequence 
+            `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+           (compile (Top-code top) (cons (Top-prefix top) cenv) target next-linkage)
+           (make-instruction-sequence
+            `(,(make-PopEnvironment 1 0)))))))
 
 
 
@@ -180,53 +183,24 @@
                                 (compile-linkage cenv linkage)))
 
 
-(: end-with-compiled-application-linkage (Linkage CompileTimeEnvironment InstructionSequence ->
-                                                  InstructionSequence))
-;; Add linkage for applications; we need to specialize this to preserve tail calls.
-(define (end-with-compiled-application-linkage linkage cenv instruction-sequence)
-  (append-instruction-sequences instruction-sequence
-                                (compile-application-linkage cenv linkage)))
-
 
 
 (: compile-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
 (define (compile-linkage cenv linkage)
   (cond
     [(ReturnLinkage? linkage)
-     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc
-                                                               (make-GetControlStackLabel))
+     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
                                   ,(make-PopEnvironment (length cenv) 0)
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(PromptLinkage? linkage)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
-                                  ,(make-PopControlFrame)
+                                  ,(make-PopControlFrame/Prompt)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(NextLinkage? linkage)
      empty-instruction-sequence]
     [(LabelLinkage? linkage)
      (make-instruction-sequence `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
-
-
-(: compile-application-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
-;; Like compile-linkage, but the special case for return-linkage linkage already assumes
-;; the stack has been appropriately popped.
-(define (compile-application-linkage cenv linkage)
-  (cond
-    [(ReturnLinkage? linkage)
-     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
-                                  ,(make-PopControlFrame)
-                                  ,(make-GotoStatement (make-Reg 'proc))))]
-    [(PromptLinkage? linkage)
-     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
-                                  ,(make-PopControlFrame)
-                                  ,(make-PopEnvironment (length cenv) 0)
-                                  ,(make-GotoStatement (make-Reg 'proc))))]
-    [(NextLinkage? linkage)
-     (make-instruction-sequence `(,(make-PopEnvironment (length cenv) 0)))]
-    [(LabelLinkage? linkage)
-     (make-instruction-sequence `(,(make-PopEnvironment (length cenv) 0)
-                                  ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
 
 
 
@@ -758,6 +732,7 @@
      proc-code
      (juggle-operands operand-codes)
      (compile-procedure-call/statically-known-lam static-knowledge 
+                                                  cenv
                                                   extended-cenv 
                                                   (length (App-operands exp))
                                                   target
@@ -804,20 +779,23 @@
   (let: ([primitive-branch : LabelLinkage (make-LabelLinkage (make-label 'primitiveBranch))]
          [compiled-branch : LabelLinkage (make-LabelLinkage (make-label 'compiledBranch))]
          [after-call : LabelLinkage (make-LabelLinkage (make-label 'afterCall))])
-        (let: ([compiled-linkage : Linkage (if (eq? linkage next-linkage) after-call linkage)])
+        (let: ([compiled-linkage : Linkage (if (ReturnLinkage? linkage)
+                                               linkage
+                                               after-call)])
               (append-instruction-sequences
                (make-instruction-sequence 
                 `(,(make-TestAndBranchStatement 'primitive-procedure?
                                                 'proc
                                                 (LabelLinkage-label primitive-branch))))
                
+               
+               ;; Compiled branch
                (LabelLinkage-label compiled-branch)
                (make-instruction-sequence
                 `(,(make-PerformStatement (make-CheckClosureArity! n))))
-               (end-with-compiled-application-linkage 
-                compiled-linkage
-                extended-cenv
-                (compile-proc-appl extended-cenv (make-Reg 'val) n target compiled-linkage))
+               (compile-proc-appl extended-cenv (make-Reg 'val) n target compiled-linkage)
+               
+               
                
                (LabelLinkage-label primitive-branch)
                (end-with-linkage
@@ -834,25 +812,27 @@
                  (if (not (= n 0))
                      (make-instruction-sequence
                       `(,(make-PopEnvironment n 0)))
-                     empty-instruction-sequence)))
-               (LabelLinkage-label after-call)))))
+                     empty-instruction-sequence)
+                 (LabelLinkage-label after-call)))))))
 
 
 (: compile-procedure-call/statically-known-lam 
-   (StaticallyKnownLam CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
-(define (compile-procedure-call/statically-known-lam static-knowledge extended-cenv n target linkage)
+   (StaticallyKnownLam CompileTimeEnvironment CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
+(define (compile-procedure-call/statically-known-lam static-knowledge cenv extended-cenv n target linkage)
   (let*: ([after-call : LabelLinkage (make-LabelLinkage (make-label 'afterCall))]
-          [compiled-linkage : Linkage (if (eq? linkage next-linkage) after-call linkage)])
+          [compiled-linkage : Linkage (if (ReturnLinkage? linkage)
+                                          linkage
+                                          after-call)])
          (append-instruction-sequences
-          (end-with-compiled-application-linkage 
-           compiled-linkage
-           extended-cenv
-           (compile-proc-appl extended-cenv 
-                              (make-Label (StaticallyKnownLam-entry-point static-knowledge))
-                              n 
-                              target
-                              compiled-linkage))
-          (LabelLinkage-label after-call))))
+          (compile-proc-appl extended-cenv 
+                             (make-Label (StaticallyKnownLam-entry-point static-knowledge))
+                             n 
+                             target
+                             compiled-linkage)
+          (end-with-linkage
+           linkage
+           cenv
+           (LabelLinkage-label after-call)))))
 
 
 
@@ -895,7 +875,8 @@
                     `(,(make-PushControlFrame proc-return)
                       ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
                       ,(make-GotoStatement entry-point)
-                      ,proc-return)))]
+                      ,proc-return
+                      #;,(make-PopEnvironment n 0))))]
                 
                 [else
                  ;; This case happens for evaluating arguments, since the
@@ -934,10 +915,13 @@
          (cond [(eq? target 'val)
                 ;; This case happens for a function call that isn't in
                 ;; tail position.
-                (make-instruction-sequence 
-                 `(,(make-PushControlFrame (LabelLinkage-label linkage))
-                   ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                   ,(make-GotoStatement entry-point)))]
+                (let ([proc-return (make-label 'procReturn)])
+                  (make-instruction-sequence 
+                   `(,(make-PushControlFrame proc-return)
+                     ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
+                     ,(make-GotoStatement entry-point)
+                     ,proc-return
+                     ,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))]
                
                [else
                 ;; This case happens for evaluating arguments, since the
@@ -950,9 +934,6 @@
                      ,proc-return
                      ,(make-AssignImmediateStatement target (make-Reg 'val))
                      ,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))])]))
-
-
-
 
 
 
@@ -1006,7 +987,7 @@
                          [(ReturnLinkage? linkage)
                           linkage]
                          [(PromptLinkage? linkage)
-                          linkage]
+                          after-body-code]
                          [(LabelLinkage? linkage)
                           after-body-code])]
           [body-target : Target (adjust-target-depth target 1)]
@@ -1040,7 +1021,7 @@
                          [(ReturnLinkage? linkage)
                           linkage]
                          [(PromptLinkage? linkage)
-                          linkage]
+                          after-body-code]
                          [(LabelLinkage? linkage)
                           after-body-code])]
           [body-target : Target (adjust-target-depth target n)]
@@ -1082,7 +1063,7 @@
                                       [(ReturnLinkage? linkage)
                                        linkage]
                                       [(PromptLinkage? linkage)
-                                       linkage]
+                                       after-body-code]
                                       [(LabelLinkage? linkage)
                                        after-body-code])])
          (end-with-linkage

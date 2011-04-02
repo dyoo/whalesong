@@ -21,13 +21,13 @@
          (begin
            (printf "Running ~s ...\n" code)
            (let*-values([(a-machine num-steps) 
-                         (run (new-machine (run-compiler code)) options ...)]
+                         (run code options ...)]
                         [(actual) (PrimitiveValue->racket (machine-val a-machine))])
              (unless (equal? actual exp)
                (raise-syntax-error #f (format "Expected ~s, got ~s" exp actual)
                                    #'stx))
-             (unless (= (machine-stack-size a-machine) 1)
-               (raise-syntax-error #f (format "Stack is not back to the prefix as expected!")
+             (unless (= (machine-stack-size a-machine) 0)
+               (raise-syntax-error #f (format "Stack is not back to empty as expected!")
 
                                    #'stx))
              (unless (null? (machine-control a-machine))
@@ -47,7 +47,7 @@
              (with-handlers ([exn:fail? (lambda (exn)
                                           (printf "ok\n\n")
                                           (return))])
-               (run (new-machine (run-compiler code)) options ...))
+               (run code options ...))
              (raise-syntax-error #f (format "Expected an exception")
                                  #'stx)))))]))
 
@@ -55,32 +55,33 @@
 
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.
-(define (run m 
+(define (run code
              #:debug? (debug? false)
              #:stack-limit (stack-limit false)
-             #:control-limit (control-limit false))
-  
-  (let loop ([steps 0])
-    (when debug?
-      (when (can-step? m)
-        (printf "|env|=~s, |control|=~s,  instruction=~s\n" 
-                (length (machine-env m))
-                (length (machine-control m))
-                (current-instruction m))))
-    (when stack-limit
-      (when (> (machine-stack-size m) stack-limit)
-        (error 'run "Stack overflow")))
-    
-    (when control-limit
-      (when (> (machine-control-size m) control-limit)
-        (error 'run "Control overflow")))
-
-    (cond
-      [(can-step? m)
-       (step! m)
-       (loop (add1 steps))]
-      [else
-       (values m steps)])))
+             #:control-limit (control-limit false)
+             #:with-bootstrapping? (with-bootstrapping? false))
+  (let ([m (new-machine (run-compiler code) with-bootstrapping?)])
+    (let loop ([steps 0])
+      (when debug?
+        (when (can-step? m)
+          (printf "|env|=~s, |control|=~s,  instruction=~s\n" 
+                  (length (machine-env m))
+                  (length (machine-control m))
+                  (current-instruction m))))
+      (when stack-limit
+        (when (> (machine-stack-size m) stack-limit)
+          (error 'run "Stack overflow")))
+      
+      (when control-limit
+        (when (> (machine-control-size m) control-limit)
+          (error 'run "Control overflow")))
+      
+      (cond
+        [(can-step? m)
+         (step! m)
+         (loop (add1 steps))]
+        [else
+         (values m steps)]))))
 
 
 ;; Atomic expressions
@@ -580,20 +581,22 @@
       #:control-limit 3)
 
 
-(test '(let ([x 16])
+#;(test '(let ([x 16])
         (call/cc (lambda (k) (+ x x))))
-      32)
+      32
+      #:with-bootstrapping? #t)
 
 
-(test '(add1 (let ([x 16])
+#;(test '(add1 (let ([x 16])
               (call/cc (lambda (k) 
                          (k 0)
                          (+ x x)))))
-      1)
+      1
+      #:with-bootstrapping? #t)
 
 
 ;; Reference:  http://lists.racket-lang.org/users/archive/2009-January/029812.html
-(let ([op (open-output-string)])
+#;(let ([op (open-output-string)])
   (parameterize ([current-simulated-output-port op])
     (test '(begin (define program (lambda ()
                                  (let ((y (call/cc (lambda (c) c))))
@@ -603,7 +606,8 @@
                                    (call/cc (lambda (c) (y c)))
                                    (display 3))))
                (program))
-        (void))
+        (void)
+        #:with-bootstrapping? #t)
     (unless (string=? (get-output-string op)
                       "11213")
       (error "puzzle failed: ~s" (get-output-string op)))))
@@ -612,7 +616,7 @@
 
 
 ;; ctak
-(test '(begin
+#;(test '(begin
         (define (ctak x y z)
           (call-with-current-continuation
            (lambda (k)
@@ -643,7 +647,8 @@
                                      x
                                      y))))))))
         (ctak 18 12 6))
-      7)
+      7
+      #:with-bootstrapping? #t)
 
 
 (test '(let ([x 3]
@@ -788,7 +793,7 @@
 
 
 
-(test '(begin
+#;(test '(begin
            (define (make-gen gen) 
              (let ([cont (box #f)])     
                (lambda ()
@@ -807,13 +812,15 @@
                                   (return "c"))))
         
            (list (g1)))
-        (list "a"))
+      
+        (list "a")
+        #:with-bootstrapping #t)
 
 
 
 
 
-(test '(begin (define (f)
+#;(test '(begin (define (f)
                   (define cont #f)
                   (define n 0)
                   (call/cc (lambda (x) (set! cont x)))
@@ -822,11 +829,12 @@
                     (cont 'dontcare))
                   n)
                 (f))
-        10)
+        10
+        #:with-bootstrapping #t)
 
 
 ;; This should produce 0 because there needs to be a continuation prompt around each evaluation.
-(test '(begin 
+#;(test '(begin 
            (define cont #f)
            (define n 0)
            (call/cc (lambda (x) (set! cont x)))
@@ -834,7 +842,8 @@
            (if (< n 10)
              (cont 'dontcare))
            n)
-        0)
+        0
+        #:with-bootstrapping? #t)
 
 
 
@@ -888,7 +897,8 @@
            (displayln (g1))
            (displayln (g1))
            (displayln (g1)))
-        "a\nb\nc\n")
+        "a\nb\nc\n"
+        #:with-bootstrapping #t)
 
 
 

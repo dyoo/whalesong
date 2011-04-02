@@ -67,7 +67,9 @@
                                  PushEnvironment
                                  PushControlFrame
                                  PushControlFrame/Prompt
-                                 PopControlFrame))
+
+                                 PopControlFrame
+                                 PopControlFrame/Prompt))
 
 (define-type Statement (U UnlabeledStatement
                           Symbol  ;; label
@@ -91,6 +93,8 @@
 
 
 (define-struct: PopControlFrame () 
+  #:transparent)
+(define-struct: PopControlFrame/Prompt () 
   #:transparent)
 
 ;; Adding a frame for getting back after procedure application.

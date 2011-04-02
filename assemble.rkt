@@ -290,7 +290,8 @@ EOF
                                        ", "))]
      [(PopEnvironment? stmt)
       (if (= (PopEnvironment-skip stmt) 0)
-          (format "MACHINE.env.length = MACHINE.env.length - ~a;" (PopEnvironment-n stmt))
+          (format "MACHINE.env.length = MACHINE.env.length - ~a;"
+                  (PopEnvironment-n stmt))
           (format "MACHINE.env.splice(MACHINE.env.length-(~a),~a);"
                   (+ (PopEnvironment-skip stmt)
                      (PopEnvironment-n stmt))

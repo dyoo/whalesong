@@ -40,13 +40,13 @@
 	this.env = [];
 	this.control = [];     // Arrayof (U CallFrame PromptFrame)
 	this.running = false;
-	this.params = { currentDisplayer: function(v) {},
+	this.params = { 'currentDisplayer': function(v) {},
 			
-			currentOutputPort: new StandardOutputPort(),
-			currentSuccessHandler: function(MACHINE) {},
-			currentErrorHandler: function(MACHINE, exn) {},
+			'currentOutputPort': new StandardOutputPort(),
+			'currentSuccessHandler': function(MACHINE) {},
+			'currentErrorHandler': function(MACHINE, exn) {},
 			
-			currentNamespace: {},
+			'currentNamespace': {},
 			
 			// These parameters control how often
 			// control yields back to the browser
@@ -59,9 +59,9 @@
 			// are adjusted automatically by the
 			// recomputeMaxNumBouncesBeforeYield
 			// procedure.
-			desiredYieldsPerSecond: 5,
-			numBouncesBeforeYield: 2000,   // self-adjusting
-			maxNumBouncesBeforeYield: 2000 // self-adjusting
+			'desiredYieldsPerSecond': 5,
+			'numBouncesBeforeYield': 2000,   // self-adjusting
+			'maxNumBouncesBeforeYield': 2000 // self-adjusting
 		      };
 	this.primitives = Primitives;
     };
@@ -99,7 +99,7 @@
     var StandardOutputPort = function() {};
     StandardOutputPort.prototype = heir(OutputPort.prototype);
     StandardOutputPort.prototype.write = function(MACHINE, v) {
-	MACHINE.params.currentDisplayer(v);
+	MACHINE.params['currentDisplayer'](v);
     };
 
 

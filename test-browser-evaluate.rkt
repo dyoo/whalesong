@@ -4,7 +4,9 @@
          racket/runtime-path)
 
 
-(define-runtime-path runtime.js "runtime.js")
+(define-runtime-path runtime.js 
+  "runtime.js" 
+  #;"runtime.compressed.js")
 
 (define evaluate (make-evaluate 
                   (lambda (program op)

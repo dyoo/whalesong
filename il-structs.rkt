@@ -200,7 +200,8 @@
 
 
 ;; Capture the current environment, skipping skip frames.
-(define-struct: CaptureEnvironment ([skip : Natural]))
+(define-struct: CaptureEnvironment ([skip : Natural]
+                                    [tag : (U DefaultContinuationPromptTag OpArg)]))
 
 ;; Capture the control stack, skipping skip frames.
 (define-struct: CaptureControl ([skip : Natural]

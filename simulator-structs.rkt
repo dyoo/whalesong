@@ -66,7 +66,8 @@
   #:mutable)
 
 (define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
-                             [return : Symbol])
+                             [return : Symbol]
+                             [env-depth : Natural])
   #:transparent)
 
 (define-struct: ContinuationPromptTagValue ([name : Symbol])

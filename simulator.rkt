@@ -166,7 +166,8 @@
                          default-continuation-prompt-tag-value]
                         [(OpArg? tag)
                          (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))]))
-                    (PushControlFrame/Prompt-label stmt))))
+                    (PushControlFrame/Prompt-label stmt)
+                    (length (machine-env m)))))
                         
   
 

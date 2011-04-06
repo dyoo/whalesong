@@ -37,7 +37,7 @@
                                     (make-CaptureControl 0 default-continuation-prompt-tag))
        ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1 #f)
                                     ;; When capturing, skip over f and the two slots we just added.
-                                    (make-CaptureEnvironment 3))
+                                    (make-CaptureEnvironment 3 default-continuation-prompt-tag))
        ,(make-AssignPrimOpStatement (adjust-target-depth (make-EnvLexicalReference 0 #f) 2)
                                     (make-MakeCompiledProcedure call/cc-closure-entry
                                                                 1 ;; the continuation consumes a single value

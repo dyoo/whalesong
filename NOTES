@@ -71,3 +71,51 @@ Is this completely unrealistic?  I have to see how Rabbit and Orbit do this.
 
 Runtime values and types are in in the plt.runtime namespace.  I need
 to move types from WeScheme into here.
+
+
+----------------------------------------------------------------------
+
+
+Frames and environments.
+
+
+A CallFrame consists of:
+
+   A return address back to the caller.
+   A procedure (the callee).
+   A stack.
+   A set of continuation marks.
+
+
+A PromptFrame consists of:
+
+   A return address back to the caller.
+   A tag.
+   A set of continuation marks.
+
+
+
+On exit from a CallFrame,
+
+    MACHINE.env = frame.env
+
+
+
+On a regular, generic function call:
+
+    The operator and operands are computed and placed in MACHINE.env's
+    scratch space.
+
+    A new call frame is constructed.  The frame remembers the environment.
+    
+    The machine jumps into the procedure entry.
+
+
+On a tail call,
+
+    The operator and operands are computed and placed in MACHINE.env's
+    scratch space.
+
+    The existing call frame is reused.
+        The frame's environment consumes those elements from MACHINE.env
+        MACHINE.env = the new stack segment

@@ -164,6 +164,8 @@ EOF
        empty]
       [(RestoreControl!? op)
        empty]
+      [(SetFrameCallee!? op)
+       empty]
       [(FixClosureShellMap!? op)
        empty]))
   
@@ -450,7 +452,10 @@ EOF
                                ;; the environment (which is also in reversed order)
                                ;; during install-closure-values.
                                (reverse (FixClosureShellMap!-closed-vals op)))
-                          ", "))]))
+                          ", "))]
+    [(SetFrameCallee!? op)
+     (format "MACHINE.control[MACHINE.control.length-1].proc = ~a;"
+             (assemble-oparg (SetFrameCallee!-proc op)))]))
 
 
 

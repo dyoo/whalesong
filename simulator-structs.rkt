@@ -62,7 +62,9 @@
                            [proc : (U closure #f)]
                            ;; TODO: add continuation marks
                            )
-  #:transparent)
+  #:transparent
+  #:mutable)
+
 (define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
                              [return : Symbol])
   #:transparent)

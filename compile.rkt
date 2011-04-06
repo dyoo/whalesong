@@ -859,7 +859,11 @@
                        (make-instruction-sequence `(,(make-PopEnvironment num-slots-to-delete n)))
                        empty-instruction-sequence)
                    (make-instruction-sequence
-                    `(,(make-GotoStatement entry-point)))))]
+                    `(;; Assign the proc value of the existing call frame
+                      ,(make-PerformStatement 
+                        (make-SetFrameCallee! (make-Reg 'proc)))
+                      
+                      ,(make-GotoStatement entry-point)))))]
            
            [else
             ;; This case should be impossible: return linkage should only

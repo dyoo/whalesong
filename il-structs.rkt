@@ -244,6 +244,11 @@
 (define-struct: InstallClosureValues! ()
   #:transparent)
 
+
+(define-struct: SetFrameCallee! ([proc : OpArg])
+  #:transparent)
+
+
 (define-struct: FixClosureShellMap! (;; depth: where the closure shell is located in the environment
                                      [depth : Natural] 
                                      
@@ -264,6 +269,8 @@
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!
                                FixClosureShellMap!
+                               
+                               SetFrameCallee!
                                
                                RestoreEnvironment!
                                RestoreControl!))

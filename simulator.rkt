@@ -245,7 +245,7 @@
                                                          [(eq? name #f)
                                                           (make-undefined)]))
                                           (ExtendEnvironment/Prefix!-names op))))]
-          
+
           [(InstallClosureValues!? op)
            (let: ([a-proc : SlotValue (machine-proc m)])
                  (cond
@@ -261,6 +261,14 @@
                                     (map (lambda: ([d : Natural]) (env-ref m d))
                                          (FixClosureShellMap!-closed-vals op)))
                  'ok)]
+
+          
+          [(SetFrameCallee!? op)
+           (let* ([proc-value (ensure-closure (evaluate-oparg m (SetFrameCallee!-proc op)))]
+                  [frame (ensure-CallFrame (control-top m))])
+             (set-CallFrame-proc! frame proc-value)
+             'ok)]
+
           
           [(RestoreControl!? op)
            (let: ([tag-value : ContinuationPromptTagValue
@@ -745,6 +753,12 @@
     [(struct machine (val proc env control pc text stack-size jump-table))
      (set-machine-control! m (rest control))
      'ok]))
+
+(: control-top (machine -> frame))
+(define (control-top m)
+  (match m
+    [(struct machine (val proc env control pc text stack-size jump-table))
+     (first control)]))
 
 
 

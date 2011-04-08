@@ -235,7 +235,7 @@
 
 
     var ArityAtLeast = function(n) {
-	this.n = n;
+	this.value = n;
     };
 
 

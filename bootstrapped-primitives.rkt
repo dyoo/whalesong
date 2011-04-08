@@ -47,8 +47,8 @@
     
     ;; Finally, do a tail call into f.
     (compile-general-procedure-call '()
-                                    '(?)
-                                    1 
+                                    1 ;; the stack at this point holds a single argument
+                                    1 ;; and f needs to consume that single argument.
                                     'val
                                     return-linkage)
     
@@ -152,4 +152,27 @@
                                      (make-MakeCompiledProcedure call/cc-label 1 '() 'call/cc))
         ,(make-GotoStatement (make-Label after-call/cc-code)))
       (make-call/cc-code)
-      `(,after-call/cc-code)))))
+      `(,after-call/cc-code)))
+   
+  
+   
+   ;; As is apply:
+   (let ([after-apply-code (make-label 'afterApplyCode)]
+         [apply-entry (make-label 'applyEntry)])
+     (list 
+      (make-GotoStatement (make-Label after-apply-code))
+      apply-entry
+      
+      ;; Push the procedure into proc.
+      (make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
+      (make-PopEnvironment 1 0)
+      ;; Correct the number of arguments to be passed.
+      (make-AssignPrimOpStatement 'val 
+                                  (make-CallKernelPrimitiveProcedure 'sub1 
+                                                                     (list (make-Reg 'val))
+                                                                     (list 'number)
+                                                                     (list #f)))      
+      
+      after-apply-code
+      (make-AssignPrimOpStatement (make-PrimitivesReference 'apply)
+                                  (make-MakeCompiledProcedure apply-entry 1 '() 'apply))))))

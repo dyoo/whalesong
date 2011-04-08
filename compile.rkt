@@ -469,7 +469,7 @@
      proc-code
      (juggle-operands operand-codes)
      (compile-general-procedure-call cenv 
-                                     extended-cenv 
+                                     (length extended-cenv)
                                      (length (App-operands exp))
                                      target
                                      linkage))))
@@ -779,7 +779,7 @@
 
 
 
-(: compile-general-procedure-call (CompileTimeEnvironment CompileTimeEnvironment
+(: compile-general-procedure-call (CompileTimeEnvironment Natural
                                                           Natural Target Linkage 
                                                           ->
                                                           InstructionSequence))
@@ -787,7 +787,7 @@
 ;; n is the number of arguments passed in.
 ;; cenv is the compile-time enviroment before arguments have been shifted in.
 ;; extended-cenv is the compile-time environment after arguments have been shifted in.
-(define (compile-general-procedure-call cenv extended-cenv n target linkage)
+(define (compile-general-procedure-call cenv extended-cenv-length number-of-arguments target linkage)
   (let: ([primitive-branch : LabelLinkage (make-LabelLinkage (make-label 'primitiveBranch))]
          [compiled-branch : LabelLinkage (make-LabelLinkage (make-label 'compiledBranch))]
          [after-call : LabelLinkage (make-LabelLinkage (make-label 'afterCall))])
@@ -804,28 +804,34 @@
                ;; Compiled branch
                (LabelLinkage-label compiled-branch)
                (make-instruction-sequence
-                `(,(make-AssignImmediateStatement 'val (make-Const n))
-                  ,(make-PerformStatement (make-CheckClosureArity!))))
-               (compile-procedure-application extended-cenv (make-Reg 'val) n target compiled-linkage)
+                `(,(make-AssignImmediateStatement 'val (make-Const number-of-arguments))
+                  ,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'val)))))
+               (compile-procedure-application extended-cenv-length
+                                              (make-Reg 'val)
+                                              number-of-arguments 
+                                              target
+                                              compiled-linkage)
                
                
-               
+               ;; Primitive branch
                (LabelLinkage-label primitive-branch)
                (end-with-linkage
                 linkage
                 cenv
                 (append-instruction-sequences
                  (make-instruction-sequence 
-                  `(,(make-AssignPrimOpStatement 
+                  `(,(make-PerformStatement (make-CheckPrimitiveArity! (make-Const number-of-arguments)))
+                    ,(make-AssignPrimOpStatement 
                       ;; Optimization: we put the result directly in the registers, or in
                       ;; the appropriate spot on the stack.  This takes into account the popenviroment
                       ;; that happens right afterwards.
-                      (adjust-target-depth target n)                     
-                      (make-ApplyPrimitiveProcedure n))))
-                 (if (not (= n 0))
-                     (make-instruction-sequence
-                      `(,(make-PopEnvironment n 0)))
-                     empty-instruction-sequence)
+                      (adjust-target-depth target number-of-arguments)                     
+                      (make-ApplyPrimitiveProcedure number-of-arguments))))
+                 (make-instruction-sequence
+                  `(,(make-PopEnvironment number-of-arguments 0)))
+                 
+
+                 
                  (LabelLinkage-label after-call)))))))
 
 
@@ -837,7 +843,7 @@
                                           linkage
                                           after-call)])
          (append-instruction-sequences
-          (compile-procedure-application extended-cenv 
+          (compile-procedure-application (length extended-cenv)
                              (make-Label (StaticallyKnownLam-entry-point static-knowledge))
                              n 
                              target
@@ -849,19 +855,19 @@
 
 
 
-(: compile-procedure-application (CompileTimeEnvironment (U Label Reg) Natural Target Linkage -> InstructionSequence))
+(: compile-procedure-application (Natural (U Label Reg) Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
-(define (compile-procedure-application cenv-with-args entry-point n target linkage)
+(define (compile-procedure-application cenv-length-with-args entry-point n target linkage)
   (cond [(ReturnLinkage? linkage)
          (cond
            [(eq? target 'val)
             ;; This case happens when we're in tail position.
             ;; We clean up the stack right before the jump, and do not add
             ;; to the control stack.
-            (let: ([num-slots-to-delete : Natural (ensure-natural (- (length cenv-with-args) n))])
+            (let: ([num-slots-to-delete : Natural (ensure-natural (- cenv-length-with-args n))])
                   (append-instruction-sequences
                    (make-instruction-sequence
                     `(,(make-AssignPrimOpStatement 'val 

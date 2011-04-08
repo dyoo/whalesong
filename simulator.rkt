@@ -226,14 +226,28 @@
            (let: ([clos : SlotValue (machine-proc m)])
                  (cond
                    [(closure? clos)
-                    (if (= (closure-arity clos)
-                           (ensure-natural (ensure-primitive-value (machine-val m))))
+                    (if (arity-match? (closure-arity clos)
+                                      (ensure-natural (evaluate-oparg m (CheckClosureArity!-arity op))))
                         'ok
                         (error 'check-closure-arity "arity mismatch: passed ~s args to ~s"
-                               (machine-val m)
+                               (ensure-natural (evaluate-oparg m (CheckClosureArity!-arity op)))
                                (closure-display-name clos)))]
                    [else
                     (error 'check-closure-arity "not a closure: ~s" clos)]))]
+
+          [(CheckPrimitiveArity!? op)
+           (let: ([clos : SlotValue (machine-proc m)])
+                 (cond
+                   [(primitive-proc? clos)
+                    (if (arity-match? (primitive-proc-arity clos)
+                                      (ensure-natural (evaluate-oparg m (CheckPrimitiveArity!-arity op))))
+                        'ok
+                        (error 'check-primitive-arity "arity mismatch: passed ~s args to ~s"
+                               (ensure-natural (evaluate-oparg m (CheckPrimitiveArity!-arity op)))
+                               (primitive-proc-display-name clos)))]
+                   [else
+                    (error 'check-primitive-arity "not a primitive: ~s" clos)]))]
+
           
           [(ExtendEnvironment/Prefix!? op)
            (env-push! m 
@@ -289,6 +303,23 @@
            (set-machine-env! m (CapturedEnvironment-vals (ensure-CapturedEnvironment (env-ref m 1))))
            (set-machine-stack-size! m (length (machine-env m)))
            'ok])))
+
+
+(: arity-match? (Arity Natural -> Boolean))
+(define (arity-match? an-arity n)
+  (cond
+    [(natural? an-arity)
+     (= n an-arity)]
+    [(ArityAtLeast? an-arity)
+     (>= n (ArityAtLeast-value an-arity))]
+    [(list? an-arity)
+     (ormap (lambda: ([atomic-arity : (U Natural ArityAtLeast)])
+                     (cond [(natural? atomic-arity)
+                            (= n atomic-arity)]
+                           [(ArityAtLeast? atomic-arity)
+                            (>= n (ArityAtLeast-value atomic-arity))]))
+            an-arity)]))
+                     
 
 
 

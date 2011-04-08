@@ -1016,6 +1016,17 @@
 
 
 
+(test '(begin (define (m f x y)
+                (f (f x y) y))
+              (m + 7 4))
+      15)
+
+(test '(begin (define (m f x y)
+                (f (f x y) y))
+              (m - 7 4))
+      -1)
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

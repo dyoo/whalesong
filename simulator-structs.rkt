@@ -88,8 +88,11 @@
 
 
 ;; Primitive procedure wrapper
-(define-struct: primitive-proc ([f : (machine PrimitiveValue * -> PrimitiveValue)])
+(define-struct: primitive-proc ([f : (machine PrimitiveValue * -> PrimitiveValue)]
+                                [arity : Arity]
+                                [display-name : (U Symbol False)])
   #:transparent)
+
 
 
 

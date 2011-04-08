@@ -233,8 +233,11 @@
 
 ;; Check the closure procedure value in 'proc and make sure it can accept the
 ;; # of arguments (stored as a number in the val register.).
-(define-struct: CheckClosureArity! ()
+(define-struct: CheckClosureArity! ([arity : OpArg])
   #:transparent)
+(define-struct: CheckPrimitiveArity! ([arity : OpArg])
+  #:transparent)
+
 
 ;; Extends the environment with a prefix that holds
 ;; lookups to the namespace.
@@ -268,6 +271,7 @@
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
                                CheckClosureArity!
+                               CheckPrimitiveArity!
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!
                                FixClosureShellMap!
@@ -357,6 +361,15 @@
 
 (define-struct: BasicBlock ([name : Symbol] 
                             [stmts : (Listof UnlabeledStatement)]) 
+  #:transparent)
+
+
+
+
+(define-type Arity (U Natural
+                      ArityAtLeast
+                      (Listof (U Natural ArityAtLeast))))
+(define-struct: ArityAtLeast ([value : Natural])
   #:transparent)
 
 

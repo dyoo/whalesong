@@ -10,6 +10,19 @@
   (hash-set! mutated-primitives n p))
 
 
+(define (extract-arity proc)
+  (let loop ([racket-arity (procedure-arity proc)])
+    (cond
+      [(number? racket-arity)
+       racket-arity]
+      [(arity-at-least? racket-arity)
+       (make-ArityAtLeast (arity-at-least-value racket-arity))]
+      [(list? racket-arity)
+       (map loop racket-arity)])))
+                
+
+
+
 (define-syntax (make-lookup stx)
   (syntax-case stx ()
     [(_ #:functions (name ...)
@@ -27,7 +40,9 @@
        (syntax/loc stx
          (let ([prim-name (make-primitive-proc 
                            (lambda (machine . args)
-                             (apply name args)))]
+                             (apply name args))
+                           (extract-arity name)
+                           'exported-name)]
                ...)
            (lambda (n)
              (cond
@@ -42,13 +57,6 @@
                [else
                 (make-undefined)]
                )))))]))
-
-;(define call/cc
-;  (make-closure call/cc-label
-;                1
-;                '()
-;                'call/cc))
-;(define call-with-current-continuation call/cc)
 
 (define e (exp 1))
 
@@ -173,8 +181,6 @@
                                                     
                                                      
                                                      symbol?)
-                                      #:constants (null pi e 
-                                                        #;call/cc
-                                                        #;call-with-current-continuation)))
+                                      #:constants (null pi e)))
 
 

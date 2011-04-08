@@ -208,6 +208,7 @@
 
 (: compile-constant (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-constant exp cenv target linkage)
+  ;; Compiles constant values.
   (end-with-linkage linkage
                     cenv
                     (make-instruction-sequence
@@ -217,6 +218,7 @@
 
 (: compile-local-reference (LocalRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-local-reference exp cenv target linkage)
+  ;; Compiles local references.
   (end-with-linkage linkage
                     cenv
                     (make-instruction-sequence
@@ -227,6 +229,7 @@
 
 
 (: compile-toplevel-reference (ToplevelRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiles toplevel references.
 (define (compile-toplevel-reference exp cenv target linkage)
   (end-with-linkage linkage
                     cenv
@@ -241,6 +244,7 @@
 
 
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiles toplevel definition.
 (define (compile-toplevel-set exp cenv target linkage)
   (let* ([var (ToplevelSet-name exp)]
          [lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
@@ -257,6 +261,7 @@
 
 
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiles a conditional branch.
 (define (compile-branch exp cenv target linkage)
   (let: ([t-branch : LabelLinkage (make-LabelLinkage (make-label 'trueBranch))]
          [f-branch : LabelLinkage (make-LabelLinkage (make-label 'falseBranch))]
@@ -281,6 +286,7 @@
 
 
 (: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiles a sequence of expressions.  The last expression will be compiled in the provided linkage.
 (define (compile-sequence seq cenv target linkage) 
   ;; All but the last will use next-linkage linkage.
   (if (last-exp? seq)
@@ -290,7 +296,8 @@
 
 
 (: compile-splice ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
-;; Wrap a continuation prompt around each of the expressions.
+;; Compiles a sequence of expressions.  A continuation prompt wraps around each of the expressions
+;; to delimit any continuation captures.
 (define (compile-splice seq cenv target linkage) 
   (cond [(last-exp? seq)
          (let ([before-pop-prompt (make-label 'beforePromptPop)])
@@ -349,6 +356,7 @@
 
 (: compile-lambda-body (Lam CompileTimeEnvironment -> InstructionSequence))
 ;; Compiles the body of the lambda in the appropriate environment.
+;; Closures will target their value to the 'val register, and use return linkage.
 (define (compile-lambda-body exp cenv)
   (append-instruction-sequences
    
@@ -363,7 +371,6 @@
             (append (map (lambda: ([d : Natural]) 
                                   (list-ref cenv d))
                          (Lam-closure-map exp))
-                    ;; fixme: We need to capture the cenv so we can maintain static knowledge
                     (build-list (Lam-num-parameters exp) (lambda: ([i : Natural]) '?)))
             'val
             return-linkage)))
@@ -381,11 +388,14 @@
                                                         (lam+cenv-cenv (first exps)))
                                    (compile-lambda-bodies (rest exps)))]))
 
+
 (: extend-compile-time-environment/scratch-space (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
 (define (extend-compile-time-environment/scratch-space cenv n)
   (append (build-list n (lambda: ([i : Natural])
                                  '?))
           cenv))
+
+
 
 (: compile-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles procedure application
@@ -794,8 +804,9 @@
                ;; Compiled branch
                (LabelLinkage-label compiled-branch)
                (make-instruction-sequence
-                `(,(make-PerformStatement (make-CheckClosureArity! n))))
-               (compile-proc-appl extended-cenv (make-Reg 'val) n target compiled-linkage)
+                `(,(make-AssignImmediateStatement 'val (make-Const n))
+                  ,(make-PerformStatement (make-CheckClosureArity!))))
+               (compile-procedure-application extended-cenv (make-Reg 'val) n target compiled-linkage)
                
                
                
@@ -826,7 +837,7 @@
                                           linkage
                                           after-call)])
          (append-instruction-sequences
-          (compile-proc-appl extended-cenv 
+          (compile-procedure-application extended-cenv 
                              (make-Label (StaticallyKnownLam-entry-point static-knowledge))
                              n 
                              target
@@ -838,12 +849,12 @@
 
 
 
-(: compile-proc-appl (CompileTimeEnvironment (U Label Reg) Natural Target Linkage -> InstructionSequence))
+(: compile-procedure-application (CompileTimeEnvironment (U Label Reg) Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
-(define (compile-proc-appl cenv-with-args entry-point n target linkage)
+(define (compile-procedure-application cenv-with-args entry-point n target linkage)
   (cond [(ReturnLinkage? linkage)
          (cond
            [(eq? target 'val)
@@ -1180,29 +1191,6 @@
                               (EnvPrefixReference-pos target))]
     [(PrimitivesReference? target)
      target]))
-
-
-(: adjust-oparg-depth (OpArg Integer -> OpArg))
-(define (adjust-oparg-depth arg n)
-  (cond
-    [(Const? arg)
-     arg]
-    
-    [(Reg? arg)
-     arg]
-    
-    [(Label? arg)
-     arg]
-    
-    [(EnvLexicalReference? arg)
-     (make-EnvLexicalReference (ensure-natural (+ n (EnvLexicalReference-depth arg)))
-                               (EnvLexicalReference-unbox? arg))]
-    [(EnvPrefixReference? arg)
-     (make-EnvPrefixReference (ensure-natural (+ n (EnvPrefixReference-depth arg)))
-                              (EnvPrefixReference-pos arg))]
-    [(EnvWholePrefixReference? arg)
-     (make-EnvWholePrefixReference (ensure-natural (+ n (EnvWholePrefixReference-depth arg))))]))
-
 
 
 

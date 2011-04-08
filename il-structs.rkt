@@ -231,8 +231,9 @@
                                      [pos : Natural])
   #:transparent)
 
-;; Check the closure procedure value in 'proc and make sure it can accept n values.
-(define-struct: CheckClosureArity! ([arity : Natural])
+;; Check the closure procedure value in 'proc and make sure it can accept the
+;; # of arguments (stored as a number in the val register.).
+(define-struct: CheckClosureArity! ()
   #:transparent)
 
 ;; Extends the environment with a prefix that holds

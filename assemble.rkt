@@ -402,8 +402,7 @@ EOF
              (CheckToplevelBound!-pos op))]
     
     [(CheckClosureArity!? op)
-     (format "if (! (MACHINE.proc instanceof RUNTIME.Closure && MACHINE.proc.arity === ~a)) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }"
-             (CheckClosureArity!-arity op))]
+     (format "if (! (MACHINE.proc instanceof RUNTIME.Closure && MACHINE.proc.arity === MACHINE.val)) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }")]
     
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])

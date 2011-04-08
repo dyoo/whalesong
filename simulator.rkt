@@ -227,10 +227,10 @@
                  (cond
                    [(closure? clos)
                     (if (= (closure-arity clos)
-                           (CheckClosureArity!-arity op))
+                           (ensure-natural (ensure-primitive-value (machine-val m))))
                         'ok
                         (error 'check-closure-arity "arity mismatch: passed ~s args to ~s"
-                               (CheckClosureArity!-arity op)
+                               (machine-val m)
                                (closure-display-name clos)))]
                    [else
                     (error 'check-closure-arity "not a closure: ~s" clos)]))]
@@ -612,9 +612,11 @@
     [else
      (error 'ensure-toplevel)]))
 
-(: ensure-natural (Integer -> Natural))
+(define-predicate natural? Natural)
+
+(: ensure-natural (Any -> Natural))
 (define (ensure-natural x)
-  (if (>= x 0)
+  (if (natural? x)
       x
       (error 'ensure-natural)))
 

@@ -43,7 +43,8 @@
                                                                 1 ;; the continuation consumes a single value
                                                                 (list 0 1)
                                                                 'call/cc))
-       ,(make-PopEnvironment 2 0)))
+       ,(make-PopEnvironment 2 0)
+       ,(make-AssignImmediateStatement 'argcount (make-Const 1))))
     
     ;; Finally, do a tail call into f.
     (compile-general-procedure-call '()

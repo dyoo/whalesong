@@ -468,6 +468,9 @@
          empty-instruction-sequence)
      proc-code
      (juggle-operands operand-codes)
+     (make-instruction-sequence `(,(make-AssignImmediateStatement 
+                                    'argcount
+                                    (make-Const (length (App-operands exp))))))
      (compile-general-procedure-call cenv 
                                      (length extended-cenv)
                                      (length (App-operands exp))
@@ -784,6 +787,7 @@
                                                           ->
                                                           InstructionSequence))
 ;; Assumes the procedure value has been loaded into the proc register.
+;; and the # of values passed in has been written into argcount.
 ;; n is the number of arguments passed in.
 ;; cenv is the compile-time enviroment before arguments have been shifted in.
 ;; extended-cenv is the compile-time environment after arguments have been shifted in.
@@ -804,8 +808,7 @@
                ;; Compiled branch
                (LabelLinkage-label compiled-branch)
                (make-instruction-sequence
-                `(,(make-AssignImmediateStatement 'val (make-Const number-of-arguments))
-                  ,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'val)))))
+                `(,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))))
                (compile-procedure-application extended-cenv-length
                                               (make-Reg 'val)
                                               number-of-arguments 
@@ -1188,6 +1191,8 @@
     [(eq? target 'val)
      target]
     [(eq? target 'proc)
+     target]
+    [(eq? target 'argcount)
      target]
     [(EnvLexicalReference? target)
      (make-EnvLexicalReference (+ n (EnvLexicalReference-depth target))

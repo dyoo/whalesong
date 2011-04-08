@@ -11,7 +11,7 @@
 ;; Registers of the machine:
 
 (define-type StackRegisterSymbol (U 'control 'env))
-(define-type AtomicRegisterSymbol (U 'val 'proc))
+(define-type AtomicRegisterSymbol (U 'val 'proc 'argcount))
 (define-type RegisterSymbol (U StackRegisterSymbol AtomicRegisterSymbol))
 
 (define-predicate AtomicRegisterSymbol? AtomicRegisterSymbol)

@@ -286,21 +286,25 @@ EOF
      [(PopControlFrame/Prompt? stmt)
       "MACHINE.control.pop();"]
      [(PushEnvironment? stmt)
-      (format "MACHINE.env.push(~a);" (string-join
-                                       (build-list (PushEnvironment-n stmt) 
-                                                   (lambda: ([i : Natural])
-                                                            (if (PushEnvironment-unbox? stmt)
-                                                                "[undefined]"
-                                                                "undefined")))
-                                       ", "))]
+      (if (= (PushEnvironment-n stmt) 0)
+          ""
+          (format "MACHINE.env.push(~a);" (string-join
+                                           (build-list (PushEnvironment-n stmt) 
+                                                       (lambda: ([i : Natural])
+                                                                (if (PushEnvironment-unbox? stmt)
+                                                                    "[undefined]"
+                                                                    "undefined")))
+                                           ", ")))]
      [(PopEnvironment? stmt)
-      (if (= (PopEnvironment-skip stmt) 0)
-          (format "MACHINE.env.length = MACHINE.env.length - ~a;"
-                  (PopEnvironment-n stmt))
-          (format "MACHINE.env.splice(MACHINE.env.length-(~a),~a);"
-                  (+ (PopEnvironment-skip stmt)
-                     (PopEnvironment-n stmt))
-                  (PopEnvironment-n stmt)))])))
+      (if (= (PopEnvironment-n stmt) 0)
+          ""
+          (if (= (PopEnvironment-skip stmt) 0)
+              (format "MACHINE.env.length = MACHINE.env.length - ~a;"
+                      (PopEnvironment-n stmt))
+              (format "MACHINE.env.splice(MACHINE.env.length-(~a),~a);"
+                      (+ (PopEnvironment-skip stmt)
+                         (PopEnvironment-n stmt))
+                      (PopEnvironment-n stmt))))])))
 
 
 

@@ -868,9 +868,7 @@
                    (make-instruction-sequence
                     `(,(make-AssignPrimOpStatement 'val 
                                                    (make-GetCompiledProcedureEntry))))
-                   (if (> num-slots-to-delete 0)
-                       (make-instruction-sequence `(,(make-PopEnvironment num-slots-to-delete n)))
-                       empty-instruction-sequence)
+                   (make-instruction-sequence `(,(make-PopEnvironment num-slots-to-delete n)))
                    (make-instruction-sequence
                     `(;; Assign the proc value of the existing call frame
                       ,(make-PerformStatement 

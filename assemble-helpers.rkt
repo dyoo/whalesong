@@ -12,7 +12,8 @@
          assemble-whole-prefix-reference
          assemble-reg
          assemble-label
-         assemble-input)
+         assemble-input
+         assemble-listof-assembled-values)
 
 
 (: assemble-oparg (OpArg -> String))
@@ -41,6 +42,8 @@
      "MACHINE.proc"]
     [(eq? target 'val)
      "MACHINE.val"]
+    [(eq? target 'argcount)
+     "MACHINE.argcount"]
     [(EnvLexicalReference? target)
      (assemble-lexical-reference target)]
     [(EnvPrefixReference? target)
@@ -70,6 +73,15 @@
                (format "(~s)" val)]
               [else
                (format "~s" val)])))
+
+(: assemble-listof-assembled-values ((Listof String) -> String))
+(define (assemble-listof-assembled-values vals)
+  (let loop ([vals vals])
+    (cond
+      [(empty? vals)
+       "RUNTIME.NULL"]
+      [else
+       (format "[~a, ~a]" (first vals) (loop (rest vals)))])))
 
 
 

@@ -250,7 +250,7 @@
                                                                                   (list 0 1)
                                                                                   'closureStart))
                     (make-PopEnvironment 2 0)
-                    (make-PerformStatement (make-CheckClosureArity! 5)))))
+                    (make-PerformStatement (make-CheckClosureArity! (make-Const 5))))))
 
 ;; this should fail, since the check is for 1, but the closure expects 5.
 (let/ec return
@@ -272,7 +272,7 @@
                                                                                 (list 0 1)
                                                                                 'closureStart))
                   (make-PopEnvironment 2 0)
-                  (make-PerformStatement (make-CheckClosureArity! 1)))))
+                  (make-PerformStatement (make-CheckClosureArity! (make-Const 1))))))
   (error 'expected-failure))
 
 

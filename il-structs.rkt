@@ -365,12 +365,12 @@
 
 
 
-
-(define-type Arity (U Natural
-                      ArityAtLeast
-                      (Listof (U Natural ArityAtLeast))))
+(define-type Arity (U Natural ArityAtLeast (Listof (U Natural ArityAtLeast))))
 (define-struct: ArityAtLeast ([value : Natural])
   #:transparent)
+
+(define-predicate listof-atomic-arity? (Listof (U Natural ArityAtLeast)))
+
 
 
 

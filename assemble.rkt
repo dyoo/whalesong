@@ -156,6 +156,8 @@ EOF
        empty]
       [(CheckClosureArity!? op)
        empty]
+      [(CheckPrimitiveArity!? op)
+       empty]
       [(ExtendEnvironment/Prefix!? op)
        empty]
       [(InstallClosureValues!? op)
@@ -337,7 +339,7 @@ EOF
     [(MakeCompiledProcedure? op)
      (format "new RUNTIME.Closure(~a, ~a, [~a], ~a)"
              (MakeCompiledProcedure-label op)
-             (MakeCompiledProcedure-arity op)
+             (assemble-arity (MakeCompiledProcedure-arity op))
              (string-join (map assemble-env-reference/closure-capture 
                                ;; The closure values are in reverse order
                                ;; to make it easier to push, in bulk, into
@@ -350,7 +352,7 @@ EOF
     [(MakeCompiledProcedureShell? op)
      (format "new RUNTIME.Closure(~a, ~a, undefined, ~a)"
              (MakeCompiledProcedureShell-label op)
-             (MakeCompiledProcedureShell-arity op)
+             (assemble-arity (MakeCompiledProcedureShell-arity op))
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     
     [(ApplyPrimitiveProcedure? op)
@@ -382,6 +384,28 @@ EOF
      (open-code-kernel-primitive-procedure op)]))
 
 
+(define-predicate natural? Natural)
+
+(: assemble-arity (Arity -> String))
+(define (assemble-arity an-arity)
+  (cond
+    [(natural? an-arity)
+     (format "~a" an-arity)]
+    [(ArityAtLeast? an-arity)
+     (format "(new RUNTIME.ArityAtLeast(~a))" (ArityAtLeast-value an-arity))]
+    [(listof-atomic-arity? an-arity)
+     (assemble-listof-assembled-values
+      (map (lambda: ([atomic-arity : (U Natural ArityAtLeast)])
+                    (cond
+                      [(natural? atomic-arity)
+                       (format "~a" an-arity)]
+                      [(ArityAtLeast? an-arity)
+                       (format "(new RUNTIME.ArityAtLeast(~a))" (ArityAtLeast-value an-arity))]
+                      ;; Can't seem to make the type checker happy without this...
+                      [else (error 'assemble-arity)]))
+           an-arity))]))
+
+
 (: assemble-default-continuation-prompt-tag (-> String))
 (define (assemble-default-continuation-prompt-tag)
   "RUNTIME.DEFAULT_CONTINUATION_PROMPT_TAG")
@@ -402,7 +426,13 @@ EOF
              (CheckToplevelBound!-pos op))]
     
     [(CheckClosureArity!? op)
-     (format "if (! (MACHINE.proc instanceof RUNTIME.Closure && MACHINE.proc.arity === MACHINE.val)) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure\"); } }")]
+     (format "if (! (MACHINE.proc instanceof RUNTIME.Closure && RUNTIME.isArityMatching(MACHINE.proc.arity, ~a))) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure:\" + MACHINE.proc.displayName); } }"
+             (assemble-oparg (CheckClosureArity!-arity op)))]
+    
+    [(CheckPrimitiveArity!? op)
+     (format "if (! (typeof(MACHINE.proc) === 'function'  && RUNTIME.isArityMatching(MACHINE.proc.arity, ~a))) { if (! (typeof(MACHINE.proc) === 'function')) { throw new Error(\"not a primitive procedure\"); } else { throw new Error(\"arity failure:\" + MACHINE.proc.displayName); } }"
+             (assemble-oparg (CheckPrimitiveArity!-arity op)))]
+     
     
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])

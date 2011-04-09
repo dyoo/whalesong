@@ -39,6 +39,7 @@
 
 (define-struct: machine ([val : SlotValue]
                          [proc : SlotValue]
+                         [argcount : SlotValue]
                          [env : (Listof SlotValue)]
                          [control : (Listof frame)]
 

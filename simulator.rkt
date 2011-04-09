@@ -50,6 +50,7 @@
                                   program-text])])
             (let: ([m : machine (make-machine (make-undefined)
                                               (make-undefined)
+                                              (make-undefined)
                                               '() 
                                               '()
                                               0 
@@ -126,7 +127,9 @@
                             (cond [(eq? reg 'val)
                                    (jump! m (ensure-symbol (machine-val m)))]
                                   [(eq? reg 'proc)
-                                   (jump! m (ensure-symbol (machine-proc m)))])]))])))
+                                   (jump! m (ensure-symbol (machine-proc m)))]
+                                  [(eq? reg 'argcount)
+                                   (error 'goto "argcount misused as jump source")])]))])))
 
 (: step-assign-immediate! (machine AssignImmediateStatement -> 'ok))
 (define (step-assign-immediate! m stmt)
@@ -194,7 +197,9 @@
   (cond [(eq? reg 'val)
          (machine-val m)]
         [(eq? reg 'proc)
-         (machine-proc m)]))
+         (machine-proc m)]
+        [(eq? reg 'argcount)
+         (machine-argcount m)]))
 
 
 (: lookup-env-reference/closure-capture (machine EnvReference -> SlotValue))
@@ -339,6 +344,8 @@
      proc-update!]
     [(eq? t 'val)
      val-update!]
+    [(eq? t 'argcount)
+     argcount-update!]
     [(EnvLexicalReference? t)
      (lambda: ([m : machine] [v : SlotValue])
               (if (EnvLexicalReference-unbox? t)
@@ -562,7 +569,9 @@
              [(eq? n 'proc)
               (machine-proc m)]
              [(eq? n 'val)
-              (machine-val m)]))]
+              (machine-val m)]
+             [(eq? n 'argcount)
+              (machine-argcount m)]))]
     
     [(EnvLexicalReference? an-oparg)
      (let*: ([v : SlotValue
@@ -704,7 +713,7 @@
 (: current-instruction (machine -> Statement))
 (define (current-instruction m)
   (match m
-    [(struct machine (val proc env control pc text
+    [(struct machine (val proc argcount env control pc text
                           stack-size jump-table))
      (vector-ref text pc)]))
 
@@ -715,6 +724,10 @@
   (set-machine-val! m v)
   'ok)
 
+(: argcount-update! (machine SlotValue -> 'ok))
+(define (argcount-update! m v)
+  (set-machine-argcount! m v)
+  'ok)
 
 (: proc-update! (machine SlotValue -> 'ok))
 (define (proc-update! m v)
@@ -725,7 +738,7 @@
 (: env-push! (machine SlotValue -> 'ok))
 (define (env-push! m v)
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (set-machine-env! m (cons v env))
      (set-machine-stack-size! m (add1 stack-size))
      'ok]))
@@ -733,7 +746,7 @@
 (: env-push-many! (machine (Listof SlotValue) -> 'ok))
 (define (env-push-many! m vs)
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (set-machine-env! m (append vs env))
      (set-machine-stack-size! m (+ stack-size (length vs)))
      'ok]))
@@ -742,13 +755,13 @@
 (: env-ref (machine Natural -> SlotValue))
 (define (env-ref m i)  
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (list-ref env i)]))
 
 (: env-mutate! (machine Natural SlotValue -> 'ok))
 (define (env-mutate! m i v)
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (set-machine-env! m (list-replace env i v))
      'ok]))
 
@@ -766,7 +779,7 @@
 (: env-pop! (machine Natural Natural -> 'ok))
 (define (env-pop! m n skip)     
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (set-machine-env! m (append (take env skip)
                                  (drop env (+ skip n))))
      (set-machine-stack-size! m (ensure-natural (- stack-size n)))
@@ -776,7 +789,7 @@
 (: control-push! (machine frame -> 'ok))
 (define (control-push! m a-frame)
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (set-machine-control! m (cons a-frame control))
      'ok]))
 
@@ -784,14 +797,14 @@
 (: control-pop! (machine -> 'ok))
 (define (control-pop! m)
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (set-machine-control! m (rest control))
      'ok]))
 
 (: control-top (machine -> frame))
 (define (control-top m)
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (first control)]))
 
 
@@ -807,7 +820,7 @@
 ;; Jumps directly to the instruction at the given label.
 (define (jump! m l)
   (match m
-    [(struct machine (val proc env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text stack-size jump-table))
      (set-machine-pc! m (hash-ref jump-table l))
      'ok]))
 

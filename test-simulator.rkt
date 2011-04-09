@@ -323,10 +323,12 @@
 
 ;; install-closure-values
 (let ([m  
-       (make-machine (make-undefined) (make-closure 'procedure-entry
-                                                    0
-                                                    (list 1 2 3)
-                                                    'procedure-entry)
+       (make-machine (make-undefined) 
+                     (make-closure 'procedure-entry
+                                   0
+                                   (list 1 2 3)
+                                   'procedure-entry)
+                     (make-undefined)
                      (list true false) ;; existing environment holds true, false
                      '() 
                      0 
@@ -343,6 +345,7 @@
 (let ([m 
        (make-machine (make-undefined) 
                      (make-closure 'procedure-entry 0 (list 1 2 3) 'procedure-entry)
+                     (make-undefined)
                      (list true false) ;; existing environment holds true, false
                      '() 
                      0 

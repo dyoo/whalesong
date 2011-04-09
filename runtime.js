@@ -29,14 +29,16 @@
     var isNumber = function(x) { return typeof(x) === 'number'; };
 
     var isPair = function(x) { return (typeof(x) == 'object' && 
-				       x.length === 2) }
+				       x.length === 2) };
+
     var isVector = function(x) { return (typeof(x) == 'object' && 
-					 x.length !== undefined) }
+					 x.length !== undefined) };
 
     var Machine = function() {
 	this.callsBeforeTrampoline = 100;
 	this.val = undefined;
 	this.proc = undefined;
+	this.argcount = undefined;
 	this.env = [];
 	this.control = [];     // Arrayof (U CallFrame PromptFrame)
 	this.running = false;
@@ -234,9 +236,32 @@
     }
 
 
+    // An arity is either a primitive number, an ArityAtLeast instance,
+    // or a list of either primitive numbers or ArityAtLeast instances.
+
     var ArityAtLeast = function(n) {
 	this.value = n;
     };
+
+    // isArityMatching: arity natural -> boolean
+    // Produces true if n satisfies the arity.
+    var isArityMatching = function(arity, n) {
+	if (typeof(arity) === 'number') {
+	    return arity === n;
+	} else if (arity instanceof ArityAtLeast) {
+	    return n >= arity.value;
+	} else {
+	    while (arity !== NULL) {
+		if (typeof(arity[0]) === 'number') {
+		    if (arity[0] === n) { return true; }
+		} else if (arity instanceof ArityAtLeast) {
+		    if (n >= arity[0].value) { return true; }
+		}
+		arity = arity[1];
+	    }
+	    return false;
+	}
+    }
 
 
 
@@ -248,40 +273,39 @@
     // the bootstrapping code.
     var Primitives = {};
     Primitives['display'] = function(MACHINE, arity) {
-	testArity('display', arity, 1, 2);
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var outputPort = MACHINE.params.currentOutputPort;
-	if (arity == 2) { 
+	if (arity === 2) { 
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
 	outputPort.write(MACHINE, firstArg);
     };
-    // FIXME: need to make a case dispatch here on arity.
-    Primitives['display'].arity = 1; //new ArityAtLeast(1);
+    Primitives['display'].arity = [1, [2, NULL]];
+    Primitives['display'].displayName = 'display';
 
 
     Primitives['newline'] = function(MACHINE, arity) {
-	testArity('newline', arity, 0, 1);
 	var outputPort = MACHINE.params.currentOutputPort;
-	if (arity == 1) { 
+	if (arity === 1) { 
 	    outputPort = MACHINE.env[MACHINE.env.length-1];
 	}
 	outputPort.write(MACHINE, "\n");
     };
-    Primitives['newline'].arity = 1; //new ArityAtLeast(1);
+    Primitives['newline'].arity = [0, [1, NULL]];
+    Primitives['newline'].displayName = 'newline';
 
 
     Primitives['displayln'] = function(MACHINE, arity){
-	testArity('displayln', arity, 1, 2);
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var outputPort = MACHINE.params.currentOutputPort;
-	if (arity == 2) { 
+	if (arity === 2) { 
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
 	outputPort.write(MACHINE, firstArg);
 	outputPort.write(MACHINE, "\n");
     };
-    Primitives['displayln'].arity = 1; //new ArityAtLeast(1);
+    Primitives['displayln'].arity = [1, [2, NULL]];
+    Primitives['displayln'].displayName = 'displayln';
 
     Primitives['pi'] = Math.PI;
 
@@ -304,6 +328,7 @@
 	return true;
     };
     Primitives['='].arity = new ArityAtLeast(2);
+    Primitives['='].displayName = '=';
 
 
     Primitives['<'] = function(MACHINE, arity) {
@@ -323,6 +348,7 @@
 	return true;
     };
     Primitives['<'].arity = new ArityAtLeast(2);
+    Primitives['<'].displayName = '<';
 
     Primitives['>'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -341,6 +367,7 @@
 	return true;
     };
     Primitives['>'].arity = new ArityAtLeast(2);
+    Primitives['>'].displayName = '>';
 
     Primitives['<='] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -359,6 +386,7 @@
 	return true;
     };
     Primitives['<='].arity = new ArityAtLeast(2);
+    Primitives['<='].displayName = '<=';
 
 
     Primitives['>='] = function(MACHINE, arity) {
@@ -378,6 +406,7 @@
 	return true;
     };
     Primitives['>='].arity = new ArityAtLeast(2);
+    Primitives['>='].displayName = '>=';
     
 
     Primitives['+'] = function(MACHINE, arity) {
@@ -395,6 +424,7 @@
 	return result;
     };
     Primitives['+'].arity = new ArityAtLeast(0);
+    Primitives['+'].displayName = '+';
     
 
     Primitives['*'] = function(MACHINE, arity) {
@@ -412,6 +442,7 @@
 	return result;
     };
     Primitives['*'].arity = new ArityAtLeast(0);
+    Primitives['*'].displayName = '*';
     
     Primitives['-'] = function(MACHINE, arity) {
 	if (arity === 1) { 
@@ -434,6 +465,7 @@
 	return result;
     };
     Primitives['-'].arity = new ArityAtLeast(1);
+    Primitives['-'].displayName = '-';
     
     Primitives['/'] = function(MACHINE, arity) {
 	testArgument('number',
@@ -448,6 +480,8 @@
 	return result;
     };
     Primitives['/'].arity = new ArityAtLeast(1);
+    Primitives['/'].displayName = '/';
+    
 
     Primitives['cons'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -455,6 +489,7 @@
 	return [firstArg, secondArg];
     };
     Primitives['cons'].arity = 2;
+    Primitives['cons'].displayName = 'cons';
 
 
     Primitives['list'] = function(MACHINE, arity) {
@@ -466,6 +501,7 @@
 	return result;
     };
     Primitives['list'].arity = new ArityAtLeast(0);
+    Primitives['list'].displayName = 'list';
 
     Primitives['car'] = function(MACHINE, arity) {
 	testArgument('pair',
@@ -477,6 +513,7 @@
 	return firstArg[0];
     };
     Primitives['car'].arity = 1;
+    Primitives['car'].displayName = 'car';
 
     Primitives['cdr'] = function(MACHINE, arity) {
 	testArgument('pair',
@@ -488,12 +525,14 @@
 	return firstArg[1];
     };
     Primitives['cdr'].arity = 1;
+    Primitives['cdr'].displayName = 'cdr';
 
     Primitives['pair?'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return isPair(firstArg);
     };
     Primitives['pair?'].arity = 1;
+    Primitives['pair?'].displayName = 'pair?';
 
     Primitives['set-car!'] = function(MACHINE, arity) {
 	testArgument('pair',
@@ -505,7 +544,8 @@
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
 	firstArg[0] = secondArg;
     };
-    Primitives['set-car!'].arity = 1;
+    Primitives['set-car!'].arity = 2;
+    Primitives['set-car!'].displayName = 'set-car!';
 
     Primitives['set-cdr!'] = function(MACHINE, arity) {
 	testArgument('pair',
@@ -517,13 +557,15 @@
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
 	firstArg[1] = secondArg;
     };
-    Primitives['set-cdr!'].arity = 1;
+    Primitives['set-cdr!'].arity = 2;
+    Primitives['set-cdr!'].displayName = 'set-cdr!';
     
     Primitives['not'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return (!firstArg);
     };
     Primitives['not'].arity = 1;
+    Primitives['not'].displayName = 'not';
 
     Primitives['null'] = NULL;
 
@@ -532,6 +574,7 @@
 	return firstArg === NULL;
     };
     Primitives['null?'].arity = 1;
+    Primitives['null?'].displayName = 'null?';
 
     Primitives['add1'] = function(MACHINE, arity) {
 	testArgument('number',
@@ -543,6 +586,7 @@
 	return firstArg + 1;
     };
     Primitives['add1'].arity = 1;
+    Primitives['add1'].displayName = 'add1';
 
     Primitives['sub1'] = function(MACHINE, arity) {
 	testArgument('number',
@@ -554,12 +598,14 @@
 	return firstArg - 1;
     };
     Primitives['sub1'].arity = 1;
+    Primitives['sub1'].displayName = 'sub1';
 
     Primitives['zero?'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return firstArg === 0;
     };
     Primitives['zero?'].arity = 1;
+    Primitives['zero?'].displayName = 'zero?';
 
     Primitives['vector'] = function(MACHINE, arity) {
 	var i;
@@ -570,6 +616,7 @@
 	return result;
     };
     Primitives['vector'].arity = new ArityAtLeast(0);
+    Primitives['vector'].displayName = 'vector';
 
     Primitives['vector->list'] = function(MACHINE, arity) {
 	testArgument('vector',
@@ -586,6 +633,7 @@
 	return result;
     };
     Primitives['vector->list'].arity = 1;
+    Primitives['vector->list'].displayName = 'vector->list';
     
     Primitives['list->vector'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -597,6 +645,7 @@
 	return result;
     };
     Primitives['list->vector'].arity = 1;
+    Primitives['list->vector'].displayName = 'list->vector';
 
     Primitives['vector-ref'] = function(MACHINE, arity) {
 	testArgument('vector',
@@ -609,6 +658,7 @@
 	return firstArg[secondArg];
     };
     Primitives['vector-ref'].arity = 2;
+    Primitives['vector-ref'].displayName = 'vector-ref';
 
     Primitives['vector-set!'] = function(MACHINE, arity) {
 	testArgument('vector',
@@ -623,18 +673,21 @@
 	return null;
     };
     Primitives['vector-set!'].arity = 3;
+    Primitives['vector-set!'].displayName = 'vector-set!';
 
     Primitives['symbol?'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return typeof(firstArg) === 'string';
     };
     Primitives['symbol?'].arity = 1;
+    Primitives['symbol?'].displayName = 'symbol?';
 
     Primitives['symbol->string'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return firstArg;
     };
     Primitives['symbol->string'].arity = 1;
+    Primitives['symbol->string'].displayName = 'symbol->string';
 
     Primitives['string-append'] = function(MACHINE, arity) {
 	var buffer = [];
@@ -645,12 +698,14 @@
 	return buffer.join('');
     };
     Primitives['string-append'].arity = new ArityAtLeast(0);
+    Primitives['string-append'].displayName = 'string-append';
 
     Primitives['string-length'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return firstArg.length;
     };
     Primitives['string-length'].arity = 1;
+    Primitives['string-length'].displayName = 'string-length';
     
     Primitives['box'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -658,12 +713,14 @@
 	return result;
     };
     Primitives['box'].arity = 1;
+    Primitives['box'].displayName = 'box';
 
     Primitives['unbox'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return firstArg[0];
     };
     Primitives['unbox'].arity = 1;
+    Primitives['unbox'].displayName = 'unbox';
 
     Primitives['set-box!'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -672,11 +729,13 @@
 	return;
     };
     Primitives['set-box!'].arity = 2;
+    Primitives['set-box!'].displayName = 'set-box!';
 
     Primitives['void'] = function(MACHINE, arity) {
 	return;
     };
     Primitives['void'].arity = new ArityAtLeast(0);
+    Primitives['void'].displayName = 'void';
 
     Primitives['eq?'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -684,6 +743,7 @@
 	return firstArg === secondArg;
     };
     Primitives['eq?'].arity = 2;
+    Primitives['eq?'].displayName = 'eq?';
 
     Primitives['equal?'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -708,6 +768,7 @@
 	return true;
     };
     Primitives['equal?'].arity = 2;
+    Primitives['equal?'].displayName = 'equal?';
 
 
 
@@ -792,6 +853,9 @@
     exports['isVector'] = isVector;
     exports['isOutputPort'] = isOutputPort;
     exports['isOutputStringPort'] = isOutputStringPort;
+
+    exports['ArityAtLeast'] = ArityAtLeast;
+    exports['isArityMatching'] = isArityMatching;
 
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;

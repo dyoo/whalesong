@@ -809,7 +809,7 @@
                (LabelLinkage-label compiled-branch)
                (make-instruction-sequence
                 `(,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))))
-               (compile-procedure-application extended-cenv-length
+               (compile-compiled-procedure-application extended-cenv-length
                                               (make-Reg 'val)
                                               number-of-arguments 
                                               target
@@ -824,17 +824,10 @@
                 (append-instruction-sequences
                  (make-instruction-sequence 
                   `(,(make-PerformStatement (make-CheckPrimitiveArity! (make-Const number-of-arguments)))
-                    ,(make-AssignPrimOpStatement 
-                      ;; Optimization: we put the result directly in the registers, or in
-                      ;; the appropriate spot on the stack.  This takes into account the popenviroment
-                      ;; that happens right afterwards.
-                      (adjust-target-depth target number-of-arguments)                     
-                      (make-ApplyPrimitiveProcedure number-of-arguments))))
-                 (make-instruction-sequence
-                  `(,(make-PopEnvironment number-of-arguments 0)))
-                 
-
-                 
+                    ,(make-AssignPrimOpStatement 'val 
+                                                 (make-ApplyPrimitiveProcedure number-of-arguments))
+                    ,(make-PopEnvironment number-of-arguments 0)
+                    ,(make-AssignImmediateStatement target (make-Reg 'val))))
                  (LabelLinkage-label after-call)))))))
 
 
@@ -846,7 +839,7 @@
                                           linkage
                                           after-call)])
          (append-instruction-sequences
-          (compile-procedure-application (length extended-cenv)
+          (compile-compiled-procedure-application (length extended-cenv)
                              (make-Label (StaticallyKnownLam-entry-point static-knowledge))
                              n 
                              target
@@ -858,12 +851,12 @@
 
 
 
-(: compile-procedure-application (Natural (U Label Reg) Natural Target Linkage -> InstructionSequence))
+(: compile-compiled-procedure-application (Natural (U Label Reg) Natural Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
-(define (compile-procedure-application cenv-length-with-args entry-point n target linkage)
+(define (compile-compiled-procedure-application cenv-length-with-args entry-point n target linkage)
   (cond [(ReturnLinkage? linkage)
          (cond
            [(eq? target 'val)

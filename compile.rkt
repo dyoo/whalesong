@@ -825,7 +825,7 @@
                  (make-instruction-sequence 
                   `(,(make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
                     ,(make-AssignPrimOpStatement 'val 
-                                                 (make-ApplyPrimitiveProcedure number-of-arguments))
+                                                 (make-ApplyPrimitiveProcedure))
                     ,(make-PopEnvironment number-of-arguments 0)
                     ,(make-AssignImmediateStatement target (make-Reg 'val))))
                  (LabelLinkage-label after-call)))))))

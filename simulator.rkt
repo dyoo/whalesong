@@ -397,7 +397,7 @@
            (let: ([prim : SlotValue (machine-proc m)]
                   [args : (Listof PrimitiveValue)
                         (map ensure-primitive-value (take (machine-env m)
-                                                          (ApplyPrimitiveProcedure-arity op)))])
+                                                          (ensure-natural (machine-argcount m))))])
                  (cond
                    [(primitive-proc? prim)
                     (target-updater! m (ensure-primitive-value 

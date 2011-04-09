@@ -170,9 +170,9 @@
 
 
 ;; Applies the primitive procedure that's stored in the proc register, using
-;; the arity number of values that are bound in the environment as arguments
+;; the argcount number of values that are bound in the environment as arguments
 ;; to that primitive.
-(define-struct: ApplyPrimitiveProcedure ([arity : Natural])
+(define-struct: ApplyPrimitiveProcedure ()
   #:transparent)
 
 

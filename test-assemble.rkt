@@ -153,8 +153,8 @@
                                                    (make-Const 3))
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const 4))
-                    (make-AssignPrimOpStatement 'val
-                                                (make-ApplyPrimitiveProcedure 2))
+                    (make-AssignImmediateStatement 'argcount (make-Const 2))
+                    (make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
                     'done))
       "7")
 

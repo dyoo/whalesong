@@ -823,7 +823,7 @@
                 cenv
                 (append-instruction-sequences
                  (make-instruction-sequence 
-                  `(,(make-PerformStatement (make-CheckPrimitiveArity! (make-Const number-of-arguments)))
+                  `(,(make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
                     ,(make-AssignPrimOpStatement 'val 
                                                  (make-ApplyPrimitiveProcedure number-of-arguments))
                     ,(make-PopEnvironment number-of-arguments 0)

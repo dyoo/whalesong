@@ -475,7 +475,6 @@
                                     (make-Const (length (App-operands exp))))))
      (compile-general-procedure-call cenv 
                                      (length extended-cenv)
-                                     (length (App-operands exp))
                                      target
                                      linkage))))
 
@@ -784,16 +783,18 @@
 
 
 
-(: compile-general-procedure-call (CompileTimeEnvironment Natural
-                                                          Natural Target Linkage 
+(: compile-general-procedure-call (CompileTimeEnvironment Natural Target Linkage 
                                                           ->
                                                           InstructionSequence))
-;; Assumes the procedure value has been loaded into the proc register.
-;; and the # of values passed in has been written into argcount.
+;; Assumes the following:
+;; 1.  the procedure value has been loaded into the proc register.
+;; 2.  the n values passed in has been written into argcount register.
+;; 3.  environment stack contains the n operand values.
+;;
 ;; n is the number of arguments passed in.
 ;; cenv is the compile-time enviroment before arguments have been shifted in.
 ;; extended-cenv is the compile-time environment after arguments have been shifted in.
-(define (compile-general-procedure-call cenv extended-cenv-length number-of-arguments target linkage)
+(define (compile-general-procedure-call cenv extended-cenv-length target linkage)
   (let: ([primitive-branch : LabelLinkage (make-LabelLinkage (make-label 'primitiveBranch))]
          [compiled-branch : LabelLinkage (make-LabelLinkage (make-label 'compiledBranch))]
          [after-call : LabelLinkage (make-LabelLinkage (make-label 'afterCall))])
@@ -813,7 +814,6 @@
                 `(,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))))
                (compile-compiled-procedure-application extended-cenv-length
                                               (make-Reg 'val)
-                                              number-of-arguments 
                                               target
                                               compiled-linkage)
                
@@ -847,7 +847,6 @@
                                          (make-Const n))))
           (compile-compiled-procedure-application (length extended-cenv)
                              (make-Label (StaticallyKnownLam-entry-point static-knowledge))
-                             n 
                              target
                              compiled-linkage)
           (end-with-linkage
@@ -857,32 +856,31 @@
 
 
 
-(: compile-compiled-procedure-application (Natural (U Label Reg) Natural Target Linkage -> InstructionSequence))
+(: compile-compiled-procedure-application (Natural (U Label Reg) Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
-(define (compile-compiled-procedure-application cenv-length-with-args entry-point n target linkage)
+(define (compile-compiled-procedure-application cenv-length-with-args entry-point target linkage)
   (cond [(ReturnLinkage? linkage)
          (cond
            [(eq? target 'val)
             ;; This case happens when we're in tail position.
             ;; We clean up the stack right before the jump, and do not add
             ;; to the control stack.
-            (let: ([num-slots-to-delete : Natural (ensure-natural (- cenv-length-with-args n))])
-                  (append-instruction-sequences
-                   (make-instruction-sequence
-                    `(,(make-AssignPrimOpStatement 'val 
-                                                   (make-GetCompiledProcedureEntry))))
-                   (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg (make-Const cenv-length-with-args)
-                                                                                        (make-Reg 'argcount))
-                                                                      (make-Reg 'argcount))))
-                   (make-instruction-sequence
-                    `(;; Assign the proc value of the existing call frame
-                      ,(make-PerformStatement 
-                        (make-SetFrameCallee! (make-Reg 'proc)))
-                      
-                      ,(make-GotoStatement entry-point)))))]
+            (append-instruction-sequences
+             (make-instruction-sequence
+              `(,(make-AssignPrimOpStatement 'val 
+                                             (make-GetCompiledProcedureEntry))))
+             (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg (make-Const cenv-length-with-args)
+                                                                                  (make-Reg 'argcount))
+                                                                (make-Reg 'argcount))))
+             (make-instruction-sequence
+              `(;; Assign the proc value of the existing call frame
+                ,(make-PerformStatement 
+                  (make-SetFrameCallee! (make-Reg 'proc)))
+                
+                ,(make-GotoStatement entry-point))))]
            
            [else
             ;; This case should be impossible: return linkage should only

@@ -44,13 +44,12 @@
                                                                 (list 0 1)
                                                                 'call/cc))
        ,(make-PopEnvironment (make-Const 2) 
-                             (make-Const 0))
-       ,(make-AssignImmediateStatement 'argcount (make-Const 1))))
-    
+                             (make-Const 0))))
+       
     ;; Finally, do a tail call into f.
+    (make-instruction-sequence `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))
     (compile-general-procedure-call '()
                                     1 ;; the stack at this point holds a single argument
-                                    1 ;; and f needs to consume that single argument.
                                     'val
                                     return-linkage)
     

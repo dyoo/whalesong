@@ -608,7 +608,11 @@
              [else
               (error 'evaluate-oparg "Internal error: not a toplevel at depth ~s: ~s"
                      (EnvWholePrefixReference-depth an-oparg)
-                     v)]))]))
+                     v)]))]
+
+    [(SubtractArg? an-oparg)
+     (- (ensure-number (evaluate-oparg m (SubtractArg-lhs an-oparg)))
+        (ensure-number (evaluate-oparg m (SubtractArg-rhs an-oparg))))]))
 
 
 (: ensure-closure-or-false (SlotValue -> (U closure #f)))

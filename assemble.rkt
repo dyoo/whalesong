@@ -117,7 +117,10 @@ EOF
       [(EnvPrefixReference? an-input)
        empty]
       [(EnvWholePrefixReference? an-input)
-       empty]))
+       empty]
+      [(SubtractArg? an-input)
+       (append (collect-input (SubtractArg-lhs an-input))
+               (collect-input (SubtractArg-rhs an-input)))]))
   
   (: collect-location ((U Reg Label) -> (Listof Symbol)))
   (define (collect-location a-location)
@@ -182,19 +185,7 @@ EOF
                              empty]
                             [(AssignImmediateStatement? stmt)
                              (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
-                                   (cond 
-                                     [(Reg? v)
-                                      empty]
-                                     [(Label? v)
-                                      (list (Label-name v))]
-                                     [(Const? v)
-                                      empty]
-                                     [(EnvLexicalReference? v)
-                                      empty]
-                                     [(EnvPrefixReference? v)
-                                      empty] 
-                                     [(EnvWholePrefixReference? v)
-                                      empty]))]
+                                   (collect-input v))]
                             [(AssignPrimOpStatement? stmt)
                              (collect-primitive-operator (AssignPrimOpStatement-op stmt))]
                             [(PerformStatement? stmt)

@@ -26,6 +26,7 @@
                       EnvLexicalReference ;; a reference into the stack
                       EnvPrefixReference  ;; a reference into an element in the toplevel.
                       EnvWholePrefixReference ;; a reference into a toplevel prefix in the stack.
+                      SubtractArg
                       ))
 
 
@@ -42,6 +43,11 @@
 (define-struct: Reg ([name : AtomicRegisterSymbol])
   #:transparent)
 (define-struct: Const ([const : Any])
+  #:transparent)
+
+;; Limited arithmetic on OpArgs
+(define-struct: SubtractArg ([lhs : OpArg]
+                             [rhs : OpArg])
   #:transparent)
 
 

@@ -14,7 +14,7 @@
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
 (define (open-code-kernel-primitive-procedure op)
   (let*: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
-          [operands : (Listof String) (map assemble-input (CallKernelPrimitiveProcedure-operands op))]
+          [operands : (Listof String) (map assemble-oparg (CallKernelPrimitiveProcedure-operands op))]
           [checked-operands : (Listof String)
                             (map maybe-typecheck-operand
                                  (CallKernelPrimitiveProcedure-expected-operand-types op)

@@ -872,7 +872,7 @@
                     `(,(make-AssignPrimOpStatement 'val 
                                                    (make-GetCompiledProcedureEntry))))
                    (make-instruction-sequence `(,(make-PopEnvironment (make-Const num-slots-to-delete) 
-                                                                      (make-Const n))))
+                                                                      (make-Reg 'argcount))))
                    (make-instruction-sequence
                     `(;; Assign the proc value of the existing call frame
                       ,(make-PerformStatement 

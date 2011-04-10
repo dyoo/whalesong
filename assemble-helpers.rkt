@@ -12,7 +12,6 @@
          assemble-whole-prefix-reference
          assemble-reg
          assemble-label
-         assemble-input
          assemble-listof-assembled-values)
 
 
@@ -30,7 +29,9 @@
     [(EnvPrefixReference? v)
      (assemble-prefix-reference v)]
     [(EnvWholePrefixReference? v)
-     (assemble-whole-prefix-reference v)]))
+     (assemble-whole-prefix-reference v)]
+    [(SubtractArg? v)
+     (assemble-subtractarg v)]))
 
 
 
@@ -116,20 +117,8 @@
 (define (assemble-label a-label)
   (symbol->string (Label-name a-label)))
 
-
-
-(: assemble-input (OpArg -> String))
-(define (assemble-input an-input)
-  (cond
-    [(Reg? an-input)
-     (assemble-reg an-input)]
-    [(Const? an-input)
-     (assemble-const an-input)]
-    [(Label? an-input)
-     (assemble-label an-input)]
-    [(EnvLexicalReference? an-input)
-     (assemble-lexical-reference an-input)]
-    [(EnvPrefixReference? an-input)
-     (assemble-prefix-reference an-input)]
-    [(EnvWholePrefixReference? an-input)
-     (assemble-whole-prefix-reference an-input)]))
+(: assemble-subtractarg (SubtractArg -> String))
+(define (assemble-subtractarg s)
+  (format "(~a - ~a)"
+          (assemble-oparg (SubtractArg-lhs s))
+          (assemble-oparg (SubtractArg-rhs s))))

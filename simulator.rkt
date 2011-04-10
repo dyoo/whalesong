@@ -21,7 +21,7 @@
 (require/typed "simulator-helpers.rkt"
                [ensure-primitive-value-box (SlotValue -> (Boxof PrimitiveValue))]
                [ensure-primitive-value (SlotValue -> PrimitiveValue)]
-               [ensure-list (Any -> PrimitiveValue)]
+               [ensure-list (Any -> (U Null MutablePair))]
                [racket->PrimitiveValue (Any -> PrimitiveValue)])
              
 
@@ -290,6 +290,24 @@
                   [frame (ensure-CallFrame (control-top m))])
              (set-CallFrame-proc! frame proc-value)
              'ok)]
+          
+          [(SpliceListIntoStack!? op)
+           (let*: ([stack-index : Natural (ensure-natural (evaluate-oparg m (SpliceListIntoStack!-depth op)))]
+                   [arg-list : (Listof PrimitiveValue) 
+                             (mutable-pair-list->list
+                              (ensure-list (env-ref m stack-index)))])
+                  (set-machine-env! m (append (take (machine-env m) stack-index)
+                                              arg-list
+                                              (drop (machine-env m) (add1 stack-index))))
+                  (set-machine-stack-size! m (ensure-natural (+ (machine-stack-size m)
+                                                                (length arg-list)
+                                                                -1)))
+                  (set-machine-argcount! m
+                                         (ensure-natural 
+                                          (+ (ensure-natural (machine-argcount m))
+                                             (length arg-list)
+                                             -1)))
+                  'ok)]
 
           
           [(RestoreControl!? op)
@@ -310,6 +328,24 @@
            (set-machine-env! m (CapturedEnvironment-vals (ensure-CapturedEnvironment (env-ref m 1))))
            (set-machine-stack-size! m (length (machine-env m)))
            'ok])))
+
+
+
+(: mutable-pair-list->list ((U Null MutablePair) -> (Listof PrimitiveValue)))
+(define (mutable-pair-list->list mlst)
+  (cond
+    [(null? mlst)
+     '()]
+    [else
+     (cons (MutablePair-h mlst)
+           (mutable-pair-list->list (let ([t (MutablePair-t mlst)])
+                                      (cond
+                                        [(null? t)
+                                         t]
+                                        [(MutablePair? t)
+                                         t]
+                                        [else
+                                         (error 'mutable-pair-list->list "Not a list: ~s" t)]))))]))
 
 
 (: arity-match? (Arity Natural -> Boolean))

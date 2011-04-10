@@ -233,7 +233,24 @@
 	}
 	raise(new Error("restoreControl: unable to find tag " + tag));     
 
-    }
+    };
+
+
+    // Splices the list argument in the environment.  Adjusts MACHINE.argcount
+    // appropriately.
+    var spliceListIntoStack = function(MACHINE, depth) {
+	var lst = MACHINE.env[MACHINE.env.length - 1 - depth];
+	var vals = [];
+	while(lst !== NULL) {
+	    vals.push(lst[0]);
+	    lst = lst[1];
+	}
+	vals.reverse();
+	MACHINE.env.splice.apply(MACHINE.env,
+				 [MACHINE.env.length - 1 - depth, 1].concat(vals));
+	MACHINE.argcount = MACHINE.argcount + vals.length - 1;
+    };
+
 
 
     // An arity is either a primitive number, an ArityAtLeast instance,
@@ -848,6 +865,10 @@
     exports['captureControl'] = captureControl;
     exports['restoreControl'] = restoreControl;
 
+    exports['trampoline'] = trampoline;
+    exports['spliceListIntoStack'] = spliceListIntoStack;
+
+
     exports['isNumber'] = isNumber;
     exports['isPair'] = isPair;
     exports['isVector'] = isVector;
@@ -860,6 +881,6 @@
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;
 
-    exports['trampoline'] = trampoline;
+
 
 }).call(this);

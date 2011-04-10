@@ -368,3 +368,26 @@
                 ,(make-PerformStatement (make-CheckToplevelBound! 0 0)))
               "MACHINE.env[0][0]")
       "Shriram")
+
+
+
+(test (E-many `(,(make-PushEnvironment 1 #f)
+                ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+                                                (make-Const '(1 2 3)))
+                ,(make-AssignImmediateStatement 'argcount (make-Const 1))
+                ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 0))))
+              "MACHINE.argcount + ',' + MACHINE.env[0] + ',' + MACHINE.env[1] + ',' + MACHINE.env[2]")
+      "3,3,2,1")
+
+
+(test (E-many `(,(make-PushEnvironment 3 #f)
+                ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+                                                (make-Const "hello"))
+                ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
+                                                (make-Const "world"))
+                ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f)
+                                                (make-Const '(1 2 3)))
+                ,(make-AssignImmediateStatement 'argcount (make-Const 3))
+                ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 2))))
+              "MACHINE.argcount + ',' + MACHINE.env[0] + ',' + MACHINE.env[1] + ',' + MACHINE.env[2] + ',' + MACHINE.env[3] + ',' + MACHINE.env[4]")
+      "5,3,2,1,world,hello")

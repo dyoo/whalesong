@@ -166,14 +166,13 @@
       
       ;; Push the procedure into proc.
       (make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
-      (make-PopEnvironment (make-Const 1) 
-                           (make-Const 0))
+      (make-PopEnvironment (make-Const 1) (make-Const 0))
       ;; Correct the number of arguments to be passed.
-      (make-AssignPrimOpStatement 'val 
-                                  (make-CallKernelPrimitiveProcedure 'sub1 
-                                                                     (list (make-Reg 'val))
-                                                                     (list 'number)
-                                                                     (list #f)))      
+      (make-AssignImmediateStatement 'argcount (make-SubtractArg (make-Reg 'argcount)
+                                                                 (make-Const 1)))
+      ;; Splice in the list argument.
+      (make-PerformStatement (make-SpliceListIntoStack! (make-SubtractArg (make-Reg 'argcount)
+                                                                         (make-Const 1))))
       
       after-apply-code
       (make-AssignPrimOpStatement (make-PrimitivesReference 'apply)

@@ -33,11 +33,11 @@
 
 ;; run: machine -> machine
 ;; Run the machine to completion.
-(define (run m)
+(define (run! m)
   (cond
     [(can-step? m)
      (step! m)
-     (run m)]
+     (run! m)]
     [else
      m]))
 
@@ -72,13 +72,13 @@
 (let* ([m (new-machine `(,(make-PushEnvironment 1 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 42)))
                        #f)]
-       [m (run m)])
+       [m (run! m)])
   (test (machine-env m) '(42)))
 
 ;; Assigning to a boxed environment reference
 (let* ([m (new-machine `(,(make-PushEnvironment 1 #t)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #t) (make-Const 42))))]
-       [m (run m)])
+       [m (run! m)])
   (test (machine-env m) (list (box 42))))
 
 
@@ -89,13 +89,13 @@
                          ,(make-PushEnvironment 1 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                          (make-EnvLexicalReference 1 #t))))]
-       [m (run m)])
+       [m (run! m)])
   (test (machine-env m) (list 42 (box 42))))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 1 #t)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #t) (make-Const 42))
                          ,(make-PushEnvironment 1 #f)))]
-       [m (run m)])
+       [m (run! m)])
   (test (machine-env m) (list (make-undefined)
                               (box 42))))
 (let* ([m (new-machine `(,(make-PushEnvironment 1 #t)
@@ -103,7 +103,7 @@
                          ,(make-PushEnvironment 1 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                          (make-EnvLexicalReference 1 #f))))]
-       [m (run m)])
+       [m (run! m)])
   (test (machine-env m) (list (box 42)
                               (box 42))))
 
@@ -113,54 +113,54 @@
 ;; Assigning to another environment reference
 (let* ([m (new-machine `(,(make-PushEnvironment 2 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const 42))))]
-       [m (run m)])
+       [m (run! m)])
   (test (machine-env m) `(,(make-undefined) 42)))
 
 
 ;; Assigning to another environment reference
 (let* ([m (new-machine `(,(make-PushEnvironment 2 #f)
                          ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const 42))))]
-       [m (run m)])
+       [m (run! m)])
   (test (machine-env m) `(42 ,(make-undefined))))
 
 
 ;; PushEnv
 (let ([m (new-machine `(,(make-PushEnvironment 20 #f)))])
-  (test (machine-env (run m)) (build-list 20 (lambda (i) (make-undefined)))))
+  (test (machine-env (run! m)) (build-list 20 (lambda (i) (make-undefined)))))
 
 
 ;; PopEnv
 (let ([m (new-machine `(,(make-PushEnvironment 20 #f)
                         ,(make-PopEnvironment (make-Const 20) (make-Const 0))))])
-  (test (machine-env (run m)) '()))
+  (test (machine-env (run! m)) '()))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
                         ,(make-PopEnvironment (make-Const 1) (make-Const 0))))])
-  (test (machine-env (run m)) '("dewey" "louie")))
+  (test (machine-env (run! m)) '("dewey" "louie")))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
                         ,(make-PopEnvironment (make-Const 1) (make-Const 1))))])
-  (test (machine-env (run m)) '("hewie" "louie")))
+  (test (machine-env (run! m)) '("hewie" "louie")))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
                         ,(make-PopEnvironment (make-Const 1) (make-Const 2))))])
-  (test (machine-env (run m)) '("hewie" "dewey")))
+  (test (machine-env (run! m)) '("hewie" "dewey")))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
                         ,(make-PopEnvironment (make-Const 2) (make-Const 1))))])
-  (test (machine-env (run m)) '("hewie")))
+  (test (machine-env (run! m)) '("hewie")))
 
 
 
@@ -172,7 +172,7 @@
                         ,(make-PushControlFrame 'bar)
                         baz
                         ))])
-  (test (machine-control (run m))
+  (test (machine-control (run! m))
         (list (make-CallFrame 'bar #f)
               (make-CallFrame 'foo #f))))
 
@@ -187,7 +187,7 @@
                         baz
                         ,(make-PopControlFrame)
                         ))])
-  (test (machine-control (run m))
+  (test (machine-control (run! m))
         (list (make-CallFrame 'foo #f))))
 
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
@@ -198,7 +198,7 @@
                         baz
                         ,(make-PopControlFrame)
                         ,(make-PopControlFrame)))])
-  (test (machine-control (run m))
+  (test (machine-control (run! m))
         (list)))
 
 
@@ -213,7 +213,7 @@
                         on-false
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                         end))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'ok))
 ;; TestAndBranch: try the false branch
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const #f))
@@ -223,7 +223,7 @@
                         on-false
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         end))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'ok))
 ;; Test for primitive procedure
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const '+))
@@ -233,7 +233,7 @@
                         on-true
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                         end))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'ok))
 ;; Give a primitive procedure in val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const (lookup-primitive '+)))
@@ -243,7 +243,7 @@
                         on-true
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         end))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'ok))
 ;; Give a primitive procedure in proc, but test val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
@@ -253,7 +253,7 @@
                         on-true
                         ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
                         end))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'not-a-procedure))
 ;; Give a primitive procedure in proc and test proc
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
@@ -263,7 +263,7 @@
                         on-true
                         ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
                         end))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'a-procedure))
 
 
@@ -272,7 +272,7 @@
 
 ;; AssignPrimOpStatement
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+ - * =)))))])
-  (test (first (machine-env (run m)))
+  (test (first (machine-env (run! m)))
         (make-toplevel '(+ - * =)
                        (list (lookup-primitive '+)
                              (lookup-primitive '-)
@@ -282,20 +282,20 @@
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))))])
-  (test (machine-env (run m))
+  (test (machine-env (run! m))
         (list (make-toplevel '(some-variable) (list "Danny")))))
 
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable another)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 1) (make-Reg 'val))))])
-  (test (machine-env (run m))
+  (test (machine-env (run! m))
         (list (make-toplevel '(some-variable another) (list (make-undefined) "Danny")))))
 
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(some-variable)))
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-PushEnvironment 5 #f)
                         ,(make-AssignImmediateStatement (make-EnvPrefixReference 5 0) (make-Reg 'val))))])
-  (test (machine-env (run m))
+  (test (machine-env (run! m))
         (list (make-undefined) (make-undefined) (make-undefined) (make-undefined) (make-undefined)
               (make-toplevel '(some-variable) (list "Danny")))))
 
@@ -309,7 +309,7 @@
   (with-handlers ((exn:fail? (lambda (exn)
                                (void))))
     
-    (run m)
+    (run! m)
     (raise "I expected an error")))
 
 ;; check-toplevel-bound shouldn't fail here.
@@ -317,7 +317,7 @@
                         ,(make-AssignImmediateStatement 'val (make-Const "Danny"))
                         ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
                         ,(make-PerformStatement (make-CheckToplevelBound! 0 0))))])
-  (void (run m)))
+  (void (run! m)))
 
 
 
@@ -336,7 +336,7 @@
                                      procedure-entry))
                      0
                      (make-hash))])
-  (test (machine-env (run m))
+  (test (machine-env (run! m))
         ;; Check that the environment has installed the expected closure values.
         (list 1 2 3 true false)))
 
@@ -352,7 +352,7 @@
                      (list->vector `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))
                      0
                      (make-hash))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'procedure-entry))
 
 
@@ -364,7 +364,7 @@
                         procedure-entry
                         end
                         ))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         (make-closure 'procedure-entry 0 (list) 'procedure-entry)))
 
 ;; make-compiled-procedure: Capturing a few variables.
@@ -382,7 +382,7 @@
                         procedure-entry
                         end
                         ))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         (make-closure 'procedure-entry 0 (list 'larry 'moe)
                       'procedure-entry)))
 
@@ -404,7 +404,7 @@
                         procedure-entry
                         end
                         ))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         (make-closure 'procedure-entry 0 (list (make-toplevel '(x y z) (list "x" "y" "z")))
                       'procedure-entry)))
 
@@ -432,7 +432,7 @@
                         procedure-entry
                         end
                         ))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         (make-closure 'procedure-entry 
                       0
                       (list (make-toplevel '(x y z) (list "x" "y" "z"))
@@ -444,7 +444,7 @@
 ;; Test toplevel lookup
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                         ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         (lookup-primitive '+)))
 
 ;; Test lexical lookup
@@ -455,7 +455,7 @@
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const 'moe))
                         
                         ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'larry))
 ;; Another lexical lookup test
 (let ([m (new-machine `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
@@ -465,7 +465,7 @@
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const 'moe))
                         
                         ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 1 #f))))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         'curly))
 
 ;; ApplyPrimitiveProcedure
@@ -478,10 +478,10 @@
                         ,(make-AssignImmediateStatement 'argcount (make-Const 2))
                         ,(make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
                         after))])
-  (test (machine-val (run m))
+  (test (machine-val (run! m))
         (+ 126389 42))
   
-  (test (machine-env (run m))
+  (test (machine-env (run! m))
         (list 126389 42 (make-toplevel '(+) (list (lookup-primitive '+))))))
 
 
@@ -490,5 +490,35 @@
                         foo
                         ,(make-PushControlFrame 'foo)
                         ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))))])
-  (test (machine-proc (run m))
+  (test (machine-proc (run! m))
         'foo))
+
+
+;; Splicing
+(let ([m (new-machine `(,(make-PushEnvironment 1 #f)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+                                                        (make-Const '(1 2 3)))
+                        ,(make-AssignImmediateStatement 'argcount (make-Const 1))
+                        ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 0)))))])
+  (run! m)
+  (test (machine-argcount m)
+        3)
+  (test (machine-env m)
+        '(1 2 3)))
+                      
+
+
+(let ([m (new-machine `(,(make-PushEnvironment 3 #f)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+                                                        (make-Const "hello"))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
+                                                        (make-Const "world"))
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f)
+                                                        (make-Const '(1 2 3)))
+                        ,(make-AssignImmediateStatement 'argcount (make-Const 3))
+                        ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 2)))))])
+  (run! m)
+  (test (machine-argcount m)
+        5)
+  (test (machine-env m)
+        '("hello" "world" 1 2 3)))

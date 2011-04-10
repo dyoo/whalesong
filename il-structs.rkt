@@ -260,6 +260,12 @@
   #:transparent)
 
 
+;; Splices the list structure that lives in env[depth] into position.
+;; Depth must evaluate to a natural.
+(define-struct: SpliceListIntoStack! ([depth : OpArg])
+  #:transparent)
+
+
 (define-struct: FixClosureShellMap! (;; depth: where the closure shell is located in the environment
                                      [depth : Natural] 
                                      
@@ -283,6 +289,7 @@
                                FixClosureShellMap!
                                
                                SetFrameCallee!
+                               SpliceListIntoStack!
                                
                                RestoreEnvironment!
                                RestoreControl!))

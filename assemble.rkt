@@ -171,6 +171,8 @@ EOF
        empty]
       [(SetFrameCallee!? op)
        empty]
+      [(SpliceListIntoStack!? op)
+       empty]
       [(FixClosureShellMap!? op)
        empty]))
   
@@ -485,7 +487,10 @@ EOF
                           ", "))]
     [(SetFrameCallee!? op)
      (format "MACHINE.control[MACHINE.control.length-1].proc = ~a;"
-             (assemble-oparg (SetFrameCallee!-proc op)))]))
+             (assemble-oparg (SetFrameCallee!-proc op)))]
+    [(SpliceListIntoStack!? op)
+     (format "RUNTIME.spliceListIntoStack(MACHINE, ~a);"
+             (assemble-oparg (SpliceListIntoStack!-depth op)))]))
 
 
 

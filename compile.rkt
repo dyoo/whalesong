@@ -174,7 +174,7 @@
             `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
            (compile (Top-code top) (cons (Top-prefix top) cenv) target next-linkage)
            (make-instruction-sequence
-            `(,(make-PopEnvironment 1 0)))))))
+            `(,(make-PopEnvironment (make-Const 1) 0)))))))
 
 
 
@@ -192,7 +192,7 @@
   (cond
     [(ReturnLinkage? linkage)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
-                                  ,(make-PopEnvironment (length cenv) 0)
+                                  ,(make-PopEnvironment (make-Const (length cenv)) 0)
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(PromptLinkage? linkage)
@@ -589,7 +589,7 @@
                     (if (empty? rest-operands)
                         empty-instruction-sequence
                         (make-instruction-sequence `(,(make-PopEnvironment 
-                                                       (length rest-operands)
+                                                       (make-Const (length rest-operands))
                                                        0))))]
                    
                    [(constant-operand-poss)
@@ -826,7 +826,7 @@
                   `(,(make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
                     ,(make-AssignPrimOpStatement 'val 
                                                  (make-ApplyPrimitiveProcedure))
-                    ,(make-PopEnvironment number-of-arguments 0)
+                    ,(make-PopEnvironment (make-Reg 'argcount) 0)
                     ,(make-AssignImmediateStatement target (make-Reg 'val))))
                  (LabelLinkage-label after-call)))))))
 
@@ -868,7 +868,7 @@
                    (make-instruction-sequence
                     `(,(make-AssignPrimOpStatement 'val 
                                                    (make-GetCompiledProcedureEntry))))
-                   (make-instruction-sequence `(,(make-PopEnvironment num-slots-to-delete n)))
+                   (make-instruction-sequence `(,(make-PopEnvironment (make-Const num-slots-to-delete) n)))
                    (make-instruction-sequence
                     `(;; Assign the proc value of the existing call frame
                       ,(make-PerformStatement 
@@ -1017,7 +1017,7 @@
            rhs-code
            body-code
            (LabelLinkage-label after-body-code)
-           (make-instruction-sequence `(,(make-PopEnvironment 1 0)))
+           (make-instruction-sequence `(,(make-PopEnvironment (make-Const 1) 0)))
            after-let1))))
 
 
@@ -1053,7 +1053,7 @@
            body-code
            (LabelLinkage-label after-body-code)
            (if (> n 0)
-               (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+               (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) 0)))
                empty-instruction-sequence)
            after-let))))
 
@@ -1116,7 +1116,7 @@
            (compile (LetRec-body exp) extended-cenv (adjust-target-depth target n) letrec-linkage)
            (LabelLinkage-label after-body-code)
            (if (> n 0)
-               (make-instruction-sequence `(,(make-PopEnvironment n 0)))
+               (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) 0)))
                empty-instruction-sequence)))))
 
 

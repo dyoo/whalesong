@@ -84,7 +84,7 @@
 
 
 ;; Pop n slots from the environment, skipping past a few first.
-(define-struct: PopEnvironment ([n : Natural]
+(define-struct: PopEnvironment ([n : OpArg]
                                 [skip : Natural])
   #:transparent)
 (define-struct: PushEnvironment ([n : Natural]

@@ -114,7 +114,7 @@
               "MACHINE.env.length")
       "2")
 (test (E-many (list (make-PushEnvironment 2 #f)
-                    (make-PopEnvironment 1 0))
+                    (make-PopEnvironment (make-Const 1) 0))
               "MACHINE.env.length")
       "1")
 
@@ -203,7 +203,7 @@
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list 0 1)
                                                                                  'closureStart))
-                    (make-PopEnvironment 2 0)
+                    (make-PopEnvironment (make-Const 2) 0)
                     (make-GotoStatement (make-Label 'closureStart))
                     'theEnd)
               "String(MACHINE.env.length) + ',' + MACHINE.env[1] + ',' + MACHINE.env[0]")
@@ -227,7 +227,7 @@
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list 0 1)
                                                                                  'closureStart))
-                    (make-PopEnvironment 2 0)
+                    (make-PopEnvironment (make-Const 2) 0)
                     (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))
               "typeof(MACHINE.val) + ',' + (MACHINE.val === MACHINE.proc.label)")
       "function,true")
@@ -249,7 +249,7 @@
                     (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
                                                                                   (list 0 1)
                                                                                   'closureStart))
-                    (make-PopEnvironment 2 0)
+                    (make-PopEnvironment (make-Const 2) 0)
                     (make-PerformStatement (make-CheckClosureArity! (make-Const 5))))))
 
 ;; this should fail, since the check is for 1, but the closure expects 5.
@@ -271,7 +271,7 @@
                   (make-AssignPrimOpStatement 'proc (make-MakeCompiledProcedure 'closureStart 5 
                                                                                 (list 0 1)
                                                                                 'closureStart))
-                  (make-PopEnvironment 2 0)
+                  (make-PopEnvironment (make-Const 2) 0)
                   (make-PerformStatement (make-CheckClosureArity! (make-Const 1))))))
   (error 'expected-failure))
 

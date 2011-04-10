@@ -131,35 +131,35 @@
 
 ;; PopEnv
 (let ([m (new-machine `(,(make-PushEnvironment 20 #f)
-                        ,(make-PopEnvironment (make-Const 20) 0)))])
+                        ,(make-PopEnvironment (make-Const 20) (make-Const 0))))])
   (test (machine-env (run m)) '()))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
-                        ,(make-PopEnvironment (make-Const 1) 0)))])
+                        ,(make-PopEnvironment (make-Const 1) (make-Const 0))))])
   (test (machine-env (run m)) '("dewey" "louie")))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
-                        ,(make-PopEnvironment (make-Const 1) 1)))])
+                        ,(make-PopEnvironment (make-Const 1) (make-Const 1))))])
   (test (machine-env (run m)) '("hewie" "louie")))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
-                        ,(make-PopEnvironment (make-Const 1) 2)))])
+                        ,(make-PopEnvironment (make-Const 1) (make-Const 2))))])
   (test (machine-env (run m)) '("hewie" "dewey")))
 
 (let* ([m (new-machine `(,(make-PushEnvironment 3 #f)
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f) (make-Const "hewie"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f) (make-Const "dewey"))
                         ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f) (make-Const "louie"))
-                        ,(make-PopEnvironment (make-Const 2) 1)))])
+                        ,(make-PopEnvironment (make-Const 2) (make-Const 1))))])
   (test (machine-env (run m)) '("hewie")))
 
 
@@ -427,7 +427,7 @@
                                                       0
                                                       (list 3 0 2)
                                                       'procedure-entry))
-                        ,(make-PopEnvironment (make-Const 3) 0)
+                        ,(make-PopEnvironment (make-Const 3) (make-Const 0))
                         ,(make-GotoStatement (make-Label 'end))
                         procedure-entry
                         end

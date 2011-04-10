@@ -154,7 +154,7 @@
 (define (step-pop-environment! m stmt)
   (env-pop! m 
             (ensure-natural (evaluate-oparg m (PopEnvironment-n stmt)))
-            (PopEnvironment-skip stmt)))
+            (ensure-natural (evaluate-oparg m (PopEnvironment-skip stmt)))))
 
 
 (: step-push-control-frame! (machine PushControlFrame -> 'ok))

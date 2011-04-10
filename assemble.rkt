@@ -296,14 +296,23 @@ EOF
                                                                     "undefined")))
                                            ", ")))]
      [(PopEnvironment? stmt)
-      (if (= (PopEnvironment-skip stmt) 0)
-          (format "MACHINE.env.length = MACHINE.env.length - ~a;"
-                  (assemble-oparg (PopEnvironment-n stmt)))
-          (format "MACHINE.env.splice(MACHINE.env.length-(~a + ~a),~a);"
-                  (PopEnvironment-skip stmt)
-                  (assemble-oparg (PopEnvironment-n stmt))
-                  (assemble-oparg (PopEnvironment-n stmt))))])))
+      (let ([skip (PopEnvironment-skip stmt)])
+        (cond
+          [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
+           (format "MACHINE.env.length = MACHINE.env.length - ~a;"
+                   (assemble-oparg (PopEnvironment-n stmt)))]
+          [else
+           (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"
+                   (assemble-oparg (PopEnvironment-skip stmt))
+                   (assemble-oparg (PopEnvironment-n stmt))
+                   (assemble-oparg (PopEnvironment-n stmt)))]))])))
 
+
+(: ensure-natural (Any -> Natural))
+(define (ensure-natural x)
+  (if (natural? x)
+      x
+      (error 'ensure-natural)))
 
 
 (: assemble-jump ((U Label Reg) -> String))

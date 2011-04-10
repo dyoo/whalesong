@@ -43,7 +43,8 @@
                                                                 1 ;; the continuation consumes a single value
                                                                 (list 0 1)
                                                                 'call/cc))
-       ,(make-PopEnvironment (make-Const 2) 0)
+       ,(make-PopEnvironment (make-Const 2) 
+                             (make-Const 0))
        ,(make-AssignImmediateStatement 'argcount (make-Const 1))))
     
     ;; Finally, do a tail call into f.
@@ -166,7 +167,8 @@
       
       ;; Push the procedure into proc.
       (make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
-      (make-PopEnvironment (make-Const 1) 0)
+      (make-PopEnvironment (make-Const 1) 
+                           (make-Const 0))
       ;; Correct the number of arguments to be passed.
       (make-AssignPrimOpStatement 'val 
                                   (make-CallKernelPrimitiveProcedure 'sub1 

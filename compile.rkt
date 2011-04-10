@@ -842,6 +842,9 @@
                                           linkage
                                           after-call)])
          (append-instruction-sequences
+          (make-instruction-sequence `(,(make-AssignImmediateStatement 
+                                         'argcount
+                                         (make-Const n))))
           (compile-compiled-procedure-application (length extended-cenv)
                              (make-Label (StaticallyKnownLam-entry-point static-knowledge))
                              n 
@@ -871,7 +874,8 @@
                    (make-instruction-sequence
                     `(,(make-AssignPrimOpStatement 'val 
                                                    (make-GetCompiledProcedureEntry))))
-                   (make-instruction-sequence `(,(make-PopEnvironment (make-Const num-slots-to-delete) 
+                   (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg (make-Const cenv-length-with-args)
+                                                                                        (make-Reg 'argcount))
                                                                       (make-Reg 'argcount))))
                    (make-instruction-sequence
                     `(;; Assign the proc value of the existing call frame

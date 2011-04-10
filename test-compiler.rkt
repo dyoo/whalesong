@@ -1027,6 +1027,24 @@
       -1)
 
 
+(test '(apply + '(1 2 3))
+      6
+      #:with-bootstrapping? #t)
+
+(test '(apply + 4 5 6 '(1 2 3))
+      21
+      #:with-bootstrapping? #t)
+(test '(apply string-append '("this" "is" "a" "test"))
+      "thisisatest"
+      #:with-bootstrapping? #t)
+
+(test '(begin (define (f x y z)
+                (cons x (cons y z)))
+              (apply f (list "shiny" "happy" "monsters")))
+      (cons "shiny" (cons "happy" "monsters"))
+      #:with-bootstrapping? #t)
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

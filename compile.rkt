@@ -474,7 +474,7 @@
                                     'argcount
                                     (make-Const (length (App-operands exp))))))
      (compile-general-procedure-call cenv 
-                                     (length extended-cenv)
+                                     (make-Const (length extended-cenv))
                                      target
                                      linkage))))
 
@@ -783,7 +783,7 @@
 
 
 
-(: compile-general-procedure-call (CompileTimeEnvironment Natural Target Linkage 
+(: compile-general-procedure-call (CompileTimeEnvironment OpArg Target Linkage 
                                                           ->
                                                           InstructionSequence))
 ;; Assumes the following:
@@ -813,9 +813,9 @@
                (make-instruction-sequence
                 `(,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))))
                (compile-compiled-procedure-application extended-cenv-length
-                                              (make-Reg 'val)
-                                              target
-                                              compiled-linkage)
+                                                       (make-Reg 'val)
+                                                       target
+                                                       compiled-linkage)
                
                
                ;; Primitive branch
@@ -845,7 +845,7 @@
           (make-instruction-sequence `(,(make-AssignImmediateStatement 
                                          'argcount
                                          (make-Const n))))
-          (compile-compiled-procedure-application (length extended-cenv)
+          (compile-compiled-procedure-application (make-Const (length extended-cenv))
                              (make-Label (StaticallyKnownLam-entry-point static-knowledge))
                              target
                              compiled-linkage)
@@ -856,7 +856,7 @@
 
 
 
-(: compile-compiled-procedure-application (Natural (U Label Reg) Target Linkage -> InstructionSequence))
+(: compile-compiled-procedure-application (OpArg (U Label Reg) Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
@@ -872,7 +872,7 @@
              (make-instruction-sequence
               `(,(make-AssignPrimOpStatement 'val 
                                              (make-GetCompiledProcedureEntry))))
-             (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg (make-Const cenv-length-with-args)
+             (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg cenv-length-with-args
                                                                                   (make-Reg 'argcount))
                                                                 (make-Reg 'argcount))))
              (make-instruction-sequence

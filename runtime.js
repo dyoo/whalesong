@@ -30,6 +30,16 @@
 
     var isPair = function(x) { return (typeof(x) == 'object' && 
 				       x.length === 2) };
+    var isList = function(x) {
+	while (x !== NULL) {
+	    if (typeof(x) == 'object' && x.length === 2) {
+		x = x[1];
+	    } else {
+		return false;
+	    }
+	}
+	return true;
+    };
 
     var isVector = function(x) { return (typeof(x) == 'object' && 
 					 x.length !== undefined) };
@@ -871,6 +881,7 @@
 
     exports['isNumber'] = isNumber;
     exports['isPair'] = isPair;
+    exports['isList'] = isList;
     exports['isVector'] = isVector;
     exports['isOutputPort'] = isOutputPort;
     exports['isOutputStringPort'] = isOutputStringPort;

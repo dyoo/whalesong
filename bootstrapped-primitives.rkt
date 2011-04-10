@@ -49,7 +49,7 @@
     ;; Finally, do a tail call into f.
     (make-instruction-sequence `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))
     (compile-general-procedure-call '()
-                                    1 ;; the stack at this point holds a single argument
+                                    (make-Const 1) ;; the stack at this point holds a single argument
                                     'val
                                     return-linkage)
     
@@ -160,20 +160,26 @@
    ;; As is apply:
    (let ([after-apply-code (make-label 'afterApplyCode)]
          [apply-entry (make-label 'applyEntry)])
-     (list 
-      (make-GotoStatement (make-Label after-apply-code))
-      apply-entry
-      
-      ;; Push the procedure into proc.
-      (make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
-      (make-PopEnvironment (make-Const 1) (make-Const 0))
-      ;; Correct the number of arguments to be passed.
-      (make-AssignImmediateStatement 'argcount (make-SubtractArg (make-Reg 'argcount)
-                                                                 (make-Const 1)))
-      ;; Splice in the list argument.
-      (make-PerformStatement (make-SpliceListIntoStack! (make-SubtractArg (make-Reg 'argcount)
-                                                                         (make-Const 1))))
-      
-      after-apply-code
-      (make-AssignPrimOpStatement (make-PrimitivesReference 'apply)
-                                  (make-MakeCompiledProcedure apply-entry 1 '() 'apply))))))
+     `(,(make-GotoStatement (make-Label after-apply-code))
+       ,apply-entry
+       
+       ;; Push the procedure into proc.
+       ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
+       ,(make-PopEnvironment (make-Const 1) (make-Const 0))
+       ;; Correct the number of arguments to be passed.
+       ,(make-AssignImmediateStatement 'argcount (make-SubtractArg (make-Reg 'argcount)
+                                                                   (make-Const 1)))
+       ;; Splice in the list argument.
+       ,(make-PerformStatement (make-SpliceListIntoStack! (make-SubtractArg (make-Reg 'argcount)
+                                                                            (make-Const 1))))
+       
+       ;; Finally, jump into the procedure body
+       ,@(statements (compile-general-procedure-call '()
+                                                     (make-Reg 'argcount) ;; the stack contains only the argcount elements.
+                                                     'val
+                                                     return-linkage))
+       
+       
+       ,after-apply-code
+       ,(make-AssignPrimOpStatement (make-PrimitivesReference 'apply)
+                                    (make-MakeCompiledProcedure apply-entry (make-ArityAtLeast 2) '() 'apply))))))

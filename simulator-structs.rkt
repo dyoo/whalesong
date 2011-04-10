@@ -99,7 +99,7 @@
 
 ;; Compiled procedure closures
 (define-struct: closure ([label : Symbol]
-                         [arity : Natural]
+                         [arity : Arity]
                          [vals : (Listof SlotValue)]
                          [display-name : (U Symbol False)])
   #:transparent

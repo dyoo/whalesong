@@ -162,7 +162,7 @@
 ;; and the set of lexical references into the environment that the
 ;; closure needs to close over.
 (define-struct: MakeCompiledProcedure ([label : Symbol]
-                                       [arity : Natural]
+                                       [arity : Arity]
                                        [closed-vals : (Listof Natural)]
                                        [display-name : (U Symbol False)])
   #:transparent)
@@ -170,7 +170,7 @@
 ;; Constructs a closure shell.  Like MakeCompiledProcedure, but doesn't
 ;; bother with trying to capture the free variables.
 (define-struct: MakeCompiledProcedureShell ([label : Symbol]
-                                            [arity : Natural]
+                                            [arity : Arity]
                                             [display-name : (U Symbol False)])
   #:transparent)
 
@@ -245,6 +245,7 @@
   #:transparent)
 
 
+
 ;; Extends the environment with a prefix that holds
 ;; lookups to the namespace.
 (define-struct: ExtendEnvironment/Prefix! ([names : (Listof (U Symbol ModuleVariable False))])
@@ -284,6 +285,7 @@
                                CheckToplevelBound!
                                CheckClosureArity!
                                CheckPrimitiveArity!
+                               ;;CheckIsList!
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!
                                FixClosureShellMap!

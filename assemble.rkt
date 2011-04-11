@@ -301,12 +301,15 @@ EOF
                    (assemble-oparg (PopEnvironment-skip stmt))
                    (assemble-oparg (PopEnvironment-n stmt))
                    (assemble-oparg (PopEnvironment-n stmt)))]))]
-
+     
      [(PushImmediateOntoEnvironment? stmt)
-      (format "MACHINE.env.push(~a)"
-              (cond [(PushImmediateOntoEnvironment-box? stmt)
-                     (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))
-                     (assemble-oparg (PushImmediateOntoEnvironment-value stmt))]))])))
+      (format "MACHINE.env.push(~a);"
+              (let: ([val-string : String
+                                 (cond [(PushImmediateOntoEnvironment-box? stmt)
+                                        (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]
+                                       [else
+                                        (assemble-oparg (PushImmediateOntoEnvironment-value stmt))])])
+                    val-string))])))
 
 
 (: ensure-natural (Any -> Natural))

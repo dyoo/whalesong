@@ -171,7 +171,7 @@ prefix, and we can reduce some allocation.
 
 
 
-I can eliminate an instruction in the pair:
+I can eliminate the first instruction in the pair:
 
 
     #(struct:AssignPrimOpStatement val #(struct:GetCompiledProcedureEntry))
@@ -182,4 +182,20 @@ since the val isn't even being used here...  This is the case when we
 statically know the lambda target.
 
 
-   - ok, done.
+    - this is done now.
+
+
+
+I can coalese
+
+     (PushEnvironment 1 #f)
+     (AssignPrimOpStatement (EnvLexicalReference 0 #f) (MakeCompiledProcedure 'lamEntry265 1 '(2 1) 'diff)
+
+into a single statement.
+
+
+
+
+
+If lambdas don't escape, then we can make their closures empty by
+simply explicitly passing in the free arguments.

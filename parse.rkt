@@ -185,6 +185,7 @@
                            mutated-parameters)])
       (make-Lam (current-defined-name)
                 (length (lambda-parameters exp))
+                #f
                 lam-body
                 (map env-reference-depth closure-references)
                 (fresh-lam-label)))))

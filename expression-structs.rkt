@@ -39,6 +39,7 @@
 
 (define-struct: Lam ([name : (U Symbol False)]
                      [num-parameters : Natural]
+                     [rest? : Boolean]
                      [body : Expression]
                      [closure-map : (Listof Natural)]
                      [entry-label : Symbol]) #:transparent)

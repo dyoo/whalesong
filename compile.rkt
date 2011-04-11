@@ -1287,6 +1287,7 @@
     [(Lam? exp)
      (make-Lam (Lam-name exp)
                (Lam-num-parameters exp)
+               (Lam-rest? exp)
                (Lam-body exp)
                (map (lambda: ([d : Natural]) 
                              (if (< d skip)

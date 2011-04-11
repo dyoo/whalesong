@@ -261,6 +261,20 @@
 	MACHINE.argcount = MACHINE.argcount + vals.length - 1;
     };
 
+    var unspliceRestFromStack = function(MACHINE, depth, length) {
+	console.log(depth, length);
+	var lst = NULL;
+	var i;
+	for (i = 0; i < length; i++) {
+	    lst = [MACHINE.env[MACHINE.env.length - depth - length + i], lst];
+	}
+	console.log(lst);
+	MACHINE.env.splice(MACHINE.env.length - 1 - depth - length,
+			   length, 
+			   lst);
+	MACHINE.argcount = MACHINE.argcount - length + 1;
+    };
+
 
 
     // An arity is either a primitive number, an ArityAtLeast instance,
@@ -877,6 +891,7 @@
 
     exports['trampoline'] = trampoline;
     exports['spliceListIntoStack'] = spliceListIntoStack;
+    exports['unspliceRestFromStack'] = unspliceRestFromStack;
 
 
     exports['isNumber'] = isNumber;

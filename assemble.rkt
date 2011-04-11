@@ -173,6 +173,8 @@ EOF
        empty]
       [(SpliceListIntoStack!? op)
        empty]
+      [(UnspliceRestFromStack!? op)
+       empty]
       [(FixClosureShellMap!? op)
        empty]))
   
@@ -501,7 +503,11 @@ EOF
              (assemble-oparg (SetFrameCallee!-proc op)))]
     [(SpliceListIntoStack!? op)
      (format "RUNTIME.spliceListIntoStack(MACHINE, ~a);"
-             (assemble-oparg (SpliceListIntoStack!-depth op)))]))
+             (assemble-oparg (SpliceListIntoStack!-depth op)))]
+    [(UnspliceRestFromStack!? op)
+     (format "RUNTIME.unspliceRestFromStack(MACHINE, ~a, ~a);"
+             (assemble-oparg (UnspliceRestFromStack!-depth op))
+             (assemble-oparg (UnspliceRestFromStack!-length op)))]))
 
 
 

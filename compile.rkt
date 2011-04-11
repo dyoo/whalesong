@@ -372,7 +372,7 @@
                                            (make-instruction-sequence 
                                             `(,(make-PerformStatement 
                                                 (make-UnspliceRestFromStack! 
-                                                 (make-Const (add1 (Lam-num-parameters exp)))
+                                                 (make-Const (Lam-num-parameters exp))
                                                  (make-SubtractArg (make-Reg 'argcount)
                                                                    (make-Const (Lam-num-parameters exp)))))))
                                            empty-instruction-sequence)]

@@ -316,7 +316,24 @@
                                              (length arg-list)
                                              -1)))
                   'ok)]
-
+          
+          [(UnspliceRestFromStack!? op)
+           (let: ([depth : Natural (ensure-natural
+                                    (evaluate-oparg m (UnspliceRestFromStack!-depth op)))]
+                  [len : Natural (ensure-natural
+                                  (evaluate-oparg m (UnspliceRestFromStack!-length op)))])
+                 (let ([rest-arg (list->mutable-pair-list (map ensure-primitive-value
+                                                               (take (drop (machine-env m) depth) len)))])
+                   (set-machine-env! m 
+                                     (append (take (machine-env m) depth)
+                                             (list rest-arg)
+                                             (drop (machine-env m) (+ depth len))))
+                   (set-machine-stack-size! m (ensure-natural 
+                                               (+ (machine-stack-size m)
+                                                  (add1 (- len)))))
+                   (set-machine-argcount! m (ensure-natural (+ (ensure-natural (machine-argcount m))
+                                                               (add1 (- len)))))
+                   'ok))]
           
           [(RestoreControl!? op)
            (let: ([tag-value : ContinuationPromptTagValue
@@ -528,7 +545,14 @@
              (drop-continuation-to-tag (rest frames) tag)])]))]))
 
 
-
+(: list->mutable-pair-list ((Listof PrimitiveValue) -> PrimitiveValue))
+(define (list->mutable-pair-list rand-vals)
+  (let: loop : PrimitiveValue ([rand-vals : (Listof PrimitiveValue) rand-vals])
+             (cond [(empty? rand-vals)
+                    null]
+                   [else
+                    (make-MutablePair (first rand-vals)
+                                      (loop (rest rand-vals)))])))
 
 
 
@@ -569,12 +593,7 @@
           [(cdr)
            (MutablePair-t (ensure-mutable-pair (first rand-vals)))]
           [(list)
-           (let: loop : PrimitiveValue ([rand-vals : (Listof PrimitiveValue) rand-vals])
-             (cond [(empty? rand-vals)
-                    null]
-                   [else
-                    (make-MutablePair (first rand-vals)
-                                      (loop (rest rand-vals)))]))]
+           (list->mutable-pair-list rand-vals)]
           [(null?)
            (null? (first rand-vals))]
           [(not)

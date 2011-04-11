@@ -522,3 +522,80 @@
         5)
   (test (machine-env m)
         '("hello" "world" 1 2 3)))
+
+
+
+
+;; Testing immediate pushing
+(let ([m (new-machine `(,(make-PushImmediateOntoEnvironment (make-Const "this is a message")
+                                                            #f)))])
+  (run! m)
+  (test (machine-env m)
+        '("this is a message")))
+
+(let ([m (new-machine `(,(make-PushImmediateOntoEnvironment (make-Const "this is a message")
+                                                            #t)))])
+  (run! m)
+  (test (machine-env m)
+        `(,(box "this is a message"))))
+
+
+(let ([m (new-machine `(,(make-PushImmediateOntoEnvironment (make-Const "this is a message")
+                                                            #f)
+                        ,(make-PushImmediateOntoEnvironment (make-Const "again")
+                                                            #f)
+                        ))])
+  (run! m)
+  (test (machine-env m)
+        '("again" "this is a message")))
+
+(let ([m (new-machine `(,(make-PushImmediateOntoEnvironment (make-Const "this is a message")
+                                                            #f)
+                        ,(make-PushImmediateOntoEnvironment (make-Const "again")
+                                                            #t)
+                        ))])
+  (run! m)
+  (test (machine-env m)
+        `(,(box "again") "this is a message")))
+                           
+
+
+
+
+
+;; testing rest splicing
+(let ([m (new-machine `(,(make-PushEnvironment 1 #f)
+                        ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+                                                        (make-Const "hello"))
+                        ,(make-AssignImmediateStatement 'argcount (make-Const 1))
+                        ,(make-PerformStatement (make-UnspliceRestFromStack! (make-Const 0)
+                                                                             (make-Const 1)))))])
+  (run! m)
+  (test (machine-argcount m)
+        1)
+  (test (machine-env m)
+        (list (make-MutablePair "hello" null))))
+
+
+(let ([m (new-machine 
+          `(,(make-PushEnvironment 5 #f)
+            ,(make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+                                            (make-Const "hello"))
+            ,(make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
+                                            (make-Const "world"))
+            ,(make-AssignImmediateStatement (make-EnvLexicalReference 2 #f)
+                                            (make-Const 'x))
+            ,(make-AssignImmediateStatement (make-EnvLexicalReference 3 #f)
+                                                        (make-Const 'y))
+            ,(make-AssignImmediateStatement (make-EnvLexicalReference 4 #f)
+                                            (make-Const 'z))
+            ,(make-AssignImmediateStatement 'argcount (make-Const 5))
+            ,(make-PerformStatement (make-UnspliceRestFromStack! (make-Const 2)  (make-Const 3)))))])
+  (run! m)
+  (test (machine-argcount m)
+        3)
+  (test (machine-env m)
+        (list "hello"
+              "world"
+              (make-MutablePair 'x (make-MutablePair 'y (make-MutablePair 'z null))))))
+

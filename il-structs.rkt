@@ -275,6 +275,12 @@
 (define-struct: SpliceListIntoStack! ([depth : OpArg])
   #:transparent)
 
+;; Unsplices the length arguments on the stack, replacing with a list of that length.
+;; Side effects: touches both the environment and argcount appropriately. 
+(define-struct: UnspliceRestFromStack! ([depth : OpArg]
+                                        [length : OpArg])
+  #:transparent)
+
 
 (define-struct: FixClosureShellMap! (;; depth: where the closure shell is located in the environment
                                      [depth : Natural] 
@@ -294,13 +300,14 @@
                                CheckToplevelBound!
                                CheckClosureArity!
                                CheckPrimitiveArity!
-                               ;;CheckIsList!
+
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!
                                FixClosureShellMap!
                                
                                SetFrameCallee!
                                SpliceListIntoStack!
+                               UnspliceRestFromStack!
                                
                                RestoreEnvironment!
                                RestoreControl!))

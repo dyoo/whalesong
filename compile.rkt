@@ -369,8 +369,12 @@
 (define (compile-lambda-body exp cenv)
   (let: ([maybe-unsplice-rest-argument : InstructionSequence
                                        (if (Lam-rest? exp)
-                                           ;; FIXME: we may need to unsplice the rest argument if this lambda is a rest
-                                           (error 'fixme)
+                                           (make-instruction-sequence 
+                                            `(,(make-PerformStatement 
+                                                (make-UnspliceRestFromStack! 
+                                                 (make-Const (add1 (Lam-num-parameters exp)))
+                                                 (make-SubtractArg (make-Reg 'argcount)
+                                                                   (make-Const (Lam-num-parameters exp)))))))
                                            empty-instruction-sequence)]
          [maybe-install-closure-values : InstructionSequence
                                        (if (not (empty? (Lam-closure-map exp)))

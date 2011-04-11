@@ -103,6 +103,8 @@
                      (step-pop-environment! m i)]
                     [(PushEnvironment? i)
                      (step-push-environment! m i)]
+                    [(PushImmediateOntoEnvironment? i)
+                     (step-push-immediate-onto-environment! m i)]
                     [(PushControlFrame? i)
                      (step-push-control-frame! m i)]
                     [(PushControlFrame/Prompt? i)
@@ -156,6 +158,12 @@
             (ensure-natural (evaluate-oparg m (PopEnvironment-n stmt)))
             (ensure-natural (evaluate-oparg m (PopEnvironment-skip stmt)))))
 
+(: step-push-immediate-onto-environment! (machine PushImmediateOntoEnvironment -> 'ok))
+(define (step-push-immediate-onto-environment! m stmt)
+  (let ([t (make-EnvLexicalReference 0 (PushImmediateOntoEnvironment-box? stmt))]
+        [v (evaluate-oparg m (PushImmediateOntoEnvironment-value stmt))])
+    (step-push-environment! m (make-PushEnvironment 1 (PushImmediateOntoEnvironment-box? stmt)))
+    ((get-target-updater t) m v)))
 
 (: step-push-control-frame! (machine PushControlFrame -> 'ok))
 (define (step-push-control-frame! m stmt)

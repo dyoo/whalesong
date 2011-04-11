@@ -71,6 +71,9 @@
                                  
                                  PopEnvironment
                                  PushEnvironment
+                                 
+                                 PushImmediateOntoEnvironment
+                                 
                                  PushControlFrame
                                  PushControlFrame/Prompt
 
@@ -95,6 +98,12 @@
   #:transparent)
 (define-struct: PushEnvironment ([n : Natural]
                                  [unbox? : Boolean])
+  #:transparent)
+
+
+;; Evaluate the value, and then push it onto the top of the environment.
+(define-struct: PushImmediateOntoEnvironment ([value : OpArg]
+                                              [box? : Boolean])
   #:transparent)
 
 

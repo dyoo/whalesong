@@ -200,6 +200,8 @@ EOF
                              empty]
                             [(PopEnvironment? stmt)
                              empty]
+                            [(PushImmediateOntoEnvironment? stmt)
+                             (collect-input (PushImmediateOntoEnvironment-value stmt))]
                             [(PushControlFrame? stmt)
                              (list (PushControlFrame-label stmt))]
                             [(PushControlFrame/Prompt? stmt)
@@ -298,7 +300,13 @@ EOF
            (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"
                    (assemble-oparg (PopEnvironment-skip stmt))
                    (assemble-oparg (PopEnvironment-n stmt))
-                   (assemble-oparg (PopEnvironment-n stmt)))]))])))
+                   (assemble-oparg (PopEnvironment-n stmt)))]))]
+
+     [(PushImmediateOntoEnvironment? stmt)
+      (format "MACHINE.env.push(~a)"
+              (cond [(PushImmediateOntoEnvironment-box? stmt)
+                     (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))
+                     (assemble-oparg (PushImmediateOntoEnvironment-value stmt))]))])))
 
 
 (: ensure-natural (Any -> Natural))

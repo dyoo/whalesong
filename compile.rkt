@@ -712,7 +712,17 @@
                           (values (reverse constants) rands)))])))
 
 
+(define-predicate natural? Natural)
 
+(: arity-matches? (Arity Natural -> Boolean))
+(define (arity-matches? an-arity n)
+  (cond
+    [(natural? an-arity)
+     (= an-arity n)]
+    [(ArityAtLeast? an-arity)
+     (>= n (ArityAtLeast-value an-arity))]
+    [else
+     (error 'fixme)]))
 
 
 (: compile-statically-known-lam-application 
@@ -721,8 +731,8 @@
 (define (compile-statically-known-lam-application static-knowledge exp cenv target linkage)
   ;; FIXME: this needs to be turned into a runtime error, not a compile-time error, to preserve
   ;; Racket semantics.
-  (unless (= (length (App-operands exp)) 
-             (StaticallyKnownLam-arity static-knowledge))
+  (unless (arity-matches? (StaticallyKnownLam-arity static-knowledge)
+                          (length (App-operands exp)))
     (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
            (StaticallyKnownLam-name static-knowledge)
            (StaticallyKnownLam-arity static-knowledge)
@@ -1009,7 +1019,9 @@
     [(Lam? exp)
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
-                              (Lam-num-parameters exp))]
+                              (if (Lam-rest? exp)
+                                  (make-ArityAtLeast (Lam-num-parameters exp))
+                                  (Lam-num-parameters exp)))]
     [(and (LocalRef? exp) 
           (not (LocalRef-unbox? exp)))
      (let ([entry (list-ref cenv (LocalRef-depth exp))])

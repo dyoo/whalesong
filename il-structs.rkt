@@ -364,7 +364,7 @@
 ;; statically known things, to generate better code.
 (define-struct: StaticallyKnownLam ([name : (U Symbol False)]
                                     [entry-point : Symbol]
-                                    [arity : Natural]) #:transparent)
+                                    [arity : Arity]) #:transparent)
 
 (define-type CompileTimeEnvironmentEntry 
   (U '?          ;; no knowledge

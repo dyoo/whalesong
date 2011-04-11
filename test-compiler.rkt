@@ -1045,6 +1045,36 @@
       #:with-bootstrapping? #t)
 
 
+;; Some tests with vararity functions
+(test `(begin (define mylist (lambda args args))
+              (mylist 3 4 5))
+      (list 3 4 5))
+
+(test `(begin (define mylist (lambda args args))
+              (apply mylist 3 4 5 '(6 7)))
+      (list 3 4 5 6 7)
+      #:with-bootstrapping? #t)
+
+(test `(letrec ([f (lambda (x y . rest)
+                     (apply g rest))]
+                [g (lambda (x y z)
+                     (list z y x))])
+         (f 3 1 4 1 5))
+      (list 5 1 4)
+      #:with-bootstrapping? #t)
+
+(test '(letrec ([sum-iter (lambda (x acc)
+                               (if (apply = x 0 '())
+                                   acc
+                                   (let* ([y (apply sub1 x '())]
+                                          [z (apply + (list x acc))])
+                                     (apply sum-iter (list y z)))))])
+            (sum-iter 300 0))
+        45150
+        #:stack-limit 10
+        #:control-limit 3
+        #:with-bootstrapping? #t)
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

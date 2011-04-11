@@ -474,7 +474,11 @@
                                     'argcount
                                     (make-Const (length (App-operands exp))))))
      (compile-general-procedure-call cenv 
-                                     (make-Const (length extended-cenv))
+                                     (cond [(= (length extended-cenv)
+                                               (length (App-operands exp)))
+                                            (make-Reg 'argcount)]
+                                           [else 
+                                            (make-Const (length extended-cenv))])
                                      target
                                      linkage))))
 
@@ -713,6 +717,8 @@
    (StaticallyKnownLam App CompileTimeEnvironment Target Linkage 
                        -> InstructionSequence))
 (define (compile-statically-known-lam-application static-knowledge exp cenv target linkage)
+  ;; FIXME: this needs to be turned into a runtime error, not a compile-time error, to preserve
+  ;; Racket semantics.
   (unless (= (length (App-operands exp)) 
              (StaticallyKnownLam-arity static-knowledge))
     (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
@@ -813,7 +819,7 @@
                (make-instruction-sequence
                 `(,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))))
                (compile-compiled-procedure-application extended-cenv-length
-                                                       (make-Reg 'val)
+                                                       'val
                                                        target
                                                        compiled-linkage)
                
@@ -845,10 +851,15 @@
           (make-instruction-sequence `(,(make-AssignImmediateStatement 
                                          'argcount
                                          (make-Const n))))
-          (compile-compiled-procedure-application (make-Const (length extended-cenv))
-                             (make-Label (StaticallyKnownLam-entry-point static-knowledge))
-                             target
-                             compiled-linkage)
+          (compile-compiled-procedure-application (cond
+                                                    [(= (length extended-cenv)
+                                                        n)
+                                                     (make-Reg 'argcount)]
+                                                    [else 
+                                                     (make-Const (length extended-cenv))])
+                                                  (make-Label (StaticallyKnownLam-entry-point static-knowledge))
+                                                  target
+                                                  compiled-linkage)
           (end-with-linkage
            linkage
            cenv
@@ -856,106 +867,135 @@
 
 
 
-(: compile-compiled-procedure-application (OpArg (U Label Reg) Target Linkage -> InstructionSequence))
+(: compile-compiled-procedure-application (OpArg (U Label 'val) Target Linkage -> InstructionSequence))
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
 (define (compile-compiled-procedure-application cenv-length-with-args entry-point target linkage)
-  (cond [(ReturnLinkage? linkage)
+  (let ([maybe-install-jump-address
+         ;; Optimization: if the entry-point is supposed to be val, then it needs to hold
+         ;; the procedure entry here.  Otherwise, it doesn't.
+         (cond [(Label? entry-point)
+                empty-instruction-sequence]
+               [(eq? entry-point 'val)
+                (make-instruction-sequence
+                 `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))])]
+
+        [entry-point-target
          (cond
-           [(eq? target 'val)
-            ;; This case happens when we're in tail position.
-            ;; We clean up the stack right before the jump, and do not add
-            ;; to the control stack.
-            (append-instruction-sequences
-             (make-instruction-sequence
-              `(,(make-AssignPrimOpStatement 'val 
-                                             (make-GetCompiledProcedureEntry))))
-             (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg cenv-length-with-args
-                                                                                  (make-Reg 'argcount))
-                                                                (make-Reg 'argcount))))
-             (make-instruction-sequence
-              `(;; Assign the proc value of the existing call frame
-                ,(make-PerformStatement 
-                  (make-SetFrameCallee! (make-Reg 'proc)))
-                
-                ,(make-GotoStatement entry-point))))]
-           
-           [else
-            ;; This case should be impossible: return linkage should only
-            ;; occur when we're in tail position, and we should be in tail position
-            ;; only when the target is the val register.
-            (error 'compile "return linkage, target not val: ~s" target)])]
-        
-        
-         [(PromptLinkage? linkage)
-          (cond [(eq? target 'val)
-                 ;; This case happens for a function call that isn't in
-                 ;; tail position.
-                 (let ([proc-return (make-label 'procReturn)])
-                   (make-instruction-sequence 
-                    `(,(make-PushControlFrame proc-return)
-                      ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                      ,(make-GotoStatement entry-point)
-                      ,proc-return)))]
-                
-                [else
-                 ;; This case happens for evaluating arguments, since the
-                 ;; arguments are being installed into the scratch space.
-                 (let ([proc-return (make-label 'procReturn)])
-                   (make-instruction-sequence
-                    `(,(make-PushControlFrame proc-return)
-                      ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                      ,(make-GotoStatement entry-point)
-                      ,proc-return
-                      ,(make-AssignImmediateStatement target (make-Reg 'val)))))])]
-        
-        [(NextLinkage? linkage)
-         (cond [(eq? target 'val)
-                ;; This case happens for a function call that isn't in
-                ;; tail position.
-                (let ([proc-return (make-label 'procReturn)])
-                  (make-instruction-sequence 
-                   `(,(make-PushControlFrame proc-return)
-                     ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                     ,(make-GotoStatement entry-point)
-                     ,proc-return)))]
-               
-               [else
-                ;; This case happens for evaluating arguments, since the
-                ;; arguments are being installed into the scratch space.
-                (let ([proc-return (make-label 'procReturn)])
-                  (make-instruction-sequence
-                   `(,(make-PushControlFrame proc-return)
-                     ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                     ,(make-GotoStatement entry-point)
-                     ,proc-return
-                     ,(make-AssignImmediateStatement target (make-Reg 'val)))))])]
-        
-        [(LabelLinkage? linkage)
-         (cond [(eq? target 'val)
-                ;; This case happens for a function call that isn't in
-                ;; tail position.
-                (let ([proc-return (make-label 'procReturn)])
-                  (make-instruction-sequence 
-                   `(,(make-PushControlFrame proc-return)
-                     ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                     ,(make-GotoStatement entry-point)
-                     ,proc-return
-                     ,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))]
-               
-               [else
-                ;; This case happens for evaluating arguments, since the
-                ;; arguments are being installed into the scratch space.
-                (let ([proc-return (make-label 'procReturn)])
-                  (make-instruction-sequence
-                   `(,(make-PushControlFrame proc-return)
-                     ,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                     ,(make-GotoStatement entry-point)
-                     ,proc-return
-                     ,(make-AssignImmediateStatement target (make-Reg 'val))
-                     ,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))])]))
+           [(Label? entry-point)
+            entry-point]
+           [(eq? entry-point 'val)
+            (make-Reg 'val)])])
+    
+    (cond [(ReturnLinkage? linkage)
+           (cond
+             [(eq? target 'val)
+              ;; This case happens when we're in tail position.
+              ;; We clean up the stack right before the jump, and do not add
+              ;; to the control stack.
+              (append-instruction-sequences
+               maybe-install-jump-address
+               (cond [(equal? cenv-length-with-args (make-Reg 'argcount))
+                      empty-instruction-sequence]
+                     [else
+                      (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg cenv-length-with-args
+                                                                                           (make-Reg 'argcount))
+                                                                         (make-Reg 'argcount))))])
+               (make-instruction-sequence
+                `(;; Assign the proc value of the existing call frame
+                  ,(make-PerformStatement 
+                    (make-SetFrameCallee! (make-Reg 'proc)))
+                  
+                  ,(make-GotoStatement entry-point-target))))]
+             
+             [else
+              ;; This case should be impossible: return linkage should only
+              ;; occur when we're in tail position, and we should be in tail position
+              ;; only when the target is the val register.
+              (error 'compile "return linkage, target not val: ~s" target)])]
+          
+          
+          [(PromptLinkage? linkage)
+           (cond [(eq? target 'val)
+                  ;; This case happens for a function call that isn't in
+                  ;; tail position.
+                  (let ([proc-return (make-label 'procReturn)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence 
+                      `(,(make-PushControlFrame proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)
+                        ,proc-return))))]
+                 
+                 [else
+                  ;; This case happens for evaluating arguments, since the
+                  ;; arguments are being installed into the scratch space.
+                  (let ([proc-return (make-label 'procReturn)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence
+                      `(,(make-PushControlFrame proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)
+                        ,proc-return
+                        ,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+          
+          [(NextLinkage? linkage)
+           (cond [(eq? target 'val)
+                  ;; This case happens for a function call that isn't in
+                  ;; tail position.
+                  (let ([proc-return (make-label 'procReturn)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence 
+                      `(,(make-PushControlFrame proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)
+                        ,proc-return))))]
+                 
+                 [else
+                  ;; This case happens for evaluating arguments, since the
+                  ;; arguments are being installed into the scratch space.
+                  (let ([proc-return (make-label 'procReturn)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence
+                      `(,(make-PushControlFrame proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)
+                        ,proc-return
+                        ,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+          
+          [(LabelLinkage? linkage)
+           (cond [(eq? target 'val)
+                  ;; This case happens for a function call that isn't in
+                  ;; tail position.
+                  (let ([proc-return (make-label 'procReturn)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence 
+                      `(,(make-PushControlFrame proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)
+                        ,proc-return
+                        ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))]
+                 
+                 [else
+                  ;; This case happens for evaluating arguments, since the
+                  ;; arguments are being installed into the scratch space.
+                  (let ([proc-return (make-label 'procReturn)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence
+                      `(,(make-PushControlFrame proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)
+                        ,proc-return
+                        ,(make-AssignImmediateStatement target (make-Reg 'val))
+                        ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))])])))
 
 
 

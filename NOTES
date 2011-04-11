@@ -119,3 +119,67 @@ On a tail call,
     The existing call frame is reused.
         The frame's environment consumes those elements from MACHINE.env
         MACHINE.env = the new stack segment
+
+
+
+
+
+Optimizations with IL
+
+The sequence PushEnvironment ... AssignImmediateStatement (EnvLexicalAddress ...)
+where we're assigning directly to a spot we just allocated, can be reduced to
+a single instruction.
+
+We can do some constant folding in operands.  e.g.
+
+    MACHINE.env[MACHINE.env.length - 1 - 3] = MACHINE.env[MACHINE.env.length - 1 - 7];
+
+=>
+
+    MACHINE.env[MACHINE.env.length - 4] = MACHINE.env[MACHINE.env.length - 8];
+
+
+
+
+
+
+On tail calls, when we're reusing all of the arguments on the stack,
+there's no need to splice, since we won't be popping anything off:
+
+   MACHINE.env.splice(MACHINE.env.length - (MACHINE.argcount + ((10) - MACHINE.argcount)), ((10) - MACHINE.argcount));
+
+is a no-op.
+
+
+
+
+
+
+
+
+In the case where a closure has a prefix, but all the uses of the prefix are to open-coded primitives, then we don't need to close over it after all.  e.g.
+
+    (test '(begin (letrec ([f (lambda (x) (* x x))]
+                           [g (lambda (x) (* x x x))])
+                    (- (g (f (+ (g 3) (f 3)))) 1)))
+          2176782335
+          #:debug? #t)
+
+since (* -) are both open-coded, there's no need to capture the
+prefix, and we can reduce some allocation.
+
+
+
+
+I can eliminate an instruction in the pair:
+
+
+    #(struct:AssignPrimOpStatement val #(struct:GetCompiledProcedureEntry))
+    #(struct:GotoStatement #(struct:Label lamEntry259))
+
+
+since the val isn't even being used here...  This is the case when we
+statically know the lambda target.
+
+
+   - ok, done.

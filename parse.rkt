@@ -183,12 +183,20 @@
                                        (parse b body-cenv #f))
                                      (lambda-body exp)))
                            mutated-parameters)])
-      (make-Lam (current-defined-name)
-                (length (lambda-parameters exp))
-                #f
-                lam-body
-                (map env-reference-depth closure-references)
-                (fresh-lam-label)))))
+      (cond [(lambda-has-rest-parameter? exp)
+             (make-Lam (current-defined-name)
+                       (sub1 (length (lambda-parameters exp)))
+                       #t
+                       lam-body
+                       (map env-reference-depth closure-references)
+                       (fresh-lam-label))]
+            [else
+             (make-Lam (current-defined-name)
+                       (length (lambda-parameters exp))
+                       #f
+                       lam-body
+                       (map env-reference-depth closure-references)
+                       (fresh-lam-label))]))))
 
 
 (define lam-label-counter 0)
@@ -378,7 +386,31 @@
 
 (define (lambda? exp)
   (tagged-list? exp 'lambda))
-(define (lambda-parameters exp) (cadr exp))
+
+
+;; lambda-parameters: lambda-expression -> (listof identifier)
+(define (lambda-parameters exp) 
+  (let loop ([params (cadr exp)])
+    (cond
+      [(null? params)
+       empty]
+      [(pair? params)
+       (cons (car params)
+             (loop (cdr params)))]
+      [else
+       (list params)])))
+
+;; Produces true if the lambda's last parameter is a rest parameter.
+(define (lambda-has-rest-parameter? exp)
+  (let loop ([params (cadr exp)])
+    (cond
+      [(null? params)
+       #f]
+      [(pair? params)
+       (loop (cdr params))]
+      [else
+       #t])))
+
 (define (lambda-body exp) (cddr exp))
 
 (define (make-lambda parameters body)

@@ -116,9 +116,10 @@
   (append (map (lambda: ([d : Natural])
                         (list-ref cenv d))
                (Lam-closure-map lam))
-          (build-list (Lam-num-parameters lam) (lambda: ([i : Natural]) '?))))
-
-
+          (build-list (if (Lam-rest? lam)
+                          (add1 (Lam-num-parameters lam))
+                          (Lam-num-parameters lam))
+                      (lambda: ([i : Natural]) '?))))
 
 
 
@@ -338,7 +339,9 @@
     `(,(make-AssignPrimOpStatement 
         target
         (make-MakeCompiledProcedure (Lam-entry-label exp)
-                                    (Lam-num-parameters exp)
+                                    (if (Lam-rest? exp)
+                                        (make-ArityAtLeast (Lam-num-parameters exp))
+                                        (Lam-num-parameters exp))
                                     (Lam-closure-map exp)
                                     (Lam-name exp)))))))
 
@@ -354,7 +357,9 @@
     `(,(make-AssignPrimOpStatement 
         target
         (make-MakeCompiledProcedureShell (Lam-entry-label exp)
-                                         (Lam-num-parameters exp)
+                                         (if (Lam-rest? exp)
+                                             (make-ArityAtLeast (Lam-num-parameters exp))
+                                             (Lam-num-parameters exp))
                                          (Lam-name exp)))))))
 
 
@@ -362,22 +367,29 @@
 ;; Compiles the body of the lambda in the appropriate environment.
 ;; Closures will target their value to the 'val register, and use return linkage.
 (define (compile-lambda-body exp cenv)
-  (append-instruction-sequences
-   
-   (make-instruction-sequence 
-    `(,(Lam-entry-label exp)))
-   
-   (if (not (empty? (Lam-closure-map exp)))
-       (make-instruction-sequence `(,(make-PerformStatement (make-InstallClosureValues!))))
-       empty-instruction-sequence)
-   
-   (compile (Lam-body exp)
-            (append (map (lambda: ([d : Natural]) 
-                                  (list-ref cenv d))
-                         (Lam-closure-map exp))
-                    (build-list (Lam-num-parameters exp) (lambda: ([i : Natural]) '?)))
-            'val
-            return-linkage)))
+  (let: ([maybe-unsplice-rest-argument : InstructionSequence
+                                       (if (Lam-rest? exp)
+                                           ;; FIXME: we may need to unsplice the rest argument if this lambda is a rest
+                                           (error 'fixme)
+                                           empty-instruction-sequence)]
+         [maybe-install-closure-values : InstructionSequence
+                                       (if (not (empty? (Lam-closure-map exp)))
+                                           (make-instruction-sequence 
+                                            `(,(make-PerformStatement (make-InstallClosureValues!))))
+                                           empty-instruction-sequence)]
+         [lam-body-code : InstructionSequence
+                        (compile (Lam-body exp)
+                                 (extract-lambda-cenv exp cenv)
+                                 'val
+                                 return-linkage)])
+        
+        (append-instruction-sequences      
+         (make-instruction-sequence 
+          `(,(Lam-entry-label exp)))
+
+         maybe-unsplice-rest-argument
+         maybe-install-closure-values
+         lam-body-code)))
 
 
 

@@ -87,6 +87,36 @@
                              (make-ToplevelRef 0 1)
                              (make-Constant "ok"))))
 
+(test (parse '(lambda () x))
+      (make-Top (make-Prefix '(x))
+                (make-Lam #f 0 #f (make-ToplevelRef 0 0) 
+                          '(0) 'lamEntry1)))
+
+(test (parse '(lambda args args))
+      (make-Top (make-Prefix '())
+                (make-Lam #f 0 #t (make-LocalRef 0 #f) 
+                          '() 'lamEntry1)))
+
+(test (parse '(lambda (x y . z) x))
+      (make-Top (make-Prefix '())
+                (make-Lam #f 2 #t 
+                          (make-LocalRef 0 #f)
+                          '() 'lamEntry1)))
+
+(test (parse '(lambda (x y . z) y))
+      (make-Top (make-Prefix '())
+                (make-Lam #f 2 #t 
+                          (make-LocalRef 1 #f)
+                          '() 'lamEntry1)))
+
+
+(test (parse '(lambda (x y . z) z))
+      (make-Top (make-Prefix '())
+                (make-Lam #f 2 #t 
+                          (make-LocalRef 2 #f)
+                          '() 'lamEntry1)))
+
+
 (test (parse '(lambda (x y z) x))
       (make-Top (make-Prefix '())
                 (make-Lam #f 3 #f (make-LocalRef 0 #f) '() 'lamEntry1)))

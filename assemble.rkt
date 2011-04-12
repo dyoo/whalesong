@@ -29,6 +29,7 @@
                        (displayln (assemble-basic-block basic-block) op)
                        (newline op))
               basic-blocks)
+    (write-linked-label-attributes stmts op)
     (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
     (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
     (fprintf op #<<EOF
@@ -104,9 +105,49 @@ EOF
                         (GotoStatement? (car stmts)))]))]))))
 
 
+(: write-linked-label-attributes ((Listof Statement) Output-Port -> 'ok))
+(define (write-linked-label-attributes stmts op)
+  (cond
+    [(empty? stmts)
+     'ok]
+    [else
+     (let ([stmt (first stmts)])
 
+       (define (next) (write-linked-label-attributes (rest stmts) op))
 
-
+       (cond
+         [(symbol? stmt)
+          (next)]
+         [(LinkedLabel? stmt)
+          (fprintf op "~a.multipleValueReturn = ~a;\n" 
+                   (LinkedLabel-label stmt)
+                   (LinkedLabel-linked-to stmt))
+          'ok]
+         [(AssignImmediateStatement? stmt)
+          (next)]
+         [(AssignPrimOpStatement? stmt)
+          (next)]
+         [(PerformStatement? stmt)
+          (next)]
+         [(TestAndBranchStatement? stmt)
+          (next)]
+         [(GotoStatement? stmt)
+          (next)]
+         [(PushEnvironment? stmt)
+          (next)]
+         [(PopEnvironment? stmt)
+          (next)]
+         [(PushImmediateOntoEnvironment? stmt)
+          (next)]
+         [(PushControlFrame? stmt)
+          (next)]
+         [(PushControlFrame/Prompt? stmt)
+          (next)]
+         [(PopControlFrame? stmt)
+          (next)]
+         [(PopControlFrame/Prompt? stmt)
+          (next)]))]))
+       
 
 ;; collect-general-jump-targets: (listof stmt) -> (listof label)
 ;; collects all the labels that are potential targets for GOTOs or branches.

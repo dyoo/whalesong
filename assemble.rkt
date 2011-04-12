@@ -329,21 +329,33 @@ EOF
       (assemble-jump (GotoStatement-target stmt))]
 
      [(PushControlFrame? stmt)
-      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" (PushControlFrame-label stmt))]
+      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
+              (let ([label (PushControlFrame-label stmt)])
+                (cond
+                  [(symbol? label) label]
+                  [(LinkedLabel? label) (LinkedLabel-label label)])))]
+
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
       (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a, ~a));" 
-              (PushControlFrame/Prompt-label stmt)
+              (let ([label (PushControlFrame/Prompt-label stmt)])
+                (cond
+                  [(symbol? label) label]
+                  [(LinkedLabel? label) (LinkedLabel-label label)]))
+
               (let ([tag (PushControlFrame/Prompt-tag stmt)])
                 (cond
                   [(DefaultContinuationPromptTag? tag)
                    (assemble-default-continuation-prompt-tag)]
                   [(OpArg? tag)
                    (assemble-oparg tag)])))]
+     
      [(PopControlFrame? stmt)
       "MACHINE.control.pop();"]
+     
      [(PopControlFrame/Prompt? stmt)
       "MACHINE.control.pop();"]
+
      [(PushEnvironment? stmt)
       (if (= (PushEnvironment-n stmt) 0)
           ""

@@ -329,7 +329,7 @@
 
 
 
-(define-type InstructionSequence (U Symbol instruction-sequence))
+(define-type InstructionSequence (U Symbol LinkedLabel instruction-sequence))
 (define-struct: instruction-sequence ([statements : (Listof Statement)])
   #:transparent)
 (define empty-instruction-sequence (make-instruction-sequence '()))
@@ -344,7 +344,12 @@
 
 (: statements (InstructionSequence -> (Listof Statement)))
 (define (statements s)
-  (if (symbol? s) (list s) (instruction-sequence-statements s)))
+  (cond [(symbol? s) 
+         (list s)]
+        [(LinkedLabel? s)
+         (list s)]
+        [else
+         (instruction-sequence-statements s)]))
 
 
 

@@ -122,7 +122,7 @@ EOF
           (fprintf op "~a.multipleValueReturn = ~a;\n" 
                    (LinkedLabel-label stmt)
                    (LinkedLabel-linked-to stmt))
-          'ok]
+          (next)]
          [(AssignImmediateStatement? stmt)
           (next)]
          [(AssignPrimOpStatement? stmt)

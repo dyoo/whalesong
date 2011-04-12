@@ -305,7 +305,9 @@
 ;; to delimit any continuation captures.
 (define (compile-splice seq cenv target linkage) 
   (cond [(last-exp? seq)
-         (let ([before-pop-prompt (make-label 'beforePromptPop)])
+         (let* ([before-pop-prompt-multiple (make-label 'beforePromptPopMultiple)]
+                [before-pop-prompt (make-LinkedLabel (make-label 'beforePromptPop)
+                                                     before-pop-prompt-multiple)])
            (end-with-linkage 
             linkage
             cenv
@@ -314,14 +316,20 @@
                                             default-continuation-prompt-tag
                                             before-pop-prompt)))
              (compile (first-exp seq) cenv target prompt-linkage)
+             before-pop-prompt-multiple
+             (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
              before-pop-prompt)))]
         [else
-         (let ([before-pop-prompt (make-label 'beforePromptPop)])
+         (let* ([before-pop-prompt-multiple (make-label 'beforePromptPopMultiple)]
+                [before-pop-prompt (make-LinkedLabel (make-label 'beforePromptPop)
+                                                     before-pop-prompt-multiple)])
            (append-instruction-sequences 
             (make-instruction-sequence `(,(make-PushControlFrame/Prompt
                                            (make-DefaultContinuationPromptTag)
                                            before-pop-prompt)))
             (compile (first-exp seq) cenv target prompt-linkage)
+            before-pop-prompt-multiple
+            (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
             before-pop-prompt
             (compile-splice (rest-exps seq) cenv target linkage)))]))
 
@@ -949,80 +957,117 @@
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let ([proc-return (make-label 'procReturn)])
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
-                      `(,(make-GotoStatement entry-point-target)
-                        ,proc-return))))]
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return))]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the
                   ;; arguments are being installed into the scratch space.
-                  (let ([proc-return (make-label 'procReturn)])
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
-                      `(,(make-GotoStatement entry-point-target)
-                        ,proc-return
-                        ,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     ;; FIXME: this needs to error out instead!
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return
+                     (make-instruction-sequence
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
           
           [(NextLinkage? linkage)
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let ([proc-return (make-label 'procReturn)])
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
-                      `(,(make-GotoStatement entry-point-target)
-                        ,proc-return))))]
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return))]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the
                   ;; arguments are being installed into the scratch space.
-                  (let ([proc-return (make-label 'procReturn)])
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
-                      `(,(make-GotoStatement entry-point-target)
-                        ,proc-return
-                        ,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     ;; FIMXE: this needs to raise a runtime error!
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return
+                     (make-instruction-sequence
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
           
           [(LabelLinkage? linkage)
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let ([proc-return (make-label 'procReturn)])
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
-                      `(,(make-GotoStatement entry-point-target)
-                        ,proc-return
-                        ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))]
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the
                   ;; arguments are being installed into the scratch space.
-                  (let ([proc-return (make-label 'procReturn)])
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
-                      `(,(make-GotoStatement entry-point-target)
-                        ,proc-return
-                        ,(make-AssignImmediateStatement target (make-Reg 'val))
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     ;; FIXME: this needs to raise a runtime error here!
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))                     
+                     proc-return
+                     (make-instruction-sequence
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val))
                         ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))])])))
 
 

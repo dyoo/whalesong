@@ -58,7 +58,7 @@
 
 (define-type frame (U CallFrame PromptFrame))
 
-(define-struct: CallFrame ([return : Symbol]
+(define-struct: CallFrame ([return : (U Symbol LinkedLabel)]
                            ;; The procedure being called.  Used to optimize self-application
                            [proc : (U closure #f)]
                            ;; TODO: add continuation marks
@@ -67,7 +67,7 @@
   #:mutable)
 
 (define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
-                             [return : Symbol]
+                             [return : (U Symbol LinkedLabel)]
                              [env-depth : Natural])
   #:transparent)
 

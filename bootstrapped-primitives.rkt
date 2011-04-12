@@ -143,6 +143,9 @@
 	      
 
    
+   
+   
+   
    ;; The call/cc code is special:
    (let ([after-call/cc-code (make-label 'afterCallCCImplementation)])
      (append 
@@ -156,6 +159,26 @@
       `(,after-call/cc-code)))
    
   
+   
+   ;; values
+   (let ([after-values (make-label 'afterValues)]
+         [values-entry (make-label 'valuesEntry)])
+     `(,(make-GotoStatement (make-Label after-values))
+       ,values-entry
+       ;; values simply keeps the values on the stack, preserves the argcount, and does a return
+       ;; to the multiple-value-return address.
+       ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel/MultipleValueReturn))
+       ,(make-PopControlFrame)
+       ,(make-GotoStatement (make-Reg 'proc))
+       ,after-values
+       ,(make-AssignPrimOpStatement (make-PrimitivesReference 'values)
+                                    (make-MakeCompiledProcedure values-entry
+                                                                (make-ArityAtLeast 0) 
+                                                                '() 
+                                                                'values))))  
+   
+   
+   
    
    ;; As is apply:
    (let ([after-apply-code (make-label 'afterApplyCode)]

@@ -89,6 +89,8 @@
                   (cond
                     [(symbol? i)
                      'ok]
+                    [(LinkedLabel? i)
+                     'ok]
                     [(AssignImmediateStatement? i)
                      (step-assign-immediate! m i)]
                     [(AssignPrimOpStatement? i)
@@ -473,6 +475,13 @@
                     (error 'apply-primitive-procedure)]))]
           
           [(GetControlStackLabel? op)
+           (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
+                                (cond
+                                  [(PromptFrame? frame)
+                                   (PromptFrame-return frame)]
+                                  [(CallFrame? frame)
+                                   (CallFrame-return frame)])))]
+          [(GetControlStackLabel/MultipleValueReturn? op)
            (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
                                 (cond
                                   [(PromptFrame? frame)

@@ -81,8 +81,15 @@
                                  PopControlFrame/Prompt))
 
 (define-type Statement (U UnlabeledStatement
-                          Symbol  ;; label
+                          Symbol      ;; label
+                          LinkedLabel ;; Label with a reference to a multiple-return-value label
                           ))
+
+
+(define-struct: LinkedLabel ([label : Symbol]
+                             [linked-to : Symbol])
+  #:transparent)
+
 
 (define-struct: AssignImmediateStatement ([target : Target]
                                           [value : OpArg])
@@ -115,11 +122,11 @@
 ;; Adding a frame for getting back after procedure application.
 ;; The 'proc register must hold either #f or a closure at the time of
 ;; this call, as the control frame will hold onto the called procedure record.
-(define-struct: PushControlFrame ([label : Symbol]) 
+(define-struct: PushControlFrame ([label : (U Symbol LinkedLabel)]) 
   #:transparent)
 
 (define-struct: PushControlFrame/Prompt ([tag : (U OpArg DefaultContinuationPromptTag)]
-                                         [label : Symbol]
+                                         [label : (U Symbol LinkedLabel)]
                                          ;; TODO: add handler and arguments
                                          )
   #:transparent)
@@ -155,7 +162,11 @@
                                   MakeCompiledProcedureShell
                                   ApplyPrimitiveProcedure
 
+                                  ;; Gets at the single-value-return address.
                                   GetControlStackLabel
+                                  ;; Gets at the multiple-value-return address.
+                                  GetControlStackLabel/MultipleValueReturn
+                                  
                                   MakeBoxedEnvironmentValue
 
                                   CaptureEnvironment
@@ -209,6 +220,9 @@
 ;; Gets the return address embedded at the top of the control stack.
 (define-struct: GetControlStackLabel ()
   #:transparent)
+(define-struct: GetControlStackLabel/MultipleValueReturn ()
+  #:transparent)
+
 
 (define-struct: MakeBoxedEnvironmentValue ([depth : Natural])
   #:transparent)

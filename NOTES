@@ -17,6 +17,9 @@ Some possible optimizations with application:
 
 
 
+----------------------------------------------------------------------
+
+
 Multiple values
 
 There's interplay between compile-proc-appl and the linkage compiling
@@ -27,6 +30,36 @@ Dybvig called "An Efficient Implementation of Multiple Return Values
 in Scheme" that I'll need to read.
 http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.39.1668&rep=rep1&type=pdf
 
+
+Basic idea: each return address is actually a pair, where the
+secondary address lies at a fixed offset of the first and handles
+multiple value return.  Multiple values are returned back by keeping
+them on the stack, and assigning argcount to the number of the
+returned values.
+
+
+In the context of my compiler: the compiler implicitly defines a
+singleton, statement context by using next-linkage.  But some uses of
+next-linkage ignore the number of values that come back, and others
+should raise an error.  Here are the contexts that care:
+
+    app
+    let1
+    install-value
+    toplevel-set (define-values, assign)
+
+
+For the contexts that don't care, we need to set up a return address
+that just pops those values off.
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------
 
 
 

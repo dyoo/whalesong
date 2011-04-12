@@ -143,6 +143,8 @@ EOF
        empty]
       [(GetControlStackLabel? op)
        empty]
+      [(GetControlStackLabel/MultipleValueReturn? op)
+       empty]
       [(CaptureEnvironment? op)
        empty]
       [(CaptureControl? op)
@@ -377,7 +379,10 @@ EOF
     
     [(GetControlStackLabel? op)
      (format "MACHINE.control[MACHINE.control.length-1].label")]
-    
+
+    [(GetControlStackLabel/MultipleValueReturn? op)
+     (format "MACHINE.control[MACHINE.control.length-1].label.multipleValueReturn")]
+  
     [(CaptureEnvironment? op)
      (format "MACHINE.env.slice(0, MACHINE.env.length - ~a)"
              (CaptureEnvironment-skip op))]

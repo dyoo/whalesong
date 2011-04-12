@@ -62,6 +62,8 @@
                           (let: ([stmt : Statement (vector-ref (machine-text m) i)])
                                 (when (symbol? stmt)
                                   (hash-set! (machine-jump-table m) stmt i))
+                                (when (LinkedLabel? stmt)
+                                  (hash-set! (machine-jump-table m) (LinkedLabel-label stmt) i))
                                 (loop (add1 i)))))
                   m))]))
 

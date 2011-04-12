@@ -161,16 +161,26 @@
   
    
    ;; values
-   (let ([after-values (make-label 'afterValues)]
-         [values-entry (make-label 'valuesEntry)])
-     `(,(make-GotoStatement (make-Label after-values))
+   (let ([after-values-body-defn (make-label 'afterValues)]
+         [values-entry (make-label 'valuesEntry)]
+         [on-single-value (make-label 'onSingleValue)])
+     `(,(make-GotoStatement (make-Label after-values-body-defn))
        ,values-entry
+       ,(make-TestAndBranchStatement 'one? 'argcount on-single-value)
        ;; values simply keeps the values on the stack, preserves the argcount, and does a return
        ;; to the multiple-value-return address.
        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel/MultipleValueReturn))
        ,(make-PopControlFrame)
        ,(make-GotoStatement (make-Reg 'proc))
-       ,after-values
+       ,on-single-value
+       ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+       ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
+       ,(make-PopEnvironment (make-Const 1) (make-Const 0))
+       ,(make-PopControlFrame)
+       ,(make-GotoStatement (make-Reg 'proc))
+       
+       
+       ,after-values-body-defn
        ,(make-AssignPrimOpStatement (make-PrimitivesReference 'values)
                                     (make-MakeCompiledProcedure values-entry
                                                                 (make-ArityAtLeast 0) 

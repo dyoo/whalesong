@@ -245,6 +245,8 @@
                             ;; register -> boolean
                             ;; Meant to branch when the register value is false.
                             'false?
+
+                            'one?
                             
                             ;; register -> boolean
                             ;; Meant to branch when the register value is a primitive

@@ -1076,6 +1076,9 @@
         #:with-bootstrapping? #t)
 
 
+(test '(values 3)
+      3
+      #:with-bootstrapping? #t)
 
 
 

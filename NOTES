@@ -57,6 +57,85 @@ that just pops those values off.
 
 
 
+Before introducing the multiple-value jumps
+(172b1d9e5de823b53a6705fc87babfdd61152924), test-conform-browser
+reports the following times:
+
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5248 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5478 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5501 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5853 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5532 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5498 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5351 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5464 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5545 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5405 milliseconds)
+
+
+After introducing the mutiple value jumps targets
+(cc1c156df79bab09ca37164e75ae0afe0ac1b0d0), test-conform-browser is
+reporting the following times:
+
+
+running test... ok (5281 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5554 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5588 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5509 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5428 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5387 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5539 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5355 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5551 milliseconds)
+fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+running test... ok (5331 milliseconds)
+
+
+
+At a rough glance, I see no appreciable extra cost for this program,
+since it doesn't use multiple-value-return.  Thankfully, it looks like
+the JIT in JavaScript isn't significantly hurt when we set the
+attribute to the procedure.
+
+
+
+
+What's left to do:
+
+    forms for using the values coming from multiple value returns
+    (with-values, define-values, let-values)
+
+    runtime error traps for contexts that must not receive multiple values.
+
+    fixing apply definition so it doesn't return multiple values when
+    given a single argument.
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+
+
+
+
 
 
 ----------------------------------------------------------------------

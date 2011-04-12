@@ -2,7 +2,7 @@
 (require "expression-structs.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
-         "compile.rkt"
+         "compiler.rkt"
          "typed-parse.rkt"
          "parameters.rkt")
 

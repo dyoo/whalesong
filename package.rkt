@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "compile.rkt"
+(require "compiler.rkt"
          "assemble.rkt"
          "typed-parse.rkt"
          "il-structs.rkt"

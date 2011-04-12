@@ -478,17 +478,38 @@
            (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
                                 (cond
                                   [(PromptFrame? frame)
-                                   (PromptFrame-return frame)]
+                                   (let ([label (PromptFrame-return frame)])
+                                     (cond
+                                       [(symbol? label)
+                                        label]
+                                       [(LinkedLabel? label)
+                                        (LinkedLabel-label label)]))]
                                   [(CallFrame? frame)
-                                   (CallFrame-return frame)])))]
+                                   (let ([label (CallFrame-return frame)])
+                                     (cond
+                                       [(symbol? label)
+                                        label]
+                                       [(LinkedLabel? label)
+                                        (LinkedLabel-label label)]))])))]
+          
           [(GetControlStackLabel/MultipleValueReturn? op)
            (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
                                 (cond
                                   [(PromptFrame? frame)
-                                   (PromptFrame-return frame)]
+                                   (let ([label (PromptFrame-return frame)])
+                                     (cond
+                                       [(symbol? label) 
+                                        (error 'GetControlStackLabel/MultipleValueReturn)]
+                                       [(LinkedLabel? label)
+                                        (LinkedLabel-linked-to label)]))]
                                   [(CallFrame? frame)
-                                   (CallFrame-return frame)])))]
-
+                                   (let ([label (CallFrame-return frame)])
+                                     (cond
+                                       [(symbol? label) 
+                                        (error 'GetControlStackLabel/MultipleValueReturn)]
+                                       [(LinkedLabel? label)
+                                        (LinkedLabel-linked-to label)]))])))]
+          
           [(CaptureEnvironment? op)
            (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
                                                               (CaptureEnvironment-skip op))))]

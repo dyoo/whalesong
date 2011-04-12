@@ -68,31 +68,40 @@ EOF
             [(null? stmts)
              (reverse (cons (make-BasicBlock name (reverse acc))
                             basic-blocks))]
-            [(symbol? (car stmts))
-             (cond
-               [(member (car stmts) jump-targets)
-                (loop (car stmts)
-                      '()
-                      (cons (make-BasicBlock name  
-                                             (if last-stmt-goto? 
-                                                 (reverse acc)
-                                                 (reverse (append `(,(make-GotoStatement (make-Label (car stmts))))
-                                                                  acc))))
-                            basic-blocks)
-                      (cdr stmts)
-                      last-stmt-goto?)]
-               [else
-                (loop name
-                      acc
-                      basic-blocks
-                      (cdr stmts)
-                      last-stmt-goto?)])]
             [else
-             (loop name
-                   (cons (car stmts) acc)
-                   basic-blocks
-                   (cdr stmts)
-                   (GotoStatement? (car stmts)))]))))
+             (let ([first-stmt (car stmts)])
+               (: do-on-label (Symbol -> (Listof BasicBlock)))
+               (define (do-on-label label-name)
+                 (cond
+                    [(member label-name jump-targets)
+                     (loop label-name
+                           '()
+                           (cons (make-BasicBlock 
+                                  name  
+                                  (if last-stmt-goto? 
+                                      (reverse acc)
+                                      (reverse (append `(,(make-GotoStatement (make-Label label-name)))
+                                                       acc))))
+                                 basic-blocks)
+                           (cdr stmts)
+                           last-stmt-goto?)]
+                    [else
+                     (loop name
+                           acc
+                           basic-blocks
+                           (cdr stmts)
+                           last-stmt-goto?)]))
+               (cond
+                 [(symbol? first-stmt)
+                  (do-on-label first-stmt)]
+                 [(LinkedLabel? first-stmt)
+                  (do-on-label (LinkedLabel-label first-stmt))]
+                 [else
+                  (loop name
+                        (cons first-stmt acc)
+                        basic-blocks
+                        (cdr stmts)
+                        (GotoStatement? (car stmts)))]))]))))
 
 
 
@@ -189,6 +198,9 @@ EOF
                   (append (cond
                             [(symbol? stmt)
                              empty]
+                            [(LinkedLabel? stmt)
+                             (list (LinkedLabel-label stmt)
+                                   (LinkedLabel-linked-to stmt))]
                             [(AssignImmediateStatement? stmt)
                              (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
                                    (collect-input v))]
@@ -207,16 +219,23 @@ EOF
                             [(PushImmediateOntoEnvironment? stmt)
                              (collect-input (PushImmediateOntoEnvironment-value stmt))]
                             [(PushControlFrame? stmt)
-                             (list (PushControlFrame-label stmt))]
+                             (label->labels (PushControlFrame-label stmt))]
                             [(PushControlFrame/Prompt? stmt)
-                             (list (PushControlFrame/Prompt-label stmt))]
+                             (label->labels (PushControlFrame/Prompt-label stmt))]
                             [(PopControlFrame? stmt)
                              empty]
                             [(PopControlFrame/Prompt? stmt)
                              empty])
                           (loop (rest stmts))))]))))
 
-
+(: label->labels ((U Symbol LinkedLabel) -> (Listof Symbol)))
+(define (label->labels label)
+  (cond
+    [(symbol? label)
+     (list label)]
+    [(LinkedLabel? label)
+     (list (LinkedLabel-label label)
+           (LinkedLabel-linked-to label))]))
 
 
 ;; assemble-basic-block: basic-block -> string

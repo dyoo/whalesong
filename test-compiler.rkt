@@ -1083,8 +1083,8 @@
 
 
 (test '(with-continuation-mark 'name "danny" 
-         (continuation-mark-set->list (current-continuation-marks)))
-      '("danny"))
+         (current-continuation-marks))
+      (make-ContinuationMarkSet (list (cons 'name "danny"))))
 
 
 #;(test (read (open-input-file "tests/conform/program0.sch"))

@@ -15,7 +15,8 @@
                                                    
                                                    (Vectorof PrimitiveValue)
                                                    MutablePair
-                                                   
+
+                                                   ContinuationMarkSet
                                                    )))
 (define-type SlotValue (U PrimitiveValue 
                           (Boxof PrimitiveValue)

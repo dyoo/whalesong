@@ -143,14 +143,14 @@
                                (cond
                                  [(empty? frames)
                                   empty]
-                                 [(eq? tag (frame-tag (first frames)))
-                                  empty]
                                  [else
                                   (append (hash-map (frame-marks (first frames))
                                                     cons)
-                                          (loop (rest frames)))])))])])
-    (make-primitive-proc (lambda args (apply f args))
-                         '(1 2)
+                                          (if (eq? tag (frame-tag (first frames)))
+                                              empty
+                                              (loop (rest frames))))])))])])
+    (make-primitive-proc (lambda (machine . args) (apply f machine args))
+                         '(0 1)
                          'current-continuation-marks)))
                         
 

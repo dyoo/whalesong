@@ -40,6 +40,8 @@
        v]
       [(vector? v)
        v]
+      [(ContinuationMarkSet? v)
+       v]
       [else
        (error 'ensure-primitive-value "~s" v)])))
 
@@ -80,7 +82,9 @@
      (apply vector (map PrimitiveValue->racket (vector->list v)))]
     [(MutablePair? v)
      (cons (PrimitiveValue->racket (MutablePair-h v))
-           (PrimitiveValue->racket (MutablePair-t v)))]))
+           (PrimitiveValue->racket (MutablePair-t v)))]
+   [(ContinuationMarkSet? v)
+    v]))
 
 
 (define (racket->PrimitiveValue v)

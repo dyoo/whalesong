@@ -2,6 +2,7 @@
 (require "simulator-structs.rkt"
          "il-structs.rkt"
          racket/math
+         racket/list
          (for-syntax racket/base))
 
 (provide lookup-primitive set-primitive!)
@@ -133,6 +134,28 @@
                          the-void-value))
 
 
+(define current-continuation-marks   
+  (letrec ([f (case-lambda [(a-machine)
+                            (f a-machine default-continuation-prompt-tag-value)]
+                           [(a-machine tag)
+                            (make-ContinuationMarkSet
+                             (let loop ([frames (machine-control a-machine)])
+                               (cond
+                                 [(empty? frames)
+                                  empty]
+                                 [(eq? tag (frame-tag (first frames)))
+                                  empty]
+                                 [else
+                                  (append (hash-map (frame-marks (first frames))
+                                                    cons)
+                                          (loop (rest frames)))])))])])
+    (make-primitive-proc (lambda args (apply f args))
+                         '(1 2)
+                         'current-continuation-marks)))
+                        
+
+
+
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= 
                                                      sub1
                                                      not
@@ -182,6 +205,7 @@
                                                     
                                                      
                                                      symbol?)
-                                      #:constants (null pi e)))
+                                      #:constants (null pi e
+                                                        current-continuation-marks)))
 
 

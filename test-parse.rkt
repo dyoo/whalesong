@@ -479,3 +479,11 @@
            'lamEntry1))
          (make-App (make-ToplevelRef 0 3) '())
          (make-App (make-ToplevelRef 2 2) (list (make-ToplevelRef 2 0) (make-ToplevelRef 2 1)))))))
+
+
+
+(test (parse '(with-continuation-mark x y z))
+      (make-Top (make-Prefix '(x y z))
+                (make-WithContMark (make-ToplevelRef 0 0)
+                                   (make-ToplevelRef 0 1)
+                                   (make-ToplevelRef 0 2))))

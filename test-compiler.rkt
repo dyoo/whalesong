@@ -1082,6 +1082,11 @@
 
 
 
+(test '(with-continuation-mark 'name "danny" 
+         (continuation-mark-set->list (current-continuation-marks)))
+      '("danny"))
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

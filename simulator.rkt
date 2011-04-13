@@ -457,22 +457,6 @@
                            (ensure-primitive-value v))
                 'ok))]))
 
-(: frame-temps (frame -> (HashTable Symbol PrimitiveValue)))
-(define (frame-temps a-frame)
-  (cond
-    [(CallFrame? a-frame)
-     (CallFrame-temps a-frame)]
-    [(PromptFrame? a-frame)
-     (PromptFrame-temps a-frame)]))
-
-
-(: frame-marks (frame -> (HashTable PrimitiveValue PrimitiveValue)))
-(define (frame-marks a-frame)
-  (cond
-    [(CallFrame? a-frame)
-     (CallFrame-marks a-frame)]
-    [(PromptFrame? a-frame)
-     (PromptFrame-marks a-frame)]))
 
 
 (: step-assign-primitive-operation! (machine AssignPrimOpStatement -> 'ok))

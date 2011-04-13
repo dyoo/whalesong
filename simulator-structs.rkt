@@ -74,11 +74,48 @@
                              [marks : (HashTable PrimitiveValue PrimitiveValue)])
   #:transparent)
 
+
+(: frame-temps (frame -> (HashTable Symbol PrimitiveValue)))
+(define (frame-temps a-frame)
+  (cond
+    [(CallFrame? a-frame)
+     (CallFrame-temps a-frame)]
+    [(PromptFrame? a-frame)
+     (PromptFrame-temps a-frame)]))
+
+
+(: frame-marks (frame -> (HashTable PrimitiveValue PrimitiveValue)))
+(define (frame-marks a-frame)
+  (cond
+    [(CallFrame? a-frame)
+     (CallFrame-marks a-frame)]
+    [(PromptFrame? a-frame)
+     (PromptFrame-marks a-frame)]))
+
+(: frame-tag (frame -> (U ContinuationPromptTagValue #f)))
+(define (frame-tag a-frame)
+  (cond
+    [(CallFrame? a-frame)
+     #f]
+    [(PromptFrame? a-frame)
+     (PromptFrame-tag a-frame)]))
+
+
+
 (define-struct: ContinuationPromptTagValue ([name : Symbol])
   #:transparent)
 
 (define default-continuation-prompt-tag-value 
   (make-ContinuationPromptTagValue 'default-continuation-prompt))
+
+
+
+(define-struct: ContinuationMarkSet ([marks : (Listof (Pairof PrimitiveValue PrimitiveValue))])
+  #:transparent)
+
+
+
+
 
 
 

@@ -146,6 +146,12 @@
                                             (definition-variable exp)
                                             (parse (set!-value exp) cenv #f))])
                        (make-Constant (void)))))]
+    
+    [(with-continuation-mark? exp)
+     (make-WithContMark (parse (with-continuation-mark-key exp) cenv #f)
+                        (parse (with-continuation-mark-value exp) cenv #f)
+                        (parse (with-continuation-mark-body exp) cenv #f))]
+                        
 
     ;; Remember, this needs to be the last case.
     [(application? exp)
@@ -271,6 +277,11 @@
        [(set!? exp)
         (cons (set!-name exp)
               (loop (set!-value exp)))]
+       
+       [(with-continuation-mark? exp)
+        (append (loop (with-continuation-mark-key exp))
+                (loop (with-continuation-mark-value exp))
+                (loop (with-continuation-mark-body exp)))]
 
        ;; Remember: this needs to be the last case.
        [(application? exp)
@@ -334,6 +345,11 @@
        [(set!? exp)
         (cons (set!-name exp)
               (loop (set!-value exp)))]
+
+       [(with-continuation-mark? exp)
+        (append (loop (with-continuation-mark-key exp))
+                (loop (with-continuation-mark-value exp))
+                (loop (with-continuation-mark-body exp)))]
        
        ;; Remember, this needs to be the last case.
        [(application? exp)
@@ -463,6 +479,19 @@
          `(if ,question 
               ,answer
               ,(loop (cdr clauses))))])))
+
+
+(define (with-continuation-mark? exp)
+  (tagged-list? exp 'with-continuation-mark))
+
+(define (with-continuation-mark-key exp)
+  (cadr exp))
+(define (with-continuation-mark-value exp)
+  (caddr exp))
+(define (with-continuation-mark-body exp)
+  (cadddr exp))
+
+
 
 
 ;;

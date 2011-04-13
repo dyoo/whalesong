@@ -788,6 +788,14 @@
     Primitives['equal?'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	return isEqual(firstArg, secondArg);
+    };
+    Primitives['equal?'].arity = 2;
+    Primitives['equal?'].displayName = 'equal?';
+
+
+
+    var isEqual = function(firstArg, secondArg) {
 	var lset = [firstArg], rset = [secondArg];
 	while (lset.length !== 0 && rset.length !== 0) {
 	    var lhs = lset.pop();
@@ -807,10 +815,29 @@
 	}
 	return true;
     };
-    Primitives['equal?'].arity = 2;
-    Primitives['equal?'].displayName = 'equal?';
 
 
+    Primitives['member'] = function(MACHINE, arity) {
+	var x = MACHINE.env[MACHINE.env.length-1];
+	var lst = MACHINE.env[MACHINE.env.length-2];
+	var originalLst = lst;
+	while (true) {
+	    if (! isList(lst)) {
+		raise(new Error("member: expected list" 
+				+ " as argument #2"
+				+ " but received " + originalLst + " instead"));
+	    };
+	    if (lst === NULL) {
+		return false;
+	    }
+	    if (isEqual(x, (lst[0]))) {
+		return lst;
+	    }
+	    lst = lst[1];
+	}	
+    };
+    Primitives['member'].arity = 2;
+    Primitives['member'].displayName = 'member';
 
 
     // recomputeGas: state number -> number
@@ -899,6 +926,7 @@
     exports['isVector'] = isVector;
     exports['isOutputPort'] = isOutputPort;
     exports['isOutputStringPort'] = isOutputStringPort;
+    exports['isEqual'] = isEqual;
 
     exports['ArityAtLeast'] = ArityAtLeast;
     exports['isArityMatching'] = isArityMatching;

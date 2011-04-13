@@ -325,5 +325,14 @@ EOF
           "Error: Expected number as argument 1 but received foo")
 
 
+
+(test '(for-each displayln (member 5 '(1 2 5 4 3)))
+      "5\n4\n3\n")
+
+(test '(displayln (member 6 '(1 2 5 4 3)))
+      "false\n")
+
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))

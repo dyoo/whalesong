@@ -16,7 +16,11 @@
   (let*: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
           [operands : (Listof String) (map assemble-oparg (CallKernelPrimitiveProcedure-operands op))]
           [checked-operands : (Listof String)
-                            (map maybe-typecheck-operand
+                            (map (lambda: ([dom : OperandDomain]
+					   [pos : Natural]
+					   [rand : String]
+					   [typecheck? : Boolean])
+				   (maybe-typecheck-operand operator dom pos rand typecheck?))
                                  (CallKernelPrimitiveProcedure-expected-operand-types op)
                                  (build-list (length operands) (lambda: ([i : Natural]) i))
                                  operands
@@ -110,8 +114,8 @@
 
 
 
-(: assemble-domain-check (OperandDomain String Natural -> String))
-(define (assemble-domain-check domain operand-string pos)
+(: assemble-domain-check (Symbol OperandDomain String Natural -> String))
+(define (assemble-domain-check caller domain operand-string pos)
   (cond
     [(eq? domain 'any)
      operand-string]
@@ -133,19 +137,20 @@
                            [(box)
                             (format "(typeof(~a) === 'object' && (~a).length === 1)"
                                     operand-string operand-string)])])
-           (format "((~a) ? (~a) : RUNTIME.raise(new Error('Expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
+           (format "((~a) ? (~a) : RUNTIME.raise(new Error('~a: expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
                    test-string
                    operand-string
+		   caller
                    (symbol->string domain)
                    (add1 pos)
                    operand-string))]))
 
 
-(: maybe-typecheck-operand (OperandDomain Natural String Boolean -> String))
+(: maybe-typecheck-operand (Symbol OperandDomain Natural String Boolean -> String))
 ;; Adds typechecks if we can't prove that the operand is of the required type.
-(define (maybe-typecheck-operand domain-type position operand-string typecheck?)
+(define (maybe-typecheck-operand caller domain-type position operand-string typecheck?)
   (cond
     [typecheck?
-     (assemble-domain-check domain-type operand-string position)]
+     (assemble-domain-check caller domain-type operand-string position)]
     [else
      operand-string]))

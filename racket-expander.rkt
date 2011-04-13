@@ -1,5 +1,16 @@
 #lang racket
 
+
+(define (read-code ip)
+  (parameterize ([current-namespace (make-base-namespace)])
+    (expand `(begin ,@(let loop ()
+                        (let ([next (read ip)])
+                          (cond
+                            [(eof-object? next)
+                             empty]
+                            [else
+                             (cons next (loop))])))))))
+
 (define code
 (parameterize ([current-namespace (make-base-namespace)])
   (expand '(begin

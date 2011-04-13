@@ -28,6 +28,11 @@
 
     var isNumber = function(x) { return typeof(x) === 'number'; };
 
+    var isNatural = function(x) { return typeof(x) === 'number' &&
+				  x >= 0 &&
+				  Math.floor(x) === x; };
+
+
     var isPair = function(x) { return (typeof(x) == 'object' && 
 				       x.length === 2) };
     var isList = function(x) {
@@ -715,6 +720,44 @@
     Primitives['vector-set!'].arity = 3;
     Primitives['vector-set!'].displayName = 'vector-set!';
 
+
+    Primitives['vector-length'] = function(MACHINE, arity) {
+	testArgument('vector',
+		     isVector,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'vector-length');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return firstArg.length;
+    };
+    Primitives['vector-length'].arity = 1;
+    Primitives['vector-length'].displayName = 'vector-length';
+
+
+    Primitives['make-vector'] = function(MACHINE, arity) {
+	var value = 0;
+	testArgument('natural',
+		     isNatural,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'make-vector');
+	if (MACHINE.argcount == 2) {
+	    value = MACHINE.env[MACHINE.env.length - 2];
+	}
+	var length = MACHINE.env[MACHINE.env.length-1];
+	var arr = [];
+	for(var i = 0; i < length; i++) {
+	    arr[i] = value;
+	}
+	return arr;
+    };
+    Primitives['make-vector'].arity = [1, [2, NULL]];
+    Primitives['make-vector'].displayName = 'make-vector';
+
+
+    
+
+
     Primitives['symbol?'] = function(MACHINE, arity) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	return typeof(firstArg) === 'string';
@@ -856,6 +899,19 @@
                      1);
     };
 
+    Primitives['reverse'] = function(MACHINE, arity) {
+	var rev = NULL;
+	var lst = MACHINE.env[MACHINE.env.length-1];
+	while(lst !== NULL) {
+	    testArgument('pair', isPair, lst, 0, 'reverse');
+	    rev = [lst[0], rev];
+	    lst = lst[1];
+	}
+	return rev;
+    };
+    Primitives['reverse'].arity = 1;
+
+
 
     var trampoline = function(MACHINE, initialJump) {
 	var thunk = initialJump;
@@ -921,6 +977,7 @@
 
 
     exports['isNumber'] = isNumber;
+    exports['isNatural'] = isNatural;
     exports['isPair'] = isPair;
     exports['isList'] = isList;
     exports['isVector'] = isVector;

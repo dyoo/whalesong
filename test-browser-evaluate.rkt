@@ -79,20 +79,20 @@ EOF
       "7")
 
 (test/exn (evaluate '(+ "hello" 3))
-          "Error: Expected number as argument 1 but received hello")
+          "Error: +: expected number as argument 1 but received hello")
 
 
 (test '(display (/ 100 4))
       "25")
 (test/exn (evaluate '(/ 3 'four))
-          "Error: Expected number as argument 2 but received four")
+          "Error: /: expected number as argument 2 but received four")
 
 
 (test '(display (- 1))
       "-1")
 
 (test/exn '(- 'one)
-          "Error: Expected number as argument 1 but received one")
+          "Error: -: expected number as argument 1 but received one")
 
 (test '(display (- 5 4))
       "1")
@@ -101,7 +101,7 @@ EOF
       "51")
 
 (test/exn '(* "three" 17)
-          "Error: Expected number as argument 1 but received three")
+          "Error: *: expected number as argument 1 but received three")
 
 (test '(display '#t)
       "true")
@@ -125,13 +125,13 @@ EOF
       "2\n")
 
 (test/exn '(displayln (add1 "0"))
-          "Error: Expected number as argument 1 but received 0")
+          "Error: add1: expected number as argument 1 but received 0")
 
 (test '(displayln (sub1 1))
       "0\n")
 
 (test/exn '(displayln (sub1 "0"))
-          "Error: Expected number as argument 1 but received 0")
+          "Error: sub1: expected number as argument 1 but received 0")
 
 (test '(displayln (< 1 2))
       "true\n")
@@ -322,7 +322,7 @@ EOF
 (test/exn '(let ([x 0])
              (set! x "foo")
              (add1 x))
-          "Error: Expected number as argument 1 but received foo")
+          "Error: add1: expected number as argument 1 but received foo")
 
 
 

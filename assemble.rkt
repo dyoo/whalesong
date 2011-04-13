@@ -451,7 +451,7 @@ EOF
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     
     [(ApplyPrimitiveProcedure? op)
-     (format "MACHINE.proc(MACHINE, MACHINE.argcount)")]
+     (format "MACHINE.proc(MACHINE)")]
     
     [(GetControlStackLabel? op)
      (format "MACHINE.control[MACHINE.control.length-1].label")]

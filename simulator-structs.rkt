@@ -62,13 +62,16 @@
                            ;; The procedure being called.  Used to optimize self-application
                            [proc : (U closure #f)]
                            ;; TODO: add continuation marks
-                           )
+                           [temps : (HashTable Symbol PrimitiveValue)]
+                           [marks : (HashTable PrimitiveValue PrimitiveValue)])
   #:transparent
   #:mutable)
 
 (define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
                              [return : (U Symbol LinkedLabel)]
-                             [env-depth : Natural])
+                             [env-depth : Natural]
+                             [temps : (HashTable Symbol PrimitiveValue)]
+                             [marks : (HashTable PrimitiveValue PrimitiveValue)])
   #:transparent)
 
 (define-struct: ContinuationPromptTagValue ([name : Symbol])

@@ -173,8 +173,8 @@
                         baz
                         ))])
   (test (machine-control (run! m))
-        (list (make-CallFrame 'bar #f)
-              (make-CallFrame 'foo #f))))
+        (list (make-CallFrame 'bar #f (make-hasheq) (make-hasheq))
+              (make-CallFrame 'foo #f (make-hasheq) (make-hasheq)))))
 
 
 
@@ -188,7 +188,7 @@
                         ,(make-PopControlFrame)
                         ))])
   (test (machine-control (run! m))
-        (list (make-CallFrame 'foo #f))))
+        (list (make-CallFrame 'foo #f (make-hasheq) (make-hasheq)))))
 
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo 

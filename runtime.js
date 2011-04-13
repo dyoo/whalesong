@@ -92,6 +92,13 @@
     var CallFrame = function(label, proc) {
 	this.label = label;
 	this.proc = proc;
+
+	// When we're in the middle of computing with-cont-mark, we
+	// stash the key in here temporarily.
+	this.pendingContinuationMarkKey = undefined;
+
+	// The set of continuation marks.
+	this.marks = [];
     };
     CallFrame.prototype = heir(Frame.prototype);
 
@@ -99,6 +106,15 @@
     var PromptFrame = function(label, tag) {
 	this.label = label;
 	this.tag = tag; // ContinuationPromptTag
+
+	// The set of continuation marks.
+	this.marks = [];
+
+
+	// When we're in the middle of computing with-cont-mark, we
+	// stash the key in here temporarily.
+	this.pendingContinuationMarkKey = undefined;
+	
     };
     PromptFrame.prototype = heir(Frame.prototype);
 

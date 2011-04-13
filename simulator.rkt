@@ -172,7 +172,9 @@
 (: step-push-control-frame! (machine PushControlFrame -> 'ok))
 (define (step-push-control-frame! m stmt)
   (control-push! m (make-CallFrame (PushControlFrame-label stmt)
-                                   (ensure-closure-or-false (machine-proc m)))))
+                                   (ensure-closure-or-false (machine-proc m))
+                                   (make-hasheq)
+                                   (make-hasheq))))
 
 (: step-push-control-frame/prompt! (machine PushControlFrame/Prompt -> 'ok))
 (define (step-push-control-frame/prompt! m stmt)
@@ -184,9 +186,11 @@
                         [(OpArg? tag)
                          (ensure-continuation-prompt-tag-value (evaluate-oparg m tag))]))
                     (PushControlFrame/Prompt-label stmt)
-                    (length (machine-env m)))))
-                        
-  
+                    (length (machine-env m))
+                    (make-hasheq)
+                    (make-hasheq))))
+
+
 
 (: step-pop-control-frame! (machine (U PopControlFrame PopControlFrame/Prompt) -> 'ok))
 (define (step-pop-control-frame! m stmt)
@@ -359,7 +363,18 @@
           [(RestoreEnvironment!? op)
            (set-machine-env! m (CapturedEnvironment-vals (ensure-CapturedEnvironment (env-ref m 1))))
            (set-machine-stack-size! m (length (machine-env m)))
-           'ok])))
+           'ok]
+          
+          [(InstallContinuationMarkEntry!? op)
+           (let* ([a-frame (control-top m)]
+                  [key (hash-ref (frame-temps a-frame) 'pendingContinuationMarkKey)]
+                  [val (machine-val m)]
+                  [marks (frame-marks a-frame)])
+             (hash-set! marks 
+                        (ensure-primitive-value key)
+                        (ensure-primitive-value val))
+             'ok)]
+          )))
 
 
 
@@ -433,7 +448,31 @@
      (lambda: ([m : machine] [v : SlotValue])
               (set-primitive! (PrimitivesReference-name t)
                               (ensure-primitive-value v))
-              'ok)]))
+              'ok)]
+    [(ControlFrameTemporary? t)
+     (lambda: ([m : machine] [v : SlotValue])
+              (let ([ht (frame-temps (control-top m))])
+                (hash-set! ht
+                           (ControlFrameTemporary-name t)
+                           (ensure-primitive-value v))
+                'ok))]))
+
+(: frame-temps (frame -> (HashTable Symbol PrimitiveValue)))
+(define (frame-temps a-frame)
+  (cond
+    [(CallFrame? a-frame)
+     (CallFrame-temps a-frame)]
+    [(PromptFrame? a-frame)
+     (PromptFrame-temps a-frame)]))
+
+
+(: frame-marks (frame -> (HashTable PrimitiveValue PrimitiveValue)))
+(define (frame-marks a-frame)
+  (cond
+    [(CallFrame? a-frame)
+     (CallFrame-marks a-frame)]
+    [(PromptFrame? a-frame)
+     (PromptFrame-marks a-frame)]))
 
 
 (: step-assign-primitive-operation! (machine AssignPrimOpStatement -> 'ok))

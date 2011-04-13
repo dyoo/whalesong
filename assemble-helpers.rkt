@@ -50,7 +50,10 @@
     [(EnvPrefixReference? target)
      (assemble-prefix-reference target)]
     [(PrimitivesReference? target)
-     (format "MACHINE.primitives[~s]" (symbol->string (PrimitivesReference-name target)))]))
+     (format "MACHINE.primitives[~s]" (symbol->string (PrimitivesReference-name target)))]
+    [(ControlFrameTemporary? target)
+     (format "MACHINE.control[MACHINE.control.length-1].~a"
+             (ControlFrameTemporary-name target))]))
 
 
 

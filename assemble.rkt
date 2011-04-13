@@ -228,6 +228,8 @@ EOF
       [(UnspliceRestFromStack!? op)
        empty]
       [(FixClosureShellMap!? op)
+       empty]
+      [(InstallContinuationMarkEntry!? op)
        empty]))
   
   (unique/eq?
@@ -588,7 +590,11 @@ EOF
     [(UnspliceRestFromStack!? op)
      (format "RUNTIME.unspliceRestFromStack(MACHINE, ~a, ~a);"
              (assemble-oparg (UnspliceRestFromStack!-depth op))
-             (assemble-oparg (UnspliceRestFromStack!-length op)))]))
+             (assemble-oparg (UnspliceRestFromStack!-length op)))]
+    [(InstallContinuationMarkEntry!? op)
+     (string-append "RUNTIME.installContinuationMarkEntry(MACHINE,"
+                    "MACHINE.control[MACHINE.control.length-1].pendingContinuationMarkKey,"
+                    "MACHINE.val);")]))
 
 
 

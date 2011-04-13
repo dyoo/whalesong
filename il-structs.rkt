@@ -34,7 +34,13 @@
 (define-type Target (U AtomicRegisterSymbol 
                        EnvLexicalReference
                        EnvPrefixReference
-                       PrimitivesReference))
+                       PrimitivesReference                   
+                       ControlFrameTemporary))
+
+
+;; When we need to store a value temporarily in the top control frame, we can use this as a target.
+(define-struct: ControlFrameTemporary ([name : (U 'pendingContinuationMarkKey)])
+  #:transparent)
 
 
 
@@ -305,12 +311,14 @@
   #:transparent)
 
 ;; Changes over the control located at the given argument from the structure in env[1]
-(define-struct: RestoreControl! ([tag : (U DefaultContinuationPromptTag OpArg)]))
+(define-struct: RestoreControl! ([tag : (U DefaultContinuationPromptTag OpArg)]) #:transparent)
 
 ;; Changes over the environment located at the given argument from the structure in env[0]
-(define-struct: RestoreEnvironment! ())
+(define-struct: RestoreEnvironment! () #:transparent)
 
 
+;; Adds a continuation mark into the current top control frame.
+(define-struct: InstallContinuationMarkEntry! () #:transparent)
 
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
@@ -320,6 +328,8 @@
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!
                                FixClosureShellMap!
+           
+                               InstallContinuationMarkEntry!
                                
                                SetFrameCallee!
                                SpliceListIntoStack!

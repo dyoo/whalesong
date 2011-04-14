@@ -1123,7 +1123,7 @@
 
 
 ;; Hmm... something is failing here.
-#;(test '(begin (define (extract-current-continuation-marks key)
+(test '(begin (define (extract-current-continuation-marks key)
                   (continuation-mark-set->list
                    (current-continuation-marks)
                    key))

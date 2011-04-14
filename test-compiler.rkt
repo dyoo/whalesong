@@ -1087,6 +1087,54 @@
       (make-ContinuationMarkSet (list (cons 'name "danny"))))
 
 
+(test '(begin (define (extract-current-continuation-marks key)
+                (continuation-mark-set->list
+                 (current-continuation-marks)
+                 key))
+              (with-continuation-mark 'key 'mark
+                (extract-current-continuation-marks 'key)))
+      '(mark))
+
+
+
+(test '(begin (define (extract-current-continuation-marks key)
+                (continuation-mark-set->list
+                 (current-continuation-marks)
+                 key))
+              
+              
+              (with-continuation-mark 'key1 'mark1
+                (with-continuation-mark 'key2 'mark2
+                  (list
+                   (extract-current-continuation-marks 'key1)
+                   (extract-current-continuation-marks 'key2)))))
+              
+      '((mark1) (mark2)))
+
+
+(test '(begin (define (extract-current-continuation-marks key)
+                (continuation-mark-set->list
+                 (current-continuation-marks)
+                 key))
+              (with-continuation-mark 'key 'mark1
+                (with-continuation-mark 'key 'mark2 ; replaces previous mark
+                  (extract-current-continuation-marks 'key))))
+      '(mark2))
+
+
+;; Hmm... something is failing here.
+#;(test '(begin (define (extract-current-continuation-marks key)
+                  (continuation-mark-set->list
+                   (current-continuation-marks)
+                   key))
+                
+                (with-continuation-mark 'key 'mark1
+                  (list ; continuation extended to evaluate the argument
+                   (with-continuation-mark 'key 'mark2
+                     (extract-current-continuation-marks 'key)))))
+        '((mark2 mark1)))
+
+              
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

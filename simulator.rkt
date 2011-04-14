@@ -740,7 +740,7 @@
 (define (ensure-closure-or-false v)
   (if (or (closure? v) (eq? v #f))
       v
-      (error 'ensure-closure)))
+      (error 'ensure-closure-or-false)))
 
 (: ensure-closure (SlotValue -> closure))
 (define (ensure-closure v)

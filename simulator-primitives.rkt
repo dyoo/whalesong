@@ -154,6 +154,22 @@
                          'current-continuation-marks)))
                         
 
+(define continuation-mark-set->list
+  ;; not quite correct: ContinuationMarkSets need to preserve frame structure a bit more. 
+  ;; At the very least, we need to keep track of prompt tags somewhere.
+  (let ([f (lambda (a-machine mark-set key)
+             (let ([marks (ContinuationMarkSet-marks mark-set)])
+               (foldr make-MutablePair
+                      null
+                      (map cdr (filter (lambda (k+v)
+                                         (eq? (car k+v) key))
+                                       marks)))))])
+    (make-primitive-proc (lambda (machine . args) (apply f machine args))
+                         '2 ;; fixme: should deal with prompt tags too
+                         'current-continuation-marks)))
+
+
+
 
 
 (define lookup-primitive (make-lookup #:functions (+ - * / = < <= > >= 
@@ -206,6 +222,7 @@
                                                      
                                                      symbol?)
                                       #:constants (null pi e
-                                                        current-continuation-marks)))
+                                                        current-continuation-marks
+                                                        continuation-mark-set->list)))
 
 

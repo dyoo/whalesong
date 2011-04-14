@@ -1267,21 +1267,65 @@
 
 
 
+
 (: compile-with-cont-mark (WithContMark CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-with-cont-mark exp cenv target linkage)
-  (append-instruction-sequences
-   (compile (WithContMark-key exp) cenv 'val next-linkage)
-   (make-instruction-sequence `(,(make-AssignImmediateStatement
-                                  (make-ControlFrameTemporary 'pendingContinuationMarkKey)
-                                  (make-Reg 'val))))
-   (compile (WithContMark-value exp) cenv 'val next-linkage)
-   (make-instruction-sequence `(,(make-PerformStatement
-                                    (make-InstallContinuationMarkEntry!))))
-   (compile (WithContMark-body exp) cenv target linkage)))
-
-
-
-
+  (cond
+    [(ReturnLinkage? linkage)
+     (append-instruction-sequences
+      (compile (WithContMark-key exp) cenv 'val next-linkage)
+      (make-instruction-sequence `(,(make-AssignImmediateStatement
+                                     (make-ControlFrameTemporary 'pendingContinuationMarkKey)
+                                     (make-Reg 'val))))
+      (compile (WithContMark-value exp) cenv 'val next-linkage)
+      (make-instruction-sequence `(,(make-PerformStatement
+                                     (make-InstallContinuationMarkEntry!))))
+      (compile (WithContMark-body exp) cenv target linkage))]
+    
+    [(or (NextLinkage? linkage)
+         (PromptLinkage? linkage)
+         (LabelLinkage? linkage))
+     (let* ([after-key-multiple (make-label 'afterKeyMultiple)]
+            [after-key (make-LinkedLabel (make-label 'afterKey) after-key-multiple)]
+            [after-value-multiple (make-label 'afterValueMultiple)]
+            [after-value (make-LinkedLabel (make-label 'afterValue) after-value-multiple)]
+            [after-body-multiple (make-label 'afterBody)]
+            [after-body (make-LinkedLabel (make-label 'afterBody) after-body-multiple)])
+       (end-with-linkage 
+        linkage cenv
+        (append-instruction-sequences
+         (make-instruction-sequence 
+          `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+            ,(make-PushControlFrame after-key)))
+         (compile (WithContMark-key exp) cenv 'val prompt-linkage)
+         after-key-multiple
+         ;; Fixme: we should error out here instead
+         (make-instruction-sequence 
+          `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+         after-key
+         (make-instruction-sequence `(,(make-AssignImmediateStatement
+                                        (make-ControlFrameTemporary 'pendingContinuationMarkKey)
+                                        (make-Reg 'val))))
+         (make-instruction-sequence 
+          `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+            ,(make-PushControlFrame after-value)))
+         (compile (WithContMark-value exp) cenv 'val prompt-linkage)
+         after-value-multiple
+         ;; Fixme: we should error out here instead
+         (make-instruction-sequence 
+          `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+         after-value
+         (make-instruction-sequence `(,(make-PerformStatement
+                                        (make-InstallContinuationMarkEntry!))))
+         (make-instruction-sequence 
+          `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+            ,(make-PushControlFrame after-body)))
+         (compile (WithContMark-body exp) cenv target prompt-linkage)
+         after-body-multiple
+         ;; Fixme: we should error out here instead
+         (make-instruction-sequence 
+          `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+         after-body)))]))
 
 
 

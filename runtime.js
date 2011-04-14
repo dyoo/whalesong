@@ -215,33 +215,40 @@
     var NULL = [];
 
 
-    var raise = function(e) { throw e; }
-
+    var raise = function(MACHINE, e) { 
+	if (typeof(window.console) !== 'undefined' &&
+	    typeof(console.log) === 'function') {
+	    console.log(MACHINE);
+	    console.log(e);
+	} 
+	throw e; 
+    };
 
 
 
     // testArgument: (X -> boolean) X number string string -> boolean
     // Produces true if val is true, and otherwise raises an error.
-    var testArgument = function(expectedTypeName,
+    var testArgument = function(MACHINE,
+				expectedTypeName,
 				predicate, 			    
 				val, 
-				position, 
+				index, 
 				callerName) {
 	if (predicate(val)) {
 	    return true;
 	}
 	else {
-	    raise(new Error(callerName + ": expected " + expectedTypeName
-			    + " as argument #" + position 
-			    + " but received " + val + " instead"));
+	    raise(MACHINE, new Error(callerName + ": expected " + expectedTypeName
+				     + " as argument " + (index + 1)
+				     + " but received " + val));
 	}
     };
 
     var testArity = function(callerName, observed, minimum, maximum) {
 	if (observed < minimum || observed > maximum) {
-	    raise(new Error(callerName + ": expected at least " + minimum
-			    + " arguments "
-			    + " but received " + observer));
+	    raise(MACHINE, new Error(callerName + ": expected at least " + minimum
+				     + " arguments "
+				     + " but received " + observer));
 
 	}
     };
@@ -259,7 +266,7 @@
 					     MACHINE.control.length - skip);
 	    }
 	} 
-	raise(new Error("captureControl: unable to find tag " + tag));
+	raise(MACHINE, new Error("captureControl: unable to find tag " + tag));
     };
 
 
@@ -278,7 +285,7 @@
 		return;
 	    }
 	}
-	raise(new Error("restoreControl: unable to find tag " + tag));     
+	raise(MACHINE, new Error("restoreControl: unable to find tag " + tag));     
 
     };
 
@@ -390,9 +397,10 @@
 
     Primitives['='] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	testArgument('number', isNumber, firstArg, 0, '=');
-	for (var i = 1; i < MACHINE.argcount; i++) {
-	    testArgument('number',
+	testArgument(MACHINE, 'number', isNumber, firstArg, 0, '=');
+	for (var i = 0; i < MACHINE.argcount - 1; i++) {
+	    testArgument(MACHINE, 
+			 'number',
 			 isNumber, 
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
@@ -410,9 +418,11 @@
 
     Primitives['<'] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	testArgument('number', isNumber, firstArg, 0, '<');
-	for (var i = 1; i < MACHINE.argcount; i++) {
-	    testArgument('number',
+	testArgument(MACHINE,
+		     'number', isNumber, firstArg, 0, '<');
+	for (var i = 0; i < MACHINE.argcount - 1; i++) {
+	    testArgument(MACHINE, 
+			 'number',
 			 isNumber, 
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
@@ -429,9 +439,11 @@
 
     Primitives['>'] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	testArgument('number', isNumber, firstArg, 0, '>');
-	for (var i = 1; i < MACHINE.argcount; i++) {
-	    testArgument('number',
+	testArgument(MACHINE,
+		     'number', isNumber, firstArg, 0, '>');
+	for (var i = 0; i < MACHINE.argcount - 1; i++) {
+	    testArgument(MACHINE,
+			 'number',
 			 isNumber, 
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
@@ -448,9 +460,11 @@
 
     Primitives['<='] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	testArgument('number', isNumber, firstArg, 0, '<=');
-	for (var i = 1; i < MACHINE.argcount; i++) {
-	    testArgument('number',
+	testArgument(MACHINE,
+		     'number', isNumber, firstArg, 0, '<=');
+	for (var i = 0; i < MACHINE.argcount - 1; i++) {
+	    testArgument(MACHINE,
+			 'number',
 			 isNumber, 
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
@@ -468,9 +482,11 @@
 
     Primitives['>='] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	testArgument('number', isNumber, firstArg, 0, '>=');
-	for (var i = 1; i < MACHINE.argcount; i++) {
-	    testArgument('number',
+	testArgument(MACHINE,
+		     'number', isNumber, firstArg, 0, '>=');
+	for (var i = 0; i < MACHINE.argcount - 1; i++) {
+	    testArgument(MACHINE, 
+			 'number',
 			 isNumber, 
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
@@ -490,12 +506,12 @@
 	var result = 0;
 	var i = 0;
 	for (i=0; i < MACHINE.argcount; i++) {
-	    testArgument(
-		'number',
-		isNumber, 
-		MACHINE.env[MACHINE.env.length - 1 - i],
-		i,
-		'+');
+	    testArgument(MACHINE,
+			 'number',
+			 isNumber, 
+			 MACHINE.env[MACHINE.env.length - 1 - i],
+			 i,
+			 '+');
 	    result += MACHINE.env[MACHINE.env.length - 1 - i];
 	};
 	return result;
@@ -508,12 +524,12 @@
 	var result = 1;
 	var i = 0;
 	for (i=0; i < MACHINE.argcount; i++) {
-	    testArgument(
-		'number',
-		isNumber, 
-		MACHINE.env[MACHINE.env.length - 1 - i],
-		i,
-		'*');
+	    testArgument(MACHINE,
+			 'number',
+			 isNumber, 
+			 MACHINE.env[MACHINE.env.length - 1 - i],
+			 i,
+			 '*');
 	    result *= MACHINE.env[MACHINE.env.length - 1 - i];
 	}
 	return result;
@@ -523,7 +539,8 @@
     
     Primitives['-'] = function(MACHINE) {
 	if (MACHINE.argcount === 1) { 
-	    testArgument('number',
+	    testArgument(MACHINE,
+			 'number',
 			 isNumber,
 			 MACHINE.env[MACHINE.env.length-1],
 			 0,
@@ -532,7 +549,8 @@
 	}
 	var result = MACHINE.env[MACHINE.env.length - 1];
 	for (var i = 1; i < MACHINE.argcount; i++) {
-	    testArgument('number',
+	    testArgument(MACHINE,
+			 'number',
 			 isNumber,
 			 MACHINE.env[MACHINE.env.length-1-i],
 			 i,
@@ -545,13 +563,20 @@
     Primitives['-'].displayName = '-';
     
     Primitives['/'] = function(MACHINE) {
-	testArgument('number',
+	testArgument(MACHINE,
+		     'number',
 		     isNumber,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
 		     '/');
 	var result = MACHINE.env[MACHINE.env.length - 1];
 	for (var i = 1; i < MACHINE.argcount; i++) {
+	    testArgument(MACHINE,
+			 'number',
+			 isNumber,
+			 MACHINE.env[MACHINE.env.length-1-i],
+			 i,
+			 '/');
 	    result /= MACHINE.env[MACHINE.env.length - 1 - i];
 	}
 	return result;
@@ -581,7 +606,8 @@
     Primitives['list'].displayName = 'list';
 
     Primitives['car'] = function(MACHINE) {
-	testArgument('pair',
+	testArgument(MACHINE, 
+		     'pair',
 		     isPair,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -593,7 +619,8 @@
     Primitives['car'].displayName = 'car';
 
     Primitives['cdr'] = function(MACHINE) {
-	testArgument('pair',
+	testArgument(MACHINE,
+		     'pair',
 		     isPair,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -612,7 +639,8 @@
     Primitives['pair?'].displayName = 'pair?';
 
     Primitives['set-car!'] = function(MACHINE) {
-	testArgument('pair',
+	testArgument(MACHINE,
+		     'pair',
 		     isPair,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -625,7 +653,8 @@
     Primitives['set-car!'].displayName = 'set-car!';
 
     Primitives['set-cdr!'] = function(MACHINE) {
-	testArgument('pair',
+	testArgument(MACHINE,
+		     'pair',
 		     isPair,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -654,7 +683,8 @@
     Primitives['null?'].displayName = 'null?';
 
     Primitives['add1'] = function(MACHINE) {
-	testArgument('number',
+	testArgument(MACHINE,
+		     'number',
 		     isNumber,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -666,7 +696,8 @@
     Primitives['add1'].displayName = 'add1';
 
     Primitives['sub1'] = function(MACHINE) {
-	testArgument('number',
+	testArgument(MACHINE,
+		     'number',
 		     isNumber,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -696,7 +727,8 @@
     Primitives['vector'].displayName = 'vector';
 
     Primitives['vector->list'] = function(MACHINE) {
-	testArgument('vector',
+	testArgument(MACHINE,
+		     'vector',
 		     isVector,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -725,7 +757,8 @@
     Primitives['list->vector'].displayName = 'list->vector';
 
     Primitives['vector-ref'] = function(MACHINE) {
-	testArgument('vector',
+	testArgument(MACHINE,
+		     'vector',
 		     isVector,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -738,7 +771,8 @@
     Primitives['vector-ref'].displayName = 'vector-ref';
 
     Primitives['vector-set!'] = function(MACHINE) {
-	testArgument('vector',
+	testArgument(MACHINE,
+		     'vector',
 		     isVector,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -754,7 +788,8 @@
 
 
     Primitives['vector-length'] = function(MACHINE) {
-	testArgument('vector',
+	testArgument(MACHINE,
+		     'vector',
 		     isVector,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -768,7 +803,8 @@
 
     Primitives['make-vector'] = function(MACHINE) {
 	var value = 0;
-	testArgument('natural',
+	testArgument(MACHINE,
+		     'natural',
 		     isNatural,
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
@@ -898,10 +934,10 @@
 	var originalLst = lst;
 	while (true) {
 	    if (! isList(lst)) {
-		raise(new Error("member: expected list" 
-				+ " as argument #2"
-				+ " but received " + originalLst + " instead"));
-	    };
+		raise(MACHINE, new Error("member: expected list" 
+					 + " as argument #2"
+					 + " but received " + originalLst + " instead"));
+	    }
 	    if (lst === NULL) {
 		return false;
 	    }
@@ -931,17 +967,22 @@
                      1);
     };
 
+
+
     Primitives['reverse'] = function(MACHINE) {
 	var rev = NULL;
 	var lst = MACHINE.env[MACHINE.env.length-1];
 	while(lst !== NULL) {
-	    testArgument('pair', isPair, lst, 0, 'reverse');
+	    testArgument(MACHINE,
+			 'pair', isPair, lst, 0, 'reverse');
 	    rev = [lst[0], rev];
 	    lst = lst[1];
 	}
 	return rev;
     };
     Primitives['reverse'].arity = 1;
+    Primitives['reverse'].displayName = 'reverse';
+
 
 
 
@@ -988,6 +1029,7 @@
 
     // Exports
     exports['Machine'] = Machine;
+    exports['Frame'] = Frame;
     exports['CallFrame'] = CallFrame;
     exports['PromptFrame'] = PromptFrame;
     exports['Closure'] = Closure;

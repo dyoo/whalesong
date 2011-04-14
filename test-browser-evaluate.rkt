@@ -333,6 +333,27 @@ EOF
       "false\n")
 
 
+(test '(displayln (length (reverse '())))
+      "0\n")
+
+(test '(displayln (car (reverse '("x"))))
+      "x\n")
+
+(test '(displayln (car (reverse '("x" "y"))))
+      "y\n")
+
+(test '(displayln (car (cdr (reverse '("x" "y")))))
+      "x\n")
+
+(test '(displayln (car (reverse '("x" "y" "z"))))
+      "z\n")
+(test '(displayln (car (cdr (reverse '("x" "y" "z")))))
+      "y\n")
+(test '(displayln (car (cdr (cdr (reverse '("x" "y" "z"))))))
+      "x\n")
+
+
+
 
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))

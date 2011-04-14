@@ -12,7 +12,7 @@
 
 
 ;; The following are primitives that the compiler knows about:
-(define-type KernelPrimitiveName (U '+
+(define-type KernelPrimitiveName (U) #;(U '+
                                     '-
                                     '*
                                     '/

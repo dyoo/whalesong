@@ -208,7 +208,7 @@
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(PromptLinkage? linkage)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
-                                  ,(make-PopControlFrame/Prompt)
+                                  ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(NextLinkage? linkage)
      empty-instruction-sequence]

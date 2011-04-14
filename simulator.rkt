@@ -115,8 +115,7 @@
                      (step-push-control-frame/prompt! m i)]
                     [(PopControlFrame? i)
                      (step-pop-control-frame! m i)]
-                    [(PopControlFrame/Prompt? i)
-                     (step-pop-control-frame! m i)])])
+                    )])
          (increment-pc! m)))
 
 
@@ -192,7 +191,7 @@
 
 
 
-(: step-pop-control-frame! (machine (U PopControlFrame PopControlFrame/Prompt) -> 'ok))
+(: step-pop-control-frame! (machine (U PopControlFrame) -> 'ok))
 (define (step-pop-control-frame! m stmt)
   (let: ([l : Symbol (control-pop! m)])
         'ok))

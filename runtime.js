@@ -55,7 +55,7 @@
 	this.proc = undefined;
 	this.argcount = undefined;
 	this.env = [];
-	this.control = [];     // Arrayof (U CallFrame PromptFrame)
+	this.control = [];     // Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.params = { 'currentDisplayer': function(v) {},
 			
@@ -85,10 +85,27 @@
 
 
 
-    var Frame = function() {};
-    // Control stack elements:
 
-    // A CallFrame represents a call stack frame.
+
+
+    // A generic frame just holds marks.
+    var Frame = function() {
+	// The set of continuation marks.
+	this.marks = [];
+
+	// When we're in the middle of computing with-cont-mark, we
+	// stash the key in here temporarily.
+	this.pendingContinuationMarkKey = undefined;
+    };
+
+
+    // Frames must support marks and the temporary variables necessary to
+    // support with-continuation-mark and with-values.
+
+    // Specialized frames support more features:
+
+    // A CallFrame represents a call stack frame, and includes the return address
+    // as well as the function being called.
     var CallFrame = function(label, proc) {
 	this.label = label;
 	this.proc = proc;
@@ -102,7 +119,8 @@
     };
     CallFrame.prototype = heir(Frame.prototype);
 
-    // PromptFrame represents a prompt frame.
+    // A prompt frame includes a return address, as well as a prompt tag
+    // for supporting delimited continuations.
     var PromptFrame = function(label, tag) {
 	this.label = label;
 	this.tag = tag; // ContinuationPromptTag
@@ -110,11 +128,9 @@
 	// The set of continuation marks.
 	this.marks = [];
 
-
 	// When we're in the middle of computing with-cont-mark, we
 	// stash the key in here temporarily.
-	this.pendingContinuationMarkKey = undefined;
-	
+	this.pendingContinuationMarkKey = undefined;	
     };
     PromptFrame.prototype = heir(Frame.prototype);
 

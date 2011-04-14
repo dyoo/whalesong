@@ -144,8 +144,6 @@ EOF
          [(PushControlFrame/Prompt? stmt)
           (next)]
          [(PopControlFrame? stmt)
-          (next)]
-         [(PopControlFrame/Prompt? stmt)
           (next)]))]))
        
 
@@ -266,8 +264,6 @@ EOF
                             [(PushControlFrame/Prompt? stmt)
                              (label->labels (PushControlFrame/Prompt-label stmt))]
                             [(PopControlFrame? stmt)
-                             empty]
-                            [(PopControlFrame/Prompt? stmt)
                              empty])
                           (loop (rest stmts))))]))))
 
@@ -359,9 +355,6 @@ EOF
      [(PopControlFrame? stmt)
       "MACHINE.control.pop();"]
      
-     [(PopControlFrame/Prompt? stmt)
-      "MACHINE.control.pop();"]
-
      [(PushEnvironment? stmt)
       (if (= (PushEnvironment-n stmt) 0)
           ""

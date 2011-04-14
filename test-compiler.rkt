@@ -1087,54 +1087,87 @@
       (make-ContinuationMarkSet (list (cons 'name "danny"))))
 
 
-(test '(begin (define (extract-current-continuation-marks key)
-                (continuation-mark-set->list
-                 (current-continuation-marks)
-                 key))
-              (with-continuation-mark 'key 'mark
-                (extract-current-continuation-marks 'key)))
-      '(mark))
+
+(define-syntax (wcm-test stx)
+  (syntax-case stx ()
+    [(_ code expected options ...)
+     (syntax/loc stx
+       (let ([code-val code])
+         (test `(begin (define (extract-current-continuation-marks key)
+                         (continuation-mark-set->list
+                          (current-continuation-marks)
+                          key))
+                       ,code-val)
+               expected
+               options ...)))]))
+
+
+(wcm-test '(with-continuation-mark 'key 'mark
+             (extract-current-continuation-marks 'key))
+          '(mark))
 
 
 
-(test '(begin (define (extract-current-continuation-marks key)
-                (continuation-mark-set->list
-                 (current-continuation-marks)
-                 key))
-              
-              
-              (with-continuation-mark 'key1 'mark1
-                (with-continuation-mark 'key2 'mark2
-                  (list
-                   (extract-current-continuation-marks 'key1)
-                   (extract-current-continuation-marks 'key2)))))
-              
-      '((mark1) (mark2)))
+(wcm-test '(with-continuation-mark 'key1 'mark1
+             (with-continuation-mark 'key2 'mark2
+               (list
+                (extract-current-continuation-marks 'key1)
+                (extract-current-continuation-marks 'key2))))
+          '((mark1) (mark2)))
 
 
-(test '(begin (define (extract-current-continuation-marks key)
-                (continuation-mark-set->list
-                 (current-continuation-marks)
-                 key))
-              (with-continuation-mark 'key 'mark1
-                (with-continuation-mark 'key 'mark2 ; replaces previous mark
-                  (extract-current-continuation-marks 'key))))
-      '(mark2))
+(wcm-test '(with-continuation-mark 'key 'mark1
+             (with-continuation-mark 'key 'mark2 ; replaces previous mark
+               (extract-current-continuation-marks 'key)))
+          '(mark2))
 
 
-;; Hmm... something is failing here.
-(test '(begin (define (extract-current-continuation-marks key)
-                  (continuation-mark-set->list
-                   (current-continuation-marks)
-                   key))
-                
-                (with-continuation-mark 'key 'mark1
-                  (list ; continuation extended to evaluate the argument
-                   (with-continuation-mark 'key 'mark2
-                     (extract-current-continuation-marks 'key)))))
-        '((mark2 mark1)))
+(wcm-test '(with-continuation-mark 'key 'mark1
+             (list ; continuation extended to evaluate the argument
+              (with-continuation-mark 'key 'mark2
+                (extract-current-continuation-marks 'key))))
+          '((mark2 mark1)))
 
-              
+(wcm-test '(extract-current-continuation-marks 'key)
+          '())
+
+(wcm-test '(with-continuation-mark 'key 10 
+             (extract-current-continuation-marks 'key))
+          '(10))
+
+(wcm-test '(with-continuation-mark 'key 10 
+                    (with-continuation-mark 'key 11
+                      (extract-current-continuation-marks 'key)))
+          '(11))
+
+(wcm-test '(with-continuation-mark 'key 10 
+            (with-continuation-mark 'key2 9
+              (with-continuation-mark 'key 11
+                (extract-current-continuation-marks 'key2))))
+          '(9))
+
+(wcm-test '(with-continuation-mark 'key 10 
+             (with-continuation-mark 'key2 9
+               (with-continuation-mark 'key 11
+                 (extract-current-continuation-marks 'key3))))
+          '())
+
+(wcm-test '(let ([x (with-continuation-mark 'key 10 (list 100))])
+             (extract-current-continuation-marks 'key))
+          '())
+
+(wcm-test '(with-continuation-mark 'key 11
+             (let ([x (with-continuation-mark 'key 10 (extract-current-continuation-marks 'key))])
+               (extract-current-continuation-marks 'key)))
+          '(11))
+
+(wcm-test '(with-continuation-mark 'key 11
+             (list (extract-current-continuation-marks 'key)
+                   (with-continuation-mark 'key 10 (extract-current-continuation-marks 'key))
+                   (extract-current-continuation-marks 'key)))
+          '((11) (10 11) (11)))
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

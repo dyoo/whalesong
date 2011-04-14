@@ -34,7 +34,8 @@
 
 
     var isPair = function(x) { return (typeof(x) == 'object' && 
-				       x.length === 2) };
+				       x.length === 2 &&
+				       x.type !== 'vector') };
     var isList = function(x) {
 	while (x !== NULL) {
 	    if (typeof(x) == 'object' && x.length === 2) {
@@ -47,7 +48,7 @@
     };
 
     var isVector = function(x) { return (typeof(x) == 'object' && 
-					 x.length !== undefined) };
+					 x.type === 'vector') };
 
     var Machine = function() {
 	this.callsBeforeTrampoline = 100;
@@ -739,6 +740,7 @@
 	for (i = 0; i < MACHINE.argcount; i++) {
 	    result.push(MACHINE.env[MACHINE.env.length-1-i]);
 	}
+	result.type = 'vector';
 	return result;
     };
     Primitives['vector'].arity = new ArityAtLeast(0);
@@ -769,6 +771,7 @@
 	    result.push(firstArg[0]);
 	    firstArg = firstArg[1];
 	}
+	result.type='vector';
 	return result;
     };
     Primitives['list->vector'].arity = 1;
@@ -835,6 +838,7 @@
 	for(var i = 0; i < length; i++) {
 	    arr[i] = value;
 	}
+	arr.type='vector';
 	return arr;
     };
     Primitives['make-vector'].arity = [1, [2, NULL]];
@@ -969,6 +973,28 @@
     Primitives['member'].displayName = 'member';
 
 
+
+    Primitives['reverse'] = function(MACHINE) {
+	var rev = NULL;
+	var lst = MACHINE.env[MACHINE.env.length-1];
+	while(lst !== NULL) {
+	    testArgument(MACHINE,
+			 'pair', isPair, lst, 0, 'reverse');
+	    rev = [lst[0], rev];
+	    lst = lst[1];
+	}
+	return rev;
+    };
+    Primitives['reverse'].arity = 1;
+    Primitives['reverse'].displayName = 'reverse';
+
+
+
+
+
+
+
+
     // recomputeGas: state number -> number
     var recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
 	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
@@ -984,22 +1010,6 @@
             Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
                      1);
     };
-
-
-
-    Primitives['reverse'] = function(MACHINE) {
-	var rev = NULL;
-	var lst = MACHINE.env[MACHINE.env.length-1];
-	while(lst !== NULL) {
-	    testArgument(MACHINE,
-			 'pair', isPair, lst, 0, 'reverse');
-	    rev = [lst[0], rev];
-	    lst = lst[1];
-	}
-	return rev;
-    };
-    Primitives['reverse'].arity = 1;
-    Primitives['reverse'].displayName = 'reverse';
 
 
 

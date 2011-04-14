@@ -820,8 +820,6 @@
 			     (lambda (l) 
 			       (map (lambda (x) (list x x)) l)))))
          (let ((x (p (vector->list (make-vector k 'a))))) 
-	   ;(displayln x)
-	   ;(displayln (parse->trees x 's '0 k)) ;; dyoo : temporary
 	   (display (length (parse->trees x 's '0 k))) 
 	   (newline)))))
    (test '12))

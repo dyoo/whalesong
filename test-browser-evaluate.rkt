@@ -144,6 +144,11 @@ EOF
 (test '(displayln (add1 1))
       "2\n")
 
+
+(test '(displayln (if 0 1 2))
+      "1\n")
+
+
 (test/exn '(displayln (add1 "0"))
           "Error: add1: expected number as argument 1 but received 0")
 
@@ -458,6 +463,16 @@ EOF
 (test '(displayln (equal? '(1 2 (3))
 			  '(1 2 (3))))
       "true\n")
+
+
+(test '(displayln (equal? (list 1 2 (vector 3))
+			  (list 1 2 (vector 3))))
+      "true\n")
+
+
+(test '(displayln (equal? (list 1 2 (vector 4))
+			  (list 1 2 (vector 3))))
+      "false\n")
 
       
 

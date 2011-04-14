@@ -319,7 +319,7 @@ EOF
       (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
              (cond
                [(eq? test 'false?)
-                (format "if (! ~a) { ~a }"
+                (format "if (~a === false) { ~a }"
                         (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
                [(eq? test 'one?)

@@ -72,8 +72,28 @@ EOF
 
 
 
+
+
+
+
 (test '(display 42)
       "42")
+
+(test '(displayln (+))
+      "0\n")
+
+(test '(displayln (*))
+      "1\n")
+
+(test '(displayln (- 3))
+      "-3\n")
+
+(test '(displayln (- 3 4))
+      "-1\n")
+
+(test '(displayln (- 3 4 -10))
+      "9\n")
+
 
 (test '(display (+ 3 4))
       "7")
@@ -381,6 +401,67 @@ EOF
       "y\n")
 (test '(displayln (car (cdr (cdr (reverse '("x" "y" "z"))))))
       "x\n")
+
+
+(test '(begin (displayln (vector-length (vector))))
+      "0\n")
+
+(test '(begin (displayln (vector-length (vector 3 1 4))))
+      "3\n")
+
+(test '(begin (displayln (vector-ref (vector 3 1 4) 0)))
+      "3\n")
+
+(test '(begin (displayln (vector-ref (vector 3 1 4) 1)))
+      "1\n")
+
+(test '(begin (displayln (vector-ref (vector 3 1 4) 2)))
+      "4\n")
+
+(test '(begin (define v (vector "hello" "world"))
+	      (vector-set! v 0 'hola)
+	      (displayln (vector-ref v 0)))
+      "hola\n")
+
+(test '(begin (define v (vector "hello" "world"))
+	      (vector-set! v 0 'hola)
+	      (displayln (vector-ref v 1)))
+      "world\n")
+
+
+
+(test '(begin (define l (vector->list (vector "hello" "world")))
+	      (displayln (length l))
+	      (displayln (car l))
+	      (displayln (car (cdr l))))
+      "2\nhello\nworld\n")
+
+
+(test '(displayln (equal? '(1 2 3)
+			  (append '(1) '(2) '(3))))
+      "true\n")
+
+
+(test '(displayln (equal? '(1 2 3)
+			  (append '(1 2) '(3))))
+      "true\n")
+
+(test '(displayln (equal? '(1 2 3)
+			  (append '(1 2) 3)))
+      "false\n")
+
+(test '(displayln (equal? "hello"
+			  (string-append "he" "llo")))
+      "true\n")
+
+
+(test '(displayln (equal? '(1 2 (3))
+			  '(1 2 (3))))
+      "true\n")
+
+      
+
+
 
 
 

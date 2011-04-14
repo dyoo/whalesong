@@ -359,7 +359,13 @@
     Primitives['display'] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var outputPort = MACHINE.params.currentOutputPort;
-	if (MACHINE.argcount === 2) { 
+	if (MACHINE.argcount === 2) {
+	    testArgument(MACHINE,
+			 'isOutputPort', 
+			 isOutputPort, 
+			 MACHINE.env.length-2,
+			 1,
+			 'display');
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
 	outputPort.write(MACHINE, firstArg);
@@ -371,6 +377,12 @@
     Primitives['newline'] = function(MACHINE) {
 	var outputPort = MACHINE.params.currentOutputPort;
 	if (MACHINE.argcount === 1) { 
+	    testArgument(MACHINE,
+			 'isOutputPort', 
+			 isOutputPort, 
+			 MACHINE.env.length-1,
+			 1,
+			 'newline');
 	    outputPort = MACHINE.env[MACHINE.env.length-1];
 	}
 	outputPort.write(MACHINE, "\n");
@@ -382,7 +394,13 @@
     Primitives['displayln'] = function(MACHINE){
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var outputPort = MACHINE.params.currentOutputPort;
-	if (MACHINE.argcount === 2) { 
+	if (MACHINE.argcount === 2) {
+	    testArgument(MACHINE,
+			 'isOutputPort', 
+			 isOutputPort, 
+			 MACHINE.env.length-2,
+			 1,
+			 'displayln'); 
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
 	outputPort.write(MACHINE, firstArg);

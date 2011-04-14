@@ -135,13 +135,18 @@
 
    (make-bootstrapped-primitive-code
     'append
-    '(letrec ([append (lambda (l1 l2)
-			(if (null? l1) 
-			    l2
-			    (cons (car l1) (append (cdr l1) l2))))])
-       append))
-	      
-
+    '(letrec ([append-many (lambda (lsts)
+			     (if (null? lsts)
+				 null
+				 (if (null? (cdr lsts))
+				     (car lsts)
+				     (append-2 (car lsts)
+					       (append-many (cdr lsts))))))]
+	      [append-2 (lambda (l1 l2)
+			  (if (null? l1) 
+			      l2
+			      (cons (car l1) (append-2 (cdr l1) l2))))])
+       (lambda args (append-many args))))
    
    
    

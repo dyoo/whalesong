@@ -139,6 +139,8 @@ EOF
           (next)]
          [(PushImmediateOntoEnvironment? stmt)
           (next)]
+         [(PushControlFrame/Generic? stmt)
+          (next)]
          [(PushControlFrame/Call? stmt)
           (next)]
          [(PushControlFrame/Prompt? stmt)
@@ -259,6 +261,8 @@ EOF
                              empty]
                             [(PushImmediateOntoEnvironment? stmt)
                              (collect-input (PushImmediateOntoEnvironment-value stmt))]
+                            [(PushControlFrame/Generic? stmt)
+                             empty]
                             [(PushControlFrame/Call? stmt)
                              (label->labels (PushControlFrame/Call-label stmt))]
                             [(PushControlFrame/Prompt? stmt)
@@ -330,6 +334,9 @@ EOF
      [(GotoStatement? stmt)
       (assemble-jump (GotoStatement-target stmt))]
 
+     [(PushControlFrame/Generic? stmt)
+      "MACHINE.control.push(new RUNTIME.Frame());"]
+     
      [(PushControlFrame/Call? stmt)
       (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
               (let ([label (PushControlFrame/Call-label stmt)])

@@ -80,6 +80,7 @@
                                  
                                  PushImmediateOntoEnvironment
                                  
+                                 PushControlFrame/Generic
                                  PushControlFrame/Call
                                  PushControlFrame/Prompt
 
@@ -123,6 +124,10 @@
 (define-struct: PopControlFrame () 
   #:transparent)
 
+
+;; A generic control frame only holds marks and other temporary variables.
+(define-struct: PushControlFrame/Generic ()
+  #:transparent)
 
 ;; Adding a frame for getting back after procedure application.
 ;; The 'proc register must hold either #f or a closure at the time of

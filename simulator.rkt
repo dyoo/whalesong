@@ -109,6 +109,8 @@
                      (step-push-environment! m i)]
                     [(PushImmediateOntoEnvironment? i)
                      (step-push-immediate-onto-environment! m i)]
+                    [(PushControlFrame/Generic? i)
+                     (step-push-control-frame/generic! m i)]
                     [(PushControlFrame/Call? i)
                      (step-push-control-frame! m i)]
                     [(PushControlFrame/Prompt? i)
@@ -167,6 +169,14 @@
         [v (evaluate-oparg m (PushImmediateOntoEnvironment-value stmt))])
     (step-push-environment! m (make-PushEnvironment 1 (PushImmediateOntoEnvironment-box? stmt)))
     ((get-target-updater t) m v)))
+
+
+
+(: step-push-control-frame/generic! (machine PushControlFrame/Generic -> 'ok))
+(define (step-push-control-frame/generic! m stmt)
+  (control-push! m (make-GenericFrame (make-hasheq)
+                                      (make-hasheq))))
+
 
 (: step-push-control-frame! (machine PushControlFrame/Call -> 'ok))
 (define (step-push-control-frame! m stmt)
@@ -504,6 +514,8 @@
           [(GetControlStackLabel? op)
            (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
                                 (cond
+                                  [(GenericFrame? frame)
+                                   (error 'GetControlStackLabel)]
                                   [(PromptFrame? frame)
                                    (let ([label (PromptFrame-return frame)])
                                      (cond
@@ -522,6 +534,8 @@
           [(GetControlStackLabel/MultipleValueReturn? op)
            (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
                                 (cond
+                                  [(GenericFrame? frame)
+                                   (error 'GetControlStackLabel/MultipleValueReturn)]
                                   [(PromptFrame? frame)
                                    (let ([label (PromptFrame-return frame)])
                                      (cond
@@ -573,6 +587,8 @@
     [else
      (let ([a-frame (first frames)])
        (cond
+         [(GenericFrame? a-frame)
+          (cons a-frame (take-continuation-to-tag (rest frames) tag))]
          [(CallFrame? a-frame)
           (cons a-frame (take-continuation-to-tag (rest frames) tag))]
          [(PromptFrame? a-frame)
@@ -592,6 +608,8 @@
     [else
      (let ([a-frame (first frames)])
        (cond
+         [(GenericFrame? a-frame)
+          (drop-continuation-to-tag (rest frames) tag)]
          [(CallFrame? a-frame)
           (drop-continuation-to-tag (rest frames) tag)]
          [(PromptFrame? a-frame)

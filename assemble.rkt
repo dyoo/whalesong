@@ -139,7 +139,7 @@ EOF
           (next)]
          [(PushImmediateOntoEnvironment? stmt)
           (next)]
-         [(PushControlFrame? stmt)
+         [(PushControlFrame/Call? stmt)
           (next)]
          [(PushControlFrame/Prompt? stmt)
           (next)]
@@ -259,8 +259,8 @@ EOF
                              empty]
                             [(PushImmediateOntoEnvironment? stmt)
                              (collect-input (PushImmediateOntoEnvironment-value stmt))]
-                            [(PushControlFrame? stmt)
-                             (label->labels (PushControlFrame-label stmt))]
+                            [(PushControlFrame/Call? stmt)
+                             (label->labels (PushControlFrame/Call-label stmt))]
                             [(PushControlFrame/Prompt? stmt)
                              (label->labels (PushControlFrame/Prompt-label stmt))]
                             [(PopControlFrame? stmt)
@@ -330,9 +330,9 @@ EOF
      [(GotoStatement? stmt)
       (assemble-jump (GotoStatement-target stmt))]
 
-     [(PushControlFrame? stmt)
+     [(PushControlFrame/Call? stmt)
       (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
-              (let ([label (PushControlFrame-label stmt)])
+              (let ([label (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) label]
                   [(LinkedLabel? label) (LinkedLabel-label label)])))]

@@ -109,7 +109,7 @@
                      (step-push-environment! m i)]
                     [(PushImmediateOntoEnvironment? i)
                      (step-push-immediate-onto-environment! m i)]
-                    [(PushControlFrame? i)
+                    [(PushControlFrame/Call? i)
                      (step-push-control-frame! m i)]
                     [(PushControlFrame/Prompt? i)
                      (step-push-control-frame/prompt! m i)]
@@ -168,9 +168,9 @@
     (step-push-environment! m (make-PushEnvironment 1 (PushImmediateOntoEnvironment-box? stmt)))
     ((get-target-updater t) m v)))
 
-(: step-push-control-frame! (machine PushControlFrame -> 'ok))
+(: step-push-control-frame! (machine PushControlFrame/Call -> 'ok))
 (define (step-push-control-frame! m stmt)
-  (control-push! m (make-CallFrame (PushControlFrame-label stmt)
+  (control-push! m (make-CallFrame (PushControlFrame/Call-label stmt)
                                    (ensure-closure-or-false (machine-proc m))
                                    (make-hasheq)
                                    (make-hasheq))))

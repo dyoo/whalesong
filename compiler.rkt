@@ -968,7 +968,7 @@
                                                         proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
-                      `(,(make-PushControlFrame proc-return)))
+                      `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
@@ -985,7 +985,7 @@
                                                         proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
-                      `(,(make-PushControlFrame proc-return)))
+                      `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
@@ -1006,7 +1006,7 @@
                                                         proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
-                      `(,(make-PushControlFrame proc-return)))
+                      `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
@@ -1023,7 +1023,7 @@
                                                         proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
-                      `(,(make-PushControlFrame proc-return)))
+                      `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
@@ -1044,7 +1044,7 @@
                                                         proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
-                      `(,(make-PushControlFrame proc-return)))
+                      `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
@@ -1063,7 +1063,7 @@
                                                         proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
-                      `(,(make-PushControlFrame proc-return)))
+                      `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
@@ -1297,7 +1297,7 @@
          ;; FIXME: create separate frame structure here, and don't try to reuse.
          (make-instruction-sequence 
           `(,(make-AssignImmediateStatement 'proc (make-Const #f))
-            ,(make-PushControlFrame after-body)))
+            ,(make-PushControlFrame/Call after-body)))
 
          ;(make-instruction-sequence 
          ; `(,(make-AssignImmediateStatement 'proc (make-Const #f))

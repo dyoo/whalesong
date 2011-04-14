@@ -167,9 +167,9 @@
 ;; PushControl
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo 
-                        ,(make-PushControlFrame 'foo)
+                        ,(make-PushControlFrame/Call 'foo)
                         bar
-                        ,(make-PushControlFrame 'bar)
+                        ,(make-PushControlFrame/Call 'bar)
                         baz
                         ))])
   (test (machine-control (run! m))
@@ -181,9 +181,9 @@
 ;; PopControl
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo 
-                        ,(make-PushControlFrame 'foo)
+                        ,(make-PushControlFrame/Call 'foo)
                         bar
-                        ,(make-PushControlFrame 'bar)
+                        ,(make-PushControlFrame/Call 'bar)
                         baz
                         ,(make-PopControlFrame)
                         ))])
@@ -192,9 +192,9 @@
 
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo 
-                        ,(make-PushControlFrame 'foo)
+                        ,(make-PushControlFrame/Call 'foo)
                         bar
-                        ,(make-PushControlFrame 'bar)
+                        ,(make-PushControlFrame/Call 'bar)
                         baz
                         ,(make-PopControlFrame)
                         ,(make-PopControlFrame)))])
@@ -488,7 +488,7 @@
 ;; GetControlStackLabel
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo
-                        ,(make-PushControlFrame 'foo)
+                        ,(make-PushControlFrame/Call 'foo)
                         ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))))])
   (test (machine-proc (run! m))
         'foo))

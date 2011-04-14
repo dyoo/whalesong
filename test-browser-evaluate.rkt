@@ -136,17 +136,47 @@ EOF
 (test '(displayln (< 1 2))
       "true\n")
 
+(test '(displayln (< 2 1 ))
+      "false\n")
+
+(test '(displayln (< 1 1 ))
+      "false\n")
+
+
 (test '(displayln (<= 1 2))
+      "true\n")
+
+(test '(displayln (<= 2 1))
+      "false\n")
+
+(test '(displayln (<= 2 2))
       "true\n")
 
 (test '(displayln (= 1 2))
       "false\n")
 
+(test '(displayln (= 1 1))
+      "true\n")
+
+
 (test '(displayln (> 1 2))
+      "false\n")
+
+(test '(displayln (> 2 1))
+      "true\n")
+
+(test '(displayln (> 2 2))
       "false\n")
 
 (test '(displayln (>= 1 2))
       "false\n")
+
+(test '(displayln (>= 2 1))
+      "true\n")
+
+(test '(displayln (>= 2 2))
+      "true\n")
+
 
 (test '(displayln (car (cons 3 4)))
       "3\n")

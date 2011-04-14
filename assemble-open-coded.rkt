@@ -89,7 +89,7 @@
            (format "(~a === RUNTIME.NULL)" (first checked-operands))]
 
           [(not)
-           (format "(!(~a))" (first checked-operands))]
+           (format "(~a === false)" (first checked-operands))]
           
           [(eq?)
            (format "(~a === ~a)" (first checked-operands) (second checked-operands))])))

@@ -141,6 +141,10 @@ EOF
 (test '(displayln (not (not 3)))
       "true\n")
 
+(test '(displayln (not 0))
+      "false\n")
+
+
 (test '(displayln (add1 1))
       "2\n")
 

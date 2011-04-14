@@ -687,7 +687,7 @@
     
     Primitives['not'] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	return (!firstArg);
+	return (firstArg === false);
     };
     Primitives['not'].arity = 1;
     Primitives['not'].displayName = 'not';

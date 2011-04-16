@@ -216,6 +216,8 @@
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(NextLinkage? linkage)
      empty-instruction-sequence]
+    [(NextLinkage/Expects? linkage)
+     empty-instruction-sequence]
     [(LabelLinkage? linkage)
      (make-instruction-sequence `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
 
@@ -1038,6 +1040,46 @@
                      proc-return
                      (make-instruction-sequence
                       `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+
+          [(NextLinkage/Expects? linkage)
+           (cond [(eq? target 'val)
+                  ;; This case happens for a function call that isn't in
+                  ;; tail position.
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence 
+                      `(,(make-PushControlFrame/Call proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return))]
+                 
+                 [else
+                  ;; This case happens for evaluating arguments, since the
+                  ;; arguments are being installed into the scratch space.
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence
+                      `(,(make-PushControlFrame/Call proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     ;; FIMXE: this needs to raise a runtime error!
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return
+                     (make-instruction-sequence
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+          
+          
           
           [(LabelLinkage? linkage)
            (cond [(eq? target 'val)
@@ -1131,6 +1173,8 @@
                        (cond
                          [(NextLinkage? linkage)
                           linkage]
+                         [(NextLinkage/Expects? linkage)
+                          linkage]
                          [(ReturnLinkage? linkage)
                           linkage]
                          [(ReturnLinkage/NonTail? linkage)
@@ -1164,6 +1208,8 @@
           [let-linkage : Linkage
                        (cond
                          [(NextLinkage? linkage)
+                          linkage]
+                         [(NextLinkage/Expects? linkage)
                           linkage]
                          [(ReturnLinkage? linkage)
                           linkage]
@@ -1206,6 +1252,8 @@
           [after-body-code : LabelLinkage (make-LabelLinkage (make-label 'afterBodyCode))]
           [letrec-linkage : Linkage (cond
                                       [(NextLinkage? linkage)
+                                       linkage]
+                                      [(NextLinkage/Expects? linkage)
                                        linkage]
                                       [(ReturnLinkage? linkage)
                                        linkage]
@@ -1287,6 +1335,7 @@
       (compile (WithContMark-body exp) cenv target linkage))]
     
     [(or (NextLinkage? linkage)
+         (NextLinkage/Expects? linkage)
          (LabelLinkage? linkage))
      (end-with-linkage 
       linkage cenv

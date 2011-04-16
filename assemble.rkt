@@ -230,6 +230,8 @@ EOF
       [(FixClosureShellMap!? op)
        empty]
       [(InstallContinuationMarkEntry!? op)
+       empty]
+      [(RaiseContextExpectedValuesError!? op)
        empty]))
   
   (unique/eq?
@@ -594,7 +596,10 @@ EOF
     [(InstallContinuationMarkEntry!? op)
      (string-append "RUNTIME.installContinuationMarkEntry(MACHINE,"
                     "MACHINE.control[MACHINE.control.length-1].pendingContinuationMarkKey,"
-                    "MACHINE.val);")]))
+                    "MACHINE.val);")]
+    [(RaiseContextExpectedValuesError!? op)
+     (format "RUNTIME.raiseContextExpectedValuesError(MACHINE, ~a);"
+             (RaiseContextExpectedValuesError!-expected op))]))
 
 
 

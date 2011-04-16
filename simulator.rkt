@@ -383,6 +383,11 @@
                         (ensure-primitive-value key)
                         (ensure-primitive-value val))
              'ok)]
+          
+          [(RaiseContextExpectedValuesError!? op)
+           (error "context expected ~a values, received ~a values."
+                  (RaiseContextExpectedValuesError!-expected op)
+                  (machine-argcount m))]
           )))
 
 

@@ -254,6 +254,12 @@
 	}
     };
 
+    var raiseContextExpectedValuesError = function(MACHINE, expected) {
+	raise(MACHINE, 
+	      new Error("expected " + expected +
+			" values, received " + 
+			MACHINE.argcount + " values"));
+    };
 
 
     // captureControl implements the continuation-capturing part of
@@ -1069,6 +1075,8 @@
     exports['testArgument'] = testArgument;
     exports['testArity'] = testArity;
     exports['raise'] = raise;
+    exports['raiseContextExpectedValuesError'] = raiseContextExpectedValuesError;
+
 
     exports['captureControl'] = captureControl;
     exports['restoreControl'] = restoreControl;

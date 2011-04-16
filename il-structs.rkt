@@ -314,6 +314,11 @@
                                      [closed-vals : (Listof Natural)])
   #:transparent)
 
+;; Raises an exception that says that we expected a number of values.
+;; Assume that argcount is not equal to expected.
+(define-struct: RaiseContextExpectedValuesError! ([expected : Natural])
+  #:transparent)
+
 ;; Changes over the control located at the given argument from the structure in env[1]
 (define-struct: RestoreControl! ([tag : (U DefaultContinuationPromptTag OpArg)]) #:transparent)
 
@@ -338,6 +343,8 @@
                                SetFrameCallee!
                                SpliceListIntoStack!
                                UnspliceRestFromStack!
+                            
+                               RaiseContextExpectedValuesError!
                                
                                RestoreEnvironment!
                                RestoreControl!))
@@ -376,6 +383,12 @@
 (define-struct: NextLinkage ())
 (define next-linkage (make-NextLinkage))
 
+;; NextLinkage/Expects works like NextLinkage, but should check that
+;; it is returning 'expects' values back.
+(define-struct: NextLinkage/Expects ([expects : Natural]))
+(define next-linkage-expects-single (make-NextLinkage/Expects 1))
+
+
 (define-struct: ReturnLinkage ())
 (define return-linkage (make-ReturnLinkage))
 
@@ -385,8 +398,11 @@
 (define-struct: LabelLinkage ([label : Symbol]))
 
 (define-type Linkage (U NextLinkage
+                        NextLinkage/Expects
+                        
                         ReturnLinkage
                         ReturnLinkage/NonTail
+                        
                         LabelLinkage))
 
 

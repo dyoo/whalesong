@@ -379,14 +379,14 @@
 (define-struct: ReturnLinkage ())
 (define return-linkage (make-ReturnLinkage))
 
-(define-struct: PromptLinkage ())
-(define prompt-linkage (make-PromptLinkage))
+(define-struct: ReturnLinkage/NonTail ())
+(define return-linkage/nontail (make-ReturnLinkage/NonTail))
 
 (define-struct: LabelLinkage ([label : Symbol]))
 
 (define-type Linkage (U NextLinkage
                         ReturnLinkage
-                        PromptLinkage
+                        ReturnLinkage/NonTail
                         LabelLinkage))
 
 

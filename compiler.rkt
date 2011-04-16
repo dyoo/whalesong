@@ -36,7 +36,7 @@
        (make-instruction-sequence
         `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
                                          before-pop-prompt)))
-       (compile exp '() target prompt-linkage)
+       (compile exp '() target return-linkage/nontail)
        before-pop-prompt)))))
 
 (define-struct: lam+cenv ([lam : Lam]
@@ -206,7 +206,7 @@
                                                         (make-Const 0))
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
-    [(PromptLinkage? linkage)
+    [(ReturnLinkage/NonTail? linkage)
      (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
@@ -321,7 +321,7 @@
              (make-instruction-sequence `(,(make-PushControlFrame/Prompt
                                             default-continuation-prompt-tag
                                             before-pop-prompt)))
-             (compile (first-exp seq) cenv target prompt-linkage)
+             (compile (first-exp seq) cenv target return-linkage/nontail)
              before-pop-prompt-multiple
              (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
              before-pop-prompt)))]
@@ -333,7 +333,7 @@
             (make-instruction-sequence `(,(make-PushControlFrame/Prompt
                                            (make-DefaultContinuationPromptTag)
                                            before-pop-prompt)))
-            (compile (first-exp seq) cenv target prompt-linkage)
+            (compile (first-exp seq) cenv target return-linkage/nontail)
             before-pop-prompt-multiple
             (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
             before-pop-prompt
@@ -959,7 +959,7 @@
               (error 'compile "return linkage, target not val: ~s" target)])]
           
           
-          [(PromptLinkage? linkage)
+          [(ReturnLinkage/NonTail? linkage)
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
@@ -1129,7 +1129,7 @@
                           linkage]
                          [(ReturnLinkage? linkage)
                           linkage]
-                         [(PromptLinkage? linkage)
+                         [(ReturnLinkage/NonTail? linkage)
                           after-body-code]
                          [(LabelLinkage? linkage)
                           after-body-code])]
@@ -1163,7 +1163,7 @@
                           linkage]
                          [(ReturnLinkage? linkage)
                           linkage]
-                         [(PromptLinkage? linkage)
+                         [(ReturnLinkage/NonTail? linkage)
                           after-body-code]
                          [(LabelLinkage? linkage)
                           after-body-code])]
@@ -1205,7 +1205,7 @@
                                        linkage]
                                       [(ReturnLinkage? linkage)
                                        linkage]
-                                      [(PromptLinkage? linkage)
+                                      [(ReturnLinkage/NonTail? linkage)
                                        after-body-code]
                                       [(LabelLinkage? linkage)
                                        after-body-code])])
@@ -1271,7 +1271,7 @@
 (: compile-with-cont-mark (WithContMark CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-with-cont-mark exp cenv target linkage)
   (cond
-    [(or (PromptLinkage? linkage) (ReturnLinkage? linkage))
+    [(or (ReturnLinkage/NonTail? linkage) (ReturnLinkage? linkage))
      (append-instruction-sequences
       (compile (WithContMark-key exp) cenv 'val next-linkage)
       (make-instruction-sequence `(,(make-AssignImmediateStatement

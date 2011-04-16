@@ -167,34 +167,34 @@
 ;; PushControl
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo 
-                        ,(make-PushControlFrame/Call 'foo)
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'foo 'foo))
                         bar
-                        ,(make-PushControlFrame/Call 'bar)
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'bar 'bar))
                         baz
                         ))])
   (test (machine-control (run! m))
-        (list (make-CallFrame 'bar #f (make-hasheq) (make-hasheq))
-              (make-CallFrame 'foo #f (make-hasheq) (make-hasheq)))))
+        (list (make-CallFrame (make-LinkedLabel 'bar 'bar) #f (make-hasheq) (make-hasheq))
+              (make-CallFrame (make-LinkedLabel 'foo 'foo) #f (make-hasheq) (make-hasheq)))))
 
 
 
 ;; PopControl
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo 
-                        ,(make-PushControlFrame/Call 'foo)
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'foo 'foo))
                         bar
-                        ,(make-PushControlFrame/Call 'bar)
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'bar 'bar))
                         baz
                         ,(make-PopControlFrame)
                         ))])
   (test (machine-control (run! m))
-        (list (make-CallFrame 'foo #f (make-hasheq) (make-hasheq)))))
+        (list (make-CallFrame (make-LinkedLabel 'foo 'foo) #f (make-hasheq) (make-hasheq)))))
 
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo 
-                        ,(make-PushControlFrame/Call 'foo)
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'foo 'foo))
                         bar
-                        ,(make-PushControlFrame/Call 'bar)
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'bar 'bar))
                         baz
                         ,(make-PopControlFrame)
                         ,(make-PopControlFrame)))])
@@ -488,10 +488,70 @@
 ;; GetControlStackLabel
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo
-                        ,(make-PushControlFrame/Call 'foo)
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'foo 'foo))
                         ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))))])
   (test (machine-proc (run! m))
         'foo))
+
+
+;; GetControlStackLabel
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'foo-single 'foo-multiple))
+                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                        ,(make-GotoStatement (make-Reg 'proc))
+                        foo-single
+                        ,(make-AssignImmediateStatement 'val (make-Const "single"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        foo-multiple
+                        ,(make-AssignImmediateStatement 'val (make-Const "multiple"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        end))])
+  (test (machine-val (run! m))
+        "single"))
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        ,(make-PushControlFrame/Call (make-LinkedLabel 'foo-single 'foo-multiple))
+                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel/MultipleValueReturn))
+                        ,(make-GotoStatement (make-Reg 'proc))
+                        foo-single
+                        ,(make-AssignImmediateStatement 'val (make-Const "single"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        foo-multiple
+                        ,(make-AssignImmediateStatement 'val (make-Const "multiple"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        end))])
+  (test (machine-val (run! m))
+        "multiple"))
+
+
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        ,(make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                                       (make-LinkedLabel 'foo-single 'foo-multiple))
+                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                        ,(make-GotoStatement (make-Reg 'proc))
+                        foo-single
+                        ,(make-AssignImmediateStatement 'val (make-Const "single"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        foo-multiple
+                        ,(make-AssignImmediateStatement 'val (make-Const "multiple"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        end))])
+  (test (machine-val (run! m))
+        "single"))
+(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
+                        ,(make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                                       (make-LinkedLabel 'foo-single 'foo-multiple))
+                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel/MultipleValueReturn))
+                        ,(make-GotoStatement (make-Reg 'proc))
+                        foo-single
+                        ,(make-AssignImmediateStatement 'val (make-Const "single"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        foo-multiple
+                        ,(make-AssignImmediateStatement 'val (make-Const "multiple"))
+                        ,(make-GotoStatement (make-Label 'end))
+                        end))])
+  (test (machine-val (run! m))
+        "multiple"))
+
 
 
 ;; Splicing

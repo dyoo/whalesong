@@ -22,21 +22,25 @@
 ;; Note: the toplevel generates the lambda body streams at the head, and then the
 ;; rest of the instruction stream.
 (define (-compile exp target linkage)
-  (let ([after-lam-bodies (make-label 'afterLamBodies)]
-        [before-pop-prompt (make-label 'beforePopPrompt)])
+  (let* ([after-lam-bodies (make-label 'afterLamBodies)]
+         [before-pop-prompt-multiple (make-label 'beforePopPromptMultiple)]
+         [before-pop-prompt (make-LinkedLabel (make-label 'beforePopPrompt) before-pop-prompt-multiple)])
     (optimize-il
      (statements
       (append-instruction-sequences 
        
+       ;; Layout the lambda bodies...
        (make-instruction-sequence 
         `(,(make-GotoStatement (make-Label after-lam-bodies))))
        (compile-lambda-bodies (collect-all-lams exp))
        after-lam-bodies
        
+       ;; Begin a prompted evaluation:
        (make-instruction-sequence
         `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
                                          before-pop-prompt)))
        (compile exp '() target return-linkage/nontail)
+       before-pop-prompt-multiple
        before-pop-prompt)))))
 
 (define-struct: lam+cenv ([lam : Lam]

@@ -132,11 +132,11 @@
 ;; Adding a frame for getting back after procedure application.
 ;; The 'proc register must hold either #f or a closure at the time of
 ;; this call, as the control frame will hold onto the called procedure record.
-(define-struct: PushControlFrame/Call ([label : (U Symbol LinkedLabel)]) 
+(define-struct: PushControlFrame/Call ([label : LinkedLabel]) 
   #:transparent)
 
 (define-struct: PushControlFrame/Prompt ([tag : (U OpArg DefaultContinuationPromptTag)]
-                                         [label : (U Symbol LinkedLabel)]
+                                         [label : LinkedLabel]
                                          ;; TODO: add handler and arguments
                                          )
   #:transparent)

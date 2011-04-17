@@ -219,7 +219,9 @@
     [(NextLinkage/Expects? linkage)
      empty-instruction-sequence]
     [(LabelLinkage? linkage)
-     (make-instruction-sequence `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
+     (make-instruction-sequence `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]
+    [(LabelLinkage/Expects? linkage)
+     (make-instruction-sequence `(,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage)))))]))
 
 
 
@@ -268,7 +270,7 @@
                                                (ToplevelSet-pos exp))])
     (let ([get-value-code
            (compile (ToplevelSet-value exp) cenv lexical-pos
-                    next-linkage)])
+                    next-linkage-expects-single)])
       (end-with-linkage
        linkage
        cenv
@@ -280,14 +282,24 @@
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a conditional branch.
 (define (compile-branch exp cenv target linkage)
-  (let: ([t-branch : LabelLinkage (make-LabelLinkage (make-label 'trueBranch))]
-         [f-branch : LabelLinkage (make-LabelLinkage (make-label 'falseBranch))]
-         [after-if : LabelLinkage (make-LabelLinkage (make-label 'afterIf))])
+  (let: ([t-branch : Symbol (make-label 'trueBranch)]
+         [f-branch : Symbol (make-label 'falseBranch)]
+         [after-if : Symbol (make-label 'afterIf)])
         (let ([consequent-linkage
-               (if (eq? linkage next-linkage)
-                   after-if
-                   linkage)])
-          (let ([p-code (compile (Branch-predicate exp) cenv 'val next-linkage)]
+	       (cond
+		[(NextLinkage? linkage)
+		 (make-LabelLinkage after-if)]
+		[(NextLinkage/Expects? linkage)
+		 (make-LabelLinkage/Expects after-if (NextLinkage/Expects-expects linkage))]
+		[(ReturnLinkage? linkage)
+		 linkage]
+		[(ReturnLinkage/NonTail? linkage)
+		 linkage]
+		[(LabelLinkage? linkage)
+		 linkage]
+		[(LabelLinkage/Expects? linkage)
+		 linkage])])
+          (let ([p-code (compile (Branch-predicate exp) cenv 'val next-linkage-expects-single)]
                 [c-code (compile (Branch-consequent exp) cenv target consequent-linkage)]
                 [a-code (compile (Branch-alternative exp) cenv target linkage)])
             (append-instruction-sequences p-code
@@ -295,11 +307,12 @@
                                            (make-instruction-sequence
                                             `(,(make-TestAndBranchStatement 'false? 
                                                                             'val
-                                                                            (LabelLinkage-label f-branch))))
-                                           (append-instruction-sequences
-                                            (append-instruction-sequences (LabelLinkage-label t-branch) c-code)
-                                            (append-instruction-sequences (LabelLinkage-label f-branch) a-code))
-                                           (LabelLinkage-label after-if)))))))
+                                                                            f-branch)))
+					   t-branch 
+					   c-code
+					   f-branch
+					   a-code
+                                           after-if))))))
 
 
 (: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -476,6 +489,7 @@
             [(Prefix? op-knowledge)
              (error 'impossible)]
             [(Const? op-knowledge)
+	     ;; FIXME: this needs to be a runtime error to preserve Racket's semantics.
              (error 'application "Can't apply constant ~s as a function" (Const-const op-knowledge))]))))
 
 
@@ -492,10 +506,10 @@
                                  (make-EnvLexicalReference 
                                   (ensure-natural (sub1 (length (App-operands exp))))
                                   #f))
-                             next-linkage)]
+                             next-linkage-expects-single)]
          [operand-codes (map (lambda: ([operand : Expression]
                                        [target : Target])
-                                      (compile operand extended-cenv target next-linkage))
+                                      (compile operand extended-cenv target next-linkage-expects-single))
                              (App-operands exp)
                              (build-list (length (App-operands exp))
                                          (lambda: ([i : Natural])
@@ -646,7 +660,7 @@
                     (apply append-instruction-sequences
                            (map (lambda: ([operand : Expression]
                                           [target : Target])
-                                         (compile operand extended-cenv target next-linkage))
+                                         (compile operand extended-cenv target next-linkage-expects-single))
                                 rest-operands
                                 rest-operand-poss))])
        
@@ -749,6 +763,7 @@
 
 
 (define-predicate natural? Natural)
+(define-predicate atomic-arity-list? (Listof (U Natural ArityAtLeast)))
 
 (: arity-matches? (Arity Natural -> Boolean))
 (define (arity-matches? an-arity n)
@@ -757,18 +772,25 @@
      (= an-arity n)]
     [(ArityAtLeast? an-arity)
      (>= n (ArityAtLeast-value an-arity))]
-    [else
-     (error 'fixme)]))
+    [(atomic-arity-list? an-arity)
+     (ormap (lambda: ([an-arity : (U Natural ArityAtLeast)])
+		       (cond
+			[(natural? an-arity)
+			 (= an-arity n)]
+			[(ArityAtLeast? an-arity)
+			 (>= n (ArityAtLeast-value an-arity))]))
+	    an-arity)]))
+
 
 
 (: compile-statically-known-lam-application 
    (StaticallyKnownLam App CompileTimeEnvironment Target Linkage 
                        -> InstructionSequence))
 (define (compile-statically-known-lam-application static-knowledge exp cenv target linkage)
-  ;; FIXME: this needs to be turned into a runtime error, not a compile-time error, to preserve
-  ;; Racket semantics.
   (unless (arity-matches? (StaticallyKnownLam-arity static-knowledge)
                           (length (App-operands exp)))
+	  ;; FIXME: this needs to be turned into a runtime error, not a compile-time error, to preserve
+	  ;; Racket semantics.
     (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
            (StaticallyKnownLam-name static-knowledge)
            (StaticallyKnownLam-arity static-knowledge)
@@ -785,10 +807,10 @@
                                  (make-EnvLexicalReference 
                                   (ensure-natural (sub1 (length (App-operands exp))))
                                   #f))
-                             next-linkage)]
+                             next-linkage-expects-single)]
          [operand-codes (map (lambda: ([operand : Expression]
                                        [target : Target])
-                                      (compile operand extended-cenv target next-linkage))
+                                      (compile operand extended-cenv target next-linkage-expects-single))
                              (App-operands exp)
                              (build-list (length (App-operands exp))
                                          (lambda: ([i : Natural])
@@ -996,7 +1018,6 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     ;; FIXME: this needs to error out instead!
                      (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
                                                                         (make-Const 0))))
                      proc-return
@@ -1041,6 +1062,8 @@
                      (make-instruction-sequence
                       `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
 
+
+	  ;; FIXME: this isn't doing the proper checks!!!
           [(NextLinkage/Expects? linkage)
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
@@ -1114,13 +1137,57 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     ;; FIXME: this needs to raise a runtime error here!
                      (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
                                                                         (make-Const 0))))                     
                      proc-return
                      (make-instruction-sequence
                       `(,(make-AssignImmediateStatement target (make-Reg 'val))
-                        ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))])])))
+                        ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))])]
+
+
+
+	  ;; FIXME!!! this isn't doing the correct checks!
+	  [(LabelLinkage/Expects? linkage)
+           (cond [(eq? target 'val)
+                  ;; This case happens for a function call that isn't in
+                  ;; tail position.
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence 
+                      `(,(make-PushControlFrame/Call proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     ;; FIXME: this may need to raise a runtime error here!
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))
+                     proc-return
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage)))))))]
+                 
+                 [else
+                  ;; This case happens for evaluating arguments, since the
+                  ;; arguments are being installed into the scratch space.
+                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                        proc-return-multiple)])
+                    (append-instruction-sequences
+                     (make-instruction-sequence
+                      `(,(make-PushControlFrame/Call proc-return)))
+                     maybe-install-jump-address
+                     (make-instruction-sequence
+                      `(,(make-GotoStatement entry-point-target)))
+                     proc-return-multiple
+                     ;; FIXME: this may need to raise a runtime error here!
+                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
+                                                                        (make-Const 0))))                     
+                     proc-return
+                     (make-instruction-sequence
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val))
+                        ,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage)))))))])])))
 
 
 
@@ -1163,9 +1230,9 @@
                     (compile (Let1-rhs exp)
                              (cons '? cenv)
                              (make-EnvLexicalReference 0 #f)
-                             next-linkage)]
+                             next-linkage-expects-single)]
           [after-let1 : Symbol (make-label 'afterLetOne)]
-          [after-body-code : LabelLinkage (make-LabelLinkage (make-label 'afterLetBody))]
+          [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment (cons (extract-static-knowledge (Let1-rhs exp)
                                                                                   (cons '? cenv))
                                                         cenv)]
@@ -1178,9 +1245,12 @@
                          [(ReturnLinkage? linkage)
                           linkage]
                          [(ReturnLinkage/NonTail? linkage)
-                          after-body-code]
+                          (make-LabelLinkage after-body-code)]
                          [(LabelLinkage? linkage)
-                          after-body-code])]
+                          (make-LabelLinkage after-body-code)]
+			 [(LabelLinkage/Expects? linkage)
+			  (make-LabelLinkage/Expects after-body-code
+						     (LabelLinkage/Expects-expects linkage))])]
           [body-target : Target (adjust-target-depth target 1)]
           [body-code : InstructionSequence
                      (compile (Let1-body exp) extended-cenv body-target let-linkage)])
@@ -1191,7 +1261,7 @@
            (make-instruction-sequence `(,(make-PushEnvironment 1 #f)))
            rhs-code
            body-code
-           (LabelLinkage-label after-body-code)
+           after-body-code
            (make-instruction-sequence `(,(make-PopEnvironment (make-Const 1) (make-Const 0))))
            after-let1))))
 
@@ -1201,7 +1271,7 @@
 (define (compile-let-void exp cenv target linkage)
   (let*: ([n : Natural (LetVoid-count exp)]
           [after-let : Symbol (make-label 'afterLet)]
-          [after-body-code : LabelLinkage (make-LabelLinkage (make-label 'afterLetBody))]
+          [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment (append (build-list (LetVoid-count exp) 
                                                                       (lambda: ([i : Natural]) '?))
                                                           cenv)]
@@ -1214,9 +1284,12 @@
                          [(ReturnLinkage? linkage)
                           linkage]
                          [(ReturnLinkage/NonTail? linkage)
-                          after-body-code]
+                          (make-LabelLinkage after-body-code)]
                          [(LabelLinkage? linkage)
-                          after-body-code])]
+                          (make-LabelLinkage after-body-code)]
+                         [(LabelLinkage/Expects? linkage)
+                          (make-LabelLinkage/Expects after-body-code 
+						     (LabelLinkage/Expects-expects linkage))])]
           [body-target : Target (adjust-target-depth target n)]
           [body-code : InstructionSequence
                      (compile (LetVoid-body exp) extended-cenv body-target let-linkage)])
@@ -1228,7 +1301,7 @@
                (make-instruction-sequence `(,(make-PushEnvironment n (LetVoid-boxes? exp))))
                empty-instruction-sequence)
            body-code
-           (LabelLinkage-label after-body-code)
+           after-body-code
            (if (> n 0)
                (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) (make-Const 0))))
                empty-instruction-sequence)
@@ -1249,7 +1322,7 @@
                                       (reverse (LetRec-procs exp)))
                                  cenv)]
           [n : Natural (length (LetRec-procs exp))]
-          [after-body-code : LabelLinkage (make-LabelLinkage (make-label 'afterBodyCode))]
+          [after-body-code : Symbol (make-label 'afterBodyCode)]
           [letrec-linkage : Linkage (cond
                                       [(NextLinkage? linkage)
                                        linkage]
@@ -1258,9 +1331,12 @@
                                       [(ReturnLinkage? linkage)
                                        linkage]
                                       [(ReturnLinkage/NonTail? linkage)
-                                       after-body-code]
+                                       (make-LabelLinkage after-body-code)]
                                       [(LabelLinkage? linkage)
-                                       after-body-code])])
+                                       (make-LabelLinkage after-body-code)]
+                                      [(LabelLinkage/Expects? linkage)
+                                       (make-LabelLinkage/Expects after-body-code
+								  (LabelLinkage/Expects-expects linkage))])])
          (end-with-linkage
           linkage
           extended-cenv
@@ -1276,7 +1352,7 @@
                                 (compile-lambda-shell lam 
                                                       extended-cenv
                                                       (make-EnvLexicalReference i #f) 
-                                                      next-linkage))
+                                                      next-linkage-expects-single))
                        (LetRec-procs exp)
                        (build-list n (lambda: ([i : Natural]) (ensure-natural (- n 1 i))))))
            
@@ -1293,7 +1369,8 @@
            
            ;; Compile the body
            (compile (LetRec-body exp) extended-cenv (adjust-target-depth target n) letrec-linkage)
-           (LabelLinkage-label after-body-code)
+
+           after-body-code
            (if (> n 0)
                (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) (make-Const 0))))
                empty-instruction-sequence)))))
@@ -1323,37 +1400,47 @@
 (: compile-with-cont-mark (WithContMark CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-with-cont-mark exp cenv target linkage)
   (cond
-    [(or (ReturnLinkage/NonTail? linkage) (ReturnLinkage? linkage))
+    [(or (ReturnLinkage/NonTail? linkage) 
+	 (ReturnLinkage? linkage))
      (append-instruction-sequences
-      (compile (WithContMark-key exp) cenv 'val next-linkage)
+      (compile (WithContMark-key exp) cenv 'val next-linkage-expects-single)
       (make-instruction-sequence `(,(make-AssignImmediateStatement
                                      (make-ControlFrameTemporary 'pendingContinuationMarkKey)
                                      (make-Reg 'val))))
-      (compile (WithContMark-value exp) cenv 'val next-linkage)
+      (compile (WithContMark-value exp) cenv 'val next-linkage-expects-single)
       (make-instruction-sequence `(,(make-PerformStatement
                                      (make-InstallContinuationMarkEntry!))))
       (compile (WithContMark-body exp) cenv target linkage))]
     
     [(or (NextLinkage? linkage)
+         (LabelLinkage? linkage)
          (NextLinkage/Expects? linkage)
-         (LabelLinkage? linkage))
-     (end-with-linkage 
-      linkage cenv
-      (append-instruction-sequences
-       ;; Making a continuation frame; isn't really used for anything
-       ;; but recording the key/value data.
-       (make-instruction-sequence 
-        `(,(make-PushControlFrame/Generic)))
-       (compile (WithContMark-key exp) cenv 'val next-linkage)
-       (make-instruction-sequence `(,(make-AssignImmediateStatement
-                                      (make-ControlFrameTemporary 'pendingContinuationMarkKey)
-                                      (make-Reg 'val))))
-       (compile (WithContMark-value exp) cenv 'val next-linkage)
-       (make-instruction-sequence `(,(make-PerformStatement
-                                      (make-InstallContinuationMarkEntry!))))
-       (compile (WithContMark-body exp) cenv target next-linkage)
-       (make-instruction-sequence
-        `(,(make-PopControlFrame)))))]))
+	 (LabelLinkage/Expects? linkage))
+     (let ([body-next-linkage (cond [(NextLinkage? linkage)
+				next-linkage]
+			       [(LabelLinkage? linkage)
+				next-linkage]
+			       [(NextLinkage/Expects? linkage)
+				linkage]
+			       [(LabelLinkage/Expects? linkage)
+				(make-NextLinkage/Expects (LabelLinkage/Expects-expects linkage))])])
+       (end-with-linkage 
+	linkage cenv
+	(append-instruction-sequences
+	 ;; Making a continuation frame; isn't really used for anything
+	 ;; but recording the key/value data.
+	 (make-instruction-sequence 
+	  `(,(make-PushControlFrame/Generic)))
+	 (compile (WithContMark-key exp) cenv 'val next-linkage-expects-single)
+	 (make-instruction-sequence `(,(make-AssignImmediateStatement
+					(make-ControlFrameTemporary 'pendingContinuationMarkKey)
+					(make-Reg 'val))))
+	 (compile (WithContMark-value exp) cenv 'val next-linkage-expects-single)
+	 (make-instruction-sequence `(,(make-PerformStatement
+					(make-InstallContinuationMarkEntry!))))
+	 (compile (WithContMark-body exp) cenv target body-next-linkage)
+	 (make-instruction-sequence
+	  `(,(make-PopControlFrame))))))]))
 
 
 

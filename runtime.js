@@ -50,8 +50,14 @@
     var isVector = function(x) { return (typeof(x) == 'object' && 
 					 x.type === 'vector') };
 
+
+    // This value will be dynamically determined.
+    // See findStackLimit later in this file.
+    var STACK_LIMIT_ESTIMATE = 100;
+
+
     var Machine = function() {
-	this.callsBeforeTrampoline = 100;
+	this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
 	this.val = undefined;
 	this.proc = undefined;
 	this.argcount = undefined;
@@ -1023,7 +1029,7 @@
     var trampoline = function(MACHINE, initialJump) {
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
-	MACHINE.callsBeforeTrampoline = 100;
+	MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
 	MACHINE.params.numBouncesBeforeYield = 
 	    MACHINE.params.maxNumBouncesBeforeYield;
 	MACHINE.running = true;
@@ -1035,7 +1041,7 @@
             } catch (e) {
 		if (typeof(e) === 'function') {
                     thunk = e;
-                    MACHINE.callsBeforeTrampoline = 100;
+                    MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
 
 		    if (MACHINE.params.numBouncesBeforeYield-- < 0) {
 			recomputeMaxNumBouncesBeforeYield(
@@ -1057,6 +1063,50 @@
 	MACHINE.running = false;
 	return MACHINE.params.currentSuccessHandler(MACHINE);
     };
+
+
+
+
+    // Approximately find the stack limit.
+    // This function assumes, on average, five variables or
+    // temporaries per stack frame.
+    var findStackLimit = function(after) {
+	var n = 1;
+	var limitDiscovered = false;
+	setTimeout(
+	    function() {
+		if(! limitDiscovered) {
+		    limitDiscovered = true;
+		    after(n);
+		}
+	    },
+	    0);
+	var infiniteLoop1 = function(x, y, z, w, k) {
+	    n++;
+	    return 1 + infiniteLoop2(y, z, w, k, x);
+	};
+	var infiniteLoop2 = function(x, y, z, w, k) {
+	    n++;
+	    return 1 + infiniteLoop1(y, z, w, k, x);
+	};
+	try {
+	    return 1 + infiniteLoop1(2, "seven", [1], {number: 8}, 2);
+	} catch (e) {
+	    limitDiscovered = true;
+	    after(n);
+	}
+    };
+
+
+    // Schedule a stack limit estimation.  If it fails, no harm, no
+    // foul (hopefully!)
+    setTimeout(function() {
+	findStackLimit(function(v) {
+	    // Trying to be a little conservative.
+	    STACK_LIMIT_ESTIMATE = Math.floor(v / 10);
+	});
+    },
+	       0);
 
 
 
@@ -1100,7 +1150,5 @@
 
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;
-
-
 
 }).call(this);

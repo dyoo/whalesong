@@ -322,3 +322,12 @@ allowing the RHS of assignments to use arbitrary expressions, since my
 runtime (JavaScript) supports it.  I should consolidate these
 structures; it may allow me to remove a few more instructions (like
 setting ControlLabel to 'val).
+
+
+
+
+
+
+
+flush-output must set callsBeforeTrampoline to 0, just because
+the browser needs control back to display changes to the dom.

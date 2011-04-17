@@ -303,14 +303,16 @@
                                                (ToplevelSet-pos exp))])
     (let ([get-value-code
            (compile (ToplevelSet-value exp) cenv lexical-pos
-                    next-linkage-expects-single)])
+                    next-linkage-expects-single)]
+	  [singular-context-check (compile-singular-context-check linkage)])
       (end-with-linkage
        linkage
        cenv
        (append-instruction-sequences
         get-value-code
         (make-instruction-sequence 
-	 `(,(make-AssignImmediateStatement target (make-Const (void))))))))))
+	 `(,(make-AssignImmediateStatement target (make-Const (void)))))
+	singular-context-check)))))
 
 
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -399,35 +401,41 @@
 ;; The lambda will close over the free variables.
 ;; Assumption: all of the lambda bodies have already been written out at the top, in -compile.
 (define (compile-lambda exp cenv target linkage) 
-  (end-with-linkage 
-   linkage
-   cenv
-   (make-instruction-sequence 
-    `(,(make-AssignPrimOpStatement 
-        target
-        (make-MakeCompiledProcedure (Lam-entry-label exp)
-                                    (if (Lam-rest? exp)
-                                        (make-ArityAtLeast (Lam-num-parameters exp))
-                                        (Lam-num-parameters exp))
-                                    (Lam-closure-map exp)
-                                    (Lam-name exp)))))))
+  (let ([singular-context-check (compile-singular-context-check linkage)])
+    (end-with-linkage 
+     linkage
+     cenv
+     (append-instruction-sequences
+      (make-instruction-sequence 
+       `(,(make-AssignPrimOpStatement 
+	   target
+	   (make-MakeCompiledProcedure (Lam-entry-label exp)
+				       (if (Lam-rest? exp)
+					   (make-ArityAtLeast (Lam-num-parameters exp))
+					   (Lam-num-parameters exp))
+				       (Lam-closure-map exp)
+				       (Lam-name exp)))))
+      singular-context-check))))
 
 
 (: compile-lambda-shell (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Write out code for lambda expressions, minus the closure map.
 ;; Assumption: all of the lambda bodies have already been written out at the top, in -compile.
 (define (compile-lambda-shell exp cenv target linkage) 
-  (end-with-linkage 
-   linkage
-   cenv
-   (make-instruction-sequence 
-    `(,(make-AssignPrimOpStatement 
-        target
-        (make-MakeCompiledProcedureShell (Lam-entry-label exp)
-                                         (if (Lam-rest? exp)
-                                             (make-ArityAtLeast (Lam-num-parameters exp))
-                                             (Lam-num-parameters exp))
-                                         (Lam-name exp)))))))
+  (let ([singular-context-check (compile-singular-context-check linkage)])
+    (end-with-linkage 
+     linkage
+     cenv
+     (append-instruction-sequences
+      (make-instruction-sequence 
+       `(,(make-AssignPrimOpStatement 
+	   target
+	   (make-MakeCompiledProcedureShell (Lam-entry-label exp)
+					    (if (Lam-rest? exp)
+						(make-ArityAtLeast (Lam-num-parameters exp))
+						(Lam-num-parameters exp))
+					    (Lam-name exp)))))
+      singular-context-check))))
 
 
 (: compile-lambda-body (Lam CompileTimeEnvironment -> InstructionSequence))

@@ -485,19 +485,19 @@
         (list 126389 42 (make-toplevel '(+) (list (lookup-primitive '+))))))
 
 
-;; GetControlStackLabel
+;; ControlStackLabel
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         foo
                         ,(make-PushControlFrame/Call (make-LinkedLabel 'foo 'foo))
-                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))))])
+                        ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))))])
   (test (machine-proc (run! m))
         'foo))
 
 
-;; GetControlStackLabel
+;; ControlStackLabel
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         ,(make-PushControlFrame/Call (make-LinkedLabel 'foo-single 'foo-multiple))
-                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                        ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
                         ,(make-GotoStatement (make-Reg 'proc))
                         foo-single
                         ,(make-AssignImmediateStatement 'val (make-Const "single"))
@@ -510,7 +510,7 @@
         "single"))
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         ,(make-PushControlFrame/Call (make-LinkedLabel 'foo-single 'foo-multiple))
-                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel/MultipleValueReturn))
+                        ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
                         ,(make-GotoStatement (make-Reg 'proc))
                         foo-single
                         ,(make-AssignImmediateStatement 'val (make-Const "single"))
@@ -526,7 +526,7 @@
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         ,(make-PushControlFrame/Prompt default-continuation-prompt-tag
                                                        (make-LinkedLabel 'foo-single 'foo-multiple))
-                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                        ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
                         ,(make-GotoStatement (make-Reg 'proc))
                         foo-single
                         ,(make-AssignImmediateStatement 'val (make-Const "single"))
@@ -540,7 +540,7 @@
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const #f))
                         ,(make-PushControlFrame/Prompt default-continuation-prompt-tag
                                                        (make-LinkedLabel 'foo-single 'foo-multiple))
-                        ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel/MultipleValueReturn))
+                        ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
                         ,(make-GotoStatement (make-Reg 'proc))
                         foo-single
                         ,(make-AssignImmediateStatement 'val (make-Const "single"))

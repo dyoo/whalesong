@@ -516,46 +516,6 @@
                    [else
                     (error 'apply-primitive-procedure)]))]
           
-          [(GetControlStackLabel? op)
-           (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
-                                (cond
-                                  [(GenericFrame? frame)
-                                   (error 'GetControlStackLabel)]
-                                  [(PromptFrame? frame)
-                                   (let ([label (PromptFrame-return frame)])
-                                     (cond
-                                       [(symbol? label)
-                                        label]
-                                       [(LinkedLabel? label)
-                                        (LinkedLabel-label label)]))]
-                                  [(CallFrame? frame)
-                                   (let ([label (CallFrame-return frame)])
-                                     (cond
-                                       [(symbol? label)
-                                        label]
-                                       [(LinkedLabel? label)
-                                        (LinkedLabel-label label)]))])))]
-          
-          [(GetControlStackLabel/MultipleValueReturn? op)
-           (target-updater! m (let ([frame (ensure-frame (first (machine-control m)))])
-                                (cond
-                                  [(GenericFrame? frame)
-                                   (error 'GetControlStackLabel/MultipleValueReturn)]
-                                  [(PromptFrame? frame)
-                                   (let ([label (PromptFrame-return frame)])
-                                     (cond
-                                       [(symbol? label) 
-                                        (error 'GetControlStackLabel/MultipleValueReturn)]
-                                       [(LinkedLabel? label)
-                                        (LinkedLabel-linked-to label)]))]
-                                  [(CallFrame? frame)
-                                   (let ([label (CallFrame-return frame)])
-                                     (cond
-                                       [(symbol? label) 
-                                        (error 'GetControlStackLabel/MultipleValueReturn)]
-                                       [(LinkedLabel? label)
-                                        (LinkedLabel-linked-to label)]))])))]
-          
           [(CaptureEnvironment? op)
            (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
                                                               (CaptureEnvironment-skip op))))]
@@ -755,7 +715,33 @@
 
     [(SubtractArg? an-oparg)
      (- (ensure-number (evaluate-oparg m (SubtractArg-lhs an-oparg)))
-        (ensure-number (evaluate-oparg m (SubtractArg-rhs an-oparg))))]))
+        (ensure-number (evaluate-oparg m (SubtractArg-rhs an-oparg))))]
+
+
+
+    [(ControlStackLabel? an-oparg)
+     (let ([frame (ensure-frame (first (machine-control m)))])
+       (cond
+	[(GenericFrame? frame)
+	 (error 'GetControlStackLabel)]
+	[(PromptFrame? frame)
+	 (let ([label (PromptFrame-return frame)])
+	   (LinkedLabel-label label))]
+	[(CallFrame? frame)
+	 (let ([label (CallFrame-return frame)])
+	   (LinkedLabel-label label))]))]
+    
+    [(ControlStackLabel/MultipleValueReturn? an-oparg)
+     (let ([frame (ensure-frame (first (machine-control m)))])
+       (cond
+	[(GenericFrame? frame)
+	 (error 'GetControlStackLabel/MultipleValueReturn)]
+	[(PromptFrame? frame)
+	 (let ([label (PromptFrame-return frame)])
+	   (LinkedLabel-linked-to label))]
+	[(CallFrame? frame)
+	 (let ([label (CallFrame-return frame)])
+	   (LinkedLabel-linked-to label))]))]))
 
 
 (: ensure-closure-or-false (SlotValue -> (U closure #f)))

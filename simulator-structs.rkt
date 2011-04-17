@@ -66,7 +66,7 @@
   #:transparent)
 
 
-(define-struct: CallFrame ([return : (U Symbol LinkedLabel)]
+(define-struct: CallFrame ([return : LinkedLabel]
                            ;; The procedure being called.  Used to optimize self-application
                            [proc : (U closure #f)]
                            ;; TODO: add continuation marks
@@ -76,7 +76,7 @@
   #:mutable)  ;; mutable because we want to allow mutation of proc.
 
 (define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
-                             [return : (U Symbol LinkedLabel)]
+                             [return : LinkedLabel]
                              [env-depth : Natural]
                              [temps : (HashTable Symbol PrimitiveValue)]
                              [marks : (HashTable PrimitiveValue PrimitiveValue)])

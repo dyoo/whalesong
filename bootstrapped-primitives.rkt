@@ -61,7 +61,7 @@
                                  ,(make-PerformStatement 
                                    (make-RestoreControl! default-continuation-prompt-tag))
                                  ,(make-PerformStatement (make-RestoreEnvironment!))
-                                 ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+                                 ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
                                  ,(make-PopControlFrame)
                                  ,(make-GotoStatement (make-Reg 'proc)))))))
 
@@ -174,11 +174,11 @@
        ,(make-TestAndBranchStatement 'one? 'argcount on-single-value)
        ;; values simply keeps the values on the stack, preserves the argcount, and does a return
        ;; to the multiple-value-return address.
-       ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel/MultipleValueReturn))
+       ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
        ,(make-PopControlFrame)
        ,(make-GotoStatement (make-Reg 'proc))
        ,on-single-value
-       ,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+       ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
        ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
        ,(make-PopEnvironment (make-Const 1) (make-Const 0))
        ,(make-PopControlFrame)

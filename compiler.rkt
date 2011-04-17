@@ -224,42 +224,75 @@
      (make-instruction-sequence `(,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage)))))]))
 
 
+(: compile-singular-context-check (Linkage -> InstructionSequence))
+;; Emits code to raise a runtime error if the linkage expects a singular
+;; value, but the code being generated is not producing it.
+(define (compile-singular-context-check linkage)
+  (cond [(NextLinkage? linkage)
+	 empty-instruction-sequence]
+	[(LabelLinkage? linkage)
+	 empty-instruction-sequence]
+	[(ReturnLinkage? linkage)
+	 empty-instruction-sequence]
+	[(ReturnLinkage/NonTail? linkage)
+	 empty-instruction-sequence]
+	[(NextLinkage/Expects? linkage)
+	 (if (= (NextLinkage/Expects-expects linkage) 1)
+	     empty-instruction-sequence
+	     (make-instruction-sequence 
+	      `(,(make-PerformStatement 
+		  (make-RaiseContextExpectedValuesError! 1)))))]
+	[(LabelLinkage/Expects? linkage)
+	 (if (= (LabelLinkage/Expects-expects linkage) 1)
+	     empty-instruction-sequence
+	     (make-instruction-sequence 
+	      `(,(make-PerformStatement 
+		  (make-RaiseContextExpectedValuesError! 1)))))]))
+
 
 (: compile-constant (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-constant exp cenv target linkage)
-  ;; Compiles constant values.
-  (end-with-linkage linkage
-                    cenv
-                    (make-instruction-sequence
-                     `(,(make-AssignImmediateStatement target (make-Const (Constant-v exp)))))))
+  (let ([singular-context-check (compile-singular-context-check linkage)])
+    ;; Compiles constant values.
+    (end-with-linkage linkage
+		      cenv
+		      (append-instruction-sequences
+		       (make-instruction-sequence
+			`(,(make-AssignImmediateStatement target (make-Const (Constant-v exp)))))
+		       singular-context-check))))
 
 
 
 (: compile-local-reference (LocalRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-local-reference exp cenv target linkage)
-  ;; Compiles local references.
-  (end-with-linkage linkage
-                    cenv
-                    (make-instruction-sequence
-                     `(,(make-AssignImmediateStatement 
-                         target
-                         (make-EnvLexicalReference (LocalRef-depth exp)
-                                                   (LocalRef-unbox? exp)))))))
+  (let ([singular-context-check (compile-singular-context-check linkage)])
+    (end-with-linkage linkage
+		      cenv
+		      (append-instruction-sequences
+		       (make-instruction-sequence
+			`(,(make-AssignImmediateStatement 
+			    target
+			    (make-EnvLexicalReference (LocalRef-depth exp)
+						      (LocalRef-unbox? exp)))))
+		       singular-context-check))))
 
 
 (: compile-toplevel-reference (ToplevelRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles toplevel references.
 (define (compile-toplevel-reference exp cenv target linkage)
-  (end-with-linkage linkage
-                    cenv
-                    (make-instruction-sequence
-                     `(,(make-PerformStatement (make-CheckToplevelBound!
-                                                (ToplevelRef-depth exp)
-                                                (ToplevelRef-pos exp)))
-                       ,(make-AssignImmediateStatement 
-                         target
-                         (make-EnvPrefixReference (ToplevelRef-depth exp)
-                                                  (ToplevelRef-pos exp)))))))
+  (let ([singular-context-check (compile-singular-context-check linkage)])
+    (end-with-linkage linkage
+		      cenv
+		      (append-instruction-sequences
+		       (make-instruction-sequence
+			`(,(make-PerformStatement (make-CheckToplevelBound!
+						   (ToplevelRef-depth exp)
+						   (ToplevelRef-pos exp)))
+			  ,(make-AssignImmediateStatement 
+			    target
+			    (make-EnvPrefixReference (ToplevelRef-depth exp)
+						     (ToplevelRef-pos exp)))))
+		       singular-context-check))))
 
 
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -276,7 +309,8 @@
        cenv
        (append-instruction-sequences
         get-value-code
-        (make-instruction-sequence `(,(make-AssignImmediateStatement target (make-Const (void))))))))))
+        (make-instruction-sequence 
+	 `(,(make-AssignImmediateStatement target (make-Const (void))))))))))
 
 
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))

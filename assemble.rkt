@@ -2,6 +2,7 @@
 (require "il-structs.rkt"
          "lexical-structs.rkt"
          "helpers.rkt"
+	 "assemble-structs.rkt"
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
          racket/string
@@ -170,7 +171,11 @@ EOF
        empty]
       [(SubtractArg? an-input)
        (append (collect-input (SubtractArg-lhs an-input))
-               (collect-input (SubtractArg-rhs an-input)))]))
+               (collect-input (SubtractArg-rhs an-input)))]
+      [(ControlStackLabel? an-input)
+       empty]
+      [(ControlStackLabel/MultipleValueReturn? an-input)
+       empty]))
   
   (: collect-location ((U Reg Label) -> (Listof Symbol)))
   (define (collect-location a-location)
@@ -190,10 +195,6 @@ EOF
       [(MakeCompiledProcedureShell? op)
        (list (MakeCompiledProcedureShell-label op))]
       [(ApplyPrimitiveProcedure? op)
-       empty]
-      [(GetControlStackLabel? op)
-       empty]
-      [(GetControlStackLabel/MultipleValueReturn? op)
        empty]
       [(CaptureEnvironment? op)
        empty]
@@ -457,12 +458,6 @@ EOF
     [(ApplyPrimitiveProcedure? op)
      (format "MACHINE.proc(MACHINE)")]
     
-    [(GetControlStackLabel? op)
-     (format "MACHINE.control[MACHINE.control.length-1].label")]
-
-    [(GetControlStackLabel/MultipleValueReturn? op)
-     (format "MACHINE.control[MACHINE.control.length-1].label.multipleValueReturn")]
-  
     [(CaptureEnvironment? op)
      (format "MACHINE.env.slice(0, MACHINE.env.length - ~a)"
              (CaptureEnvironment-skip op))]

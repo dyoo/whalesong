@@ -31,7 +31,11 @@
     [(EnvWholePrefixReference? v)
      (assemble-whole-prefix-reference v)]
     [(SubtractArg? v)
-     (assemble-subtractarg v)]))
+     (assemble-subtractarg v)]
+    [(ControlStackLabel? v)
+     (assemble-control-stack-label v)]
+    [(ControlStackLabel/MultipleValueReturn? v)
+     (assemble-control-stack-label/multiple-value-return v)]))
 
 
 
@@ -125,3 +129,14 @@
   (format "(~a - ~a)"
           (assemble-oparg (SubtractArg-lhs s))
           (assemble-oparg (SubtractArg-rhs s))))
+
+
+(: assemble-control-stack-label (ControlStackLabel -> String))
+(define (assemble-control-stack-label a-csl)
+  "MACHINE.control[MACHINE.control.length-1].label")
+
+
+(: assemble-control-stack-label/multiple-value-return (ControlStackLabel/MultipleValueReturn -> String))
+(define (assemble-control-stack-label/multiple-value-return a-csl)
+  "MACHINE.control[MACHINE.control.length-1].label.multipleValueReturn")
+

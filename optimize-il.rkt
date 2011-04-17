@@ -65,7 +65,11 @@
      (make-EnvWholePrefixReference (ensure-natural (+ n (EnvWholePrefixReference-depth oparg))))]
     [(SubtractArg? oparg)
      (make-SubtractArg (adjust-oparg-depth (SubtractArg-lhs oparg) n)
-                       (adjust-oparg-depth (SubtractArg-rhs oparg) n))]))
+                       (adjust-oparg-depth (SubtractArg-rhs oparg) n))]
+    [(ControlStackLabel? oparg)
+     oparg]
+    [(ControlStackLabel/MultipleValueReturn? oparg)
+     oparg]))
 
 
 (define-predicate natural? Natural)

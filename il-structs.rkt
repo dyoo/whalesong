@@ -27,6 +27,8 @@
                       EnvPrefixReference  ;; a reference into an element in the toplevel.
                       EnvWholePrefixReference ;; a reference into a toplevel prefix in the stack.
                       SubtractArg
+		      ControlStackLabel
+		      ControlStackLabel/MultipleValueReturn
                       ))
 
 
@@ -55,6 +57,21 @@
 (define-struct: SubtractArg ([lhs : OpArg]
                              [rhs : OpArg])
   #:transparent)
+
+
+;; Gets the return address embedded at the top of the control stack.
+(define-struct: ControlStackLabel ()
+  #:transparent)
+
+;; Gets the secondary (mulitple-value-return) return address embedded
+;; at the top of the control stack.
+(define-struct: ControlStackLabel/MultipleValueReturn ()
+  #:transparent)
+
+
+
+
+
 
 
 
@@ -172,11 +189,6 @@
                                   MakeCompiledProcedureShell
                                   ApplyPrimitiveProcedure
 
-                                  ;; Gets at the single-value-return address.
-                                  GetControlStackLabel
-                                  ;; Gets at the multiple-value-return address.
-                                  GetControlStackLabel/MultipleValueReturn
-                                  
                                   MakeBoxedEnvironmentValue
 
                                   CaptureEnvironment
@@ -226,12 +238,6 @@
   #:transparent)
 
 
-
-;; Gets the return address embedded at the top of the control stack.
-(define-struct: GetControlStackLabel ()
-  #:transparent)
-(define-struct: GetControlStackLabel/MultipleValueReturn ()
-  #:transparent)
 
 
 (define-struct: MakeBoxedEnvironmentValue ([depth : Natural])
@@ -434,16 +440,6 @@
 
 (define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
 
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Assembly
-
-(define-struct: BasicBlock ([name : Symbol] 
-                            [stmts : (Listof UnlabeledStatement)]) 
-  #:transparent)
 
 
 

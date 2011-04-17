@@ -205,13 +205,13 @@
 (define (compile-linkage cenv linkage)
   (cond
     [(ReturnLinkage? linkage)
-     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+     (make-instruction-sequence `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
                                   ,(make-PopEnvironment (make-Const (length cenv)) 
                                                         (make-Const 0))
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(ReturnLinkage/NonTail? linkage)
-     (make-instruction-sequence `(,(make-AssignPrimOpStatement 'proc (make-GetControlStackLabel))
+     (make-instruction-sequence `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
                                   ,(make-PopControlFrame)
                                   ,(make-GotoStatement (make-Reg 'proc))))]
     [(NextLinkage? linkage)

@@ -233,6 +233,10 @@ EOF
       [(InstallContinuationMarkEntry!? op)
        empty]
       [(RaiseContextExpectedValuesError!? op)
+       empty]
+      [(RaiseArityMismatchError!? op)
+       empty]
+      [(RaiseOperatorApplicationError!? op)
        empty]))
   
   (unique/eq?

@@ -1070,7 +1070,9 @@
     // Approximately find the stack limit.
     // This function assumes, on average, five variables or
     // temporaries per stack frame.
+    // This will never report a number greater than MAXIMUM_CAP.
     var findStackLimit = function(after) {
+	var MAXIMUM_CAP = 100000;
 	var n = 1;
 	var limitDiscovered = false;
 	setTimeout(
@@ -1081,17 +1083,23 @@
 		}
 	    },
 	    0);
-	var infiniteLoop1 = function(x, y, z, w, k) {
+	var loop1 = function(x, y, z, w, k) {
+	    // Ensure termination, just in case JavaScript ever
+	    // does eliminate stack limits.
+	    if (n >= MAXIMUM_CAP) { return; }
 	    n++;
-	    return 1 + infiniteLoop2(y, z, w, k, x);
+	    return 1 + loop2(y, z, w, k, x);
 	};
-	var infiniteLoop2 = function(x, y, z, w, k) {
+	var loop2 = function(x, y, z, w, k) {
 	    n++;
-	    return 1 + infiniteLoop1(y, z, w, k, x);
+	    return 1 + loop1(y, z, w, k, x);
 	};
 	try {
-	    return 1 + infiniteLoop1(2, "seven", [1], {number: 8}, 2);
+	    var dontCare = 1 + loop1(2, "seven", [1], {number: 8}, 2);
 	} catch (e) {
+	    // ignore exceptions.
+	}
+	if (! limitDiscovered) { 
 	    limitDiscovered = true;
 	    after(n);
 	}
@@ -1103,7 +1111,7 @@
     setTimeout(function() {
 	findStackLimit(function(v) {
 	    // Trying to be a little conservative.
-	    STACK_LIMIT_ESTIMATE = Math.floor(v / 10);
+	    STACK_LIMIT_ESTIMATE = Math.floor(v / 2);
 	});
     },
 	       0);

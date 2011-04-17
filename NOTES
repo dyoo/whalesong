@@ -2,7 +2,9 @@ Some possible optimizations with application:
 
     If any of the operands are constant (either by being variable
     lookups or literal constants), and if all of them are side-effect
-    free, then juggle-operands might not be necessary.
+    free, then juggle-operands might not be necessary.  I think this
+    is similar to the "reorder" optimization described in casey's
+    paper.
     
     In a self-application, it's not necessary to compute the operator,
     since the value is in the top control frame.  A parameterization
@@ -329,5 +331,32 @@ setting ControlLabel to 'val).
 
 
 
-flush-output must set callsBeforeTrampoline to 0, just because
+flush-output must immediately yield control to the browser, because
 the browser needs control back to display changes to the dom.
+Basically, we're simulating an IO interrupt here...
+
+
+
+
+
+
+
+April 17,  2011
+
+The dynamic recomputation for gas is only controlling one parameter:
+how many times to run the trampoline before bouncing off to the
+browser.  But we really have two parameters that need dynamic
+computation
+
+    *  FN: the number of function calls before invoking the trampoline.
+
+        FN is necessarily bounded above by the browser.  The larger it
+        is, the more efficient the trampoline can be.
+
+    *  TI: the number of trampoline invokations before yielding to the browser
+
+Both of these should be under some dynamic controller.  We want to
+optimize the efficiency of the runtime.  I don't know what the
+function is, but we want to optimize the parameters FN and TI such
+that it maximizes FN and minimizes TI, and yet gives us the browser
+reactivity we want.

@@ -531,8 +531,10 @@
             [(Prefix? op-knowledge)
              (error 'impossible)]
             [(Const? op-knowledge)
-	     ;; FIXME: this needs to be a runtime error to preserve Racket's semantics.
-             (error 'application "Can't apply constant ~s as a function" (Const-const op-knowledge))]))))
+	     (make-instruction-sequence `(,(make-AssignImmediateStatement 'proc op-knowledge)
+					  ,(make-PerformStatement
+					    (make-RaiseOperatorApplicationError! (make-Reg 'proc)))))]))))
+
 
 
 (: compile-general-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -829,48 +831,50 @@
    (StaticallyKnownLam App CompileTimeEnvironment Target Linkage 
                        -> InstructionSequence))
 (define (compile-statically-known-lam-application static-knowledge exp cenv target linkage)
-  (unless (arity-matches? (StaticallyKnownLam-arity static-knowledge)
-                          (length (App-operands exp)))
-	  ;; FIXME: this needs to be turned into a runtime error, not a compile-time error, to preserve
-	  ;; Racket semantics.
-    (error 'arity-mismatch "~s expected ~s arguments, but received ~s" 
-           (StaticallyKnownLam-name static-knowledge)
-           (StaticallyKnownLam-arity static-knowledge)
-           (length (App-operands exp))))
-  
-  (let* ([extended-cenv 
-          (extend-compile-time-environment/scratch-space 
-           cenv 
-           (length (App-operands exp)))]
-         [proc-code (compile (App-operator exp)
-                             extended-cenv 
-                             (if (empty? (App-operands exp))
-                                 'proc
-                                 (make-EnvLexicalReference 
-                                  (ensure-natural (sub1 (length (App-operands exp))))
-                                  #f))
-                             next-linkage-expects-single)]
-         [operand-codes (map (lambda: ([operand : Expression]
-                                       [target : Target])
-                                      (compile operand extended-cenv target next-linkage-expects-single))
-                             (App-operands exp)
-                             (build-list (length (App-operands exp))
-                                         (lambda: ([i : Natural])
-                                                  (if (< i (sub1 (length (App-operands exp))))
-                                                      (make-EnvLexicalReference i #f)
-                                                      'val))))])    
-    (append-instruction-sequences
-     (if (not (empty? (App-operands exp)))
-         (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
-         empty-instruction-sequence)
-     proc-code
-     (juggle-operands operand-codes)
-     (compile-procedure-call/statically-known-lam static-knowledge 
-                                                  cenv
-                                                  extended-cenv 
-                                                  (length (App-operands exp))
-                                                  target
-                                                  linkage))))
+  (let ([arity-check
+	 (cond [(arity-matches? (StaticallyKnownLam-arity static-knowledge)
+				(length (App-operands exp)))
+		empty-instruction-sequence]
+	       [else
+		(make-instruction-sequence 
+		 `(,(make-PerformStatement
+		     (make-RaiseArityMismatchError! 
+		      (StaticallyKnownLam-arity static-knowledge)
+		      (make-Const (length (App-operands exp)))))))])])
+    (let* ([extended-cenv 
+	    (extend-compile-time-environment/scratch-space 
+	     cenv 
+	     (length (App-operands exp)))]
+	   [proc-code (compile (App-operator exp)
+			       extended-cenv 
+			       (if (empty? (App-operands exp))
+				   'proc
+				   (make-EnvLexicalReference 
+				    (ensure-natural (sub1 (length (App-operands exp))))
+				    #f))
+			       next-linkage-expects-single)]
+	   [operand-codes (map (lambda: ([operand : Expression]
+					 [target : Target])
+					(compile operand extended-cenv target next-linkage-expects-single))
+			       (App-operands exp)
+			       (build-list (length (App-operands exp))
+					   (lambda: ([i : Natural])
+						    (if (< i (sub1 (length (App-operands exp))))
+							(make-EnvLexicalReference i #f)
+							'val))))])    
+      (append-instruction-sequences
+       (if (not (empty? (App-operands exp)))
+	   (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+	   empty-instruction-sequence)
+       proc-code
+       (juggle-operands operand-codes)
+       arity-check
+       (compile-procedure-call/statically-known-lam static-knowledge 
+						    cenv
+						    extended-cenv 
+						    (length (App-operands exp))
+						    target
+						    linkage)))))
 
 
 (: juggle-operands ((Listof InstructionSequence) -> InstructionSequence))

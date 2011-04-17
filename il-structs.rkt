@@ -325,6 +325,22 @@
 (define-struct: RaiseContextExpectedValuesError! ([expected : Natural])
   #:transparent)
 
+
+;; Raises an exception that says that we're doing a
+;; procedure application, but got sent an incorrect number.
+(define-struct: RaiseArityMismatchError! ([expected : Arity]
+					  [received : OpArg])
+  #:transparent)
+
+
+;; Raises an exception that says that we're doing a
+;; procedure application, but got sent an incorrect number.
+(define-struct: RaiseOperatorApplicationError! ([operator : OpArg])
+  #:transparent)
+
+
+
+
 ;; Changes over the control located at the given argument from the structure in env[1]
 (define-struct: RestoreControl! ([tag : (U DefaultContinuationPromptTag OpArg)]) #:transparent)
 
@@ -351,6 +367,8 @@
                                UnspliceRestFromStack!
                             
                                RaiseContextExpectedValuesError!
+                               RaiseArityMismatchError!
+			       RaiseOperatorApplicationError!
                                
                                RestoreEnvironment!
                                RestoreControl!))

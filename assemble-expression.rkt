@@ -8,6 +8,8 @@
          racket/string
          racket/list)
 
+(provide assemble-op-expression)
+
 
 
 (: assemble-op-expression (PrimitiveOperator -> String))

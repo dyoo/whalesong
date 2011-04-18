@@ -16,8 +16,8 @@
 ;;          assemble-statement)
 
 
-;; ;; Parameter that controls the generation of a trace.
-;; (define current-emit-debug-trace? (make-parameter #f))
+;; Parameter that controls the generation of a trace.
+(define current-emit-debug-trace? (make-parameter #f))
 
 
 
@@ -303,112 +303,114 @@
 
 
 
-;; (: assemble-statement (UnlabeledStatement -> String))
-;; ;; Generates the code to assemble a statement.
-;; (define (assemble-statement stmt)
-;;   (string-append 
-;;    (if (current-emit-debug-trace?)
-;;        (format "if (typeof(window.console) !== 'undefined' && typeof(console.log) === 'function') { console.log(~s);\n}"
-;;                (format "~a" stmt))
-;;        "")
-;;    (cond
-;;      [(AssignImmediateStatement? stmt)
-;;       (let: ([t : String (assemble-target (AssignImmediateStatement-target stmt))]
-;; 	     [v : OpArg (AssignImmediateStatement-value stmt)])
-;;         (format "~a = ~a;" t (assemble-oparg v)))]
+(: assemble-statement (UnlabeledStatement -> String))
+;; Generates the code to assemble a statement.
+(define (assemble-statement stmt)
+  (string-append 
+   (if (current-emit-debug-trace?)
+       (format "if (typeof(window.console) !== 'undefined' && typeof(console.log) === 'function') { console.log(~s);\n}"
+               (format "~a" stmt))
+       "")
+   (cond
+     [(AssignImmediateStatement? stmt)
+      (let: ([t : String (assemble-target (AssignImmediateStatement-target stmt))]
+	     [v : OpArg (AssignImmediateStatement-value stmt)])
+        (format "~a = ~a;" t (assemble-oparg v)))]
      
-;;      [(AssignPrimOpStatement? stmt)
-;;       (format "~a=~a;" 
-;;               (assemble-target (AssignPrimOpStatement-target stmt))
-;;               (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
+     [(AssignPrimOpStatement? stmt)
+      (format "~a=~a;" 
+              (assemble-target (AssignPrimOpStatement-target stmt))
+              (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
      
-;;      [(PerformStatement? stmt)
-;;       (assemble-op-statement (PerformStatement-op stmt))]
+     [(PerformStatement? stmt)
+      (assemble-op-statement (PerformStatement-op stmt))]
      
-;;      [(TestAndBranchStatement? stmt)
-;;       (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
-;;              (cond
-;;                [(eq? test 'false?)
-;;                 (format "if (~a === false) { ~a }"
-;;                         (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
-;;                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-;;                [(eq? test 'one?)
-;;                 (format "if (~a === 1) { ~a }"
-;;                         (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
-;;                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-;;                [(eq? test 'primitive-procedure?)
-;;                 (format "if (typeof(~a) === 'function') { ~a };"
-;;                         (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
-;;                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]))]
+     [(TestAndBranchStatement? stmt)
+      (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
+             (cond
+               [(eq? test 'false?)
+                (format "if (~a === false) { ~a }"
+                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
+               [(eq? test 'one?)
+                (format "if (~a === 1) { ~a }"
+                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
+               [(eq? test 'primitive-procedure?)
+                (format "if (typeof(~a) === 'function') { ~a };"
+                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]))]
      
-;;      [(GotoStatement? stmt)
-;;       (assemble-jump (GotoStatement-target stmt))]
+     [(GotoStatement? stmt)
+      (assemble-jump (GotoStatement-target stmt))]
 
-;;      [(PushControlFrame/Generic? stmt)
-;;       "MACHINE.control.push(new RUNTIME.Frame());"]
+     [(PushControlFrame/Generic? stmt)
+      "MACHINE.control.push(new RUNTIME.Frame());"]
      
-;;      [(PushControlFrame/Call? stmt)
-;;       (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
-;;               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
-;;                 (cond
-;;                   [(symbol? label) label]
-;;                   [(LinkedLabel? label) (LinkedLabel-label label)])))]
+     [(PushControlFrame/Call? stmt)
+      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
+              (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
+                (cond
+                  [(symbol? label) label]
+                  [(LinkedLabel? label) (LinkedLabel-label label)])))]
 
-;;      [(PushControlFrame/Prompt? stmt)
-;;       ;; fixme: use a different frame structure
-;;       (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a, ~a));" 
-;;               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
-;;                 (cond
-;;                   [(symbol? label) label]
-;;                   [(LinkedLabel? label) (LinkedLabel-label label)]))
+     [(PushControlFrame/Prompt? stmt)
+      ;; fixme: use a different frame structure
+      (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a, ~a));" 
+              (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
+                (cond
+                  [(symbol? label) label]
+                  [(LinkedLabel? label) (LinkedLabel-label label)]))
 
-;;               (let: ([tag : (U DefaultContinuationPromptTag OpArg)
-;; 			  (PushControlFrame/Prompt-tag stmt)])
-;;                 (cond
-;;                   [(DefaultContinuationPromptTag? tag)
-;;                    (assemble-default-continuation-prompt-tag)]
-;;                   [(OpArg? tag)
-;;                    (assemble-oparg tag)])))]
+              (let: ([tag : (U DefaultContinuationPromptTag OpArg)
+			  (PushControlFrame/Prompt-tag stmt)])
+                (cond
+                  [(DefaultContinuationPromptTag? tag)
+                   (assemble-default-continuation-prompt-tag)]
+                  [(OpArg? tag)
+                   (assemble-oparg tag)])))]
      
-;;      [(PopControlFrame? stmt)
-;;       "MACHINE.control.pop();"]
+     [(PopControlFrame? stmt)
+      "MACHINE.control.pop();"]
      
-;;      [(PushEnvironment? stmt)
-;;       (if (= (PushEnvironment-n stmt) 0)
-;;           ""
-;;           (format "MACHINE.env.push(~a);" (string-join
-;;                                            (build-list (PushEnvironment-n stmt) 
-;;                                                        (lambda: ([i : Natural])
-;;                                                                 (if (PushEnvironment-unbox? stmt)
-;;                                                                     "[undefined]"
-;;                                                                     "undefined")))
-;;                                            ", ")))]
-;;      [(PopEnvironment? stmt)
-;;       (let: ([skip : Natural (PopEnvironment-skip stmt)])
-;;         (cond
-;;           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-;;            (format "MACHINE.env.length = MACHINE.env.length - ~a;"
-;;                    (assemble-oparg (PopEnvironment-n stmt)))]
-;;           [else
-;;            (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"
-;;                    (assemble-oparg (PopEnvironment-skip stmt))
-;;                    (assemble-oparg (PopEnvironment-n stmt))
-;;                    (assemble-oparg (PopEnvironment-n stmt)))]))]
+     [(PushEnvironment? stmt)
+      (if (= (PushEnvironment-n stmt) 0)
+          ""
+          (format "MACHINE.env.push(~a);" (string-join
+                                           (build-list (PushEnvironment-n stmt) 
+                                                       (lambda: ([i : Natural])
+                                                                (if (PushEnvironment-unbox? stmt)
+                                                                    "[undefined]"
+                                                                    "undefined")))
+                                           ", ")))]
+     [(PopEnvironment? stmt)
+      (let: ([skip : OpArg (PopEnvironment-skip stmt)])
+        (cond
+          [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
+           (format "MACHINE.env.length = MACHINE.env.length - ~a;"
+                   (assemble-oparg (PopEnvironment-n stmt)))]
+          [else
+           (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"
+                   (assemble-oparg (PopEnvironment-skip stmt))
+                   (assemble-oparg (PopEnvironment-n stmt))
+                   (assemble-oparg (PopEnvironment-n stmt)))]))]
      
-;;      [(PushImmediateOntoEnvironment? stmt)
-;;       (format "MACHINE.env.push(~a);"
-;;               (let: ([val-string : String
-;;                                  (cond [(PushImmediateOntoEnvironment-box? stmt)
-;;                                         (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]
-;;                                        [else
-;;                                         (assemble-oparg (PushImmediateOntoEnvironment-value stmt))])])
-;;                     val-string))])))
+     [(PushImmediateOntoEnvironment? stmt)
+      (format "MACHINE.env.push(~a);"
+              (let: ([val-string : String
+                                 (cond [(PushImmediateOntoEnvironment-box? stmt)
+                                        (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]
+                                       [else
+                                        (assemble-oparg (PushImmediateOntoEnvironment-value stmt))])])
+                    val-string))])))
 
 
-;; (: ensure-natural (Any -> Natural))
-;; (define (ensure-natural x)
-;;   (if (natural? x)
-;;       x
-;;       (error 'ensure-natural)))
+(define-predicate natural? Natural)
+
+(: ensure-natural (Any -> Natural))
+(define (ensure-natural x)
+  (if (natural? x)
+      x
+      (error 'ensure-natural)))
 
 

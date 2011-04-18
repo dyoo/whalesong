@@ -368,7 +368,7 @@
                             
                                RaiseContextExpectedValuesError!
                                RaiseArityMismatchError!
-			       #;RaiseOperatorApplicationError!
+			       RaiseOperatorApplicationError!
                                
                                RestoreEnvironment!
                                RestoreControl!))

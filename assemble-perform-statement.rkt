@@ -86,19 +86,28 @@
     [(SpliceListIntoStack!? op)
      (format "RUNTIME.spliceListIntoStack(MACHINE, ~a);"
              (assemble-oparg (SpliceListIntoStack!-depth op)))]
+
     [(UnspliceRestFromStack!? op)
      (format "RUNTIME.unspliceRestFromStack(MACHINE, ~a, ~a);"
              (assemble-oparg (UnspliceRestFromStack!-depth op))
              (assemble-oparg (UnspliceRestFromStack!-length op)))]
+
     [(InstallContinuationMarkEntry!? op)
      (string-append "RUNTIME.installContinuationMarkEntry(MACHINE,"
                     "MACHINE.control[MACHINE.control.length-1].pendingContinuationMarkKey,"
                     "MACHINE.val);")]
+
     [(RaiseContextExpectedValuesError!? op)
      (format "RUNTIME.raiseContextExpectedValuesError(MACHINE, ~a);"
              (RaiseContextExpectedValuesError!-expected op))]
 
 
     [(RaiseArityMismatchError!? op)
-     "fixme"]))
+     (format "RUNTIME.raiseArityMismatchError(MACHINE, ~a, ~a);"
+             (assemble-arity (RaiseArityMismatchError!-expected op))
+             (assemble-oparg (RaiseArityMismatchError!-received op)))]
 
+
+    [(RaiseOperatorApplicationError!? op)
+     (format "RUNTIME.raiseOperatorApplicationError(MACHINE, ~a);"
+             (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]))

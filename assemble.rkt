@@ -11,10 +11,10 @@
          racket/string
          racket/list)
 
-;; (provide assemble/write-invoke
-;;          fracture
-;;          assemble-basic-block
-;;          assemble-statement)
+(provide assemble/write-invoke
+         fracture
+         assemble-basic-block
+         assemble-statement)
 
 
 ;; Parameter that controls the generation of a trace.
@@ -22,136 +22,136 @@
 
 
 
-;; (: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
-;; ;; Writes out the JavaScript code that represents the anonymous invocation expression.
-;; (define (assemble/write-invoke stmts op)
-;;   (let: ([basic-blocks : (Listof BasicBlock) (fracture stmts)])
-;;     (fprintf op "(function(MACHINE, success, fail, params) {\n")
-;;     (fprintf op "var param;\n")
-;;     (fprintf op "var RUNTIME = plt.runtime;\n")
-;;     ((inst for-each BasicBlock Void)
-;;      (lambda: ([basic-block : BasicBlock])
-;; 	      (displayln (assemble-basic-block basic-block) op)
-;; 	      (newline op))
-;;      basic-blocks)
-;;     (write-linked-label-attributes stmts op)
-;;     (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
-;;     (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
-;;     (fprintf op #<<EOF
-;; for (param in params) {
-;;     if (params.hasOwnProperty(param)) {
-;;         MACHINE.params[param] = params[param];
-;;     }
-;; }
-;; EOF
-;;              )
-;;     (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
-;;              (BasicBlock-name (first basic-blocks)))))
+(: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
+;; Writes out the JavaScript code that represents the anonymous invocation expression.
+(define (assemble/write-invoke stmts op)
+  (let: ([basic-blocks : (Listof BasicBlock) (fracture stmts)])
+    (fprintf op "(function(MACHINE, success, fail, params) {\n")
+    (fprintf op "var param;\n")
+    (fprintf op "var RUNTIME = plt.runtime;\n")
+    (for-each
+     (lambda: ([basic-block : BasicBlock])
+	      (displayln (assemble-basic-block basic-block) op)
+	      (newline op))
+     basic-blocks)
+    (write-linked-label-attributes stmts op)
+    (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
+    (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
+    (fprintf op #<<EOF
+for (param in params) {
+    if (params.hasOwnProperty(param)) {
+        MACHINE.params[param] = params[param];
+    }
+}
+EOF
+             )
+    (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
+             (BasicBlock-name (first basic-blocks)))))
 
 
 
 
-;; ;; fracture: (listof stmt) -> (listof basic-block)
-;; (: fracture ((Listof Statement) -> (Listof BasicBlock)))
-;; (define (fracture stmts)
-;;   (let*: ([first-block-label : Symbol (if (and (not (empty? stmts))
-;; 					       (symbol? (first stmts)))
-;; 					  (first stmts)
-;; 					  (make-label 'start))]
-;; 	  [stmts : (Listof Statement) (if (and (not (empty? stmts))
-;; 					       (symbol? (first stmts)))
-;; 					  (rest stmts)
-;; 					  stmts)]
-;; 	  [jump-targets : (Listof Symbol)
-;; 			(cons first-block-label (collect-general-jump-targets stmts))])
-;;     (let: loop : (Listof BasicBlock)
-;;           ([name : Symbol first-block-label]
-;;            [acc : (Listof UnlabeledStatement) '()]
-;;            [basic-blocks  : (Listof BasicBlock) '()]
-;;            [stmts : (Listof Statement) stmts]
-;;            [last-stmt-goto? : Boolean #f])
-;;           (cond
-;;             [(null? stmts)
-;;              (reverse (cons (make-BasicBlock name (reverse acc))
-;;                             basic-blocks))]
-;;             [else
-;;              (let: ([first-stmt : Statement (car stmts)])
-;;                (: do-on-label (Symbol -> (Listof BasicBlock)))
-;;                (define (do-on-label label-name)
-;;                  (cond
-;;                     [(member label-name jump-targets)
-;;                      (loop label-name
-;;                            '()
-;;                            (cons (make-BasicBlock 
-;;                                   name  
-;;                                   (if last-stmt-goto? 
-;;                                       (reverse acc)
-;;                                       (reverse (append `(,(make-GotoStatement (make-Label label-name)))
-;;                                                        acc))))
-;;                                  basic-blocks)
-;;                            (cdr stmts)
-;;                            last-stmt-goto?)]
-;;                     [else
-;;                      (loop name
-;;                            acc
-;;                            basic-blocks
-;;                            (cdr stmts)
-;;                            last-stmt-goto?)]))
-;;                (cond
-;;                  [(symbol? first-stmt)
-;;                   (do-on-label first-stmt)]
-;;                  [(LinkedLabel? first-stmt)
-;;                   (do-on-label (LinkedLabel-label first-stmt))]
-;;                  [else
-;;                   (loop name
-;;                         (cons first-stmt acc)
-;;                         basic-blocks
-;;                         (cdr stmts)
-;;                         (GotoStatement? (car stmts)))]))]))))
+;; fracture: (listof stmt) -> (listof basic-block)
+(: fracture ((Listof Statement) -> (Listof BasicBlock)))
+(define (fracture stmts)
+  (let*: ([first-block-label : Symbol (if (and (not (empty? stmts))
+					       (symbol? (first stmts)))
+					  (first stmts)
+					  (make-label 'start))]
+	  [stmts : (Listof Statement) (if (and (not (empty? stmts))
+					       (symbol? (first stmts)))
+					  (rest stmts)
+					  stmts)]
+	  [jump-targets : (Listof Symbol)
+			(cons first-block-label (collect-general-jump-targets stmts))])
+    (let: loop : (Listof BasicBlock)
+          ([name : Symbol first-block-label]
+           [acc : (Listof UnlabeledStatement) '()]
+           [basic-blocks  : (Listof BasicBlock) '()]
+           [stmts : (Listof Statement) stmts]
+           [last-stmt-goto? : Boolean #f])
+          (cond
+            [(null? stmts)
+             (reverse (cons (make-BasicBlock name (reverse acc))
+                            basic-blocks))]
+            [else
+             (let: ([first-stmt : Statement (car stmts)])
+               (: do-on-label (Symbol -> (Listof BasicBlock)))
+               (define (do-on-label label-name)
+                 (cond
+                    [(member label-name jump-targets)
+                     (loop label-name
+                           '()
+                           (cons (make-BasicBlock 
+                                  name  
+                                  (if last-stmt-goto? 
+                                      (reverse acc)
+                                      (reverse (append `(,(make-GotoStatement (make-Label label-name)))
+                                                       acc))))
+                                 basic-blocks)
+                           (cdr stmts)
+                           last-stmt-goto?)]
+                    [else
+                     (loop name
+                           acc
+                           basic-blocks
+                           (cdr stmts)
+                           last-stmt-goto?)]))
+               (cond
+                 [(symbol? first-stmt)
+                  (do-on-label first-stmt)]
+                 [(LinkedLabel? first-stmt)
+                  (do-on-label (LinkedLabel-label first-stmt))]
+                 [else
+                  (loop name
+                        (cons first-stmt acc)
+                        basic-blocks
+                        (cdr stmts)
+                        (GotoStatement? (car stmts)))]))]))))
 
 
-;; (: write-linked-label-attributes ((Listof Statement) Output-Port -> 'ok))
-;; (define (write-linked-label-attributes stmts op)
-;;   (cond
-;;     [(empty? stmts)
-;;      'ok]
-;;     [else
-;;      (let: ([stmt : Statement (first stmts)])
+(: write-linked-label-attributes ((Listof Statement) Output-Port -> 'ok))
+(define (write-linked-label-attributes stmts op)
+  (cond
+    [(empty? stmts)
+     'ok]
+    [else
+     (let: ([stmt : Statement (first stmts)])
 
-;;        (define (next) (write-linked-label-attributes (rest stmts) op))
+       (define (next) (write-linked-label-attributes (rest stmts) op))
 
-;;        (cond
-;;          [(symbol? stmt)
-;;           (next)]
-;;          [(LinkedLabel? stmt)
-;;           (fprintf op "~a.multipleValueReturn = ~a;\n" 
-;;                    (LinkedLabel-label stmt)
-;;                    (LinkedLabel-linked-to stmt))
-;;           (next)]
-;;          [(AssignImmediateStatement? stmt)
-;;           (next)]
-;;          [(AssignPrimOpStatement? stmt)
-;;           (next)]
-;;          [(PerformStatement? stmt)
-;;           (next)]
-;;          [(TestAndBranchStatement? stmt)
-;;           (next)]
-;;          [(GotoStatement? stmt)
-;;           (next)]
-;;          [(PushEnvironment? stmt)
-;;           (next)]
-;;          [(PopEnvironment? stmt)
-;;           (next)]
-;;          [(PushImmediateOntoEnvironment? stmt)
-;;           (next)]
-;;          [(PushControlFrame/Generic? stmt)
-;;           (next)]
-;;          [(PushControlFrame/Call? stmt)
-;;           (next)]
-;;          [(PushControlFrame/Prompt? stmt)
-;;           (next)]
-;;          [(PopControlFrame? stmt)
-;;           (next)]))]))
+       (cond
+         [(symbol? stmt)
+          (next)]
+         [(LinkedLabel? stmt)
+          (fprintf op "~a.multipleValueReturn = ~a;\n" 
+                   (LinkedLabel-label stmt)
+                   (LinkedLabel-linked-to stmt))
+          (next)]
+         [(AssignImmediateStatement? stmt)
+          (next)]
+         [(AssignPrimOpStatement? stmt)
+          (next)]
+         [(PerformStatement? stmt)
+          (next)]
+         [(TestAndBranchStatement? stmt)
+          (next)]
+         [(GotoStatement? stmt)
+          (next)]
+         [(PushEnvironment? stmt)
+          (next)]
+         [(PopEnvironment? stmt)
+          (next)]
+         [(PushImmediateOntoEnvironment? stmt)
+          (next)]
+         [(PushControlFrame/Generic? stmt)
+          (next)]
+         [(PushControlFrame/Call? stmt)
+          (next)]
+         [(PushControlFrame/Prompt? stmt)
+          (next)]
+         [(PopControlFrame? stmt)
+          (next)]))]))
        
 
 

@@ -8,9 +8,9 @@
 
 
 
-;; collect-general-jump-targets: (listof stmt) -> (listof label)
-;; collects all the labels that are potential targets for GOTOs or branches.
+
 (: collect-general-jump-targets ((Listof Statement) -> (Listof Symbol)))
+;; collects all the labels that are potential targets for GOTOs or branches.
 (define (collect-general-jump-targets stmts)
   (unique/eq?
    (let: loop : (Listof Symbol) ([stmts : (Listof Statement) stmts])
@@ -18,8 +18,8 @@
                 empty]
                [else
                 (let: ([stmt : Statement (first stmts)])
-                  (append (collect-statement stmt)
-			  (loop (rest stmts))))]))))
+		      (append (collect-statement stmt)
+			      (loop (rest stmts))))]))))
 
 
 
@@ -62,100 +62,101 @@
 
 
 (: collect-input (OpArg -> (Listof Symbol)))
-  (define (collect-input an-input)
-    (cond
-      [(Reg? an-input)
-       empty]
-      [(Const? an-input)
-       empty]
-      [(Label? an-input)
-       (list (Label-name an-input))]
-      [(EnvLexicalReference? an-input)
-       empty]
-      [(EnvPrefixReference? an-input)
-       empty]
-      [(EnvWholePrefixReference? an-input)
-       empty]
-      [(SubtractArg? an-input)
-       (append (collect-input (SubtractArg-lhs an-input))
-               (collect-input (SubtractArg-rhs an-input)))]
-      [(ControlStackLabel? an-input)
-       empty]
-      [(ControlStackLabel/MultipleValueReturn? an-input)
-       empty]))
-  
-  (: collect-location ((U Reg Label) -> (Listof Symbol)))
-  (define (collect-location a-location)
-    (cond
-      [(Reg? a-location)
-       empty]
-      [(Label? a-location)
-       (list (Label-name a-location))]))
-  
-  (: collect-primitive-operator (PrimitiveOperator -> (Listof Symbol)))
-  (define (collect-primitive-operator op)
-    (cond
-      [(GetCompiledProcedureEntry? op)
-       empty]
-      [(MakeCompiledProcedure? op)
-       (list (MakeCompiledProcedure-label op))]
-      [(MakeCompiledProcedureShell? op)
-       (list (MakeCompiledProcedureShell-label op))]
-      [(ApplyPrimitiveProcedure? op)
-       empty]
-      [(CaptureEnvironment? op)
-       empty]
-      [(CaptureControl? op)
-       empty]
-      [(MakeBoxedEnvironmentValue? op)
-       empty]
-      [(CallKernelPrimitiveProcedure? op)
-       empty]))
-  
-  (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
-  (define (collect-primitive-command op)
-    (cond
-      [(CheckToplevelBound!? op)
-       empty]
-      [(CheckClosureArity!? op)
-       empty]
-      [(CheckPrimitiveArity!? op)
-       empty]
-      [(ExtendEnvironment/Prefix!? op)
-       empty]
-      [(InstallClosureValues!? op)
-       empty]
-      [(RestoreEnvironment!? op)
-       empty]
-      [(RestoreControl!? op)
-       empty]
-      [(SetFrameCallee!? op)
-       empty]
-      [(SpliceListIntoStack!? op)
-       empty]
-      [(UnspliceRestFromStack!? op)
-       empty]
-      [(FixClosureShellMap!? op)
-       empty]
-      [(InstallContinuationMarkEntry!? op)
-       empty]
-      [(RaiseContextExpectedValuesError!? op)
-       empty]
-      [(RaiseArityMismatchError!? op)
-       empty]
-      [(RaiseOperatorApplicationError!? op)
-       empty]))
-  
-  
+(define (collect-input an-input)
+  (cond
+   [(Reg? an-input)
+    empty]
+   [(Const? an-input)
+    empty]
+   [(Label? an-input)
+    (list (Label-name an-input))]
+   [(EnvLexicalReference? an-input)
+    empty]
+   [(EnvPrefixReference? an-input)
+    empty]
+   [(EnvWholePrefixReference? an-input)
+    empty]
+   [(SubtractArg? an-input)
+    (append (collect-input (SubtractArg-lhs an-input))
+	    (collect-input (SubtractArg-rhs an-input)))]
+   [(ControlStackLabel? an-input)
+    empty]
+   [(ControlStackLabel/MultipleValueReturn? an-input)
+    empty]))
+
+(: collect-location ((U Reg Label) -> (Listof Symbol)))
+(define (collect-location a-location)
+  (cond
+   [(Reg? a-location)
+    empty]
+   [(Label? a-location)
+    (list (Label-name a-location))]))
+
+(: collect-primitive-operator (PrimitiveOperator -> (Listof Symbol)))
+(define (collect-primitive-operator op)
+  (cond
+   [(GetCompiledProcedureEntry? op)
+    empty]
+   [(MakeCompiledProcedure? op)
+    (list (MakeCompiledProcedure-label op))]
+   [(MakeCompiledProcedureShell? op)
+    (list (MakeCompiledProcedureShell-label op))]
+   [(ApplyPrimitiveProcedure? op)
+    empty]
+   [(CaptureEnvironment? op)
+    empty]
+   [(CaptureControl? op)
+    empty]
+   [(MakeBoxedEnvironmentValue? op)
+    empty]
+   [(CallKernelPrimitiveProcedure? op)
+    empty]))
+
+(: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
+(define (collect-primitive-command op)
+  empty
+  #;(cond
+   [(CheckToplevelBound!? op)
+    empty]
+   [(CheckClosureArity!? op)
+    empty]
+   [(CheckPrimitiveArity!? op)
+    empty]
+   [(ExtendEnvironment/Prefix!? op)
+    empty]
+   [(InstallClosureValues!? op)
+    empty]
+   [(RestoreEnvironment!? op)
+    empty]
+   [(RestoreControl!? op)
+    empty]
+   [(SetFrameCallee!? op)
+    empty]
+   [(SpliceListIntoStack!? op)
+    empty]
+   [(UnspliceRestFromStack!? op)
+    empty]
+   [(FixClosureShellMap!? op)
+    empty]
+   [(InstallContinuationMarkEntry!? op)
+    empty]
+   [(RaiseContextExpectedValuesError!? op)
+    empty]
+   [(RaiseArityMismatchError!? op)
+    empty]
+   [(RaiseOperatorApplicationError!? op)
+    empty]))
+
+
 
 
 
 (: label->labels ((U Symbol LinkedLabel) -> (Listof Symbol)))
 (define (label->labels label)
   (cond
-    [(symbol? label)
-     (list label)]
-    [(LinkedLabel? label)
-     (list (LinkedLabel-label label)
-           (LinkedLabel-linked-to label))]))
+   [(symbol? label)
+    (list label)]
+   [(LinkedLabel? label)
+    (list (LinkedLabel-label label)
+	  (LinkedLabel-linked-to label))]))
 

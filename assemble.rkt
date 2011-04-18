@@ -6,7 +6,7 @@
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
 	 "assemble-expression.rkt"
-	 "assemble-statement.rkt"
+	 "assemble-perform-statement.rkt"
          racket/string
          racket/list)
 
@@ -281,24 +281,26 @@
 ;;                              empty])
 ;;                           (loop (rest stmts))))]))))
 
-;; (: label->labels ((U Symbol LinkedLabel) -> (Listof Symbol)))
-;; (define (label->labels label)
-;;   (cond
-;;     [(symbol? label)
-;;      (list label)]
-;;     [(LinkedLabel? label)
-;;      (list (LinkedLabel-label label)
-;;            (LinkedLabel-linked-to label))]))
+
+(: label->labels ((U Symbol LinkedLabel) -> (Listof Symbol)))
+(define (label->labels label)
+  (cond
+    [(symbol? label)
+     (list label)]
+    [(LinkedLabel? label)
+     (list (LinkedLabel-label label)
+           (LinkedLabel-linked-to label))]))
 
 
-;; ;; assemble-basic-block: basic-block -> string
-;; (: assemble-basic-block (BasicBlock -> String))
-;; (define (assemble-basic-block a-basic-block)
-;;   (format "var ~a=function(MACHINE){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
-;;           (BasicBlock-name a-basic-block)
-;;           (BasicBlock-name a-basic-block)
-;;           (string-join ((inst map Statement String) assemble-statement (BasicBlock-stmts a-basic-block))
-;;                        "\n")))
+
+;; assemble-basic-block: basic-block -> string
+(: assemble-basic-block (BasicBlock -> String))
+(define (assemble-basic-block a-basic-block)
+  (format "var ~a=function(MACHINE){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
+          (BasicBlock-name a-basic-block)
+          (BasicBlock-name a-basic-block)
+          (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))
+                       "\n")))
 
 
 

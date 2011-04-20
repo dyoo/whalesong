@@ -1445,10 +1445,9 @@
 
 (: compile-with-cont-mark (WithContMark CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-with-cont-mark exp cenv target linkage)
-  (cond
-    [(or (ReturnLinkage/NonTail? linkage) 
-	 (ReturnLinkage? linkage))
-     (append-instruction-sequences
+  (: in-return-context (-> InstructionSequence))
+  (define (in-return-context)
+    (append-instruction-sequences
       (compile (WithContMark-key exp) cenv 'val next-linkage-expects-single)
       (make-instruction-sequence `(,(make-AssignImmediateStatement
                                      (make-ControlFrameTemporary 'pendingContinuationMarkKey)
@@ -1456,37 +1455,53 @@
       (compile (WithContMark-value exp) cenv 'val next-linkage-expects-single)
       (make-instruction-sequence `(,(make-PerformStatement
                                      (make-InstallContinuationMarkEntry!))))
-      (compile (WithContMark-body exp) cenv target linkage))]
-    
-    [(or (NextLinkage? linkage)
-         (LabelLinkage? linkage)
-         (NextLinkage/Expects? linkage)
-	 (LabelLinkage/Expects? linkage))
-     (let ([body-next-linkage (cond [(NextLinkage? linkage)
-				next-linkage]
-			       [(LabelLinkage? linkage)
-				next-linkage]
-			       [(NextLinkage/Expects? linkage)
-				linkage]
-			       [(LabelLinkage/Expects? linkage)
-				(make-NextLinkage/Expects (LabelLinkage/Expects-expects linkage))])])
-       (end-with-linkage 
-	linkage cenv
-	(append-instruction-sequences
-	 ;; Making a continuation frame; isn't really used for anything
-	 ;; but recording the key/value data.
-	 (make-instruction-sequence 
-	  `(,(make-PushControlFrame/Generic)))
-	 (compile (WithContMark-key exp) cenv 'val next-linkage-expects-single)
-	 (make-instruction-sequence `(,(make-AssignImmediateStatement
-					(make-ControlFrameTemporary 'pendingContinuationMarkKey)
-					(make-Reg 'val))))
-	 (compile (WithContMark-value exp) cenv 'val next-linkage-expects-single)
-	 (make-instruction-sequence `(,(make-PerformStatement
-					(make-InstallContinuationMarkEntry!))))
-	 (compile (WithContMark-body exp) cenv target body-next-linkage)
-	 (make-instruction-sequence
-	  `(,(make-PopControlFrame))))))]))
+      (compile (WithContMark-body exp) cenv target linkage)))
+
+  (: in-other-context ((U NextLinkage
+			  LabelLinkage
+			  NextLinkage/Expects
+			  LabelLinkage/Expects)
+		       -> InstructionSequence))
+  (define (in-other-context linkage)
+    (let ([body-next-linkage (cond [(NextLinkage? linkage)
+				    next-linkage]
+				   [(LabelLinkage? linkage)
+				    next-linkage]
+				   [(NextLinkage/Expects? linkage)
+				    linkage]
+				   [(LabelLinkage/Expects? linkage)
+				    (make-NextLinkage/Expects (LabelLinkage/Expects-expects linkage))])])
+      (end-with-linkage 
+       linkage cenv
+       (append-instruction-sequences
+	;; Making a continuation frame; isn't really used for anything
+	;; but recording the key/value data.
+	(make-instruction-sequence 
+	 `(,(make-PushControlFrame/Generic)))
+	(compile (WithContMark-key exp) cenv 'val next-linkage-expects-single)
+	(make-instruction-sequence `(,(make-AssignImmediateStatement
+				       (make-ControlFrameTemporary 'pendingContinuationMarkKey)
+				       (make-Reg 'val))))
+	(compile (WithContMark-value exp) cenv 'val next-linkage-expects-single)
+	(make-instruction-sequence `(,(make-PerformStatement
+				       (make-InstallContinuationMarkEntry!))))
+	(compile (WithContMark-body exp) cenv target body-next-linkage)
+	(make-instruction-sequence
+	 `(,(make-PopControlFrame)))))))
+
+  (cond
+    [(ReturnLinkage/NonTail? linkage)
+     (in-return-context)]
+    [(ReturnLinkage? linkage)
+     (in-return-context)]
+    [(NextLinkage? linkage) 
+     (in-other-context linkage)]
+    [(LabelLinkage? linkage)
+     (in-other-context linkage)]
+    [(NextLinkage/Expects? linkage)
+     (in-other-context linkage)]
+    [(LabelLinkage/Expects? linkage)
+     (in-other-context linkage)]))
 
 
 

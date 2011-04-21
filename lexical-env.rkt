@@ -114,8 +114,6 @@
           cenv))
   
 
-
-
 (: collect-lexical-references ((Listof LexicalAddress) 
                                -> 
                                (Listof (U EnvLexicalReference EnvWholePrefixReference))))
@@ -128,7 +126,12 @@
               ([addresses : (Listof LexicalAddress) addresses])
               (cond 
                 [(empty? addresses)
-                 (append (set->list prefix-references) (set->list lexical-references))]
+                 (append (set->list prefix-references)
+                         ((inst sort
+				EnvLexicalReference 
+				EnvLexicalReference)
+			  (set->list lexical-references)
+			  lex-reference<?))]
                 [else
                  (let ([addr (first addresses)])
                    (cond
@@ -140,6 +143,13 @@
                       (set-insert! prefix-references
                                    (make-EnvWholePrefixReference (EnvPrefixReference-depth addr)))
                       (loop (rest addresses))]))]))))
+
+
+
+(: lex-reference<? (EnvLexicalReference EnvLexicalReference -> Boolean))
+(define (lex-reference<? x y)
+  (< (EnvLexicalReference-depth x)
+     (EnvLexicalReference-depth y)))
 
 
 

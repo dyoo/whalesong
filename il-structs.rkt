@@ -173,7 +173,7 @@
   #:transparent)
 
 (define-struct: TestAndBranchStatement ([op : PrimitiveTest]
-                                        [register : AtomicRegisterSymbol]
+                                        [operand : OpArg]
                                         [label : Symbol])
   #:transparent)
 
@@ -263,6 +263,7 @@
                             'false?
 
                             'one?
+                            'zero?
                             
                             ;; register -> boolean
                             ;; Meant to branch when the register value is a primitive

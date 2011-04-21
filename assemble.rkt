@@ -195,15 +195,19 @@ EOF
              (cond
                [(eq? test 'false?)
                 (format "if (~a === false) { ~a }"
-                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-oparg (TestAndBranchStatement-operand stmt))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
                [(eq? test 'one?)
                 (format "if (~a === 1) { ~a }"
-                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-oparg (TestAndBranchStatement-operand stmt))
+                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
+               [(eq? test 'zero?)
+                (format "if (~a === 0) { ~a }"
+                        (assemble-oparg (TestAndBranchStatement-operand stmt))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
                [(eq? test 'primitive-procedure?)
                 (format "if (typeof(~a) === 'function') { ~a };"
-                        (assemble-reg (make-Reg (TestAndBranchStatement-register stmt)))
+                        (assemble-oparg (TestAndBranchStatement-operand stmt))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]))]
      
      [(GotoStatement? stmt)

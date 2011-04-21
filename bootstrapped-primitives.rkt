@@ -171,7 +171,7 @@
          [on-single-value (make-label 'onSingleValue)])
      `(,(make-GotoStatement (make-Label after-values-body-defn))
        ,values-entry
-       ,(make-TestAndBranchStatement 'one? 'argcount on-single-value)
+       ,(make-TestAndBranchStatement 'one? (make-Reg 'argcount) on-single-value)
        ;; values simply keeps the values on the stack, preserves the argcount, and does a return
        ;; to the multiple-value-return address.
        ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))

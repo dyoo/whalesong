@@ -342,7 +342,7 @@
                                           (append-instruction-sequences
                                            (make-instruction-sequence
                                             `(,(make-TestAndBranchStatement 'false? 
-                                                                            'val
+                                                                            (make-Reg 'val)
                                                                             f-branch)))
 					   t-branch 
 					   c-code
@@ -926,7 +926,7 @@
               (append-instruction-sequences
                (make-instruction-sequence 
                 `(,(make-TestAndBranchStatement 'primitive-procedure?
-                                                'proc
+                                                (make-Reg 'proc)
                                                 (LabelLinkage-label primitive-branch))))
                
                
@@ -1114,19 +1114,44 @@
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
+                  (let* ([n (NextLinkage/Expects-expects linkage)]
+			 [proc-return-multiple (make-label 'procReturnMultiple)]
                          [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
+                                                        proc-return-multiple)]
+			 [after-value-check (make-label 'afterValueCheck)]
+			 [return-point-code
+			  (cond
+			   [(= n 1)
+			    (append-instruction-sequences
+			     proc-return-multiple
+			     (make-instruction-sequence
+			      `(,(make-PerformStatement
+				  (make-RaiseContextExpectedValuesError! 1))))
+			     proc-return)]
+			   [else
+			    (append-instruction-sequences
+			     proc-return-multiple
+			     (make-instruction-sequence
+			      `(
+				;; if the wrong number of arguments come in, die
+				,(make-TestAndBranchStatement
+				  'zero? 
+				  (make-SubtractArg (make-Reg 'argcount)
+						    (make-Const n))
+				  after-value-check)))
+			     proc-return
+			     (make-instruction-sequence
+			      `(,(make-PerformStatement
+				  (make-RaiseContextExpectedValuesError! n))))
+			     after-value-check)])])
+
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
-                     proc-return-multiple
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
-                     proc-return))]
+		     return-point-code))]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the

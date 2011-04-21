@@ -207,7 +207,7 @@
 
 ;; TestAndBranch: try the true branch
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const 42))
-                        ,(make-TestAndBranchStatement 'false? 'val 'on-false)
+                        ,(make-TestAndBranchStatement 'false? (make-Reg 'val) 'on-false)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-false
@@ -217,7 +217,7 @@
         'ok))
 ;; TestAndBranch: try the false branch
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const #f))
-                        ,(make-TestAndBranchStatement 'false? 'val 'on-false)
+                        ,(make-TestAndBranchStatement 'false? (make-Reg 'val) 'on-false)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-false
@@ -227,7 +227,7 @@
         'ok))
 ;; Test for primitive procedure
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const '+))
-                        ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'on-true)
+                        ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'val) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true
@@ -237,7 +237,7 @@
         'ok))
 ;; Give a primitive procedure in val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'on-true)
+                        ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'val) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true
@@ -247,7 +247,7 @@
         'ok))
 ;; Give a primitive procedure in proc, but test val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndBranchStatement 'primitive-procedure? 'val 'on-true)
+                        ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'val) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true
@@ -257,7 +257,7 @@
         'not-a-procedure))
 ;; Give a primitive procedure in proc and test proc
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndBranchStatement 'primitive-procedure? 'proc 'on-true)
+                        ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'proc) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true

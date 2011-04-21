@@ -209,12 +209,14 @@
 (: step-test-and-branch! (machine TestAndBranchStatement -> 'ok))
 (define (step-test-and-branch! m stmt)
   (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)]
-         [argval : SlotValue (lookup-atomic-register m (TestAndBranchStatement-register stmt))])
+         [argval : SlotValue (evaluate-oparg m (TestAndBranchStatement-operand stmt))])
         (if (let: ([v : Boolean (cond
                                   [(eq? test 'false?)
                                    (not argval)]
                                   [(eq? test 'one?)
                                    (= (ensure-natural argval) 1)]
+				  [(eq? test 'zero?)		   
+				   (= (ensure-natural argval) 0)]
                                   [(eq? test 'primitive-procedure?)
                                    (primitive-proc? argval)])])
                   v)

@@ -410,7 +410,7 @@
 
 ;; NextLinkage/Expects works like NextLinkage, but should check that
 ;; it is returning 'expects' values back.
-(define-struct: NextLinkage/Expects ([expects : Natural]))
+(define-struct: NextLinkage/Expects ([expects : (U Natural '*)]))
 (define next-linkage-expects-single (make-NextLinkage/Expects 1))
 
 
@@ -419,7 +419,7 @@
 ;; LabelLinkage/Expects records that the context expects a certain number
 ;; of values.
 (define-struct: LabelLinkage/Expects ([label : Symbol]
-				      [expects : Natural]))
+				      [expects : (U Natural '*)]))
 
 
 ;; Both ReturnLinkage and ReturnLinkage/NonTail deal with multiple

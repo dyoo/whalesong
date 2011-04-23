@@ -225,8 +225,8 @@
 
 
 (: compile-singular-context-check (Linkage -> InstructionSequence))
-;; Emits code to raise a runtime error if the linkage expects a singular
-;; value, but the code being generated is not producing it.
+;; Emits code to raise a runtime error if the linkage requires 
+;; multiple values will be produced.
 (define (compile-singular-context-check linkage)
   (cond [(NextLinkage? linkage)
 	 empty-instruction-sequence]
@@ -237,18 +237,28 @@
 	[(ReturnLinkage/NonTail? linkage)
 	 empty-instruction-sequence]
 	[(NextLinkage/Expects? linkage)
-	 (if (= (NextLinkage/Expects-expects linkage) 1)
-	     empty-instruction-sequence
-	     (make-instruction-sequence 
-	      `(,(make-PerformStatement 
-		  (make-RaiseContextExpectedValuesError! 1)))))]
+         (let ([n (NextLinkage/Expects-expects linkage)])
+           (cond
+             [(eq? n '*)
+              empty-instruction-sequence]
+             [(natural? n)
+              (if (= n 1)
+                  empty-instruction-sequence
+                  (make-instruction-sequence 
+                   `(,(make-PerformStatement 
+                       (make-RaiseContextExpectedValuesError! 1)))))]))]
 	[(LabelLinkage/Expects? linkage)
-	 (if (= (LabelLinkage/Expects-expects linkage) 1)
-	     empty-instruction-sequence
-	     (make-instruction-sequence 
-	      `(,(make-PerformStatement 
-		  (make-RaiseContextExpectedValuesError! 1)))))]))
-
+         (let ([n (LabelLinkage/Expects-expects linkage)])
+           (cond
+             [(eq? n '*)
+              empty-instruction-sequence]
+             [(natural? n)
+              (if (= n 1)
+                  empty-instruction-sequence
+                  (make-instruction-sequence 
+                   `(,(make-PerformStatement 
+                       (make-RaiseContextExpectedValuesError! 1)))))]))]))
+         
 
 (: compile-constant (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-constant exp cenv target linkage)
@@ -989,22 +999,16 @@
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
 (define (compile-compiled-procedure-application cenv-length-with-args entry-point target linkage)
-  (let ([maybe-install-jump-address
-         ;; Optimization: if the entry-point is supposed to be val, then it needs to hold
-         ;; the procedure entry here.  Otherwise, it doesn't.
-         (cond [(Label? entry-point)
-                empty-instruction-sequence]
-               [(eq? entry-point 'val)
-                (make-instruction-sequence
-                 `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))])]
-
-        [entry-point-target
-         (cond
-           [(Label? entry-point)
-            entry-point]
-           [(eq? entry-point 'val)
-            (make-Reg 'val)])])
-    
+  (let-values ([(maybe-install-jump-address entry-point-target)
+                ;; Optimization: if the entry-point is supposed to be val, then it needs to hold
+                ;; the procedure entry here.  Otherwise, it doesn't.
+                (cond [(Label? entry-point)
+                       (values empty-instruction-sequence 
+                               entry-point)]
+                      [(eq? entry-point 'val)
+                       (values (make-instruction-sequence
+                                `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))
+                               (make-Reg 'val))])])    
     (cond [(ReturnLinkage? linkage)
            (cond
              [(eq? target 'val)
@@ -1101,7 +1105,6 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     ;; FIMXE: this needs to raise a runtime error!
                      (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
                                                                         (make-Const 0))))
                      proc-return
@@ -1111,69 +1114,75 @@
 
 	  ;; FIXME: this isn't doing the proper checks!!!
           [(NextLinkage/Expects? linkage)
-           (cond [(eq? target 'val)
-                  ;; This case happens for a function call that isn't in
-                  ;; tail position.
-                  (let* ([n (NextLinkage/Expects-expects linkage)]
-			 [proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)]
-			 [after-value-check (make-label 'afterValueCheck)]
-			 [return-point-code
-			  (cond
-			   [(= n 1)
-			    (append-instruction-sequences
-			     proc-return-multiple
-			     (make-instruction-sequence
-			      `(,(make-PerformStatement
-				  (make-RaiseContextExpectedValuesError! 1))))
-			     proc-return)]
-			   [else
-			    (append-instruction-sequences
-			     proc-return-multiple
-			     (make-instruction-sequence
-			      `(
-				;; if the wrong number of arguments come in, die
-				,(make-TestAndBranchStatement
-				  'zero? 
-				  (make-SubtractArg (make-Reg 'argcount)
-						    (make-Const n))
-				  after-value-check)))
-			     proc-return
-			     (make-instruction-sequence
-			      `(,(make-PerformStatement
-				  (make-RaiseContextExpectedValuesError! n))))
-			     after-value-check)])])
-
+           ;; This case happens for a function call that isn't in
+           ;; tail position.
+           (let* ([n (NextLinkage/Expects-expects linkage)]
+                  [proc-return-multiple (make-label 'procReturnMultiple)]
+                  [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                                 proc-return-multiple)]
+                  [after-value-check (make-label 'afterValueCheck)]
+                  [return-point-code
+                   (cond
+                     [(eq? n '*)
+                      (let ([after-return (make-label 'afterReturn)])
+                        (append-instruction-sequences
+                         proc-return-multiple
+                         (make-instruction-sequence
+                          `(,(make-GotoStatement (make-Label after-return))))
+                         proc-return
+                         (make-instruction-sequence
+                          `(,(make-AssignImmediateStatement 'argcount (make-Const 1))
+                            ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))
+                         after-return))]
+                     [(natural? n)
+                      (cond
+                        [(= n 1)
+                         (append-instruction-sequences
+                          proc-return-multiple
+                          (make-instruction-sequence
+                           `(,(make-PerformStatement
+                               (make-RaiseContextExpectedValuesError! 1))))
+                          proc-return)]
+                        [else
+                         (append-instruction-sequences
+                          proc-return-multiple
+                          (make-instruction-sequence
+                           `(
+                             ;; if the wrong number of arguments come in, die
+                             ,(make-TestAndBranchStatement
+                               'zero? 
+                               (make-SubtractArg (make-Reg 'argcount)
+                                                 (make-Const n))
+                               after-value-check)))
+                          proc-return
+                          (make-instruction-sequence
+                           `(,(make-PerformStatement
+                               (make-RaiseContextExpectedValuesError! n))))
+                          after-value-check)])])])
+             
+             (cond [(eq? target 'val)
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
-		     return-point-code))]
-                 
-                 [else
-                  ;; This case happens for evaluating arguments, since the
-                  ;; arguments are being installed into the scratch space.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
+                     return-point-code)]
+                   
+                   [else
+                    ;; This case happens for evaluating arguments, since the
+                    ;; arguments are being installed into the scratch space.
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame/Call proc-return)))
                      maybe-install-jump-address
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
-                     proc-return-multiple
-                     ;; FIMXE: this needs to raise a runtime error!
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
-                     proc-return
+                     return-point-code
                      (make-instruction-sequence
-                      `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
-          
-          
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val)))))]))]
+
+
           
           [(LabelLinkage? linkage)
            (cond [(eq? target 'val)

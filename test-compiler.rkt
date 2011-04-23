@@ -1081,6 +1081,24 @@
       #:with-bootstrapping? #t)
 
 
+(test '(begin (values "hi" "there")
+              (string-append "hello " "world"))
+      "hello world"
+      #:with-bootstrapping? #t)
+
+(test '(begin (values "hi" "there")
+              (string-append (values "hello ") "world"))
+      "hello world"
+      #:with-bootstrapping? #t)
+
+
+(test '(begin (values 3 4 5)
+              17)
+      17
+      #:with-bootstrapping? #t)
+
+
+
 
 (test '(with-continuation-mark 'name "danny" 
          (current-continuation-marks))

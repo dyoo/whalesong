@@ -39,9 +39,13 @@
        (make-instruction-sequence
         `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
                                          before-pop-prompt)))
-       (compile exp '() target return-linkage/nontail)
+       (compile exp '() 'val return-linkage/nontail)
        before-pop-prompt-multiple
-       before-pop-prompt)))))
+       (make-instruction-sequence
+	`(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+       before-pop-prompt
+       (make-instruction-sequence
+	`(,(make-AssignImmediateStatement target (make-Reg 'val)))))))))
 
 (define-struct: lam+cenv ([lam : Lam]
                           [cenv : CompileTimeEnvironment]))
@@ -385,24 +389,28 @@
             linkage
             cenv
             (append-instruction-sequences 
-             (make-instruction-sequence `(,(make-PushControlFrame/Prompt
-                                            default-continuation-prompt-tag
-                                            before-pop-prompt)))
+             (make-instruction-sequence 
+	      `(,(make-PushControlFrame/Prompt
+		  default-continuation-prompt-tag
+		  before-pop-prompt)))
              (compile (first-exp seq) cenv target return-linkage/nontail)
              before-pop-prompt-multiple
-             (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+             (make-instruction-sequence
+	      `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
              before-pop-prompt)))]
         [else
          (let* ([before-pop-prompt-multiple (make-label 'beforePromptPopMultiple)]
                 [before-pop-prompt (make-LinkedLabel (make-label 'beforePromptPop)
                                                      before-pop-prompt-multiple)])
            (append-instruction-sequences 
-            (make-instruction-sequence `(,(make-PushControlFrame/Prompt
-                                           (make-DefaultContinuationPromptTag)
-                                           before-pop-prompt)))
+            (make-instruction-sequence
+	     `(,(make-PushControlFrame/Prompt
+		 (make-DefaultContinuationPromptTag)
+		 before-pop-prompt)))
             (compile (first-exp seq) cenv target return-linkage/nontail)
             before-pop-prompt-multiple
-            (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+            (make-instruction-sequence
+	     `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
             before-pop-prompt
             (compile-splice (rest-exps seq) cenv target linkage)))]))
 
@@ -1473,16 +1481,18 @@
 
 (: compile-with-cont-mark (WithContMark CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-with-cont-mark exp cenv target linkage)
+
   (: in-return-context (-> InstructionSequence))
   (define (in-return-context)
     (append-instruction-sequences
       (compile (WithContMark-key exp) cenv 'val next-linkage-expects-single)
-      (make-instruction-sequence `(,(make-AssignImmediateStatement
-                                     (make-ControlFrameTemporary 'pendingContinuationMarkKey)
-                                     (make-Reg 'val))))
+      (make-instruction-sequence
+       `(,(make-AssignImmediateStatement
+	   (make-ControlFrameTemporary 'pendingContinuationMarkKey)
+	   (make-Reg 'val))))
       (compile (WithContMark-value exp) cenv 'val next-linkage-expects-single)
-      (make-instruction-sequence `(,(make-PerformStatement
-                                     (make-InstallContinuationMarkEntry!))))
+      (make-instruction-sequence
+       `(,(make-PerformStatement (make-InstallContinuationMarkEntry!))))
       (compile (WithContMark-body exp) cenv target linkage)))
 
   (: in-other-context ((U NextLinkage

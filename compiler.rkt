@@ -993,13 +993,23 @@
 
 
 
+
+
+
 (: compile-compiled-procedure-application (OpArg (U Label 'val) Target Linkage -> InstructionSequence))
+;; This is the heart of compiled procedure application.  A lot of
+;; things happen here.
+;;
+;;     Procedure linkage.
+;;     Handling of multiple-value-returns.
+;;     Tail calls.
+;;
 ;; Three fundamental cases for general compiled-procedure application.
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
 (define (compile-compiled-procedure-application cenv-length-with-args entry-point target linkage)
-  (let-values ([(maybe-install-jump-address entry-point-target)
+  (let*-values ([(maybe-install-jump-address entry-point-target)
                 ;; Optimization: if the entry-point is supposed to be val, then it needs to hold
                 ;; the procedure entry here.  Otherwise, it doesn't.
                 (cond [(Label? entry-point)
@@ -1008,7 +1018,11 @@
                       [(eq? entry-point 'val)
                        (values (make-instruction-sequence
                                 `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))
-                               (make-Reg 'val))])])    
+                               (make-Reg 'val))])]
+
+		[(proc-return-multiple) (make-label 'procReturnMultiple)]
+		[(proc-return) (make-LinkedLabel (make-label 'procReturn)
+						 proc-return-multiple)])
     (cond [(ReturnLinkage? linkage)
            (cond
              [(eq? target 'val)
@@ -1020,9 +1034,11 @@
                (cond [(equal? cenv-length-with-args (make-Reg 'argcount))
                       empty-instruction-sequence]
                      [else
-                      (make-instruction-sequence `(,(make-PopEnvironment (make-SubtractArg cenv-length-with-args
-                                                                                           (make-Reg 'argcount))
-                                                                         (make-Reg 'argcount))))])
+                      (make-instruction-sequence 
+		       `(,(make-PopEnvironment 
+			   (make-SubtractArg cenv-length-with-args
+					     (make-Reg 'argcount))
+			   (make-Reg 'argcount))))])
                (make-instruction-sequence
                 `(;; Assign the proc value of the existing call frame
                   ,(make-PerformStatement 
@@ -1041,9 +1057,6 @@
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1051,16 +1064,14 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
-                     proc-return))]
+                     (make-instruction-sequence
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))
+                     proc-return)]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the
                   ;; arguments are being installed into the scratch space.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1068,19 +1079,17 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
+                     (make-instruction-sequence
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))
                      proc-return
                      (make-instruction-sequence
-                      `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val)))))])]
           
           [(NextLinkage? linkage)
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1088,16 +1097,14 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
-                     proc-return))]
+                     (make-instruction-sequence
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))
+                     proc-return)]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the
                   ;; arguments are being installed into the scratch space.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1105,11 +1112,12 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
+                     (make-instruction-sequence
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))
                      proc-return
                      (make-instruction-sequence
-                      `(,(make-AssignImmediateStatement target (make-Reg 'val))))))])]
+                      `(,(make-AssignImmediateStatement target (make-Reg 'val)))))])]
 
 
 	  ;; FIXME: this isn't doing the proper checks!!!
@@ -1117,9 +1125,6 @@
            ;; This case happens for a function call that isn't in
            ;; tail position.
            (let* ([n (NextLinkage/Expects-expects linkage)]
-                  [proc-return-multiple (make-label 'procReturnMultiple)]
-                  [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                 proc-return-multiple)]
                   [after-value-check (make-label 'afterValueCheck)]
                   [return-point-code
                    (cond
@@ -1188,9 +1193,6 @@
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1198,18 +1200,17 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
+                     (make-instruction-sequence 
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))
                      proc-return
                      (make-instruction-sequence
-                      `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))]
+                      `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the
                   ;; arguments are being installed into the scratch space.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
+
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1217,12 +1218,13 @@
                      (make-instruction-sequence
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))                     
+                     (make-instruction-sequence 
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))                     
                      proc-return
                      (make-instruction-sequence
                       `(,(make-AssignImmediateStatement target (make-Reg 'val))
-                        ,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))))])]
+                        ,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))])]
 
 
 
@@ -1231,9 +1233,6 @@
            (cond [(eq? target 'val)
                   ;; This case happens for a function call that isn't in
                   ;; tail position.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence 
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1242,18 +1241,16 @@
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
                      ;; FIXME: this may need to raise a runtime error here!
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))
+                     (make-instruction-sequence 
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))
                      proc-return
                      (make-instruction-sequence
-                      `(,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage)))))))]
+                      `(,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage))))))]
                  
                  [else
                   ;; This case happens for evaluating arguments, since the
                   ;; arguments are being installed into the scratch space.
-                  (let* ([proc-return-multiple (make-label 'procReturnMultiple)]
-                         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                                        proc-return-multiple)])
                     (append-instruction-sequences
                      (make-instruction-sequence
                       `(,(make-PushControlFrame/Call proc-return)))
@@ -1262,12 +1259,13 @@
                       `(,(make-GotoStatement entry-point-target)))
                      proc-return-multiple
                      ;; FIXME: this may need to raise a runtime error here!
-                     (make-instruction-sequence `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                                                        (make-Const 0))))                     
+                     (make-instruction-sequence
+		      `(,(make-PopEnvironment (make-Reg 'argcount) 
+					      (make-Const 0))))                     
                      proc-return
                      (make-instruction-sequence
                       `(,(make-AssignImmediateStatement target (make-Reg 'val))
-                        ,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage)))))))])])))
+                        ,(make-GotoStatement (make-Label (LabelLinkage/Expects-label linkage))))))])])))
 
 
 

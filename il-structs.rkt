@@ -425,12 +425,9 @@
 ;; Both ReturnLinkage and ReturnLinkage/NonTail deal with multiple
 ;; values indirectly, through the alternative multiple-value-return
 ;; address in the LinkedLabel of their call frame.
-(define-struct: ReturnLinkage ())
-(define return-linkage (make-ReturnLinkage))
-
-(define-struct: ReturnLinkage/NonTail ())
-(define return-linkage/nontail (make-ReturnLinkage/NonTail))
-
+(define-struct: ReturnLinkage ([tail? : Boolean]))
+(define return-linkage (make-ReturnLinkage #t))
+(define return-linkage/nontail (make-ReturnLinkage #f))
 
 (define-type Linkage (U NextLinkage
                         NextLinkage/Expects
@@ -438,8 +435,7 @@
                         LabelLinkage
 			LabelLinkage/Expects
 
-                        ReturnLinkage
-                        ReturnLinkage/NonTail))
+                        ReturnLinkage))
 
 
 

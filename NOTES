@@ -360,3 +360,61 @@ optimize the efficiency of the runtime.  I don't know what the
 function is, but we want to optimize the parameters FN and TI such
 that it maximizes FN and minimizes TI, and yet gives us the browser
 reactivity we want.
+
+
+
+
+
+April 24, 2011
+
+The variables for linkage and target are doing double duty, which is
+showing up in the defintion for compilation, since there are cases
+that shouldn't exist in there.
+
+They really should be part of the same datatype which describes,
+essentially, what the code's continuation should be doing next.
+Target's describing where the value needs to be installed at the end
+of this, and linkage describes how to jump into the continuation.
+
+
+   Return --- write value to val, pop off and jump according to
+   dynamic value on control context.  Return context may be in tail
+   position or not.
+
+   Next --- write value to a particular target and continue on.
+
+   Label --- write value to a particular target and jump
+   unconditionally to labeled location.
+
+
+
+The continuation may or may not be expecting multiple values.
+
+   Ignore: doesn't care how many values come back.  Throw away values
+   if multiple values are passed in.
+
+   Any: receives multiple values, and ensures those values are on the
+   stack.  If a single value is received, pushes it on the stack and
+   sets up argcount to 1.
+
+   N: must receive exactly N values.  If there's a mismatch, raises a
+   runtime error.
+
+
+
+Return will allow Any number of values to come back.  It doesn't need
+a separate multiple-value context.
+
+Next expects either exactly 1 value to come back, or ignores.  So it
+needs an multiple-value context.
+
+Label, too, expects exactly 1 value to come back, or ignores.  So it
+needs a mulitple-value context.
+
+
+When we use apply-values, it'll compile the producer expression in an
+Any context.
+
+
+
+I'm going to simplify values a bit.

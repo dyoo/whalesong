@@ -189,7 +189,10 @@
           (append-instruction-sequences
            (make-instruction-sequence 
             `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
-           (compile (Top-code top) (cons (Top-prefix top) cenv) target next-linkage)
+           (compile (Top-code top) 
+		    (cons (Top-prefix top) cenv)
+		    target
+		    next-linkage/drop-multiple)
            (make-instruction-sequence
             `(,(make-PopEnvironment (make-Const 1) 
                                     (make-Const 0))))))))
@@ -373,8 +376,9 @@
   ;; All but the last will use next-linkage linkage.
   (if (last-exp? seq)
       (compile (first-exp seq) cenv target linkage)
-      (append-instruction-sequences (compile (first-exp seq) cenv target next-linkage)
-                                    (compile-sequence (rest-exps seq) cenv target linkage))))
+      (append-instruction-sequences 
+       (compile (first-exp seq) cenv target next-linkage/drop-multiple)
+       (compile-sequence (rest-exps seq) cenv target linkage))))
 
 
 (: compile-splice ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -573,7 +577,10 @@
                              next-linkage-expects-single)]
          [operand-codes (map (lambda: ([operand : Expression]
                                        [target : Target])
-                                      (compile operand extended-cenv target next-linkage-expects-single))
+                                      (compile operand
+					       extended-cenv
+					       target
+					       next-linkage-expects-single))
                              (App-operands exp)
                              (build-list (length (App-operands exp))
                                          (lambda: ([i : Natural])
@@ -724,7 +731,10 @@
                     (apply append-instruction-sequences
                            (map (lambda: ([operand : Expression]
                                           [target : Target])
-                                         (compile operand extended-cenv target next-linkage-expects-single))
+                                         (compile operand 
+						  extended-cenv 
+						  target 
+						  next-linkage-expects-single))
                                 rest-operands
                                 rest-operand-poss))])
        
@@ -875,7 +885,10 @@
 			       next-linkage-expects-single)]
 	   [operand-codes (map (lambda: ([operand : Expression]
 					 [target : Target])
-					(compile operand extended-cenv target next-linkage-expects-single))
+					(compile operand 
+						 extended-cenv 
+						 target 
+						 next-linkage-expects-single))
 			       (App-operands exp)
 			       (build-list (length (App-operands exp))
 					   (lambda: ([i : Natural])
@@ -1502,9 +1515,9 @@
 		       -> InstructionSequence))
   (define (in-other-context linkage)
     (let ([body-next-linkage (cond [(NextLinkage? linkage)
-				    next-linkage]
+				    next-linkage/drop-multiple]
 				   [(LabelLinkage? linkage)
-				    next-linkage]
+				    next-linkage/drop-multiple]
 				   [(NextLinkage/Expects? linkage)
 				    linkage]
 				   [(LabelLinkage/Expects? linkage)

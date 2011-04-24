@@ -69,7 +69,7 @@
 (define (make-bootstrapped-primitive-code name src)
   (parameterize ([current-defined-name name])
     (append
-     (compile (parse src) (make-PrimitivesReference name) next-linkage))))
+     (compile (parse src) (make-PrimitivesReference name) next-linkage/drop-multiple))))
 
 
 

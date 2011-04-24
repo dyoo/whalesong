@@ -402,11 +402,22 @@
 
 
 
+;; A ValuesContext describes if a context either
+;;    * accepts any number multiple values by dropping them from the stack.
+;;    * accepts any number of multiple values by maintaining them on the stack.
+;;    * accepts exactly n values, erroring out
+(define-type ValuesContext (U 'drop-multiple 
+			      'keep-multiple
+			      Natural))
 
 
 ;; Linkage
 (define-struct: NextLinkage ())
-(define next-linkage (make-NextLinkage))
+(define next-linkage/drop-multiple (make-NextLinkage))
+
+
+
+
 
 ;; NextLinkage/Expects works like NextLinkage, but should check that
 ;; it is returning 'expects' values back.

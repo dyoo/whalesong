@@ -412,25 +412,17 @@
 
 
 ;; Linkage
-(define-struct: NextLinkage ())
-(define next-linkage/drop-multiple (make-NextLinkage))
+(define-struct: NextLinkage ([context : ValuesContext]))
+(define next-linkage/drop-multiple (make-NextLinkage 'drop-multiple))
+(define next-linkage/expects-single (make-NextLinkage 1))
 
 
-
-
-
-;; NextLinkage/Expects works like NextLinkage, but should check that
-;; it is returning 'expects' values back.
-(define-struct: NextLinkage/Expects ([expects : (U Natural '*)]))
-(define next-linkage-expects-single (make-NextLinkage/Expects 1))
 
 
 ;; LabelLinkage is a labeled GOTO.
-(define-struct: LabelLinkage ([label : Symbol]))
-;; LabelLinkage/Expects records that the context expects a certain number
-;; of values.
-(define-struct: LabelLinkage/Expects ([label : Symbol]
-				      [expects : (U Natural '*)]))
+(define-struct: LabelLinkage ([label : Symbol]
+			      [context : ValuesContext]))
+
 
 
 ;; Both ReturnLinkage and ReturnLinkage/NonTail deal with multiple
@@ -441,11 +433,7 @@
 (define return-linkage/nontail (make-ReturnLinkage #f))
 
 (define-type Linkage (U NextLinkage
-                        NextLinkage/Expects
-                        
                         LabelLinkage
-			LabelLinkage/Expects
-
                         ReturnLinkage))
 
 

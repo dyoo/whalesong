@@ -1058,8 +1058,7 @@
 	      ;; occur when we're in tail position, and we should be in tail position
 	      ;; only when the target is the val register.
 	      (error 'compile "return linkage, target not val: ~s" target)])]
-	   [else
-	    
+	   [else	    
 	    (cond [(eq? target 'val)
 		   ;; This case happens for a function call that isn't in
 		   ;; tail position.
@@ -1076,21 +1075,7 @@
 		    proc-return)]
 		  
 		  [else
-		   ;; This case happens for evaluating arguments, since the
-		   ;; arguments are being installed into the scratch space.
-		   (append-instruction-sequences
-		    (make-instruction-sequence
-		     `(,(make-PushControlFrame/Call proc-return)))
-		    maybe-install-jump-address
-		    (make-instruction-sequence
-		     `(,(make-GotoStatement entry-point-target)))
-		    proc-return-multiple
-		    (make-instruction-sequence
-		     `(,(make-PopEnvironment (make-Reg 'argcount) 
-					     (make-Const 0))))
-		    proc-return
-		    (make-instruction-sequence
-		     `(,(make-AssignImmediateStatement target (make-Reg 'val)))))])])]
+		   (error 'compile "return linkage, target not val: ~s" target)])])]
 
 	 [(NextLinkage? linkage)
 	  (cond [(eq? target 'val)

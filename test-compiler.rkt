@@ -1195,6 +1195,48 @@
           '((11) (10 11) (11)))
 
 
+
+
+;; Tests with call-with-values.
+(test '(call-with-values (lambda () (values 3 4 5))
+                         (lambda (x y z)
+                           (list x z y)))
+      (list 3 5 4)
+      #:with-bootstrapping? #t)
+
+(test '(call-with-values (lambda () (values 3 4 5))
+                         (lambda (x . z)
+                           (list x z)))
+      (list 3 '(4 5))
+      #:with-bootstrapping? #t)
+
+(test '(call-with-values (lambda () (values))
+                         (lambda z z))
+                           
+      (list)
+      #:with-bootstrapping? #t)
+
+(test '(call-with-values (lambda () (values 3 1 4))
+                         +)
+      8
+      #:with-bootstrapping? #t)
+
+(test '(call-with-values 
+        (lambda () (values 1 2)) 
+        (lambda (x y) y))
+      2
+      #:with-bootstrapping? #t)
+
+(test '(call-with-values 
+        (lambda () (values 1 2)) 
+        (lambda z z))
+      '(1 2)
+      #:with-bootstrapping? #t)
+      
+(test '(call-with-values * -)
+      -1
+      #:with-bootstrapping? #t)
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

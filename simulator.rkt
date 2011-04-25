@@ -804,7 +804,7 @@
 (define (ensure-natural x)
   (if (natural? x)
       x
-      (error 'ensure-natural)))
+      (error 'ensure-natural "not a natural: ~s" x)))
 
 (: ensure-number (Any -> Number))
 (define (ensure-number x)

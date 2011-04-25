@@ -412,8 +412,9 @@
 ;;    * accepts any number multiple values by dropping them from the stack.
 ;;    * accepts any number of multiple values by maintaining them on the stack.
 ;;    * accepts exactly n values, erroring out
-(define-type ValuesContext (U 'drop-multiple 
-			      'keep-multiple
+(define-type ValuesContext (U 'tail
+                              'drop-multiple 
+                              'keep-multiple
 			      Natural))
 
 

@@ -519,6 +519,15 @@
       (void))
 
 
+
+(test '(begin (define (f x)
+                (* x x))
+              (f 3)
+              (f 4)
+              (f 5))
+      25)
+
+
 (test '(begin (define (sum-integers a b)
                (if (> a b)
                    0

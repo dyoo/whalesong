@@ -69,7 +69,9 @@
     [(ControlStackLabel? oparg)
      oparg]
     [(ControlStackLabel/MultipleValueReturn? oparg)
-     oparg]))
+     oparg]
+    [(CompiledProcedureEntry? oparg)
+     (make-CompiledProcedureEntry (adjust-oparg-depth (CompiledProcedureEntry-proc oparg) n))]))
 
 
 (define-predicate natural? Natural)

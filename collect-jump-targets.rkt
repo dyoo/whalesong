@@ -43,7 +43,7 @@
    [(TestAndBranchStatement? stmt)
     (list (TestAndBranchStatement-label stmt))]
    [(GotoStatement? stmt)
-    (collect-location (GotoStatement-target stmt))]
+    (collect-input (GotoStatement-target stmt))]
    [(PushEnvironment? stmt)
     empty]
    [(PopEnvironment? stmt)
@@ -82,7 +82,9 @@
    [(ControlStackLabel? an-input)
     empty]
    [(ControlStackLabel/MultipleValueReturn? an-input)
-    empty]))
+    empty]
+   [(CompiledProcedureEntry? an-input)
+    (collect-input (CompiledProcedureEntry-proc an-input))]))
 
 (: collect-location ((U Reg Label) -> (Listof Symbol)))
 (define (collect-location a-location)

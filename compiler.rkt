@@ -234,14 +234,15 @@
       `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
 
 
-(: compile-singular-context-check (Linkage -> InstructionSequence))
+(: emit-singular-context-check (Linkage -> InstructionSequence))
 ;; Emits code to raise a runtime error if the linkage requires 
-;; multiple values will be produced.
-(define (compile-singular-context-check linkage)
+;; multiple values will be produced, since there's no way to produce them.
+(define (emit-singular-context-check linkage)
   (cond [(ReturnLinkage? linkage)
          empty-instruction-sequence]
-        [(NextLinkage? linkage)
-         (let ([context (NextLinkage-context linkage)])
+        [(or (NextLinkage? linkage)
+             (LabelLinkage? linkage))
+         (let ([context (linkage-context linkage)])
            (cond
              [(eq? context 'drop-multiple)
               empty-instruction-sequence]
@@ -252,28 +253,12 @@
                   empty-instruction-sequence
                   (make-instruction-sequence 
                    `(,(make-PerformStatement 
-                       (make-RaiseContextExpectedValuesError! 1)))))]))]
-        [(LabelLinkage? linkage)
-         (let ([context (LabelLinkage-context linkage)])
-           (cond
-             [(eq? context 'drop-multiple)
-              empty-instruction-sequence]
-             [else
-              (let ([n context])
-                (cond
-                  [(eq? n 'keep-multiple)
-                   empty-instruction-sequence]
-                  [(natural? n)
-                   (if (= n 1)
-                       empty-instruction-sequence
-                       (make-instruction-sequence 
-                        `(,(make-PerformStatement 
-                            (make-RaiseContextExpectedValuesError! 1)))))]))]))]))
-
+                       (make-RaiseContextExpectedValuesError! 1)))))]))]))
+        
 
 (: compile-constant (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-constant exp cenv target linkage)
-  (let ([singular-context-check (compile-singular-context-check linkage)])
+  (let ([singular-context-check (emit-singular-context-check linkage)])
     ;; Compiles constant values.
     (end-with-linkage linkage
                       cenv
@@ -286,7 +271,7 @@
 
 (: compile-local-reference (LocalRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-local-reference exp cenv target linkage)
-  (let ([singular-context-check (compile-singular-context-check linkage)])
+  (let ([singular-context-check (emit-singular-context-check linkage)])
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
@@ -301,7 +286,7 @@
 (: compile-toplevel-reference (ToplevelRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles toplevel references.
 (define (compile-toplevel-reference exp cenv target linkage)
-  (let ([singular-context-check (compile-singular-context-check linkage)])
+  (let ([singular-context-check (emit-singular-context-check linkage)])
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
@@ -325,7 +310,7 @@
     (let ([get-value-code
            (compile (ToplevelSet-value exp) cenv lexical-pos
                     next-linkage/expects-single)]
-          [singular-context-check (compile-singular-context-check linkage)])
+          [singular-context-check (emit-singular-context-check linkage)])
       (end-with-linkage
        linkage
        cenv
@@ -354,17 +339,18 @@
           (let ([p-code (compile (Branch-predicate exp) cenv 'val next-linkage/expects-single)]
                 [c-code (compile (Branch-consequent exp) cenv target consequent-linkage)]
                 [a-code (compile (Branch-alternative exp) cenv target linkage)])
-            (append-instruction-sequences p-code
-                                          (append-instruction-sequences
-                                           (make-instruction-sequence
-                                            `(,(make-TestAndBranchStatement 'false? 
-                                                                            (make-Reg 'val)
-                                                                            f-branch)))
-                                           t-branch 
-                                           c-code
-                                           f-branch
-                                           a-code
-                                           after-if))))))
+            (append-instruction-sequences 
+             p-code
+             (append-instruction-sequences
+              (make-instruction-sequence
+               `(,(make-TestAndBranchStatement 'false? 
+                                               (make-Reg 'val)
+                                               f-branch)))
+              t-branch 
+              c-code
+              f-branch
+              a-code
+              after-if))))))
 
 
 (: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -422,7 +408,7 @@
 ;; The lambda will close over the free variables.
 ;; Assumption: all of the lambda bodies have already been written out at the top, in -compile.
 (define (compile-lambda exp cenv target linkage) 
-  (let ([singular-context-check (compile-singular-context-check linkage)])
+  (let ([singular-context-check (emit-singular-context-check linkage)])
     (end-with-linkage 
      linkage
      cenv
@@ -443,7 +429,7 @@
 ;; Write out code for lambda expressions, minus the closure map.
 ;; Assumption: all of the lambda bodies have already been written out at the top, in -compile.
 (define (compile-lambda-shell exp cenv target linkage) 
-  (let ([singular-context-check (compile-singular-context-check linkage)])
+  (let ([singular-context-check (emit-singular-context-check linkage)])
     (end-with-linkage 
      linkage
      cenv
@@ -552,10 +538,10 @@
             [(Prefix? op-knowledge)
              (error 'impossible)]
             [(Const? op-knowledge)
-             (make-instruction-sequence `(,(make-AssignImmediateStatement 'proc op-knowledge)
-                                          ,(make-PerformStatement
-                                            (make-RaiseOperatorApplicationError! (make-Reg 'proc)))))]))))
-
+             (make-instruction-sequence 
+              `(,(make-AssignImmediateStatement 'proc op-knowledge)
+                ,(make-PerformStatement
+                  (make-RaiseOperatorApplicationError! (make-Reg 'proc)))))]))))
 
 
 (: compile-general-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -981,7 +967,7 @@
                (make-instruction-sequence
                 `(,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))))
                (compile-compiled-procedure-application extended-cenv-length
-                                                       'val
+                                                       'dynamic
                                                        target
                                                        compiled-linkage)
                
@@ -1035,7 +1021,7 @@
 
 
 
-(: compile-compiled-procedure-application (OpArg (U Label 'val) Target Linkage -> InstructionSequence))
+(: compile-compiled-procedure-application (OpArg (U Label 'dynamic) Target Linkage -> InstructionSequence))
 ;; This is the heart of compiled procedure application.  A lot of things happen here.
 ;;
 ;;     Procedure linkage.
@@ -1047,38 +1033,35 @@
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
 (define (compile-compiled-procedure-application cenv-length-with-args entry-point target linkage)
-  (let*-values ([(maybe-install-jump-address entry-point-target)
-                 ;; Optimization: if the entry-point is supposed to be val, then it needs to hold
-                 ;; the procedure entry here.  Otherwise, it doesn't.
-                 (cond [(Label? entry-point)
-                        (values empty-instruction-sequence entry-point)]
-                       [(eq? entry-point 'val)
-                        (values (make-instruction-sequence
-                                 `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))
-                                (make-Reg 'val))])]
-                
-                ;; If the target isn't val, migrate the value from val into it.
-                [(maybe-migrate-val-to-target)
-                 (cond
-                   [(eq? target 'val)
-                    empty-instruction-sequence]
-                   [else
-                    (make-instruction-sequence
-                     `(,(make-AssignImmediateStatement target (make-Reg 'val))))])]
-                
-                [(proc-return-multiple) (make-label 'procReturnMultiple)]
-                
-                [(proc-return) (make-LinkedLabel (make-label 'procReturn)
-                                                 proc-return-multiple)]
-                
-                ;; This code does the initial jump into the procedure.  Clients of this code
-                ;; are expected to generate the proc-return-multiple and proc-return code afterwards.
-                [(nontail-jump-into-procedure)
-                 (append-instruction-sequences 
-                  maybe-install-jump-address
-                  (make-instruction-sequence 
-                   `(,(make-PushControlFrame/Call proc-return)
-                     ,(make-GotoStatement entry-point-target))))])
+  (let* ([entry-point-target
+          ;; Optimization: if the entry-point is known to be a static label,
+          ;; use that.  Otherwise, grab the entry point from the proc register.
+          (cond [(Label? entry-point)
+                 entry-point]
+                [(eq? entry-point 'dynamic)
+                 (make-CompiledProcedureEntry (make-Reg 'proc))])]
+         
+         ;; If the target isn't val, migrate the value from val into it.
+         [maybe-migrate-val-to-target
+          (cond
+            [(eq? target 'val)
+             empty-instruction-sequence]
+            [else
+             (make-instruction-sequence
+              `(,(make-AssignImmediateStatement target (make-Reg 'val))))])]
+         
+         [proc-return-multiple (make-label 'procReturnMultiple)]
+         
+         [proc-return (make-LinkedLabel (make-label 'procReturn)
+                                        proc-return-multiple)]
+         
+         ;; This code does the initial jump into the procedure.  Clients of this code
+         ;; are expected to generate the proc-return-multiple and proc-return code afterwards.
+         [nontail-jump-into-procedure
+          (append-instruction-sequences 
+           (make-instruction-sequence 
+            `(,(make-PushControlFrame/Call proc-return)
+              ,(make-GotoStatement entry-point-target))))])
     
     (cond [(ReturnLinkage? linkage)
            (cond
@@ -1097,7 +1080,6 @@
                                     (make-SubtractArg cenv-length-with-args (make-Reg 'argcount))
                                     (make-Reg 'argcount))))])])
                    (append-instruction-sequences
-                    maybe-install-jump-address
                     reuse-the-stack
                     (make-instruction-sequence
                      `(;; Assign the proc value of the existing call frame.

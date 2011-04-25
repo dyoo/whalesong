@@ -125,18 +125,9 @@
 
 (: step-goto! (machine GotoStatement -> 'ok))
 (define (step-goto! m a-goto)
-  (let: ([t : (U Label Reg) (GotoStatement-target a-goto)])
-        (cond [(Label? t)
-               (jump! m (Label-name t))]
-              [(Reg? t)
-               (let: ([reg : AtomicRegisterSymbol (Reg-name t)])
-                     (cond [(AtomicRegisterSymbol? reg)
-                            (cond [(eq? reg 'val)
-                                   (jump! m (ensure-symbol (machine-val m)))]
-                                  [(eq? reg 'proc)
-                                   (jump! m (ensure-symbol (machine-proc m)))]
-                                  [(eq? reg 'argcount)
-                                   (error 'goto "argcount misused as jump source")])]))])))
+  (let: ([t : Symbol (ensure-symbol (evaluate-oparg m (GotoStatement-target a-goto)))])
+        (jump! m t)))
+        
 
 (: step-assign-immediate! (machine AssignImmediateStatement -> 'ok))
 (define (step-assign-immediate! m stmt)
@@ -751,7 +742,11 @@
 	   (LinkedLabel-linked-to label))]
 	[(CallFrame? frame)
 	 (let ([label (CallFrame-return frame)])
-	   (LinkedLabel-linked-to label))]))]))
+	   (LinkedLabel-linked-to label))]))]
+
+    [(CompiledProcedureEntry? an-oparg)
+     (let ([proc (ensure-closure (evaluate-oparg m (CompiledProcedureEntry-proc an-oparg)))])
+       (closure-label proc))]))
 
 
 (: ensure-closure-or-false (SlotValue -> (U closure #f)))

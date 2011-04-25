@@ -41,7 +41,9 @@
     [(ControlStackLabel? v)
      (assemble-control-stack-label v)]
     [(ControlStackLabel/MultipleValueReturn? v)
-     (assemble-control-stack-label/multiple-value-return v)]))
+     (assemble-control-stack-label/multiple-value-return v)]
+    [(CompiledProcedureEntry? v)
+     (assemble-compiled-procedure-entry v)]))
 
 
 
@@ -148,6 +150,12 @@
 
 
 
+(: assemble-compiled-procedure-entry (CompiledProcedureEntry -> String))
+(define (assemble-compiled-procedure-entry a-compiled-procedure-entry)
+  (format "(~a).label"
+          (assemble-oparg (CompiledProcedureEntry-proc a-compiled-procedure-entry))))
+
+
 
 (: assemble-default-continuation-prompt-tag (-> String))
 (define (assemble-default-continuation-prompt-tag)
@@ -191,9 +199,9 @@
 
 
 
-(: assemble-jump ((U Label Reg) -> String))
+(: assemble-jump (OpArg -> String))
 (define (assemble-jump target)
-  (format "return (~a)(MACHINE);" (assemble-location target)))
+  (format "return (~a)(MACHINE);" (assemble-oparg target)))
 
 
 

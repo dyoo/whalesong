@@ -29,6 +29,7 @@
                       SubtractArg
 		      ControlStackLabel
 		      ControlStackLabel/MultipleValueReturn
+                      CompiledProcedureEntry
                       ))
 
 
@@ -68,6 +69,9 @@
 (define-struct: ControlStackLabel/MultipleValueReturn ()
   #:transparent)
 
+;; Get the entry point of a compiled procedure.
+(define-struct: CompiledProcedureEntry ([proc : OpArg])
+  #:transparent)
 
 
 
@@ -166,7 +170,7 @@
 
 
 
-(define-struct: GotoStatement ([target : (U Label Reg)]) 
+(define-struct: GotoStatement ([target : OpArg]) 
   #:transparent)
 
 (define-struct: PerformStatement ([op : PrimitiveCommand])

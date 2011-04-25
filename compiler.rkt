@@ -44,8 +44,10 @@
        (make-instruction-sequence
         `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
        before-pop-prompt
-       (make-instruction-sequence
-        `(,(make-AssignImmediateStatement target (make-Reg 'val)))))))))
+       (if (eq? target 'val)
+           empty-instruction-sequence
+           (make-instruction-sequence
+            `(,(make-AssignImmediateStatement target (make-Reg 'val))))))))))
 
 (define-struct: lam+cenv ([lam : Lam]
                           [cenv : CompileTimeEnvironment]))
@@ -936,7 +938,10 @@
 (define (linkage-context linkage)
   (cond
     [(ReturnLinkage? linkage)
-     'keep-multiple]
+     (cond [(ReturnLinkage-tail? linkage)
+            'keep-multiple]
+           [else
+            'drop-multiple])]
     [(NextLinkage? linkage)
      (NextLinkage-context linkage)]
     [(LabelLinkage? linkage)
@@ -1031,8 +1036,7 @@
 
 
 (: compile-compiled-procedure-application (OpArg (U Label 'val) Target Linkage -> InstructionSequence))
-;; This is the heart of compiled procedure application.  A lot of
-;; things happen here.
+;; This is the heart of compiled procedure application.  A lot of things happen here.
 ;;
 ;;     Procedure linkage.
 ;;     Handling of multiple-value-returns.
@@ -1114,97 +1118,71 @@
               (error 'compile "return linkage, target not val: ~s" target)])]
           
           
-          [(NextLinkage? linkage)
-           (let ([context (NextLinkage-context linkage)])
-             (cond
-               [(eq? context 'drop-multiple)
-                (append-instruction-sequences
-                 nontail-jump-into-procedure
-                 proc-return-multiple
-                 (make-instruction-sequence
-                  `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
-                 proc-return
-                 maybe-migrate-val-to-target)]
-               
-               
-               
-               ;; FIXME: this isn't doing the proper checks!!!
-               [else
-                (let* ([after-value-check (make-label 'afterValueCheck)]
-                       
-                       [return-point-code
-                        (cond
-                          [(eq? context 'keep-multiple)
-                           (let ([after-return (make-label 'afterReturn)])
-                             (append-instruction-sequences
-                              proc-return-multiple
-                              (make-instruction-sequence
-                               `(,(make-GotoStatement (make-Label after-return))))
-                              proc-return
-                              (make-instruction-sequence
-                               `(,(make-AssignImmediateStatement 'argcount (make-Const 1))
-                                 ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))
-                              after-return))]
-                          [(natural? context)
-                           (cond
-                             [(= context 1)
-                              (append-instruction-sequences
-                               proc-return-multiple
-                               (make-instruction-sequence
-                                `(,(make-PerformStatement
-                                    (make-RaiseContextExpectedValuesError! 1))))
-                               proc-return)]
-                             [else
-                              (append-instruction-sequences
-                               proc-return-multiple
-                               (make-instruction-sequence
-                                `(
-                                  ;; if the wrong number of arguments come in, die
-                                  ,(make-TestAndBranchStatement
-                                    'zero? 
-                                    (make-SubtractArg (make-Reg 'argcount)
-                                                      (make-Const context))
-                                    after-value-check)))
-                               proc-return
-                               (make-instruction-sequence
-                                `(,(make-PerformStatement
-                                    (make-RaiseContextExpectedValuesError! context))))
-                               after-value-check)])])])
+          [(or (NextLinkage? linkage) (LabelLinkage? linkage))
+           (let* ([context (linkage-context linkage)]
+
+                  [check-values-context-on-procedure-return
+                   (cond
+
+                     [(eq? context 'drop-multiple)
+                      (append-instruction-sequences
+                       proc-return-multiple
+                       (make-instruction-sequence
+                        `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+                       proc-return)]
+                     
+                     [(eq? context 'keep-multiple)
+                      (let ([after-return (make-label 'afterReturn)])
+                        (append-instruction-sequences
+                         proc-return-multiple
+                         (make-instruction-sequence
+                          `(,(make-GotoStatement (make-Label after-return))))
+                         proc-return
+                         (make-instruction-sequence
+                          `(,(make-AssignImmediateStatement 'argcount (make-Const 1))
+                            ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))
+                         after-return))]
+                     
+                     [(natural? context)
+                      (cond
+                        [(= context 1)
+                         (append-instruction-sequences
+                          proc-return-multiple
+                          (make-instruction-sequence
+                           `(,(make-PerformStatement
+                               (make-RaiseContextExpectedValuesError! 1))))
+                          proc-return)]
+                        [else
+                         (let ([after-value-check (make-label 'afterValueCheck)])
+                           (append-instruction-sequences
+                            proc-return-multiple
+                            (make-instruction-sequence
+                             `(
+                               ;; if the wrong number of arguments come in, die
+                               ,(make-TestAndBranchStatement
+                                 'zero? 
+                                 (make-SubtractArg (make-Reg 'argcount)
+                                                   (make-Const context))
+                                 after-value-check)))
+                            proc-return
+                            (make-instruction-sequence
+                             `(,(make-PerformStatement
+                                 (make-RaiseContextExpectedValuesError! context))))
+                            after-value-check))])])]
                   
-                  (append-instruction-sequences
-                   nontail-jump-into-procedure
-                   return-point-code
-                   maybe-migrate-val-to-target))]))]
-          
-          
-          
-          [(LabelLinkage? linkage)
-           (let ([context (LabelLinkage-context linkage)])
-             (cond
-               [(eq? context 'drop-multiple)
-                (append-instruction-sequences
-                 nontail-jump-into-procedure
-                 proc-return-multiple
-                 (make-instruction-sequence 
-                  `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                          (make-Const 0))))
-                 proc-return
-                 maybe-migrate-val-to-target
-                 (make-instruction-sequence
-                  `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))]
-               
-               [else
-                (append-instruction-sequences
-                 nontail-jump-into-procedure
-                 proc-return-multiple
-                 ;; FIXME: this may need to raise a runtime error here!
-                 (make-instruction-sequence 
-                  `(,(make-PopEnvironment (make-Reg 'argcount) 
-                                          (make-Const 0))))
-                 proc-return
-                 maybe-migrate-val-to-target
-                 (make-instruction-sequence
-                  `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage))))))]))])))
+                  [maybe-jump-to-label
+                   (if (LabelLinkage? linkage)
+                       (make-instruction-sequence
+                        `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))
+                       empty-instruction-sequence)])
+             
+             
+             (append-instruction-sequences
+              nontail-jump-into-procedure
+              check-values-context-on-procedure-return
+              maybe-migrate-val-to-target
+              maybe-jump-to-label))])))
+
 
 
 

@@ -746,7 +746,13 @@
 
     [(CompiledProcedureEntry? an-oparg)
      (let ([proc (ensure-closure (evaluate-oparg m (CompiledProcedureEntry-proc an-oparg)))])
-       (closure-label proc))]))
+       (closure-label proc))]
+
+    [(ControlFrameTemporary? an-oparg)
+     (let ([ht (frame-temps (control-top m))])
+       (hash-ref ht
+                 (ControlFrameTemporary-name an-oparg)))]))
+
 
 
 (: ensure-closure-or-false (SlotValue -> (U closure #f)))

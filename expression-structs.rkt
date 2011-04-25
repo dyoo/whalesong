@@ -14,7 +14,8 @@
                                LetRec
                                InstallValue
                                BoxEnv
-                               WithContMark))
+                               WithContMark
+                               ApplyValues))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : Expression]) #:transparent)
@@ -78,6 +79,12 @@
                               [value : Expression]
                               [body : Expression])
   #:transparent)
+
+
+(define-struct: ApplyValues ([proc : Expression]
+                             [args-expr : Expression])
+  #:transparent)
+
 
 
 (: last-exp? ((Listof Expression) -> Boolean))

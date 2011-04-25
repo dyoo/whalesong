@@ -30,7 +30,7 @@
 		      ControlStackLabel
 		      ControlStackLabel/MultipleValueReturn
                       CompiledProcedureEntry
-                      ))
+                      ControlFrameTemporary))
 
 
 ;; Targets: these are the allowable lhs's for an assignment.
@@ -42,7 +42,9 @@
 
 
 ;; When we need to store a value temporarily in the top control frame, we can use this as a target.
-(define-struct: ControlFrameTemporary ([name : (U 'pendingContinuationMarkKey)])
+(define-struct: ControlFrameTemporary ([name : (U 'pendingContinuationMarkKey ;; for continuation marks
+                                                  'pendingApplyValuesProc ;; for apply-values
+                                                  )])
   #:transparent)
 
 
@@ -419,7 +421,7 @@
 (define-struct: NextLinkage ([context : ValuesContext]))
 (define next-linkage/drop-multiple (make-NextLinkage 'drop-multiple))
 (define next-linkage/expects-single (make-NextLinkage 1))
-
+(define next-linkage/values-on-stack (make-NextLinkage 'keep-multiple))
 
 
 

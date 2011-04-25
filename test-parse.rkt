@@ -487,3 +487,15 @@
                 (make-WithContMark (make-ToplevelRef 0 0)
                                    (make-ToplevelRef 0 1)
                                    (make-ToplevelRef 0 2))))
+
+
+
+(test (parse '(call-with-values x y))
+      (make-Top (make-Prefix '(x y))
+                (make-ApplyValues (make-ToplevelRef 0 1)
+                                  (make-App (make-ToplevelRef 0 0) (list)))))
+
+(test (parse '(call-with-values (lambda () x) y))
+      (make-Top (make-Prefix '(x y))
+                (make-ApplyValues (make-ToplevelRef 0 1)
+                                  (make-ToplevelRef 0 0))))

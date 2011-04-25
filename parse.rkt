@@ -151,7 +151,9 @@
      (make-WithContMark (parse (with-continuation-mark-key exp) cenv #f)
                         (parse (with-continuation-mark-value exp) cenv #f)
                         (parse (with-continuation-mark-body exp) cenv #f))]
-                        
+
+    [(call-with-values? exp)
+     (parse-call-with-values exp cenv)]
 
     ;; Remember, this needs to be the last case.
     [(application? exp)
@@ -282,6 +284,10 @@
         (append (loop (with-continuation-mark-key exp))
                 (loop (with-continuation-mark-value exp))
                 (loop (with-continuation-mark-body exp)))]
+      
+       [(call-with-values? exp)
+        (append (loop (call-with-values-producer exp))
+                (loop (call-with-values-consumer exp)))]
 
        ;; Remember: this needs to be the last case.
        [(application? exp)
@@ -350,6 +356,10 @@
         (append (loop (with-continuation-mark-key exp))
                 (loop (with-continuation-mark-value exp))
                 (loop (with-continuation-mark-body exp)))]
+       
+       [(call-with-values? exp)
+        (append (loop (call-with-values-producer exp))
+                (loop (call-with-values-consumer exp)))]
        
        ;; Remember, this needs to be the last case.
        [(application? exp)
@@ -582,6 +592,26 @@
                        #t))])))
 
 
+
+(define (parse-call-with-values exp cenv)
+  (cond
+    [(and (lambda? (call-with-values-producer exp))
+          (empty? (lambda-parameters (call-with-values-producer exp))))
+     (let ([producer (parse `(begin ,@(lambda-body (call-with-values-producer exp)))
+                            cenv #f)]
+           [consumer-proc (parse (call-with-values-consumer exp) cenv #f)])
+              (make-ApplyValues consumer-proc producer))]
+    [else
+     (let ([producer (parse `(,(call-with-values-producer exp)) cenv #f)]
+           [consumer-proc (parse (call-with-values-consumer exp) cenv #f)])
+       (make-ApplyValues consumer-proc producer))]))
+
+
+
+
+
+
+
 (define (desugar-let* exp)
   (let ([body (let-body exp)])
     (let loop ([vars (let-variables exp)]
@@ -604,6 +634,7 @@
 
 
 
+
 (define (named-let? exp)
   (and (tagged-list? exp 'let)
        (symbol? (cadr exp))))
@@ -621,6 +652,13 @@
 (define (named-let-body exp)
   (cdddr exp))
 
+
+(define (call-with-values? exp)
+  (tagged-list? exp 'call-with-values))
+(define (call-with-values-producer exp)
+  (cadr exp))
+(define (call-with-values-consumer exp)
+  (caddr exp))
 
 
 ;; any -> boolean

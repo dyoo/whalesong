@@ -43,7 +43,9 @@
     [(ControlStackLabel/MultipleValueReturn? v)
      (assemble-control-stack-label/multiple-value-return v)]
     [(CompiledProcedureEntry? v)
-     (assemble-compiled-procedure-entry v)]))
+     (assemble-compiled-procedure-entry v)]
+    [(ControlFrameTemporary? v)
+     (assemble-control-frame-temporary v)]))
 
 
 
@@ -64,10 +66,13 @@
     [(PrimitivesReference? target)
      (format "MACHINE.primitives[~s]" (symbol->string (PrimitivesReference-name target)))]
     [(ControlFrameTemporary? target)
-     (format "MACHINE.control[MACHINE.control.length-1].~a"
-             (ControlFrameTemporary-name target))]))
+     (assemble-control-frame-temporary target)]))
 
 
+(: assemble-control-frame-temporary (ControlFrameTemporary -> String))
+(define (assemble-control-frame-temporary t)
+  (format "MACHINE.control[MACHINE.control.length-1].~a"
+          (ControlFrameTemporary-name t)))
 
 ;; fixme: use js->string
 (: assemble-const (Const -> String))

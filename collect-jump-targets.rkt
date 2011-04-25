@@ -84,7 +84,9 @@
    [(ControlStackLabel/MultipleValueReturn? an-input)
     empty]
    [(CompiledProcedureEntry? an-input)
-    (collect-input (CompiledProcedureEntry-proc an-input))]))
+    (collect-input (CompiledProcedureEntry-proc an-input))]
+   [(ControlFrameTemporary? an-input)
+    empty]))
 
 (: collect-location ((U Reg Label) -> (Listof Symbol)))
 (define (collect-location a-location)

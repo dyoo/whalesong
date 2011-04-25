@@ -121,7 +121,10 @@
           [(WithContMark? exp)
            (append (loop (WithContMark-key exp) cenv)
                    (loop (WithContMark-value exp) cenv)
-                   (loop (WithContMark-body exp) cenv))])))
+                   (loop (WithContMark-body exp) cenv))]
+          [(ApplyValues? exp)
+           (append (loop (ApplyValues-proc exp) cenv)
+                   (loop (ApplyValues-args-expr exp) cenv))])))
 
 
 
@@ -178,7 +181,9 @@
     [(LetRec? exp)
      (compile-let-rec exp cenv target linkage)]
     [(WithContMark? exp)
-     (compile-with-cont-mark exp cenv target linkage)]))
+     (compile-with-cont-mark exp cenv target linkage)]
+    [(ApplyValues? exp)
+     (compile-apply-values exp cenv target linkage)]))
 
 
 
@@ -1416,6 +1421,44 @@
      (in-other-context linkage)]))
 
 
+(: compile-apply-values (ApplyValues CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-apply-values exp cenv target linkage)
+  (append-instruction-sequences
+   
+   ;; Save the procedure value temporarily in a control stack frame
+   (make-instruction-sequence 
+    `(,(make-PushControlFrame/Generic)))
+   (compile (ApplyValues-proc exp) 
+            cenv 
+            (make-ControlFrameTemporary 'pendingApplyValuesProc)
+            next-linkage/expects-single)
+   
+   ;; Then evaluate the value producer in a context that expects
+   ;; the return values to be placed onto the stack.
+   (compile (ApplyValues-args-expr exp)
+            cenv 
+            'val
+            next-linkage/values-on-stack)
+
+   ;; Retrieve the procedure off the temporary control frame.
+   (make-instruction-sequence
+    `(,(make-AssignImmediateStatement 
+        'proc 
+        (make-ControlFrameTemporary 'pendingApplyValuesProc))))
+   
+   ;; Pop off the temporary control frame
+   (make-instruction-sequence 
+    `(,(make-PopControlFrame)))
+   
+   ;; Finally, do the generic call into the function.
+   (compile-general-procedure-call cenv (make-Reg 'argcount) target linkage)))
+
+   
+            
+  
+
+   
+
 
 (: append-instruction-sequences (InstructionSequence * -> InstructionSequence))
 (define (append-instruction-sequences . seqs)
@@ -1594,6 +1637,9 @@
     [(WithContMark? exp)
      (make-WithContMark (adjust-expression-depth (WithContMark-key exp) n skip)
                         (adjust-expression-depth (WithContMark-value exp) n skip)
-                        (adjust-expression-depth (WithContMark-body exp) n skip))]))
+                        (adjust-expression-depth (WithContMark-body exp) n skip))]
+    [(ApplyValues? exp)
+     (make-ApplyValues (adjust-expression-depth (ApplyValues-proc exp) n skip)
+                       (adjust-expression-depth (ApplyValues-args-expr exp) n skip))]))
 
 

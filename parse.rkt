@@ -89,6 +89,12 @@
          [(EnvPrefixReference? address)
           (make-ToplevelRef (EnvPrefixReference-depth address)
                             (EnvPrefixReference-pos address))]))]
+
+    [(define-values? exp)
+     (make-DefValues (map (lambda (id) 
+                            (parse id cenv #f))
+                          (define-values-ids exp))
+                     (parse (define-values-rhs exp) cenv #f))]
     
     [(definition? exp)
      (let ([address (find-variable (definition-variable exp) cenv)])
@@ -241,6 +247,10 @@
        [(variable? exp)
         (list exp)]
        
+       [(define-values? exp)
+        (append (define-values-ids exp)
+                (loop (define-values-rhs exp)))]
+       
        [(definition? exp)
         (cons (definition-variable exp)
               (loop (definition-value exp)))]
@@ -313,6 +323,9 @@
        
        [(variable? exp)
         '()]
+       
+       [(define-values? exp)
+        (loop (define-values-rhs exp))]
        
        [(definition? exp)
         (loop (definition-value exp))]
@@ -397,6 +410,18 @@
   (tagged-list? exp 'set!))
 (define (assignment-variable exp) (cadr exp))
 (define (assignment-value exp) (caddr exp))
+
+
+
+(define (define-values? exp)
+  (tagged-list? exp 'define-values))
+
+(define (define-values-ids exp)
+  (cadr exp))
+
+(define (define-values-rhs exp)
+  (caddr exp))
+
 
 (define (definition? exp)
   (tagged-list? exp 'define))

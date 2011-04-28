@@ -499,3 +499,20 @@
       (make-Top (make-Prefix '(x y))
                 (make-ApplyValues (make-ToplevelRef 0 1)
                                   (make-ToplevelRef 0 0))))
+
+
+
+(test (parse '(define-values () (values)))
+      (make-Top (make-Prefix '(values))
+                (make-DefValues '()
+                                (make-App (make-ToplevelRef 0 0) '()))))
+
+(test (parse '(define-values (x y z) (values 'hello 'world 'testing)))
+      (make-Top (make-Prefix '(values x y z))
+                (make-DefValues (list (make-ToplevelRef 0 1)
+                                      (make-ToplevelRef 0 2)
+                                      (make-ToplevelRef 0 3))
+                                (make-App (make-ToplevelRef 3 0) 
+                                          (list (make-Constant 'hello)
+                                                (make-Constant 'world)
+                                                (make-Constant 'testing))))))

@@ -1501,16 +1501,46 @@
 
 (: compile-def-values (DefValues CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-def-values exp cenv target linkage)
-  (let ([ids (DefValues-ids exp)]
-        [rhs (DefValues-rhs exp)])
-  ;; First, compile the body with expectations for 
+  (let* ([ids (DefValues-ids exp)]
+         [rhs (DefValues-rhs exp)]
+         [n (length ids)])
+  ;; First, compile the body, which will produce right side values.
     (end-with-linkage 
      linkage 
      cenv
      (append-instruction-sequences
       (compile rhs cenv 'val (make-NextLinkage (length ids)))
-      ;; Now install each of the values in place
-      ))))
+
+      ;; Now install each of the values in place.  The first value's in val, and the rest of the
+      ;; values are on the stack.
+      (if (> n 0)
+          (apply append-instruction-sequences
+             (map (lambda: ([id : ToplevelRef]
+                            [from : OpArg])
+                           (make-instruction-sequence
+                            `(,(make-AssignImmediateStatement
+                                ;; Slightly subtle: the toplevelrefs were with respect to the
+                                ;; stack at the beginning of def-values, but at the moment,
+                                ;; there may be additional values that are currently there.
+                                (make-EnvPrefixReference (+ (ensure-natural (sub1 n))
+                                                            (ToplevelRef-depth id))
+                                                         (ToplevelRef-pos id))
+                                from))))
+                  ids
+                  (if (> n 0) 
+                      (cons (make-Reg 'val)
+                            (build-list (sub1 n)
+                                        (lambda: ([i : Natural])
+                                                 (make-EnvLexicalReference i #f))))
+                      empty)))
+          empty-instruction-sequence)
+
+      ;; Finally, make sure any multiple values are off the stack.
+      (if (> (length ids) 1)
+          (make-instruction-sequence 
+           `(,(make-PopEnvironment (make-Const (length ids))
+                                   (make-Const 0))))
+          empty-instruction-sequence)))))
            
 
 

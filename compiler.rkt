@@ -1711,12 +1711,14 @@
     
     [(InstallValue? exp)
      (if (< (InstallValue-depth exp) skip)
-         (make-InstallValue (InstallValue-depth exp)
+         (make-InstallValue (InstallValue-count exp)
+                            (InstallValue-depth exp)
                             (adjust-expression-depth (InstallValue-body exp)
                                                      n
                                                      skip)
                             (InstallValue-box? exp))
-         (make-InstallValue (ensure-natural (- (InstallValue-depth exp) n))
+         (make-InstallValue (InstallValue-count exp)
+                            (ensure-natural (- (InstallValue-depth exp) n))
                             (adjust-expression-depth (InstallValue-body exp)
                                                      n
                                                      skip)

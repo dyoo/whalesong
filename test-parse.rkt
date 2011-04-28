@@ -257,8 +257,8 @@
                 y))
       (make-Top (make-Prefix '())
                 (make-LetVoid 2
-                              (make-Seq (list (make-InstallValue 0 (make-Constant 3) #f)
-                                              (make-InstallValue 1 (make-Constant 4) #f)
+                              (make-Seq (list (make-InstallValue 1 0 (make-Constant 3) #f)
+                                              (make-InstallValue 1 1 (make-Constant 4) #f)
                                               (make-Seq (list (make-LocalRef 0 #f)
                                                               (make-LocalRef 1 #f)))))
                               #f)))
@@ -271,11 +271,11 @@
                   y)))
       (make-Top (make-Prefix '())
                 (make-LetVoid 2
-                              (make-Seq (list (make-InstallValue 0 (make-Constant 3) #f)
-                                              (make-InstallValue 1 (make-Constant 4) #f)
+                              (make-Seq (list (make-InstallValue 1 0 (make-Constant 3) #f)
+                                              (make-InstallValue 1 1 (make-Constant 4) #f)
                                               (make-LetVoid 2
-                                                            (make-Seq (list (make-InstallValue 0 (make-LocalRef 3 #f) #f)
-                                                                            (make-InstallValue 1 (make-LocalRef 2 #f) #f)
+                                                            (make-Seq (list (make-InstallValue 1 0 (make-LocalRef 3 #f) #f)
+                                                                            (make-InstallValue 1 1 (make-LocalRef 2 #f) #f)
                                                                             (make-Seq (list (make-LocalRef 0 #f)
                                                                                             (make-LocalRef 1 #f)))))
                                                             #f)))
@@ -344,14 +344,14 @@
                 (make-LetVoid 2
                               (make-Seq 
                                (list 
-                                (make-InstallValue 1
+                                (make-InstallValue 1 1
                                                    (make-Lam 'x 1 #f (make-LocalRef 0 #f) '() 'lamEntry1)
                                                    #t)
-                                (make-InstallValue 0 
+                                (make-InstallValue 1 0 
                                                    (make-Lam 'y 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
                                                    #t)
                                 ;; stack layout: ??? x y
-                                (make-Seq (list (make-Seq (list (make-InstallValue 1 (make-LocalRef 1 #t) #t)
+                                (make-Seq (list (make-Seq (list (make-InstallValue 1 1 (make-LocalRef 1 #t) #t)
                                                                 (make-Constant (void))))
                                                 (make-App (make-LocalRef 2 #t)
                                                           (list (make-LocalRef 1 #t)))))))
@@ -389,14 +389,14 @@
                   (make-LetVoid 2
                                 (make-Seq 
                                  (list 
-                                  (make-InstallValue 0
+                                  (make-InstallValue 1 0
                                                      (make-Lam 'x 1 #f
                                                                (make-App (make-LocalRef 1 #t) 
                                                                          (list (make-LocalRef 2 #f)))
                                                                '(1)
                                                                'lamEntry1)
                                                      #t)
-                                  (make-InstallValue 1 
+                                  (make-InstallValue 1 1 
                                                      (make-Lam 'y 1 #f
                                                                (make-App (make-LocalRef 2 #f)
                                                                          (list (make-LocalRef 1 #t)))
@@ -416,7 +416,7 @@
                            (make-BoxEnv 0
                                         (make-Lam #f 0 #f
                                                   (make-Seq (list (make-InstallValue 
-                                                                   1 
+                                                                   1 1 
                                                                    (make-App (make-ToplevelRef 1 0)
                                                                              (list (make-LocalRef 2 #t)))
                                                                    #t)
@@ -433,12 +433,12 @@
       (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 '#%kernel)))
                 (make-LetVoid 2
                               (make-Seq (list
-                                         (make-InstallValue 0 (make-Constant 0) #t)
-                                         (make-InstallValue 1 (make-Constant 1) #t)
+                                         (make-InstallValue 1 0 (make-Constant 0) #t)
+                                         (make-InstallValue 1 1 (make-Constant 1) #t)
                                          (make-Lam #f 0 #f
                                                    (make-Seq
                                                     (list (make-InstallValue 
-                                                           1 
+                                                           1 1 
                                                            (make-App (make-ToplevelRef 1 0)
                                                                      (list (make-LocalRef 2 #t)))
                                                            #t)

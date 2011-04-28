@@ -64,7 +64,8 @@
                         [body : Expression])
   #:transparent)
 
-(define-struct: InstallValue ([depth : Natural]
+(define-struct: InstallValue ([count : Natural] ;; how many values to install
+                              [depth : Natural] ;; how many slots to skip
                               [body : Expression]
                               [box? : Boolean])
   #:transparent)

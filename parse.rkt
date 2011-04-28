@@ -143,7 +143,8 @@
        ;; extent of the set!-value.
        (make-Seq (list (cond
                          [(EnvLexicalReference? address)
-                          (make-InstallValue (EnvLexicalReference-depth address)
+                          (make-InstallValue 1
+                                             (EnvLexicalReference-depth address)
                                              (parse (set!-value exp) cenv #f)
                                              #t)]
                          [(EnvPrefixReference? address)
@@ -559,7 +560,8 @@
          (make-LetVoid (length vars)
                        (seq (append 
                              (map (lambda (var rhs index) 
-                                    (make-InstallValue index 
+                                    (make-InstallValue 1
+                                                       index 
                                                        (parameterize ([current-defined-name var])
                                                          (parse rhs rhs-cenv #f))
                                                        any-mutated?))
@@ -606,7 +608,8 @@
          (make-LetVoid (length vars)
                        (seq (append 
                              (map (lambda (var rhs index) 
-                                    (make-InstallValue (- n 1 index)
+                                    (make-InstallValue 1
+                                                       (- n 1 index)
                                                        (parameterize ([current-defined-name var])
                                                          (parse rhs new-cenv #f))
                                                        #t))

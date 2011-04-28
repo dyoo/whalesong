@@ -1391,10 +1391,45 @@
 
 (: compile-install-value (InstallValue CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-install-value exp cenv target linkage)
-  (compile (InstallValue-body exp)
-           cenv
-           (make-EnvLexicalReference (InstallValue-depth exp) (InstallValue-box? exp))
-           linkage))
+  (let ([count (InstallValue-count exp)])
+    (cond [(= count 0)
+           (end-with-linkage
+            linkage
+            cenv
+            (compile (InstallValue-body exp)
+                     cenv
+                     target
+                     (make-NextLinkage 0)))]
+          [(= count 1)
+           (end-with-linkage
+            linkage
+            cenv
+            (compile (InstallValue-body exp)
+                     cenv
+                     (make-EnvLexicalReference (InstallValue-depth exp) (InstallValue-box? exp))
+                     (make-NextLinkage 1)))]
+          [else
+           (end-with-linkage
+            linkage
+            cenv
+            (append-instruction-sequences
+             (compile (InstallValue-body exp)
+                      cenv
+                      'val
+                      (make-NextLinkage count))
+             (apply append-instruction-sequences
+                    (map (lambda: ([to : EnvLexicalReference]
+                                   [from : OpArg])
+                           (make-instruction-sequence
+                            `(,(make-AssignImmediateStatement to from))))
+                         (build-list count (lambda: ([i : Natural])
+                                             (make-EnvLexicalReference (+ i (InstallValue-depth exp))
+                                                                       (InstallValue-box? exp))))
+                         (cons (make-Reg 'val) 
+                               (build-list (sub1 count) (lambda: ([i : Natural])
+                                                                 (make-EnvLexicalReference i #f))))))
+             (make-instruction-sequence
+              `(,(make-PopEnvironment (make-Const (sub1 count)) (make-Const 0))))))])))
 
 
 

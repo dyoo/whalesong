@@ -1182,27 +1182,27 @@
 (: emit-values-context-check-on-procedure-return (ValuesContext Symbol LinkedLabel -> InstructionSequence))
 ;; When we come back from a procedure call, the following code ensures the context's expectations
 ;; are met.
-(define (emit-values-context-check-on-procedure-return context proc-return-multiple proc-return)
+(define (emit-values-context-check-on-procedure-return context on-return/multiple on-return)
   (cond                                          
     [(eq? context 'tail)
-     (append-instruction-sequences proc-return-multiple
-                                   proc-return)]
+     (append-instruction-sequences on-return/multiple
+                                   on-return)]
     
     [(eq? context 'drop-multiple)
      (append-instruction-sequences
-      proc-return-multiple
+      on-return/multiple
       (make-instruction-sequence
        `(,(make-PopEnvironment (SubtractArg (make-Reg 'argcount) (make-Const 1))
                                (make-Const 0))))
-      proc-return)]
+      on-return)]
     
     [(eq? context 'keep-multiple)
      (let ([after-return (make-label 'afterReturn)])
        (append-instruction-sequences
-        proc-return-multiple
+        on-return/multiple
         (make-instruction-sequence
          `(,(make-GotoStatement (make-Label after-return))))
-        proc-return
+        on-return
         (make-instruction-sequence
          `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))
         after-return))]
@@ -1211,15 +1211,15 @@
      (cond
        [(= context 1)
         (append-instruction-sequences
-         proc-return-multiple
+         on-return/multiple
          (make-instruction-sequence
           `(,(make-PerformStatement
               (make-RaiseContextExpectedValuesError! 1))))
-         proc-return)]
+         on-return)]
        [else
         (let ([after-value-check (make-label 'afterValueCheck)])
           (append-instruction-sequences
-           proc-return-multiple
+           on-return/multiple
            (make-instruction-sequence
             `(
               ;; if the wrong number of arguments come in, die
@@ -1228,7 +1228,7 @@
                 (make-SubtractArg (make-Reg 'argcount)
                                   (make-Const context))
                 after-value-check)))
-           proc-return
+           on-return
            (make-instruction-sequence
             `(,(make-PerformStatement
                 (make-RaiseContextExpectedValuesError! context))))
@@ -1239,7 +1239,9 @@
 
 (: extract-static-knowledge (Expression CompileTimeEnvironment ->  
                                         CompileTimeEnvironmentEntry))
-;; Statically determines what we know about exp, given the compile time environment.
+;; Statically determines what we know about the expression, given the compile time environment.
+;; We should do more here eventually, including things like type inference or flow analysis, so that
+;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
   (cond
     [(Lam? exp)
@@ -1271,6 +1273,8 @@
 
 
 (: compile-let1 (Let1 CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Single value binding.  Since there's only one rhs, we have more static guarantees we can make,
+;; which is why we can use extract-static-knowledge here.
 (define (compile-let1 exp cenv target linkage)
   (let*: ([rhs-code : InstructionSequence 
                     (compile (Let1-rhs exp)
@@ -1309,7 +1313,10 @@
 
 
 
+
 (: compile-let-void (LetVoid CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Binding several values.  Unlike before, it has less knowledge about what values will be bound,
+;; and so there's less analysis here.
 (define (compile-let-void exp cenv target linkage)
   (let*: ([n : Natural (LetVoid-count exp)]
           [after-let : Symbol (make-label 'afterLet)]
@@ -1349,6 +1356,8 @@
 
 
 (: compile-let-rec (LetRec CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiled recursive Lams.  Each lambda is installed as a shell, and then the closures
+;; are installed in-place.
 (define (compile-let-rec exp cenv target linkage)
   (let*: ([extended-cenv : CompileTimeEnvironment
                          (append (map (lambda: ([p : Lam])

@@ -14,7 +14,7 @@
 (define (optimize-il statements)
   ;; For now, replace pairs of PushEnvironment / AssignImmediate(0, ...)
   ;; We should do some more optimizations here, like peephole...
-  (let loop ([statements statements])
+  (let loop ([statements (filter not-no-op? statements)])
     (cond
       [(empty? statements)
        empty]
@@ -46,6 +46,61 @@
                 [else
                  (default)]))]))])))
        
+
+(: not-no-op? (Statement -> Boolean))
+(define (not-no-op? stmt) (not (no-op? stmt)))
+
+
+(: no-op? (Statement -> Boolean))
+;; Produces true if the statement should have no effect.
+(define (no-op? stmt)
+  (cond
+    [(symbol? stmt)
+     #f]
+    
+    [(LinkedLabel? stmt)
+     #f]
+    
+    [(AssignImmediateStatement? stmt)
+     (equal? (AssignImmediateStatement-target stmt)
+             (AssignImmediateStatement-value stmt))]
+
+    [(AssignPrimOpStatement? stmt)
+     #f]
+    
+    [(PerformStatement? stmt)
+     #f]
+    
+    [(GotoStatement? stmt)
+     #f]
+    
+    [(TestAndBranchStatement? stmt)
+     #f]
+    
+    [(PopEnvironment? stmt)
+     (and (Const? (PopEnvironment-n stmt))
+          (equal? (PopEnvironment-n stmt) 
+                  (make-Const 0)))]
+     
+    [(PushEnvironment? stmt)
+     (= (PushEnvironment-n stmt) 0)]
+    
+    [(PushImmediateOntoEnvironment? stmt)
+     #f]
+
+    [(PushControlFrame/Generic? stmt)
+     #f]
+    
+    [(PushControlFrame/Call? stmt)
+     #f]
+    
+    [(PushControlFrame/Prompt? stmt)
+     #f]
+    
+    [(PopControlFrame? stmt)
+     #f]))
+
+
 
 
 

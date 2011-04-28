@@ -422,7 +422,7 @@
 (define-struct: NextLinkage ([context : ValuesContext]))
 (define next-linkage/drop-multiple (make-NextLinkage 'drop-multiple))
 (define next-linkage/expects-single (make-NextLinkage 1))
-(define next-linkage/values-on-stack (make-NextLinkage 'keep-multiple))
+(define next-linkage/keep-multiple-on-stack (make-NextLinkage 'keep-multiple))
 
 
 

@@ -131,6 +131,8 @@
 
 
 (: extract-lambda-cenv (Lam CompileTimeEnvironment -> CompileTimeEnvironment))
+;; Given a Lam and the ambient environment, produces the compile time environment for the
+;; body of the lambda.
 (define (extract-lambda-cenv lam cenv)
   (append (map (lambda: ([d : Natural])
                         (list-ref cenv d))
@@ -143,6 +145,7 @@
 
 
 (: compile (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; The main dispatching function for compilation.
 ;; Compiles an expression into an instruction sequence.
 (define (compile exp cenv target linkage)
   (cond
@@ -193,6 +196,8 @@
 
 
 (: compile-top (Top CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Generates code to write out the top prefix, evaluate the rest of the body,
+;; and then pop the top prefix off.
 (define (compile-top top cenv target linkage)
   (let*: ([names : (Listof (U Symbol ModuleVariable False)) (Prefix-names (Top-prefix top))])
          (end-with-linkage 
@@ -210,8 +215,9 @@
 
 
 
-;; Add linkage for expressions.
+
 (: end-with-linkage (Linkage CompileTimeEnvironment InstructionSequence -> InstructionSequence))
+;; Add linkage for expressions.
 (define (end-with-linkage linkage cenv instruction-sequence)
   (append-instruction-sequences instruction-sequence
                                 (compile-linkage cenv linkage)))
@@ -220,32 +226,45 @@
 
 
 (: compile-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
+;; Generates the code necessary to drive the rest of the computation (represented as the linkage).
 (define (compile-linkage cenv linkage)
   (cond
     [(ReturnLinkage? linkage)
      (cond
        [(ReturnLinkage-tail? linkage)
+        ;; Under tail calls, clear the environment of the current stack frame (represented by cenv)
+        ;; and do the jump.
         (make-instruction-sequence 
-         `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-           ,(make-PopEnvironment (make-Const (length cenv)) 
+         `(,(make-PopEnvironment (make-Const (length cenv)) 
                                  (make-Const 0))
+           ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
            ,(make-PopControlFrame)
            ,(make-GotoStatement (make-Reg 'proc))))]
        [else
+        ;; Under non-tail calls, leave the stack as is and just do the jump.
         (make-instruction-sequence
          `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
            ,(make-PopControlFrame)
            ,(make-GotoStatement (make-Reg 'proc))))])]
+    
     [(NextLinkage? linkage)
      empty-instruction-sequence]
+ 
     [(LabelLinkage? linkage)
      (make-instruction-sequence 
       `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
 
 
 (: emit-singular-context (Linkage -> InstructionSequence))
-;; Emits code to raise a runtime error if the linkage requires 
+;; Emits code specific to a construct that's guaranteed to produce a single value.
+;;
+;; This does two things:
+;;
+;; 1.  The emitted code raises a runtime error if the linkage requires 
 ;; multiple values will be produced, since there's no way to produce them.
+;;
+;; 2. In the case where the context is 'keep-multiple, it will also indicate a single
+;; value by assigning to the argcount register.
 (define (emit-singular-context linkage)
   (cond [(ReturnLinkage? linkage)
          empty-instruction-sequence]
@@ -255,11 +274,14 @@
            (cond
              [(eq? context 'tail)
               empty-instruction-sequence]
+             
              [(eq? context 'drop-multiple)
               empty-instruction-sequence]
+             
              [(eq? context 'keep-multiple)
               (make-instruction-sequence
                `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))]
+
              [(natural? context)
               (if (= context 1)
                   empty-instruction-sequence
@@ -270,6 +292,7 @@
 
 
 (: compile-constant (Constant CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Generates output for constant values.
 (define (compile-constant exp cenv target linkage)
   (let ([singular-context-check (emit-singular-context linkage)])
     ;; Compiles constant values.
@@ -283,6 +306,7 @@
 
 
 (: compile-local-reference (LocalRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Compiles local variable references.
 (define (compile-local-reference exp cenv target linkage)
   (let ([singular-context-check (emit-singular-context linkage)])
     (end-with-linkage linkage
@@ -315,7 +339,7 @@
 
 
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
-;; Compiles toplevel definition.
+;; Compiles a toplevel mutation.
 (define (compile-toplevel-set exp cenv target linkage)
   (let* ([var (ToplevelSet-name exp)]
          [lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
@@ -377,14 +401,15 @@
        (compile-sequence (rest-exps seq) cenv target linkage))))
 
 
+
 (: compile-splice ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a sequence of expressions.  A continuation prompt wraps around each of the expressions
 ;; to delimit any continuation captures.
 (define (compile-splice seq cenv target linkage) 
   (cond [(last-exp? seq)
-         (let* ([before-pop-prompt-multiple (make-label 'beforePromptPopMultiple)]
-                [before-pop-prompt (make-LinkedLabel (make-label 'beforePromptPop)
-                                                     before-pop-prompt-multiple)])
+         (let* ([on-return/multiple (make-label 'beforePromptPopMultiple)]
+                [on-return (make-LinkedLabel (make-label 'beforePromptPop)
+                                                     on-return/multiple)])
            (end-with-linkage 
             linkage
             cenv
@@ -392,30 +417,27 @@
              (make-instruction-sequence 
               `(,(make-PushControlFrame/Prompt
                   default-continuation-prompt-tag
-                  before-pop-prompt)))
+                  on-return)))
              (compile (first-exp seq) cenv target return-linkage/nontail)
-             before-pop-prompt-multiple
-             (make-instruction-sequence
-              `(,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
-                                                        (make-Const 1))
-                                      (make-Const 0))))
-             before-pop-prompt)))]
+             (emit-values-context-check-on-procedure-return (linkage-context linkage)
+                                                            on-return/multiple
+                                                            on-return))))]
         [else
-         (let* ([before-pop-prompt-multiple (make-label 'beforePromptPopMultiple)]
-                [before-pop-prompt (make-LinkedLabel (make-label 'beforePromptPop)
-                                                     before-pop-prompt-multiple)])
+         (let* ([on-return/multiple (make-label 'beforePromptPopMultiple)]
+                [on-return (make-LinkedLabel (make-label 'beforePromptPop)
+                                                     on-return/multiple)])
            (append-instruction-sequences 
             (make-instruction-sequence
              `(,(make-PushControlFrame/Prompt
                  (make-DefaultContinuationPromptTag)
-                 before-pop-prompt)))
+                 on-return)))
             (compile (first-exp seq) cenv target return-linkage/nontail)
-            before-pop-prompt-multiple
+            on-return/multiple
             (make-instruction-sequence
              `(,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
                                                        (make-Const 1))
                                      (make-Const 0))))
-            before-pop-prompt
+            on-return
             (compile-splice (rest-exps seq) cenv target linkage)))]))
 
 
@@ -1085,17 +1107,17 @@
              (make-instruction-sequence
               `(,(make-AssignImmediateStatement target (make-Reg 'val))))])]
          
-         [proc-return-multiple (make-label 'procReturnMultiple)]
+         [on-return/multiple (make-label 'procReturnMultiple)]
          
-         [proc-return (make-LinkedLabel (make-label 'procReturn)
-                                        proc-return-multiple)]
+         [on-return (make-LinkedLabel (make-label 'procReturn)
+                                        on-return/multiple)]
          
          ;; This code does the initial jump into the procedure.  Clients of this code
          ;; are expected to generate the proc-return-multiple and proc-return code afterwards.
          [nontail-jump-into-procedure
           (append-instruction-sequences 
            (make-instruction-sequence 
-            `(,(make-PushControlFrame/Call proc-return)
+            `(,(make-PushControlFrame/Call on-return)
               ,(make-GotoStatement entry-point-target))))])
     
     (cond [(ReturnLinkage? linkage)
@@ -1126,12 +1148,12 @@
                  ;; we are not in tail position.
                  (append-instruction-sequences
                   nontail-jump-into-procedure
-                  proc-return-multiple
+                  on-return/multiple
                   (make-instruction-sequence
                    `(,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
                                                              (make-Const 1))
                                            (make-Const 0))))
-                  proc-return)])]
+                  on-return)])]
              
              [else
               (error 'compile "return linkage, target not val: ~s" target)])]
@@ -1141,72 +1163,76 @@
            (let* ([context (linkage-context linkage)]
                   
                   [check-values-context-on-procedure-return
-                   (cond                                          
-                     [(eq? context 'tail)
-                      ;; This case should be impossible: context for NextLinkage or LabelLinkage must
-                      ;; not be tail.
-                      (error 'compile-procedure-application "Linkage ~s must not have tail value context" linkage)]
-                     
-                     [(eq? context 'drop-multiple)
-                      (append-instruction-sequences
-                       proc-return-multiple
-                       (make-instruction-sequence
-                        `(,(make-PopEnvironment (SubtractArg (make-Reg 'argcount) 
-                                                             (make-Const 1))
-                                                (make-Const 0))))
-                       proc-return)]
-                      
-                     [(eq? context 'keep-multiple)
-                      (let ([after-return (make-label 'afterReturn)])
-                        (append-instruction-sequences
-                         proc-return-multiple
-                         (make-instruction-sequence
-                          `(,(make-GotoStatement (make-Label after-return))))
-                         proc-return
-                         (make-instruction-sequence
-                          `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))
-                         after-return))]
-                     
-                     [(natural? context)
-                      (cond
-                        [(= context 1)
-                         (append-instruction-sequences
-                          proc-return-multiple
-                          (make-instruction-sequence
-                           `(,(make-PerformStatement
-                               (make-RaiseContextExpectedValuesError! 1))))
-                          proc-return)]
-                        [else
-                         (let ([after-value-check (make-label 'afterValueCheck)])
-                           (append-instruction-sequences
-                            proc-return-multiple
-                            (make-instruction-sequence
-                             `(
-                               ;; if the wrong number of arguments come in, die
-                               ,(make-TestAndBranchStatement
-                                 'zero? 
-                                 (make-SubtractArg (make-Reg 'argcount)
-                                                   (make-Const context))
-                                 after-value-check)))
-                            proc-return
-                            (make-instruction-sequence
-                             `(,(make-PerformStatement
-                                 (make-RaiseContextExpectedValuesError! context))))
-                            after-value-check))])])]
+                   (emit-values-context-check-on-procedure-return context on-return/multiple on-return)]
                   
                   [maybe-jump-to-label
                    (if (LabelLinkage? linkage)
                        (make-instruction-sequence
                         `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))
                        empty-instruction-sequence)])
-             
-             
+
              (append-instruction-sequences
               nontail-jump-into-procedure
               check-values-context-on-procedure-return
               maybe-migrate-val-to-target
               maybe-jump-to-label))])))
 
+
+
+(: emit-values-context-check-on-procedure-return (ValuesContext Symbol LinkedLabel -> InstructionSequence))
+;; When we come back from a procedure call, the following code ensures the context's expectations
+;; are met.
+(define (emit-values-context-check-on-procedure-return context proc-return-multiple proc-return)
+  (cond                                          
+    [(eq? context 'tail)
+     (append-instruction-sequences proc-return-multiple
+                                   proc-return)]
+    
+    [(eq? context 'drop-multiple)
+     (append-instruction-sequences
+      proc-return-multiple
+      (make-instruction-sequence
+       `(,(make-PopEnvironment (SubtractArg (make-Reg 'argcount) (make-Const 1))
+                               (make-Const 0))))
+      proc-return)]
+    
+    [(eq? context 'keep-multiple)
+     (let ([after-return (make-label 'afterReturn)])
+       (append-instruction-sequences
+        proc-return-multiple
+        (make-instruction-sequence
+         `(,(make-GotoStatement (make-Label after-return))))
+        proc-return
+        (make-instruction-sequence
+         `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))
+        after-return))]
+    
+    [(natural? context)
+     (cond
+       [(= context 1)
+        (append-instruction-sequences
+         proc-return-multiple
+         (make-instruction-sequence
+          `(,(make-PerformStatement
+              (make-RaiseContextExpectedValuesError! 1))))
+         proc-return)]
+       [else
+        (let ([after-value-check (make-label 'afterValueCheck)])
+          (append-instruction-sequences
+           proc-return-multiple
+           (make-instruction-sequence
+            `(
+              ;; if the wrong number of arguments come in, die
+              ,(make-TestAndBranchStatement
+                'zero? 
+                (make-SubtractArg (make-Reg 'argcount)
+                                  (make-Const context))
+                after-value-check)))
+           proc-return
+           (make-instruction-sequence
+            `(,(make-PerformStatement
+                (make-RaiseContextExpectedValuesError! context))))
+           after-value-check))])]))
 
 
 
@@ -1512,11 +1538,12 @@
      (compile (ApplyValues-args-expr exp)
               cenv 
               'val
-              next-linkage/values-on-stack)
+              next-linkage/keep-multiple-on-stack)
      
      (make-instruction-sequence
       `(,(make-TestAndBranchStatement 'zero? (make-Reg 'argcount) after-args-evaluated)
-        ;; Common case: push val onto the stack
+        ;; In the common case where we do get values back, we push val onto the stack too,
+        ;; so that we have n values on the stack before we jump to the procedure call.
         ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))
      
      after-args-evaluated

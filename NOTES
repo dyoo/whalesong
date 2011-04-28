@@ -418,3 +418,48 @@ Any context.
 
 
 I'm going to simplify values a bit.
+
+
+
+----------------------------------------------------------------------
+
+April 28
+
+
+Multiple values are handled in the following way now.
+
+In a context that expects multiple values to be returned,
+
+   if n = 0, don't leave anything on the stack before jumping out
+
+   if n = 1, put the single value in the 'val register
+
+   if n > 1, put the first value in the 'val register, and leave the
+   rest (the n-1 values) on the value stack.
+
+The context is then responsible for dealing with those multiple return
+values.
+
+The contexts are now of the following types:
+
+   'tail : keeps the values on the stack.  Used specifically for tail return.
+
+   'drop-multiple : drops any extra values on the stack
+
+   'keep-multiple : keeps any number of values on the stack.
+
+   Natural : expects exactly n values.  Errors out if this can't be the case.
+
+
+
+There appears to be a bug in compile-splice regarding multiple value
+contexts.  I haven't yet fixed the bug.  I need a test case.  I need
+to somehow create a splicing expression in the context of something
+that expects multiple values back.  I'm not exactly sure how to create
+such a context.
+
+
+Ok, I think I've been able to do this successfully.  I lifted out the
+code for emit-values-context-check-on-procedure-return so it's used
+for both the returns from procedure call, as well as the calls from
+the prompt splicing.

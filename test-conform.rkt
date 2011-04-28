@@ -8,7 +8,7 @@
 
 
 (define (run-compiler code)
-  (compile (parse code) 'val next-linkage))
+  (compile (parse code) 'val next-linkage/drop-multiple))
   
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.

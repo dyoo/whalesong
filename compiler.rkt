@@ -610,9 +610,8 @@
                                                       (make-EnvLexicalReference i #f)
                                                       'val))))])    
     (append-instruction-sequences
-     (if (not (empty? (App-operands exp)))
-         (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
-         empty-instruction-sequence)
+     (make-instruction-sequence 
+      `(,(make-PushEnvironment (length (App-operands exp)) #f)))
      proc-code
      (juggle-operands operand-codes)
      (make-instruction-sequence `(,(make-AssignImmediateStatement 
@@ -733,17 +732,13 @@
                            operand-knowledge)]
                      
                      [(stack-pushing-code) 
-                      (if (empty? rest-operands)
-                          empty-instruction-sequence
-                          (make-instruction-sequence `(,(make-PushEnvironment 
-                                                         (length rest-operands)
-                                                         #f))))]
+                      (make-instruction-sequence `(,(make-PushEnvironment 
+                                                     (length rest-operands)
+                                                     #f)))]
                      [(stack-popping-code) 
-                      (if (empty? rest-operands)
-                          empty-instruction-sequence
-                          (make-instruction-sequence `(,(make-PopEnvironment 
-                                                         (make-Const (length rest-operands))
-                                                         (make-Const 0)))))]
+                      (make-instruction-sequence `(,(make-PopEnvironment 
+                                                     (make-Const (length rest-operands))
+                                                     (make-Const 0))))]
                      
                      [(constant-operand-poss)
                       (simple-operands->opargs constant-operands)]
@@ -922,9 +917,7 @@
                                                         (make-EnvLexicalReference i #f)
                                                         'val))))])    
       (append-instruction-sequences
-       (if (not (empty? (App-operands exp)))
-           (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))
-           empty-instruction-sequence)
+       (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))           
        proc-code
        (juggle-operands operand-codes)
        arity-check
@@ -1343,14 +1336,12 @@
           linkage
           extended-cenv
           (append-instruction-sequences 
-           (if (> n 0)
-               (make-instruction-sequence `(,(make-PushEnvironment n (LetVoid-boxes? exp))))
-               empty-instruction-sequence)
+           (make-instruction-sequence 
+            `(,(make-PushEnvironment n (LetVoid-boxes? exp))))
            body-code
            after-body-code
-           (if (> n 0)
-               (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) (make-Const 0))))
-               empty-instruction-sequence)
+           (make-instruction-sequence 
+            `(,(make-PopEnvironment (make-Const n) (make-Const 0))))
            after-let))))
 
 
@@ -1388,9 +1379,8 @@
           linkage
           extended-cenv
           (append-instruction-sequences
-           (if (> n 0)
-               (make-instruction-sequence `(,(make-PushEnvironment n #f)))
-               empty-instruction-sequence)
+           (make-instruction-sequence 
+            `(,(make-PushEnvironment n #f)))
            
            ;; Install each of the closure shells
            (apply append-instruction-sequences
@@ -1418,9 +1408,8 @@
            (compile (LetRec-body exp) extended-cenv (adjust-target-depth target n) letrec-linkage)
            
            after-body-code
-           (if (> n 0)
-               (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) (make-Const 0))))
-               empty-instruction-sequence)))))
+
+           (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) (make-Const 0))))))))
 
 
 

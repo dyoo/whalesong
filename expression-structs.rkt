@@ -15,7 +15,8 @@
                                InstallValue
                                BoxEnv
                                WithContMark
-                               ApplyValues))
+                               ApplyValues
+                               DefValues))
 
 (define-struct: Top ([prefix : Prefix]
                      [code : Expression]) #:transparent)
@@ -83,6 +84,12 @@
 
 (define-struct: ApplyValues ([proc : Expression]
                              [args-expr : Expression])
+  #:transparent)
+
+
+;; Multiple value definition
+(define-struct: DefValues ([ids : (Listof ToplevelRef)]
+                           [rhs : Expression])
   #:transparent)
 
 

@@ -124,7 +124,9 @@
                    (loop (WithContMark-body exp) cenv))]
           [(ApplyValues? exp)
            (append (loop (ApplyValues-proc exp) cenv)
-                   (loop (ApplyValues-args-expr exp) cenv))])))
+                   (loop (ApplyValues-args-expr exp) cenv))]
+          [(DefValues? exp)
+           (append (loop (DefValues-rhs exp) cenv))])))
 
 
 
@@ -183,7 +185,9 @@
     [(WithContMark? exp)
      (compile-with-cont-mark exp cenv target linkage)]
     [(ApplyValues? exp)
-     (compile-apply-values exp cenv target linkage)]))
+     (compile-apply-values exp cenv target linkage)]
+    [(DefValues? exp)
+     (compile-def-values exp cenv target linkage)]))
 
 
 
@@ -1495,6 +1499,20 @@
      (compile-general-procedure-call cenv (make-Reg 'argcount) target linkage))))
 
 
+(: compile-def-values (DefValues CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-def-values exp cenv target linkage)
+  (let ([ids (DefValues-ids exp)]
+        [rhs (DefValues-rhs exp)])
+  ;; First, compile the body with expectations for 
+    (end-with-linkage 
+     linkage 
+     cenv
+     (append-instruction-sequences
+      (compile rhs cenv 'val (make-NextLinkage (length ids)))
+      ;; Now install each of the values in place
+      ))))
+           
+
 
 
 
@@ -1536,6 +1554,12 @@
       x
       (error 'ensure-lam "Not a Lam: ~s" x)))
 
+
+(: ensure-toplevelref (Any -> ToplevelRef))
+(define (ensure-toplevelref x)
+  (if (ToplevelRef? x)
+      x
+      (error 'ensure-toplevelref "Not a ToplevelRef: ~s" x)))
 
 
 (: adjust-target-depth (Target Natural -> Target))
@@ -1681,6 +1705,11 @@
                         (adjust-expression-depth (WithContMark-body exp) n skip))]
     [(ApplyValues? exp)
      (make-ApplyValues (adjust-expression-depth (ApplyValues-proc exp) n skip)
-                       (adjust-expression-depth (ApplyValues-args-expr exp) n skip))]))
+                       (adjust-expression-depth (ApplyValues-args-expr exp) n skip))]
 
-
+    [(DefValues? exp)
+     (make-DefValues (map (lambda: ([id : ToplevelRef])
+                                   (ensure-toplevelref
+                                    (adjust-expression-depth id n skip)))
+                          (DefValues-ids exp))
+                     (adjust-expression-depth (DefValues-rhs exp) n skip))]))

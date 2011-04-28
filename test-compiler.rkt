@@ -1170,6 +1170,56 @@
       -1
       #:with-bootstrapping? #t)
 
+
+
+
+
+(test '(begin (define-values () (values))
+              'ok)
+      'ok
+      #:with-bootstrapping? #t)
+
+(test '(begin (define-values (x y z) (values 3 4 5))
+              x)
+      3
+      #:with-bootstrapping? #t)
+
+
+(test '(begin (define-values (x y z) (values 3 4 5))
+              y)
+      4
+      #:with-bootstrapping? #t)
+
+(test '(begin (define-values (x y z) (values 3 4 5))
+              z)
+      5
+      #:with-bootstrapping? #t)
+
+
+(test '(begin (define-values (x) "hello")
+              x)
+      "hello"
+      #:with-bootstrapping? #t)
+
+
+(test '(begin (define-values (x) (values "hello"))
+              x)
+      "hello"
+      #:with-bootstrapping? #t)
+
+
+(test '(begin (define (f x)
+                (values (* x 2)
+                        (/ x 2)))
+              (define-values (a b) (f 16))
+              (list a b))
+      (list 32 8)
+      #:with-bootstrapping? #t)
+                
+
+
+
+
 #;(test (read (open-input-file "tests/conform/program0.sch"))
       (port->string (open-input-file "tests/conform/expected0.txt")))
 

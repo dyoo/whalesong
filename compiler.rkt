@@ -1538,7 +1538,7 @@
       ;; Finally, make sure any multiple values are off the stack.
       (if (> (length ids) 1)
           (make-instruction-sequence 
-           `(,(make-PopEnvironment (make-Const (length ids))
+           `(,(make-PopEnvironment (make-Const (sub1 (length ids)))
                                    (make-Const 0))))
           empty-instruction-sequence)))))
            

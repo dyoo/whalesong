@@ -8,7 +8,7 @@
 (define-type Expression (U Top Constant 
                                ToplevelRef LocalRef
                                ToplevelSet
-                               Branch Lam Seq Splice App
+                               Branch CaseLam Lam Seq Splice App
                                Let1 
                                LetVoid 
                                LetRec
@@ -24,12 +24,10 @@
 (define-struct: Constant ([v : Any]) #:transparent)
 
 (define-struct: ToplevelRef ([depth : Natural]
-                             [pos : Natural])
-  #:transparent)
+                             [pos : Natural]) #:transparent)
 
 (define-struct: LocalRef ([depth : Natural]
-                          [unbox? : Boolean])
-  #:transparent)
+                          [unbox? : Boolean]) #:transparent)
 
 (define-struct: ToplevelSet ([depth : Natural]
                              [pos : Natural]
@@ -39,6 +37,10 @@
 (define-struct: Branch ([predicate : Expression]
                         [consequent : Expression]
                         [alternative : Expression]) #:transparent)
+
+(define-struct: CaseLam ([name : (U Symbol False)]
+                         [clauses : (Listof Lam)]
+                         [entry-label : Symbol]) #:transparent)
 
 (define-struct: Lam ([name : (U Symbol False)]
                      [num-parameters : Natural]
@@ -53,45 +55,38 @@
                      [operands : (Listof Expression)]) #:transparent)
 
 (define-struct: Let1 ([rhs : Expression]
-                      [body : Expression])
-  #:transparent)
+                      [body : Expression])  #:transparent)
+
 (define-struct: LetVoid ([count : Natural]
                          [body : Expression]
-                         [boxes? : Boolean])
-  #:transparent)
+                         [boxes? : Boolean]) #:transparent)
 
 (define-struct: LetRec ([procs : (Listof Lam)]
-                        [body : Expression])
-  #:transparent)
+                        [body : Expression]) #:transparent)
 
 (define-struct: InstallValue ([count : Natural] ;; how many values to install
                               [depth : Natural] ;; how many slots to skip
                               [body : Expression]
-                              [box? : Boolean])
-  #:transparent)
+                              [box? : Boolean])  #:transparent)
 
 
 (define-struct: BoxEnv ([depth : Natural]
-                        [body : Expression])
-  #:transparent)
+                        [body : Expression]) #:transparent)
 
 
 
 (define-struct: WithContMark ([key : Expression]
                               [value : Expression]
-                              [body : Expression])
-  #:transparent)
+                              [body : Expression]) #:transparent)
 
 
 (define-struct: ApplyValues ([proc : Expression]
-                             [args-expr : Expression])
-  #:transparent)
+                             [args-expr : Expression]) #:transparent)
 
 
 ;; Multiple value definition
 (define-struct: DefValues ([ids : (Listof ToplevelRef)]
-                           [rhs : Expression])
-  #:transparent)
+                           [rhs : Expression]) #:transparent)
 
 
 

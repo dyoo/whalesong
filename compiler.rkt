@@ -49,8 +49,9 @@
            (make-instruction-sequence
             `(,(make-AssignImmediateStatement target (make-Reg 'val))))))))))
 
-(define-struct: lam+cenv ([lam : Lam]
+(define-struct: lam+cenv ([lam : (U Lam CaseLam)]
                           [cenv : CompileTimeEnvironment]))
+
 
 
 (: collect-all-lams (Expression -> (Listof lam+cenv)))
@@ -79,6 +80,12 @@
            (cons (make-lam+cenv exp cenv)
                  (loop (Lam-body exp) 
                        (extract-lambda-cenv exp cenv)))]
+          [(CaseLam? exp)
+           (cons (make-lam+cenv exp cenv)
+                 (apply append (map (lambda: ([lam : Lam])
+                                             (loop lam cenv))
+                                    (CaseLam-clauses exp))))]
+          
           [(Seq? exp)
            (apply append (map (lambda: ([e : Expression]) (loop e cenv))
                               (Seq-actions exp)))]
@@ -163,6 +170,8 @@
      (compile-branch exp cenv target linkage)]
     [(Lam? exp)
      (compile-lambda exp cenv target linkage)]
+    [(CaseLam? exp)
+     (compile-case-lambda exp cenv target linkage)]
     [(Seq? exp)
      (compile-sequence (Seq-actions exp)
                        cenv
@@ -380,8 +389,7 @@
              p-code
              (append-instruction-sequences
               (make-instruction-sequence
-               `(,(make-TestAndBranchStatement 'false? 
-                                               (make-Reg 'val)
+               `(,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val))
                                                f-branch)))
               t-branch 
               c-code
@@ -456,12 +464,89 @@
        `(,(make-AssignPrimOpStatement 
            target
            (make-MakeCompiledProcedure (Lam-entry-label exp)
-                                       (if (Lam-rest? exp)
-                                           (make-ArityAtLeast (Lam-num-parameters exp))
-                                           (Lam-num-parameters exp))
+                                       (Lam-arity exp)
                                        (Lam-closure-map exp)
                                        (Lam-name exp)))))
       singular-context-check))))
+
+(: compile-case-lambda (CaseLam CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Similar to compile-lambda.
+(define (compile-case-lambda exp cenv target linkage)
+  (let ([singular-context-check (emit-singular-context linkage)]
+        [n (length (CaseLam-clauses exp))])
+
+    ;; We have to build all the lambda values, and then create a single CaseLam that holds onto
+    ;; all of them.
+    (end-with-linkage 
+     linkage
+     cenv
+     (append-instruction-sequences
+      ;; Make some temporary space for the lambdas
+      (make-instruction-sequence
+       `(,(make-PushEnvironment n #f)))
+      
+      ;; Compile each of the lambdas
+      (apply append-instruction-sequences
+             (map (lambda: ([lam : Lam]
+                            [target : Target]) 
+                           (make-instruction-sequence
+                            `(,(make-AssignPrimOpStatement
+                                target
+                                (make-MakeCompiledProcedure (Lam-entry-label lam)
+                                                            (Lam-arity lam)
+                                                            (shift-closure-map (Lam-closure-map lam) n)
+                                                            (Lam-name lam))))))
+                  (CaseLam-clauses exp)
+                  (build-list (length (CaseLam-clauses exp))
+                              (lambda: ([i : Natural])
+                                       (make-EnvLexicalReference i #f)))))
+      
+      ;; Make the case lambda as a regular compiled procedure.  Its closed values are the lambdas.
+      (make-instruction-sequence 
+       `(,(make-AssignPrimOpStatement 
+           target
+           (make-MakeCompiledProcedure (CaseLam-entry-label exp)
+                                       (merge-arities (map Lam-arity (CaseLam-clauses exp)))
+                                       (build-list n (lambda: ([i : Natural]) i))
+                                       (CaseLam-name exp)))
+         
+         ;; Finally, pop off the scratch space.
+         ,(make-PopEnvironment (make-Const n) (make-Const 0))))
+      singular-context-check))))
+
+
+(: Lam-arity (Lam -> Arity))
+(define (Lam-arity lam)
+  (if (Lam-rest? lam)
+      (make-ArityAtLeast (Lam-num-parameters lam))
+      (Lam-num-parameters lam)))
+
+
+(: shift-closure-map ((Listof Natural) Natural -> (Listof Natural)))
+(define (shift-closure-map closure-map n)
+  (map (lambda: ([i : Natural]) (+ i n))
+       closure-map))
+
+
+(: merge-arities ((Listof Arity) -> Arity))
+(define (merge-arities arities)
+  (cond [(empty? (rest arities))
+         (first arities)]
+        [else
+         (let ([first-arity (first arities)]
+               [merged-rest (merge-arities (rest arities))])
+           (cond
+             [(AtomicArity? first-arity)
+              (cond [(AtomicArity? merged-rest)
+                     (list first-arity merged-rest)]
+                    [(listof-atomic-arity? merged-rest)
+                     (cons first-arity merged-rest)])]
+             [(listof-atomic-arity? first-arity)
+              (cond [(AtomicArity? merged-rest)
+                     (append first-arity (list merged-rest))]
+                    [(listof-atomic-arity? merged-rest)
+                     (append first-arity merged-rest)])]))]))
+
 
 
 (: compile-lambda-shell (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -517,7 +602,34 @@
          lam-body-code)))
 
 
-
+(: compile-case-lambda-body (CaseLam CompileTimeEnvironment -> InstructionSequence))
+(define (compile-case-lambda-body exp cenv)
+  empty-instruction-sequence
+  #;(append-instruction-sequences
+   (make-instruction-sequence
+    `(,(CaseLam-entry-label exp)))
+   
+   (apply append-instruction-sequences
+          ;; todo: Add the case-dispatch based on arity matching.
+          (map (lambda: ([lam : Lam]
+                        [i : Natural])
+                        (let ([not-match (make-label)])
+                          (make-instruction-sequence
+                           `(,(make-TestAndBranchStatement arity-mismatch?
+                                                           (make-Const (Lam-arity lam))
+                                                           (make-Reg 'argcount))
+                             ;; Set the procedure register to the lam
+                             ,(make-AssignImmediateStatement 
+                               'proc 
+                               (make-CaseLamRef (make-Reg 'proc) (make-Const i)))
+                             
+                             ,(make-GotoStatement (make-Label (Lam-entry-point lam)))
+                             
+                             ,not-match))))
+               (CaseLam-clauses exp)
+               (build-list (length (CaseLam-clauses)) (lambda: ([i : Natural]) i))))))
+  
+  
 (: compile-lambda-bodies ((Listof lam+cenv) -> InstructionSequence))
 ;; Compile several lambda bodies, back to back.
 (define (compile-lambda-bodies exps)
@@ -525,9 +637,19 @@
     [(empty? exps)
      (make-instruction-sequence '())]
     [else
-     (append-instruction-sequences (compile-lambda-body (lam+cenv-lam (first exps))
-                                                        (lam+cenv-cenv (first exps)))
-                                   (compile-lambda-bodies (rest exps)))]))
+     (let: ([lam : (U Lam CaseLam) (lam+cenv-lam (first exps))]
+            [cenv : CompileTimeEnvironment (lam+cenv-cenv (first exps))])
+           (cond
+             [(Lam? lam)
+              (append-instruction-sequences (compile-lambda-body lam
+                                                                 cenv)
+                                            (compile-lambda-bodies (rest exps)))]
+             [(CaseLam? lam)
+              (append-instruction-sequences 
+               (compile-case-lambda-body lam cenv)
+               (compile-lambda-bodies (rest exps)))]))]))
+              
+
 
 
 (: extend-compile-time-environment/scratch-space (CompileTimeEnvironment Natural -> CompileTimeEnvironment))
@@ -995,8 +1117,8 @@
                                   (make-NextLinkage (linkage-context linkage))])
               (append-instruction-sequences
                (make-instruction-sequence 
-                `(,(make-TestAndBranchStatement 'primitive-procedure?
-                                                (make-Reg 'proc)
+                `(,(make-TestAndBranchStatement (make-TestPrimitiveProcedure
+                                                 (make-Reg 'proc))
                                                 primitive-branch)))
                
                
@@ -1217,9 +1339,8 @@
             `(
               ;; if the wrong number of arguments come in, die
               ,(make-TestAndBranchStatement
-                'zero? 
-                (make-SubtractArg (make-Reg 'argcount)
-                                  (make-Const context))
+                (make-TestZero (make-SubtractArg (make-Reg 'argcount)
+                                                 (make-Const context)))
                 after-value-check)))
            on-return
            (make-instruction-sequence
@@ -1539,7 +1660,7 @@
               next-linkage/keep-multiple-on-stack)
      
      (make-instruction-sequence
-      `(,(make-TestAndBranchStatement 'zero? (make-Reg 'argcount) after-args-evaluated)
+      `(,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) after-args-evaluated)
         ;; In the common case where we do get values back, we push val onto the stack too,
         ;; so that we have n values on the stack before we jump to the procedure call.
         ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))
@@ -1725,6 +1846,13 @@
                                  (ensure-natural (- d n))))
                     (Lam-closure-map exp))
                (Lam-entry-label exp))]
+    
+    [(CaseLam? exp)
+     (make-CaseLam (CaseLam-name exp)
+                   (map (lambda: ([lam : Lam])
+                                 (ensure-lam (adjust-expression-depth lam n skip)))
+                        (CaseLam-clauses exp))
+                   (CaseLam-entry-label exp))]
     
     [(Seq? exp)
      (make-Seq (map (lambda: ([action : Expression])

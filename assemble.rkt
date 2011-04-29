@@ -193,21 +193,21 @@ EOF
      [(TestAndBranchStatement? stmt)
       (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
              (cond
-               [(eq? test 'false?)
+               [(TestFalse? test)
                 (format "if (~a === false) { ~a }"
-                        (assemble-oparg (TestAndBranchStatement-operand stmt))
+                        (assemble-oparg (TestFalse-operand test))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-               [(eq? test 'one?)
+               [(TestOne? test)
                 (format "if (~a === 1) { ~a }"
-                        (assemble-oparg (TestAndBranchStatement-operand stmt))
+                        (assemble-oparg (TestOne-operand test))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-               [(eq? test 'zero?)
+               [(TestZero? test)
                 (format "if (~a === 0) { ~a }"
-                        (assemble-oparg (TestAndBranchStatement-operand stmt))
+                        (assemble-oparg (TestZero-operand test))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-               [(eq? test 'primitive-procedure?)
+               [(TestPrimitiveProcedure? test)
                 (format "if (typeof(~a) === 'function') { ~a };"
-                        (assemble-oparg (TestAndBranchStatement-operand stmt))
+                        (assemble-oparg (TestPrimitiveProcedure-operand test))
                         (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]))]
      
      [(GotoStatement? stmt)

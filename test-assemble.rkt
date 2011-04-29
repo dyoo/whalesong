@@ -282,7 +282,7 @@
 
 
 (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const 42))
-                ,(make-TestAndBranchStatement 'false? (make-Reg 'val) 'onFalse)
+                ,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val)) 'onFalse)
                 ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onFalse
@@ -292,7 +292,7 @@
 
 ;; TestAndBranch: try the false branch
 (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const #f))
-                ,(make-TestAndBranchStatement 'false? (make-Reg 'val) 'onFalse)
+                ,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val)) 'onFalse)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onFalse
@@ -302,7 +302,7 @@
 
 ;; Test for primitive procedure
 (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const '+))
-                ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'val) 'onTrue)
+                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue
@@ -313,7 +313,7 @@
 ;; Give a primitive procedure in val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                 ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))
-                ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'val) 'onTrue)
+                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue
@@ -324,7 +324,7 @@
 ;; Give a primitive procedure in proc, but test val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                 ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'val) 'onTrue)
+                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue
@@ -335,7 +335,7 @@
 ;; Give a primitive procedure in proc and test proc
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                 ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                ,(make-TestAndBranchStatement 'primitive-procedure? (make-Reg 'proc) 'onTrue)
+                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue

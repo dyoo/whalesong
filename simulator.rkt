@@ -199,17 +199,18 @@
 
 (: step-test-and-branch! (machine TestAndBranchStatement -> 'ok))
 (define (step-test-and-branch! m stmt)
-  (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)]
-         [argval : SlotValue (evaluate-oparg m (TestAndBranchStatement-operand stmt))])
+  (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
         (if (let: ([v : Boolean (cond
-                                  [(eq? test 'false?)
-                                   (not argval)]
-                                  [(eq? test 'one?)
-                                   (= (ensure-natural argval) 1)]
-				  [(eq? test 'zero?)		   
-				   (= (ensure-natural argval) 0)]
-                                  [(eq? test 'primitive-procedure?)
-                                   (primitive-proc? argval)])])
+                                  [(TestFalse? test)
+                                   (not (evaluate-oparg m (TestFalse-operand test)))]
+                                  [(TestOne? test)
+                                   (= (ensure-natural (evaluate-oparg m (TestOne-operand test)))
+                                      1)]
+				  [(TestZero? test)
+				   (= (ensure-natural (evaluate-oparg m (TestZero-operand test)))
+                                      0)]
+                                  [(TestPrimitiveProcedure? test)
+                                   (primitive-proc? (evaluate-oparg m (TestPrimitiveProcedure-operand test)))])])
                   v)
             (jump! m (TestAndBranchStatement-label stmt))
             'ok)))
@@ -500,7 +501,7 @@
                                             (MakeCompiledProcedureShell-arity op)
                                             '()
                                             (MakeCompiledProcedureShell-display-name op)))]
-          
+                            
           [(ApplyPrimitiveProcedure? op)
            (let: ([prim : SlotValue (machine-proc m)]
                   [args : (Listof PrimitiveValue)

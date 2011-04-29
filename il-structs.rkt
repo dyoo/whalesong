@@ -178,8 +178,9 @@
 (define-struct: PerformStatement ([op : PrimitiveCommand])
   #:transparent)
 
+
+
 (define-struct: TestAndBranchStatement ([op : PrimitiveTest]
-                                        [operand : OpArg]
                                         [label : Symbol])
   #:transparent)
 
@@ -194,6 +195,7 @@
                                   MakeCompiledProcedure
                                   MakeCompiledProcedureShell
                                   ApplyPrimitiveProcedure
+                                  
 
                                   MakeBoxedEnvironmentValue
 
@@ -214,6 +216,7 @@
                                        [closed-vals : (Listof Natural)]
                                        [display-name : (U Symbol False)])
   #:transparent)
+
 
 ;; Constructs a closure shell.  Like MakeCompiledProcedure, but doesn't
 ;; bother with trying to capture the free variables.
@@ -261,21 +264,19 @@
 
 
 
-;; The following is used with TestStatement: each is passed the register-rand and
-;; is expected to
+;; Primitive tests (used with TestAndBranch)
 (define-type PrimitiveTest (U 
-                            ;; register -> boolean
-                            ;; Meant to branch when the register value is false.
-                            'false?
 
-                            'one?
-                            'zero?
-                            
-                            ;; register -> boolean
-                            ;; Meant to branch when the register value is a primitive
-                            ;; procedure
-                            'primitive-procedure?
+                            TestFalse
+                            TestOne
+                            TestZero
+                            TestPrimitiveProcedure
                             ))
+(define-struct: TestFalse ([operand : OpArg]) #:transparent)
+(define-struct: TestOne ([operand : OpArg]) #:transparent)
+(define-struct: TestZero ([operand : OpArg]) #:transparent)
+(define-struct: TestPrimitiveProcedure ([operand : OpArg]) #:transparent)
+
 
 
 
@@ -473,11 +474,13 @@
 
 
 
-(define-type Arity (U Natural ArityAtLeast (Listof (U Natural ArityAtLeast))))
+;; Arity
+(define-type Arity (U AtomicArity (Listof (U AtomicArity))))
+(define-type AtomicArity (U Natural ArityAtLeast))
 (define-struct: ArityAtLeast ([value : Natural])
   #:transparent)
-
-(define-predicate listof-atomic-arity? (Listof (U Natural ArityAtLeast)))
+(define-predicate AtomicArity? AtomicArity)
+(define-predicate listof-atomic-arity? (Listof AtomicArity))
 
 
 

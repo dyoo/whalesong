@@ -118,8 +118,7 @@
 
 (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
 (define (collect-primitive-command op)
-  empty
-  #;(cond
+  (cond
    [(CheckToplevelBound!? op)
     empty]
    [(CheckClosureArity!? op)

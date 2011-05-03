@@ -46,7 +46,7 @@ for (param in params) {
 EOF
                  )
         (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
-                 (BasicBlock-name (first basic-blocks)))))
+                 (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))))
 
 
 
@@ -125,8 +125,8 @@ EOF
               (next)]
              [(LinkedLabel? stmt)
               (fprintf op "~a.multipleValueReturn = ~a;\n" 
-                       (LinkedLabel-label stmt)
-                       (LinkedLabel-linked-to stmt))
+                       (assemble-label (make-Label (LinkedLabel-label stmt)))
+                       (assemble-label (make-Label (LinkedLabel-linked-to stmt))))
               (next)]
              [(AssignImmediateStatement? stmt)
               (next)]
@@ -160,8 +160,8 @@ EOF
 (: assemble-basic-block (BasicBlock -> String))
 (define (assemble-basic-block a-basic-block)
   (format "var ~a=function(MACHINE){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
-          (BasicBlock-name a-basic-block)
-          (BasicBlock-name a-basic-block)
+          (assemble-label (make-Label (BasicBlock-name a-basic-block)))
+          (assemble-label (make-Label (BasicBlock-name a-basic-block)))
           (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))
                        "\n")))
 
@@ -212,7 +212,7 @@ EOF
                              (assemble-oparg (TestPrimitiveProcedure-operand test))
                              jump)]
                     [(TestClosureArityMismatch? test)
-                     (format "if (! RUNTIME.isArityMatching(~a.arity, ~a)) { ~a }"
+                     (format "if (! RUNTIME.isArityMatching((~a).arity, ~a)) { ~a }"
                              (assemble-oparg (TestClosureArityMismatch-closure test))
                              (assemble-oparg (TestClosureArityMismatch-n test))
                              jump)])
@@ -228,16 +228,20 @@ EOF
       (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                     (cond
-                      [(symbol? label) label]
-                      [(LinkedLabel? label) (LinkedLabel-label label)])))]
+                      [(symbol? label) 
+                       (assemble-label (make-Label label))]
+                      [(LinkedLabel? label) 
+                       (assemble-label (make-Label (LinkedLabel-label label)))])))]
      
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
       (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a, ~a));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                     (cond
-                      [(symbol? label) label]
-                      [(LinkedLabel? label) (LinkedLabel-label label)]))
+                      [(symbol? label) 
+                       (assemble-label (make-Label label))]
+                      [(LinkedLabel? label) 
+                       (assemble-label (make-Label (LinkedLabel-label label)))]))
               
               (let: ([tag : (U DefaultContinuationPromptTag OpArg)
                           (PushControlFrame/Prompt-tag stmt)])

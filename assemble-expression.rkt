@@ -20,7 +20,7 @@
     
     [(MakeCompiledProcedure? op)
      (format "new RUNTIME.Closure(~a, ~a, [~a], ~a)"
-             (MakeCompiledProcedure-label op)
+             (assemble-label (make-Label (MakeCompiledProcedure-label op)))
              (assemble-arity (MakeCompiledProcedure-arity op))
              (string-join (map
 			   assemble-env-reference/closure-capture 
@@ -34,7 +34,7 @@
     
     [(MakeCompiledProcedureShell? op)
      (format "new RUNTIME.Closure(~a, ~a, undefined, ~a)"
-             (MakeCompiledProcedureShell-label op)
+             (assemble-label (make-Label (MakeCompiledProcedureShell-label op)))
              (assemble-arity (MakeCompiledProcedureShell-arity op))
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     

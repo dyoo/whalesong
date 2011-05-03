@@ -20,6 +20,9 @@
 	 assemble-display-name
 	 assemble-location)
 
+(require/typed typed/racket/base
+               [regexp-split (Regexp String -> (Listof String))])
+
 
 (: assemble-oparg (OpArg -> String))
 (define (assemble-oparg v)
@@ -135,7 +138,20 @@
 
 (: assemble-label (Label -> String))
 (define (assemble-label a-label)
-  (symbol->string (Label-name a-label)))
+  (let ([chunks
+         (regexp-split #rx"[^a-zA-Z0-9]+"
+                       (symbol->string (Label-name a-label)))])
+    (cond
+      [(empty? chunks)
+       (error "impossible: empty label ~s" a-label)]
+      [(empty? (rest chunks))
+       (string-append "_" (first chunks))]
+      [else
+       (string-append "_"
+                      (first chunks)
+                      (apply string-append (map string-titlecase (rest chunks))))])))
+
+
 
 (: assemble-subtractarg (SubtractArg -> String))
 (define (assemble-subtractarg s)

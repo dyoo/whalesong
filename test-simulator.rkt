@@ -659,3 +659,74 @@
               "world"
               (make-MutablePair 'x (make-MutablePair 'y (make-MutablePair 'z null))))))
 
+
+
+
+
+
+
+;; Check closure mismatch.  Make sure we're getting the right values from the test.
+(let ([m (new-machine `(procedure-entry
+                        ;; doesn't matter about the procedure entry...
+                        ,(make-AssignPrimOpStatement 
+                          'proc
+                          (make-MakeCompiledProcedure 'procedure-entry 0 (list) 'procedure-entry))
+                        ,(make-TestAndBranchStatement
+                          (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 0))
+                          'bad)
+                        ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                        ,(make-GotoStatement (make-Label 'end))
+                        bad
+                        ,(make-AssignImmediateStatement 'val (make-Const 'bad))
+                        end))])
+  (test (machine-val (run! m))
+        'ok))
+
+(let ([m (new-machine `(procedure-entry
+                        ;; doesn't matter about the procedure entry...
+                        ,(make-AssignPrimOpStatement 
+                          'proc
+                          (make-MakeCompiledProcedure 'procedure-entry 0 (list) 'procedure-entry))
+                        ,(make-TestAndBranchStatement
+                          (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 1))
+                          'ok)
+                        ,(make-AssignImmediateStatement 'val (make-Const 'bad))
+                        ,(make-GotoStatement (make-Label 'end))
+                        ok
+                        ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                        end))])
+  (test (machine-val (run! m))
+        'ok))
+
+(let ([m (new-machine `(procedure-entry
+                        ;; doesn't matter about the procedure entry...
+                        ,(make-AssignPrimOpStatement 
+                          'proc
+                          (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list) 'procedure-entry))
+                        ,(make-TestAndBranchStatement
+                          (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 0))
+                          'ok)
+                        ,(make-AssignImmediateStatement 'val (make-Const 'bad))
+                        ,(make-GotoStatement (make-Label 'end))
+                        ok
+                        ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                        end))])
+  (test (machine-val (run! m))
+        'ok))
+
+(let ([m (new-machine `(procedure-entry
+                        ;; doesn't matter about the procedure entry...
+                        ,(make-AssignPrimOpStatement 
+                          'proc
+                          (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list) 'procedure-entry))
+                        ,(make-TestAndBranchStatement
+                          (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 2))
+                          'bad)
+                        ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+                        ,(make-GotoStatement (make-Label 'end))
+                        bad
+                        ,(make-AssignImmediateStatement 'val (make-Const 'bad))
+                        end))])
+  (test (machine-val (run! m))
+        'ok))
+

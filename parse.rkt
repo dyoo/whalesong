@@ -119,6 +119,9 @@
     [(lambda? exp)
      (parse-lambda exp cenv)]
     
+    [(case-lambda? exp)
+     (parse-case-lambda exp cenv)]
+    
     [(begin? exp)
      (let ([actions (map (lambda (e)
                            (parse e cenv at-toplevel?))
@@ -223,6 +226,23 @@
       (string->symbol (format "lamEntry~a" lam-label-counter))))
 
 
+
+(define (parse-case-lambda exp cenv)
+  (let* ([entry-label (fresh-lam-label)]
+         [parsed-lams (map (lambda (lam)
+                             (parse-lambda lam cenv))
+                           (case-lambda-clauses exp))])
+    (make-CaseLam (current-defined-name)
+                  parsed-lams
+                  entry-label)))
+
+
+
+
+
+
+
+
 (define (seq codes)
   (cond
     [(= 1 (length codes))
@@ -267,6 +287,9 @@
        [(lambda? exp)
         (list-difference (apply append (map loop (lambda-body exp)))
                          (lambda-parameters exp))]
+       
+       [(case-lambda? exp)
+        (apply append (map loop (case-lambda-clauses exp)))]
        
        [(begin? exp)
         (apply append (map loop (begin-actions exp)))]
@@ -342,6 +365,9 @@
        [(lambda? exp)
         (list-difference (loop (lambda-body exp))
                          (lambda-parameters exp))]
+       
+       [(case-lambda? exp)
+        (apply append (map loop (case-lambda-clauses exp)))]
        
        [(begin? exp)
         (apply append (map loop (begin-actions exp)))]
@@ -467,6 +493,18 @@
 
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
+
+
+
+
+(define (case-lambda? exp)
+  (tagged-list? exp 'case-lambda))
+
+(define (case-lambda-clauses exp)
+  (map (lambda (a-clause)
+         `(lambda ,@a-clause))
+       (cdr exp)))
+
 
 (define (if? exp)
   (tagged-list? exp 'if))

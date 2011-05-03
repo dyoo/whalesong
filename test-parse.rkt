@@ -516,3 +516,39 @@
                                           (list (make-Constant 'hello)
                                                 (make-Constant 'world)
                                                 (make-Constant 'testing))))))
+
+
+
+
+
+;; CaseLam
+(test (parse '(case-lambda))
+      (make-Top (make-Prefix '())
+                (make-CaseLam #f (list) 'lamEntry1)))
+
+
+(test (parse '(case-lambda [(x) x]))
+      (make-Top (make-Prefix '())
+                (make-CaseLam 
+                 #f
+                 (list (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry2))
+                 'lamEntry1)))
+
+
+(test (parse '(case-lambda [(x) x]
+                           [(x y) x]))
+      (make-Top (make-Prefix '())
+                (make-CaseLam 
+                 #f
+                 (list (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
+                       (make-Lam #f 2 #f (make-LocalRef 0 #f) '() 'lamEntry3))
+                 'lamEntry1)))
+
+(test (parse '(case-lambda [(x) x]
+                           [(x y) y]))
+      (make-Top (make-Prefix '())
+                (make-CaseLam 
+                 #f
+                 (list (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
+                       (make-Lam #f 2 #f (make-LocalRef 1 #f) '() 'lamEntry3))
+                 'lamEntry1)))

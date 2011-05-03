@@ -1,0 +1,100 @@
+Compiler from Racket to JavaScript.
+
+
+
+
+Prerequisite: Racket 5.1.1.  The majority of the project is written
+Typed Racket, and I highly recommend you use a version of Racket
+that's at least 5.1.1; otherwise, compilation times may take an
+unusual amount of time.
+
+
+
+======================================================================
+
+Architecture:
+
+The basic idea is to reuse most of the Racket compiler infrastructure.
+The underlying Racket compiler will produce bytecode from Racket
+source, and perform macro expansion and module-level optimizations for
+us.  We will parse that bytecode using the compiler/zo-parse
+collection to get an AST, compile that to an intermediate language,
+and finally assemble JavaScript.
+
+
+                 AST          IL                     JS
+ bytecode.rkt ----------> compiler.rkt --------> assembler.rkt ------->
+    (todo)
+
+
+The IL is intended to be translated straightforwardly.  We currently
+have an assembler to JavaScript, as well as a simulator
+(simulator.rkt).  The simulator allows us to test the compiler in a
+controlled environment.
+
+
+
+======================================================================
+
+bytecode.rkt
+
+dyoo is currently working on bytecode.rkt.  Not done yet.  This is
+intended to reuse the Racket compiler to produce the AST structures
+defined in compiler/zo-parse.
+
+
+
+For the moment there's a hacky parser in parse.rkt that produces the
+AST expression structures that are consumed by the rest of the system.
+
+
+
+
+======================================================================
+
+compiler.rkt
+
+Translates the AST to the intermediate language.  Much of this
+compiler was styled after the register compiler in Structure and
+Interpretation of Computer Programs, but with some significant
+changes.  Since this is a stack machine, we don't need any of the
+register-saving infrastructure in the original compiler.
+
+
+
+======================================================================
+
+Intermediate language forms and machine model.
+
+The intermediate language is defined in il-structs.rkt, and a
+simulator for the IL in simulator.rkt.  See test-simulator.rkt to see
+the simulator in action, and test-compiler.rkt to see how the output
+of the compiler can be fed into the simulator.
+
+
+
+The assumed machine is a stack machine with the following atomic
+registers:
+
+    val: value
+    proc: procedure
+    argcount: number of arguments
+
+and two stack registers:
+
+    env: environment stack
+    control: control stack
+
+
+
+
+======================================================================
+
+Tests
+
+The test suite in test-all.rkt runs the test suite.  You'll need to
+run this on a system with a web browser, as the suite will evaluate
+JavaScript and make sure it is producing values.  A bridge module
+browser-evaluate.rkt brings up a temporary web server that allows us
+to pass values between Racket and the JavaScript evaluator on the
+browser.

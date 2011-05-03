@@ -52,19 +52,23 @@ AST expression structures that are consumed by the rest of the system.
 
 ======================================================================
 
-compiler.rkt
+compiler.rkt translates the AST to the intermediate language.  The
+compiler is similar to that of the register compiler in Structure and
+Interpretation of Computer Programs:
 
-Translates the AST to the intermediate language.  Much of this
-compiler was styled after the register compiler in Structure and
-Interpretation of Computer Programs, but with some significant
-changes.  Since this is a stack machine, we don't need any of the
-register-saving infrastructure in the original compiler.
+    http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-35.html#%_sec_5.5
+
+but with some significant modifications.  Since this is a stack
+machine, we don't need any of the register-saving infrastructure in
+the original compiler.  We also need to support slightly different
+linkage structures, since we want to support multiple value contexts.
+We're trying to generate code that works effectively on a machine like
+the one described in:
+
+    http://plt.eecs.northwestern.edu/racket-machine/
 
 
 
-======================================================================
-
-Intermediate language forms and machine model.
 
 The intermediate language is defined in il-structs.rkt, and a
 simulator for the IL in simulator.rkt.  See test-simulator.rkt to see
@@ -84,6 +88,42 @@ and two stack registers:
 
     env: environment stack
     control: control stack
+
+
+
+======================================================================
+
+
+The JavaScript assembler is playing a few tricks to make things like
+tail calls work:
+
+
+   * Each basic block is translated to a function taking a MACHINE
+     argument.
+
+   * Every GOTO becomes a function call.
+
+   * The head of each basic-blocked function checks to see if we
+     should trampoline
+     (http://en.wikipedia.org/wiki/Trampoline_(computers))
+
+   * We support a limited form of computed jump by assigning an
+     attribute to the function corresponding to a return point.  See
+     the code related to the LinkedLabel structure for details.
+
+
+Otherwise, the assembler is fairly straightforward.  It depends on
+library functions defined in runtime.js.  As soon as the compiler
+stabilizes, we will be pulling in the runtime library in Moby Scheme
+into this project.
+
+
+The assembled output distinguishes between Primitives and Closures.
+Primitives are only allowed to return single values back, and are not
+allowed to do any higher-order procedure calls.  Closures, on the
+other hand, have full access to the machine, but they are responsible
+for calling the continuation and popping off their arguments when
+they're finished.
 
 
 

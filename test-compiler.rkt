@@ -1217,6 +1217,9 @@
       #:with-bootstrapping? #t)
                 
 
+(test '((case-lambda [(x) x]) 42)
+      42)
+
 
 
 

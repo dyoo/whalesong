@@ -552,3 +552,14 @@
                  (list (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
                        (make-Lam #f 2 #f (make-LocalRef 1 #f) '() 'lamEntry3))
                  'lamEntry1)))
+
+
+(test (parse '(case-lambda [(x y) y]
+                           [(x) x]))
+      (make-Top (make-Prefix '())
+                (make-CaseLam 
+                 #f
+                 (list (make-Lam #f 2 #f (make-LocalRef 1 #f) '() 'lamEntry2)
+                       (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry3))
+                       
+                 'lamEntry1)))

@@ -606,13 +606,13 @@
 (define (compile-case-lambda-body exp cenv)
   empty-instruction-sequence
   #;(append-instruction-sequences
+
    (make-instruction-sequence
     `(,(CaseLam-entry-label exp)))
    
    (apply append-instruction-sequences
-          ;; todo: Add the case-dispatch based on arity matching.
           (map (lambda: ([lam : Lam]
-                        [i : Natural])
+                         [i : Natural])
                         (let ([not-match (make-label)])
                           (make-instruction-sequence
                            `(,(make-TestAndBranchStatement arity-mismatch?
@@ -628,7 +628,7 @@
                              ,not-match))))
                (CaseLam-clauses exp)
                (build-list (length (CaseLam-clauses)) (lambda: ([i : Natural]) i))))))
-  
+
   
 (: compile-lambda-bodies ((Listof lam+cenv) -> InstructionSequence))
 ;; Compile several lambda bodies, back to back.

@@ -210,7 +210,14 @@
 				   (= (ensure-natural (evaluate-oparg m (TestZero-operand test)))
                                       0)]
                                   [(TestPrimitiveProcedure? test)
-                                   (primitive-proc? (evaluate-oparg m (TestPrimitiveProcedure-operand test)))])])
+                                   (primitive-proc? (evaluate-oparg m (TestPrimitiveProcedure-operand test)))]
+                                  [(TestClosureArityMismatch? test)
+                                   (let ([proc (ensure-closure
+                                                (evaluate-oparg m (TestClosureArityMismatch-closure test)))]
+                                         [n (ensure-natural 
+                                             (evaluate-oparg m (TestClosureArityMismatch-n test)))])
+                                     (not (arity-match? (closure-arity proc) n)))])])
+
                   v)
             (jump! m (TestAndBranchStatement-label stmt))
             'ok)))

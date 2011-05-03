@@ -2,12 +2,12 @@
 (require "il-structs.rkt"
          "lexical-structs.rkt"
          "helpers.rkt"
-	 "assemble-structs.rkt"
+         "assemble-structs.rkt"
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
-	 "assemble-expression.rkt"
-	 "assemble-perform-statement.rkt"
-	 "collect-jump-targets.rkt"
+         "assemble-expression.rkt"
+         "assemble-perform-statement.rkt"
+         "collect-jump-targets.rkt"
          racket/string
          racket/list)
 
@@ -26,27 +26,27 @@
 ;; Writes out the JavaScript code that represents the anonymous invocation expression.
 (define (assemble/write-invoke stmts op)
   (let: ([basic-blocks : (Listof BasicBlock) (fracture stmts)])
-    (fprintf op "(function(MACHINE, success, fail, params) {\n")
-    (fprintf op "var param;\n")
-    (fprintf op "var RUNTIME = plt.runtime;\n")
-    (for-each
-     (lambda: ([basic-block : BasicBlock])
-	      (displayln (assemble-basic-block basic-block) op)
-	      (newline op))
-     basic-blocks)
-    (write-linked-label-attributes stmts op)
-    (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
-    (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
-    (fprintf op #<<EOF
+        (fprintf op "(function(MACHINE, success, fail, params) {\n")
+        (fprintf op "var param;\n")
+        (fprintf op "var RUNTIME = plt.runtime;\n")
+        (for-each
+         (lambda: ([basic-block : BasicBlock])
+                  (displayln (assemble-basic-block basic-block) op)
+                  (newline op))
+         basic-blocks)
+        (write-linked-label-attributes stmts op)
+        (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
+        (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
+        (fprintf op #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {
         MACHINE.params[param] = params[param];
     }
 }
 EOF
-             )
-    (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
-             (BasicBlock-name (first basic-blocks)))))
+                 )
+        (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
+                 (BasicBlock-name (first basic-blocks)))))
 
 
 
@@ -55,59 +55,59 @@ EOF
 (: fracture ((Listof Statement) -> (Listof BasicBlock)))
 (define (fracture stmts)
   (let*: ([first-block-label : Symbol (if (and (not (empty? stmts))
-					       (symbol? (first stmts)))
-					  (first stmts)
-					  (make-label 'start))]
-	  [stmts : (Listof Statement) (if (and (not (empty? stmts))
-					       (symbol? (first stmts)))
-					  (rest stmts)
-					  stmts)]
-	  [jump-targets : (Listof Symbol)
-			(cons first-block-label (collect-general-jump-targets stmts))])
-    (let: loop : (Listof BasicBlock)
-          ([name : Symbol first-block-label]
-           [acc : (Listof UnlabeledStatement) '()]
-           [basic-blocks  : (Listof BasicBlock) '()]
-           [stmts : (Listof Statement) stmts]
-           [last-stmt-goto? : Boolean #f])
-          (cond
-            [(null? stmts)
-             (reverse (cons (make-BasicBlock name (reverse acc))
-                            basic-blocks))]
-            [else
-             (let: ([first-stmt : Statement (car stmts)])
-               (: do-on-label (Symbol -> (Listof BasicBlock)))
-               (define (do-on-label label-name)
-                 (cond
-                    [(member label-name jump-targets)
-                     (loop label-name
-                           '()
-                           (cons (make-BasicBlock 
-                                  name  
-                                  (if last-stmt-goto? 
-                                      (reverse acc)
-                                      (reverse (append `(,(make-GotoStatement (make-Label label-name)))
-                                                       acc))))
-                                 basic-blocks)
-                           (cdr stmts)
-                           last-stmt-goto?)]
-                    [else
-                     (loop name
-                           acc
-                           basic-blocks
-                           (cdr stmts)
-                           last-stmt-goto?)]))
+                                               (symbol? (first stmts)))
+                                          (first stmts)
+                                          (make-label 'start))]
+          [stmts : (Listof Statement) (if (and (not (empty? stmts))
+                                               (symbol? (first stmts)))
+                                          (rest stmts)
+                                          stmts)]
+          [jump-targets : (Listof Symbol)
+                        (cons first-block-label (collect-general-jump-targets stmts))])
+         (let: loop : (Listof BasicBlock)
+               ([name : Symbol first-block-label]
+                [acc : (Listof UnlabeledStatement) '()]
+                [basic-blocks  : (Listof BasicBlock) '()]
+                [stmts : (Listof Statement) stmts]
+                [last-stmt-goto? : Boolean #f])
                (cond
-                 [(symbol? first-stmt)
-                  (do-on-label first-stmt)]
-                 [(LinkedLabel? first-stmt)
-                  (do-on-label (LinkedLabel-label first-stmt))]
+                 [(null? stmts)
+                  (reverse (cons (make-BasicBlock name (reverse acc))
+                                 basic-blocks))]
                  [else
-                  (loop name
-                        (cons first-stmt acc)
-                        basic-blocks
-                        (cdr stmts)
-                        (GotoStatement? (car stmts)))]))]))))
+                  (let: ([first-stmt : Statement (car stmts)])
+                        (: do-on-label (Symbol -> (Listof BasicBlock)))
+                        (define (do-on-label label-name)
+                          (cond
+                            [(member label-name jump-targets)
+                             (loop label-name
+                                   '()
+                                   (cons (make-BasicBlock 
+                                          name  
+                                          (if last-stmt-goto? 
+                                              (reverse acc)
+                                              (reverse (append `(,(make-GotoStatement (make-Label label-name)))
+                                                               acc))))
+                                         basic-blocks)
+                                   (cdr stmts)
+                                   last-stmt-goto?)]
+                            [else
+                             (loop name
+                                   acc
+                                   basic-blocks
+                                   (cdr stmts)
+                                   last-stmt-goto?)]))
+                        (cond
+                          [(symbol? first-stmt)
+                           (do-on-label first-stmt)]
+                          [(LinkedLabel? first-stmt)
+                           (do-on-label (LinkedLabel-label first-stmt))]
+                          [else
+                           (loop name
+                                 (cons first-stmt acc)
+                                 basic-blocks
+                                 (cdr stmts)
+                                 (GotoStatement? (car stmts)))]))]))))
 
 
 (: write-linked-label-attributes ((Listof Statement) Output-Port -> 'ok))
@@ -117,42 +117,42 @@ EOF
      'ok]
     [else
      (let: ([stmt : Statement (first stmts)])
+           
+           (define (next) (write-linked-label-attributes (rest stmts) op))
+           
+           (cond
+             [(symbol? stmt)
+              (next)]
+             [(LinkedLabel? stmt)
+              (fprintf op "~a.multipleValueReturn = ~a;\n" 
+                       (LinkedLabel-label stmt)
+                       (LinkedLabel-linked-to stmt))
+              (next)]
+             [(AssignImmediateStatement? stmt)
+              (next)]
+             [(AssignPrimOpStatement? stmt)
+              (next)]
+             [(PerformStatement? stmt)
+              (next)]
+             [(TestAndBranchStatement? stmt)
+              (next)]
+             [(GotoStatement? stmt)
+              (next)]
+             [(PushEnvironment? stmt)
+              (next)]
+             [(PopEnvironment? stmt)
+              (next)]
+             [(PushImmediateOntoEnvironment? stmt)
+              (next)]
+             [(PushControlFrame/Generic? stmt)
+              (next)]
+             [(PushControlFrame/Call? stmt)
+              (next)]
+             [(PushControlFrame/Prompt? stmt)
+              (next)]
+             [(PopControlFrame? stmt)
+              (next)]))]))
 
-       (define (next) (write-linked-label-attributes (rest stmts) op))
-
-       (cond
-         [(symbol? stmt)
-          (next)]
-         [(LinkedLabel? stmt)
-          (fprintf op "~a.multipleValueReturn = ~a;\n" 
-                   (LinkedLabel-label stmt)
-                   (LinkedLabel-linked-to stmt))
-          (next)]
-         [(AssignImmediateStatement? stmt)
-          (next)]
-         [(AssignPrimOpStatement? stmt)
-          (next)]
-         [(PerformStatement? stmt)
-          (next)]
-         [(TestAndBranchStatement? stmt)
-          (next)]
-         [(GotoStatement? stmt)
-          (next)]
-         [(PushEnvironment? stmt)
-          (next)]
-         [(PopEnvironment? stmt)
-          (next)]
-         [(PushImmediateOntoEnvironment? stmt)
-          (next)]
-         [(PushControlFrame/Generic? stmt)
-          (next)]
-         [(PushControlFrame/Call? stmt)
-          (next)]
-         [(PushControlFrame/Prompt? stmt)
-          (next)]
-         [(PopControlFrame? stmt)
-          (next)]))]))
-       
 
 
 
@@ -167,7 +167,6 @@ EOF
 
 
 
-
 (: assemble-statement (UnlabeledStatement -> String))
 ;; Generates the code to assemble a statement.
 (define (assemble-statement stmt)
@@ -179,8 +178,8 @@ EOF
    (cond
      [(AssignImmediateStatement? stmt)
       (let: ([t : String (assemble-target (AssignImmediateStatement-target stmt))]
-	     [v : OpArg (AssignImmediateStatement-value stmt)])
-        (format "~a = ~a;" t (assemble-oparg v)))]
+             [v : OpArg (AssignImmediateStatement-value stmt)])
+            (format "~a = ~a;" t (assemble-oparg v)))]
      
      [(AssignPrimOpStatement? stmt)
       (format "~a=~a;" 
@@ -191,53 +190,62 @@ EOF
       (assemble-op-statement (PerformStatement-op stmt))]
      
      [(TestAndBranchStatement? stmt)
-      (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
-             (cond
-               [(TestFalse? test)
-                (format "if (~a === false) { ~a }"
-                        (assemble-oparg (TestFalse-operand test))
-                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-               [(TestOne? test)
-                (format "if (~a === 1) { ~a }"
-                        (assemble-oparg (TestOne-operand test))
-                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-               [(TestZero? test)
-                (format "if (~a === 0) { ~a }"
-                        (assemble-oparg (TestZero-operand test))
-                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]
-               [(TestPrimitiveProcedure? test)
-                (format "if (typeof(~a) === 'function') { ~a };"
-                        (assemble-oparg (TestPrimitiveProcedure-operand test))
-                        (assemble-jump (make-Label (TestAndBranchStatement-label stmt))))]))]
+      (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)]
+              [jump : String (assemble-jump 
+                       (make-Label (TestAndBranchStatement-label stmt)))])
+             ;; to help localize type checks, we add a type annotation here.
+             (ann (cond
+                    [(TestFalse? test)
+                     (format "if (~a === false) { ~a }"
+                             (assemble-oparg (TestFalse-operand test))
+                             jump)]
+                    [(TestOne? test)
+                     (format "if (~a === 1) { ~a }"
+                             (assemble-oparg (TestOne-operand test))
+                             jump)]
+                    [(TestZero? test)
+                     (format "if (~a === 0) { ~a }"
+                             (assemble-oparg (TestZero-operand test))
+                             jump)]
+                    [(TestPrimitiveProcedure? test)
+                     (format "if (typeof(~a) === 'function') { ~a }"
+                             (assemble-oparg (TestPrimitiveProcedure-operand test))
+                             jump)]
+                    [(TestClosureArityMismatch? test)
+                     (format "if (! RUNTIME.isArityMatching(~a.arity, ~a)) { ~a }"
+                             (assemble-oparg (TestClosureArityMismatch-closure test))
+                             (assemble-oparg (TestClosureArityMismatch-n test))
+                             jump)])
+                  String))]
      
      [(GotoStatement? stmt)
       (assemble-jump (GotoStatement-target stmt))]
-
+     
      [(PushControlFrame/Generic? stmt)
       "MACHINE.control.push(new RUNTIME.Frame());"]
      
      [(PushControlFrame/Call? stmt)
       (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
-                (cond
-                  [(symbol? label) label]
-                  [(LinkedLabel? label) (LinkedLabel-label label)])))]
-
+                    (cond
+                      [(symbol? label) label]
+                      [(LinkedLabel? label) (LinkedLabel-label label)])))]
+     
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
       (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a, ~a));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
-                (cond
-                  [(symbol? label) label]
-                  [(LinkedLabel? label) (LinkedLabel-label label)]))
-
+                    (cond
+                      [(symbol? label) label]
+                      [(LinkedLabel? label) (LinkedLabel-label label)]))
+              
               (let: ([tag : (U DefaultContinuationPromptTag OpArg)
-			  (PushControlFrame/Prompt-tag stmt)])
-                (cond
-                  [(DefaultContinuationPromptTag? tag)
-                   (assemble-default-continuation-prompt-tag)]
-                  [(OpArg? tag)
-                   (assemble-oparg tag)])))]
+                          (PushControlFrame/Prompt-tag stmt)])
+                    (cond
+                      [(DefaultContinuationPromptTag? tag)
+                       (assemble-default-continuation-prompt-tag)]
+                      [(OpArg? tag)
+                       (assemble-oparg tag)])))]
      
      [(PopControlFrame? stmt)
       "MACHINE.control.pop();"]
@@ -254,15 +262,15 @@ EOF
                                            ", ")))]
      [(PopEnvironment? stmt)
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
-        (cond
-          [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-           (format "MACHINE.env.length = MACHINE.env.length - ~a;"
-                   (assemble-oparg (PopEnvironment-n stmt)))]
-          [else
-           (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"
-                   (assemble-oparg (PopEnvironment-skip stmt))
-                   (assemble-oparg (PopEnvironment-n stmt))
-                   (assemble-oparg (PopEnvironment-n stmt)))]))]
+            (cond
+              [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
+               (format "MACHINE.env.length = MACHINE.env.length - ~a;"
+                       (assemble-oparg (PopEnvironment-n stmt)))]
+              [else
+               (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"
+                       (assemble-oparg (PopEnvironment-skip stmt))
+                       (assemble-oparg (PopEnvironment-n stmt))
+                       (assemble-oparg (PopEnvironment-n stmt)))]))]
      
      [(PushImmediateOntoEnvironment? stmt)
       (format "MACHINE.env.push(~a);"

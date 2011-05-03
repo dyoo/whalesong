@@ -266,17 +266,18 @@
 
 ;; Primitive tests (used with TestAndBranch)
 (define-type PrimitiveTest (U 
-
                             TestFalse
                             TestOne
                             TestZero
                             TestPrimitiveProcedure
+                            TestClosureArityMismatch
                             ))
 (define-struct: TestFalse ([operand : OpArg]) #:transparent)
 (define-struct: TestOne ([operand : OpArg]) #:transparent)
 (define-struct: TestZero ([operand : OpArg]) #:transparent)
 (define-struct: TestPrimitiveProcedure ([operand : OpArg]) #:transparent)
-
+(define-struct: TestClosureArityMismatch ([closure : OpArg]
+                                          [n : OpArg]) #:transparent)
 
 
 

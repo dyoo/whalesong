@@ -1220,6 +1220,26 @@
 (test '((case-lambda [(x) x]) 42)
       42)
 
+(test '(let ([v (case-lambda [(x) x]
+                             [(x y) (+ x y)])])
+         (list (v 0)
+               (v 1 2)))
+      (list 0 3))
+
+(test '(let* ([y 42]
+              [f (case-lambda [(x) (list x y)]
+                              [(x y) (list x y)])])
+         (list (f 3)
+               (f 4 5)))
+      (list (list 3 42)
+            (list 4 5)))
+
+(test '(let ([f (case-lambda [(x) (list x)]
+                             [(x . y) (cons y x)])])
+         (list (f 3)
+               (f 4 5 6)))
+      (list (list 3)
+            (cons '(5 6) 4)))
 
 
 

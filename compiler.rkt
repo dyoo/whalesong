@@ -504,7 +504,7 @@
       ;; Make the case lambda as a regular compiled procedure.  Its closed values are the lambdas.
       (make-instruction-sequence 
        `(,(make-AssignPrimOpStatement 
-           target
+           (adjust-target-depth target n)
            (make-MakeCompiledProcedure (CaseLam-entry-label exp)
                                        (merge-arities (map Lam-arity (CaseLam-clauses exp)))
                                        (build-list n (lambda: ([i : Natural]) i))
@@ -604,30 +604,33 @@
 
 (: compile-case-lambda-body (CaseLam CompileTimeEnvironment -> InstructionSequence))
 (define (compile-case-lambda-body exp cenv)
-  empty-instruction-sequence
-  #;(append-instruction-sequences
-
+  (append-instruction-sequences
+   
    (make-instruction-sequence
     `(,(CaseLam-entry-label exp)))
    
    (apply append-instruction-sequences
           (map (lambda: ([lam : Lam]
                          [i : Natural])
-                        (let ([not-match (make-label)])
+                        (let ([not-match (make-label 'notMatch)])
                           (make-instruction-sequence
-                           `(,(make-TestAndBranchStatement arity-mismatch?
-                                                           (make-Const (Lam-arity lam))
-                                                           (make-Reg 'argcount))
+                           `(,(make-TestAndBranchStatement 
+                               (make-TestClosureArityMismatch
+                                (make-CompiledProcedureClosureReference 
+                                 (make-Reg 'proc) 
+                                 i)
+                                (make-Reg 'argcount))
+                               not-match)
                              ;; Set the procedure register to the lam
                              ,(make-AssignImmediateStatement 
                                'proc 
-                               (make-CaseLamRef (make-Reg 'proc) (make-Const i)))
+                               (make-CompiledProcedureClosureReference (make-Reg 'proc) i))
                              
-                             ,(make-GotoStatement (make-Label (Lam-entry-point lam)))
+                             ,(make-GotoStatement (make-Label (Lam-entry-label lam)))
                              
                              ,not-match))))
                (CaseLam-clauses exp)
-               (build-list (length (CaseLam-clauses)) (lambda: ([i : Natural]) i))))))
+               (build-list (length (CaseLam-clauses exp)) (lambda: ([i : Natural]) i))))))
 
   
 (: compile-lambda-bodies ((Listof lam+cenv) -> InstructionSequence))

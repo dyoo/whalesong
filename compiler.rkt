@@ -3,6 +3,7 @@
 (require "expression-structs.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
+         "compiler-structs.rkt"
          "kernel-primitives.rkt"
          "optimize-il.rkt"
          racket/bool

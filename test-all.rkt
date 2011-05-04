@@ -9,4 +9,7 @@
          "test-package.rkt"
          "test-conform-browser.rkt"
          "test-earley-browser.rkt")
+
+
+;; This test takes a bit too much time.
 #;"test-conform.rkt"

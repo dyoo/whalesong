@@ -3,6 +3,7 @@
          "lexical-structs.rkt"
          "il-structs.rkt"
          "compiler.rkt"
+         "compiler-structs.rkt"
          "typed-parse.rkt"
          "parameters.rkt")
 

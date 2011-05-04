@@ -4,6 +4,7 @@
          "simulator-structs.rkt"
          "simulator-helpers.rkt"
          "compiler.rkt"
+         "compiler-structs.rkt"
          "parse.rkt"
          "il-structs.rkt")
 

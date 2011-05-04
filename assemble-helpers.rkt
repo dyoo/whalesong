@@ -181,7 +181,8 @@
 
 (: assemble-compiled-procedure-closure-reference (CompiledProcedureClosureReference -> String))
 (define (assemble-compiled-procedure-closure-reference a-ref)
-  (format "(~a).closedVals[~a]"
+  (format "(~a).closedVals[(~a).closedVals.length - 1 - ~a]"
+          (assemble-oparg (CompiledProcedureClosureReference-proc a-ref))
           (assemble-oparg (CompiledProcedureClosureReference-proc a-ref))
           (CompiledProcedureClosureReference-n a-ref)))
 

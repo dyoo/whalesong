@@ -493,3 +493,33 @@
                         end)
               "MACHINE.val")
       "ok")
+
+
+
+
+;; Let's test closure value lookup.
+(test (E-many `(,(make-PushImmediateOntoEnvironment (make-Const 3) #f)
+                ,(make-PushImmediateOntoEnvironment (make-Const 4) #f)
+                procedure-entry
+                ;; doesn't matter about the procedure entry...
+                ,(make-AssignPrimOpStatement 
+                          'proc
+                          (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list 0 1) 'procedure-entry))
+                ,(make-AssignImmediateStatement 'val (make-CompiledProcedureClosureReference (make-Reg 'proc) 0)))
+              "MACHINE.val")
+      "4")
+
+(test (E-many `(,(make-PushImmediateOntoEnvironment (make-Const 3) #f)
+                ,(make-PushImmediateOntoEnvironment (make-Const 4) #f)
+                procedure-entry
+                ;; doesn't matter about the procedure entry...
+                ,(make-AssignPrimOpStatement 
+                          'proc
+                          (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list 0 1) 'procedure-entry))
+                ,(make-AssignImmediateStatement 'val (make-CompiledProcedureClosureReference (make-Reg 'proc) 1)))
+              "MACHINE.val")
+      "3")
+
+
+
+

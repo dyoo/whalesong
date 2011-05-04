@@ -58,8 +58,10 @@
     
     [(InstallClosureValues!? op)
      "MACHINE.env.splice.apply(MACHINE.env, [MACHINE.env.length, 0].concat(MACHINE.proc.closedVals));"]
+    
     [(RestoreEnvironment!? op)
      "MACHINE.env = MACHINE.env[MACHINE.env.length - 2].slice(0);"]
+    
     [(RestoreControl!? op)
      (format "RUNTIME.restoreControl(MACHINE, ~a);"
              (let: ([tag : (U DefaultContinuationPromptTag OpArg)
@@ -69,6 +71,7 @@
                   (assemble-default-continuation-prompt-tag)]
                  [(OpArg? tag)
                   (assemble-oparg tag)])))]
+    
     [(FixClosureShellMap!? op)
      (format "MACHINE.env[MACHINE.env.length - 1 - ~a].closedVals = [~a]"
              (FixClosureShellMap!-depth op)
@@ -80,9 +83,11 @@
 			    ;; during install-closure-values.
 			    (reverse (FixClosureShellMap!-closed-vals op)))
 			   ", "))]
+    
     [(SetFrameCallee!? op)
      (format "MACHINE.control[MACHINE.control.length-1].proc = ~a;"
              (assemble-oparg (SetFrameCallee!-proc op)))]
+    
     [(SpliceListIntoStack!? op)
      (format "RUNTIME.spliceListIntoStack(MACHINE, ~a);"
              (assemble-oparg (SpliceListIntoStack!-depth op)))]

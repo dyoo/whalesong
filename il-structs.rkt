@@ -29,8 +29,9 @@
                       SubtractArg
 		      ControlStackLabel
 		      ControlStackLabel/MultipleValueReturn
+                      ControlFrameTemporary
                       CompiledProcedureEntry
-                      ControlFrameTemporary))
+                      CompiledProcedureClosureReference))
 
 
 ;; Targets: these are the allowable lhs's for an assignment.
@@ -76,6 +77,10 @@
   #:transparent)
 
 
+;; Get at the nth value in a closure's list of closed values.
+(define-struct: CompiledProcedureClosureReference ([proc : OpArg]
+                                                   [n : Natural])
+  #:transparent)
 
 
 

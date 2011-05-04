@@ -125,10 +125,14 @@
      oparg]
     [(ControlStackLabel/MultipleValueReturn? oparg)
      oparg]
+    [(ControlFrameTemporary? oparg)
+     oparg]
     [(CompiledProcedureEntry? oparg)
      (make-CompiledProcedureEntry (adjust-oparg-depth (CompiledProcedureEntry-proc oparg) n))]
-    [(ControlFrameTemporary? oparg)
-     oparg]))
+    [(CompiledProcedureClosureReference? oparg)
+     (make-CompiledProcedureClosureReference 
+      (adjust-oparg-depth (CompiledProcedureClosureReference-proc oparg) n)
+      (CompiledProcedureClosureReference-n oparg))]))
 
 
 (define-predicate natural? Natural)

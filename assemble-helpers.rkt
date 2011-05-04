@@ -45,10 +45,12 @@
      (assemble-control-stack-label v)]
     [(ControlStackLabel/MultipleValueReturn? v)
      (assemble-control-stack-label/multiple-value-return v)]
+    [(ControlFrameTemporary? v)
+     (assemble-control-frame-temporary v)]
     [(CompiledProcedureEntry? v)
      (assemble-compiled-procedure-entry v)]
-    [(ControlFrameTemporary? v)
-     (assemble-control-frame-temporary v)]))
+    [(CompiledProcedureClosureReference? v)
+     (assemble-compiled-procedure-closure-reference v)]))
 
 
 
@@ -175,6 +177,13 @@
 (define (assemble-compiled-procedure-entry a-compiled-procedure-entry)
   (format "(~a).label"
           (assemble-oparg (CompiledProcedureEntry-proc a-compiled-procedure-entry))))
+
+
+(: assemble-compiled-procedure-closure-reference (CompiledProcedureClosureReference -> String))
+(define (assemble-compiled-procedure-closure-reference a-ref)
+  (format "(~a).closedVals[~a]"
+          (assemble-oparg (CompiledProcedureClosureReference-proc a-ref))
+          (CompiledProcedureClosureReference-n a-ref)))
 
 
 

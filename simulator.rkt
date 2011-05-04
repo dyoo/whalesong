@@ -752,14 +752,18 @@
 	 (let ([label (CallFrame-return frame)])
 	   (LinkedLabel-linked-to label))]))]
 
-    [(CompiledProcedureEntry? an-oparg)
-     (let ([proc (ensure-closure (evaluate-oparg m (CompiledProcedureEntry-proc an-oparg)))])
-       (closure-label proc))]
-
     [(ControlFrameTemporary? an-oparg)
      (let ([ht (frame-temps (control-top m))])
        (hash-ref ht
-                 (ControlFrameTemporary-name an-oparg)))]))
+                 (ControlFrameTemporary-name an-oparg)))]
+    
+    [(CompiledProcedureEntry? an-oparg)
+     (let ([proc (ensure-closure (evaluate-oparg m (CompiledProcedureEntry-proc an-oparg)))])
+       (closure-label proc))]
+    
+    [(CompiledProcedureClosureReference? an-oparg)
+     (let ([proc (ensure-closure (evaluate-oparg m (CompiledProcedureClosureReference-proc an-oparg)))])
+       (list-ref (closure-vals proc) (CompiledProcedureClosureReference-n an-oparg)))]))
 
 
 

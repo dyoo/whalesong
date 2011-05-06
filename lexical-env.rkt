@@ -40,16 +40,18 @@
                  (cond
                    [(Prefix? elt)
                     (let: prefix-loop : LexicalAddress
-                          ([names : (Listof (U Symbol False ModuleVariable)) (Prefix-names elt)]
-                                       [pos : Natural 0])
+                          ([names : (Listof (U False Symbol GlobalBucket ModuleVariable)) (Prefix-names elt)]
+                           [pos : Natural 0])
                           (cond [(empty? names)
                                  (loop (rest cenv) (add1 depth))]
                                 [else
-                                 (let: ([n : (U Symbol False ModuleVariable) (first names)])
+                                 (let: ([n : (U False Symbol GlobalBucket ModuleVariable) (first names)])
                                        (cond
                                          [(and (symbol? n) (eq? name n))
                                           (make-EnvPrefixReference depth pos)]
                                          [(and (ModuleVariable? n) (eq? name (ModuleVariable-name n)))
+                                          (make-EnvPrefixReference depth pos)]
+                                         [(and (GlobalBucket? n) (eq? name (GlobalBucket-name n)))
                                           (make-EnvPrefixReference depth pos)]
                                          [else
                                           (prefix-loop (rest names) (add1 pos))]))]))]
@@ -189,16 +191,21 @@
 ;; Masks elements of the prefix off.
 (define (place-prefix-mask a-prefix symbols-to-keep)
   (make-Prefix
-   (map (lambda: ([n : (U Symbol False ModuleVariable)])
-                 (cond [(symbol? n)
+   (map (lambda: ([n : (U False Symbol GlobalBucket ModuleVariable)])
+                 (cond [(eq? n #f)
+                        n]
+                       [(symbol? n)
                         (if (member n symbols-to-keep)
+                            n
+                            #f)]
+                       [(GlobalBucket? n)
+                        (if (member (GlobalBucket-name n) symbols-to-keep)
                             n
                             #f)]
                        [(ModuleVariable? n)
                         (if (member (ModuleVariable-name n) symbols-to-keep)
                             n
-                            #f)]
-                       [else n]))
+                            #f)]))
         (Prefix-names a-prefix))))
 
 

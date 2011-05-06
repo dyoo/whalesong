@@ -209,7 +209,7 @@
 ;; Generates code to write out the top prefix, evaluate the rest of the body,
 ;; and then pop the top prefix off.
 (define (compile-top top cenv target linkage)
-  (let*: ([names : (Listof (U Symbol ModuleVariable False)) (Prefix-names (Top-prefix top))])
+  (let*: ([names : (Listof (U False Symbol GlobalBucket ModuleVariable)) (Prefix-names (Top-prefix top))])
          (end-with-linkage 
           linkage cenv
           (append-instruction-sequences
@@ -1374,12 +1374,14 @@
        entry)]
     
     [(ToplevelRef? exp)
-     (let: ([name : (U Symbol False ModuleVariable)
+     (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
                   (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
                             (ToplevelRef-pos exp))])
            (cond
              [(ModuleVariable? name)
               name]
+             [(GlobalBucket? name)
+              '?]
              [else
               '?]))]
     

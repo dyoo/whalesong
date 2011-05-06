@@ -9,7 +9,10 @@
 
 ;; A toplevel prefix contains a list of toplevel variables.  Some of the
 ;; names may be masked out by #f.
-(define-struct: Prefix ([names : (Listof (U Symbol ModuleVariable False))])
+(define-struct: Prefix ([names : (Listof (U False Symbol GlobalBucket ModuleVariable))])
+  #:transparent)
+
+(define-struct: GlobalBucket ([name : Symbol])
   #:transparent)
 
 (define-struct: ModuleVariable ([name : Symbol]

@@ -288,13 +288,15 @@
           [(ExtendEnvironment/Prefix!? op)
            (env-push! m 
                       (make-toplevel (ExtendEnvironment/Prefix!-names op)
-                                     (map (lambda: ([name : (U Symbol ModuleVariable False)])
-                                                   (cond [(symbol? name)
+                                     (map (lambda: ([name : (U False Symbol GlobalBucket ModuleVariable)])
+                                                   (cond [(eq? name #f)
+                                                          (make-undefined)]
+                                                         [(symbol? name)
                                                           (lookup-primitive name)]
+                                                         [(GlobalBucket? name)
+                                                          (lookup-primitive (GlobalBucket-name name))]
                                                          [(ModuleVariable? name)
-                                                          (lookup-primitive (ModuleVariable-name name))]
-                                                         [(eq? name #f)
-                                                          (make-undefined)]))
+                                                          (lookup-primitive (ModuleVariable-name name))]))
                                           (ExtendEnvironment/Prefix!-names op))))]
 
           [(InstallClosureValues!? op)

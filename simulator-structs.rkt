@@ -134,7 +134,7 @@
 
 
 
-(define-struct: toplevel ([names : (Listof (U #f Symbol ModuleVariable))]
+(define-struct: toplevel ([names : (Listof (U #f Symbol GlobalBucket ModuleVariable))]
                           [vals : (Listof PrimitiveValue)])
   #:transparent
   #:mutable)

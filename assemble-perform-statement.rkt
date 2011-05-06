@@ -29,28 +29,36 @@
      
     
     [(ExtendEnvironment/Prefix!? op)
-     (let: ([names : (Listof (U Symbol False ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
+     (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
            (format "MACHINE.env.push([~a]);  MACHINE.env[MACHINE.env.length-1].names = [~a];"
                    (string-join (map
-				 (lambda: ([n : (U Symbol False ModuleVariable)])
-					  (cond [(symbol? n)
-						 (format "MACHINE.params.currentNamespace[~s] || MACHINE.primitives[~s]"
-							 (symbol->string n) 
-							 (symbol->string n))]
-						[(eq? n #f)
-						 "false"]
-						[(ModuleVariable? n)
-						 (format "MACHINE.primitives[~s]"
-							 (symbol->string (ModuleVariable-name n)))]))
-				 names)
+                                 (lambda: ([n : (U Symbol False GlobalBucket ModuleVariable)])
+                                          (cond [(symbol? n)
+                                                 (format "MACHINE.params.currentNamespace[~s] || MACHINE.primitives[~s]"
+                                                         (symbol->string n) 
+                                                         (symbol->string n))]
+                                                [(eq? n #f)
+                                                 "false"]
+                                                [(GlobalBucket? n)
+                                                 ;; FIXME: maybe we should keep a set of global variables here?
+                                                 (format "MACHINE.primitives[~s]"
+                                                         (symbol->string (GlobalBucket-name n)))]
+                                                ;; FIXME:  this should be looking at the module path and getting
+                                                ;; the value here!  It shouldn't be looking into Primitives...
+                                                [(ModuleVariable? n)
+                                                 (format "MACHINE.primitives[~s]"
+                                                         (symbol->string (ModuleVariable-name n)))]))
+                                 names)
                                 ",")
                    (string-join (map
-				 (lambda: ([n : (U Symbol False ModuleVariable)])
+				 (lambda: ([n : (U Symbol False GlobalBucket ModuleVariable)])
 					  (cond
 					   [(symbol? n)
 					    (format "~s" (symbol->string n))]
 					   [(eq? n #f)
 					    "false"]
+                                           [(GlobalBucket? n)
+                                            (format "~s" (symbol->string (GlobalBucket-name n)))]
 					   [(ModuleVariable? n)
 					    (format "~s" (symbol->string (ModuleVariable-name n)))]))
 				 names)

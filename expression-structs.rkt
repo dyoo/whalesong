@@ -3,20 +3,44 @@
 
 (provide (all-defined-out))
 
-;; Expressions
 
-(define-type Expression (U Top Constant 
-                               ToplevelRef LocalRef
-                               ToplevelSet
-                               Branch CaseLam Lam Seq Splice App
-                               Let1 
-                               LetVoid 
-                               LetRec
-                               InstallValue
-                               BoxEnv
-                               WithContMark
-                               ApplyValues
-                               DefValues))
+;; Expressions
+(define-type Expression (U
+                         Top
+                         Constant 
+                         ToplevelRef
+                         LocalRef
+                         ToplevelSet
+                         Branch 
+                         CaseLam
+                         Lam 
+                         Seq 
+                         Splice 
+                         App
+                         Let1 
+                         LetVoid 
+                         LetRec
+                         InstallValue
+                         BoxEnv
+                         WithContMark
+                         ApplyValues
+                         DefValues))
+
+;; A ModuleName is an identifier for a Module.
+(define-struct: ModuleName ([name : Symbol])
+  #:transparent)
+
+(define-struct: Provided ([name : Symbol]
+                          [src-name : Symbol])
+  #:transparent)
+
+(define-struct: Module ([name : ModuleName]
+                        [prefix : Prefix]
+                        [requires : (Listof ModuleName)]
+                        [provides : (Listof Provided)]
+                        [code : Expression])
+  #:transparent)
+
 
 (define-struct: Top ([prefix : Prefix]
                      [code : Expression]) #:transparent)

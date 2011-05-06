@@ -303,7 +303,7 @@
 
 ;; Extends the environment with a prefix that holds
 ;; lookups to the namespace.
-(define-struct: ExtendEnvironment/Prefix! ([names : (Listof (U Symbol ModuleVariable False))])
+(define-struct: ExtendEnvironment/Prefix! ([names : (Listof (U False Symbol GlobalBucket ModuleVariable))])
   #:transparent)
 
 ;; Adjusts the environment by pushing the values in the

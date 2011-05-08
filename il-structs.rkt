@@ -395,12 +395,6 @@
   #:transparent)
 (define empty-instruction-sequence (make-instruction-sequence '()))
 
-(: make-label (Symbol -> Symbol))
-(define make-label
-  (let ([n 0])
-    (lambda (l)
-      (set! n (add1 n))
-      (string->symbol (format "~a~a" l n)))))
 
 
 (: statements (InstructionSequence -> (Listof Statement)))

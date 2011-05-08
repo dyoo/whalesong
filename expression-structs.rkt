@@ -62,16 +62,27 @@
                         [consequent : Expression]
                         [alternative : Expression]) #:transparent)
 
-(define-struct: CaseLam ([name : (U Symbol False)]
+(define-struct: CaseLam ([name : (U Symbol LamPositionalName)]
                          [clauses : (Listof Lam)]
                          [entry-label : Symbol]) #:transparent)
 
-(define-struct: Lam ([name : (U Symbol False)]
+(define-struct: Lam ([name : (U Symbol LamPositionalName)]
                      [num-parameters : Natural]
                      [rest? : Boolean]
                      [body : Expression]
                      [closure-map : (Listof Natural)]
                      [entry-label : Symbol]) #:transparent)
+
+
+;; We may have more information about the lambda's name.  This will show it.
+(define-struct: LamPositionalName ([name : Symbol] 
+                                   [path : String] 
+                                   [line : Natural] 
+                                   [column : Natural] 
+                                   [offset : Natural] 
+                                   [span : Natural]) #:transparent)
+
+
 
 (define-struct: Seq ([actions : (Listof Expression)]) #:transparent)
 (define-struct: Splice ([actions : (Listof Expression)]) #:transparent)
@@ -123,3 +134,13 @@
 
 (: rest-exps ((Listof Expression) -> (Listof Expression)))
 (define (rest-exps seq) (cdr seq))
+
+
+
+
+(: make-label (Symbol -> Symbol))
+(define make-label
+  (let ([n 0])
+    (lambda (l)
+      (set! n (add1 n))
+      (string->symbol (format "~a~a" l n)))))

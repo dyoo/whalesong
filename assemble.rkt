@@ -8,6 +8,7 @@
          "assemble-expression.rkt"
          "assemble-perform-statement.rkt"
          "collect-jump-targets.rkt"
+         "expression-structs.rkt"
          racket/string
          racket/list)
 

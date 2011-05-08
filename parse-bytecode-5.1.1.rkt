@@ -30,10 +30,16 @@
      (error 'current-module-path-index-resolver))))
 
 
+;; seen-lambdas: 
+(define seen-lambdas (make-parameter (make-hasheq)))
+
+
+
 ;; parse-bytecode: Input-Port -> Expression
 (define (parse-bytecode in)
-  (let ([compilation-top (zo-parse in)])
-    (parse-top compilation-top)))
+  (parameterize ([seen-lambdas (make-hasheq)])
+    (let ([compilation-top (zo-parse in)])
+      (parse-top compilation-top))))
 
 
 (define (parse-top a-top)
@@ -204,7 +210,7 @@
                            (match a-provided
                              [(struct provided (name src src-name nom-mod src-phase protected? insp))
                               ;; fixme: we're not considering all of the fields here...
-                              (make-Provided name src-name)])])
+                              (make-Provided name src-name)]))])
     (let loop ([provides provides])
       (cond
         [(empty? provides)
@@ -273,17 +279,21 @@
 
 (define (parse-lam expr)
   (match expr
-    [(struct lam (name flags num-params rest? closure-map closure-types max-let-depth body))
+    [(struct lam (name flags num-params param-types rest? closure-map closure-types max-let-depth body))
      (let ([lam-name (cond
                        [(symbol? name)
                         name]
                        [(vector? name)
-                        ...]
+                        (string->symbol (format "~s" name))]
                        [else
-                        (error
-     (make-Lam 
-     ...]))
-
+                        (error "lam name neither symbol nor vector: ~e" name)])])
+       (make-Lam lam-name 
+                 num-params 
+                 rest?
+                 (parse-lam-body body)
+                 (vector->list closure-map)
+                 (make-label 'lamEntry)))]))
+               
 (define (parse-lam-body body)
   (cond
     [(expr? body)
@@ -296,7 +306,11 @@
 
 
 (define (parse-closure expr)
-  (error 'fixme))
+  (match expr
+    [(struct closure (code gen-id))
+     ;; Fixme: we must handle cycles here.
+     (parse-lam code)]))
+
 
 (define (parse-case-lam exp)
   (error 'fixme))
@@ -317,10 +331,19 @@
   (error 'fixme))
 
 (define (parse-localref expr)
-  (error 'fixme))
+  (match expr
+    [(struct localref (unbox? pos clear? other-clears? flonum?))
+     ;; FIXME: we should use clear? at the very least: as I understand it,
+     ;; this is here to maintain safe-for-space behavior.
+     ;; We should also make use of flonum information to generate better code.
+     (make-LocalRef pos unbox?)]))
+
 
 (define (parse-toplevel expr)
-  (error 'fixme))
+  (match expr
+    ;; FIXME: we should also keep track of const? and ready? to produce better code.
+    [(struct toplevel (depth pos const? ready?))
+     (make-ToplevelRef depth pos)]))
 
 (define (parse-topsyntax expr)
   (error 'fixme))

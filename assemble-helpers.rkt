@@ -1,6 +1,7 @@
 #lang typed/racket/base
 
 (require "il-structs.rkt"
+         "expression-structs.rkt"
          "lexical-structs.rkt"
          racket/list)
 
@@ -238,13 +239,14 @@
 
 
 
-(: assemble-display-name ((U Symbol False) -> String))
-(define (assemble-display-name symbol-or-string)
-  (if (symbol? symbol-or-string)
-       (format "~s" (symbol->string symbol-or-string))
-       "false"))
-
-
+(: assemble-display-name ((U Symbol LamPositionalName) -> String))
+(define (assemble-display-name name)
+  (cond
+   [(symbol? name)
+    (format "~s" (symbol->string name))]
+   [(LamPositionalName? name)
+    ;; FIXME: record more interesting information here.
+    (format "~s" (symbol->string (LamPositionalName-name name)))]))
 
 
 

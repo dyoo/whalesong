@@ -3,6 +3,7 @@
 (provide (all-defined-out))
 
 (require "il-structs.rkt"
+         "expression-structs.rkt"
          "lexical-structs.rkt")
 
 
@@ -146,7 +147,7 @@
 ;; Primitive procedure wrapper
 (define-struct: primitive-proc ([f : (machine PrimitiveValue * -> PrimitiveValue)]
                                 [arity : Arity]
-                                [display-name : (U Symbol False)])
+                                [display-name : (U Symbol LamPositionalName)])
   #:transparent)
 
 
@@ -156,7 +157,7 @@
 (define-struct: closure ([label : Symbol]
                          [arity : Arity]
                          [vals : (Listof SlotValue)]
-                         [display-name : (U Symbol False)])
+                         [display-name : (U Symbol LamPositionalName)])
   #:transparent
   #:mutable)
 

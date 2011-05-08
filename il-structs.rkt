@@ -1,7 +1,8 @@
 #lang typed/racket/base
 (provide (all-defined-out))
 
-(require "lexical-structs.rkt"
+(require "expression-structs.rkt"
+         "lexical-structs.rkt"
          "kernel-primitives.rkt")
 
 
@@ -219,7 +220,7 @@
 (define-struct: MakeCompiledProcedure ([label : Symbol]
                                        [arity : Arity]
                                        [closed-vals : (Listof Natural)]
-                                       [display-name : (U Symbol False)])
+                                       [display-name : (U Symbol LamPositionalName)])
   #:transparent)
 
 
@@ -227,7 +228,7 @@
 ;; bother with trying to capture the free variables.
 (define-struct: MakeCompiledProcedureShell ([label : Symbol]
                                             [arity : Arity]
-                                            [display-name : (U Symbol False)])
+                                            [display-name : (U Symbol LamPositionalName)])
   #:transparent)
 
 
@@ -423,7 +424,7 @@
 
 ;; We try to keep at compile time a mapping from environment positions to
 ;; statically known things, to generate better code.
-(define-struct: StaticallyKnownLam ([name : (U Symbol False)]
+(define-struct: StaticallyKnownLam ([name : (U Symbol LamPositionalName)]
                                     [entry-point : Symbol]
                                     [arity : Arity]) #:transparent)
 

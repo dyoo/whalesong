@@ -89,50 +89,50 @@
 
 (test (parse '(lambda () x))
       (make-Top (make-Prefix '(x))
-                (make-Lam #f 0 #f (make-ToplevelRef 0 0) 
+                (make-Lam 'unknown 0 #f (make-ToplevelRef 0 0) 
                           '(0) 'lamEntry1)))
 
 (test (parse '(lambda args args))
       (make-Top (make-Prefix '())
-                (make-Lam #f 0 #t (make-LocalRef 0 #f) 
+                (make-Lam 'unknown 0 #t (make-LocalRef 0 #f) 
                           '() 'lamEntry1)))
 
 (test (parse '(lambda (x y . z) x))
       (make-Top (make-Prefix '())
-                (make-Lam #f 2 #t 
+                (make-Lam 'unknown 2 #t 
                           (make-LocalRef 0 #f)
                           '() 'lamEntry1)))
 
 (test (parse '(lambda (x y . z) y))
       (make-Top (make-Prefix '())
-                (make-Lam #f 2 #t 
+                (make-Lam 'unknown 2 #t 
                           (make-LocalRef 1 #f)
                           '() 'lamEntry1)))
 
 
 (test (parse '(lambda (x y . z) z))
       (make-Top (make-Prefix '())
-                (make-Lam #f 2 #t 
+                (make-Lam 'unknown 2 #t 
                           (make-LocalRef 2 #f)
                           '() 'lamEntry1)))
 
 
 (test (parse '(lambda (x y z) x))
       (make-Top (make-Prefix '())
-                (make-Lam #f 3 #f (make-LocalRef 0 #f) '() 'lamEntry1)))
+                (make-Lam 'unknown 3 #f (make-LocalRef 0 #f) '() 'lamEntry1)))
 
 (test (parse '(lambda (x y z) y))
       (make-Top (make-Prefix '())
-                (make-Lam #f 3 #f (make-LocalRef 1 #f) '() 'lamEntry1)))
+                (make-Lam 'unknown 3 #f (make-LocalRef 1 #f) '() 'lamEntry1)))
 
 (test (parse '(lambda (x y z) z))
       (make-Top (make-Prefix '())
-                (make-Lam #f 3 #f (make-LocalRef 2 #f) '() 'lamEntry1)))
+                (make-Lam 'unknown 3 #f (make-LocalRef 2 #f) '() 'lamEntry1)))
 
 
 (test (parse '(lambda (x y z) x y z))
       (make-Top (make-Prefix '())
-                (make-Lam #f 3 #f (make-Seq (list (make-LocalRef 0 #f)
+                (make-Lam 'unknown 3 #f (make-Seq (list (make-LocalRef 0 #f)
                                             (make-LocalRef 1 #f)
                                             (make-LocalRef 2 #f)))
                           '()
@@ -140,7 +140,7 @@
 
 (test (parse '(lambda (x y z) k))
       (make-Top (make-Prefix '(k))
-                (make-Lam #f 
+                (make-Lam 'unknown 
                           3 
                           #f
                           (make-ToplevelRef 0 0 )
@@ -149,7 +149,7 @@
 
 (test (parse '(lambda (x y z) k x y z))
       (make-Top (make-Prefix '(k))
-                (make-Lam #f
+                (make-Lam 'unknown
                           3 
                           #f
                           (make-Seq (list (make-ToplevelRef 0 0 )
@@ -167,9 +167,9 @@
                     z
                     w))))
       (make-Top (make-Prefix '(w))
-                (make-Lam #f 1 #f 
-                          (make-Lam #f 1 #f
-                                    (make-Lam #f 1 #f
+                (make-Lam 'unknown 1 #f 
+                          (make-Lam 'unknown 1 #f
+                                    (make-Lam 'unknown 1 #f
                                               (make-Seq (list 
                                                          (make-LocalRef 1 #f)
                                                          (make-LocalRef 2 #f)
@@ -187,8 +187,8 @@
                 (lambda (y)
                   x)))
       (make-Top (make-Prefix '())
-                (make-Lam #f 1 #f
-                          (make-Lam #f 1 #f
+                (make-Lam 'unknown 1 #f
+                          (make-Lam 'unknown 1 #f
                                     (make-LocalRef 0 #f)
                                     '(0)
                                     'lamEntry1)
@@ -199,8 +199,8 @@
                 (lambda (y)
                   y)))
       (make-Top (make-Prefix '())
-                (make-Lam #f 1 #f
-                          (make-Lam #f 1 #f
+                (make-Lam 'unknown 1 #f
+                          (make-Lam 'unknown 1 #f
                                     (make-LocalRef 0 #f)
                                     (list)
                                     'lamEntry1)
@@ -217,7 +217,7 @@
 
 (test (parse '(lambda (x) (+ x x)))
       (make-Top (make-Prefix `(,(make-ModuleVariable '+ '#%kernel)))
-                (make-Lam #f 1 #f
+                (make-Lam 'unknown 1 #f
                           (make-App (make-ToplevelRef 2 0)
                                     (list (make-LocalRef 3 #f)
                                           (make-LocalRef 3 #f)))
@@ -228,7 +228,7 @@
                 (+ (* x x) x)))
       (make-Top (make-Prefix `(,(make-ModuleVariable '* '#%kernel)
                                ,(make-ModuleVariable '+ '#%kernel)))
-                (make-Lam #f 1 #f
+                (make-Lam 'unknown 1 #f
                           ;; stack layout: [???, ???, prefix, x]
                           (make-App (make-ToplevelRef 2 1)
                                     (list
@@ -414,7 +414,7 @@
       (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 '#%kernel)))
                 (make-Let1 (make-Constant 0)
                            (make-BoxEnv 0
-                                        (make-Lam #f 0 #f
+                                        (make-Lam 'unknown 0 #f
                                                   (make-Seq (list (make-InstallValue 
                                                                    1 1 
                                                                    (make-App (make-ToplevelRef 1 0)
@@ -435,7 +435,7 @@
                               (make-Seq (list
                                          (make-InstallValue 1 0 (make-Constant 0) #t)
                                          (make-InstallValue 1 1 (make-Constant 1) #t)
-                                         (make-Lam #f 0 #f
+                                         (make-Lam 'unknown 0 #f
                                                    (make-Seq
                                                     (list (make-InstallValue 
                                                            1 1 
@@ -524,14 +524,14 @@
 ;; CaseLam
 (test (parse '(case-lambda))
       (make-Top (make-Prefix '())
-                (make-CaseLam #f (list) 'lamEntry1)))
+                (make-CaseLam 'unknown (list) 'lamEntry1)))
 
 
 (test (parse '(case-lambda [(x) x]))
       (make-Top (make-Prefix '())
                 (make-CaseLam 
-                 #f
-                 (list (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry2))
+                 'unknown
+                 (list (make-Lam 'unknown 1 #f (make-LocalRef 0 #f) '() 'lamEntry2))
                  'lamEntry1)))
 
 
@@ -539,18 +539,18 @@
                            [(x y) x]))
       (make-Top (make-Prefix '())
                 (make-CaseLam 
-                 #f
-                 (list (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
-                       (make-Lam #f 2 #f (make-LocalRef 0 #f) '() 'lamEntry3))
+                 'unknown
+                 (list (make-Lam 'unknown 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
+                       (make-Lam 'unknown 2 #f (make-LocalRef 0 #f) '() 'lamEntry3))
                  'lamEntry1)))
 
 (test (parse '(case-lambda [(x) x]
                            [(x y) y]))
       (make-Top (make-Prefix '())
                 (make-CaseLam 
-                 #f
-                 (list (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
-                       (make-Lam #f 2 #f (make-LocalRef 1 #f) '() 'lamEntry3))
+                 'unknown
+                 (list (make-Lam 'unknown 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
+                       (make-Lam 'unknown 2 #f (make-LocalRef 1 #f) '() 'lamEntry3))
                  'lamEntry1)))
 
 
@@ -558,8 +558,8 @@
                            [(x) x]))
       (make-Top (make-Prefix '())
                 (make-CaseLam 
-                 #f
-                 (list (make-Lam #f 2 #f (make-LocalRef 1 #f) '() 'lamEntry2)
-                       (make-Lam #f 1 #f (make-LocalRef 0 #f) '() 'lamEntry3))
+                 'unknown
+                 (list (make-Lam 'unknown 2 #f (make-LocalRef 1 #f) '() 'lamEntry2)
+                       (make-Lam 'unknown 1 #f (make-LocalRef 0 #f) '() 'lamEntry3))
                        
                  'lamEntry1)))

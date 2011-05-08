@@ -10,6 +10,7 @@
          "simulator-structs.rkt"
          "bootstrapped-primitives.rkt"
          "kernel-primitives.rkt"
+         "expression-structs.rkt"
          racket/list
          racket/match
          (for-syntax racket/base))

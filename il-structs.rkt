@@ -32,7 +32,8 @@
 		      ControlStackLabel/MultipleValueReturn
                       ControlFrameTemporary
                       CompiledProcedureEntry
-                      CompiledProcedureClosureReference))
+                      CompiledProcedureClosureReference
+                      PrimitiveKernelValue))
 
 
 ;; Targets: these are the allowable lhs's for a targetted assignment.

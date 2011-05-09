@@ -1,5 +1,6 @@
 #lang typed/racket/base
-(require "il-structs.rkt"
+(require "expression-structs.rkt"
+         "il-structs.rkt"
          "lexical-structs.rkt"
          racket/list)
 
@@ -132,7 +133,9 @@
     [(CompiledProcedureClosureReference? oparg)
      (make-CompiledProcedureClosureReference 
       (adjust-oparg-depth (CompiledProcedureClosureReference-proc oparg) n)
-      (CompiledProcedureClosureReference-n oparg))]))
+      (CompiledProcedureClosureReference-n oparg))]
+    [(PrimitiveKernelValue? oparg)
+     oparg]))
 
 
 (define-predicate natural? Natural)

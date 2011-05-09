@@ -25,7 +25,8 @@
                          BoxEnv
                          WithContMark
                          ApplyValues
-                         DefValues))
+                         DefValues
+                         PrimitiveKernelValue))
 
 ;; A ModuleName is an identifier for a Module.
 (define-struct: ModuleName ([name : Symbol])
@@ -132,6 +133,11 @@
 ;; Multiple value definition
 (define-struct: DefValues ([ids : (Listof ToplevelRef)]
                            [rhs : Expression]) #:transparent)
+
+
+
+(define-struct: PrimitiveKernelValue ([id : Symbol]) #:transparent)
+
 
 
 

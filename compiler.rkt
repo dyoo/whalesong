@@ -137,7 +137,9 @@
            (append (loop (ApplyValues-proc exp) cenv)
                    (loop (ApplyValues-args-expr exp) cenv))]
           [(DefValues? exp)
-           (append (loop (DefValues-rhs exp) cenv))])))
+           (append (loop (DefValues-rhs exp) cenv))]
+          [(PrimitiveKernelValue? exp)
+           '()])))
 
 
 
@@ -205,7 +207,9 @@
     [(ApplyValues? exp)
      (compile-apply-values exp cenv target linkage)]
     [(DefValues? exp)
-     (compile-def-values exp cenv target linkage)]))
+     (compile-def-values exp cenv target linkage)]
+    [(PrimitiveKernelValue? exp)
+     (compile-primitive-kernel-value exp cenv target linkage)]))
 
 
 
@@ -1764,6 +1768,24 @@
            
 
 
+(: compile-primitive-kernel-value (PrimitiveKernelValue CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-primitive-kernel-value exp cenv target linkage)
+  (let ([id (PrimitiveKernelValue-id exp)])
+    (cond
+      [(KernelPrimitiveName? id)
+       
+       (let ([singular-context-check (emit-singular-context linkage)])
+         ;; Compiles constant values.
+         (end-with-linkage linkage
+                           cenv
+                           (append-instruction-sequences
+                            (make-instruction-sequence
+                             `(,(make-AssignImmediateStatement target exp)
+                            singular-context-check)))))]
+      [else
+       (error 'unimplemented-kernel-primitive 
+              "Primitive Kernel Value ~s has not been implemented"
+              id)])))
 
 
 
@@ -1974,4 +1996,7 @@
                                    (ensure-toplevelref
                                     (adjust-expression-depth id n skip)))
                           (DefValues-ids exp))
-                     (adjust-expression-depth (DefValues-rhs exp) n skip))]))
+                     (adjust-expression-depth (DefValues-rhs exp) n skip))]
+    
+    [(PrimitiveKernelValue? exp)
+     exp]))

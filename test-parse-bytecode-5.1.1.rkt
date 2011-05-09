@@ -23,6 +23,9 @@
       (parse-bytecode (open-input-bytes (get-output-bytes op))))))
 
 
+(check-equal? (run-my-parse #''hello) 
+              (make-Top (make-Prefix '()) 
+                        (make-Constant 'hello)))
 
 (check-equal? (run-my-parse #'"hello world")
               (make-Top (make-Prefix (list))
@@ -85,6 +88,7 @@
 
 
 
+;; let1's
 (check-equal? (run-my-parse #'(let ([y (f)])
                                 'ok))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f)))
@@ -123,6 +127,9 @@
                                               (make-LocalRef 0 #f)))))
 
 
+
+
+;; branches
 (check-equal? (run-my-parse #'(if (f) (g) (h)))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f)
                                            (make-GlobalBucket 'g)
@@ -140,6 +147,31 @@
 
 
 
+(check-equal? (run-my-parse #'(if x (if y z 1) #t))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'x)
+                                           (make-GlobalBucket 'y)
+                                           (make-GlobalBucket 'z)))
+                        (make-Branch (make-ToplevelRef 0 0)
+                                     (make-Branch (make-ToplevelRef 0 1)
+                                                  (make-ToplevelRef 0 2)
+                                                  (make-Constant 1))
+                                     (make-Constant #t))))
+
+
+(check-equal? (run-my-parse #'(cond [x y]))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'x)
+                                           (make-GlobalBucket 'y)))
+                        (make-Branch (make-ToplevelRef 0 0)
+                                     (make-ToplevelRef 0 1)
+                                     (make-Constant (void)))))
+
+
+
+
+(check-equal? (run-my-parse #'+)
+              (make-Top (make-Prefix (list))
+                        (make-PrimitiveKernelValue '+)))
+
 
 
 ;; make sure we don't see an infinite loop
@@ -147,13 +179,12 @@
                   (g)))
 (void (run-my-parse #'(letrec ([g (lambda () (g))])
                         (g))))
-;; todo: add tests to make sure we're parsing this as expected.
-
+;; todo: add tests to make sure we're parsing this as expected.  We expect to see an EmptyClosureReference here.
 
 
 #;(run-zo-parse #'(letrec ([g (lambda () (h))]
-                         [h (lambda () (g))])
-                  (g)))
+                           [h (lambda () (g))])
+                    (g)))
 ;; FIXME: we need to handle closure cycles here.
 
 

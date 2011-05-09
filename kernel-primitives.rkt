@@ -34,6 +34,28 @@
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 
 
+;; These are the primitives that we know how to inline.
+(define-type KernelPrimitiveName/Inline (U '+
+                                           '-
+                                           '*
+                                           '/
+                                           'add1
+                                           'sub1
+                                           '<
+                                           '<=
+                                           '=
+                                           '>
+                                           '>=
+                                           'cons
+                                           'car
+                                           'cdr
+                                           'list
+                                           'null?
+                                           'not
+                                           'eq?))
+
+
+
 
 (: kernel-primitive-expected-operand-types (KernelPrimitiveName Natural -> (Listof OperandDomain)))
 ;; Given a primitive and the number of arguments, produces the list of expected domains.

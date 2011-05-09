@@ -1,5 +1,6 @@
 #lang typed/racket/base
-(require "il-structs.rkt"
+(require "expression-structs.rkt"
+         "il-structs.rkt"
 	 "lexical-structs.rkt"
 	 "helpers.rkt"
 	 racket/list)
@@ -88,7 +89,9 @@
    [(CompiledProcedureEntry? an-input)
     (collect-input (CompiledProcedureEntry-proc an-input))]
    [(CompiledProcedureClosureReference? an-input)
-    (collect-input (CompiledProcedureClosureReference-proc an-input))]))
+    (collect-input (CompiledProcedureClosureReference-proc an-input))]
+   [(PrimitiveKernelValue? an-input)
+    empty]))
 
 
 (: collect-location ((U Reg Label) -> (Listof Symbol)))

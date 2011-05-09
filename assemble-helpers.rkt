@@ -51,7 +51,9 @@
     [(CompiledProcedureEntry? v)
      (assemble-compiled-procedure-entry v)]
     [(CompiledProcedureClosureReference? v)
-     (assemble-compiled-procedure-closure-reference v)]))
+     (assemble-compiled-procedure-closure-reference v)]
+    [(PrimitiveKernelValue? v)
+     (assemble-primitive-kernel-value v)]))
 
 
 
@@ -260,3 +262,6 @@
       (assemble-label a-location)]))
 
 
+(: assemble-primitive-kernel-value (PrimitiveKernelValue -> String))
+(define (assemble-primitive-kernel-value a-prim)
+  (format "MACHINE.primitives[~s]" (symbol->string (PrimitiveKernelValue-id a-prim))))

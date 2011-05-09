@@ -5,7 +5,8 @@
 ;; For example, I'll need to be able to count the number of statements executed by an evaluation.
 ;; I also need to do things like count pushes and pops.  Basically, low-level benchmarking.
 
-(require "il-structs.rkt"
+(require "expression-structs.rkt"
+         "il-structs.rkt"
          "lexical-structs.rkt"
          "simulator-structs.rkt"
          "bootstrapped-primitives.rkt"
@@ -766,7 +767,10 @@
     
     [(CompiledProcedureClosureReference? an-oparg)
      (let ([proc (ensure-closure (evaluate-oparg m (CompiledProcedureClosureReference-proc an-oparg)))])
-       (list-ref (closure-vals proc) (CompiledProcedureClosureReference-n an-oparg)))]))
+       (list-ref (closure-vals proc) (CompiledProcedureClosureReference-n an-oparg)))]
+    
+    [(PrimitiveKernelValue? an-oparg)
+     (lookup-primitive (PrimitiveKernelValue-id an-oparg))]))
 
 
 

@@ -30,14 +30,17 @@
      (error 'current-module-path-index-resolver))))
 
 
-;; seen-lambdas: 
-(define seen-lambdas (make-parameter (make-hasheq)))
+;; seen-closures: (hashof symbol -> symbol)
+;; As we're parsing, we watch for closure cycles.  On any subsequent time where
+;; we see a closure cycle, we break the cycle by generating an EmptyClosureReference.
+;; The map is from the gen-id to the entry-point label of the lambda.
+(define seen-closures (make-parameter (make-hasheq)))
 
 
 
 ;; parse-bytecode: Input-Port -> Expression
 (define (parse-bytecode in)
-  (parameterize ([seen-lambdas (make-hasheq)])
+  (parameterize ([seen-closures (make-hasheq)])
     (let ([compilation-top (zo-parse in)])
       (parse-top compilation-top))))
 
@@ -239,7 +242,7 @@
 (define (parse-expr expr)
   (cond
     [(lam? expr)
-     (parse-lam expr)]
+     (parse-lam expr (make-label 'lamEntry))]
     [(closure? expr)
      (parse-closure expr)]
     [(case-lam? expr)
@@ -277,37 +280,16 @@
     [(primval? expr)
      (parse-primval expr)]))
 
-(define (parse-lam expr)
+(define (parse-lam expr entry-point-label)
   (match expr
     [(struct lam (name flags num-params param-types rest? closure-map closure-types max-let-depth body))
-     (let ([lam-name (cond
-                       [(symbol? name)
-                        name]
-                       [(vector? name)
-                        (match name
-                          [(vector (and (? symbol?) sym)
-                                   (and (? path?) path) 
-                                   (and (? number?) line)
-                                   (and (? number?) column)
-                                   (and (? number?) offset)
-                                   (and (? number?) span)
-                                   _)
-                           (make-LamPositionalName sym
-                                                   (path->string path)
-                                                   line
-                                                   column 
-                                                   offset
-                                                   span)]
-                          [else
-                           (string->symbol (format "~s" name))])]
-                       [else
-                        (error "lam name neither symbol nor vector: ~e" name)])])
+     (let ([lam-name (extract-lam-name name)])
        (make-Lam lam-name 
                  num-params 
                  rest?
                  (parse-lam-body body)
                  (vector->list closure-map)
-                 (make-label 'lamEntry)))]))
+                 entry-point-label))]))
                
 (define (parse-lam-body body)
   (cond
@@ -319,12 +301,54 @@
      (make-Constant body)]))
 
 
-
+;; parse-closure: closure -> Expression
+;; Either parses as a regular lambda, or if we come across the same closure twice,
+;; breaks the cycle by creating an EmptyClosureReference with the pre-existing lambda
+;; entry point.
 (define (parse-closure expr)
   (match expr
     [(struct closure (code gen-id))
-     ;; Fixme: we must handle cycles here.
-     (parse-lam code)]))
+     (let ([seen (seen-closures)])
+       (cond
+         [(hash-has-key? seen gen-id)
+          (match code
+            [(struct lam (name flags num-params param-types rest? closure-map closure-types max-let-depth body))
+             (let ([lam-name (extract-lam-name name)])
+               (make-EmptyClosureReference lam-name 
+                                           num-params 
+                                           rest?
+                                           (hash-ref seen gen-id)))])]
+         [else
+          (let ([fresh-entry-point (make-label 'lamEntry)])
+            (hash-set! seen gen-id fresh-entry-point)
+            (parse-lam code fresh-entry-point))]))]))
+
+
+
+;; extract-lam-name: (U Symbol Vector) -> (U Symbol LamPositionalName)
+(define (extract-lam-name name)
+  (cond
+    [(symbol? name)
+     name]
+    [(vector? name)
+     (match name
+       [(vector (and (? symbol?) sym)
+                (and (? path?) path) 
+                (and (? number?) line)
+                (and (? number?) column)
+                (and (? number?) offset)
+                (and (? number?) span)
+                _)
+        (make-LamPositionalName sym
+                                (path->string path)
+                                line
+                                column 
+                                offset
+                                span)]
+       [else
+        (string->symbol (format "~s" name))])]
+    [else
+     (error "lam name neither symbol nor vector: ~e" name)]))
 
 
 (define (parse-case-lam exp)
@@ -363,8 +387,33 @@
 (define (parse-topsyntax expr)
   (error 'fixme))
 
+
 (define (parse-application expr)
-  (error 'fixme))
+  (match expr
+    [(struct application (rator rands))
+     (make-App (parse-application-rator rator)
+               (map parse-application-rand rands))]))
+
+(define (parse-application-rator rator)
+  (cond
+    [(expr? rator)
+     (parse-expr rator)]
+    [(seq? rator)
+     (parse-seq rator)]
+    [else
+     (make-Constant rator)]))
+
+(define (parse-application-rand rand)
+  (cond
+    [(expr? rand)
+     (parse-expr rand)]
+    [(seq? rand)
+     (parse-seq rand)]
+    [else
+     (make-Constant rand)]))
+
+
+
 
 (define (parse-branch expr)
   (error 'fixme))

@@ -93,9 +93,14 @@
 
 
 
-;; infinite loop
+;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])
                   (g)))
+(void (run-my-parse #'(letrec ([g (lambda () (g))])
+                        (g))))
+
+
+
 #;(run-zo-parse #'(letrec ([g (lambda () (h))]
                          [h (lambda () (g))])
                   (g)))

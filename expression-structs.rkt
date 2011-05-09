@@ -12,8 +12,9 @@
                          LocalRef
                          ToplevelSet
                          Branch 
-                         CaseLam
                          Lam 
+                         CaseLam
+                         EmptyClosureReference
                          Seq 
                          Splice 
                          App
@@ -72,6 +73,15 @@
                      [body : Expression]
                      [closure-map : (Listof Natural)]
                      [entry-label : Symbol]) #:transparent)
+
+;; An EmptyClosureReference has enough information to create the lambda value,
+;; assuming that the lambda's body has already been compiled.  The entry-label needs
+;; to have been shared with an existing Lam, and the closure must be empty.
+(define-struct: EmptyClosureReference ([name : (U Symbol LamPositionalName)]
+                                       [num-parameters : Natural]
+                                       [rest? : Boolean]
+                                       [entry-label : Symbol]) #:transparent)
+
 
 
 ;; We may have more information about the lambda's name.  This will show it.

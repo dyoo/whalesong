@@ -33,7 +33,7 @@
        ;; Layout the lambda bodies...
        (make-instruction-sequence 
         `(,(make-GotoStatement (make-Label after-lam-bodies))))
-       (compile-lambda-bodies (collect-all-lams exp))
+       (compile-lambda-bodies (collect-all-lambdas-with-bodies exp))
        after-lam-bodies
        
        ;; Begin a prompted evaluation:
@@ -55,9 +55,9 @@
 
 
 
-(: collect-all-lams (Expression -> (Listof lam+cenv)))
+(: collect-all-lambdas-with-bodies (Expression -> (Listof lam+cenv)))
 ;; Finds all the lambdas in the expression.
-(define (collect-all-lams exp)
+(define (collect-all-lambdas-with-bodies exp)
   (let: loop : (Listof lam+cenv)
         ([exp : Expression exp]
          [cenv : CompileTimeEnvironment '()])
@@ -86,6 +86,9 @@
                  (apply append (map (lambda: ([lam : Lam])
                                              (loop lam cenv))
                                     (CaseLam-clauses exp))))]
+          
+          [(EmptyClosureReference? exp)
+           '()]
           
           [(Seq? exp)
            (apply append (map (lambda: ([e : Expression]) (loop e cenv))
@@ -173,6 +176,8 @@
      (compile-lambda exp cenv target linkage)]
     [(CaseLam? exp)
      (compile-case-lambda exp cenv target linkage)]
+    [(EmptyClosureReference? exp)
+     (compile-empty-closure-reference exp cenv target linkage)]
     [(Seq? exp)
      (compile-sequence (Seq-actions exp)
                        cenv
@@ -470,6 +475,25 @@
                                        (Lam-name exp)))))
       singular-context-check))))
 
+(: compile-empty-closure-reference (EmptyClosureReference CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-empty-closure-reference exp cenv target linkage)
+  (let ([singular-context-check (emit-singular-context linkage)])
+    (end-with-linkage
+     linkage
+     cenv
+     (append-instruction-sequences      
+      (make-instruction-sequence 
+       `(,(make-AssignPrimOpStatement 
+           target
+           (make-MakeCompiledProcedure (EmptyClosureReference-entry-label exp)
+                                       (EmptyClosureReference-arity exp)
+                                       empty
+                                       (EmptyClosureReference-name exp)))))
+      singular-context-check))))
+        
+
+
+
 (: compile-case-lambda (CaseLam CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Similar to compile-lambda.
 (define (compile-case-lambda exp cenv target linkage)
@@ -521,6 +545,15 @@
   (if (Lam-rest? lam)
       (make-ArityAtLeast (Lam-num-parameters lam))
       (Lam-num-parameters lam)))
+
+
+(: EmptyClosureReference-arity (EmptyClosureReference -> Arity))
+(define (EmptyClosureReference-arity lam)
+  (if (EmptyClosureReference-rest? lam)
+      (make-ArityAtLeast (EmptyClosureReference-num-parameters lam))
+      (EmptyClosureReference-num-parameters lam)))
+
+
 
 
 (: shift-closure-map ((Listof Natural) Natural -> (Listof Natural)))
@@ -1859,6 +1892,9 @@
                                  (ensure-lam (adjust-expression-depth lam n skip)))
                         (CaseLam-clauses exp))
                    (CaseLam-entry-label exp))]
+    
+    [(EmptyClosureReference? exp)
+     exp]
     
     [(Seq? exp)
      (make-Seq (map (lambda: ([action : Expression])

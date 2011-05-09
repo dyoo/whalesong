@@ -284,7 +284,22 @@
                        [(symbol? name)
                         name]
                        [(vector? name)
-                        (string->symbol (format "~s" name))]
+                        (match name
+                          [(vector (and (? symbol?) sym)
+                                   (and (? path?) path) 
+                                   (and (? number?) line)
+                                   (and (? number?) column)
+                                   (and (? number?) offset)
+                                   (and (? number?) span)
+                                   _)
+                           (make-LamPositionalName sym
+                                                   (path->string path)
+                                                   line
+                                                   column 
+                                                   offset
+                                                   span)]
+                          [else
+                           (string->symbol (format "~s" name))])]
                        [else
                         (error "lam name neither symbol nor vector: ~e" name)])])
        (make-Lam lam-name 

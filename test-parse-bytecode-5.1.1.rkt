@@ -32,14 +32,57 @@
               (make-Top (make-Prefix (list))
                         (make-Constant 42)))
 
+;; global variables
 (check-equal? (run-my-parse #'x)
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
                         (make-ToplevelRef 0 0)))
  
 
 
+(check-equal? (run-my-parse #'(begin (define x 3)
+                                     x))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
+                        (make-Splice (list (make-DefValues (list (make-ToplevelRef 0 0))
+                                                           (make-Constant 3))
+                                           (make-ToplevelRef 0 0)))))
+
+
 ;; Lambdas
-(run-my-parse #'(lambda (x) x))
+(let ([parsed (run-my-parse #'(lambda (x) x))])
+  (check-true (Lam? (Top-code parsed)))
+  (check-equal? (Lam-num-parameters (Top-code parsed)) 1)
+  (check-equal? (Lam-rest? (Top-code parsed)) #f)
+  (check-equal? (Lam-body (Top-code parsed))
+                (make-LocalRef 0 #f)))
+
+(let ([parsed (run-my-parse #'(lambda (x y) x))])
+  (check-true (Lam? (Top-code parsed)))
+  (check-equal? (Lam-num-parameters (Top-code parsed)) 2)
+  (check-equal? (Lam-rest? (Top-code parsed)) #f)
+  (check-equal? (Lam-body (Top-code parsed))
+                (make-LocalRef 0 #f)))
+
+(let ([parsed (run-my-parse #'(lambda (x y) y))])
+  (check-true (Lam? (Top-code parsed)))
+  (check-equal? (Lam-num-parameters (Top-code parsed)) 2)
+  (check-equal? (Lam-rest? (Top-code parsed)) #f)
+  (check-equal? (Lam-body (Top-code parsed))
+                (make-LocalRef 1 #f)))
+
+(let ([parsed (run-my-parse #'(lambda x x))])
+  (check-true (Lam? (Top-code parsed)))
+  (check-equal? (Lam-num-parameters (Top-code parsed)) 0)
+  (check-equal? (Lam-rest? (Top-code parsed)) #t)
+  (check-equal? (Lam-body (Top-code parsed))
+                (make-LocalRef 0 #f)))
+
+(let ([parsed (run-my-parse #'(lambda (x . y) x))])
+  (check-true (Lam? (Top-code parsed)))
+  (check-equal? (Lam-num-parameters (Top-code parsed)) 1)
+  (check-equal? (Lam-rest? (Top-code parsed)) #t)
+  (check-equal? (Lam-body (Top-code parsed))
+                (make-LocalRef 0 #f)))
+
 
 
 

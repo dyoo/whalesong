@@ -85,6 +85,43 @@
 
 
 
+(check-equal? (run-my-parse #'(let ([y (f)])
+                                'ok))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f)))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
+                                   (make-Constant 'ok))))
+
+(check-equal? (run-my-parse #'(let ([y (f)]
+                                    [z (g)])
+                                'ok))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f) (make-GlobalBucket 'g)))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
+                                   (make-Let1 (make-App (make-ToplevelRef 2 1) (list))
+                                              (make-Constant 'ok)))))
+
+(check-equal? (run-my-parse #'(let* ([y (f)]
+                                     [z (g)])
+                                y
+                                z))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f) (make-GlobalBucket 'g)))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
+                                   (make-Let1 (make-App (make-ToplevelRef 2 1) (list))
+                                              ;; racket's compiler optimizes away the sequence and lookup to y.
+                                              #;(make-Seq (list (make-LocalRef 1 #f) 
+                                                                (make-LocalRef 0 #f)))
+                                              (make-LocalRef 0 #f)))))
+                                              
+;; Another example of an optimization that Racket is doing for us.  it is smart enough
+;; to turn this parallel let into nested let1's.
+(check-equal? (run-my-parse #'(let ([y (f)]
+                                    [z (g)])
+                                y
+                                z))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f) (make-GlobalBucket 'g)))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
+                                   (make-Let1 (make-App (make-ToplevelRef 2 1) (list))
+                                              (make-LocalRef 0 #f)))))
+
 
 
 
@@ -98,6 +135,7 @@
                   (g)))
 (void (run-my-parse #'(letrec ([g (lambda () (g))])
                         (g))))
+;; todo: add tests to make sure we're parsing this as expected.
 
 
 

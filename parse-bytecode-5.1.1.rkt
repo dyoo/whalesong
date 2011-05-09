@@ -122,17 +122,7 @@
   (match form 
     [(struct def-values (ids rhs))
      (make-DefValues (map parse-toplevel ids)
-                     (parse-def-values-body rhs))]))
-
-;; parse-def-values-body: (U expr seq Any) -> Expression
-(define (parse-def-values-body rhs)
-  (cond
-    [(expr? rhs)
-     (parse-expr rhs)]
-    [(seq? rhs)
-     (parse-seq rhs)]
-    [else
-     (make-Constant rhs)]))
+                     (parse-expr-seq-constant rhs))]))
 
 
 
@@ -287,19 +277,10 @@
        (make-Lam lam-name 
                  num-params 
                  rest?
-                 (parse-lam-body body)
+                 (parse-expr-seq-constant body)
                  (vector->list closure-map)
                  entry-point-label))]))
-               
-(define (parse-lam-body body)
-  (cond
-    [(expr? body)
-     (parse-expr body)]
-    [(seq? body)
-     (parse-seq body)]
-    [else
-     (make-Constant body)]))
-
+  
 
 ;; parse-closure: closure -> Expression
 ;; Either parses as a regular lambda, or if we come across the same closure twice,
@@ -355,7 +336,20 @@
   (error 'fixme))
 
 (define (parse-let-one expr)
-  (error 'fixme))
+  (match expr
+    [(struct let-one (rhs body flonum? unused?))
+     ;; fixme: use flonum? and unused? to generate better code.
+     (make-Let1 (parse-expr-seq-constant rhs)
+                (parse-expr-seq-constant body))]))
+
+
+;; parse-expr-seq-constant: (U expr seq Any) -> Expression
+(define (parse-expr-seq-constant x)
+  (cond
+    [(expr? x) (parse-expr x)]
+    [(seq? x) (parse-seq x)]
+    [else (make-Constant x)]))
+
 
 (define (parse-let-void expr)
   (error 'fixme))

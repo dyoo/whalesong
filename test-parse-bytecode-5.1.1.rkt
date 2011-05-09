@@ -123,7 +123,19 @@
                                               (make-LocalRef 0 #f)))))
 
 
+(check-equal? (run-my-parse #'(if (f) (g) (h)))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f)
+                                           (make-GlobalBucket 'g)
+                                           (make-GlobalBucket 'h)))
+                        (make-Branch (make-App (make-ToplevelRef 0 0) '())
+                                     (make-App (make-ToplevelRef 0 1) '())
+                                     (make-App (make-ToplevelRef 0 2) '()))))
 
+
+;; Another example where Racket's compiler is helping: constant propagation, dead code removal.
+(check-equal? (run-my-parse #'(if 3 (g) (h)))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'g)))
+                        (make-App (make-ToplevelRef 0 0) '())))
 
 
 

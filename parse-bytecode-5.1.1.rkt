@@ -407,10 +407,13 @@
      (make-Constant rand)]))
 
 
-
-
 (define (parse-branch expr)
-  (error 'fixme))
+  (match expr
+    [(struct branch (test then else))
+     (make-Branch (parse-expr-seq-constant test)
+                  (parse-expr-seq-constant then)
+                  (parse-expr-seq-constant else))]))
+
 
 (define (parse-with-cont-mark expr)
   (error 'fixme))

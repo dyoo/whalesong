@@ -266,7 +266,7 @@
 (begin (reset-lam-label-counter!/unit-testing)
        (check-true (match (run-my-parse #'(case-lambda))
                      [(struct Top ((struct Prefix (list))
-                                   (struct CaseLam ((? LamPositionalName?) (list) 'lamEntry1))))
+                                   (struct CaseLam (_ (list) 'lamEntry1))))
                       #t])))
 
 (begin (reset-lam-label-counter!/unit-testing)
@@ -274,20 +274,20 @@
                                                        [(x y) x]
                                                        [(x y) y]))
                      [(struct Top ((struct Prefix (list))
-                                   (struct CaseLam ((? LamPositionalName?) 
-                                                    (list (struct Lam ((? LamPositionalName?) 
+                                   (struct CaseLam (_
+                                                    (list (struct Lam (_
                                                                        1
                                                                        #f
                                                                        (struct LocalRef ('0 '#f))
                                                                        '()
                                                                        'lamEntry2))
-                                                          (struct Lam ((? LamPositionalName?)
+                                                          (struct Lam (_
                                                                        2
                                                                        #f
                                                                        (struct LocalRef ('0 '#f))
                                                                        '()
                                                                        'lamEntry3))
-                                                          (struct Lam ((? LamPositionalName?)
+                                                          (struct Lam (_
                                                                        2
                                                                        #f
                                                                        (struct LocalRef ('1 '#f))

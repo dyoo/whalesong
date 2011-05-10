@@ -469,12 +469,85 @@
 
 (: compile-begin0 ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-begin0 seq cenv target linkage)
-  (let ([context (linkage-context linkage)])
-    empty-instruction-sequence))
-    ;(cond
-    ;[(empty? seq)
-   ;  (end-with-linkage empty-instruction-sequence
+  (cond
+    [(empty? seq)
+     (end-with-linkage linkage cenv empty-instruction-sequence)]
+    [(empty? (rest seq))
+     (compile (first seq) cenv target linkage)]
+    [else
+     
+     (let ([after-first-seq (make-label 'afterFirstSeqEvaluated)]
+           [after-values-reinstated (make-label 'afterValuesReinstated)])
 
+       (end-with-linkage 
+        linkage 
+        cenv
+       (append-instruction-sequences
+
+        ;; Evaluate the first expression in a multiple-value context, and get the values on the stack.
+        (compile (first seq)
+                 cenv 
+                 'val
+                 next-linkage/keep-multiple-on-stack)
+        (make-instruction-sequence
+         `(,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) after-first-seq)
+           ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))
+        after-first-seq
+        
+        ;; At this time, the argcount values are on the stack.
+        ;; Next, we save those values temporarily in a throwaway control frame.
+        (make-instruction-sequence
+         `(,(make-PushControlFrame/Generic)
+           ,(make-AssignImmediateStatement (make-ControlFrameTemporary 'pendingBegin0Count)
+                                           (make-Reg 'argcount))
+           ,(make-PerformStatement (make-UnspliceRestFromStack! (make-Const 0) (make-Reg 'argcount)))
+           ,(make-AssignImmediateStatement (make-ControlFrameTemporary 'pendingBegin0Values)
+                                           (make-EnvLexicalReference 0 #f))
+           ,(make-PopEnvironment (make-Const 1) (make-Const 0))))
+       
+        ;; Evaluate the rest of the sequence, dropping their values.
+        (compile-sequence (rest seq) cenv target next-linkage/drop-multiple)
+                
+        (make-instruction-sequence
+         `(;; Reinstate the values of the first expression, and drop the throwaway control frame.
+           ,(make-PushImmediateOntoEnvironment (make-ControlFrameTemporary 'pendingBegin0Values) #f)
+           ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 0)))
+           ,(make-AssignImmediateStatement 'argcount (make-ControlFrameTemporary 'pendingBegin0Count))
+           ,(make-PopControlFrame)
+           ,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) after-values-reinstated)
+           ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
+           ,(make-PopEnvironment (make-Const 1) (make-Const 0))
+           after-values-reinstated))
+        
+        (let ([context (linkage-context linkage)])
+          (cond
+            [(eq? context 'tail)
+             empty-instruction-sequence]
+            
+            [(eq? context 'drop-multiple)
+             (make-instruction-sequence
+              `(,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
+                                      (make-Const 0))))]
+            
+            [(eq? context 'keep-multiple)
+             empty-instruction-sequence]
+            
+            [(natural? context)
+            ;; Check that the context can accept the argcount values.
+             (let ([after-check (make-label 'afterCheck)])
+               (make-instruction-sequence
+                `(,(make-TestAndBranchStatement (make-TestZero (make-SubtractArg 
+                                                                (make-Reg 'argcount)
+                                                                (make-Const context)))
+                                                after-check)
+                  ,(make-PerformStatement (make-RaiseContextExpectedValuesError! context))
+                  after-check)))]))
+        
+        (make-instruction-sequence
+         `(,(make-AssignImmediateStatement target (make-Reg 'val))))
+        )))]))
+
+     
 
 
 (: compile-lambda (Lam CompileTimeEnvironment Target Linkage -> InstructionSequence))

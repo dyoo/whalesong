@@ -104,7 +104,8 @@
 	// stash the key in here temporarily.
 	this.pendingContinuationMarkKey = undefined;
 	this.pendingApplyValuesProc = undefined;
-	this.pendingBegin0Value = undefined;
+	this.pendingBegin0Count = undefined;
+	this.pendingBegin0Values = undefined;
     };
 
 

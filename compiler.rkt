@@ -116,19 +116,20 @@
           [(BoxEnv? exp)
            (loop (BoxEnv-body exp) cenv)]
           [(LetRec? exp)
-           (let ([new-cenv (append (map (lambda: ([p : Lam]) 
-                                                 (extract-static-knowledge 
-                                                  p 
-                                                  (append (build-list (length (LetRec-procs exp))
-                                                                      (lambda: ([i : Natural]) '?))
-                                                          cenv)))
-                                        (reverse (LetRec-procs exp)))
-                                   cenv)])
-             (append (apply append 
-                            (map (lambda: ([lam : Lam])
-                                          (loop lam new-cenv))
-                                 (LetRec-procs exp)))
-                     (loop (LetRec-body exp) new-cenv)))]
+           (let ([n (length (LetRec-procs exp))])
+             (let ([new-cenv (append (map (lambda: ([p : Lam]) 
+                                                   (extract-static-knowledge 
+                                                    p 
+                                                    (append (build-list (length (LetRec-procs exp))
+                                                                        (lambda: ([i : Natural]) '?))
+                                                            (drop cenv n))))
+                                          (reverse (LetRec-procs exp)))
+                                     (drop cenv n))])
+               (append (apply append 
+                              (map (lambda: ([lam : Lam])
+                                            (loop lam new-cenv))
+                                   (LetRec-procs exp)))
+                       (loop (LetRec-body exp) new-cenv))))]
           [(WithContMark? exp)
            (append (loop (WithContMark-key exp) cenv)
                    (loop (WithContMark-value exp) cenv)
@@ -1514,16 +1515,17 @@
 ;; Compiled recursive Lams.  Each lambda is installed as a shell, and then the closures
 ;; are installed in-place.
 (define (compile-let-rec exp cenv target linkage)
-  (let*: ([extended-cenv : CompileTimeEnvironment
+  (let*: ([n : Natural (length (LetRec-procs exp))]
+          [extended-cenv : CompileTimeEnvironment
                          (append (map (lambda: ([p : Lam])
                                                (extract-static-knowledge 
                                                 p
                                                 (append (build-list (length (LetRec-procs exp))
                                                                     (lambda: ([i : Natural])
                                                                              '?))
-                                                        cenv)))
+                                                        (drop cenv n))))
                                       (reverse (LetRec-procs exp)))
-                                 cenv)]
+                                 (drop cenv n))]
           [n : Natural (length (LetRec-procs exp))]
           [after-body-code : Symbol (make-label 'afterBodyCode)]
           [letrec-linkage : Linkage (cond
@@ -1543,8 +1545,6 @@
           linkage
           extended-cenv
           (append-instruction-sequences
-           (make-instruction-sequence 
-            `(,(make-PushEnvironment n #f)))
            
            ;; Install each of the closure shells
            (apply append-instruction-sequences
@@ -1569,11 +1569,9 @@
                        (build-list n (lambda: ([i : Natural]) (ensure-natural (- n 1 i))))))
            
            ;; Compile the body
-           (compile (LetRec-body exp) extended-cenv (adjust-target-depth target n) letrec-linkage)
+           (compile (LetRec-body exp) extended-cenv target letrec-linkage)
            
-           after-body-code
-
-           (make-instruction-sequence `(,(make-PopEnvironment (make-Const n) (make-Const 0))))))))
+           after-body-code))))
 
 
 

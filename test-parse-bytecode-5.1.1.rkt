@@ -173,6 +173,51 @@
                         (make-PrimitiveKernelValue '+)))
 
 
+(check-equal? (run-my-parse #'(+ (* x x) x))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
+                        (make-App (make-PrimitiveKernelValue '+)
+                                  (list (make-App (make-PrimitiveKernelValue '*)
+                                                  (list (make-ToplevelRef 4 0) 
+                                                        (make-ToplevelRef 4 0)))
+                                        (make-ToplevelRef 2 0)))))
+
+(check-equal? (run-my-parse #'list)
+              (make-Top (make-Prefix (list))
+                        (make-PrimitiveKernelValue 'list)))
+
+(check-equal? (run-my-parse #'append)
+              (make-Top (make-Prefix (list))
+                        (make-PrimitiveKernelValue 'append)))
+
+
+(check-equal? (run-my-parse #'(let () x))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
+                        (make-ToplevelRef 0 0)))
+
+
+
+;; the letrec gets translated into a closure call
+(begin
+  (reset-lam-label-counter!/unit-testing)
+  (check-equal? (run-my-parse '(letrec ([omega (lambda () (omega))])
+                                 (omega)))
+                (make-Top (make-Prefix '())
+                          (make-App (make-Lam 'omega 0 #f (make-App (make-EmptyClosureReference 'omega 0 #f 'lamEntry1) '())
+                                              '() 'lamEntry1)
+                                    '()))))
+
+(run-my-parse #'(letrec ([e (lambda (y)
+                              (if (= y 0)
+                                  #t
+                                  (o (sub1 y))))]
+                         [o (lambda (y)
+                              (if (= y 0)
+                                  #f
+                                  (e sub1 y)))])
+                  e))
+
+
+
 
 ;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])

@@ -318,9 +318,11 @@
 (test (parse '(letrec ([omega (lambda () (omega))])
                 (omega)))
       (make-Top (make-Prefix '())
-                (make-LetRec (list (make-Lam 'omega 0 #f (make-App (make-LocalRef 0 #f) 
-                                                                (list)) '(0) 'lamEntry1))
-                             (make-App (make-LocalRef 0 #f) (list)))))
+                (make-LetVoid 1
+                              (make-LetRec (list (make-Lam 'omega 0 #f (make-App (make-LocalRef 0 #f) 
+                                                                                 (list)) '(0) 'lamEntry1))
+                                           (make-App (make-LocalRef 0 #f) (list)))
+                              #f)))
 
 
 
@@ -329,11 +331,13 @@
                        [c (lambda () (a))])
                 (a)))
       (make-Top (make-Prefix '())
-                (make-LetRec (list (make-Lam 'a 0 #f (make-App (make-LocalRef 0 #f) '()) '(1) 'lamEntry1)
-                                   (make-Lam 'b 0 #f (make-App (make-LocalRef 0 #f) '()) '(0) 'lamEntry2)
-                                   (make-Lam 'c 0 #f (make-App (make-LocalRef 0 #f) '()) '(2) 'lamEntry3))
-                             (make-App (make-LocalRef 2 #f) '()))))
-
+                (make-LetVoid 3
+                              (make-LetRec (list (make-Lam 'a 0 #f (make-App (make-LocalRef 0 #f) '()) '(1) 'lamEntry1)
+                                                 (make-Lam 'b 0 #f (make-App (make-LocalRef 0 #f) '()) '(0) 'lamEntry2)
+                                                 (make-Lam 'c 0 #f (make-App (make-LocalRef 0 #f) '()) '(2) 'lamEntry3))
+                                           (make-App (make-LocalRef 2 #f) '()))
+                              #f)))
+      
 
 
 (test (parse '(letrec ([x (lambda (x) x)]

@@ -10,7 +10,8 @@
          racket/list)
 
 (provide parse-bytecode
-         current-module-path-index-resolver)
+         current-module-path-index-resolver
+         reset-lam-label-counter!/unit-testing)
 
 
 ;; The module-path-index of self is:
@@ -264,12 +265,23 @@
   (make-splice (map parse-item body))))
 
 
+(define-values (make-lam-label reset-lam-label-counter!/unit-testing)
+  (let ([n 0])
+    (values
+     (lambda ()
+       (set! n (add1 n))
+       (string->symbol (format "lamEntry~a" n)))
+     (lambda ()
+       (set! n 0)))))
+  
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (parse-expr expr)
   (cond
     [(lam? expr)
-     (parse-lam expr (make-label 'lamEntry))]
+     (parse-lam expr (make-lam-label))]
     [(closure? expr)
      (parse-closure expr)]
     [(case-lam? expr)
@@ -337,7 +349,7 @@
                                            rest?
                                            (hash-ref seen gen-id)))])]
          [else
-          (let ([fresh-entry-point (make-label 'lamEntry)])
+          (let ([fresh-entry-point (make-lam-label)])
             (hash-set! seen gen-id fresh-entry-point)
             (parse-lam code fresh-entry-point))]))]))
 
@@ -370,7 +382,7 @@
 
 
 (define (parse-case-lam exp)
-  (error 'fixme))
+  (error 'fixmecaselam))
 
 (define (parse-let-one expr)
   (match expr
@@ -389,16 +401,23 @@
 
 
 (define (parse-let-void expr)
-  (error 'fixme))
+  (match expr
+    [(struct let-void (count boxes? body))
+     (make-LetVoid count (parse-expr-seq-constant body) boxes?)]))
+
 
 (define (parse-install-value expr)
-  (error 'fixme))
+  (error 'fixmeinstallvalue))
 
 (define (parse-let-rec expr)
-  (error 'fixme))
+  (match expr
+    [(struct let-rec (procs body))
+     (make-LetRec (map (lambda (p) (parse-lam p (make-lam-label)))
+                       procs)
+                  (parse-expr-seq-constant body))]))
 
 (define (parse-boxenv expr)
-  (error 'fixme))
+  (error 'fixmeboxenv))
 
 (define (parse-localref expr)
   (match expr
@@ -456,16 +475,16 @@
   (error 'fixme))
 
 (define (parse-beg0 expr)
-  (error 'fixme))
+  (error 'fixmebeg0))
 
 (define (parse-varref expr)
-  (error 'fixme))
+  (error 'fixmevarref))
 
 (define (parse-assign expr)
-  (error 'fixme))
+  (error 'fixmeassign))
 
 (define (parse-apply-values expr)
-  (error 'fixme))
+  (error 'fixmeapplyvalues))
 
 
 (define (parse-primval expr)

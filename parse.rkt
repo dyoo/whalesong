@@ -616,7 +616,7 @@
                        any-mutated?))])))
 
 
-;; Letrec's currently doing a set! kind of thing.
+;; Letrec: recursive let bindings
 (define (parse-letrec exp cenv)
   (let* ([vars (let-variables exp)]
          [rhss (let-rhss exp)]
@@ -636,11 +636,13 @@
          ;; Semantics: allocate a closure shell for each lambda form in procs.
          ;; Install them in reverse order, so that the closure shell for the last element
          ;; in procs is at stack position 0.
-         (make-LetRec (map (lambda (rhs name) (parameterize ([current-defined-name name])
-                                                (parse rhs new-cenv #f)))
-                           rhss
-                           vars)
-                      (parse `(begin ,@body) new-cenv #f)))]
+         (make-LetVoid (length vars)
+                       (make-LetRec (map (lambda (rhs name) (parameterize ([current-defined-name name])
+                                                              (parse rhs new-cenv #f)))
+                                         rhss
+                                         vars)
+                                    (parse `(begin ,@body) new-cenv #f))
+                       #f))]
       [else
        (let ([new-cenv  (extend-lexical-environment/boxed-names cenv (reverse vars))])
          (make-LetVoid (length vars)

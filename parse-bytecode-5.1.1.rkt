@@ -407,7 +407,11 @@
 
 
 (define (parse-install-value expr)
-  (error 'fixmeinstallvalue))
+  (match expr
+    [(struct install-value (count pos boxes? rhs body))
+     (make-Seq (list (make-InstallValue count pos (parse-expr-seq-constant rhs) boxes?)
+                     (parse-expr-seq-constant body)))]))
+
 
 (define (parse-let-rec expr)
   (match expr
@@ -417,7 +421,10 @@
                   (parse-expr-seq-constant body))]))
 
 (define (parse-boxenv expr)
-  (error 'fixmeboxenv))
+  (match expr
+    [(struct boxenv (pos body))
+     (make-BoxEnv pos (parse-expr-seq-constant body))]))
+
 
 (define (parse-localref expr)
   (match expr

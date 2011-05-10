@@ -206,17 +206,37 @@
                                               '() 'lamEntry1)
                                     '()))))
 
-(run-my-parse #'(letrec ([e (lambda (y)
-                              (if (= y 0)
-                                  #t
-                                  (o (sub1 y))))]
-                         [o (lambda (y)
-                              (if (= y 0)
-                                  #f
-                                  (e sub1 y)))])
-                  e))
+
+;; FIXME: make this a real test.
+(begin
+  (reset-lam-label-counter!/unit-testing)
+  (void (run-my-parse #'(letrec ([e (lambda (y)
+                                              (if (= y 0)
+                                                  #t
+                                                  (o (sub1 y))))]
+                                         [o (lambda (y)
+                                              (if (= y 0)
+                                                  #f
+                                                  (e sub1 y)))])
+                          e))))
+                                                      
 
 
+(check-equal? (run-my-parse #'(let ([x 3])
+                                (set! x (add1 x))
+                                x))
+              (make-Top (make-Prefix '())
+                        (make-Let1 
+                         (make-Constant 3)
+                         (make-BoxEnv 0
+                                      (make-Seq 
+                                       (list 
+                                        (make-InstallValue
+                                         1 0 
+                                         (make-App (make-PrimitiveKernelValue 'add1)
+                                                   (list (make-LocalRef 1 #t)))
+                                         #t)
+                                        (make-LocalRef 0 #t)))))))
 
 
 ;; make sure we don't see an infinite loop

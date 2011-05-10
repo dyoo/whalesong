@@ -47,6 +47,7 @@
 ;; When we need to store a value temporarily in the top control frame, we can use this as a target.
 (define-struct: ControlFrameTemporary ([name : (U 'pendingContinuationMarkKey ;; for continuation marks
                                                   'pendingApplyValuesProc ;; for apply-values
+                                                  'pendingBegin0Value
                                                   )])
   #:transparent)
 

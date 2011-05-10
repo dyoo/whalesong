@@ -103,6 +103,8 @@
 	// When we're in the middle of computing with-cont-mark, we
 	// stash the key in here temporarily.
 	this.pendingContinuationMarkKey = undefined;
+	this.pendingApplyValuesProc = undefined;
+	this.pendingBegin0Value = undefined;
     };
 
 

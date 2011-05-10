@@ -297,6 +297,18 @@
                       #t])))
 
 
+(check-equal? (run-my-parse #'(begin0 (f)))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f)))
+                        (make-App (make-ToplevelRef 0 0) '())))
+              
+(check-equal? (run-my-parse #'(begin0 (f) (g)))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f)
+                                           (make-GlobalBucket 'g)))
+                        (make-Begin0 (list (make-App (make-ToplevelRef 0 0) '())
+                                           (make-App (make-ToplevelRef 0 1) '())))))
+
+
+
 ;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])
                   (g)))

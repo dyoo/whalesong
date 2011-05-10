@@ -17,6 +17,7 @@
                          EmptyClosureReference
                          Seq 
                          Splice 
+                         Begin0
                          App
                          Let1 
                          LetVoid 
@@ -96,6 +97,7 @@
 
 (define-struct: Seq ([actions : (Listof Expression)]) #:transparent)
 (define-struct: Splice ([actions : (Listof Expression)]) #:transparent)
+(define-struct: Begin0 ([actions : (Listof Expression)]) #:transparent)
 (define-struct: App ([operator : Expression]
                      [operands : (Listof Expression)]) #:transparent)
 

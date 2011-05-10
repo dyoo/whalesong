@@ -96,6 +96,9 @@
           [(Splice? exp)
            (apply append (map (lambda: ([e : Expression]) (loop e cenv))
                               (Splice-actions exp)))]
+          [(Begin0? exp)
+           (apply append (map (lambda: ([e : Expression]) (loop e cenv))
+                              (Begin0-actions exp)))]
           [(App? exp)
            (let ([new-cenv (append (build-list (length (App-operands exp)) (lambda: ([i : Natural]) '?))
                                    cenv)])
@@ -188,6 +191,11 @@
                        linkage)]
     [(Splice? exp)
      (compile-splice (Splice-actions exp)
+                     cenv
+                     target
+                     linkage)]
+    [(Begin0? exp)
+     (compile-begin0 (Begin0-actions exp)
                      cenv
                      target
                      linkage)]
@@ -457,6 +465,15 @@
                                      (make-Const 0))))
             on-return
             (compile-splice (rest-exps seq) cenv target linkage)))]))
+
+
+(: compile-begin0 ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-begin0 seq cenv target linkage)
+  (let ([context (linkage-context linkage)])
+    empty-instruction-sequence))
+    ;(cond
+    ;[(empty? seq)
+   ;  (end-with-linkage empty-instruction-sequence
 
 
 
@@ -1922,6 +1939,11 @@
      (make-Splice (map (lambda: ([action : Expression])
                                 (adjust-expression-depth action n skip))
                        (Splice-actions exp)))]
+
+    [(Begin0? exp)
+     (make-Begin0 (map (lambda: ([action : Expression])
+                                (adjust-expression-depth action n skip))
+                       (Begin0-actions exp)))]
     
     [(App? exp)
      (make-App (adjust-expression-depth (App-operator exp) n 

@@ -171,7 +171,7 @@
 
 
 (define (parse-req form)
-  (error 'fixme))
+  (error 'fixme-req))
 
 
 ;; parse-seq: seq -> Expression
@@ -456,7 +456,7 @@
 
 
 (define (parse-topsyntax expr)
-  (error 'fixme))
+  (error 'fixme-topsyntax))
 
 
 (define (parse-application expr)
@@ -500,7 +500,10 @@
                         (parse-expr-seq-constant body))]))
 
 (define (parse-beg0 expr)
-  (error 'fixmebeg0))
+  (match expr
+    [(struct beg0 (seq))     
+     (make-Begin0 (map parse-expr-seq-constant seq))]))
+
 
 (define (parse-varref expr)
   (error 'fixmevarref))

@@ -2,6 +2,7 @@
 
 (require compiler/zo-parse
          rackunit
+         racket/match
          (for-syntax racket/base)
          "parse-bytecode-5.1.1.rkt"
          "lexical-structs.rkt"
@@ -260,6 +261,40 @@
                (make-WithContMark (make-Constant 'key)
                                   (make-Constant 'value)
                                   (make-App (make-PrimitiveKernelValue 'current-continuation-marks) '()))))
+
+
+(begin (reset-lam-label-counter!/unit-testing)
+       (check-true (match (run-my-parse #'(case-lambda))
+                     [(struct Top ((struct Prefix (list))
+                                   (struct CaseLam ((? LamPositionalName?) (list) 'lamEntry1))))
+                      #t])))
+
+(begin (reset-lam-label-counter!/unit-testing)
+       (check-true (match (run-my-parse #'(case-lambda [(x) x]
+                                                       [(x y) x]
+                                                       [(x y) y]))
+                     [(struct Top ((struct Prefix (list))
+                                   (struct CaseLam ((? LamPositionalName?) 
+                                                    (list (struct Lam ((? LamPositionalName?) 
+                                                                       1
+                                                                       #f
+                                                                       (struct LocalRef ('0 '#f))
+                                                                       '()
+                                                                       'lamEntry2))
+                                                          (struct Lam ((? LamPositionalName?)
+                                                                       2
+                                                                       #f
+                                                                       (struct LocalRef ('0 '#f))
+                                                                       '()
+                                                                       'lamEntry3))
+                                                          (struct Lam ((? LamPositionalName?)
+                                                                       2
+                                                                       #f
+                                                                       (struct LocalRef ('1 '#f))
+                                                                       '()
+                                                                       'lamEntry4)))
+                                                    'lamEntry1))))
+                      #t])))
 
 
 ;; make sure we don't see an infinite loop

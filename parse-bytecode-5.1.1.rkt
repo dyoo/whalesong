@@ -378,11 +378,23 @@
        [else
         (string->symbol (format "~s" name))])]
     [else
-     (error "lam name neither symbol nor vector: ~e" name)]))
+     'unknown
+     ;; The documentation says that the name must be a symbol or vector, but I'm seeing cases
+     ;; where it returns the empty list when there's no information available.
+     ]))
+
+
 
 
 (define (parse-case-lam exp)
-  (error 'fixmecaselam))
+  (match exp
+    [(struct case-lam (name clauses))
+     (let ([case-lam-label (make-lam-label)])
+       (make-CaseLam (extract-lam-name name)
+                     (map (lambda (l) (parse-lam l (make-lam-label)))
+                          clauses)
+                     case-lam-label))]))
+
 
 (define (parse-let-one expr)
   (match expr

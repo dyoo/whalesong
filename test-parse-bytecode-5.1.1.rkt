@@ -244,6 +244,24 @@
                         (make-ToplevelSet 0 0 (make-Constant 3.14)))) 
 
 
+
+
+(check-equal? (run-my-parse #'(call-with-values (lambda () (f)) g))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'f)
+                                           (make-GlobalBucket 'g)))
+                        (make-ApplyValues (make-ToplevelRef 0 1)
+                                          (make-App (make-ToplevelRef 0 0) '()))))
+
+
+
+(check-equal? (run-my-parse #'(with-continuation-mark 'key 'value (current-continuation-marks)))
+              (make-Top 
+               (make-Prefix '())
+               (make-WithContMark (make-Constant 'key)
+                                  (make-Constant 'value)
+                                  (make-App (make-PrimitiveKernelValue 'current-continuation-marks) '()))))
+
+
 ;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])
                   (g)))

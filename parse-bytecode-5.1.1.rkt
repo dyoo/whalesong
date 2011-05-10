@@ -481,7 +481,11 @@
 
 
 (define (parse-with-cont-mark expr)
-  (error 'fixme))
+  (match expr
+    [(struct with-cont-mark (key val body))
+     (make-WithContMark (parse-expr-seq-constant key)
+                        (parse-expr-seq-constant val)
+                        (parse-expr-seq-constant body))]))
 
 (define (parse-beg0 expr)
   (error 'fixmebeg0))
@@ -496,7 +500,10 @@
 
 
 (define (parse-apply-values expr)
-  (error 'fixmeapplyvalues))
+  (match expr
+    [(struct apply-values (proc args-expr))
+     (make-ApplyValues (parse-expr-seq-constant proc)
+                       (parse-expr-seq-constant args-expr))]))
 
 
 (define (parse-primval expr)

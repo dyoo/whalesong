@@ -104,7 +104,6 @@
          [(EnvPrefixReference? address)
           (make-ToplevelSet (EnvPrefixReference-depth address)
                             (EnvPrefixReference-pos address)
-                            (definition-variable exp)
                             (parameterize ([current-defined-name (definition-variable exp)])
                               (parse (definition-value exp) cenv #f)))]))]
     
@@ -153,7 +152,6 @@
                          [(EnvPrefixReference? address)
                           (make-ToplevelSet (EnvPrefixReference-depth address)
                                             (EnvPrefixReference-pos address)
-                                            (definition-variable exp)
                                             (parse (set!-value exp) cenv #f))])
                        (make-Constant (void)))))]
     

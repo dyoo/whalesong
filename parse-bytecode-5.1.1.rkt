@@ -437,9 +437,11 @@
 
 (define (parse-toplevel expr)
   (match expr
-    ;; FIXME: we should also keep track of const? and ready? to produce better code.
+    ;; FIXME: we should also keep track of const? and ready? to produce better code, and to
+    ;; do the required runtime checks when necessary (const?=#f, ready?=#f)
     [(struct toplevel (depth pos const? ready?))
      (make-ToplevelRef depth pos)]))
+
 
 (define (parse-topsyntax expr)
   (error 'fixme))
@@ -488,7 +490,10 @@
   (error 'fixmevarref))
 
 (define (parse-assign expr)
-  (error 'fixmeassign))
+  (match expr
+    [(struct assign ((struct toplevel (depth pos const? ready?)) rhs undef-ok?))
+     (make-ToplevelSet depth pos (parse-expr-seq-constant rhs))]))
+
 
 (define (parse-apply-values expr)
   (error 'fixmeapplyvalues))

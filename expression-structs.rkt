@@ -57,7 +57,6 @@
 
 (define-struct: ToplevelSet ([depth : Natural]
                              [pos : Natural]
-                             [name : Symbol] 
                              [value : Expression]) #:transparent)
 
 (define-struct: Branch ([predicate : Expression]

@@ -361,9 +361,8 @@
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a toplevel mutation.
 (define (compile-toplevel-set exp cenv target linkage)
-  (let* ([var (ToplevelSet-name exp)]
-         [lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
-                                               (ToplevelSet-pos exp))])
+  (let ([lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
+                                              (ToplevelSet-pos exp))])
     (let ([get-value-code
            (compile (ToplevelSet-value exp) cenv lexical-pos
                     next-linkage/expects-single)]
@@ -1882,11 +1881,9 @@
      (if (< (ToplevelSet-depth exp) skip)
          (make-ToplevelSet (ToplevelSet-depth exp)
                            (ToplevelSet-pos exp)
-                           (ToplevelSet-name exp)
                            (adjust-expression-depth (ToplevelSet-value exp) n skip))
          (make-ToplevelSet (ensure-natural (- (ToplevelSet-depth exp) n))
                            (ToplevelSet-pos exp)
-                           (ToplevelSet-name exp)
                            (adjust-expression-depth (ToplevelSet-value exp) n skip)))]
     
     [(Branch? exp)

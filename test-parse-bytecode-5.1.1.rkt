@@ -239,6 +239,11 @@
                                         (make-LocalRef 0 #t)))))))
 
 
+(check-equal? (run-my-parse #'(set! pi 3.14))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'pi)))
+                        (make-ToplevelSet 0 0 (make-Constant 3.14)))) 
+
+
 ;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])
                   (g)))

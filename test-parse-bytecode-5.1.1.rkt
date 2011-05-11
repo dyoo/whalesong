@@ -351,6 +351,12 @@
 
 
 
+#;(parameterize ([current-module-path
+                  "/home/dyoo/local/racket-5.1.1/lib/racket/collects/racket/private/foo.rkt"])
+    (run-my-parse/file "/home/dyoo/local/racket-5.1.1/lib/racket/collects/racket/private/for.rkt"))
+
+
+
 
 ;(run-zo-parse #'(lambda (x) (* x x)))
 ;(run-my-parse #'(lambda (x) (* x x)))

@@ -334,6 +334,7 @@
                      0 
                      (list->vector `(,(make-PerformStatement (make-InstallClosureValues!))
                                      procedure-entry))
+                     (make-hash)
                      0
                      (make-hash))])
   (test (machine-env (run! m))
@@ -350,6 +351,7 @@
                      '() 
                      0 
                      (list->vector `(,(make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))))
+                     (make-hash)
                      0
                      (make-hash))])
   (test (machine-val (run! m))

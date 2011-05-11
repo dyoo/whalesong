@@ -175,6 +175,11 @@
 
 
 
+(define-struct: ToplevelReference ([toplevel : toplevel]
+                                   [pos : Natural])
+  #:transparent)
+                
+
 ;; undefined value
 (define-struct: undefined ()
   #:transparent)
@@ -185,7 +190,3 @@
 (define-predicate frame? frame)
 
 
-(define-struct: ToplevelReference ([toplevel : toplevel]
-                                   [pos : Natural])
-  #:transparent)
-                

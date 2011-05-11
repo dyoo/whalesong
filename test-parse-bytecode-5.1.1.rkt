@@ -24,6 +24,24 @@
       (parse-bytecode (open-input-bytes (get-output-bytes op))))))
 
 
+(define (run-my-parse/file path)
+  (parameterize ([current-namespace (make-base-namespace)])
+    (let-values  ([(base name dir?) (split-path path)])
+      (let ([src-dir (cond
+                       [(path? base)
+                        base]
+                       [else
+                        (current-directory)])])
+        (parameterize ([current-directory src-dir]
+                       [current-load-relative-directory src-dir])
+          (let ([bc (compile (parameterize ([read-accept-reader #t])
+                               (read (open-input-file path))))]
+                [op (open-output-bytes)])
+            (write bc op)
+            (parse-bytecode (open-input-bytes (get-output-bytes op)))))))))
+
+
+
 (check-equal? (run-my-parse #''hello) 
               (make-Top (make-Prefix '()) 
                         (make-Constant 'hello)))

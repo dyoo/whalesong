@@ -1,7 +1,9 @@
 #lang racket/base
 
 (require "expression-structs.rkt"
-         "lexical-structs.rkt")
+         "lexical-structs.rkt"
+         "typed-module-path.rkt"
+         syntax/modresolve)
 
 
 ;; Parsing Racket 5.1.1 bytecode structures into our own.
@@ -11,16 +13,42 @@
 
 (provide parse-bytecode
          current-module-path-index-resolver
+         current-module-path
          reset-lam-label-counter!/unit-testing)
 
 
+(define current-module-path (make-parameter #f))
 
-;; current-module-path-index-resolver: (module-path-index ModuleName -> ModuleName) -> void
+
+;; current-module-path-index-resolver: (module-path-index (U Path #f) -> (U Symbol Path)) -> void
 ;; The module path index resolver figures out how to translate module path indices to module names.
 (define current-module-path-index-resolver 
   (make-parameter 
    (lambda (mpi relative-to)
-     (error 'current-module-path-index-resolver))))
+     (cond
+       [(self-module-path-index? mpi)
+        'self]
+       [else
+        (displayln (explode-module-path-index mpi))
+        (displayln relative-to)
+        (resolve-module-path-index mpi relative-to)]))))
+
+
+(define (self-module-path-index? mpi)
+  (let-values ([(x y) (module-path-index-split mpi)])
+    (and (eq? x #f)
+         (eq? y #f))))
+
+
+(define (explode-module-path-index mpi)
+  (let-values ([(x y) (module-path-index-split mpi)])
+    (cond
+      [(module-path-index? y)
+       (cons x (explode-module-path-index y))]
+      [else
+       (list x y)])))
+   
+
 
 
 ;; seen-closures: (hashof symbol -> symbol)
@@ -116,7 +144,18 @@
     [(module-variable? a-toplevel)
      (let ([resolver (current-module-path-index-resolver)])
        (make-ModuleVariable (module-variable-sym a-toplevel)
-                            (resolver (module-variable-modidx a-toplevel) #f)))]))
+                            (let ([resolved-path-name
+                                   (resolver (module-variable-modidx a-toplevel) (current-module-path))])
+                              (wrap-module-name resolved-path-name))))]))
+
+(define (wrap-module-name resolved-path-name)
+  (cond
+    [(symbol? resolved-path-name)
+     (make-ModuleName resolved-path-name)]
+    [(path? resolved-path-name)
+     (make-ModuleName 
+      (string->symbol
+       (path->string resolved-path-name)))]))
 
 
 ;; parse-form: form -> (U Expression)
@@ -220,8 +259,15 @@
          empty]
         [(= (car (first requires))
               0)
-         (map (lambda (m) (resolver m 
-                                    (resolver enclosing-module-path-index #f)))
+         (map (lambda (m) 
+                (printf "enclosing: ~s\n" (explode-module-path-index enclosing-module-path-index))
+                (let ([enclosing-path (resolver enclosing-module-path-index (current-module-path))])
+                  (printf "inner: ~s\n" (explode-module-path-index m))
+                  (cond
+                    [(symbol? enclosing-path)
+                     (wrap-module-name (resolver m (current-module-path)))]
+                    [(path? enclosing-path)
+                     (wrap-module-name (resolver m enclosing-path))])))
               (cdr (first requires)))]
         [else
          (loop (rest requires))]))))
@@ -239,14 +285,14 @@
         [(empty? provides)
          empty]
         [(= (first (first provides)) 0)
-         (parse-provided (second (first provides)))]
+         (map parse-provided (second (first provides)))]
         [else
          (loop (rest provides))]))))
 
 
 
 
-;; parse-mod-body: (listof (or/c form? any/c))
+;; parse-mod-body: (listof (or/c form? any/c)) -> Expression
 (define (parse-mod-body body)
   (let ([parse-item (lambda (item)
                       (cond
@@ -254,7 +300,7 @@
                          (parse-form item)]
                         [else
                          (make-Constant item)]))])
-  (make-splice (map parse-item body))))
+  (make-Splice (map parse-item body))))
 
 
 (define-values (make-lam-label reset-lam-label-counter!/unit-testing)

@@ -6,7 +6,6 @@
 
 
 
-(define-type ResolvedModulePath (U Path Symbol))
 
 (define-type ModulePath (U (List 'quote Symbol)
                            RelativeString
@@ -33,9 +32,10 @@
 (require/typed racket/base                       
                
                [opaque ModulePathIndex module-path-index?]
+               [opaque ResolvedModulePath resolved-module-path?]
                         
                [module-path-index-resolve 
-                (ModulePathIndex -> Path-String)]
+                (ModulePathIndex -> ResolvedModulePath)]
                
                [module-path-index-join
                 ((U ModulePath #f)
@@ -44,7 +44,11 @@
                
                [module-path-index-split 
                 (ModulePathIndex -> (values (U ModulePath #f)
-                                            (U ModulePathIndex ResolvedModulePath #f)))])
+                                            (U ModulePathIndex ResolvedModulePath #f)))]
+               
+               [resolved-module-path-name
+                (ResolvedModulePath -> (U Path Symbol))]
+               [make-resolved-module-path ((U Symbol Path) -> ResolvedModulePath)])
                                             
 
 

@@ -27,11 +27,9 @@
                          WithContMark
                          ApplyValues
                          DefValues
-                         PrimitiveKernelValue))
+                         PrimitiveKernelValue
+                         Module))
 
-;; A ModuleName is an identifier for a Module.
-(define-struct: ModuleName ([name : Symbol])
-  #:transparent)
 
 (define-struct: Provided ([name : Symbol]
                           [src-name : Symbol])

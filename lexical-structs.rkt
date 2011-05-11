@@ -15,8 +15,14 @@
 (define-struct: GlobalBucket ([name : Symbol])
   #:transparent)
 
+
+;; A ModuleName is an identifier for a Module.
+(define-struct: ModuleName ([name : Symbol])
+  #:transparent)
+
+
 (define-struct: ModuleVariable ([name : Symbol]
-                                [module-path : Symbol])
+                                [module-name : ModuleName])
   #:transparent)
 
 

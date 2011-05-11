@@ -125,38 +125,42 @@
 (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
 (define (collect-primitive-command op)
   (cond
-   [(CheckToplevelBound!? op)
-    empty]
-   [(CheckClosureArity!? op)
-    empty]
-   [(CheckPrimitiveArity!? op)
-    empty]
-   [(ExtendEnvironment/Prefix!? op)
-    empty]
-   [(InstallClosureValues!? op)
-    empty]
-   [(RestoreEnvironment!? op)
-    empty]
-   [(RestoreControl!? op)
-    empty]
-   [(SetFrameCallee!? op)
-    empty]
-   [(SpliceListIntoStack!? op)
-    empty]
-   [(UnspliceRestFromStack!? op)
-    empty]
-   [(FixClosureShellMap!? op)
-    empty]
-   [(InstallContinuationMarkEntry!? op)
-    empty]
-   [(RaiseContextExpectedValuesError!? op)
-    empty]
-   [(RaiseArityMismatchError!? op)
-    empty]
-   [(RaiseOperatorApplicationError!? op)
-    empty]
    [(InstallModuleEntry!? op)
-    (list (InstallModuleEntry!-entry-point op))]))
+    (list (InstallModuleEntry!-entry-point op))]
+   [else
+    empty]
+   ;; currently written this way because I'm hitting some bad type-checking behavior.
+   #;([(CheckToplevelBound!? op)
+      empty]
+     [(CheckClosureArity!? op)
+      empty]
+     [(CheckPrimitiveArity!? op)
+      empty]
+     [(ExtendEnvironment/Prefix!? op)
+      empty]
+     [(InstallClosureValues!? op)
+      empty]
+     [(RestoreEnvironment!? op)
+      empty]
+     [(RestoreControl!? op)
+      empty]
+     [(SetFrameCallee!? op)
+      empty]
+     [(SpliceListIntoStack!? op)
+      empty]
+     [(UnspliceRestFromStack!? op)
+      empty]
+     [(FixClosureShellMap!? op)
+      empty]
+     [(InstallContinuationMarkEntry!? op)
+      empty]
+     [(RaiseContextExpectedValuesError!? op)
+      empty]
+     [(RaiseArityMismatchError!? op)
+      empty]
+     [(RaiseOperatorApplicationError!? op)
+      empty])))
+
 
 
 

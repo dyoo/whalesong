@@ -123,4 +123,9 @@
 
     [(RaiseOperatorApplicationError!? op)
      (format "RUNTIME.raiseOperatorApplicationError(MACHINE, ~a);"
-             (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]))
+             (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]
+    
+    [(InstallModuleEntry!? op)
+     (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s, ~a);"
+             (symbol->string (ModuleName-name (InstallModuleEntry!-name op)))
+             (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]))

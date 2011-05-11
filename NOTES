@@ -463,3 +463,8 @@ Ok, I think I've been able to do this successfully.  I lifted out the
 code for emit-values-context-check-on-procedure-return so it's used
 for both the returns from procedure call, as well as the calls from
 the prompt splicing.
+
+
+----------------------------------------------------------------------
+
+

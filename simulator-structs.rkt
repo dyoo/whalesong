@@ -48,6 +48,8 @@
                          [pc : Natural]                  ;; program counter
                          [text : (Vectorof Statement)]   ;; text of the program
 
+                         [modules : (HashTable Symbol module-record)]
+                         
                          ;; other metrics for debugging
                          [stack-size : Natural]
                          
@@ -57,6 +59,13 @@
   #:transparent
   #:mutable)
 
+
+(define-struct: module-record ([name : ModuleName]
+                               [label : Symbol]
+                               [invoked? : Boolean]
+                               [exports : (HashTable Symbol PrimitiveValue)])
+  #:transparent
+  #:mutable)
 
 
 (define-type frame (U GenericFrame CallFrame PromptFrame))

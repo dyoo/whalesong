@@ -57,6 +57,7 @@
                                               '()
                                               0 
                                               (list->vector program-text) 
+                                              ((inst make-hash Symbol module-record))
                                               0
                                               ((inst make-hash Symbol Natural)))])
                   (let: loop : Void ([i : Natural 0])
@@ -401,7 +402,17 @@
 
 	  [(RaiseOperatorApplicationError!? op)
 	   (error "expected procedure, given ~a"
-		  (evaluate-oparg m (RaiseOperatorApplicationError!-operator op)))])))
+		  (evaluate-oparg m (RaiseOperatorApplicationError!-operator op)))]
+          
+          
+          [(InstallModuleEntry!? op)
+           (hash-set! (machine-modules m)
+                      (ModuleName-name (InstallModuleEntry!-name op))
+                      (make-module-record (InstallModuleEntry!-name op)
+                                          (InstallModuleEntry!-entry-point op)
+                                          #f
+                                          (make-hash)))
+           'ok])))
 
 
 
@@ -879,7 +890,7 @@
 (define (current-instruction m)
   (match m
     [(struct machine (val proc argcount env control pc text
-                          stack-size jump-table))
+                          modules stack-size jump-table))
      (vector-ref text pc)]))
 
 
@@ -903,7 +914,7 @@
 (: env-push! (machine SlotValue -> 'ok))
 (define (env-push! m v)
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (set-machine-env! m (cons v env))
      (set-machine-stack-size! m (add1 stack-size))
      'ok]))
@@ -911,7 +922,7 @@
 (: env-push-many! (machine (Listof SlotValue) -> 'ok))
 (define (env-push-many! m vs)
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (set-machine-env! m (append vs env))
      (set-machine-stack-size! m (+ stack-size (length vs)))
      'ok]))
@@ -920,13 +931,13 @@
 (: env-ref (machine Natural -> SlotValue))
 (define (env-ref m i)  
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (list-ref env i)]))
 
 (: env-mutate! (machine Natural SlotValue -> 'ok))
 (define (env-mutate! m i v)
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (set-machine-env! m (list-replace env i v))
      'ok]))
 
@@ -944,7 +955,7 @@
 (: env-pop! (machine Natural Natural -> 'ok))
 (define (env-pop! m n skip)     
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (set-machine-env! m (append (take env skip)
                                  (drop env (+ skip n))))
      (set-machine-stack-size! m (ensure-natural (- stack-size n)))
@@ -954,7 +965,7 @@
 (: control-push! (machine frame -> 'ok))
 (define (control-push! m a-frame)
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (set-machine-control! m (cons a-frame control))
      'ok]))
 
@@ -962,14 +973,14 @@
 (: control-pop! (machine -> 'ok))
 (define (control-pop! m)
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (set-machine-control! m (rest control))
      'ok]))
 
 (: control-top (machine -> frame))
 (define (control-top m)
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (first control)]))
 
 
@@ -985,7 +996,7 @@
 ;; Jumps directly to the instruction at the given label.
 (define (jump! m l)
   (match m
-    [(struct machine (val proc argcount env control pc text stack-size jump-table))
+    [(struct machine (val proc argcount env control pc text modules stack-size jump-table))
      (set-machine-pc! m (hash-ref jump-table l))
      'ok]))
 

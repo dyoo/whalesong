@@ -154,7 +154,9 @@
    [(RaiseArityMismatchError!? op)
     empty]
    [(RaiseOperatorApplicationError!? op)
-    empty]))
+    empty]
+   [(InstallModuleEntry!? op)
+    (list (InstallModuleEntry!-entry-point op))]))
 
 
 

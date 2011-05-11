@@ -65,6 +65,8 @@
         (cond
           [(Top? exp)
            (loop (Top-code exp) (cons (Top-prefix exp) cenv))]
+          [(Module? exp)
+           (loop (Module-code exp) (cons (Module-prefix exp) cenv))]
           [(Constant? exp)
            '()]
           [(LocalRef? exp)
@@ -168,6 +170,8 @@
   (cond
     [(Top? exp)
      (compile-top exp cenv target linkage)]
+    [(Module? exp)
+     (compile-module exp cenv target linkage)]
     [(Constant? exp)
      (compile-constant exp cenv target linkage)]
     [(LocalRef? exp)
@@ -240,6 +244,33 @@
            (make-instruction-sequence
             `(,(make-PopEnvironment (make-Const 1) 
                                     (make-Const 0))))))))
+
+
+
+
+
+(: compile-module (Module CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; Generates code to write out the top prefix, evaluate the rest of the body,
+;; and then pop the top prefix off.
+(define (compile-module top cenv target linkage)
+  ;; fixme: this is not right yet.  This should instead install a module record
+  ;; that has not yet been invoked.
+  ;; fixme: This also needs to generate code for the requires and provides.
+  (let*: ([names : (Listof (U False Symbol GlobalBucket ModuleVariable))
+                 (Prefix-names (Module-prefix top))])
+         (end-with-linkage 
+          linkage cenv
+          (append-instruction-sequences
+           (make-instruction-sequence 
+            `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+           (compile (Module-code top) 
+                    (cons (Module-prefix top) cenv)
+                    target
+                    next-linkage/drop-multiple)
+           (make-instruction-sequence
+            `(,(make-PopEnvironment (make-Const 1) 
+                                    (make-Const 0))))))))
+
 
 
 
@@ -815,7 +846,9 @@
              (default)]
             [(ModuleVariable? op-knowledge)
              (cond
-               [(symbol=? (ModuleVariable-module-path op-knowledge) '#%kernel)
+               [(symbol=? (ModuleName-name
+                           (ModuleVariable-module-name op-knowledge))
+                          '#%kernel)
                 (let ([op (ModuleVariable-name op-knowledge)])
                   (cond [(KernelPrimitiveName? op)
                          (compile-kernel-primitive-application 
@@ -1951,6 +1984,13 @@
     [(Top? exp)
      (make-Top (Top-prefix exp)
                (adjust-expression-depth (Top-code exp) n (add1 skip)))]
+    
+    [(Module? exp)
+     (make-Module (Module-name exp)
+                  (Module-prefix exp)
+                  (Module-requires exp)
+                  (Module-provides exp)
+                  (adjust-expression-depth (Module-code exp) n (add1 skip)))]
     
     [(Constant? exp)
      exp]

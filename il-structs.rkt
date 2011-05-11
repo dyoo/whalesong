@@ -196,6 +196,7 @@
 
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Primitive Operators
 
@@ -369,6 +370,13 @@
 ;; Adds a continuation mark into the current top control frame.
 (define-struct: InstallContinuationMarkEntry! () #:transparent)
 
+
+;; Installs a module record into the machine
+(define-struct: InstallModuleEntry! ([name : ModuleName]
+                                     [entry-point : Symbol])
+  #:transparent)
+
+
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
                                CheckClosureArity!
@@ -389,7 +397,10 @@
 			       RaiseOperatorApplicationError!
                                
                                RestoreEnvironment!
-                               RestoreControl!))
+                               RestoreControl!
+                               
+                               InstallModuleEntry!
+                               ))
 
 
 

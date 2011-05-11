@@ -64,6 +64,7 @@
 	this.env = [];
 	this.control = [];     // Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
+	this.modules = {};     // String -> ModuleRecord
 	this.params = { 'currentDisplayer': function(v) {},
 			
 			'currentOutputPort': new StandardOutputPort(),
@@ -92,6 +93,12 @@
 
 
 
+    var ModuleRecord = function(name, label) {
+	this.name = name;
+	this.label = label;
+	this.isInvoked = false;
+	this.exports = {};
+    };
 
 
 
@@ -1128,6 +1135,7 @@
     exports['CallFrame'] = CallFrame;
     exports['PromptFrame'] = PromptFrame;
     exports['Closure'] = Closure;
+    exports['ModuleRecord'] = ModuleRecord;
     exports['ContinuationPromptTag'] = ContinuationPromptTag;
     exports['DEFAULT_CONTINUATION_PROMPT_TAG'] = 
 	DEFAULT_CONTINUATION_PROMPT_TAG;
@@ -1161,5 +1169,7 @@
 
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;
+
+
 
 }).call(this);

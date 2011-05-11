@@ -29,8 +29,6 @@
        [(self-module-path-index? mpi)
         'self]
        [else
-        (displayln (explode-module-path-index mpi))
-        (displayln relative-to)
         (resolve-module-path-index mpi relative-to)]))))
 
 
@@ -260,9 +258,7 @@
         [(= (car (first requires))
               0)
          (map (lambda (m) 
-                (printf "enclosing: ~s\n" (explode-module-path-index enclosing-module-path-index))
                 (let ([enclosing-path (resolver enclosing-module-path-index (current-module-path))])
-                  (printf "inner: ~s\n" (explode-module-path-index m))
                   (cond
                     [(symbol? enclosing-path)
                      (wrap-module-name (resolver m (current-module-path)))]
@@ -544,7 +540,9 @@
 
 
 (define (parse-varref expr)
-  (error 'fixmevarref))
+  (match expr
+    [(struct varref (toplevel))
+     (make-VariableReference (parse-toplevel toplevel))]))
 
 (define (parse-assign expr)
   (match expr

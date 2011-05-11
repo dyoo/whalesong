@@ -33,7 +33,9 @@
                       ControlFrameTemporary
                       CompiledProcedureEntry
                       CompiledProcedureClosureReference
-                      PrimitiveKernelValue))
+                      ModuleEntry
+                      PrimitiveKernelValue
+                      VariableReference))
 
 
 ;; Targets: these are the allowable lhs's for a targetted assignment.
@@ -88,9 +90,11 @@
 
 
 
-
-
 (define-struct: PrimitivesReference ([name : Symbol])
+  #:transparent)
+
+
+(define-struct: ModuleEntry ([name : ModuleName])
   #:transparent)
 
 

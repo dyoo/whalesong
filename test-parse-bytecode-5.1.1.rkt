@@ -327,16 +327,55 @@
 
 
 ;; Compiling modules
-(run-my-parse #'(module foo racket/base
-                  42))
+(check-true
+ (match (run-my-parse #'(module foo racket/base
+                          42))
+   [(struct Top ((struct Prefix (list))
+                 (struct Module ((? ModuleName?)
+                                 (? Prefix?) ;; the prefix will include a reference to print-values.
+                                 _  ;; requires
+                                 _  ;; provides
+                                 (struct Splice ((list (struct ApplyValues 
+                                                         ((struct ToplevelRef ('0 '0)) (struct Constant ('42)))))))))))
+    #t]))
+
+
+(check-true
+ (match (run-my-parse #'(module foo racket/base
+                          (provide x)
+                          (define x "x")))
+   [(struct Top ((struct Prefix ((? list?)))
+                 (struct Module ((? ModuleName?)
+                                 (? Prefix?) ;; the prefix will include a reference to print-values.
+                                 _  ;; requires
+                                 (list (struct Provided ('x 'x)))  ;; provides
+                                 (struct Splice ((list (struct DefValues 
+                                                         ((list (struct ToplevelRef ('0 '0)))
+                                                          (struct Constant ("x")))))))))))
+    #t]))
+
+
+
+
+;; Variable reference
+(check-equal? (run-my-parse #'(#%variable-reference x))
+              (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
+                       (make-VariableReference (make-ToplevelRef 0 0))))
+
+;; todo: see what it would take to run a typed/racket/base language.
+(void 
+ (run-my-parse '(module foo typed/racket/base 
+                        (provide x) 
+                        (: x Number)
+                        (define x (add1 41)))))
 
 
 
 ;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])
                   (g)))
-(void (run-my-parse #'(letrec ([g (lambda () (g))])
-                        (g))))
+(run-my-parse #'(letrec ([g (lambda () (g))])
+                        (g)))
 ;; todo: add tests to make sure we're parsing this as expected.  We expect to see an EmptyClosureReference here.
 
 

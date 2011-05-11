@@ -91,6 +91,10 @@
    [(CompiledProcedureClosureReference? an-input)
     (collect-input (CompiledProcedureClosureReference-proc an-input))]
    [(PrimitiveKernelValue? an-input)
+    empty]
+   [(ModuleEntry? an-input)
+    empty]
+   [(VariableReference? an-input)
     empty]))
 
 

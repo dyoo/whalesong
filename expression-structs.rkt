@@ -28,7 +28,8 @@
                          ApplyValues
                          DefValues
                          PrimitiveKernelValue
-                         Module))
+                         Module
+                         VariableReference))
 
 
 (define-struct: Provided ([name : Symbol]
@@ -136,6 +137,9 @@
 
 
 (define-struct: PrimitiveKernelValue ([id : Symbol]) #:transparent)
+
+
+(define-struct: VariableReference ([toplevel : ToplevelRef]) #:transparent)
 
 
 

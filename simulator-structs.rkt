@@ -18,6 +18,8 @@
                                                    MutablePair
 
                                                    ContinuationMarkSet
+
+                                                   ToplevelReference
                                                    )))
 (define-type SlotValue (U PrimitiveValue 
                           (Boxof PrimitiveValue)
@@ -181,3 +183,9 @@
 
 (define-predicate PrimitiveValue? PrimitiveValue)
 (define-predicate frame? frame)
+
+
+(define-struct: ToplevelReference ([toplevel : toplevel]
+                                   [pos : Natural])
+  #:transparent)
+                

@@ -781,7 +781,18 @@
        (list-ref (closure-vals proc) (CompiledProcedureClosureReference-n an-oparg)))]
     
     [(PrimitiveKernelValue? an-oparg)
-     (lookup-primitive (PrimitiveKernelValue-id an-oparg))]))
+     (lookup-primitive (PrimitiveKernelValue-id an-oparg))]
+    
+    [(ModuleEntry? an-oparg)
+     (let ([a-module (hash-ref (machine-modules m) 
+                               (ModuleName-name (ModuleEntry-name an-oparg)))])
+       (module-record-label a-module))]
+
+    [(VariableReference? an-oparg)
+     (let ([t (VariableReference-toplevel an-oparg)])
+       (make-ToplevelReference (ensure-toplevel (env-ref m (ToplevelRef-depth t)))
+                               (ToplevelRef-pos t)))]))
+       
 
 
 

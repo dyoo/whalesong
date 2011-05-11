@@ -211,6 +211,11 @@
 
 
 
+    var VariableReference = function(prefix, pos) {
+        this.prefix = prefix;
+        this.pos = pos;
+    };
+
 
 
 
@@ -1136,6 +1141,7 @@
     exports['PromptFrame'] = PromptFrame;
     exports['Closure'] = Closure;
     exports['ModuleRecord'] = ModuleRecord;
+    exports['VariableReference'] = VariableReference;
     exports['ContinuationPromptTag'] = ContinuationPromptTag;
     exports['DEFAULT_CONTINUATION_PROMPT_TAG'] = 
 	DEFAULT_CONTINUATION_PROMPT_TAG;

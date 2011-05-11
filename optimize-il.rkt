@@ -135,7 +135,14 @@
       (adjust-oparg-depth (CompiledProcedureClosureReference-proc oparg) n)
       (CompiledProcedureClosureReference-n oparg))]
     [(PrimitiveKernelValue? oparg)
-     oparg]))
+     oparg]
+    [(ModuleEntry? oparg)
+     oparg]
+    [(VariableReference? oparg)
+     (let ([t (VariableReference-toplevel oparg)])
+       (make-VariableReference 
+        (make-ToplevelRef (ensure-natural (+ n (ToplevelRef-depth t)))
+                          (ToplevelRef-pos t))))]))
 
 
 (define-predicate natural? Natural)

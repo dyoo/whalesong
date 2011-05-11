@@ -145,7 +145,9 @@
           [(DefValues? exp)
            (append (loop (DefValues-rhs exp) cenv))]
           [(PrimitiveKernelValue? exp)
-           '()])))
+           '()]
+          [(VariableReference? exp)
+           (loop (VariableReference-toplevel exp) cenv)])))
 
 
 
@@ -222,7 +224,9 @@
     [(DefValues? exp)
      (compile-def-values exp cenv target linkage)]
     [(PrimitiveKernelValue? exp)
-     (compile-primitive-kernel-value exp cenv target linkage)]))
+     (compile-primitive-kernel-value exp cenv target linkage)]
+    [(VariableReference? exp)
+     (compile-variable-reference exp cenv target linkage)]))
 
 
 
@@ -362,6 +366,17 @@
                         `(,(make-AssignImmediateStatement target (make-Const (Constant-v exp)))))
                        singular-context-check))))
 
+
+(: compile-variable-reference (VariableReference CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-variable-reference exp cenv target linkage)
+  (let ([singular-context-check (emit-singular-context linkage)])
+    ;; Compiles constant values.
+    (end-with-linkage linkage
+                      cenv
+                      (append-instruction-sequences
+                       (make-instruction-sequence
+                        `(,(make-AssignImmediateStatement target exp)))
+                       singular-context-check))))
 
 
 (: compile-local-reference (LocalRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -2129,4 +2144,9 @@
                      (adjust-expression-depth (DefValues-rhs exp) n skip))]
     
     [(PrimitiveKernelValue? exp)
-     exp]))
+     exp]
+
+    [(VariableReference? exp)
+     (make-VariableReference 
+      (ensure-toplevelref
+       (adjust-expression-depth (VariableReference-toplevel exp) n skip)))]))

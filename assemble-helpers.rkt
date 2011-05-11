@@ -53,7 +53,11 @@
     [(CompiledProcedureClosureReference? v)
      (assemble-compiled-procedure-closure-reference v)]
     [(PrimitiveKernelValue? v)
-     (assemble-primitive-kernel-value v)]))
+     (assemble-primitive-kernel-value v)]
+    [(ModuleEntry? v)
+     (assemble-module-entry v)]
+    [(VariableReference? v)
+     (assemble-variable-reference v)]))
 
 
 
@@ -265,3 +269,19 @@
 (: assemble-primitive-kernel-value (PrimitiveKernelValue -> String))
 (define (assemble-primitive-kernel-value a-prim)
   (format "MACHINE.primitives[~s]" (symbol->string (PrimitiveKernelValue-id a-prim))))
+
+
+
+(: assemble-module-entry (ModuleEntry -> String))
+(define (assemble-module-entry entry)
+  (format "MACHINE.modules[~s].label"
+          (symbol->string (ModuleName-name (ModuleEntry-name entry)))))
+
+
+
+(: assemble-variable-reference (VariableReference -> String))
+(define (assemble-variable-reference varref)
+  (let ([t (VariableReference-toplevel varref)])
+    (format "(new RUNTIME.VariableReference(MACHINE.env[MACHINE.env.length - 1 - ~a], ~a))"
+            (ToplevelRef-depth t)
+            (ToplevelRef-pos t))))

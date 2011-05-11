@@ -308,6 +308,11 @@
                                            (make-App (make-ToplevelRef 0 1) '())))))
 
 
+;; Compiling modules
+(run-my-parse #'(module foo racket/base
+                  42))
+
+
 
 ;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])

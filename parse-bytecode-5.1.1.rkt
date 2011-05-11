@@ -14,20 +14,12 @@
          reset-lam-label-counter!/unit-testing)
 
 
-;; The module-path-index of self is:
-(define self-idx (module-path-index-join #f #f))
 
-(define (self-idx? mpi)
-  (let-values ([(path subpath)
-                (module-path-index-split mpi)])
-    (eq? path #f)))
-
-
-;; current-module-path-index-resolver: (module-path-index -> ModuleName) -> void
+;; current-module-path-index-resolver: (module-path-index ModuleName -> ModuleName) -> void
 ;; The module path index resolver figures out how to translate module path indices to module names.
 (define current-module-path-index-resolver 
   (make-parameter 
-   (lambda (an-mpi)
+   (lambda (mpi relative-to)
      (error 'current-module-path-index-resolver))))
 
 
@@ -124,7 +116,7 @@
     [(module-variable? a-toplevel)
      (let ([resolver (current-module-path-index-resolver)])
        (make-ModuleVariable (module-variable-sym a-toplevel)
-                            (resolver self-idx (module-variable-modidx a-toplevel))))]))
+                            (resolver (module-variable-modidx a-toplevel) #f)))]))
 
 
 ;; parse-form: form -> (U Expression)
@@ -211,12 +203,11 @@
     [(struct mod (name srcname self-modidx prefix provides requires
        body syntax-body unexported max-let-depth dummy lang-info
        internal-context))
-     (let ([resolver (current-module-path-index-resolver)])
        (make-Module (make-ModuleName name)
                     (parse-prefix prefix)
                     (parse-mod-requires self-modidx requires)
                     (parse-mod-provides provides)
-                    (parse-mod-body body)))]))
+                    (parse-mod-body body))]))
 
 
 ;; parse-mod-requires: module-path-index (listof (pair (U Integer #f) (listof module-path-index))) -> (listof ModuleName)
@@ -229,7 +220,8 @@
          empty]
         [(= (car (first requires))
               0)
-         (map (lambda (m) (resolver enclosing-module-path-index m))
+         (map (lambda (m) (resolver m 
+                                    (resolver enclosing-module-path-index #f)))
               (cdr (first requires)))]
         [else
          (loop (rest requires))]))))

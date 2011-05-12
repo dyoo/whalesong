@@ -128,7 +128,7 @@
                                                     (append (build-list (length (LetRec-procs exp))
                                                                         (lambda: ([i : Natural]) '?))
                                                             (drop cenv n))))
-                                          (reverse (LetRec-procs exp)))
+                                          (LetRec-procs exp))
                                      (drop cenv n))])
                (append (apply append 
                               (map (lambda: ([lam : Lam])
@@ -1678,7 +1678,7 @@
                                                                     (lambda: ([i : Natural])
                                                                              '?))
                                                         (drop cenv n))))
-                                      (reverse (LetRec-procs exp)))
+                                      (LetRec-procs exp))
                                  (drop cenv n))]
           [n : Natural (length (LetRec-procs exp))]
           [after-body-code : Symbol (make-label 'afterBodyCode)]
@@ -1700,7 +1700,7 @@
           extended-cenv
           (append-instruction-sequences
            
-           ;; Install each of the closure shells
+           ;; Install each of the closure shells.
            (apply append-instruction-sequences
                   (map (lambda: ([lam : Lam]
                                  [i : Natural])
@@ -1709,7 +1709,7 @@
                                                       (make-EnvLexicalReference i #f) 
                                                       next-linkage/expects-single))
                        (LetRec-procs exp)
-                       (build-list n (lambda: ([i : Natural]) (ensure-natural (- n 1 i))))))
+                       (build-list n (lambda: ([i : Natural]) i))))
            
            ;; Fix the closure maps of each
            (apply append-instruction-sequences
@@ -1720,7 +1720,7 @@
                                      (make-FixClosureShellMap! i (Lam-closure-map lam))))))
                        
                        (LetRec-procs exp)
-                       (build-list n (lambda: ([i : Natural]) (ensure-natural (- n 1 i))))))
+                       (build-list n (lambda: ([i : Natural]) i))))
            
            ;; Compile the body
            (compile (LetRec-body exp) extended-cenv target letrec-linkage)

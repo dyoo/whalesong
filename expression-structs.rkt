@@ -107,6 +107,10 @@
                          [body : Expression]
                          [boxes? : Boolean]) #:transparent)
 
+
+;; During evaluation, the closures corresponding to procs are expected
+;; to be laid out so that stack position 0 corresponds to procs[0],
+;; stack position 1 to procs[1], and so on.
 (define-struct: LetRec ([procs : (Listof Lam)]
                         [body : Expression]) #:transparent)
 

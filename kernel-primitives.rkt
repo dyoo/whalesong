@@ -18,6 +18,7 @@
                                     '/
                                     'add1
                                     'sub1
+				    'abs
                                     '<
                                     '<=
                                     '=
@@ -26,10 +27,25 @@
                                     'cons
                                     'car
                                     'cdr
+				    'cadr
+				    'caddr
                                     'list
+				    'pair?
                                     'null?
                                     'not
                                     'eq?
+				    'remainder
+				    'display
+				    'newline
+				    'call/cc
+				    'box
+				    'unbox
+				    'set-box!
+				    'string-append
+				    'current-continuation-marks
+				    'continuation-mark-set->list
+				    'values
+				    'call-with-values
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 
@@ -57,7 +73,7 @@
 
 
 
-(: kernel-primitive-expected-operand-types (KernelPrimitiveName Natural -> (Listof OperandDomain)))
+(: kernel-primitive-expected-operand-types (KernelPrimitiveName/Inline Natural -> (Listof OperandDomain)))
 ;; Given a primitive and the number of arguments, produces the list of expected domains.
 ;; TODO: do something more polymorphic.
 (define (kernel-primitive-expected-operand-types prim arity)

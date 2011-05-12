@@ -148,8 +148,13 @@
 			      l2
 			      (cons (car l1) (append-2 (cdr l1) l2))))])
        (lambda args (append-many args))))
-   
-   
+
+
+   (make-bootstrapped-primitive-code
+    'call-with-values
+    '(lambda (producer consumer)
+       (call-with-values (lambda () (producer)) consumer)))
+      
    
    
    ;; The call/cc code is special:

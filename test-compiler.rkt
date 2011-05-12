@@ -108,11 +108,11 @@
       '(+ 3 4))
 
 ;; Simple definitions
-(test '(begin (define x 42)
+(test '(let () (define x 42)
              (+ x x))
       84)
 
-(test '(begin (define x 6)
+(test '(let () (define x 6)
              (define y 7)
              (define z 8)
              (* x y z))
@@ -164,24 +164,24 @@
       1)
 
 ;; composition of square
-(test '(begin (define (f x)
+(test '(let () (define (f x)
                (* x x))
              (f (f 3)))
       81)
 
-(test '(begin (define pi 3.14159)
+(test '(let () (define pi 3.14159)
              (define radius 10)
              (* pi (* radius radius)))
       314.159)
 
-(test '(begin (define pi 3.14159)
+(test '(let () (define pi 3.14159)
              (define radius 10)
              (define circumference (* 2 pi radius))
              circumference)
       62.8318)
 
 ;; Slightly crazy expression
-(test '(begin (define (f x)
+(test '(let () (define (f x)
                (* x x))
              (define (g x)
                (* x x x))
@@ -216,26 +216,26 @@
 
 
 ; factorial
-(test '(begin (define (f x)
+(test '(let () (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
              (f 0))
       1)
-(test '(begin (define (f x)
+(test '(let () (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
              (f 1))
       1)
-(test '(begin (define (f x)
+(test '(let () (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
              (f 2))
       2)
 
-(test '(begin (define (f x)
+(test '(let () (define (f x)
                (if (= x 0)
                    1
                    (* x (f (sub1 x)))))
@@ -246,8 +246,8 @@
 
 
 
-;; Tail calling behavior: watch that the stack never grows beyond 8.
-(test '(begin (define (f x acc)
+;; Tail calling behavior: watch that the stack never grows beyond some ceiling.
+(test '(let () (define (f x acc)
                  (if (= x 0)
                      acc
                      (f (sub1 x) (* x acc))))
@@ -258,11 +258,13 @@
                         (* x (f (sub1 x)))))])
         (f 1000))
       #:control-limit 3
-      #:stack-limit 8)
+      #:stack-limit 15
+      ;;#:debug? #t
+      )
 
 
 ;; And from experimental testing, anything below 7 will break.
-(test/exn '(begin (define (f x acc)
+(test/exn '(let () (define (f x acc)
                    (if (= x 0)
                        acc
                        (f (sub1 x) (* x acc))))
@@ -289,7 +291,7 @@
           f))
       (list 42 43))
 
-(test '(begin (define (m f l)
+(test '(let () (define (m f l)
                 (if (null? l)
                     l
                     (cons (f (car l))
@@ -308,7 +310,7 @@
 
 
 
-(test '(begin 
+(test '(let () 
          (define (foo y)
            y)
          (define (sum-iter x acc)
@@ -320,58 +322,60 @@
                  (sum-iter y z))))
          (sum-iter 300 0))
       45150
-      #:stack-limit 8
+      #:stack-limit 20
       #:control-limit 4)
 
 
 
 
 ;; deriv
-(test '(begin (define (deriv-aux a) (list '/ (deriv a) a))
-             (define (map f l)
-               (if (null? l)
-                   l
-                   (cons (f (car l))
-                         (map f (cdr l)))))
-             (define (deriv a)
-               (if (not (pair? a))
-                   (if (eq? a 'x) 1  0)
-                   (if (eq? (car a) '+)
-                       (cons '+ (map deriv (cdr a)))
-                       (if (eq? (car a) '-)
-                           (cons '- (map deriv
-                                         (cdr a)))
-                           (if (eq? (car a) '*)
-                               (list '*
-                                     a
-                                     (cons '+ (map deriv-aux (cdr a))))
-                               (if (eq? (car a) '/)
-                                   (list '-
-                                         (list '/
-                                               (deriv (cadr a))
-                                               (caddr a))
-                                         (list '/
-                                               (cadr a)
-                                               (list '*
-                                                     (caddr a)
-                                                     (caddr a)
-                                                     (deriv (caddr a)))))
-                                   'error))))))
-             (deriv '(+ (* 3 x x) (* a x x) (* b x) 5)))
+(test '(let () 
+	 (define (deriv-aux a) (list '/ (deriv a) a))
+	 (define (map f l)
+	   (if (null? l)
+	       l
+	       (cons (f (car l))
+		     (map f (cdr l)))))
+	 (define (deriv a)
+	   (if (not (pair? a))
+	       (if (eq? a 'x) 1  0)
+	       (if (eq? (car a) '+)
+		   (cons '+ (map deriv (cdr a)))
+		   (if (eq? (car a) '-)
+		       (cons '- (map deriv
+				     (cdr a)))
+		       (if (eq? (car a) '*)
+			   (list '*
+				 a
+				 (cons '+ (map deriv-aux (cdr a))))
+			   (if (eq? (car a) '/)
+			       (list '-
+				     (list '/
+					   (deriv (cadr a))
+					   (caddr a))
+				     (list '/
+					   (cadr a)
+					   (list '*
+						 (caddr a)
+						 (caddr a)
+						 (deriv (caddr a)))))
+			       'error))))))
+	 (deriv '(+ (* 3 x x) (* a x x) (* b x) 5)))
       '(+ (* (* 3 x x) (+ (/ 0 3) (/ 1 x) (/ 1 x)))
           (* (* a x x) (+ (/ 0 a) (/ 1 x) (/ 1 x)))
           (* (* b x) (+ (/ 0 b) (/ 1 x)))
           0))
 
 ;; Foldl
-(test '(begin (define (foldl f acc lst)
-               (if (null? lst)
-                   acc
-                   (foldl f (f (car lst) acc) (cdr lst))))
-             (foldl (lambda (x acc)
-                      (* x acc))
-                    1
-                    '(1 2 3 4 5 6 7 8 9 10)))
+(test '(let()
+	 (define (foldl f acc lst)
+	   (if (null? lst)
+	       acc
+	       (foldl f (f (car lst) acc) (cdr lst))))
+	 (foldl (lambda (x acc)
+		  (* x acc))
+		1
+		'(1 2 3 4 5 6 7 8 9 10)))
       (* 1 2 3 4 5 6 7 8 9 10))
 
 
@@ -422,7 +426,7 @@
       25)
 
 
-(test '(begin (define (sqrt-iter guess x)
+(test '(let() (define (sqrt-iter guess x)
                (if (good-enough? guess x)
                    guess
                    (sqrt-iter (improve guess x)
@@ -451,14 +455,14 @@
 
 
 ;; Exponentiation
-(test '(begin (define (expt b n)
+(test '(let () (define (expt b n)
                (if (= n 0)
                    1
                    (* b (expt b (- n 1)))))
              (expt 2 30))
       (expt 2 30))
 
-(test '(begin 
+(test '(let () 
         (define (expt b n)
           (expt-iter b n 1))
         
@@ -471,7 +475,7 @@
         (expt 2 30))
       (expt 2 30))
 
-(test '(begin
+(test '(let()
         (define (fast-expt b n)
           (cond ((= n 0) 1)
                 ((even? n) (square (fast-expt b (/ n 2))))
@@ -489,7 +493,7 @@
             (expt 2 23984000)))
 
 
-(test '(begin (define (length l)
+(test '(let () (define (length l)
                (if (null? l)
                    0
                    (+ 1 (length (cdr l)))))
@@ -501,7 +505,7 @@
 
 
 
-(test '(begin (define (f x)
+(test '(let () (define (f x)
                 (* x x))
               (f 3)
               (f 4)
@@ -509,7 +513,7 @@
       25)
 
 
-(test '(begin (define (sum-integers a b)
+(test '(let () (define (sum-integers a b)
                (if (> a b)
                    0
                    (+ a (sum-integers (+ a 1) b))))        
@@ -517,7 +521,7 @@
       (* 50 101))
 
 
-(test '(begin (define (sum term a next b)
+(test '(let () (define (sum term a next b)
                (if (> a b)
                    0
                    (+ (term a)
@@ -534,7 +538,7 @@
 
 
 ;; Lexical scope bug: make sure that parameters shadow toplevels.
-(test '(begin
+(test '(let ()
          (define x 42)
          (define (f x)
            (+ x 1))
@@ -611,9 +615,9 @@
 
 
 ;; Reference:  http://lists.racket-lang.org/users/archive/2009-January/029812.html
-(let ([op (open-output-string)])
+#;(let ([op (open-output-string)])
   (parameterize ([current-simulated-output-port op])
-    (test '(begin (define program (lambda ()
+    (test '(let () (define program (lambda ()
                                     (let ((y (call/cc (lambda (c) c))))
                                       (display 1)
                                       (call/cc (lambda (c) (y c)))
@@ -770,7 +774,7 @@
                      "gee!")])
          (a))
       "gee!"
-      #:stack-limit 9
+      #:stack-limit 20
       #:control-limit 2)
 
 
@@ -793,7 +797,7 @@
                      "ho!")])
          (a))
       "gee!"
-      #:stack-limit 12
+      #:stack-limit 20
       #:control-limit 2)
 
 
@@ -815,7 +819,7 @@
                        (cons "gee!" lst))])
            (a '()))
         '("gee!" "f" "e" "d" "c" "b" "a")
-        #:stack-limit 12
+        #:stack-limit 20
         #:control-limit 2)
 
 
@@ -832,7 +836,7 @@
                                      (sum-iter y z))))])
             (sum-iter 300 0))
         45150
-        #:stack-limit 10
+        #:stack-limit 20
         #:control-limit 3)
 
 
@@ -879,7 +883,7 @@
                   (define n 0)
                   (call/cc (lambda (x) (set! cont x)))
                   (set! n (add1 n))
-                  (if (< n 10)
+                  (when (< n 10)
                     (cont 'dontcare))
                   n)
                 (f))
@@ -894,7 +898,7 @@
            (define n 0)
            (call/cc (lambda (x) (set! cont x)))
            (set! n (add1 n))
-           (if (< n 10)
+           (when (< n 10)
              (cont 'dontcare))
            n)
         1
@@ -1026,7 +1030,7 @@
                                      (apply sum-iter (list y z)))))])
             (sum-iter 300 0))
         45150
-        #:stack-limit 10
+        #:stack-limit 20
         #:control-limit 3
         #:with-bootstrapping? #t)
 
@@ -1179,6 +1183,7 @@
       '(1 2)
       #:with-bootstrapping? #t)
       
+
 (test '(call-with-values * -)
       -1
       #:with-bootstrapping? #t)

@@ -79,6 +79,14 @@
 (define my-cdr (lambda (x)
                   (MutablePair-t x)))
 
+
+(define my-cadr (lambda (x)
+                  (MutablePair-h (MutablePair-t x))))
+
+(define my-caddr (lambda (x)
+                  (MutablePair-h (MutablePair-t (MutablePair-t x)))))
+
+
 (define my-pair? (lambda (x)
                    (MutablePair? x)))
 
@@ -227,6 +235,8 @@
                                                      (my-list list)
                                                      (my-car car)
                                                      (my-cdr cdr)
+						     (my-cadr cadr)
+						     (my-caddr caddr)
                                                      (my-pair? pair?)
                                                      (my-set-car! set-car!)
                                                      (my-set-cdr! set-cdr!)

@@ -387,7 +387,7 @@
 
 
 ;; deriv
-(test '(let ()
+#;(test '(let ()
 	 (define (deriv-aux a) (list '/ (deriv a) a))
 	 (define (map f l)
 	   (if (null? l)

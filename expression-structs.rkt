@@ -64,7 +64,7 @@
                         [alternative : Expression]) #:transparent)
 
 (define-struct: CaseLam ([name : (U Symbol LamPositionalName)]
-                         [clauses : (Listof Lam)]
+                         [clauses : (Listof (U Lam EmptyClosureReference))]
                          [entry-label : Symbol]) #:transparent)
 
 (define-struct: Lam ([name : (U Symbol LamPositionalName)]

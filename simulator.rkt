@@ -391,17 +391,17 @@
              'ok)]
           
           [(RaiseContextExpectedValuesError!? op)
-           (error "context expected ~a values, received ~a values."
+           (error 'step "context expected ~a values, received ~a values."
                   (RaiseContextExpectedValuesError!-expected op)
                   (machine-argcount m))]
 
 	  [(RaiseArityMismatchError!? op)
-	   (error "expects ~s arguments, given ~a"
+	   (error 'step "expects ~s arguments, given ~a"
 		  (RaiseArityMismatchError!-expected op)
 		  (evaluate-oparg m (RaiseArityMismatchError!-received op)))]
 
 	  [(RaiseOperatorApplicationError!? op)
-	   (error "expected procedure, given ~a"
+	   (error 'step "expected procedure, given ~a"
 		  (evaluate-oparg m (RaiseOperatorApplicationError!-operator op)))]
           
           

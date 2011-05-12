@@ -365,7 +365,7 @@
                  entry-point-label))]))
   
 
-;; parse-closure: closure -> Expression
+;; parse-closure: closure -> (U Lam EmptyClosureReference)
 ;; Either parses as a regular lambda, or if we come across the same closure twice,
 ;; breaks the cycle by creating an EmptyClosureReference with the pre-existing lambda
 ;; entry point.
@@ -425,7 +425,12 @@
     [(struct case-lam (name clauses))
      (let ([case-lam-label (make-lam-label)])
        (make-CaseLam (extract-lam-name name)
-                     (map (lambda (l) (parse-lam l (make-lam-label)))
+                     (map (lambda (l) 
+                            (cond
+                              [(closure? l)
+                               (parse-closure l)]
+                              [else
+                               (parse-lam l (make-lam-label))]))
                           clauses)
                      case-lam-label))]))
 

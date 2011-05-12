@@ -371,6 +371,11 @@
 
 
 
+(void
+ (run-my-parse #'(case-lambda [(x) x]
+                              [(x y) (list x y)])))
+
+
 ;; make sure we don't see an infinite loop
 #;(run-zo-parse #'(letrec ([g (lambda () (g))])
                   (g)))
@@ -383,6 +388,8 @@
                            [h (lambda () (g))])
                     (g)))
 ;; FIXME: we need to handle closure cycles here.
+
+
 
 
 

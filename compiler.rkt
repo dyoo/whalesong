@@ -85,7 +85,7 @@
                        (extract-lambda-cenv exp cenv)))]
           [(CaseLam? exp)
            (cons (make-lam+cenv exp cenv)
-                 (apply append (map (lambda: ([lam : Lam])
+                 (apply append (map (lambda: ([lam : (U Lam EmptyClosureReference)])
                                              (loop lam cenv))
                                     (CaseLam-clauses exp))))]
           
@@ -652,15 +652,22 @@
       
       ;; Compile each of the lambdas
       (apply append-instruction-sequences
-             (map (lambda: ([lam : Lam]
+             (map (lambda: ([lam : (U Lam EmptyClosureReference)]
                             [target : Target]) 
                            (make-instruction-sequence
                             `(,(make-AssignPrimOpStatement
                                 target
-                                (make-MakeCompiledProcedure (Lam-entry-label lam)
-                                                            (Lam-arity lam)
-                                                            (shift-closure-map (Lam-closure-map lam) n)
-                                                            (Lam-name lam))))))
+                                (cond
+                                  [(Lam? lam)
+                                   (make-MakeCompiledProcedure (Lam-entry-label lam)
+                                                               (Lam-arity lam)
+                                                               (shift-closure-map (Lam-closure-map lam) n)
+                                                               (Lam-name lam))]
+                                  [(EmptyClosureReference? lam)
+                                   (make-MakeCompiledProcedure (EmptyClosureReference-entry-label lam)
+                                                               (EmptyClosureReference-arity lam)
+                                                               '()
+                                                               (EmptyClosureReference-name lam))])))))
                   (CaseLam-clauses exp)
                   (build-list (length (CaseLam-clauses exp))
                               (lambda: ([i : Natural])
@@ -680,19 +687,25 @@
       singular-context-check))))
 
 
-(: Lam-arity (Lam -> Arity))
+(: Lam-arity ((U Lam EmptyClosureReference) -> Arity))
 (define (Lam-arity lam)
-  (if (Lam-rest? lam)
-      (make-ArityAtLeast (Lam-num-parameters lam))
-      (Lam-num-parameters lam)))
+  (cond
+    [(Lam? lam)
+     (if (Lam-rest? lam)
+         (make-ArityAtLeast (Lam-num-parameters lam))
+         (Lam-num-parameters lam))]
+    [(EmptyClosureReference? lam)
+     (if (EmptyClosureReference-rest? lam)
+         (make-ArityAtLeast (EmptyClosureReference-num-parameters lam))
+         (EmptyClosureReference-num-parameters lam))]))
 
 
 (: EmptyClosureReference-arity (EmptyClosureReference -> Arity))
 (define (EmptyClosureReference-arity lam)
-  (if (EmptyClosureReference-rest? lam)
+(if (EmptyClosureReference-rest? lam)
       (make-ArityAtLeast (EmptyClosureReference-num-parameters lam))
       (EmptyClosureReference-num-parameters lam)))
-
+  
 
 
 
@@ -784,7 +797,7 @@
     `(,(CaseLam-entry-label exp)))
    
    (apply append-instruction-sequences
-          (map (lambda: ([lam : Lam]
+          (map (lambda: ([lam : (U Lam EmptyClosureReference)]
                          [i : Natural])
                         (let ([not-match (make-label 'notMatch)])
                           (make-instruction-sequence
@@ -800,7 +813,11 @@
                                'proc 
                                (make-CompiledProcedureClosureReference (make-Reg 'proc) i))
                              
-                             ,(make-GotoStatement (make-Label (Lam-entry-label lam)))
+                             ,(make-GotoStatement (make-Label
+                                                   (cond [(Lam? lam)
+                                                          (Lam-entry-label lam)]
+                                                         [(EmptyClosureReference? lam)
+                                                          (EmptyClosureReference-entry-label lam)])))
                              
                              ,not-match))))
                (CaseLam-clauses exp)
@@ -2050,8 +2067,12 @@
     
     [(CaseLam? exp)
      (make-CaseLam (CaseLam-name exp)
-                   (map (lambda: ([lam : Lam])
-                                 (ensure-lam (adjust-expression-depth lam n skip)))
+                   (map (lambda: ([lam : (U Lam EmptyClosureReference)])
+                                 (cond
+                                   [(Lam? lam)
+                                    (ensure-lam (adjust-expression-depth lam n skip))]
+                                   [(EmptyClosureReference? lam)
+                                    lam]))
                         (CaseLam-clauses exp))
                    (CaseLam-entry-label exp))]
     
@@ -2101,10 +2122,10 @@
                            (cons (ensure-lam (adjust-expression-depth 
                                               (first procs)
                                               n 
-                                              (+ skip (length (LetRec-procs exp)))))
+                                              skip))
                                  (loop (rest procs)))]))
                   (adjust-expression-depth (LetRec-body exp) n 
-                                           (+ skip (length (LetRec-procs exp)))))]
+                                           skip))]
     
     [(InstallValue? exp)
      (if (< (InstallValue-depth exp) skip)

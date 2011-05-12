@@ -46,6 +46,7 @@
 				    'continuation-mark-set->list
 				    'values
 				    'call-with-values
+                                    'apply
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

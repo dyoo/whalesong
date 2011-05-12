@@ -1338,8 +1338,8 @@
         #:with-bootstrapping? #t)
 
 (test '(let () (define (f x y z)
-                   (begin0 (values y x z)
-                           (display "")))
+                 (begin0 (values y x z)
+                         (display "")))
            (call-with-values (lambda () (f 3 1 4))
                              (lambda args (list args))))
         '((1 3 4))

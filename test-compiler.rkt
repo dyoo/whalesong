@@ -5,8 +5,20 @@
          "simulator-helpers.rkt"
          "compiler.rkt"
          "compiler-structs.rkt"
-         "parse.rkt"
+ 	 #; "parse.rkt"
+	 "parse-bytecode-5.1.1.rkt"
          "il-structs.rkt")
+
+(require (prefix-in racket: racket/base))
+
+
+(define (parse stx)
+  (parameterize ([current-namespace (make-base-namespace)])
+    (let ([bc (racket:compile stx)]
+          [op (open-output-bytes)])
+      (write bc op)
+      (parse-bytecode 
+       (open-input-bytes (get-output-bytes op))))))
 
 
 (define (run-compiler code)

@@ -333,9 +333,9 @@
       (make-Top (make-Prefix '())
                 (make-LetVoid 3
                               (make-LetRec (list (make-Lam 'a 0 #f (make-App (make-LocalRef 0 #f) '()) '(1) 'lamEntry1)
-                                                 (make-Lam 'b 0 #f (make-App (make-LocalRef 0 #f) '()) '(0) 'lamEntry2)
-                                                 (make-Lam 'c 0 #f (make-App (make-LocalRef 0 #f) '()) '(2) 'lamEntry3))
-                                           (make-App (make-LocalRef 2 #f) '()))
+                                                 (make-Lam 'b 0 #f (make-App (make-LocalRef 0 #f) '()) '(2) 'lamEntry2)
+                                                 (make-Lam 'c 0 #f (make-App (make-LocalRef 0 #f) '()) '(0) 'lamEntry3))
+                                           (make-App (make-LocalRef 0 #f) '()))
                               #f)))
       
 
@@ -348,17 +348,17 @@
                 (make-LetVoid 2
                               (make-Seq 
                                (list 
-                                (make-InstallValue 1 1
+                                (make-InstallValue 1 0
                                                    (make-Lam 'x 1 #f (make-LocalRef 0 #f) '() 'lamEntry1)
                                                    #t)
-                                (make-InstallValue 1 0 
+                                (make-InstallValue 1 1 
                                                    (make-Lam 'y 1 #f (make-LocalRef 0 #f) '() 'lamEntry2)
                                                    #t)
                                 ;; stack layout: ??? x y
-                                (make-Seq (list (make-Seq (list (make-InstallValue 1 1 (make-LocalRef 1 #t) #t)
+                                (make-Seq (list (make-Seq (list (make-InstallValue 1 0 (make-LocalRef 0 #t) #t)
                                                                 (make-Constant (void))))
-                                                (make-App (make-LocalRef 2 #t)
-                                                          (list (make-LocalRef 1 #t)))))))
+                                                (make-App (make-LocalRef 1 #t)
+                                                          (list (make-LocalRef 2 #t)))))))
                               #t)))
 
 

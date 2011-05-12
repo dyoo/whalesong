@@ -629,7 +629,7 @@
                      (append (find-mutated-names body)
                              (apply append (map find-mutated-names rhss))))))
        (let ([new-cenv  (extend-lexical-environment/names cenv 
-                                                          (reverse vars)
+                                                          vars
                                                           (build-list n (lambda (i) #f)))])
          ;; Semantics: allocate a closure shell for each lambda form in procs.
          ;; Install them in reverse order, so that the closure shell for the last element
@@ -642,12 +642,12 @@
                                     (parse `(begin ,@body) new-cenv #f))
                        #f))]
       [else
-       (let ([new-cenv  (extend-lexical-environment/boxed-names cenv (reverse vars))])
+       (let ([new-cenv  (extend-lexical-environment/boxed-names cenv vars)])
          (make-LetVoid (length vars)
                        (seq (append 
                              (map (lambda (var rhs index) 
                                     (make-InstallValue 1
-                                                       (- n 1 index)
+                                                       index
                                                        (parameterize ([current-defined-name var])
                                                          (parse rhs new-cenv #f))
                                                        #t))

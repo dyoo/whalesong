@@ -13,7 +13,7 @@
 
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
 (define (open-code-kernel-primitive-procedure op)
-  (let*: ([operator : KernelPrimitiveName (CallKernelPrimitiveProcedure-operator op)]
+  (let*: ([operator : KernelPrimitiveName/Inline (CallKernelPrimitiveProcedure-operator op)]
           [operands : (Listof String) (map assemble-oparg (CallKernelPrimitiveProcedure-operands op))]
           [checked-operands : (Listof String)
                             (map (lambda: ([dom : OperandDomain]

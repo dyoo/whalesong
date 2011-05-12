@@ -252,7 +252,7 @@
 
 
 
-(define-struct: CallKernelPrimitiveProcedure ([operator : KernelPrimitiveName]
+(define-struct: CallKernelPrimitiveProcedure ([operator : KernelPrimitiveName/Inline]
 
                                               [operands : (Listof OpArg)]
                                               [expected-operand-types : (Listof OperandDomain)]

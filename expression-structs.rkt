@@ -148,17 +148,6 @@
 
 
 
-(: last-exp? ((Listof Expression) -> Boolean))
-(define (last-exp? seq) 
-  (null? (cdr seq)))
-
-(: first-exp ((Listof Expression) -> Expression))
-(define (first-exp seq) (car seq))
-
-(: rest-exps ((Listof Expression) -> (Listof Expression)))
-(define (rest-exps seq) (cdr seq))
-
-
 
 
 (: make-label (Symbol -> Symbol))

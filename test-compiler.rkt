@@ -1317,6 +1317,8 @@
       (list (list 3)
             (cons '(5 6) 4)))
 
+(test '(begin) (void))
+
 
 
 #;(test (read (open-input-file "tests/conform/program0.sch"))

@@ -466,11 +466,14 @@
 ;; Compiles a sequence of expressions.  The last expression will be compiled in the provided linkage.
 (define (compile-sequence seq cenv target linkage) 
   ;; All but the last will use next-linkage linkage.
-  (if (last-exp? seq)
-      (compile (first-exp seq) cenv target linkage)
-      (append-instruction-sequences 
-       (compile (first-exp seq) cenv target next-linkage/drop-multiple)
-       (compile-sequence (rest-exps seq) cenv target linkage))))
+  (cond [(empty? seq)
+         (end-with-linkage linkage cenv empty-instruction-sequence)]
+        [(empty? (rest seq))
+         (compile (first seq) cenv target linkage)]
+        [else
+         (append-instruction-sequences 
+          (compile (first seq) cenv target next-linkage/drop-multiple)
+          (compile-sequence (rest seq) cenv target linkage))]))
 
 
 
@@ -478,7 +481,9 @@
 ;; Compiles a sequence of expressions.  A continuation prompt wraps around each of the expressions
 ;; to delimit any continuation captures.
 (define (compile-splice seq cenv target linkage) 
-  (cond [(last-exp? seq)
+  (cond [(empty? seq)
+         (end-with-linkage linkage cenv empty-instruction-sequence)]
+        [(empty? (rest seq))
          (let* ([on-return/multiple (make-label 'beforePromptPopMultiple)]
                 [on-return (make-LinkedLabel (make-label 'beforePromptPop)
                                                      on-return/multiple)])
@@ -490,7 +495,7 @@
               `(,(make-PushControlFrame/Prompt
                   default-continuation-prompt-tag
                   on-return)))
-             (compile (first-exp seq) cenv target return-linkage/nontail)
+             (compile (first seq) cenv target return-linkage/nontail)
              (emit-values-context-check-on-procedure-return (linkage-context linkage)
                                                             on-return/multiple
                                                             on-return))))]
@@ -503,14 +508,14 @@
              `(,(make-PushControlFrame/Prompt
                  (make-DefaultContinuationPromptTag)
                  on-return)))
-            (compile (first-exp seq) cenv target return-linkage/nontail)
+            (compile (first seq) cenv target return-linkage/nontail)
             on-return/multiple
             (make-instruction-sequence
              `(,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
                                                        (make-Const 1))
                                      (make-Const 0))))
             on-return
-            (compile-splice (rest-exps seq) cenv target linkage)))]))
+            (compile-splice (rest seq) cenv target linkage)))]))
 
 
 (: compile-begin0 ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -563,7 +568,7 @@
            ,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) after-values-reinstated)
            ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
            ,(make-PopEnvironment (make-Const 1) (make-Const 0))
-           after-values-reinstated))
+           ,after-values-reinstated))
         
         (let ([context (linkage-context linkage)])
           (cond
@@ -587,7 +592,7 @@
                                                                 (make-Const context)))
                                                 after-check)
                   ,(make-PerformStatement (make-RaiseContextExpectedValuesError! context))
-                  after-check)))]))
+                  ,after-check)))]))
         
         (make-instruction-sequence
          `(,(make-AssignImmediateStatement target (make-Reg 'val))))

@@ -5,13 +5,28 @@
          "simulator-helpers.rkt"
          "compiler.rkt"
          "compiler-structs.rkt"
-         "parse.rkt"
+         ;;"parse.rkt"
+         "parse-bytecode-5.1.1.rkt"
          "il-structs.rkt")
+
+(require (prefix-in racket: racket/base))
+
+
+;; Use Racket's compiler, and then parse the resulting bytecode
+;; to our own AST structures.
+(define (parse stx)
+  (parameterize ([current-namespace (make-base-namespace)])
+    (let ([bc (racket:compile stx)]
+          [op (open-output-bytes)])
+      (write bc op)
+      (parse-bytecode 
+       (open-input-bytes (get-output-bytes op))))))
 
 
 (define (run-compiler code)
   (compile (parse code) 'val next-linkage/drop-multiple))
   
+
 
 
 ;; run: machine -> (machine number)
@@ -88,7 +103,7 @@
 
 
 ;; tak test
-(test '(begin (define (tak x y z)
+(test '(let () (define (tak x y z)
                (if (>= y x)
                    z
                    (tak (tak (- x 1) y z)
@@ -101,7 +116,7 @@
 
 
 ;; ctak
-(test '(begin
+(test '(let ()
         (define (ctak x y z)
           (call-with-current-continuation
            (lambda (k)
@@ -139,7 +154,7 @@
 
 
 ;; fibonacci
-(test '(begin (define (fib n)
+(test '(let () (define (fib n)
                (if (= n 0) 0
                    (if (= n 1) 1
                        (+ (fib (- n 1))
@@ -148,7 +163,7 @@
       55)
 
 ;; Fibonacci, iterative.  This should be computable while using at most 10 spots.
-(test '(begin 
+(test '(let () 
         (define (fib n)
           (fib-iter 1 0 n))
         

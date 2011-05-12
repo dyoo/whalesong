@@ -12,6 +12,8 @@
 (require (prefix-in racket: racket/base))
 
 
+;; Use Racket's compiler, and then parse the resulting bytecode
+;; to our own AST structures.
 (define (parse stx)
   (parameterize ([current-namespace (make-base-namespace)])
     (let ([bc (racket:compile stx)]
@@ -326,10 +328,17 @@
       #:control-limit 4)
 
 
+(test '(pair? '(+ (* 3 x x) (* a x x) (* b x) 5))
+      #t)
+
+(test '(eq? (car '(+ (* 3 x x) (* a x x) (* b x) 5)) 
+	    '+)
+      #t)
+
 
 
 ;; deriv
-(test '(let () 
+(test '(let ()
 	 (define (deriv-aux a) (list '/ (deriv a) a))
 	 (define (map f l)
 	   (if (null? l)
@@ -342,8 +351,7 @@
 	       (if (eq? (car a) '+)
 		   (cons '+ (map deriv (cdr a)))
 		   (if (eq? (car a) '-)
-		       (cons '- (map deriv
-				     (cdr a)))
+		       (cons '- (map deriv (cdr a)))
 		       (if (eq? (car a) '*)
 			   (list '*
 				 a
@@ -365,6 +373,7 @@
           (* (* a x x) (+ (/ 0 a) (/ 1 x) (/ 1 x)))
           (* (* b x) (+ (/ 0 b) (/ 1 x)))
           0))
+
 
 ;; Foldl
 (test '(let()

@@ -337,6 +337,55 @@
 
 
 
+
+(test '(letrec ([even? (lambda (x)
+			 (if (= x 0)
+			     #t
+			     (odd? (sub1 x))))]
+		[odd? (lambda (x)
+			(if (= x 0)
+			    #f
+			    (even? (sub1 x))))])
+	 (list (even? 1024)
+	       (even? 1023)
+	       (even? 2172)
+	       (even? 2171)))
+      (list #t #f #t #f))
+
+
+
+
+(test '(letrec-values ([(even? odd?)
+			(values
+			 (lambda (x)
+			   (if (= x 0)
+			       #t
+			       (odd? (sub1 x))))
+			 (lambda (x)
+			   (if (= x 0)
+			       #f
+			       (even? (sub1 x)))))])
+	 (list (even? 1024)
+	       (even? 1023)
+	       (even? 2172)
+	       (even? 2171)))
+      (list #t #f #t #f))
+
+
+
+
+
+(test '(letrec ([fact (lambda (x)
+			(if (= x 0)
+			    1
+			    (* x (fact (sub1 x)))))])
+	 (list (fact 3) (fact 4) (fact 5)))
+      '(6 24 120))
+
+
+
+
+
 ;; deriv
 (test '(let ()
 	 (define (deriv-aux a) (list '/ (deriv a) a))

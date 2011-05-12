@@ -71,6 +71,8 @@
                                            'eq?))
 
 
+(define-predicate KernelPrimitiveName/Inline? KernelPrimitiveName/Inline)
+
 
 
 (: kernel-primitive-expected-operand-types (KernelPrimitiveName/Inline Natural -> (Listof OperandDomain)))

@@ -865,7 +865,7 @@
                            (ModuleVariable-module-name op-knowledge))
                           '#%kernel)
                 (let ([op (ModuleVariable-name op-knowledge)])
-                  (cond [(KernelPrimitiveName? op)
+                  (cond [(KernelPrimitiveName/Inline? op)
                          (compile-kernel-primitive-application 
                           op
                           exp cenv target linkage)]
@@ -929,7 +929,7 @@
 
 
 (: compile-kernel-primitive-application
-   (KernelPrimitiveName App CompileTimeEnvironment Target Linkage -> InstructionSequence))
+   (KernelPrimitiveName/Inline App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; This is a special case of application, where the operator is statically
 ;; known to be in the set of hardcoded primitives.
 ;;

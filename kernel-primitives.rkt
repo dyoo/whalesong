@@ -30,6 +30,18 @@
 				    'cadr
 				    'caddr
                                     'list
+                                    'list->vector
+                                    'vector->list
+                                    'vector
+                                    'vector-length
+                                    'vector-ref
+                                    'vector-set!
+                                    'make-vector
+                                    'equal?
+                                    'member
+                                    'append
+                                    'reverse
+                                    'length
 				    'pair?
                                     'null?
                                     'not

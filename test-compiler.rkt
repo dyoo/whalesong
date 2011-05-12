@@ -3,28 +3,8 @@
 (require "simulator.rkt"
          "simulator-structs.rkt"
          "simulator-helpers.rkt"
-         "compiler.rkt"
-         "compiler-structs.rkt"
- 	 #; "parse.rkt"
-	 "parse-bytecode-5.1.1.rkt"
-         "il-structs.rkt")
+         "test-helpers.rkt")
 
-(require (prefix-in racket: racket/base))
-
-
-;; Use Racket's compiler, and then parse the resulting bytecode
-;; to our own AST structures.
-(define (parse stx)
-  (parameterize ([current-namespace (make-base-namespace)])
-    (let ([bc (racket:compile stx)]
-          [op (open-output-bytes)])
-      (write bc op)
-      (parse-bytecode 
-       (open-input-bytes (get-output-bytes op))))))
-
-
-(define (run-compiler code)
-  (compile (parse code) 'val next-linkage/drop-multiple))
   
 
 ;; Test out the compiler, using the simulator.
@@ -1344,6 +1324,9 @@
                              (lambda args (list args))))
         '((1 3 4))
         #:with-bootstrapping? #t)
+
+;; TODO: use begin0 in multiple-value context, but where we should get dynamic runtime error since
+;; the surrounding context can't consume multiple values.
 
 
 

@@ -2,14 +2,9 @@
 
 (require "simulator.rkt"
          "simulator-structs.rkt"
-         "compiler-structs.rkt"
-         "compiler.rkt"
-         "parse.rkt"
-         "il-structs.rkt")
+         "test-helpers.rkt")
 
 
-(define (run-compiler code)
-  (compile (parse code) 'val next-linkage/drop-multiple))
   
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.

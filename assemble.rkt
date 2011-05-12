@@ -129,6 +129,8 @@ EOF
                        (assemble-label (make-Label (LinkedLabel-label stmt)))
                        (assemble-label (make-Label (LinkedLabel-linked-to stmt))))
               (next)]
+             [(DebugPrint? stmt)
+              (next)]
              [(AssignImmediateStatement? stmt)
               (next)]
              [(AssignPrimOpStatement? stmt)
@@ -177,6 +179,8 @@ EOF
                (format "~a" stmt))
        "")
    (cond
+     [(DebugPrint? stmt)
+      (format "MACHINE.params.currentOutputPort.write(~a);" (assemble-oparg (DebugPrint-value stmt)))]
      [(AssignImmediateStatement? stmt)
       (let: ([t : String (assemble-target (AssignImmediateStatement-target stmt))]
              [v : OpArg (AssignImmediateStatement-value stmt)])

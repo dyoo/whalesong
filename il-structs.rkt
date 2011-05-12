@@ -120,7 +120,14 @@
                                  PushControlFrame/Call
                                  PushControlFrame/Prompt
 
-                                 PopControlFrame))
+                                 PopControlFrame
+                                 
+                                 DebugPrint))
+
+
+;; Debug print statement.
+(define-struct: DebugPrint ([value : OpArg])
+  #:transparent)
 
 
 (define-type Statement (U UnlabeledStatement

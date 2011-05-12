@@ -96,6 +96,10 @@
                      'ok]
                     [(LinkedLabel? i)
                      'ok]
+                    [(DebugPrint? i)
+                     ;; Hack: just to monitor evaluation.
+                     (displayln (evaluate-oparg m (DebugPrint-value i)))
+                     'ok]
                     [(AssignImmediateStatement? i)
                      (step-assign-immediate! m i)]
                     [(AssignPrimOpStatement? i)

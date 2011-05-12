@@ -34,6 +34,8 @@
    [(LinkedLabel? stmt)
     (list (LinkedLabel-label stmt)
 	  (LinkedLabel-linked-to stmt))]
+   [(DebugPrint? stmt)
+    empty]
    [(AssignImmediateStatement? stmt)
     (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
 	  (collect-input v))]

@@ -62,6 +62,9 @@
     [(LinkedLabel? stmt)
      #f]
     
+    [(DebugPrint? stmt)
+     #f]
+    
     [(AssignImmediateStatement? stmt)
      (equal? (AssignImmediateStatement-target stmt)
              (AssignImmediateStatement-value stmt))]

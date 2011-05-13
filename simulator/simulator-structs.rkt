@@ -2,9 +2,9 @@
 
 (provide (all-defined-out))
 
-(require "il-structs.rkt"
-         "expression-structs.rkt"
-         "lexical-structs.rkt")
+(require "../il-structs.rkt"
+         "../expression-structs.rkt"
+         "../lexical-structs.rkt")
 
 
 (define-type PrimitiveValue (Rec PrimitiveValue (U String Number Symbol Boolean

@@ -1,6 +1,6 @@
 #lang racket/base
 (require "simulator-structs.rkt"
-         "il-structs.rkt"
+         "../il-structs.rkt"
          racket/math
          racket/list
          (for-syntax racket/base))

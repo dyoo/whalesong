@@ -5,13 +5,13 @@
 ;; For example, I'll need to be able to count the number of statements executed by an evaluation.
 ;; I also need to do things like count pushes and pops.  Basically, low-level benchmarking.
 
-(require "expression-structs.rkt"
-         "il-structs.rkt"
-         "lexical-structs.rkt"
-         "simulator-structs.rkt"
-         "bootstrapped-primitives.rkt"
-         "kernel-primitives.rkt"
-         "expression-structs.rkt"
+(require "simulator-structs.rkt"
+         "../expression-structs.rkt"
+         "../il-structs.rkt"
+         "../lexical-structs.rkt"
+         "../bootstrapped-primitives.rkt"
+         "../kernel-primitives.rkt"
+         "../expression-structs.rkt"
          racket/list
          racket/match
          (for-syntax racket/base))

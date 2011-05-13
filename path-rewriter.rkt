@@ -2,7 +2,8 @@
 
 (require racket/path
          racket/contract
-         racket/list)
+         racket/list
+         racket/runtime-path)
 
 
 
@@ -13,8 +14,15 @@
 
 
 
+(define-runtime-path this-path ".")
+(define this-normal-path
+  (let ()
+    (normalize-path this-path)))
+
+
+
 (define current-root-path
-  (make-parameter (current-directory)))
+  (make-parameter (normalize-path (current-directory))))
 
 
 ;; The path rewriter takes paths and provides a canonical symbol for it.
@@ -25,16 +33,21 @@
 (define (rewrite-path a-path)
   (let ([a-path (normalize-path a-path)])
     (cond
-     [(within-collects? a-path)
-      (string->symbol
-       (string-append "collects/"
-                      (path->string
-                       (find-relative-path collects a-path))))]
      [(within-root? a-path)
       (string->symbol
        (string-append "root/"
                       (path->string
                        (find-relative-path (current-root-path) a-path))))]
+     [(within-collects? a-path)
+      (string->symbol
+       (string-append "collects/"
+                      (path->string
+                       (find-relative-path collects a-path))))]
+     [(within-this-project-path? a-path)
+      (string->symbol
+       (string-append "js-vm/"
+                      (path->string
+                       (find-relative-path this-normal-path a-path))))]
      [else 
       #f])))
 
@@ -57,6 +70,10 @@
 
 (define (within-collects? a-path)
   (within? collects a-path))
+
+
+(define (within-this-project-path? a-path)
+  (within? this-normal-path a-path))
 
 
 ;; within?: normalized-path normalized-path -> boolean

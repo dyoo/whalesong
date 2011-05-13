@@ -36,7 +36,8 @@
                           [src-name : Symbol])
   #:transparent)
 
-(define-struct: Module ([name : ModuleName]
+(define-struct: Module ([name : Symbol]
+                        [path : ModuleName]
                         [prefix : Prefix]
                         [requires : (Listof ModuleName)]
                         [provides : (Listof Provided)]

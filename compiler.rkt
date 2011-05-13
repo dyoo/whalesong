@@ -2081,6 +2081,7 @@
     
     [(Module? exp)
      (make-Module (Module-name exp)
+                  (Module-path exp)
                   (Module-prefix exp)
                   (Module-requires exp)
                   (Module-provides exp)

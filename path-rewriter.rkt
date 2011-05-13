@@ -21,21 +21,22 @@
 ;; Paths located within collects get remapped to collects/....
 
 
-;; rewrite-path: complete-path -> (symbol #f)
+;; rewrite-path: path -> (symbol #f)
 (define (rewrite-path a-path)
-  (cond
-   [(within-collects? a-path)
-    (string->symbol
-     (string-append "collects/"
-                    (path->string
-                     (find-relative-path collects a-path))))]
-   [(within-root? a-path)
-    (string->symbol
-     (string-append "root/"
-                    (path->string
-                     (find-relative-path (current-root-path) a-path))))]
-   [else 
-    #f]))
+  (let ([a-path (normalize-path a-path)])
+    (cond
+     [(within-collects? a-path)
+      (string->symbol
+       (string-append "collects/"
+                      (path->string
+                       (find-relative-path collects a-path))))]
+     [(within-root? a-path)
+      (string->symbol
+       (string-append "root/"
+                      (path->string
+                       (find-relative-path (current-root-path) a-path))))]
+     [else 
+      #f])))
 
 
 (define collects

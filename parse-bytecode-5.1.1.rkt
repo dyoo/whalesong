@@ -3,6 +3,7 @@
 (require "expression-structs.rkt"
          "lexical-structs.rkt"
          "typed-module-path.rkt"
+         "path-rewriter.rkt"
          syntax/modresolve)
 
 
@@ -151,9 +152,8 @@
     [(symbol? resolved-path-name)
      (make-ModuleName resolved-path-name)]
     [(path? resolved-path-name)
-     (make-ModuleName 
-      (string->symbol
-       (path->string resolved-path-name)))]))
+     (make-ModuleName (rewrite-path resolved-path-name))]))
+
 
 
 ;; parse-form: form -> (U Expression)
@@ -240,11 +240,25 @@
     [(struct mod (name srcname self-modidx prefix provides requires
        body syntax-body unexported max-let-depth dummy lang-info
        internal-context))
-       (make-Module (make-ModuleName name)
-                    (parse-prefix prefix)
-                    (parse-mod-requires self-modidx requires)
-                    (parse-mod-provides provides)
-                    (parse-mod-body body))]))
+     (let ([self-path 
+            ((current-module-path-index-resolver)
+             self-modidx
+             (current-module-path))])
+       (cond
+        [(symbol? self-path)
+         (make-Module name
+                      (make-ModuleName self-path)
+                      (parse-prefix prefix)
+                      (parse-mod-requires self-modidx requires)
+                      (parse-mod-provides provides)
+                      (parse-mod-body body))]
+        [else
+         (make-Module name
+                      (make-ModuleName (rewrite-path self-path))
+                      (parse-prefix prefix)
+                      (parse-mod-requires self-modidx requires)
+                      (parse-mod-provides provides)
+                      (parse-mod-body body))]))]))
 
 
 ;; parse-mod-requires: module-path-index (listof (pair (U Integer #f) (listof module-path-index))) -> (listof ModuleName)

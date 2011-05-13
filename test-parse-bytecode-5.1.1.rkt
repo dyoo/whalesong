@@ -331,7 +331,8 @@
  (match (run-my-parse #'(module foo racket/base
                           42))
    [(struct Top ((struct Prefix (list))
-                 (struct Module ((? ModuleName?)
+                 (struct Module ((? symbol?)
+                                 (? ModuleName?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
                                  _  ;; provides
@@ -345,7 +346,8 @@
                           (provide x)
                           (define x "x")))
    [(struct Top ((struct Prefix ((? list?)))
-                 (struct Module ((? ModuleName?)
+                 (struct Module ((? symbol?)
+                                 (? ModuleName?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
                                  (list (struct Provided ('x 'x)))  ;; provides

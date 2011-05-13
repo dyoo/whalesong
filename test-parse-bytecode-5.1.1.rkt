@@ -377,20 +377,17 @@
  (run-my-parse #'(case-lambda [(x) x]
                               [(x y) (list x y)])))
 
-
-;; make sure we don't see an infinite loop
-#;(run-zo-parse #'(letrec ([g (lambda () (g))])
-                  (g)))
-(run-my-parse #'(letrec ([g (lambda () (g))])
-                        (g)))
-;; todo: add tests to make sure we're parsing this as expected.  We expect to see an EmptyClosureReference here.
+(void
+ (run-my-parse #'(letrec ([g (lambda () (g))])
+                   (g))))
 
 
-#;(run-zo-parse #'(letrec ([g (lambda () (h))]
-                           [h (lambda () (g))])
-                    (g)))
-;; FIXME: we need to handle closure cycles here.
 
+
+(void
+ (run-my-parse #'(letrec ([g (case-lambda [() (g)]
+                                          [(x y) (g x y)])])
+                   (g))))
 
 
 

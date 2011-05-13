@@ -147,7 +147,9 @@
           [(PrimitiveKernelValue? exp)
            '()]
           [(VariableReference? exp)
-           (loop (VariableReference-toplevel exp) cenv)])))
+           (loop (VariableReference-toplevel exp) cenv)]
+          [(Require? exp)
+           '()])))
 
 
 
@@ -270,7 +272,9 @@
     [(PrimitiveKernelValue? exp)
      (compile-primitive-kernel-value exp cenv target linkage)]
     [(VariableReference? exp)
-     (compile-variable-reference exp cenv target linkage)]))
+     (compile-variable-reference exp cenv target linkage)]
+    [(Require? exp)
+     (compile-require exp cenv target linkage)]))
 
 
 
@@ -339,6 +343,14 @@
 
 	   after-module-body))))
 
+(: compile-require (Require CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-require exp cenv target linkage)
+  (end-with-linkage linkage cenv
+   (append-instruction-sequences
+    (compile-module-invoke (Require-path exp))
+    (make-instruction-sequence
+     `(,(make-AssignImmediateStatement target (make-Const (void))))))))
+
 
 (: compile-module-invoke (ModuleName -> InstructionSequence))
 ;; Generates code that will invoke a module (if it hasn't been invoked yet)
@@ -357,8 +369,9 @@
      ;; TODO: raise an exception here that says that the module hasn't been
      ;; linked yet.
      ,(make-DebugPrint (make-Const 
-		        (format "DEBUG: the module ~a hasn't been linked in yet!"
+		        (format "DEBUG: the module ~a hasn't been linked in!!!"
 				(ModuleName-name a-module-name))))
+     ,(make-GotoStatement (make-Label already-loaded))
      ,linked
      ,(make-TestAndBranchStatement (make-TestTrue 
 				    (make-IsModuleInvoked a-module-name))
@@ -2233,4 +2246,6 @@
     [(VariableReference? exp)
      (make-VariableReference 
       (ensure-toplevelref
-       (adjust-expression-depth (VariableReference-toplevel exp) n skip)))]))
+       (adjust-expression-depth (VariableReference-toplevel exp) n skip)))]
+    [(Require? exp)
+     exp]))

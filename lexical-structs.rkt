@@ -17,7 +17,8 @@
 
 
 ;; A ModuleName is an identifier for a Module.
-(define-struct: ModuleName ([name : Symbol])
+(define-struct: ModuleName ([name : Symbol]
+                            [real-path : (U Symbol Path)])
   #:transparent)
 
 

@@ -7,13 +7,16 @@
          syntax/modresolve)
 
 
-;; Parsing Racket 5.1.1 bytecode structures into our own.
+;; Parsing Racket 5.1.1 bytecode structures into our own structures.
+
 (require compiler/zo-parse
          racket/match
          racket/list)
 
+
 (provide parse-bytecode
-         current-module-path-index-resolver
+         ;current-module-path-index-resolver
+         ;current-module-path-resolver
          current-module-path
          reset-lam-label-counter!/unit-testing)
 
@@ -31,6 +34,13 @@
         'self]
        [else
         (resolve-module-path-index mpi relative-to)]))))
+
+
+(define current-module-path-resolver 
+  (make-parameter 
+   (lambda (module-path relative-to)
+     (resolve-module-path module-path relative-to))))
+
 
 
 (define (self-module-path-index? mpi)
@@ -150,9 +160,16 @@
 (define (wrap-module-name resolved-path-name)
   (cond
     [(symbol? resolved-path-name)
-     (make-ModuleName resolved-path-name)]
+     (make-ModuleName resolved-path-name resolved-path-name)]
     [(path? resolved-path-name)
-     (make-ModuleName (rewrite-path resolved-path-name))]))
+     (let ([rewritten-path (rewrite-path resolved-path-name)])
+       (cond
+         [(symbol? rewritten-path)
+          (make-ModuleName (rewrite-path resolved-path-name) resolved-path-name)]
+         [else
+          (error 'wrap-module-name "Unable to resolve module path ~s" resolved-path-name)]))]))
+          
+       
 
 
 
@@ -199,8 +216,53 @@
   (make-Constant (void)))
 
 
+
 (define (parse-req form)
-  (error 'fixme-req))
+  (let ([resolver (current-module-path-resolver)])
+    (match form
+      [(struct req (reqs dummy))
+       (let ([require-statement (parse-req-reqs reqs)])
+         (match require-statement
+           [(list '#%require (and (? module-path?) path))
+            (let ([resolved-path ((current-module-path-resolver) path (current-module-path))])
+              (cond
+                [(symbol? resolved-path)
+                 (make-Require (make-ModuleName resolved-path resolved-path))]
+                [(path? resolved-path)
+                 (let ([rewritten-path (rewrite-path resolved-path)])
+                   (cond
+                     [(symbol? rewritten-path)
+                      (make-Require (make-ModuleName rewritten-path resolved-path))]
+                     [else
+                      (printf "Internal error: I don't know how to handle the require for ~s" require-statement)
+                      (error 'parse-req)]))]
+                [else
+                 (printf "Internal error: I don't know how to handle the require for ~s" require-statement)
+                 (error 'parse-req)]))]
+           [else
+            (printf "Internal error: I don't know how to handle the require for ~s" require-statement)
+            (error 'parse-req)]))])))
+     
+;; parse-req-reqs: (stx -> (listof ModuleName))
+(define (parse-req-reqs reqs)
+  (match reqs
+    [(struct stx (encoded))
+     (unwrap-wrapped encoded)]))
+
+(define (unwrap-wrapped encoded)
+  (cond [(wrapped? encoded)
+         (match encoded 
+           [(struct wrapped (datum wraps certs))
+            (unwrap-wrapped datum)])]
+        [(pair? encoded)
+         (cons (unwrap-wrapped (car encoded))
+               (unwrap-wrapped (cdr encoded)))]
+        [(null? encoded)
+         null]
+        [else
+         encoded]))
+
+
 
 
 ;; parse-seq: seq -> Expression
@@ -208,6 +270,7 @@
   (match form
     [(struct seq (forms))
      (make-Seq (map parse-form-item forms))]))
+
 
 ;; parse-form-item: (U form Any) -> Expression
 (define (parse-form-item item)
@@ -247,18 +310,23 @@
        (cond
         [(symbol? self-path)
          (make-Module name
-                      (make-ModuleName self-path)
+                      (make-ModuleName self-path self-path)
                       (parse-prefix prefix)
                       (parse-mod-requires self-modidx requires)
                       (parse-mod-provides provides)
                       (parse-mod-body body))]
         [else
-         (make-Module name
-                      (make-ModuleName (rewrite-path self-path))
-                      (parse-prefix prefix)
-                      (parse-mod-requires self-modidx requires)
-                      (parse-mod-provides provides)
-                      (parse-mod-body body))]))]))
+         (let ([rewritten-path (rewrite-path self-path)])
+           (cond
+             [(symbol? rewritten-path)
+              (make-Module name
+                           (make-ModuleName rewritten-path self-path)
+                           (parse-prefix prefix)
+                           (parse-mod-requires self-modidx requires)
+                           (parse-mod-provides provides)
+                           (parse-mod-body body))]
+             [else
+              (error 'parse-mod "Internal error: unable to resolve module path ~s" self-path)]))]))]))
 
 
 ;; parse-mod-requires: module-path-index (listof (pair (U Integer #f) (listof module-path-index))) -> (listof ModuleName)
@@ -411,14 +479,30 @@
     [(vector? name)
      (match name
        [(vector (and (? symbol?) sym)
-                (and (? path?) path) 
+                (and (? path?) source) 
+                (and (? number?) line)
+                (and (? number?) column)
+                (and (? number?) offset)
+                (and (? number?) span)
+                _)
+        (let ([try-to-rewrite (rewrite-path source)])
+          (make-LamPositionalName sym
+                                  (if try-to-rewrite
+                                      (symbol->string try-to-rewrite)
+                                      (path->string source))
+                                  line
+                                  column 
+                                  offset
+                                  span))]
+       [(vector (and (? symbol?) sym)
+                (and (? symbol?) source) 
                 (and (? number?) line)
                 (and (? number?) column)
                 (and (? number?) offset)
                 (and (? number?) span)
                 _)
         (make-LamPositionalName sym
-                                (path->string path)
+                                (symbol->string source)
                                 line
                                 column 
                                 offset
@@ -509,6 +593,8 @@
 
 
 (define (parse-topsyntax expr)
+  ;; We should not get into this because we're only parsing the runtime part of
+  ;; the bytecode.
   (error 'fixme-topsyntax))
 
 

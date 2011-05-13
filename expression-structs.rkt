@@ -29,7 +29,9 @@
                          DefValues
                          PrimitiveKernelValue
                          Module
-                         VariableReference))
+                         VariableReference
+                         Require))
+
 
 
 (define-struct: Provided ([name : Symbol]
@@ -87,7 +89,7 @@
 
 ;; We may have more information about the lambda's name.  This will show it.
 (define-struct: LamPositionalName ([name : Symbol] 
-                                   [path : String] 
+                                   [path : String]    ;; the source of the name
                                    [line : Natural] 
                                    [column : Natural] 
                                    [offset : Natural] 
@@ -147,7 +149,7 @@
 (define-struct: VariableReference ([toplevel : ToplevelRef]) #:transparent)
 
 
-
+(define-struct: Require ([path : ModuleName]) #:transparent)
 
 
 

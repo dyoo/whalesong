@@ -4,6 +4,7 @@
          rackunit
          racket/match
          (for-syntax racket/base)
+         "parameters.rkt"
          "parse-bytecode-5.1.1.rkt"
          "lexical-structs.rkt"
          "expression-structs.rkt")
@@ -335,7 +336,6 @@
                                  (? ModuleName?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
-                                 _  ;; provides
                                  (struct Splice ((list (struct ApplyValues 
                                                          ((struct ToplevelRef ('0 '0)) (struct Constant ('42)))))))))))
     #t]))
@@ -350,7 +350,6 @@
                                  (? ModuleName?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
-                                 (list (struct Provided ('x 'x)))  ;; provides
                                  (struct Splice ((list (struct DefValues 
                                                          ((list (struct ToplevelRef ('0 '0)))
                                                           (struct Constant ("x")))))))))))
@@ -391,11 +390,28 @@
 
 
 
+(void
+ (run-my-parse #'(module foo '#%kernel
+                   (define-values (f) 42)
+                   (#%provide f))))
+              
 
-
-
-
-
+(check-true
+ (match (parameterize ([current-root-path (build-path "/blah")]
+                       [current-module-path (build-path "/blah" "foo" "bar.rkt")])
+                (run-my-parse '(module foo '#%kernel
+                                 (define-values (f) 'ok)
+                                 (#%provide f))))
+   [(struct Top ((struct Prefix ((list '#f)))
+                 (struct Module ('foo
+                                 (struct ModuleName ('self _ #;(build-path "root/foo/bar.rkt")))
+                                 (struct Prefix ((list 'f)))
+                                 (list (struct ModuleName ('#%kernel '#%kernel)))
+                                 (struct Splice ((list (struct DefValues ((list (struct ToplevelRef (0 0)))
+                                                                          (struct Constant ('ok)))))))))))
+    '#t]))
+ 
+ 
 #;(parameterize ([current-module-path
                   "/home/dyoo/local/racket-5.1.1/lib/racket/collects/racket/private/foo.rkt"])
     (run-my-parse/file "/home/dyoo/local/racket-5.1.1/lib/racket/collects/racket/private/for.rkt"))

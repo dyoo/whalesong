@@ -4,6 +4,7 @@
          "lexical-structs.rkt"
          "typed-module-path.rkt"
          "path-rewriter.rkt"
+         "parameters.rkt"
          syntax/modresolve)
 
 
@@ -15,13 +16,9 @@
 
 
 (provide parse-bytecode
-         ;current-module-path-index-resolver
-         ;current-module-path-resolver
-         current-module-path
+         parse-bytecode/single-module
          reset-lam-label-counter!/unit-testing)
 
-
-(define current-module-path (make-parameter #f))
 
 
 ;; current-module-path-index-resolver: (module-path-index (U Path #f) -> (U Symbol Path)) -> void
@@ -30,6 +27,8 @@
   (make-parameter 
    (lambda (mpi relative-to)
      (cond
+       [(eq? mpi #f)
+        'self]
        [(self-module-path-index? mpi)
         'self]
        [else
@@ -110,6 +109,29 @@
   (parameterize ([seen-closures (make-hasheq)])
     (let ([compilation-top (zo-parse in)])
       (parse-top compilation-top))))
+
+
+
+;; Similar to parse-bytecode, but does a little cleanup to make
+;; sure the name is as expected.
+(define (parse-bytecode/single-module in path-name)
+  (let ([parsed (parse-bytecode in)])
+    (match parsed
+      [(struct Top 
+         (prefix 
+          (struct Module (name (struct ModuleName ('self 'self))
+                               prefix 
+                               requires
+                               body))))
+       (make-Top prefix
+                 (make-Module name 
+                              (make-ModuleName path-name 'self)
+                              prefix
+                              requires
+                              body))])))
+         
+
+
 
 
 (define (parse-top a-top)
@@ -313,7 +335,6 @@
                       (make-ModuleName self-path self-path)
                       (parse-prefix prefix)
                       (parse-mod-requires self-modidx requires)
-                      (parse-mod-provides provides)
                       (parse-mod-body body))]
         [else
          (let ([rewritten-path (rewrite-path self-path)])
@@ -323,7 +344,6 @@
                            (make-ModuleName rewritten-path self-path)
                            (parse-prefix prefix)
                            (parse-mod-requires self-modidx requires)
-                           (parse-mod-provides provides)
                            (parse-mod-body body))]
              [else
               (error 'parse-mod "Internal error: unable to resolve module path ~s" self-path)]))]))]))
@@ -351,21 +371,6 @@
          (loop (rest requires))]))))
 
 
-(define (parse-mod-provides provides)
-  (let* ([resolver (current-module-path-index-resolver)]
-         [parse-provided (lambda (a-provided)
-                           (match a-provided
-                             [(struct provided (name src src-name nom-mod src-phase protected? insp))
-                              ;; fixme: we're not considering all of the fields here...
-                              (make-Provided name src-name)]))])
-    (let loop ([provides provides])
-      (cond
-        [(empty? provides)
-         empty]
-        [(= (first (first provides)) 0)
-         (map parse-provided (second (first provides)))]
-        [else
-         (loop (rest provides))]))))
 
 
 

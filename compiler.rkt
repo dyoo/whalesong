@@ -6,6 +6,7 @@
          "compiler-structs.rkt"
          "kernel-primitives.rkt"
          "optimize-il.rkt"
+         racket/match
          racket/bool
          racket/list)
 
@@ -308,40 +309,44 @@
   ;; fixme: this is not right yet.  This should instead install a module record
   ;; that has not yet been invoked.
   ;; fixme: This also needs to generate code for the requires and provides.
-  (let*: ([after-module-body (make-label 'afterModuleBody)]
-	  [module-entry (make-label 'module-entry)]
-	  [names : (Listof (U False Symbol GlobalBucket ModuleVariable))
-                 (Prefix-names (Module-prefix mod))]
-	  [module-cenv : CompileTimeEnvironment (list (Module-prefix mod))])
-
-         (end-with-linkage 
-          linkage cenv
-          (append-instruction-sequences
-           (make-instruction-sequence
-	    `(,(make-GotoStatement (make-Label after-module-body))))
-
-	   ;; Module body definition
-	   (apply append-instruction-sequences 
-		  (map compile-module-invoke (Module-requires mod)))
-
-	   (make-instruction-sequence 
-            `(,module-entry
-	      ,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
-	   ;; TODO: we need to sequester the prefix of the module with the record.
-           (compile (Module-code mod) 
-                    (cons (Module-prefix mod) module-cenv)
-                    target
-                    next-linkage/drop-multiple)
-
-	   ;; Cleanup
-           (make-instruction-sequence
-            `(,(make-PopEnvironment (make-Const 1) 
-                                    (make-Const 0))
-	      ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-	      ,(make-PopControlFrame)
-	      ,(make-GotoStatement (make-Reg 'proc))))
-
-	   after-module-body))))
+  (match mod
+    [(struct Module (name path prefix requires code))
+     (let*: ([after-module-body (make-label 'afterModuleBody)]
+             [module-entry (make-label 'module-entry)]
+             [names : (Listof (U False Symbol GlobalBucket ModuleVariable))
+                    (Prefix-names prefix)]
+             [module-cenv : CompileTimeEnvironment (list prefix)])
+            
+            (end-with-linkage 
+             linkage cenv
+             (append-instruction-sequences
+              (make-instruction-sequence
+               `(,(make-PerformStatement (make-InstallModuleEntry! name path module-entry))
+                 ,(make-GotoStatement (make-Label after-module-body))))
+              
+              
+              module-entry
+              ;; Module body definition:
+              ;; 1.  First invoke all the modules that this requires.
+              (apply append-instruction-sequences (map compile-module-invoke (Module-requires mod)))
+           
+              ;; 2.  Next, evaluate the module body.
+              (make-instruction-sequence 
+               `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+              ;; TODO: we need to sequester the prefix of the module with the record.
+              (compile (Module-code mod) 
+                       (cons (Module-prefix mod) module-cenv)
+                       'val
+                       next-linkage/drop-multiple)
+              
+              ;; 3. Finally, cleanup and return.
+              (make-instruction-sequence
+               `(,(make-PopEnvironment (make-Const 1) (make-Const 0))
+                 ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+                 ,(make-PopControlFrame)
+                 ,(make-GotoStatement (make-Reg 'proc))))
+              
+              after-module-body)))]))
 
 (: compile-require (Require CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-require exp cenv target linkage)
@@ -2097,7 +2102,6 @@
                   (Module-path exp)
                   (Module-prefix exp)
                   (Module-requires exp)
-                  (Module-provides exp)
                   (adjust-expression-depth (Module-code exp) n (add1 skip)))]
     
     [(Constant? exp)

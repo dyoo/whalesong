@@ -1,16 +1,14 @@
 #lang racket/base
 
-(require racket/path
+(require "parameters.rkt"
+         racket/path
          racket/contract
          racket/list
          racket/runtime-path)
 
 
 
-(provide/contract [rewrite-path (complete-path? . -> . (or/c symbol? false/c))]
-                  [current-root-path parameter?])
-
-
+(provide/contract [rewrite-path (complete-path? . -> . (or/c symbol? false/c))])
 
 
 
@@ -20,9 +18,6 @@
     (normalize-path this-path)))
 
 
-
-(define current-root-path
-  (make-parameter (normalize-path (current-directory))))
 
 
 ;; The path rewriter takes paths and provides a canonical symbol for it.

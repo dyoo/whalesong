@@ -33,16 +33,10 @@
                          Require))
 
 
-
-(define-struct: Provided ([name : Symbol]
-                          [src-name : Symbol])
-  #:transparent)
-
 (define-struct: Module ([name : Symbol]
                         [path : ModuleName]
                         [prefix : Prefix]
                         [requires : (Listof ModuleName)]
-                        [provides : (Listof Provided)]
                         [code : Expression])
   #:transparent)
 

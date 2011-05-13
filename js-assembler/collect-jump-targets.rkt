@@ -1,8 +1,8 @@
 #lang typed/racket/base
-(require "expression-structs.rkt"
-         "il-structs.rkt"
-	 "lexical-structs.rkt"
-	 "helpers.rkt"
+(require "../expression-structs.rkt"
+         "../il-structs.rkt"
+	 "../lexical-structs.rkt"
+	 "../helpers.rkt"
 	 racket/list)
 
 (provide collect-general-jump-targets)

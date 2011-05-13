@@ -3,7 +3,7 @@
 (provide (all-defined-out))
 
 
-(require "il-structs.rkt")
+(require "../il-structs.rkt")
 
 
 

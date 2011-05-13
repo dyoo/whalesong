@@ -1,10 +1,10 @@
 #lang typed/racket/base
 
-(require "il-structs.rkt"
-         "lexical-structs.rkt"
-	 "assemble-structs.rkt"
+(require "assemble-structs.rkt"
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
+         "../il-structs.rkt"
+         "../lexical-structs.rkt"
          racket/string
          racket/list)
 

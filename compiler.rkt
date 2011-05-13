@@ -579,6 +579,7 @@
 
 
 (: compile-begin0 ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; FIXME: this is broken at the moment.
 (define (compile-begin0 seq cenv target linkage)
   (cond
     [(empty? seq)

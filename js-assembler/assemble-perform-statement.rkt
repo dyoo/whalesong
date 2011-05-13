@@ -1,7 +1,7 @@
 #lang typed/racket/base
-(require "il-structs.rkt"
-	 "assemble-helpers.rkt"
-	 "lexical-structs.rkt"
+(require "assemble-helpers.rkt"
+         "../il-structs.rkt"
+	 "../lexical-structs.rkt"
 	 racket/string)
 
 (provide assemble-op-statement)

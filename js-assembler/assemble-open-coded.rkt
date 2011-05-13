@@ -1,9 +1,9 @@
 #lang typed/racket/base
 
-(require "il-structs.rkt"
-         "lexical-structs.rkt"
-         "assemble-helpers.rkt"
-         "kernel-primitives.rkt"
+(require "assemble-helpers.rkt"
+         "../il-structs.rkt"
+         "../lexical-structs.rkt"
+         "../kernel-primitives.rkt"
          racket/string
          racket/list)
 

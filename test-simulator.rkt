@@ -2,9 +2,9 @@
 
 (require "il-structs.rkt"
          "lexical-structs.rkt"
-         "simulator-structs.rkt"
-         "simulator-primitives.rkt"
-         "simulator.rkt")
+         "simulator/simulator-structs.rkt"
+         "simulator/simulator-primitives.rkt"
+         "simulator/simulator.rkt")
 
 
 (define-syntax (test stx)

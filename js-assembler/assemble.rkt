@@ -1,14 +1,14 @@
 #lang typed/racket/base
-(require "il-structs.rkt"
-         "lexical-structs.rkt"
-         "helpers.rkt"
-         "assemble-structs.rkt"
+(require "assemble-structs.rkt"
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
          "assemble-expression.rkt"
          "assemble-perform-statement.rkt"
          "collect-jump-targets.rkt"
-         "expression-structs.rkt"
+         "../il-structs.rkt"
+         "../lexical-structs.rkt"
+         "../helpers.rkt"
+         "../expression-structs.rkt"
          racket/string
          racket/list)
 

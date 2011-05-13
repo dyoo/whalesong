@@ -2,7 +2,7 @@
 
 (require "compiler.rkt"
          "compiler-structs.rkt"
-         "assemble.rkt"
+         "js-assembler/assemble.rkt"
          "typed-parse.rkt"
          "il-structs.rkt"
          "bootstrapped-primitives.rkt"

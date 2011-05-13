@@ -1,6 +1,6 @@
 #lang racket
 
-(require "assemble.rkt"
+(require "js-assembler/assemble.rkt"
          "browser-evaluate.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"

@@ -34,6 +34,8 @@
                       CompiledProcedureEntry
                       CompiledProcedureClosureReference
                       ModuleEntry
+                      IsModuleInvoked
+		      IsModuleLinked
                       PrimitiveKernelValue
                       VariableReference))
 
@@ -89,13 +91,21 @@
   #:transparent)
 
 
-
 (define-struct: PrimitivesReference ([name : Symbol])
   #:transparent)
 
-
+;; Produces the entry point of the module.
 (define-struct: ModuleEntry ([name : ModuleName])
   #:transparent)
+
+;; Produces true if the module has already been invoked
+(define-struct: IsModuleInvoked ([name : ModuleName])
+  #:transparent)
+
+;; Produces true if the module has been loaded into the machine
+(define-struct: IsModuleLinked ([name : ModuleName])
+  #:transparent)
+
 
 
 
@@ -288,12 +298,14 @@
 ;; Primitive tests (used with TestAndBranch)
 (define-type PrimitiveTest (U 
                             TestFalse
+                            TestTrue
                             TestOne
                             TestZero
                             TestPrimitiveProcedure
                             TestClosureArityMismatch
                             ))
 (define-struct: TestFalse ([operand : OpArg]) #:transparent)
+(define-struct: TestTrue ([operand : OpArg]) #:transparent)
 (define-struct: TestOne ([operand : OpArg]) #:transparent)
 (define-struct: TestZero ([operand : OpArg]) #:transparent)
 (define-struct: TestPrimitiveProcedure ([operand : OpArg]) #:transparent)

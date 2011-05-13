@@ -56,6 +56,10 @@
      (assemble-primitive-kernel-value v)]
     [(ModuleEntry? v)
      (assemble-module-entry v)]
+    [(IsModuleInvoked? v)
+     (assemble-is-module-invoked v)]
+    [(IsModuleLinked? v)
+     (assemble-is-module-linked v)]
     [(VariableReference? v)
      (assemble-variable-reference v)]))
 
@@ -276,6 +280,18 @@
 (define (assemble-module-entry entry)
   (format "MACHINE.modules[~s].label"
           (symbol->string (ModuleName-name (ModuleEntry-name entry)))))
+
+
+(: assemble-is-module-invoked (IsModuleInvoked -> String))
+(define (assemble-is-module-invoked entry)
+  (format "MACHINE.modules[~s].label"
+          (symbol->string (ModuleName-name (IsModuleInvoked-name entry)))))
+
+
+(: assemble-is-module-linked (IsModuleLinked -> String))
+(define (assemble-is-module-linked entry)
+  (format "(MACHINE.modules[~s] !== undefined)"
+          (symbol->string (ModuleName-name (IsModuleLinked-name entry)))))
 
 
 

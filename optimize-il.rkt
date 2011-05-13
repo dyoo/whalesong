@@ -141,6 +141,10 @@
      oparg]
     [(ModuleEntry? oparg)
      oparg]
+    [(IsModuleInvoked? oparg)
+     oparg]
+    [(IsModuleLinked? oparg)
+     oparg]
     [(VariableReference? oparg)
      (let ([t (VariableReference-toplevel oparg)])
        (make-VariableReference 

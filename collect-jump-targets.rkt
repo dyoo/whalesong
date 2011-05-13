@@ -96,6 +96,10 @@
     empty]
    [(ModuleEntry? an-input)
     empty]
+   [(IsModuleInvoked? an-input)
+    empty]
+   [(IsModuleLinked? an-input)
+    empty]
    [(VariableReference? an-input)
     empty]))
 

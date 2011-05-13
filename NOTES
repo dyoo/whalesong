@@ -468,3 +468,31 @@ the prompt splicing.
 ----------------------------------------------------------------------
 
 
+May 13,
+
+begin0 is still broken; I'm a bit unsatisfied with the way that it's
+coded, and I know it's not correct yet.
+
+The other thing that's I'm sure needs to be looked at again are the
+implementation of prompts.
+
+
+modules are almost in place.  Needs a mechanism for loading modules on
+the fly on the network, as well as some kind of predicable namespacing
+mechanism.  I think the compiler will need to include something like a
+
+    (current-module-name-canonizer)
+
+which takes module names (symbol, path-string) and systematically
+translates them to predictable identifiers.  Anything refering to a
+collection should be translated to
+
+    collects/...
+
+Anything outside that should be given a name relative to some root.
+One should be able to say:
+
+    root the translation at "/home/dyoo/work/js-sicp-5.5/examples"
+
+where all translated paths are either from collections, or reachable
+from the root.  That way, we get predictable paths.

@@ -204,6 +204,10 @@ EOF
                      (format "if (~a === false) { ~a }"
                              (assemble-oparg (TestFalse-operand test))
                              jump)]
+                    [(TestTrue? test)
+                     (format "if (~a !== false) { ~a }"
+                             (assemble-oparg (TestTrue-operand test))
+                             jump)]
                     [(TestOne? test)
                      (format "if (~a === 1) { ~a }"
                              (assemble-oparg (TestOne-operand test))

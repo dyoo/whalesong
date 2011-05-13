@@ -207,25 +207,26 @@
 (: step-test-and-branch! (machine TestAndBranchStatement -> 'ok))
 (define (step-test-and-branch! m stmt)
   (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
-        (if (let: ([v : Boolean (cond
-                                  [(TestFalse? test)
-                                   (not (evaluate-oparg m (TestFalse-operand test)))]
-                                  [(TestOne? test)
-                                   (= (ensure-natural (evaluate-oparg m (TestOne-operand test)))
-                                      1)]
-				  [(TestZero? test)
-				   (= (ensure-natural (evaluate-oparg m (TestZero-operand test)))
-                                      0)]
-                                  [(TestPrimitiveProcedure? test)
-                                   (primitive-proc? (evaluate-oparg m (TestPrimitiveProcedure-operand test)))]
-                                  [(TestClosureArityMismatch? test)
-                                   (let ([proc (ensure-closure
-                                                (evaluate-oparg m (TestClosureArityMismatch-closure test)))]
-                                         [n (ensure-natural 
-                                             (evaluate-oparg m (TestClosureArityMismatch-n test)))])
-                                     (not (arity-match? (closure-arity proc) n)))])])
-
-                  v)
+        (if (ann (cond
+		  [(TestFalse? test)
+		   (not (evaluate-oparg m (TestFalse-operand test)))]
+		  [(TestTrue? test)
+		   (and (evaluate-oparg m (TestTrue-operand test)) #t)]
+		  [(TestOne? test)
+		   (= (ensure-natural (evaluate-oparg m (TestOne-operand test)))
+		      1)]
+		  [(TestZero? test)
+		   (= (ensure-natural (evaluate-oparg m (TestZero-operand test)))
+		      0)]
+		  [(TestPrimitiveProcedure? test)
+		   (primitive-proc? (evaluate-oparg m (TestPrimitiveProcedure-operand test)))]
+		  [(TestClosureArityMismatch? test)
+		   (let ([proc (ensure-closure
+				(evaluate-oparg m (TestClosureArityMismatch-closure test)))]
+			 [n (ensure-natural 
+			     (evaluate-oparg m (TestClosureArityMismatch-n test)))])
+		     (not (arity-match? (closure-arity proc) n)))])
+		 Boolean)
             (jump! m (TestAndBranchStatement-label stmt))
             'ok)))
 
@@ -791,6 +792,15 @@
      (let ([a-module (hash-ref (machine-modules m) 
                                (ModuleName-name (ModuleEntry-name an-oparg)))])
        (module-record-label a-module))]
+
+    [(IsModuleInvoked? an-oparg)
+     (let ([a-module (hash-ref (machine-modules m) 
+                               (ModuleName-name (IsModuleInvoked-name an-oparg)))])
+       (module-record-invoked? a-module))]
+
+    [(IsModuleLinked? an-oparg)
+     (hash-has-key? (machine-modules m) 
+		    (ModuleName-name (IsModuleLinked-name an-oparg)))]
 
     [(VariableReference? an-oparg)
      (let ([t (VariableReference-toplevel an-oparg)])

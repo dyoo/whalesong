@@ -165,6 +165,50 @@
 
 
 
+
+(: end-with-linkage (Linkage CompileTimeEnvironment InstructionSequence -> InstructionSequence))
+;; Add linkage for expressions.
+(define (end-with-linkage linkage cenv instruction-sequence)
+  (append-instruction-sequences instruction-sequence
+                                (compile-linkage cenv linkage)))
+
+
+
+
+(: compile-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
+;; Generates the code necessary to drive the rest of the computation (represented as the linkage).
+(define (compile-linkage cenv linkage)
+  (cond
+    [(ReturnLinkage? linkage)
+     (cond
+       [(ReturnLinkage-tail? linkage)
+        ;; Under tail calls, clear the environment of the current stack frame (represented by cenv)
+        ;; and do the jump.
+        (make-instruction-sequence 
+         `(,(make-PopEnvironment (make-Const (length cenv)) 
+                                 (make-Const 0))
+           ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+           ,(make-PopControlFrame)
+           ,(make-GotoStatement (make-Reg 'proc))))]
+       [else
+        ;; Under non-tail calls, leave the stack as is and just do the jump.
+        (make-instruction-sequence
+         `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+           ,(make-PopControlFrame)
+           ,(make-GotoStatement (make-Reg 'proc))))])]
+    
+    [(NextLinkage? linkage)
+     empty-instruction-sequence]
+ 
+    [(LabelLinkage? linkage)
+     (make-instruction-sequence 
+      `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
+
+
+
+
+
+
 (: compile (Expression CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; The main dispatching function for compilation.
 ;; Compiles an expression into an instruction sequence.
@@ -256,66 +300,82 @@
 (: compile-module (Module CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Generates code to write out the top prefix, evaluate the rest of the body,
 ;; and then pop the top prefix off.
-(define (compile-module top cenv target linkage)
+(define (compile-module mod cenv target linkage)
   ;; fixme: this is not right yet.  This should instead install a module record
   ;; that has not yet been invoked.
   ;; fixme: This also needs to generate code for the requires and provides.
-  (let*: ([names : (Listof (U False Symbol GlobalBucket ModuleVariable))
-                 (Prefix-names (Module-prefix top))])
+  (let*: ([after-module-body (make-label 'afterModuleBody)]
+	  [module-entry (make-label 'module-entry)]
+	  [names : (Listof (U False Symbol GlobalBucket ModuleVariable))
+                 (Prefix-names (Module-prefix mod))]
+	  [module-cenv : CompileTimeEnvironment (list (Module-prefix mod))])
+
          (end-with-linkage 
           linkage cenv
           (append-instruction-sequences
-           (make-instruction-sequence 
-            `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
-           (compile (Module-code top) 
-                    (cons (Module-prefix top) cenv)
+           (make-instruction-sequence
+	    `(,(make-GotoStatement (make-Label after-module-body))))
+
+	   ;; Module body definition
+	   (apply append-instruction-sequences 
+		  (map compile-module-invoke (Module-requires mod)))
+
+	   (make-instruction-sequence 
+            `(,module-entry
+	      ,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+	   ;; TODO: we need to sequester the prefix of the module with the record.
+           (compile (Module-code mod) 
+                    (cons (Module-prefix mod) module-cenv)
                     target
                     next-linkage/drop-multiple)
+
+	   ;; Cleanup
            (make-instruction-sequence
             `(,(make-PopEnvironment (make-Const 1) 
-                                    (make-Const 0))))))))
+                                    (make-Const 0))
+	      ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+	      ,(make-PopControlFrame)
+	      ,(make-GotoStatement (make-Reg 'proc))))
+
+	   after-module-body))))
+
+
+(: compile-module-invoke (ModuleName -> InstructionSequence))
+;; Generates code that will invoke a module (if it hasn't been invoked yet)
+;; FIXME: assumes the module has already been linked.  We should error out
+;; if the module hasn't been linked yet.
+(define (compile-module-invoke a-module-name)
+  (let* ([linked (make-label 'linked)]
+	 [already-loaded (make-label 'alreadyLoaded)]
+	 [on-return-multiple (make-label 'onReturnMultiple)]
+	 [on-return (make-LinkedLabel (make-label 'onReturn)
+				     on-return-multiple)])
+  (make-instruction-sequence
+   `(,(make-TestAndBranchStatement (make-TestTrue
+				   (make-IsModuleLinked a-module-name))
+				  linked)
+     ;; TODO: raise an exception here that says that the module hasn't been
+     ;; linked yet.
+     ,(make-DebugPrint (make-Const 
+		        (format "DEBUG: the module ~a hasn't been linked in yet!"
+				(ModuleName-name a-module-name))))
+     ,linked
+     ,(make-TestAndBranchStatement (make-TestTrue 
+				    (make-IsModuleInvoked a-module-name))
+				   already-loaded)
+     ,(make-PushControlFrame/Call on-return)
+     ,(make-GotoStatement (make-ModuleEntry a-module-name))
+     ,on-return-multiple
+     ,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
+					     (make-Const 1))
+			   (make-Const 0))
+     ,on-return
+     ,already-loaded))))
 
 
 
 
 
-(: end-with-linkage (Linkage CompileTimeEnvironment InstructionSequence -> InstructionSequence))
-;; Add linkage for expressions.
-(define (end-with-linkage linkage cenv instruction-sequence)
-  (append-instruction-sequences instruction-sequence
-                                (compile-linkage cenv linkage)))
-
-
-
-
-(: compile-linkage (CompileTimeEnvironment Linkage -> InstructionSequence))
-;; Generates the code necessary to drive the rest of the computation (represented as the linkage).
-(define (compile-linkage cenv linkage)
-  (cond
-    [(ReturnLinkage? linkage)
-     (cond
-       [(ReturnLinkage-tail? linkage)
-        ;; Under tail calls, clear the environment of the current stack frame (represented by cenv)
-        ;; and do the jump.
-        (make-instruction-sequence 
-         `(,(make-PopEnvironment (make-Const (length cenv)) 
-                                 (make-Const 0))
-           ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-           ,(make-PopControlFrame)
-           ,(make-GotoStatement (make-Reg 'proc))))]
-       [else
-        ;; Under non-tail calls, leave the stack as is and just do the jump.
-        (make-instruction-sequence
-         `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-           ,(make-PopControlFrame)
-           ,(make-GotoStatement (make-Reg 'proc))))])]
-    
-    [(NextLinkage? linkage)
-     empty-instruction-sequence]
- 
-    [(LabelLinkage? linkage)
-     (make-instruction-sequence 
-      `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
 
 
 (: emit-singular-context (Linkage -> InstructionSequence))

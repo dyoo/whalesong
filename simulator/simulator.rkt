@@ -412,8 +412,10 @@
           
           [(InstallModuleEntry!? op)
            (hash-set! (machine-modules m)
-                      (ModuleName-name (InstallModuleEntry!-name op))
+                      (ModuleName-name (InstallModuleEntry!-path op))
                       (make-module-record (InstallModuleEntry!-name op)
+                                          (ModuleName-name 
+                                           (InstallModuleEntry!-path op))
                                           (InstallModuleEntry!-entry-point op)
                                           #f
                                           (make-hash)))

@@ -127,5 +127,6 @@
     
     [(InstallModuleEntry!? op)
      (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s, ~a);"
-             (symbol->string (ModuleName-name (InstallModuleEntry!-name op)))
+             (symbol->string (ModuleName-name (InstallModuleEntry!-path op)))
+             (symbol->string (InstallModuleEntry!-name op))
              (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]))

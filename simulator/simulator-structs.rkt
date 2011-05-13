@@ -62,7 +62,8 @@
   #:mutable)
 
 
-(define-struct: module-record ([name : ModuleName]
+(define-struct: module-record ([name : Symbol]
+                               [self-path : Symbol]
                                [label : Symbol]
                                [invoked? : Boolean]
                                [exports : (HashTable Symbol PrimitiveValue)])

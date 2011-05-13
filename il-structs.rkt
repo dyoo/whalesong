@@ -395,7 +395,8 @@
 
 
 ;; Installs a module record into the machine
-(define-struct: InstallModuleEntry! ([name : ModuleName]
+(define-struct: InstallModuleEntry! ([name : Symbol]
+                                     [path : ModuleName]
                                      [entry-point : Symbol])
   #:transparent)
 

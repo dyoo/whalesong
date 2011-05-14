@@ -1,6 +1,7 @@
-Compiler from Racket to JavaScript.
+Whalesong: a compiler from Racket to JavaScript.
 
 
+======================================================================
 
 
 Prerequisite: Racket 5.1.1.  The majority of the project is written
@@ -9,21 +10,29 @@ that's at least 5.1.1; otherwise, compilation may take an unusual
 amount of time.
 
 
+======================================================================
+
+Example usage
+
+[FIXME]
+
+
+
 
 ======================================================================
 
 Architecture:
 
 The basic idea is to reuse most of the Racket compiler infrastructure.
-The underlying Racket compiler will produce bytecode from Racket
-source, and perform macro expansion and module-level optimizations for
-us.  We will parse that bytecode using the compiler/zo-parse
-collection to get an AST, compile that to an intermediate language,
-and finally assemble JavaScript.
+We use the underlying Racket compiler to produce bytecode from Racket
+source; it also performs macro expansion and module-level
+optimizations for us.  We parse that bytecode using the
+compiler/zo-parse collection to get an AST, compile that to an
+intermediate language, and finally assemble JavaScript.
 
 
-                 AST          IL                     JS
- bytecode.rkt ----------> compiler.rkt --------> assembler.rkt ------->
+                        AST          IL                     JS
+ parse-bytecode.rkt ----------> compiler.rkt --------> assembler.rkt ------->
     (todo)
 
 
@@ -36,44 +45,36 @@ controlled environment.
 
 ======================================================================
 
-bytecode.rkt
+parse-bytecode-5.1.1.rkt
 
-dyoo is currently working on bytecode.rkt.  Not done yet.  This is
-intended to reuse the Racket compiler to produce the AST structures
-defined in compiler/zo-parse.
-
-
-
-For the moment there's a hacky parser in parse.rkt that produces the
-AST expression structures that are consumed by the rest of the system.
-
-
+This is intended to reuse the Racket compiler to produce the AST
+structures defined in compiler/zo-parse.
 
 
 ======================================================================
 
 compiler.rkt translates the AST to the intermediate language.  The
-compiler is similar to that of the register compiler in Structure and
+compiler has its origins in the register compiler in Structure and
 Interpretation of Computer Programs:
 
     http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-35.html#%_sec_5.5
 
-but with some significant modifications.  Since this is a stack
-machine, we don't need any of the register-saving infrastructure in
-the original compiler.  We also need to support slightly different
-linkage structures, since we want to support multiple value contexts.
-We're trying to generate code that works effectively on a machine like
-the one described in:
+with some significant modifications.  Since this is a stack machine,
+we don't need any of the register-saving infrastructure in the
+original compiler.  We also need to support slightly different linkage
+structures, since we want to support multiple value contexts.  We're
+trying to generate code that works effectively on a machine like the
+one described in:
 
     http://plt.eecs.northwestern.edu/racket-machine/
 
 
 
-
 The intermediate language is defined in il-structs.rkt, and a
-simulator for the IL in simulator.rkt.  See test-simulator.rkt to see
-the simulator in action, and test-compiler.rkt to see how the output
-of the compiler can be fed into the simulator.
+simulator for the IL in simulator/simulator.rkt.  See
+test-simulator.rkt to see the simulator in action, and
+test-compiler.rkt to see how the output of the compiler can be fed
+into the simulator.
 
 
 
@@ -94,8 +95,8 @@ and two stack registers:
 ======================================================================
 
 
-The JavaScript assembler is playing a few tricks to make things like
-tail calls work:
+The JavaScript assembler (js-assembler/assemble.rkt) plays a few
+tricks to make things like tail calls work:
 
 
    * Each basic block is translated to a function taking a MACHINE

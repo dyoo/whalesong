@@ -63,25 +63,25 @@ Before introducing the multiple-value jumps
 (172b1d9e5de823b53a6705fc87babfdd61152924), test-conform-browser
 reports the following times:
 
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5248 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5478 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5501 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5853 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5532 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5498 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5351 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5464 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5545 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5405 milliseconds)
 
 
@@ -91,23 +91,23 @@ reporting the following times:
 
 
 running test... ok (5281 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5554 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5588 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5509 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5428 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5387 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5539 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5355 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5551 milliseconds)
-fermi ~/work/js-sicp-5-5 $ racket test-conform-browser.rkt 
+fermi ~/work/whalesong $ racket test-conform-browser.rkt 
 running test... ok (5331 milliseconds)
 
 
@@ -468,7 +468,7 @@ the prompt splicing.
 ----------------------------------------------------------------------
 
 
-May 13,
+May 13, 2011
 
 begin0 is still broken; I'm a bit unsatisfied with the way that it's
 coded, and I know it's not correct yet.
@@ -496,3 +496,13 @@ One should be able to say:
 
 where all translated paths are either from collections, or reachable
 from the root.  That way, we get predictable paths.
+
+
+
+
+js-sicp-5-5 is an uninspired name for the project.  I'm renaming it to
+"Whalesong".  Whale, because it's related to the Moby-Scheme project,
+and song because, well, some songs can be called a "Racket".  :)
+
+
+----------------------------------------------------------------------

@@ -9,7 +9,7 @@
 
 (provide/contract [get-runtime (-> string?)])
          
-(define-runtime-path runtime.js "runtime.js")
+(define-runtime-path runtime.js "mini-runtime.js")
 
 (define text (call-with-input-file runtime.js
                (lambda (ip)

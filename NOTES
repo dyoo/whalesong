@@ -505,4 +505,11 @@ js-sicp-5-5 is an uninspired name for the project.  I'm renaming it to
 and song because, well, some songs can be called a "Racket".  :)
 
 
+
+I want to use Google Closure's compiler to minify.  Closure doesn't
+like some of the code, so I'll need to rename some of the identifiers
+in types.js to avoid colliding with Java keywords (char, float).
+
+
 ----------------------------------------------------------------------
+

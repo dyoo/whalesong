@@ -114,7 +114,7 @@ tricks to make things like tail calls work:
 
 
 Otherwise, the assembler is fairly straightforward.  It depends on
-library functions defined in runtime.js.  As soon as the compiler
+library functions defined in mini-runtime.js.  As soon as the compiler
 stabilizes, we will be pulling in the runtime library in Moby Scheme
 into this project.
 
@@ -139,3 +139,13 @@ JavaScript and make sure it is producing values.  A bridge module
 browser-evaluate.rkt brings up a temporary web server that allows us
 to pass values between Racket and the JavaScript evaluator on the
 browser.
+
+
+
+======================================================================
+
+This uses the following libraries:
+
+   jshashtable (http://www.timdown.co.uk/jshashtable/)
+   js-numbers (http://github.com/dyoo/js-numbers/)
+   JSON (http://www.json.org/js.html)

@@ -1,6 +1,7 @@
 #lang racket
 
 (require "js-assembler/assemble.rkt"
+         "js-assembler/get-runtime.rkt"
          "browser-evaluate.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
@@ -8,9 +9,8 @@
          racket/promise
          racket/runtime-path)
 
-(define-runtime-path runtime.js "runtime.js")
-(define runtime (call-with-input-file runtime.js
-                  (lambda (ip) (port->string ip))))
+(define runtime (get-runtime))
+
 
 ; Test out the compiler, using the simulator.
 (define-syntax (test stx)

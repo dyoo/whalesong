@@ -1,20 +1,17 @@
 #lang racket
 (require "browser-evaluate.rkt"
          "package.rkt"
+	 "js-assembler/get-runtime.rkt"
          racket/port
          racket/runtime-path)
 
-(define-runtime-path runtime.js "runtime.js")
 
 (define evaluate (make-evaluate 
                   (lambda (program op)
 
                     (fprintf op "(function () {")
                     
-                    ;; The runtime code
-                    (call-with-input-file* runtime.js
-                      (lambda (ip)
-                        (copy-port ip op)))
+   		    (displayln (get-runtime) op)
                     
                     (newline op)
                     

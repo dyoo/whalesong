@@ -20,10 +20,11 @@
 
 
 
-;; The path rewriter takes paths and provides a canonical symbol for it.
-;; Paths located within collects get remapped to collects, those within
-;; the compiler directory mapped to "js-vm", those within the root to "root".
-;; If none of these work, we return #f.
+;; The path rewriter takes paths and provides a canonical symbol for
+;; it.  Paths located within collects get remapped to collects, those
+;; within the compiler directory mapped to "whalesong", those within
+;; the root to "root".  If none of these work, we return #f.
+
 
 ;; rewrite-path: path -> (symbol #f)
 (define (rewrite-path a-path)
@@ -36,7 +37,7 @@
                        (find-relative-path collects a-path))))]
      [(within-this-project-path? a-path)
       (string->symbol
-       (string-append "js-vm/"
+       (string-append "whalesong/"
                       (path->string
                        (find-relative-path this-normal-path a-path))))]
      [(within-root? a-path)

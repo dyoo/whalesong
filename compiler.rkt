@@ -1843,7 +1843,9 @@
                            (make-instruction-sequence
                             `(,(make-AssignImmediateStatement to from))))
                          (build-list count (lambda: ([i : Natural])
-                                             (make-EnvLexicalReference (+ i (InstallValue-depth exp))
+                                             (make-EnvLexicalReference (+ i 
+									  (InstallValue-depth exp)
+									  (sub1 count))
                                                                        (InstallValue-box? exp))))
                          (cons (make-Reg 'val) 
                                (build-list (sub1 count) (lambda: ([i : Natural])

@@ -1016,11 +1016,7 @@
                                     'argcount
                                     (make-Const (length (App-operands exp))))))
      (compile-general-procedure-call cenv 
-                                     (cond [(= (length extended-cenv)
-                                               (length (App-operands exp)))
-                                            (make-Reg 'argcount)]
-                                           [else 
-                                            (make-Const (length extended-cenv))])
+                                     (make-Const (length (App-operands exp)))
                                      target
                                      linkage))))
 
@@ -1380,7 +1376,7 @@
 ;; n is the number of arguments passed in.
 ;; cenv is the compile-time enviroment before arguments have been shifted in.
 ;; extended-cenv is the compile-time environment after arguments have been shifted in.
-(define (compile-general-procedure-call cenv extended-cenv-length target linkage)
+(define (compile-general-procedure-call cenv number-of-arguments target linkage)
   (let: ([primitive-branch : Symbol (make-label 'primitiveBranch)]
          [compiled-branch : Symbol (make-label 'compiledBranch)]
          [after-call : Symbol (make-label 'afterCall)])
@@ -1402,7 +1398,8 @@
                compiled-branch
                (make-instruction-sequence
                 `(,(make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))))
-               (compile-compiled-procedure-application extended-cenv-length
+               (compile-compiled-procedure-application cenv
+                                                       number-of-arguments
                                                        'dynamic
                                                        target
                                                        compiled-linkage)
@@ -1450,13 +1447,10 @@
           (make-instruction-sequence `(,(make-AssignImmediateStatement 
                                          'argcount
                                          (make-Const n))))
-          (compile-compiled-procedure-application (cond
-                                                    [(= (length extended-cenv)
-                                                        n)
-                                                     (make-Reg 'argcount)]
-                                                    [else 
-                                                     (make-Const (length extended-cenv))])
-                                                  (make-Label (StaticallyKnownLam-entry-point static-knowledge))
+          (compile-compiled-procedure-application cenv
+                                                  (make-Const n)
+                                                  (make-Label 
+                                                   (StaticallyKnownLam-entry-point static-knowledge))
                                                   target
                                                   compiled-linkage)
           (end-with-linkage
@@ -1469,7 +1463,7 @@
 
 
 
-(: compile-compiled-procedure-application (OpArg (U Label 'dynamic) Target Linkage -> InstructionSequence))
+(: compile-compiled-procedure-application (CompileTimeEnvironment OpArg (U Label 'dynamic) Target Linkage -> InstructionSequence))
 ;; This is the heart of compiled procedure application.  A lot of things happen here.
 ;;
 ;;     Procedure linkage.
@@ -1480,7 +1474,7 @@
 ;;    1.  Tail calls.
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
-(define (compile-compiled-procedure-application cenv-length-with-args entry-point target linkage)
+(define (compile-compiled-procedure-application cenv number-of-arguments entry-point target linkage)
   (let* ([entry-point-target
           ;; Optimization: if the entry-point is known to be a static label,
           ;; use that.  Otherwise, grab the entry point from the proc register.
@@ -1520,13 +1514,9 @@
                  ;; We clean up the stack right before the jump, and do not add
                  ;; to the control stack.
                  (let ([reuse-the-stack
-                        (cond [(equal? cenv-length-with-args (make-Reg 'argcount))
-                               empty-instruction-sequence]
-                              [else
-                               (make-instruction-sequence 
-                                `(,(make-PopEnvironment 
-                                    (make-SubtractArg cenv-length-with-args (make-Reg 'argcount))
-                                    (make-Reg 'argcount))))])])
+                        (make-instruction-sequence 
+                         `(,(make-PopEnvironment (make-Const (length cenv))
+                                                 number-of-arguments)))])
                    (append-instruction-sequences
                     reuse-the-stack
                     (make-instruction-sequence

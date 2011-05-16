@@ -154,10 +154,10 @@
     (eq? x y)))
 
 
-(provide-stub-function #;xml->s-exp
-                       #;js-object?
 
-                       write
+;; Many of these should be pushed upward rather than stubbed, so that
+;; Racket's compiler can optimize these.
+(provide-stub-function write
                        display
                        newline
                        current-print
@@ -165,7 +165,7 @@
 		       continuation-mark-set?
                        continuation-mark-set->list
                        for-each
-                       ;; make-thread-cell
+
                        make-struct-type
                        make-struct-field-accessor
                        make-struct-field-mutator

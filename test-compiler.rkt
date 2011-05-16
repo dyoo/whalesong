@@ -349,7 +349,8 @@
 	       (even? 1023)
 	       (even? 2172)
 	       (even? 2171)))
-      (list #t #f #t #f))
+      (list #t #f #t #f)
+      #:with-bootstrapping? #t)
 
 
 
@@ -402,6 +403,13 @@
           (* (* a x x) (+ (/ 0 a) (/ 1 x) (/ 1 x)))
           (* (* b x) (+ (/ 0 b) (/ 1 x)))
           0))
+
+
+
+(test '(map (lambda (x) (* x x))
+            '(1 2 3 4 5))
+      '(1 4 9 16 25)
+      #:with-bootstrapping? #t)
 
 
 ;; Foldl

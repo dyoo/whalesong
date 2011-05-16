@@ -259,6 +259,11 @@
           
           [(CheckToplevelBound!? op)
            (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])
+                 (when (> (CheckToplevelBound!-pos op)
+                          (length (toplevel-vals a-top)))
+                   (printf "ERROR: toplevel is length ~s, but trying to refer to ~s"
+                           (length (toplevel-vals a-top))
+                           (CheckToplevelBound!-pos op)))
                  (cond
                    [(undefined? (list-ref (toplevel-vals a-top) (CheckToplevelBound!-pos op)))
                     (error 'check-toplevel-bound! "Unbound identifier ~s" 

@@ -84,10 +84,11 @@
    (make-bootstrapped-primitive-code 
     'map 
     '(letrec ([map (lambda (f l)
-		     (if (null? l)
-			 null
-			 (cons (f (car l))
-			       (map f (cdr l)))))])
+                     (displayln "in map")
+                     (if (null? l)
+                         null
+                         (cons (f (car l))
+                               (map f (cdr l)))))])
        map))
 
    (make-bootstrapped-primitive-code

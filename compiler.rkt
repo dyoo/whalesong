@@ -863,7 +863,6 @@
         (append-instruction-sequences      
          (make-instruction-sequence 
           `(,(Lam-entry-label exp)))
-         
          maybe-unsplice-rest-argument
          maybe-install-closure-values
          lam-body-code)))

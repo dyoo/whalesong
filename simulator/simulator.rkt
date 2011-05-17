@@ -261,9 +261,10 @@
            (let: ([a-top : toplevel (ensure-toplevel (env-ref m (CheckToplevelBound!-depth op)))])
                  (when (> (CheckToplevelBound!-pos op)
                           (length (toplevel-vals a-top)))
-                   (printf "ERROR: toplevel is length ~s, but trying to refer to ~s"
+                   (printf "ERROR: toplevel is length ~s, but trying to refer to ~s.\n\n~s"
                            (length (toplevel-vals a-top))
-                           (CheckToplevelBound!-pos op)))
+                           (CheckToplevelBound!-pos op)
+                           (toplevel-names a-top)))
                  (cond
                    [(undefined? (list-ref (toplevel-vals a-top) (CheckToplevelBound!-pos op)))
                     (error 'check-toplevel-bound! "Unbound identifier ~s" 
@@ -316,6 +317,7 @@
            (let: ([a-proc : SlotValue (machine-proc m)])
                  (cond
                    [(closure? a-proc)
+                    (printf "installing values ~s\n" (closure-vals a-proc))
                     (env-push-many! m (closure-vals a-proc))]
                    [else
                     (error 'step-perform "Procedure register doesn't hold a procedure: ~s"

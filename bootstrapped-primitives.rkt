@@ -84,7 +84,6 @@
    (make-bootstrapped-primitive-code 
     'map 
     '(letrec ([map (lambda (f l)
-                     (displayln "in map")
                      (if (null? l)
                          null
                          (cons (f (car l))

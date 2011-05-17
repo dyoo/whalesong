@@ -480,7 +480,9 @@
                       cenv
                       (append-instruction-sequences
                        (make-instruction-sequence
-                        `(,(make-PerformStatement (make-CheckToplevelBound!
+                        `(,(make-Comment (format "Checking the prefix of length ~s" 
+                                                 (length (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp)))))))
+                          ,(make-PerformStatement (make-CheckToplevelBound!
                                                    (ToplevelRef-depth exp)
                                                    (ToplevelRef-pos exp)))
                           ,(make-AssignImmediateStatement 
@@ -852,7 +854,8 @@
          [maybe-install-closure-values : InstructionSequence
                                        (if (not (empty? (Lam-closure-map exp)))
                                            (make-instruction-sequence 
-                                            `(,(make-PerformStatement (make-InstallClosureValues!))))
+                                            `(,(make-Comment (format "installing closure for ~s" (Lam-name exp)))
+                                              ,(make-PerformStatement (make-InstallClosureValues!))))
                                            empty-instruction-sequence)]
          [lam-body-code : InstructionSequence
                         (compile (Lam-body exp)
@@ -1623,18 +1626,18 @@
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
   (cond
-    [(Lam? exp)
+    #;[(Lam? exp)
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
                               (if (Lam-rest? exp)
                                   (make-ArityAtLeast (Lam-num-parameters exp))
                                   (Lam-num-parameters exp)))]
-    [(and (LocalRef? exp) 
+    #;[(and (LocalRef? exp) 
           (not (LocalRef-unbox? exp)))
      (let ([entry (list-ref cenv (LocalRef-depth exp))])
        entry)]
     
-    [(ToplevelRef? exp)
+    #;[(ToplevelRef? exp)
      (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
                   (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
                             (ToplevelRef-pos exp))])
@@ -1646,7 +1649,7 @@
              [else
               '?]))]
     
-    [(Constant? exp)
+    #;[(Constant? exp)
      (make-Const (Constant-v exp))]
     
     [else
@@ -1740,7 +1743,9 @@
 (define (compile-let-rec exp cenv target linkage)
   (let*: ([n : Natural (length (LetRec-procs exp))]
           [extended-cenv : CompileTimeEnvironment
-                         (append (map (lambda: ([p : Lam])
+                         cenv
+                         ;; Temporarily removing the optimization
+                         #;(append (map (lambda: ([p : Lam])
                                                (extract-static-knowledge 
                                                 p
                                                 (append (build-list (length (LetRec-procs exp))

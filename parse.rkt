@@ -5,12 +5,11 @@
          "lexical-structs.rkt"
          "helpers.rkt"
          "parameters.rkt"
+         "lam-entry-gensym.rkt"
          racket/list)
 
-(provide (rename-out (-parse parse))
-         
-         ;; meant for tests
-         set-private-lam-label-counter!)
+(provide (rename-out (-parse parse)))
+
 
 (define (-parse exp)
   (let* ([prefix (construct-the-prefix exp)])
@@ -205,28 +204,21 @@
                        #t
                        lam-body
                        (map env-reference-depth closure-references)
-                       (fresh-lam-label))]
+                       (make-lam-label))]
             [else
              (make-Lam (current-defined-name)
                        (length (lambda-parameters exp))
                        #f
                        lam-body
                        (map env-reference-depth closure-references)
-                       (fresh-lam-label))]))))
+                       (make-lam-label))]))))
 
 
-(define lam-label-counter 0)
-(define (set-private-lam-label-counter! x)
-  (set! lam-label-counter x))
-(define fresh-lam-label
-    (lambda ()
-      (set! lam-label-counter (add1 lam-label-counter))
-      (string->symbol (format "lamEntry~a" lam-label-counter))))
 
 
 
 (define (parse-case-lambda exp cenv)
-  (let* ([entry-label (fresh-lam-label)]
+  (let* ([entry-label (make-lam-label)]
          [parsed-lams (map (lambda (lam)
                              (parse-lambda lam cenv))
                            (case-lambda-clauses exp))])

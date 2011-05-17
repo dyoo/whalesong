@@ -730,7 +730,8 @@
      (append-instruction-sequences
       ;; Make some temporary space for the lambdas
       (make-instruction-sequence
-       `(,(make-PushEnvironment n #f)))
+       `(,(make-Comment "scratch space for case-lambda")
+         ,(make-PushEnvironment n #f)))
       
       ;; Compile each of the lambdas
       (apply append-instruction-sequences
@@ -1011,9 +1012,12 @@
                                                       'val))))])    
     (append-instruction-sequences
      (make-instruction-sequence 
-      `(,(make-PushEnvironment (length (App-operands exp)) #f)))
+      `(,(make-Comment "scratch space for general application")
+        ,(make-PushEnvironment (length (App-operands exp)) #f)))
      proc-code
      (juggle-operands operand-codes)
+     (make-instruction-sequence
+      `(,(make-DebugPrint (make-Reg 'proc))))
      (make-instruction-sequence `(,(make-AssignImmediateStatement 
                                     'argcount
                                     (make-Const (length (App-operands exp))))))
@@ -1313,7 +1317,8 @@
                                                         (make-EnvLexicalReference i #f)
                                                         'val))))])    
       (append-instruction-sequences
-       (make-instruction-sequence `(,(make-PushEnvironment (length (App-operands exp)) #f)))           
+       (make-instruction-sequence `(,(make-Comment "scratch space for statically known lambda application")
+                                    ,(make-PushEnvironment (length (App-operands exp)) #f)))           
        proc-code
        (juggle-operands operand-codes)
        arity-check
@@ -1688,7 +1693,8 @@
           linkage
           extended-cenv
           (append-instruction-sequences
-           (make-instruction-sequence `(,(make-PushEnvironment 1 #f)))
+           (make-instruction-sequence `(,(make-Comment "scratch space for let1")
+                                        ,(make-PushEnvironment 1 #f)))
            rhs-code
            body-code
            after-body-code
@@ -1728,7 +1734,8 @@
           extended-cenv
           (append-instruction-sequences 
            (make-instruction-sequence 
-            `(,(make-PushEnvironment n (LetVoid-boxes? exp))))
+            `(,(make-Comment "scratch space for let-void")
+              ,(make-PushEnvironment n (LetVoid-boxes? exp))))
            body-code
            after-body-code
            (make-instruction-sequence 
@@ -1790,7 +1797,8 @@
                   (map (lambda: ([lam : Lam]
                                  [i : Natural])
                                 (make-instruction-sequence 
-                                 `(,(make-PerformStatement 
+                                 `(,(make-Comment (format "Installing shell for ~s\n" (Lam-name lam)))
+                                   ,(make-PerformStatement 
                                      (make-FixClosureShellMap! i (Lam-closure-map lam))))))
                        
                        (LetRec-procs exp)

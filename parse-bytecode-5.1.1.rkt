@@ -5,6 +5,7 @@
          "typed-module-path.rkt"
          "path-rewriter.rkt"
          "parameters.rkt"
+         "lam-entry-gensym.rkt"
          syntax/modresolve)
 
 
@@ -386,15 +387,6 @@
   (make-Splice (map parse-item body))))
 
 
-(define-values (make-lam-label reset-lam-label-counter!/unit-testing)
-  (let ([n 0])
-    (values
-     (lambda ()
-       (set! n (add1 n))
-       (string->symbol (format "lamEntry~a" n)))
-     (lambda ()
-       (set! n 0)))))
-  
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

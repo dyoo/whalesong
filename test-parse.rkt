@@ -3,6 +3,7 @@
 (require "parse.rkt"
          "lexical-structs.rkt"
          "expression-structs.rkt"
+         "lam-entry-gensym.rkt"
          (for-syntax racket/base))
 
 ; Test out the compiler, using the simulator.
@@ -13,7 +14,7 @@
        (syntax/loc #'stx
          (begin
            (printf "Running ~s ...\n" (syntax->datum #'expr))
-           (set-private-lam-label-counter! 0)
+           (reset-lam-label-counter!/unit-testing)
            (let ([expected expt]
                  [actual 
                   (with-handlers ([void

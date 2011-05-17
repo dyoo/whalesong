@@ -19,7 +19,11 @@
 (define (parse stx)
   (parameterize ([current-namespace (lookup-language-namespace 
                                      `(file ,(path->string kernel-language-path))
-                                     #;'racket/base)])
+                                     #;'racket/base)]
+                 ;; We want to disable some optimizations for the moment.
+                 ;; See: http://docs.racket-lang.org/drracket/module.html
+                 [compile-context-preservation-enabled #t])
+
     (let ([bc (racket:compile stx)]
           [op (open-output-bytes)])
       (write bc op)

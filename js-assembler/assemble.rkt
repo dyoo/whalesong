@@ -154,6 +154,8 @@ EOF
              [(PushControlFrame/Prompt? stmt)
               (next)]
              [(PopControlFrame? stmt)
+              (next)]
+             [(Comment? stmt)
               (next)]))]))
 
 
@@ -292,7 +294,10 @@ EOF
                                         (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]
                                        [else
                                         (assemble-oparg (PushImmediateOntoEnvironment-value stmt))])])
-                    val-string))])))
+                    val-string))]
+     [(Comment? stmt)
+      ;; TODO: maybe comments should be emitted as JavaScript comments.
+      ""])))
 
 
 (define-predicate natural? Natural)

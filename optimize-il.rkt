@@ -102,6 +102,8 @@
      #f]
     
     [(PopControlFrame? stmt)
+     #f]
+    [(Comment? stmt)
      #f]))
 
 

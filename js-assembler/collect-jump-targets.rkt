@@ -60,6 +60,8 @@
    [(PushControlFrame/Prompt? stmt)
     (label->labels (PushControlFrame/Prompt-label stmt))]
    [(PopControlFrame? stmt)
+    empty]
+   [(Comment? stmt)
     empty]))
 
 

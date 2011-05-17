@@ -124,6 +124,8 @@
                      (step-push-control-frame/prompt! m i)]
                     [(PopControlFrame? i)
                      (step-pop-control-frame! m i)]
+                    [(Comment? i)
+                     'ok]
                     )])
          (increment-pc! m)))
 

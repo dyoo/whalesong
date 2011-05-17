@@ -132,7 +132,9 @@
 
                                  PopControlFrame
                                  
-                                 DebugPrint))
+                                 DebugPrint
+                                 Comment
+                                 ))
 
 
 ;; Debug print statement.
@@ -215,6 +217,8 @@
   #:transparent)
 
 
+(define-struct: Comment ([val : Any])
+  #:transparent)
 
 
 

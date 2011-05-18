@@ -11,14 +11,16 @@
 
 
 (define (run-zo-parse stx)
-  (parameterize ([current-namespace (make-base-namespace)])
+  (parameterize ([current-namespace (make-base-namespace)]
+                 [compile-context-preservation-enabled #t]))
     (let ([bc (compile stx)]
           [op (open-output-bytes)])
       (write bc op)
       (zo-parse (open-input-bytes (get-output-bytes op))))))
 
 (define (run-my-parse stx)
-  (parameterize ([current-namespace (make-base-namespace)])
+  (parameterize ([current-namespace (make-base-namespace)]
+                 [compile-context-preservation-enabled #t])
     (let ([bc (compile stx)]
           [op (open-output-bytes)])
       (write bc op)

@@ -12,8 +12,7 @@
 
 (provide (rename-out [-compile compile])
          compile-general-procedure-call
-         append-instruction-sequences
-         adjust-target-depth)
+         append-instruction-sequences)
 
 
 
@@ -292,10 +291,11 @@
             `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
            (compile (Top-code top) 
                     (cons (Top-prefix top) cenv)
-                    target
+                    'val
                     next-linkage/drop-multiple)
            (make-instruction-sequence
-            `(,(make-PopEnvironment (make-Const 1) 
+            `(,(make-AssignImmediateStatement target (make-Reg 'val))
+	      ,(make-PopEnvironment (make-Const 1) 
                                     (make-Const 0))))))))
 
 
@@ -552,7 +552,7 @@
          (compile (first seq) cenv target linkage)]
         [else
          (append-instruction-sequences 
-          (compile (first seq) cenv target next-linkage/drop-multiple)
+          (compile (first seq) cenv 'val next-linkage/drop-multiple)
           (compile-sequence (rest seq) cenv target linkage))]))
 
 
@@ -607,12 +607,12 @@
     [(empty? (rest seq))
      (compile (first seq) cenv target linkage)]
     [else
-     
      (let ([evaluate-and-save-first-expression
             (let ([after-first-seq (make-label 'afterFirstSeqEvaluated)])
               (append-instruction-sequences
 	       (make-instruction-sequence
-		`(,(make-Comment "begin0")))
+		`(,(make-Comment "begin0")
+		  ,(make-Comment seq)))
                ;; Evaluate the first expression in a multiple-value context, and get the values on the stack.
                (compile (first seq) cenv 'val next-linkage/keep-multiple-on-stack)
                (make-instruction-sequence
@@ -646,7 +646,7 @@
        (append-instruction-sequences
         evaluate-and-save-first-expression        
         
-        (compile-sequence (rest seq) cenv target next-linkage/drop-multiple)
+        (compile-sequence (rest seq) cenv 'val next-linkage/drop-multiple)
         
         reinstate-values-on-stack        
         (make-instruction-sequence
@@ -1812,47 +1812,56 @@
 
 (: compile-install-value (InstallValue CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-install-value exp cenv target linkage)
-  (let ([count (InstallValue-count exp)])
-    (cond [(= count 0)
-           (end-with-linkage
-            linkage
-            cenv
-            (compile (InstallValue-body exp)
-                     cenv
-                     target
-                     (make-NextLinkage 0)))]
-          [(= count 1)
-           (end-with-linkage
-            linkage
-            cenv
-            (compile (InstallValue-body exp)
-                     cenv
-                     (make-EnvLexicalReference (InstallValue-depth exp) (InstallValue-box? exp))
-                     (make-NextLinkage 1)))]
-          [else
-           (end-with-linkage
-            linkage
-            cenv
-            (append-instruction-sequences
-             (compile (InstallValue-body exp)
-                      cenv
-                      'val
-                      (make-NextLinkage count))
-             (apply append-instruction-sequences
-                    (map (lambda: ([to : EnvLexicalReference]
-                                   [from : OpArg])
-                           (make-instruction-sequence
-                            `(,(make-AssignImmediateStatement to from))))
-                         (build-list count (lambda: ([i : Natural])
-                                             (make-EnvLexicalReference (+ i 
-									  (InstallValue-depth exp)
-									  (sub1 count))
-                                                                       (InstallValue-box? exp))))
-                         (cons (make-Reg 'val) 
-                               (build-list (sub1 count) (lambda: ([i : Natural])
-                                                                 (make-EnvLexicalReference i #f))))))
-             (make-instruction-sequence
-              `(,(make-PopEnvironment (make-Const (sub1 count)) (make-Const 0))))))])))
+  (append-instruction-sequences
+   (make-instruction-sequence `(,(make-Comment "install-value")))
+   (let ([count (InstallValue-count exp)])
+     (cond [(= count 0)
+	    (end-with-linkage
+	     linkage
+	     cenv
+	     (compile (InstallValue-body exp)
+		      cenv
+		      target
+		      (make-NextLinkage 0)))]
+	   [(= count 1)
+	    (append-instruction-sequences
+	     (make-instruction-sequence 
+	      `(,(make-Comment (format "installing single value into ~s"
+				       (InstallValue-depth exp)))))
+	     (end-with-linkage
+	      linkage
+	      cenv
+	      (compile (InstallValue-body exp)
+		       cenv
+		       (make-EnvLexicalReference (InstallValue-depth exp) (InstallValue-box? exp))
+		       (make-NextLinkage 1))))]
+	   [else
+	    (end-with-linkage
+	     linkage
+	     cenv
+	     (append-instruction-sequences
+	      (make-instruction-sequence 
+	       `(,(make-Comment "install-value: evaluating values")))
+	      (compile (InstallValue-body exp)
+		       cenv
+		       'val
+		       (make-NextLinkage count))
+	      (apply append-instruction-sequences
+		     (map (lambda: ([to : EnvLexicalReference]
+				    [from : OpArg])
+				   (make-instruction-sequence
+				    `(,(make-Comment "install-value: installing value")
+				      ,(make-AssignImmediateStatement to from))))
+			  (build-list count (lambda: ([i : Natural])
+						     (make-EnvLexicalReference (+ i 
+										  (InstallValue-depth exp)
+										  (sub1 count))
+									       (InstallValue-box? exp))))
+			  (cons (make-Reg 'val) 
+				(build-list (sub1 count) (lambda: ([i : Natural])
+								  (make-EnvLexicalReference i #f))))))
+	      (make-instruction-sequence
+	       `(,(make-PopEnvironment (make-Const (sub1 count)) (make-Const 0))))))]))))
 
 
 

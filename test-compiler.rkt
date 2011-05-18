@@ -1309,6 +1309,24 @@
 
 
 
+(test '(let*-values ([(k) (lambda () (display "") (values 3 4 5))]
+                     [(f g h) (k)])
+	  (list f g h))
+      (list 3 4 5)
+      #:with-bootstrapping? #t)
+
+
+(test '(let*-values ([(k) (lambda () (display "") (values 3 4 5))]
+                     [(f g h) (k)])
+	  (display "")
+	  (list f g h)
+	  (display "")
+	  'ok)
+      'ok
+      #:with-bootstrapping? #t)
+
+
+
 
 
 ;; begin0 is still broken.

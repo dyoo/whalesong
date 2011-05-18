@@ -965,7 +965,7 @@
                            (ModuleVariable-module-name op-knowledge))
                           '#%kernel)
                 (let ([op (ModuleVariable-name op-knowledge)])
-                  (cond #;[(KernelPrimitiveName/Inline? op)
+                  (cond [(KernelPrimitiveName/Inline? op)
                          (compile-kernel-primitive-application 
                           op
                           exp cenv target linkage)]
@@ -1016,8 +1016,6 @@
         ,(make-PushEnvironment (length (App-operands exp)) #f)))
      proc-code
      (juggle-operands operand-codes)
-     (make-instruction-sequence
-      `(,(make-DebugPrint (make-Reg 'proc))))
      (make-instruction-sequence `(,(make-AssignImmediateStatement 
                                     'argcount
                                     (make-Const (length (App-operands exp))))))
@@ -1027,7 +1025,7 @@
                                      linkage))))
 
 
-#;(: compile-kernel-primitive-application
+(: compile-kernel-primitive-application
    (KernelPrimitiveName/Inline App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; This is a special case of application, where the operator is statically
 ;; known to be in the set of hardcoded primitives.
@@ -1037,7 +1035,7 @@
 ;; stack slots, we can do less than that.
 ;;
 ;; We have to be sensitive to mutation.
-#;(define (compile-kernel-primitive-application kernel-op exp cenv target linkage)
+(define (compile-kernel-primitive-application kernel-op exp cenv target linkage)
   (let ([singular-context-check (emit-singular-context linkage)])
     (cond
       ;; If all the arguments are primitive enough (all constants, localrefs, or toplevelrefs),
@@ -1631,18 +1629,18 @@
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
   (cond
-    #;[(Lam? exp)
+    [(Lam? exp)
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
                               (if (Lam-rest? exp)
                                   (make-ArityAtLeast (Lam-num-parameters exp))
                                   (Lam-num-parameters exp)))]
-    #;[(and (LocalRef? exp) 
+    [(and (LocalRef? exp) 
           (not (LocalRef-unbox? exp)))
      (let ([entry (list-ref cenv (LocalRef-depth exp))])
        entry)]
     
-    #;[(ToplevelRef? exp)
+    [(ToplevelRef? exp)
      (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
                   (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
                             (ToplevelRef-pos exp))])
@@ -1654,7 +1652,7 @@
              [else
               '?]))]
     
-    #;[(Constant? exp)
+    [(Constant? exp)
      (make-Const (Constant-v exp))]
     
     [else
@@ -1750,9 +1748,7 @@
 (define (compile-let-rec exp cenv target linkage)
   (let*: ([n : Natural (length (LetRec-procs exp))]
           [extended-cenv : CompileTimeEnvironment
-                         cenv
-                         ;; Temporarily removing the optimization
-                         #;(append (map (lambda: ([p : Lam])
+                         (append (map (lambda: ([p : Lam])
                                                (extract-static-knowledge 
                                                 p
                                                 (append (build-list (length (LetRec-procs exp))
@@ -2092,10 +2088,10 @@
 
 
 
-#;(: adjust-expression-depth (Expression Natural Natural -> Expression))
+(: adjust-expression-depth (Expression Natural Natural -> Expression))
 ;; Redirects references to the stack to route around a region of size n.
 ;; The region begins at offset skip into the environment.
-#;(define (adjust-expression-depth exp n skip)
+(define (adjust-expression-depth exp n skip)
   (cond
     [(Top? exp)
      (make-Top (Top-prefix exp)

@@ -54,5 +54,4 @@
 
 (test (read (open-input-file "tests/earley/earley.sch"))
       (port->string (open-input-file "tests/earley/expected.txt"))
-      #:debug? #t
       )

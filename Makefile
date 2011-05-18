@@ -6,3 +6,8 @@ test-compiler:
 test-earley:
 	raco make -v --disable-inline test-earley.rkt
 	racket test-earley.rkt
+
+
+test-conform:
+	raco make -v --disable-inline test-conform.rkt
+	racket test-conform.rkt

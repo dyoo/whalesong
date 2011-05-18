@@ -611,6 +611,8 @@
      (let ([evaluate-and-save-first-expression
             (let ([after-first-seq (make-label 'afterFirstSeqEvaluated)])
               (append-instruction-sequences
+	       (make-instruction-sequence
+		`(,(make-Comment "begin0")))
                ;; Evaluate the first expression in a multiple-value context, and get the values on the stack.
                (compile (first seq) cenv 'val next-linkage/keep-multiple-on-stack)
                (make-instruction-sequence

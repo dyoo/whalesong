@@ -513,3 +513,19 @@ in types.js to avoid colliding with Java keywords (char, float).
 
 ----------------------------------------------------------------------
 
+
+
+I need to be careful about targetting the right target in recursive calls to compile.
+The bug I was chasing down involved using (compile subexpr target cenv), where the
+target was that of the parent expression.  But this is an invalid thing to do.
+
+The other bug I nailed down yesterday was the shared-gensym bug with
+lambda entry points.  I have a single module now that distributes
+gensyms for the lambda entry points.  At some point, I'd like to make
+the names descriptive so it's easier to figure out the functions by
+low-level inspection.
+
+
+
+Optimizations are off at the moment until I integrate this into Moby.
+Then I can start turning optimizations back on.

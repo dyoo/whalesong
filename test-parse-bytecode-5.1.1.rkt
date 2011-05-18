@@ -12,7 +12,7 @@
 
 (define (run-zo-parse stx)
   (parameterize ([current-namespace (make-base-namespace)]
-                 [compile-context-preservation-enabled #t]))
+                 [compile-context-preservation-enabled #t])
     (let ([bc (compile stx)]
           [op (open-output-bytes)])
       (write bc op)

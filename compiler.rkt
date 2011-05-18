@@ -575,10 +575,12 @@
               `(,(make-PushControlFrame/Prompt
                   default-continuation-prompt-tag
                   on-return)))
-             (compile (first seq) cenv target return-linkage/nontail)
+             (compile (first seq) cenv 'val return-linkage/nontail)
              (emit-values-context-check-on-procedure-return (linkage-context linkage)
                                                             on-return/multiple
-                                                            on-return))))]
+                                                            on-return)
+	     (make-instruction-sequence
+	      `(,(make-AssignImmediateStatement target (make-Reg 'val)))))))]
         [else
          (let* ([on-return/multiple (make-label 'beforePromptPopMultiple)]
                 [on-return (make-LinkedLabel (make-label 'beforePromptPop)
@@ -588,7 +590,7 @@
              `(,(make-PushControlFrame/Prompt
                  (make-DefaultContinuationPromptTag)
                  on-return)))
-            (compile (first seq) cenv target return-linkage/nontail)
+            (compile (first seq) cenv 'val return-linkage/nontail)
             on-return/multiple
             (make-instruction-sequence
              `(,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
@@ -611,8 +613,7 @@
             (let ([after-first-seq (make-label 'afterFirstSeqEvaluated)])
               (append-instruction-sequences
 	       (make-instruction-sequence
-		`(,(make-Comment "begin0")
-		  ,(make-Comment seq)))
+		`(,(make-Comment "begin0")))
                ;; Evaluate the first expression in a multiple-value context, and get the values on the stack.
                (compile (first seq) cenv 'val next-linkage/keep-multiple-on-stack)
                (make-instruction-sequence

@@ -4,11 +4,16 @@
          "il-structs.rkt"
          "compiler.rkt"
          "compiler-structs.rkt"
-         "typed-parse.rkt"
-         "parameters.rkt")
+         "typed-parse.rkt")
+
+(require/typed "parameters.rkt"
+               (current-defined-name (Parameterof (U Symbol LamPositionalName))))
+
+
 
 
 (provide get-bootstrapping-code)
+
 
 
 

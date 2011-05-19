@@ -5,11 +5,12 @@
          "compiler-structs.rkt"
          "compiler.rkt"
          "parse-bytecode-5.1.1.rkt"
+         "get-module-bytecode.rkt"
          "language-namespace.rkt"
          syntax/modcode)
 
 
-(provide parse run-compiler)
+(provide parse parse-module run-compiler)
 
 (define-runtime-path kernel-language-path
   "lang/kernel.rkt")
@@ -31,6 +32,9 @@
       (parse-bytecode 
        (open-input-bytes (get-output-bytes op))))))
 
+
+(define (parse-module x)
+  (parse-bytecode (open-input-bytes (get-module-bytecode x))))
 
 
 (define (run-compiler code)

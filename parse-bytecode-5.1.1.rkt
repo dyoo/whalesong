@@ -6,6 +6,8 @@
          "path-rewriter.rkt"
          "parameters.rkt"
          "lam-entry-gensym.rkt"
+         "get-module-bytecode.rkt"
+         racket/path
          syntax/modresolve)
 
 
@@ -17,7 +19,6 @@
 
 
 (provide parse-bytecode
-         parse-bytecode/single-module
          reset-lam-label-counter!/unit-testing)
 
 
@@ -105,31 +106,29 @@
 
 
 
-;; parse-bytecode: Input-Port -> Expression
+;; parse-bytecode: (U Input-Port Path) -> Expression
 (define (parse-bytecode in)
-  (parameterize ([seen-closures (make-hasheq)])
-    (let ([compilation-top (zo-parse in)])
-      (parse-top compilation-top))))
+  (cond
+    [(input-port? in)
+     (parameterize ([seen-closures (make-hasheq)])
+       (let ([compilation-top (zo-parse in)])
+         (parse-top compilation-top)))]
+
+    [(path? in)
+     (let*-values ([(normal-path) (normalize-path in)]
+                   [(base file-path dir?) (split-path normal-path)])
+       (parameterize ([current-module-path normal-path]
+                      [current-directory (cond [(path? base)
+                                                base]
+                                               [else
+                                                (error 'parse-bytecode)])])
+         (parse-bytecode
+          (open-input-bytes (get-module-bytecode normal-path)))))]    
+    [else
+     (error 'parse-bytecode "Don't know how to parse from ~e" in)]))
 
 
 
-;; Similar to parse-bytecode, but does a little cleanup to make
-;; sure the name is as expected.
-(define (parse-bytecode/single-module in path-name)
-  (let ([parsed (parse-bytecode in)])
-    (match parsed
-      [(struct Top 
-         (prefix 
-          (struct Module (name (struct ModuleName ('self 'self))
-                               prefix 
-                               requires
-                               body))))
-       (make-Top prefix
-                 (make-Module name 
-                              (make-ModuleName path-name 'self)
-                              prefix
-                              requires
-                              body))])))
          
 
 

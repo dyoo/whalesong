@@ -5,6 +5,8 @@
          racket/port
          racket/runtime-path)
 
+(define-runtime-path conform-path (build-path "tests" "conform"))
+
 
 (define evaluate (make-evaluate 
                   (lambda (program op)
@@ -45,5 +47,5 @@ EOF
              (printf " ok (~a milliseconds)\n" (evaluated-t result))))))]))
 
 
-(test (read (open-input-file "tests/conform/program0.sch"))
-      (port->string (open-input-file "tests/conform/expected0.txt")))
+(test (read (open-input-file (build-path conform-path "program0.sch")))
+      (port->string (open-input-file (build-path conform-path "expected0.txt"))))

@@ -3,7 +3,11 @@
          "package.rkt"
 	 "js-assembler/get-runtime.rkt"
          racket/port
-         racket/runtime-path)
+         racket/runtime-path
+         racket/runtime-path
+         (for-syntax racket/base))
+
+(define-runtime-path earley-file-path (build-path "tests" "earley"))
 
 
 (define evaluate (make-evaluate 
@@ -45,5 +49,5 @@ EOF
              (printf " ok (~a milliseconds)\n" (evaluated-t result))))))]))
 
 
-(test (read (open-input-file "tests/earley/earley.sch"))
-      (port->string (open-input-file "tests/earley/expected.txt")))
+(test (read (open-input-file (build-path earley-file-path "earley.sch")))
+      (port->string (open-input-file (build-path earley-file-path "expected.txt"))))

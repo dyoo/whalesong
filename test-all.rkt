@@ -9,7 +9,8 @@
          "test-browser-evaluate.rkt"
          "test-package.rkt"
          "test-conform-browser.rkt"
-         "test-earley-browser.rkt")
+         "test-earley-browser.rkt"
+         "test-get-dependencies.rkt")
 
 
 ;; This test takes a bit too much time.

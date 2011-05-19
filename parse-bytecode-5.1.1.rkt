@@ -107,6 +107,14 @@
 
 
 ;; parse-bytecode: (U Input-Port Path) -> Expression
+;;
+;; Given an input port, assumes the input is the byte representation of compiled-code.
+;;
+;; Given a path, assumes the path is for a module.  It gets the module bytecode, and parses
+;; that.
+;;
+;; TODO: this may be doing too much work.  It doesn't quite feel like the right elements
+;; are being manipulated here.
 (define (parse-bytecode in)
   (cond
     [(input-port? in)
@@ -126,7 +134,6 @@
           (open-input-bytes (get-module-bytecode normal-path)))))]    
     [else
      (error 'parse-bytecode "Don't know how to parse from ~e" in)]))
-
 
 
          

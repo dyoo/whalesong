@@ -5,7 +5,8 @@
          "compiler-structs.rkt"
          "compiler.rkt"
          "parse-bytecode-5.1.1.rkt"
-         "language-namespace.rkt")
+         "language-namespace.rkt"
+         syntax/modcode)
 
 
 (provide parse run-compiler)
@@ -29,6 +30,7 @@
       (write bc op)
       (parse-bytecode 
        (open-input-bytes (get-output-bytes op))))))
+
 
 
 (define (run-compiler code)

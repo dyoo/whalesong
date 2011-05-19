@@ -1,50 +1,16 @@
 #lang racket/base
 (require (prefix-in math: (only-in racket/math pi sinh))
-         (prefix-in math: (only-in mzlib/math e))
          (prefix-in racket: racket/base)
-         (prefix-in advanced: lang/htdp-advanced))
+	 racket/local
+	 (for-syntax racket/base))
 
-(require (for-syntax racket/base)
-         racket/local)
-
-;; Special forms
-(define-syntax (-#%module-begin stx)
-  (syntax-case stx ()
-    [(_ body ...)
-     (syntax/loc stx 
-       (#%module-begin body ...))]))
-
-;; datums
-(define-syntax (-#%datum stx)
-  (syntax-case stx ()
-    [(_ . x)
-     (syntax/loc stx
-       (#%datum . x))]))
-
-
-;; definitions
-(define-syntax (-define stx)
-  ;; FIXME: restrict define since we don't yet support keywords
-  (syntax-case stx ()
-    [(_ x ...)
-     (syntax/loc stx
-       (define x ...))]))
-
-;; define-struct
-(define-syntax (-define-struct stx)
-  ;; FIXME: restrict define-struct since we don't yet support keywords
-  (syntax-case stx ()
-    [(_ x ...)
-     (syntax/loc stx
-       (define-struct x ... #:transparent))]))
 
 
 ;; constants
-(define true #t)
-(define false #f)
-(define pi math:pi)
-(define e math:e)
-(define empty '())
+(define constant:true #t)
+(define constant:false #f)
+(define constant:pi math:pi)
+(define constant:e (racket:exp 1))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -88,63 +54,71 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Provides
-(provide (rename-out (-#%module-begin #%module-begin)
-                     (-#%datum #%datum)
-                     (#%app #%app)
-                     (#%top-interaction #%top-interaction)
-                     (#%top #%top)
-                     (-define define)
-                     (define-values define-values)
-                     (let-values let-values)
-                     (let*-values let*-values)
-                     (-define-struct define-struct)
-                     (if if)
-                     (cond cond)
-                     (else else)
-                     (case case)
-                     (quote quote)
-                     (quasiquote quasiquote)
-                     (unquote unquote)
-                     (unquote-splicing unquote-splicing)
-                     (lambda lambda)
-                     (case-lambda case-lambda)
-                     (let let)
-                     (let* let*)
-                     (letrec letrec)
-                     (letrec-values letrec-values)
-                     (local local)
-                     (begin begin)
-                     (begin0 begin0)
-                     (set! set!)
-                     (and and)
-                     (or or)
-                     (when when)
-                     (unless unless)
-                     (require require)
-                     (for-syntax for-syntax)
-                     (define-for-syntax define-for-syntax)
-                     (begin-for-syntax begin-for-syntax)
-                     (prefix-in prefix-in)
-		     (only-in only-in)
-                     (provide provide)
-		     (planet planet)
-		     (all-defined-out all-defined-out)
-		     (all-from-out all-from-out)
-		     (except-out except-out)
-		     (rename-out rename-out)
-		     (struct-out struct-out)
-                     (define-syntax define-syntax)
-                     (define-syntaxes define-syntaxes)
-                     (let/cc let/cc)
-		     (with-continuation-mark with-continuation-mark)
-                     
-                     (true true)
-                     (false false)
-                     (pi pi)
-                     (e e)
-                     (empty empty)
-                     (eof eof)
-                     (null null)))
+(provide (rename-out (constant:true true)
+                     (constant:false false)
+                     (constant:pi pi)
+                     (constant:e e))
+	 #%module-begin
+	 #%datum
+	 #%app
+	 #%top-interaction
+	 #%top
+	 define
+	 define-values
+	 let-values
+	 let*-values
+	 define-struct
+	 if
+	 cond
+	 else
+	 case
+	 quote
+	 quasiquote
+	 unquote
+	 unquote-splicing
+	 lambda
+	 case-lambda
+	 let
+	 let*
+	 letrec
+	 letrec-values
+	 local
+	 begin
+	 begin0
+	 set!
+	 and
+	 or
+	 when
+	 unless
+	 require
+	 for-syntax
+	 define-for-syntax
+	 begin-for-syntax
+	 prefix-in
+	 only-in
+	 provide
+	 planet
+	 all-defined-out
+	 all-from-out
+	 except-out
+	 rename-out
+	 struct-out
+	 define-syntax
+	 define-syntaxes
+	 let/cc
+	 with-continuation-mark
+	 null
+	 *
+	 -
+	 +
+	 =
+	 /
+	 sub1
+	 add1
+	 <
+	 >
+	 <=
+	 >=)
 
 
 (define (-identity x) x)
@@ -159,6 +133,7 @@
 ;; Racket's compiler can optimize these.
 (provide-stub-function write
                        display
+		       displayln
                        newline
                        current-print
                        current-continuation-marks
@@ -209,20 +184,6 @@
 		       exn:fail:contract:arity?
 		       exn:fail:contract:variable?
 		       exn:fail:contract:divide-by-zero?
-
-
-                       *
-                       -
-                       +
-                       =
-                       (=~ advanced:=~)
-                       /
-                       sub1
-                       add1
-                       <
-                       >
-                       <=
-                       >=
                        abs
                        quotient
                        remainder
@@ -246,9 +207,7 @@
                        asin
                        acos
                        atan
-                       (sinh advanced:sinh)
-                       (cosh advanced:cosh)
-                       (sqr advanced:sqr)
+
                        sqrt
                        integer-sqrt
                        make-rectangular
@@ -257,16 +216,12 @@
                        imag-part
                        angle
                        magnitude
-                       (conjugate advanced:conjugate)
-                       (sgn advanced:sgn)
                        inexact->exact
                        exact->inexact
                        number->string
                        string->number
                        procedure?
                        pair?
-                       (cons? advanced:cons?)
-                       (empty? advanced:empty?)
                        null?
                        (undefined? -undefined?)
 		       immutable?
@@ -297,10 +252,6 @@
                        eq?
                        eqv?
                        equal?
-                       (equal~? advanced:equal~?)
-                       (false? advanced:false?)
-                       (boolean=? advanced:boolean=?)
-                       (symbol=? advanced:symbol=?)
                        cons
                        car
                        cdr
@@ -317,15 +268,6 @@
                        caddr
                        cdddr
                        cadddr
-                       (rest advanced:rest)
-                       (first advanced:first)
-                       (second advanced:second)
-                       (third advanced:third)
-                       (fourth advanced:fourth)
-                       (fifth advanced:fifth)
-                       (sixth advanced:sixth)
-                       (seventh advanced:seventh)
-                       (eighth advanced:eighth)
                        length
                        list?
                        list
@@ -348,10 +290,7 @@
                        filter
                        foldl
                        foldr
-                       (quicksort advanced:quicksort)
                        sort
-                       (argmax advanced:argmax)
-                       (argmin advanced:argmin)
                        build-list
                        box
                        box-immutable
@@ -365,7 +304,6 @@
                        hash-map
                        hash-for-each
                        make-string
-                       (replicate advanced:replicate)
                        string
                        string-length
                        string-ref
@@ -388,16 +326,6 @@
                        symbol->string
                        format
                        printf
-                       (string->int advanced:string->int)
-                       (int->string advanced:int->string)
-                       (explode advanced:explode)
-                       (implode advanced:implode)
-                       (string-alphabetic? advanced:string-alphabetic?)
-                       (string-ith advanced:string-ith)
-                       (string-lower-case? advanced:string-lower-case?)
-                       (string-numeric? advanced:string-numeric?)
-                       (string-upper-case? advanced:string-upper-case?)
-                       (string-whitespace? advanced:string-whitespace?)
                        build-string
                        string->immutable-string
                        string-set!

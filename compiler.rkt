@@ -968,7 +968,7 @@
                            (ModuleVariable-module-name op-knowledge))
                           '#%kernel)
                 (let ([op (ModuleVariable-name op-knowledge)])
-                  (cond #;[(KernelPrimitiveName/Inline? op)
+                  (cond [(KernelPrimitiveName/Inline? op)
                          (compile-kernel-primitive-application 
                           op
                           exp cenv target linkage)]
@@ -1028,7 +1028,7 @@
                                      linkage))))
 
 
-#;(: compile-kernel-primitive-application
+(: compile-kernel-primitive-application
    (KernelPrimitiveName/Inline App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; This is a special case of application, where the operator is statically
 ;; known to be in the set of hardcoded primitives.
@@ -1038,7 +1038,7 @@
 ;; stack slots, we can do less than that.
 ;;
 ;; We have to be sensitive to mutation.
-#;(define (compile-kernel-primitive-application kernel-op exp cenv target linkage)
+(define (compile-kernel-primitive-application kernel-op exp cenv target linkage)
   (let ([singular-context-check (emit-singular-context linkage)])
     (cond
       ;; If all the arguments are primitive enough (all constants, localrefs, or toplevelrefs),
@@ -1631,8 +1631,7 @@
 ;; We should do more here eventually, including things like type inference or flow analysis, so that
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
-  '?
-  #;(cond
+  (cond
     [(Lam? exp)
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
@@ -2101,10 +2100,10 @@
 
 
 
-#;(: adjust-expression-depth (Expression Natural Natural -> Expression))
+(: adjust-expression-depth (Expression Natural Natural -> Expression))
 ;; Redirects references to the stack to route around a region of size n.
 ;; The region begins at offset skip into the environment.
-#;(define (adjust-expression-depth exp n skip)
+(define (adjust-expression-depth exp n skip)
   (cond
     [(Top? exp)
      (make-Top (Top-prefix exp)

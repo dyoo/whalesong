@@ -182,7 +182,7 @@ EOF
        "")
    (cond
      [(DebugPrint? stmt)
-      (format "MACHINE.params.currentOutputPort.write(~a);" (assemble-oparg (DebugPrint-value stmt)))]
+      (format "MACHINE.params.currentOutputPort.write(MACHINE, ~a);" (assemble-oparg (DebugPrint-value stmt)))]
      [(AssignImmediateStatement? stmt)
       (let: ([t : String (assemble-target (AssignImmediateStatement-target stmt))]
              [v : OpArg (AssignImmediateStatement-value stmt)])

@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Example</title>
+</head>
+<script>
+<![CDATA[
     if(this['plt'] === undefined) {
 	this['plt'] = {};
     }
@@ -91,7 +99,7 @@
 	this.primitives = Primitives;
     };
 
-
+    var HaltMachine = function() {}
 
     var ModuleRecord = function(name, label) {
 	this.name = name;
@@ -100,12 +108,12 @@
 	this.exports = {};
     };
 
-
     ModuleRecord.prototype.invoke = function(MACHINE, succ, fail) {
         var oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function(MACHINE) { 
             MACHINE.params['currentErrorHandler'] = oldErrorHandler;
             setTimeout(succ, 0);
+            throw new HaltMachine();
         };
 
         if (this.isInvoked) {
@@ -121,6 +129,7 @@
             trampoline(MACHINE, this.label);
         }
     };
+
 
 
     // A generic frame just holds marks.
@@ -457,33 +466,6 @@
     };
     Primitives['displayln'].arity = [1, [2, NULL]];
     Primitives['displayln'].displayName = 'displayln';
-
-
-
-    // This should be attached to the module corresponding for print-values
-    Primitives['print-values'] = new Closure(
-        function(MACHINE) {
-	    var outputPort = MACHINE.params.currentOutputPort;
-            if (MACHINE.argcount > 0) {
-	        outputPort.write(MACHINE, MACHINE.val);
-	        outputPort.write(MACHINE, "\n");
-
-                for(var i = 0; i < MACHINE.argcount - 1; i++) {
-	            outputPort.write(MACHINE, "\n");
-                    outputPort.write(MACHINE,
-                                     MACHINE.env[MACHINE.env.length - 1 - i]);
-                }
-	        outputPort.write(MACHINE, "\n");
-            }
-            MACHINE.env.length = MACHINE.env.length - (MACHINE.argcount - 1);
-            throw MACHINE.control.pop();
-        },
-        new ArityAtLeast(0),
-        [],
-        "print-values"
-    );
-
-
 
     Primitives['pi'] = Math.PI;
 
@@ -1065,6 +1047,30 @@
 
 
 
+    Primitives['print-values'] = new Closure(
+        function(MACHINE) {
+	    var outputPort = MACHINE.params.currentOutputPort;
+            if (MACHINE.argcount > 0) {
+	        outputPort.write(MACHINE, MACHINE.val);
+	        outputPort.write(MACHINE, "\n");
+
+                for(var i = 0; i < MACHINE.argcount - 1; i++) {
+	            outputPort.write(MACHINE, "\n");
+                    outputPort.write(MACHINE,
+                                     MACHINE.env[MACHINE.env.length - 1 - i]);
+                }
+	        outputPort.write(MACHINE, "\n");
+            }
+            MACHINE.env.length = MACHINE.env.length - (MACHINE.argcount - 1);
+            var point = MACHINE.control.pop();
+            throw point.label;
+        },
+        new ArityAtLeast(0),
+        [],
+        "print-values"
+    );
+
+
 
 
 
@@ -1117,7 +1123,9 @@
 			    0);
 			return;
 		    }
-		} else {
+		} else if (e instanceof HaltMachine) {
+                    return;
+                } else {
 		    MACHINE.running = false;
 	            return MACHINE.params.currentErrorHandler(MACHINE, e);
 		}
@@ -1227,3 +1235,188 @@
 
 
 }).call(this);
+]]>
+<![CDATA[
+var mainModule = (function(MACHINE, success, fail, params) {
+var param;
+var RUNTIME = plt.runtime;
+var _start25=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _start25; }
+return (_afterLamBodies1)(MACHINE);};
+
+var _afterLamBodies1=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _afterLamBodies1; }
+MACHINE.control.push(new RUNTIME.PromptFrame(_beforePopPrompt3, RUNTIME.DEFAULT_CONTINUATION_PROMPT_TAG));
+MACHINE.env.push([false]);  MACHINE.env[MACHINE.env.length-1].names = [false];
+MACHINE.modules["self"]=new RUNTIME.ModuleRecord("hello", _moduleEntry5);
+return (_afterModuleBody4)(MACHINE);};
+
+var _moduleEntry5=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _moduleEntry5; }
+if ((MACHINE.modules["whalesong/lang/kernel.rkt"] !== undefined) !== false) { return (_linked6)(MACHINE); }
+    MACHINE.params.currentOutputPort.write(MACHINE, "DEBUG: the module whalesong/lang/kernel.rkt hasn't been linked in!!!");
+return (_alreadyLoaded7)(MACHINE);};
+
+var _linked6=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _linked6; }
+if (MACHINE.modules["whalesong/lang/kernel.rkt"].label !== false) { return (_alreadyLoaded7)(MACHINE); }
+MACHINE.control.push(new RUNTIME.CallFrame(_onReturn9, MACHINE.proc));
+return (MACHINE.modules["whalesong/lang/kernel.rkt"].label)(MACHINE);};
+
+var _onReturnMultiple8=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _onReturnMultiple8; }
+MACHINE.env.length = MACHINE.env.length - (MACHINE.argcount - (1));
+return (_onReturn9)(MACHINE);};
+
+var _onReturn9=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _onReturn9; }
+return (_alreadyLoaded7)(MACHINE);};
+
+var _alreadyLoaded7=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _alreadyLoaded7; }
+MACHINE.env.push([MACHINE.primitives["displayln"],MACHINE.primitives["print-values"]]);  MACHINE.env[MACHINE.env.length-1].names = ["displayln","print-values"];
+MACHINE.control.push(new RUNTIME.PromptFrame(_beforePromptPop11, RUNTIME.DEFAULT_CONTINUATION_PROMPT_TAG));
+MACHINE.control.push(new RUNTIME.Frame());
+
+if (MACHINE.env[MACHINE.env.length - 1 - 0][1] === undefined) { throw new Error("Not bound: " + MACHINE.env[MACHINE.env.length - 1 - 0].names[1]); }
+MACHINE.control[MACHINE.control.length-1].pendingApplyValuesProc = MACHINE.env[MACHINE.env.length - 1 - 0][1];
+
+MACHINE.env.push(undefined);
+
+if (MACHINE.env[MACHINE.env.length - 1 - 1][0] === undefined) { throw new Error("Not bound: " + MACHINE.env[MACHINE.env.length - 1 - 1].names[0]); }
+MACHINE.env[MACHINE.env.length - 1 - 0] = MACHINE.env[MACHINE.env.length - 1 - 1][0];
+MACHINE.val = "hello world\n";
+MACHINE.proc = MACHINE.env[MACHINE.env.length - 1 - 0];
+MACHINE.env[MACHINE.env.length - 1 - 0] = MACHINE.val;
+MACHINE.argcount = (1);
+if (typeof(MACHINE.proc) === 'function') { return (_primitiveBranch14)(MACHINE); }
+if (! (MACHINE.proc instanceof RUNTIME.Closure && RUNTIME.isArityMatching(MACHINE.proc.arity, MACHINE.argcount))) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error("not a closure"); } else { throw new Error("arity failure:" + MACHINE.proc.displayName); } }
+MACHINE.control.push(new RUNTIME.CallFrame(_procReturn18, MACHINE.proc));
+return ((MACHINE.proc).label)(MACHINE);};
+
+var _procReturnMultiple17=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _procReturnMultiple17; }
+return (_afterReturn19)(MACHINE);};
+
+var _procReturn18=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _procReturn18; }
+MACHINE.argcount = (1);
+return (_afterReturn19)(MACHINE);};
+
+var _afterReturn19=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _afterReturn19; }
+return (_afterCall16)(MACHINE);};
+
+var _primitiveBranch14=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _primitiveBranch14; }
+if (! (typeof(MACHINE.proc) === 'function'  && RUNTIME.isArityMatching(MACHINE.proc.arity, MACHINE.argcount))) { if (! (typeof(MACHINE.proc) === 'function')) { throw new Error("not a primitive procedure"); } else { throw new Error("arity failure:" + MACHINE.proc.displayName); } }
+MACHINE.val=MACHINE.proc(MACHINE);
+MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
+MACHINE.argcount = (1);
+return (_afterCall16)(MACHINE);};
+
+var _afterCall16=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _afterCall16; }
+if (MACHINE.argcount === 0) { return (_afterArgsEvaluated13)(MACHINE); }
+MACHINE.env.push(MACHINE.val);
+return (_afterArgsEvaluated13)(MACHINE);};
+
+var _afterArgsEvaluated13=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _afterArgsEvaluated13; }
+MACHINE.proc = MACHINE.control[MACHINE.control.length-1].pendingApplyValuesProc;
+MACHINE.control.pop();
+if (typeof(MACHINE.proc) === 'function') { return (_primitiveBranch20)(MACHINE); }
+if (! (MACHINE.proc instanceof RUNTIME.Closure && RUNTIME.isArityMatching(MACHINE.proc.arity, MACHINE.argcount))) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error("not a closure"); } else { throw new Error("arity failure:" + MACHINE.proc.displayName); } }
+MACHINE.control.push(new RUNTIME.CallFrame(_procReturn24, MACHINE.proc));
+return ((MACHINE.proc).label)(MACHINE);};
+
+var _procReturnMultiple23=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _procReturnMultiple23; }
+MACHINE.env.length = MACHINE.env.length - (MACHINE.argcount - (1));
+return (_procReturn24)(MACHINE);};
+
+var _procReturn24=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _procReturn24; }
+return (_afterCall22)(MACHINE);};
+
+var _primitiveBranch20=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _primitiveBranch20; }
+if (! (typeof(MACHINE.proc) === 'function'  && RUNTIME.isArityMatching(MACHINE.proc.arity, MACHINE.argcount))) { if (! (typeof(MACHINE.proc) === 'function')) { throw new Error("not a primitive procedure"); } else { throw new Error("arity failure:" + MACHINE.proc.displayName); } }
+MACHINE.val=MACHINE.proc(MACHINE);
+MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
+return (_afterCall22)(MACHINE);};
+
+var _afterCall22=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _afterCall22; }
+MACHINE.proc = MACHINE.control[MACHINE.control.length-1].label;
+MACHINE.control.pop();
+return (MACHINE.proc)(MACHINE);};
+
+var _beforePromptPopMultiple10=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _beforePromptPopMultiple10; }
+MACHINE.env.length = MACHINE.env.length - (MACHINE.argcount - (1));
+return (_beforePromptPop11)(MACHINE);};
+
+var _beforePromptPop11=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _beforePromptPop11; }
+MACHINE.val = MACHINE.val;
+MACHINE.env.length = MACHINE.env.length - (1);
+MACHINE.proc = MACHINE.control[MACHINE.control.length-1].label;
+MACHINE.control.pop();
+return (MACHINE.proc)(MACHINE);};
+
+var _afterModuleBody4=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _afterModuleBody4; }
+MACHINE.val = MACHINE.val;
+MACHINE.env.length = MACHINE.env.length - (1);
+MACHINE.proc = MACHINE.control[MACHINE.control.length-1].label;
+MACHINE.control.pop();
+return (MACHINE.proc)(MACHINE);};
+
+var _beforePopPromptMultiple2=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _beforePopPromptMultiple2; }
+MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
+return (_beforePopPrompt3)(MACHINE);};
+
+var _beforePopPrompt3=function(MACHINE){
+if(--MACHINE.callsBeforeTrampoline < 0) { throw _beforePopPrompt3; }
+};
+
+_onReturn9.multipleValueReturn = _onReturnMultiple8;
+_procReturn18.multipleValueReturn = _procReturnMultiple17;
+_procReturn24.multipleValueReturn = _procReturnMultiple23;
+_beforePromptPop11.multipleValueReturn = _beforePromptPopMultiple10;
+_beforePopPrompt3.multipleValueReturn = _beforePopPromptMultiple2;
+MACHINE.params.currentErrorHandler = fail;
+MACHINE.params.currentSuccessHandler = success;
+for (param in params) {
+    if (params.hasOwnProperty(param)) {
+        MACHINE.params[param] = params[param];
+    }
+}RUNTIME.trampoline(MACHINE, _start25); })
+]]>
+
+
+var MY_MACHINE = new plt.runtime.Machine();
+var invokeMainModule = function() {
+    mainModule(MY_MACHINE,
+               function() { 
+                   MY_MACHINE.modules['self'].invoke(
+                       MY_MACHINE,
+                       function() {
+                           console.log("ok2")
+                       },
+                       function(MACHINE, e) {
+                           console.log("bad2");
+                           console.log(e.stack);
+                       }); 
+               },
+               function() { console.log('fail'); },
+               { currentDisplayer : function(v) {
+                   document.body.appendChild(document.createTextNode(String(v))); 
+               }});
+};
+</script>
+<body onload='invokeMainModule()'>
+</body>
+</html>

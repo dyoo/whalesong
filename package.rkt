@@ -3,7 +3,7 @@
 (require "compiler.rkt"
          "compiler-structs.rkt"
          "js-assembler/assemble.rkt"
-	 "parse-bytecode-5.1.1.rkt"
+	 "parse-bytecode.rkt"
 	 "language-namespace.rkt"
          "il-structs.rkt"
          "bootstrapped-primitives.rkt"

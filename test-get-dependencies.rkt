@@ -1,7 +1,7 @@
 #lang racket
 (require "get-dependencies.rkt"
          "get-module-bytecode.rkt"
-         "parse-bytecode-5.1.1.rkt"
+         "parse-bytecode.rkt"
          "lexical-structs.rkt"
          racket/path
          racket/runtime-path

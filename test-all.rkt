@@ -1,7 +1,7 @@
 #lang racket
 
 (require "test-parse.rkt"
-         "test-parse-bytecode-5.1.1.rkt"
+         "test-parse-bytecode.rkt"
          "test-simulator.rkt"
          "test-compiler.rkt"
          "test-compiler-2.rkt"

@@ -45,7 +45,7 @@ controlled environment.
 
 ======================================================================
 
-parse-bytecode-5.1.1.rkt
+parse-bytecode.rkt
 
 This is intended to reuse the Racket compiler to produce the AST
 structures defined in compiler/zo-parse.

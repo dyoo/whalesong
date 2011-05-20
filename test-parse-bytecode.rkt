@@ -5,7 +5,7 @@
          racket/match
          (for-syntax racket/base)
          "parameters.rkt"
-         "parse-bytecode-5.1.1.rkt"
+         "parse-bytecode.rkt"
          "lexical-structs.rkt"
          "expression-structs.rkt")
 

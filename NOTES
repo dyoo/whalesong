@@ -529,3 +529,15 @@ low-level inspection.
 
 Optimizations are off at the moment until I integrate this into Moby.
 Then I can start turning optimizations back on.
+
+----------------------------------------------------------------------
+
+
+
+May 20, 2011
+
+I'm running my bytecode parser over the entire racket collects tree,
+just to make sure the parser itself is robust.  I'm hitting failures
+on the following files:
+
+Parsing takes milliseconds, except on Typed Racket code, which is expected.

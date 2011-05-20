@@ -3,11 +3,11 @@
 (require compiler/zo-parse
          rackunit
          racket/match
-         (for-syntax racket/base)
-         "parameters.rkt"
-         "parse-bytecode.rkt"
-         "lexical-structs.rkt"
-         "expression-structs.rkt")
+         "../parameters.rkt"
+         "../parse-bytecode.rkt"
+         "../lexical-structs.rkt"
+         "../expression-structs.rkt"
+         (for-syntax racket/base))
 
 
 (define (run-zo-parse stx)

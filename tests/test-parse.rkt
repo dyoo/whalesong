@@ -1,9 +1,9 @@
 #lang racket/base
 
-(require "parse.rkt"
-         "lexical-structs.rkt"
-         "expression-structs.rkt"
-         "lam-entry-gensym.rkt"
+(require "../parse.rkt"
+         "../lexical-structs.rkt"
+         "../expression-structs.rkt"
+         "../lam-entry-gensym.rkt"
          (for-syntax racket/base))
 
 ; Test out the compiler, using the simulator.

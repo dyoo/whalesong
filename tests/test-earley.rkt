@@ -1,8 +1,11 @@
 #lang racket
 
-(require "simulator/simulator.rkt"
-         "simulator/simulator-structs.rkt"
-         "test-helpers.rkt")
+(require "../simulator/simulator.rkt"
+         "../simulator/simulator-structs.rkt"
+         "test-helpers.rkt"
+         racket/runtime-path)
+
+(define-runtime-path earley-file-path (build-path "earley"))
 
 
   
@@ -52,7 +55,5 @@
              (printf "ok. ~s steps.\n\n" num-steps)))))]))
 
 
-(test (read (open-input-file "tests/conform/program0.sch"))
-      (port->string (open-input-file "tests/conform/expected0.txt"))
-      ;;#:debug? #t
-      )
+(test (read (open-input-file (build-path earley-path "earley.sch")))
+      (port->string (open-input-file (build-path earley-path "expected.txt"))))

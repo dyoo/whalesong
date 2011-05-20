@@ -1,13 +1,11 @@
 #lang racket
-(require "browser-evaluate.rkt"
-         "package.rkt"
-	 "js-assembler/get-runtime.rkt"
+(require "../browser-evaluate.rkt"
+         "../package.rkt"
+	 "../js-assembler/get-runtime.rkt"
          racket/port
-         racket/runtime-path
-         racket/runtime-path
-         (for-syntax racket/base))
+         racket/runtime-path)
 
-(define-runtime-path earley-file-path (build-path "tests" "earley"))
+(define-runtime-path conform-path (build-path "conform"))
 
 
 (define evaluate (make-evaluate 
@@ -15,7 +13,7 @@
 
                     (fprintf op "(function () {")
                     
-   		    (displayln (get-runtime) op)
+                    (displayln (get-runtime) op)
                     
                     (newline op)
                     
@@ -49,5 +47,5 @@ EOF
              (printf " ok (~a milliseconds)\n" (evaluated-t result))))))]))
 
 
-(test (read (open-input-file (build-path earley-file-path "earley.sch")))
-      (port->string (open-input-file (build-path earley-file-path "expected.txt"))))
+(test (read (open-input-file (build-path conform-path "program0.sch")))
+      (port->string (open-input-file (build-path conform-path "expected0.txt"))))

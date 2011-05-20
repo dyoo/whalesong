@@ -2,18 +2,18 @@
 
 (require (prefix-in racket: racket/base)
          racket/runtime-path
-         "compiler-structs.rkt"
-         "compiler.rkt"
-         "parse-bytecode.rkt"
-         "get-module-bytecode.rkt"
-         "language-namespace.rkt"
-         syntax/modcode)
+         "../compiler-structs.rkt"
+         "../compiler.rkt"
+         "../parse-bytecode.rkt"
+         "../get-module-bytecode.rkt"
+         "../language-namespace.rkt")
+
 
 
 (provide parse parse-module run-compiler)
 
 (define-runtime-path kernel-language-path
-  "lang/kernel.rkt")
+  "../lang/kernel.rkt")
 
 
 ;; Use Racket's compiler, and then parse the resulting bytecode

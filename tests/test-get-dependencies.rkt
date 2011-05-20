@@ -1,16 +1,16 @@
 #lang racket
-(require "get-dependencies.rkt"
-         "get-module-bytecode.rkt"
-         "parse-bytecode.rkt"
-         "lexical-structs.rkt"
+(require "../get-dependencies.rkt"
+         "../get-module-bytecode.rkt"
+         "../parse-bytecode.rkt"
+         "../lexical-structs.rkt"
          racket/path
          racket/runtime-path
          rackunit)
 
-(define-runtime-path this-path ".")
+(define-runtime-path compiler-path "..")
 
 (define e
-  (parse-bytecode (build-path this-path "get-dependencies.rkt")))
+  (parse-bytecode (build-path compiler-path "get-dependencies.rkt")))
 (void (get-dependencies e))
 
 (void (get-dependencies 
@@ -50,7 +50,7 @@
            (file "~a/get-module-bytecode.rkt"))
   (exp 1))
 EOF
-                                                       (path->string (normalize-path this-path)))
+                                                       (path->string (normalize-path compiler-path)))
                                                )))))
        module-name<)
  (sort
@@ -59,5 +59,5 @@ EOF
         (make-ModuleName 'collects/racket/math.rkt
                          (build-path collects-dir "racket" "math.rkt"))
         (make-ModuleName 'whalesong/get-module-bytecode.rkt
-                         (normalize-path (build-path this-path "get-module-bytecode.rkt"))))
+                         (normalize-path (build-path compiler-path "get-module-bytecode.rkt"))))
   module-name<))

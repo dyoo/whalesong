@@ -1,8 +1,8 @@
 #lang racket
 
-(require "simulator/simulator.rkt"
-         "simulator/simulator-structs.rkt"
-         "simulator/simulator-helpers.rkt"
+(require "../simulator/simulator.rkt"
+         "../simulator/simulator-structs.rkt"
+         "../simulator/simulator-helpers.rkt"
          "test-helpers.rkt")
 
 

@@ -1,8 +1,8 @@
 #lang racket
-(require "js-assembler/get-runtime.rkt"
-         "browser-evaluate.rkt"
-         "package.rkt"
-         racket/runtime-path)
+(require "../js-assembler/get-runtime.rkt"
+         "../browser-evaluate.rkt"
+         "../package.rkt")
+         
 
 
 

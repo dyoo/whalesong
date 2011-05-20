@@ -1,10 +1,10 @@
 #lang racket
 
-(require "il-structs.rkt"
-         "lexical-structs.rkt"
-         "simulator/simulator-structs.rkt"
-         "simulator/simulator-primitives.rkt"
-         "simulator/simulator.rkt")
+(require "../il-structs.rkt"
+         "../lexical-structs.rkt"
+         "../simulator/simulator-structs.rkt"
+         "../simulator/simulator-primitives.rkt"
+         "../simulator/simulator.rkt")
 
 
 (define-syntax (test stx)

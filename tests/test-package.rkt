@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "package.rkt")
+(require "../package.rkt")
 
 (define (test s-exp)
   (package s-exp (open-output-string) #;(current-output-port)))

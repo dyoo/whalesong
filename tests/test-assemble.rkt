@@ -1,10 +1,10 @@
 #lang racket
 
-(require "js-assembler/assemble.rkt"
-         "js-assembler/get-runtime.rkt"
-         "browser-evaluate.rkt"
-         "lexical-structs.rkt"
-         "il-structs.rkt"
+(require "../js-assembler/assemble.rkt"
+         "../js-assembler/get-runtime.rkt"
+         "../browser-evaluate.rkt"
+         "../lexical-structs.rkt"
+         "../il-structs.rkt"
          racket/port
          racket/promise
          racket/runtime-path)

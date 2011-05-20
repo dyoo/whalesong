@@ -144,8 +144,10 @@ browser.
 
 ======================================================================
 
-This uses the following libraries:
+This uses code from the following projects:
 
    jshashtable (http://www.timdown.co.uk/jshashtable/)
    js-numbers (http://github.com/dyoo/js-numbers/)
    JSON (http://www.json.org/js.html)
+   jquery (http://jquery.com/)
+

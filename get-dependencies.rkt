@@ -7,7 +7,7 @@
 ;; Collect the complete list of dependencies for a module.
 
 
-(provide get-dependencies get-dependencies*)
+(provide get-dependencies)
 
 
 (: get-dependencies (Expression -> (Listof ModuleName)))
@@ -26,8 +26,3 @@
                  [else
                   'ok]))
     (set->list deps)))
-
-
-(: get-dependencies* (Expression -> (Listof ModuleName)))
-(define (get-dependencies* expr)
-  '())

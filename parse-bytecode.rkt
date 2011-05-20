@@ -6,6 +6,6 @@
   [(version>= (version) "5.1.1")
    (begin      
      (require "parse-bytecode-5.1.1.rkt")
-     (provide parse-bytecode))]
+     (provide (all-from-out "parse-bytecode-5.1.1.rkt")))]
   [else
-   (error 'parse-bytecode "Currently no compatible parser for Racket ~a" (version))])
+   (error 'parse-bytecode "Whalesong doesn't have a compatible parser for Racket ~a" (version))])

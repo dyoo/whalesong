@@ -194,7 +194,8 @@
      (let ([rewritten-path (rewrite-path resolved-path-name)])
        (cond
          [(symbol? rewritten-path)
-          (make-ModuleName (rewrite-path resolved-path-name) resolved-path-name)]
+          (make-ModuleName (rewrite-path resolved-path-name)
+                           (normalize-path resolved-path-name))]
          [else
           (error 'wrap-module-name "Unable to resolve module path ~s" resolved-path-name)]))]))
           
@@ -261,7 +262,8 @@
                  (let ([rewritten-path (rewrite-path resolved-path)])
                    (cond
                      [(symbol? rewritten-path)
-                      (make-Require (make-ModuleName rewritten-path resolved-path))]
+                      (make-Require (make-ModuleName rewritten-path
+                                                     (normalize-path resolved-path)))]
                      [else
                       (printf "Internal error: I don't know how to handle the require for ~s" require-statement)
                       (error 'parse-req)]))]
@@ -348,7 +350,8 @@
            (cond
              [(symbol? rewritten-path)
               (make-Module name
-                           (make-ModuleName rewritten-path self-path)
+                           (make-ModuleName rewritten-path 
+                                            (normalize-path self-path))
                            (parse-prefix prefix)
                            (parse-mod-requires self-modidx requires)
                            (parse-mod-body body))]

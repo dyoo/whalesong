@@ -1,13 +1,19 @@
+test-all:
+	raco make -v --disable-inline tests/test-all.rkt
+	racket tests/test-all.rkt
+
+
 test-compiler:
-	raco make -v --disable-inline test-compiler.rkt
-	racket test-compiler.rkt
+	raco make -v --disable-inline tests/test-compiler.rkt
+	racket tests/test-compiler.rkt
 
 
 test-earley:
-	raco make -v --disable-inline test-earley.rkt
-	racket test-earley.rkt
+	raco make -v --disable-inline tests/test-earley.rkt
+	racket tests/test-earley.rkt
 
 
 test-conform:
-	raco make -v --disable-inline test-conform.rkt
-	racket test-conform.rkt
+	raco make -v --disable-inline tests/test-conform.rkt
+	racket tests/test-conform.rkt
+

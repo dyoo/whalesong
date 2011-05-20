@@ -9,14 +9,10 @@
 
 (define-runtime-path compiler-path "..")
 
-(define e
-  (parse-bytecode (build-path compiler-path "get-dependencies.rkt")))
-(void (get-dependencies e))
 
-(void (get-dependencies 
-       (parse-bytecode 
-        (build-path 
-         "/home/dyoo/local/racket-5.1.1/lib/racket/collects/scheme/base.rkt"))))
+;(printf "This is the path: ~s\n"
+;        (path->string (normalize-path compiler-path)))
+;(flush-output)
 
 
 
@@ -38,26 +34,35 @@
 
 
 
+(define e
+  (parse-bytecode (build-path compiler-path "get-dependencies.rkt")))
+
+(void (get-dependencies e))
+
+(void (get-dependencies 
+       (parse-bytecode 
+        (build-path collects-dir "scheme" "base.rkt"))))
+
+
+
+
 
 ;; This should have three dependencies: racket/base, racket/match, and get-module-bytecode.
-(check-equal? 
- (sort (get-dependencies (parse-bytecode 
-                          (open-input-bytes 
-                           (get-module-bytecode 
-                            (open-input-string (format #<<EOF
-(module foo racket/base 
-  (require racket/math
-           (file "~a/get-module-bytecode.rkt"))
-  (exp 1))
-EOF
-                                                       (path->string (normalize-path compiler-path)))
-                                               )))))
-       module-name<)
- (sort
-  (list (make-ModuleName 'collects/racket/base.rkt
-                         (build-path collects-dir "racket" "base.rkt"))
-        (make-ModuleName 'collects/racket/math.rkt
-                         (build-path collects-dir "racket" "math.rkt"))
-        (make-ModuleName 'whalesong/get-module-bytecode.rkt
-                         (normalize-path (build-path compiler-path "get-module-bytecode.rkt"))))
-  module-name<))
+(let ([ip (open-input-string 
+           (format (string-append "(module foo racket/base (require racket/math "
+                                  "(file \"~a/get-module-bytecode.rkt\")) (exp 1))")
+                   (path->string (normalize-path compiler-path))))])
+
+  (check-equal? (sort (get-dependencies (parse-bytecode 
+                                         (open-input-bytes 
+                                           (get-module-bytecode ip))))
+                      module-name<)
+
+                (sort
+                 (list (make-ModuleName 'collects/racket/base.rkt
+                                        (normalize-path (build-path collects-dir "racket" "base.rkt")))
+                       (make-ModuleName 'collects/racket/math.rkt
+                                        (normalize-path (build-path collects-dir "racket" "math.rkt")))
+                       (make-ModuleName 'whalesong/get-module-bytecode.rkt
+                                        (normalize-path (build-path compiler-path "get-module-bytecode.rkt"))))
+                 module-name<)))

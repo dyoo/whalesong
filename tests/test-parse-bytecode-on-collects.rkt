@@ -1,0 +1,23 @@
+#lang racket/base
+
+(require "../parse-bytecode.rkt"
+         racket/path)
+
+(define collects-dir 
+  (normalize-path
+   (let ([p (find-system-path 'collects-dir)])
+     (cond
+       [(relative-path? p)
+        (find-executable-path (find-system-path 'exec-file)
+                              (find-system-path 'collects-dir))]
+       [else
+        p]))))
+
+
+(for ([path (in-directory)])
+  (when (regexp-match? #rx"[.]rkt$" path)
+    (printf "parsing file: ~a... " path)
+    (let ([start-time (current-inexact-milliseconds)])
+      (void (parse-bytecode path))
+      (let ([end-time (current-inexact-milliseconds)])
+        (printf "~a msecs\n" (inexact->exact (floor (- end-time start-time))))))))

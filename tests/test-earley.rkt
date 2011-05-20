@@ -5,7 +5,7 @@
          "test-helpers.rkt"
          racket/runtime-path)
 
-(define-runtime-path earley-file-path (build-path "earley"))
+(define-runtime-path earley-path (build-path "earley"))
 
 
   

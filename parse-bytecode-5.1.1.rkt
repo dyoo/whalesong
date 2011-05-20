@@ -600,8 +600,8 @@
 
 (define (parse-topsyntax expr)
   ;; We should not get into this because we're only parsing the runtime part of
-  ;; the bytecode.
-  (error 'fixme-topsyntax))
+  ;; the bytecode.  Treated as a no-op.
+  (make-Constant (void)))
 
 
 (define (parse-application expr)

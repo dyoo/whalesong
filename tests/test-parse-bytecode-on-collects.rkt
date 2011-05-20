@@ -1,5 +1,11 @@
 #lang racket/base
 
+;; Tries to parse all the files in collects and sees how long it takes.
+;;
+;; TODO: figure out why it fails to get the module bytecode for
+;; collects/tests/matrix-test.rkt.  I'm seeing the following:
+;; read-syntax: cannot load snip-class reader
+
 (require "../parse-bytecode.rkt"
          racket/path)
 
@@ -14,9 +20,10 @@
         p]))))
 
 
-(for ([path (in-directory)])
+(for ([path (in-directory collects-dir)])
   (when (regexp-match? #rx"[.]rkt$" path)
     (printf "parsing file: ~a... " path)
+    (flush-output)
     (let ([start-time (current-inexact-milliseconds)])
       (void (parse-bytecode path))
       (let ([end-time (current-inexact-milliseconds)])

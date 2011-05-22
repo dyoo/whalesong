@@ -7,6 +7,14 @@
          "../lexical-structs.rkt")
 
 
+
+
+;; A special "label" in the system that causes evaluation to stop.
+(define-struct: halt ())
+(define HALT (make-halt))
+
+
+
 (define-type PrimitiveValue (Rec PrimitiveValue (U String Number Symbol Boolean
                                                    Null VoidValue
                                                    undefined
@@ -79,7 +87,7 @@
   #:transparent)
 
 
-(define-struct: CallFrame ([return : LinkedLabel]
+(define-struct: CallFrame ([return : (U LinkedLabel halt)]
                            ;; The procedure being called.  Used to optimize self-application
                            [proc : (U closure #f)]
                            ;; TODO: add continuation marks
@@ -89,7 +97,7 @@
   #:mutable)  ;; mutable because we want to allow mutation of proc.
 
 (define-struct: PromptFrame ([tag : ContinuationPromptTagValue]
-                             [return : LinkedLabel]
+                             [return : (U LinkedLabel halt)]
                              [env-depth : Natural]
                              [temps : (HashTable Symbol PrimitiveValue)]
                              [marks : (HashTable PrimitiveValue PrimitiveValue)])

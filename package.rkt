@@ -6,6 +6,7 @@
 	 "language-namespace.rkt"
          "il-structs.rkt"
          "bootstrapped-primitives.rkt"
+         "get-module-bytecode.rkt"
          "get-dependencies.rkt"
          "js-assembler/assemble.rkt"
          "js-assembler/get-runtime.rkt"
@@ -23,34 +24,21 @@
 (define-runtime-path kernel-language-path
   "lang/kernel.rkt")
 
-;; Use Racket's compiler, and then parse the resulting bytecode
-;; to our own AST structures.
-(define (parse stx)
-  (parameterize ([current-namespace (lookup-language-namespace 
-                                     `(file ,(path->string kernel-language-path))
-                                     #;'racket/base)]
-                 ;; We want to disable some optimizations for the moment.
-                 ;; See: http://docs.racket-lang.org/drracket/module.html
-                 [compile-context-preservation-enabled #t])
-
-    (let ([bc (racket:compile stx)]
-          [op (open-output-bytes)])
-      (write bc op)
-      (parse-bytecode 
-       (open-input-bytes (get-output-bytes op))))))
-
-
 
 
 ;; package: s-expression output-port -> void
 (define (package source-code op)  
-  (fprintf op "var invoke = ")
-  (assemble/write-invoke (append (get-bootstrapping-code)
-				 (compile (parse source-code)
-					  'val
-					  next-linkage/drop-multiple))
-                         op)
-  (fprintf op ";\n"))
+  (let ([source-code-op (open-output-bytes)])
+    (write source-code source-code-op)
+    (let ([source-code-ip (open-input-bytes (get-output-bytes source-code-op))])
+      (fprintf op "var invoke = ")
+      (assemble/write-invoke (append (get-bootstrapping-code)
+                                     (compile (parse-bytecode 
+                                               (open-input-bytes (get-module-bytecode source-code-ip)))
+                                              'val
+                                              next-linkage/drop-multiple))
+                             op)
+      (fprintf op ";\n"))))
 
 
 (define (package-anonymous source-code op)

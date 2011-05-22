@@ -63,12 +63,13 @@
 	 #%app
 	 #%top-interaction
 	 #%top
-	 define
+         module
+         define
 	 define-values
 	 let-values
 	 let*-values
 	 define-struct
-	 if
+         if
 	 cond
 	 else
 	 case

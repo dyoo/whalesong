@@ -54,7 +54,8 @@
              #:debug? (debug? false)
              #:stack-limit (stack-limit false)
              #:control-limit (control-limit false)
-             #:with-bootstrapping? (with-bootstrapping? false))
+             #:with-bootstrapping? (with-bootstrapping? false)
+             #:as-main-module (as-main-module #f))
   (let ([m (new-machine (run-compiler code) with-bootstrapping?)])
     (let loop ([steps 0])
       (when debug?
@@ -76,7 +77,15 @@
          (step! m)
          (loop (add1 steps))]
         [else
-         (values m steps)]))))
+         (cond
+           [as-main-module
+            ;; Set the pc to the module's entry point
+            ;; Set the return point to halt on exit.
+            (invoke-module-as-main m as-main-module)
+            (set! as-main-module #f)
+            (loop (add1 steps))]
+           [else         
+            (values m steps)])]))))
 
 
 ;; Atomic expressions
@@ -1324,6 +1333,13 @@
 	  'ok)
       'ok
       #:with-bootstrapping? #t)
+
+
+
+(test '(module foo racket/base
+         (printf "hello world"))
+      (make-undefined)
+      #:as-main-module 'foo)
 
 
 

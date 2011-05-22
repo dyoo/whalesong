@@ -382,7 +382,7 @@
 				    (make-IsModuleInvoked a-module-name))
 				   already-loaded)
      ,(make-PushControlFrame/Call on-return)
-     ,(make-GotoStatement (make-ModuleEntry a-module-name))
+     ,(make-GotoStatement (ModuleEntry a-module-name))
      ,on-return-multiple
      ,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
 					     (make-Const 1))

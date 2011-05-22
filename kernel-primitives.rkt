@@ -59,6 +59,7 @@
 				    'values
 				    'call-with-values
                                     'apply
+                                    'printf
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

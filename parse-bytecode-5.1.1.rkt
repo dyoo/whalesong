@@ -30,9 +30,9 @@
    (lambda (mpi relative-to)
      (cond
        [(eq? mpi #f)
-        'self]
+        (current-module-path)]
        [(self-module-path-index? mpi)
-        'self]
+        (current-module-path)]
        [else
         (resolve-module-path-index mpi relative-to)]))))
 
@@ -121,6 +121,11 @@
      (parameterize ([seen-closures (make-hasheq)])
        (let ([compilation-top (zo-parse in)])
          (parse-top compilation-top)))]
+    
+    [(compiled-expression? in)
+     (let ([op (open-output-bytes)])
+       (write in op)
+       (parse-bytecode (open-input-bytes (get-output-bytes op))))]
 
     [(path? in)
      (let*-values ([(normal-path) (normalize-path in)]
@@ -144,8 +149,32 @@
 (define (parse-top a-top)
   (match a-top
     [(struct compilation-top (max-let-depth prefix code))
-     (make-Top (parse-prefix prefix) 
-               (parse-top-code code))]))
+     (maybe-fix-module-name
+      (make-Top (parse-prefix prefix) 
+                (parse-top-code code)))]))
+
+
+
+;; maybe-fix-module-name: expression -> expression
+;; When we're compiling a module directly from memory, it doesn't have a file path.
+;; We rewrite the ModuleName to its given name.
+(define (maybe-fix-module-name exp)
+  (match exp
+    [(struct Top (top-prefix 
+                  (struct Module ((and name (? symbol?))
+                                  (struct ModuleName ('self 'self))
+                                  module-prefix
+                                  module-requires
+                                  module-code))))
+     (make-Top top-prefix
+               (make-Module name
+                            (make-ModuleName name name) (current-module-path)
+                            module-prefix
+                            module-requires
+                            module-code))]
+    [else
+     exp]))
+
 
 
 (define (parse-prefix a-prefix)
@@ -197,7 +226,8 @@
           (make-ModuleName (rewrite-path resolved-path-name)
                            (normalize-path resolved-path-name))]
          [else
-          (error 'wrap-module-name "Unable to resolve module path ~s" resolved-path-name)]))]))
+          (error 'wrap-module-name "Unable to resolve module path ~s."
+                 resolved-path-name)]))]))
           
        
 

@@ -2021,13 +2021,11 @@
          (end-with-linkage linkage
                            cenv
                            (append-instruction-sequences
-                            (make-instruction-sequence
-                             `(,(make-AssignImmediateStatement target exp)
-                            singular-context-check)))))]
+                            (make-AssignImmediateStatement target exp)
+                            singular-context-check)))]
       [else
        ((current-warn-unimplemented-kernel-primitive) id)
-       (make-instruction-sequence
-        `(,(make-PerformStatement (make-RaiseUnimplementedPrimitiveError! id))))])))
+       (make-PerformStatement (make-RaiseUnimplementedPrimitiveError! id))])))
 
 
 

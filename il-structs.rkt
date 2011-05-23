@@ -442,11 +442,13 @@
 
 
 
-(define-type InstructionSequence (U Symbol LinkedLabel instruction-sequence))
+(define-type InstructionSequence (U Symbol LinkedLabel Statement instruction-sequence))
 (define-struct: instruction-sequence ([statements : (Listof Statement)])
   #:transparent)
 (define empty-instruction-sequence (make-instruction-sequence '()))
 
+
+(define-predicate Statement? Statement)
 
 
 (: statements (InstructionSequence -> (Listof Statement)))
@@ -454,6 +456,8 @@
   (cond [(symbol? s) 
          (list s)]
         [(LinkedLabel? s)
+         (list s)]
+        [(Statement? s)
          (list s)]
         [else
          (instruction-sequence-statements s)]))

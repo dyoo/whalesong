@@ -1,8 +1,9 @@
 #lang racket
 (require "../js-assembler/get-runtime.rkt"
          "../browser-evaluate.rkt"
-         "../package.rkt")
-         
+         "../js-assembler/package.rkt")
+
+(printf "test-browser-evaluate.rkt\n")
 
 
 (define should-follow? (lambda (p) #t))

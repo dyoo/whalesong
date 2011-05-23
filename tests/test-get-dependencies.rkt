@@ -7,6 +7,8 @@
          racket/runtime-path
          rackunit)
 
+(printf "test-get-dependencies.rkt\n")
+
 (define-runtime-path compiler-path "..")
 
 

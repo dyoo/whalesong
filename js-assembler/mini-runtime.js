@@ -1108,6 +1108,7 @@
     };
 
 
+    var HaltError = function() {}
 
 
     var trampoline = function(MACHINE, initialJump) {
@@ -1138,7 +1139,10 @@
 			    0);
 			return;
 		    }
-		} else {
+		} else if (e instanceof HaltError) {
+                    // FIXME: work out what it really means to Halt.
+                    return;
+                } else {
 		    MACHINE.running = false;
 	            return MACHINE.params.currentErrorHandler(MACHINE, e);
 		}
@@ -1248,6 +1252,6 @@
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;
 
-
+    exports['HaltError'] = HaltError;
 
 }).call(this);

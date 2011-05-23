@@ -1,17 +1,17 @@
 #lang racket/base
 
-(require "compiler.rkt"
-         "compiler-structs.rkt"
-	 "parse-bytecode.rkt"
-	 "language-namespace.rkt"
-         "il-structs.rkt"
-         "bootstrapped-primitives.rkt"
-         "get-module-bytecode.rkt"
-         "get-dependencies.rkt"
-         "js-assembler/assemble.rkt"
-         "js-assembler/get-runtime.rkt"
-         "lexical-structs.rkt"
-         "quote-cdata.rkt"
+(require "assemble.rkt"
+         "get-runtime.rkt"
+         "../compiler.rkt"
+         "../compiler-structs.rkt"
+	 "../parse-bytecode.rkt"
+	 "../language-namespace.rkt"
+         "../il-structs.rkt"
+         "../bootstrapped-primitives.rkt"
+         "../get-module-bytecode.rkt"
+         "../get-dependencies.rkt"
+         "../lexical-structs.rkt"
+         "../quote-cdata.rkt"
          racket/runtime-path
          racket/port
          racket/list

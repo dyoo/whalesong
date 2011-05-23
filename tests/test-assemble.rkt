@@ -9,6 +9,8 @@
          racket/promise
          racket/runtime-path)
 
+(printf "test-assemble.rkt\n")
+
 (define runtime (get-runtime))
 
 

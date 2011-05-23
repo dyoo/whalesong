@@ -1,7 +1,8 @@
 #lang racket/base
 
-(require "../package.rkt")
+(require "../js-assembler/package.rkt")
 
+(printf "test-package.rkt\n")
 
 
 (define (follow? p)

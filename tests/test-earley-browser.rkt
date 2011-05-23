@@ -1,11 +1,13 @@
 #lang racket
 (require "../browser-evaluate.rkt"
-         "../package.rkt"
+         "../js-assembler/package.rkt"
 	 "../js-assembler/get-runtime.rkt"
          racket/port
          racket/runtime-path
          racket/runtime-path
          (for-syntax racket/base))
+
+(printf "test-earley-browser.rkt\n")
 
 (define-runtime-path earley-file-path (build-path "earley"))
 

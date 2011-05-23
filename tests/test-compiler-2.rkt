@@ -5,7 +5,7 @@
          "../simulator/simulator-helpers.rkt"
          "test-helpers.rkt")
 
-
+(printf "test-compiler-2.rkt\n")
 
 ;; run: machine -> (machine number)
 ;; Run the machine to completion.

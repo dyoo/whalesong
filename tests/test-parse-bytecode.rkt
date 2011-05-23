@@ -11,6 +11,8 @@
          racket/runtime-path
          (for-syntax racket/base))
 
+(printf "test-parse-bytecode.rkt\n")
+
 (define-runtime-path this-test-path ".")
 
 (define (run-zo-parse stx)

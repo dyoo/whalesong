@@ -5,7 +5,10 @@
          "../simulator/simulator-helpers.rkt"
          "../parameters.rkt"
          "test-helpers.rkt"
-         racket/runtime-path)
+         racket/runtime-path
+         rackunit)
+
+(printf "test-compiler.rkt\n")
 
 (define-runtime-path this-test-path ".")
 
@@ -1339,12 +1342,16 @@
       #:with-bootstrapping? #t)
 
 
-(parameterize ([current-module-path (build-path this-test-path "foo.rkt")])
-  (test '(module foo racket/base
-           (printf "hello world"))
-        (make-undefined)
+(parameterize ([current-module-path (build-path this-test-path "foo.rkt")]
+               [current-simulated-output-port (open-output-bytes)])
+  (test '(module foo '#%kernel
+           (display "hello world")
+           (newline))
+        (void)
         #:as-main-module 'whalesong/tests/foo.rkt
-        #:with-bootstrapping? #t))
+        #:with-bootstrapping? #t)
+  (check-equal? (get-output-bytes (current-simulated-output-port))
+                #"hello world\n"))
 
 
 

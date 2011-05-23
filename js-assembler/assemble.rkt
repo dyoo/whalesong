@@ -12,7 +12,8 @@
          racket/string
          racket/list)
 
-(provide assemble/write-invoke
+(provide assemble/write-invoke-module-as-main
+         assemble/write-invoke
          fracture
          assemble-basic-block
          assemble-statement)
@@ -20,6 +21,14 @@
 
 ;; Parameter that controls the generation of a trace.
 (define current-emit-debug-trace? (make-parameter #f))
+
+
+
+
+(: assemble/write-invoke-module-as-main (Symbol Output-Port -> Void))
+(define (assemble/write-invoke-module-as-main module-name op)
+  ;; FIXME
+  (void))
 
 
 

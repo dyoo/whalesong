@@ -1,9 +1,11 @@
 #lang racket
 (require "../browser-evaluate.rkt"
-         "../package.rkt"
+         "../js-assembler/package.rkt"
 	 "../js-assembler/get-runtime.rkt"
          racket/port
          racket/runtime-path)
+
+(printf "test-conform-browser.rkt\n")
 
 (define-runtime-path conform-path (build-path "conform"))
 

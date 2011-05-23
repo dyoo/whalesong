@@ -6,6 +6,8 @@
          "../simulator/simulator-primitives.rkt"
          "../simulator/simulator.rkt")
 
+(printf "test-simulator.rkt\n")
+
 
 (define-syntax (test stx)
   (syntax-case stx ()

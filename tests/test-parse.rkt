@@ -6,6 +6,8 @@
          "../lam-entry-gensym.rkt"
          (for-syntax racket/base))
 
+(printf "test-parse.rkt\n");
+
 ; Test out the compiler, using the simulator.
 (define-syntax (test stx)
   (syntax-case stx ()

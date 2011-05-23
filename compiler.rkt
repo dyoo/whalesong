@@ -361,34 +361,45 @@
 ;; FIXME: assumes the module has already been linked.  We should error out
 ;; if the module hasn't been linked yet.
 (define (compile-module-invoke a-module-name)
-  (let* ([linked (make-label 'linked)]
-	 [already-loaded (make-label 'alreadyLoaded)]
-	 [on-return-multiple (make-label 'onReturnMultiple)]
-	 [on-return (make-LinkedLabel (make-label 'onReturn)
-				     on-return-multiple)])
-  (make-instruction-sequence
-   `(,(make-TestAndBranchStatement (make-TestTrue
-				   (make-IsModuleLinked a-module-name))
-				  linked)
-     ;; TODO: raise an exception here that says that the module hasn't been
-     ;; linked yet.
-     ,(make-DebugPrint (make-Const 
-		        (format "DEBUG: the module ~a hasn't been linked in!!!"
-				(ModuleName-name a-module-name))))
-     ,(make-GotoStatement (make-Label already-loaded))
-     ,linked
-     ,(make-TestAndBranchStatement (make-TestTrue 
-				    (make-IsModuleInvoked a-module-name))
-				   already-loaded)
-     ,(make-PushControlFrame/Call on-return)
-     ,(make-GotoStatement (ModuleEntry a-module-name))
-     ,on-return-multiple
-     ,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
-					     (make-Const 1))
-			   (make-Const 0))
-     ,on-return
-     ,already-loaded))))
+  (cond
+   [(kernel-module-name? a-module-name)
+    empty-instruction-sequence]
+   [else
+    (let* ([linked (make-label 'linked)]
+           [already-loaded (make-label 'alreadyLoaded)]
+           [on-return-multiple (make-label 'onReturnMultiple)]
+           [on-return (make-LinkedLabel (make-label 'onReturn)
+                                        on-return-multiple)])
+      (make-instruction-sequence
+       `(,(make-TestAndBranchStatement (make-TestTrue
+                                        (make-IsModuleLinked a-module-name))
+                                       linked)
+         ;; TODO: raise an exception here that says that the module hasn't been
+         ;; linked yet.
+         ,(make-DebugPrint (make-Const 
+                            (format "DEBUG: the module ~a hasn't been linked in!!!"
+                                    (ModuleName-name a-module-name))))
+         ,(make-GotoStatement (make-Label already-loaded))
+         ,linked
+         ,(make-TestAndBranchStatement (make-TestTrue 
+                                        (make-IsModuleInvoked a-module-name))
+                                       already-loaded)
+         ,(make-PushControlFrame/Call on-return)
+         ,(make-GotoStatement (ModuleEntry a-module-name))
+         ,on-return-multiple
+         ,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
+                                                 (make-Const 1))
+                               (make-Const 0))
+         ,on-return
+         ,already-loaded)))]))
 
+
+(: kernel-module-name? (ModuleName -> Boolean))
+;; Produces true if the module is hardcoded.
+(define (kernel-module-name? name)
+  (or (and (eq? (ModuleName-name name) '#%kernel)
+           (eq? (ModuleName-real-path name) '#%kernel))
+      (eq? (ModuleName-name name) 'whalesong/lang/kernel)))
 
 
 

@@ -1,11 +1,22 @@
 #lang typed/racket/base
 
-(require "get-dependencies.rkt"
+(require "compiler.rkt"
+         "il-structs.rkt"
+         "get-dependencies.rkt"
          "lexical-structs.rkt"
          "bootstrapped-primitives.rkt"
-         "parse-bytecode.rkt"
-         "get-module-bytecode.rkt"
+         "compiler-structs.rkt"
+         "expression-structs.rkt"
          racket/list)
+
+
+(require/typed "parse-bytecode.rkt"
+               [parse-bytecode (Any -> Expression)])
+
+(require/typed "get-module-bytecode.rkt"
+               [get-module-bytecode ((U String Path Input-Port) -> Bytes)])
+
+
 (provide make/dependencies
          Source
          OnlyStatements
@@ -17,27 +28,29 @@
 
 
 (: make/dependencies ((Listof Source)
-                      #:should-follow? (Path -> Boolean)
-                      #:before-first (-> Void)
-                      #:before-element ((U Expression #f) (Listof Statement) -> Void)
-                      #:on-element ((U Expression #f) (Listof Statement) -> Void)
-                      #:after-element ((U Expression #f) (Listof Statement) -> Void)
-                      ->
-                      Void))
+                      (Path -> Boolean)
+                      (-> Void)
+                      ((U Expression #f) (Listof Statement) -> Void)
+                      ((U Expression #f) (Listof Statement) -> Void)
+                      ((U Expression #f) (Listof Statement) -> Void)
+                      (-> Void)
+                      -> Void))
 (define (make/dependencies sources
-                           #:should-follow? should-follow?
+                           should-follow?
 
-                           #:before-first before-first
+                           before-first
 
-                           #:before-element before-element
-                           #:on-element on-element
-                           #:after-element after-element
+                           before-element
+                           on-element
+                           after-element
 
-                           #:after-last after-last)
-
+                           after-last)
+  (: follow-dependencies ((Listof Source) -> Void))
   (define (follow-dependencies sources)
-    (define visited (make-hash))
+    (define visited ((inst make-hash Any Boolean)))
 
+    (: collect-new-dependencies
+     ((U False Expression) (Listof Source) -> (Listof Source)))
     (define (collect-new-dependencies ast sources)
       (cond
        [(eq? ast #f)
@@ -45,14 +58,20 @@
        [else
         (let* ([dependent-module-names (get-dependencies ast)]
                [paths
-                (map ModuleName-real-path
-                     (filter (lambda (mp) (and (path? (ModuleName-real-path mp))
-                                               (should-follow?
-                                                (path? (ModuleName-real-path mp)))))
-                             dependent-module-names))])
+                (foldl (lambda: ([mp : ModuleName]
+                                 [acc : (Listof Source)])
+                         (let ([rp [ModuleName-real-path mp]])
+                           
+                           (cond [(and (path? rp)
+                                       (should-follow? rp)
+                                  (cons rp acc))]
+                                 [else
+                                  acc])))
+                       '()
+                       dependent-module-names)])
           (append paths sources))]))
     
-    (let loop ([sources sources])
+    (let: loop : Void ([sources : (Listof Source) sources])
       (cond
        [(empty? sources)
         (after-last)]
@@ -69,7 +88,7 @@
 
 
   (before-first)
-  (follow-dependencies sources should-follow?)
+  (follow-dependencies sources)
   (after-last))
 
 

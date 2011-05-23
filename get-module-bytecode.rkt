@@ -1,10 +1,11 @@
 #lang racket/base
-(require racket/contract 
-         racket/path
+(require racket/path
          racket/runtime-path
          syntax/modcode
          "language-namespace.rkt")
-(provide/contract [get-module-bytecode ((or/c string? path? input-port?) . -> . bytes?)])
+#;(provide/contract [get-module-bytecode ((or/c string? path? input-port?) . -> . bytes?)])
+
+(provide get-module-bytecode)
 
 
 (define-runtime-path kernel-language-path

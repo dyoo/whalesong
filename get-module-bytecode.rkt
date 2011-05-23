@@ -3,7 +3,6 @@
          racket/runtime-path
          syntax/modcode
          "language-namespace.rkt")
-#;(provide/contract [get-module-bytecode ((or/c string? path? input-port?) . -> . bytes?)])
 
 (provide get-module-bytecode)
 

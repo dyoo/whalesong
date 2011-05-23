@@ -7,6 +7,7 @@
          "kernel-primitives.rkt"
          "optimize-il.rkt"
          "parameters.rkt"
+         "sets.rkt"
          racket/match
          racket/bool
          racket/list)
@@ -14,6 +15,8 @@
 (provide (rename-out [-compile compile])
          compile-general-procedure-call
          append-instruction-sequences)
+
+
 
 
 
@@ -1641,7 +1644,7 @@
 ;; We should do more here eventually, including things like type inference or flow analysis, so that
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
-  (cond
+  '? #;(cond
     [(Lam? exp)
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
@@ -2035,7 +2038,13 @@
                             (make-AssignImmediateStatement target exp)
                             singular-context-check)))]
       [else
-       ((current-warn-unimplemented-kernel-primitive) id)
+       ;; Maybe warn about the unimplemented kernel primitive.
+       (unless (set-contains? (current-seen-unimplemented-kernel-primitives)
+                              id)
+         (set-insert! (current-seen-unimplemented-kernel-primitives)
+                              id)
+         ((current-warn-unimplemented-kernel-primitive) id))
+       
        (make-PerformStatement (make-RaiseUnimplementedPrimitiveError! id))])))
 
 

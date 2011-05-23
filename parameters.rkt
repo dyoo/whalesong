@@ -1,12 +1,14 @@
 #lang typed/racket/base
 
 (require "expression-structs.rkt"
+         "sets.rkt"
          racket/path)
 
 (provide current-defined-name
          current-module-path
          current-root-path
-         current-warn-unimplemented-kernel-primitive)
+         current-warn-unimplemented-kernel-primitive
+         current-seen-unimplemented-kernel-primitives)
 
 
 
@@ -31,6 +33,14 @@
 
 
 
+
+;;; Do not touch the following parameters: they're used internally by package
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(: current-seen-unimplemented-kernel-primitives (Parameterof (Setof Symbol)))
+(define current-seen-unimplemented-kernel-primitives
+  (make-parameter
+   ((inst new-seteq Symbol))))
 
 
 

@@ -7,7 +7,8 @@
 ;; Collect the complete list of dependencies for a module.
 
 
-(provide get-dependencies)
+(provide get-dependencies
+         expression-module-path)
 
 
 (: get-dependencies (Expression -> (Listof ModuleName)))
@@ -26,3 +27,16 @@
                  [else
                   'ok]))
     (set->list deps)))
+
+
+(: expression-module-path (Expression -> (U False ModuleName)))
+;; Given a toplevel expression of a module, returns its self-declared ModuleName.
+;; If we can't find one, return false.
+(define (expression-module-path expr)
+  (cond
+   [(Top? expr)
+    (expression-module-path (Top-code expr))]
+   [(Module? expr)
+    (Module-path expr)]
+   [else
+    #f]))

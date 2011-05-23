@@ -303,6 +303,27 @@
 			MACHINE.argcount + " values"));
     };
 
+    var raiseArityMismatchError = function(MACHINE, expected, received) {
+	raise(MACHINE, 
+	      new Error("expected " + expected +
+			" values, received " + 
+			received + " values"));
+    };
+
+    var raiseOperatorApplicationError = function(MACHINE, operator) {
+	raise(MACHINE, 
+	      new Error("not a procedure: " + expected +
+                        operator));
+    };
+
+    var raiseUnimplementedPrimitiveError = function(MACHINE, name) {
+	raise(MACHINE, 
+	      new Error("unimplemented kernel procedure: " + name))
+    };
+
+
+
+
 
     // captureControl implements the continuation-capturing part of
     // call/cc.  It grabs the control frames up to (but not including) the
@@ -1199,6 +1220,9 @@
     exports['testArity'] = testArity;
     exports['raise'] = raise;
     exports['raiseContextExpectedValuesError'] = raiseContextExpectedValuesError;
+    exports['raiseArityMismatchError'] = raiseArityMismatchError;
+    exports['raiseOperatorApplicationError'] = raiseOperatorApplicationError;
+    exports['raiseUnimplementedPrimitiveError'] = raiseUnimplementedPrimitiveError;
 
 
     exports['captureControl'] = captureControl;

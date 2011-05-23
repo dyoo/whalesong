@@ -388,6 +388,11 @@
   #:transparent)
 
 
+;; Raise a runtime error if we hit a use of an unimplemented kernel primitive.
+(define-struct: RaiseUnimplementedPrimitiveError! ([name : Symbol])
+  #:transparent)
+
+
 
 
 ;; Changes over the control located at the given argument from the structure in env[1]
@@ -426,6 +431,7 @@
                                RaiseContextExpectedValuesError!
                                RaiseArityMismatchError!
 			       RaiseOperatorApplicationError!
+                               RaiseUnimplementedPrimitiveError!
                                
                                RestoreEnvironment!
                                RestoreControl!

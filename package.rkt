@@ -10,6 +10,7 @@
          "get-dependencies.rkt"
          "js-assembler/assemble.rkt"
          "js-assembler/get-runtime.rkt"
+         "lexical-structs.rkt"
          "quote-cdata.rkt"
          racket/runtime-path
          racket/port
@@ -61,7 +62,14 @@
      [(eq? ast #f)
       sources]
      [else
-      sources]))
+      (let* ([dependent-module-names (get-dependencies ast)]
+             [paths
+              (map ModuleName-real-path
+                   (filter (lambda (mp) (and (path? (ModuleName-real-path mp))
+                                             (should-follow?
+                                              (path? (ModuleName-real-path mp)))))
+                           dependent-module-names))])
+        (append paths sources))]))
     
   (let loop ([sources sources])
     (cond
@@ -71,6 +79,7 @@
      [(hash-has-key? visited (first sources))
       (loop (rest sources))]
      [else
+      (printf "visiting ~s\n" (first sources))
       (hash-set! visited (first sources) #t)
       (let-values ([(ast stmts) (get-ast-and-statements (first sources))])
         (assemble/write-invoke stmts op)

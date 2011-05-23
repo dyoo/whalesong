@@ -124,6 +124,12 @@
     [(RaiseOperatorApplicationError!? op)
      (format "RUNTIME.raiseOperatorApplicationError(MACHINE, ~a);"
              (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]
+
+
+    [(RaiseUnimplementedPrimitiveError!? op)
+     (format "RUNTIME.raiseUnimplementedPrimitiveError(MACHINE, ~s);"
+             (symbol->string (RaiseUnimplementedPrimitiveError!-name op)))]
+    
     
     [(InstallModuleEntry!? op)
      (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s, ~a);"

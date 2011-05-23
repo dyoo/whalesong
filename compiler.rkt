@@ -12,8 +12,21 @@
 
 (provide (rename-out [-compile compile])
          compile-general-procedure-call
+         current-warn-unimplemented-kernel-primitive
          append-instruction-sequences)
 
+
+
+
+
+(: default-warn-unimplemented-kernel-primitive (Symbol -> Void))
+(define (default-warn-unimplemented-kernel-primitive id)
+  (printf "WARNING: Primitive Kernel Value ~s has not been implemented\n"
+          id))
+
+
+(: current-warn-unimplemented-kernel-primitive (Parameterof (Symbol -> Void)))
+(define current-warn-unimplemented-kernel-primitive (make-parameter default-warn-unimplemented-kernel-primitive))
 
 
 
@@ -2016,8 +2029,7 @@
 (define (compile-primitive-kernel-value exp cenv target linkage)
   (let ([id (PrimitiveKernelValue-id exp)])
     (cond
-      [(KernelPrimitiveName? id)
-       
+      [(KernelPrimitiveName? id)   
        (let ([singular-context-check (emit-singular-context linkage)])
          ;; Compiles constant values.
          (end-with-linkage linkage
@@ -2027,9 +2039,10 @@
                              `(,(make-AssignImmediateStatement target exp)
                             singular-context-check)))))]
       [else
-       (error 'unimplemented-kernel-primitive 
-              "Primitive Kernel Value ~s has not been implemented"
-              id)])))
+       ((current-warn-unimplemented-kernel-primitive) id)
+       (make-instruction-sequence
+        `(,(make-PerformStatement (make-RaiseUnimplementedPrimitiveError! id))))])))
+
 
 
 

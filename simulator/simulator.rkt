@@ -451,6 +451,10 @@
 	   (error 'step "expected procedure, given ~a"
 		  (evaluate-oparg m (RaiseOperatorApplicationError!-operator op)))]
           
+	  [(RaiseUnimplementedPrimitiveError!? op)
+	   (error 'step "Unimplemented kernel procedure ~a"
+		  (RaiseUnimplementedPrimitiveError!-name op))]
+
           
           [(InstallModuleEntry!? op)
            (printf "installing module ~s\n"

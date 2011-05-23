@@ -204,7 +204,10 @@
 
 
 
-(define-struct: GotoStatement ([target : OpArg]) 
+(define-struct: GotoStatement ([target : (U Label 
+                                            Reg
+                                            ModuleEntry
+                                            CompiledProcedureEntry)]) 
   #:transparent)
 
 (define-struct: PerformStatement ([op : PrimitiveCommand])

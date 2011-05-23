@@ -3,12 +3,15 @@
 (require compiler/zo-parse
          rackunit
          racket/match
+         racket/path
          "../parameters.rkt"
          "../parse-bytecode.rkt"
          "../lexical-structs.rkt"
          "../expression-structs.rkt"
+         racket/runtime-path
          (for-syntax racket/base))
 
+(define-runtime-path this-test-path ".")
 
 (define (run-zo-parse stx)
   (parameterize ([current-namespace (make-base-namespace)]
@@ -398,7 +401,30 @@
                    (#%provide f))))
               
 
-(check-true
+(parameterize ([current-root-path this-test-path]
+               [current-module-path (build-path this-test-path "foo.rkt")])
+  (check-true
+   (match (run-my-parse #'(module foo racket/base))
+     [(struct Top ((? Prefix?)
+                   (struct Module ('foo
+                                   (struct ModuleName 
+                                     ('whalesong/tests/foo.rkt
+                                      (? (lambda (p)
+                                           (and (path? p)
+                                                (equal? (normalize-path p)
+                                                        (normalize-path 
+                                                         (build-path this-test-path "foo.rkt"))))))))
+                                      
+                                   (struct Prefix (list))
+                                   (list (struct ModuleName ('collects/racket/base.rkt
+                                                             _)))
+                                   (struct Splice ('()))))))
+      #t]
+     [else
+      #f])))
+
+
+#;(check-true
  (match (parameterize ([current-root-path (build-path "/blah")]
                        [current-module-path (build-path "/blah" "foo" "bar.rkt")])
                 (run-my-parse '(module foo '#%kernel

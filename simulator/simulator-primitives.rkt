@@ -1,6 +1,7 @@
 #lang racket/base
 (require "simulator-structs.rkt"
          "../il-structs.rkt"
+         "simulator-helpers.rkt"
          racket/math
          racket/list
          (for-syntax racket/base))
@@ -170,6 +171,11 @@
                          (error 'member "not a list: ~s" l)]))))
 
 
+(define my-printf (lambda (fmt args)
+                     (apply printf fmt (map (lambda (x)
+                                              (PrimitiveValue->racket x))
+                                            args))))
+
 
 
 (define current-continuation-marks   
@@ -258,11 +264,11 @@
                                                      
                                                      
                                                      equal?
+                                                     symbol?
                                                      
                                                      
-                                                    
-                                                     
-                                                     symbol?)
+                                                     (my-printf printf)
+                                                     )
                                       #:constants (null pi e
                                                         current-continuation-marks
                                                         continuation-mark-set->list)))

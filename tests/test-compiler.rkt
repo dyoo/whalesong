@@ -3,7 +3,11 @@
 (require "../simulator/simulator.rkt"
          "../simulator/simulator-structs.rkt"
          "../simulator/simulator-helpers.rkt"
-         "test-helpers.rkt")
+         "../parameters.rkt"
+         "test-helpers.rkt"
+         racket/runtime-path)
+
+(define-runtime-path this-test-path ".")
 
   
 
@@ -54,7 +58,8 @@
              #:debug? (debug? false)
              #:stack-limit (stack-limit false)
              #:control-limit (control-limit false)
-             #:with-bootstrapping? (with-bootstrapping? false))
+             #:with-bootstrapping? (with-bootstrapping? false)
+             #:as-main-module (as-main-module #f))
   (let ([m (new-machine (run-compiler code) with-bootstrapping?)])
     (let loop ([steps 0])
       (when debug?
@@ -76,7 +81,15 @@
          (step! m)
          (loop (add1 steps))]
         [else
-         (values m steps)]))))
+         (cond
+           [as-main-module
+            ;; Set the pc to the module's entry point
+            ;; Set the return point to halt on exit.
+            (invoke-module-as-main m as-main-module)
+            (set! as-main-module #f)
+            (loop (add1 steps))]
+           [else         
+            (values m steps)])]))))
 
 
 ;; Atomic expressions
@@ -1326,12 +1339,20 @@
       #:with-bootstrapping? #t)
 
 
+(parameterize ([current-module-path (build-path this-test-path "foo.rkt")])
+  (test '(module foo racket/base
+           (printf "hello world"))
+        (make-undefined)
+        #:as-main-module 'whalesong/tests/foo.rkt
+        #:with-bootstrapping? #t))
+
+
 
 
 
 ;; begin0 is still broken.
 
-#;(test '(letrec ([f (lambda (x)
+(test '(letrec ([f (lambda (x)
                      (if (= x 0)
                          0
                          (+ x (f (sub1 x)))))])
@@ -1341,14 +1362,14 @@
 
 
 
-#;(test '(let () (define (f x y z)
+(test '(let () (define (f x y z)
                  (values y x z))
            (call-with-values (lambda () (f 3 1 4))
                              (lambda args (list args))))
         '((1 3 4))
         #:with-bootstrapping? #t)
 
-#;(test '(let () (define (f x y z)
+(test '(let () (define (f x y z)
                  (begin0 (values y x z)
                          (display "")))
            (call-with-values (lambda () (f 3 1 4))

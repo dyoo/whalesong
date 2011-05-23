@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require "parameters.rkt"
+         "where-is-collects.rkt"
          racket/path
          racket/contract
          racket/list
@@ -34,7 +35,7 @@
       (string->symbol
        (string-append "collects/"
                       (path->string
-                       (find-relative-path collects a-path))))]
+                       (find-relative-path collects-path a-path))))]
      [(within-this-project-path? a-path)
       (string->symbol
        (string-append "whalesong/"
@@ -49,24 +50,14 @@
       #f])))
 
 
-(define collects
-  (normalize-path
-   (let ([p (find-system-path 'collects-dir)])
-     (cond
-      [(relative-path? p)
-       (find-executable-path (find-system-path 'exec-file)
-                             (find-system-path 'collects-dir))]
-      [else
-       p]))))
-        
-
+       
 
 (define (within-root? a-path)
   (within? (current-root-path) a-path))
 
 
 (define (within-collects? a-path)
-  (within? collects a-path))
+  (within? collects-path a-path))
 
 
 (define (within-this-project-path? a-path)

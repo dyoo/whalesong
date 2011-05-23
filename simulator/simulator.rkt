@@ -27,12 +27,20 @@
                [racket->PrimitiveValue (Any -> PrimitiveValue)])
              
 
-(provide new-machine can-step? step! current-instruction
+(provide new-machine 
+         can-step?
+         step! 
+         current-instruction
          current-simulated-output-port
-         machine-control-size)
+         machine-control-size
+         invoke-module-as-main)
 
 
 (define current-simulated-output-port (make-parameter (current-output-port)))
+
+
+
+(define end-of-program-text 'end-of-program-text)
 
 
 (: new-machine (case-lambda [(Listof Statement) -> machine]
@@ -45,11 +53,12 @@
       [with-bootstrapping-code? : Boolean])
      (let*: ([after-bootstrapping : Symbol (make-label 'afterBootstrapping)]
              [program-text : (Listof Statement)
-                           (cond [with-bootstrapping-code?
-                                  (append (get-bootstrapping-code)
-                                          program-text)]
-                                 [else
-                                  program-text])])
+                           (append (cond [with-bootstrapping-code?
+                                          (append (get-bootstrapping-code)
+                                                  program-text)]
+                                         [else
+                                          program-text])
+                                   (list end-of-program-text))])
             (let: ([m : machine (make-machine (make-undefined)
                                               (make-undefined)
                                               (make-undefined)
@@ -76,6 +85,25 @@
 (define (machine-control-size m)
   (length (machine-control m)))
 
+
+
+
+
+(: invoke-module-as-main (machine Symbol -> 'ok))
+;; Assuming the module has been loaded in, sets the machine
+;; up to invoke its body.
+(define (invoke-module-as-main m module-name)
+  (let ([frame (make-PromptFrame
+                default-continuation-prompt-tag-value
+                HALT
+                (length (machine-env m))
+                (make-hasheq)
+                (make-hasheq))]
+        [module-record (hash-ref (machine-modules m) module-name)])
+    (control-push! m frame)
+    (jump! m (module-record-label module-record))))
+    
+               
 
 
 
@@ -425,6 +453,9 @@
           
           
           [(InstallModuleEntry!? op)
+           (printf "installing module ~s\n"
+                   (ModuleName-name 
+                    (InstallModuleEntry!-path op)))
            (hash-set! (machine-modules m)
                       (ModuleName-name (InstallModuleEntry!-path op))
                       (make-module-record (InstallModuleEntry!-name op)
@@ -771,10 +802,17 @@
 	 (error 'GetControlStackLabel)]
 	[(PromptFrame? frame)
 	 (let ([label (PromptFrame-return frame)])
-	   (LinkedLabel-label label))]
+	   (cond [(halt? label)
+                  end-of-program-text]
+                 [else
+                  (LinkedLabel-label label)]))]
 	[(CallFrame? frame)
 	 (let ([label (CallFrame-return frame)])
-	   (LinkedLabel-label label))]))]
+	   (cond
+             [(halt? label)
+              end-of-program-text]
+             [else
+              (LinkedLabel-label label)]))]))]
     
     [(ControlStackLabel/MultipleValueReturn? an-oparg)
      (let ([frame (ensure-frame (first (machine-control m)))])
@@ -783,11 +821,19 @@
 	 (error 'GetControlStackLabel/MultipleValueReturn)]
 	[(PromptFrame? frame)
 	 (let ([label (PromptFrame-return frame)])
-	   (LinkedLabel-linked-to label))]
+	   (cond
+             [(halt? label)
+              end-of-program-text]
+             [else
+              (LinkedLabel-linked-to label)]))]
 	[(CallFrame? frame)
 	 (let ([label (CallFrame-return frame)])
-	   (LinkedLabel-linked-to label))]))]
-
+           (cond
+             [(halt? label)
+              end-of-program-text]
+             [else
+              (LinkedLabel-linked-to label)]))]))]
+    
     [(ControlFrameTemporary? an-oparg)
      (let ([ht (frame-temps (control-top m))])
        (hash-ref ht

@@ -4,15 +4,28 @@
          "il-structs.rkt"
          "compiler.rkt"
          "compiler-structs.rkt"
-         "typed-parse.rkt")
+         "typed-parse.rkt"
+         "where-is-collects.rkt")
 
 (require/typed "parameters.rkt"
                (current-defined-name (Parameterof (U Symbol LamPositionalName))))
-
+(require/typed "parse-bytecode.rkt"
+               (parse-bytecode (Path -> Expression)))
 
 
 
 (provide get-bootstrapping-code)
+
+
+
+
+
+;; We'll hardcode the compilation of some Racket modules here.
+(: hardcoded-modules-to-compile (Listof Path))
+(define hardcoded-modules-to-compile
+  (list
+   (build-path collects-path "racket" "private" "modbeg.rkt")
+   ))
 
 
 
@@ -85,7 +98,16 @@
 (define (get-bootstrapping-code)
   
   (append
+
+   ;; module code
+   (apply append (map (lambda: ([p : Path])
+                               (compile (parse-bytecode p)
+                                        'val
+                                        next-linkage/drop-multiple))
+                      hardcoded-modules-to-compile))
+
    
+   ;; Other primitives
    (make-bootstrapped-primitive-code 
     'map 
     '(letrec ([map (lambda (f l)

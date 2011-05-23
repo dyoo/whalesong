@@ -9,6 +9,7 @@
          "expression-structs.rkt"
          "parameters.rkt"
          "sets.rkt"
+         "make-structs.rkt"
          racket/list
          racket/match)
 
@@ -20,39 +21,7 @@
                [get-module-bytecode ((U String Path Input-Port) -> Bytes)])
 
 
-(provide (all-defined-out))
-
-
-
-(define-type Source (U OnlyStatements Any))
-
-
-(define-struct: Configuration ([should-follow? : (Path -> Boolean)]
-                               [before-first : (-> Void)]
-                               [before-module-statements : ((U Expression #f)
-                                                            (Listof Statement)
-                                                            -> Void)]
-                               [on-module-statements : ((U Expression #f)
-                                                        (Listof Statement)
-                                                        -> Void)]
-                               [after-module-statements : ((U Expression #f)
-                                                           (Listof Statement)
-                                                           -> Void)]
-                               [after-last : (-> Void)])
-  #:mutable)
-
-(define debug-configuration (make-Configuration
-                             (lambda (p) #t)
-                             (lambda () (void))
-                             (lambda (ast stmt)
-                               (void))
-                             (lambda (ast stmt)
-                               (when (and ast (expression-module-path ast))
-                                 (printf "debug build configuration: visiting ~s\n"
-                                         (expression-module-path ast))))
-                             (lambda (ast stmt)
-                               (void))
-                             (lambda () (void))))
+(provide make/dependencies)
 
 
 
@@ -64,8 +33,6 @@
 
     (match config
       [(struct Configuration (should-follow?
-                              before-first
-                              before-module-statements
                               on-module-statements
                               after-module-statements
                               after-last))
@@ -130,22 +97,9 @@
              (hash-set! visited (first sources) #t)
              (let-values ([(ast stmts)
                            (get-ast-and-statements (first sources))])
-               (before-module-statements ast stmts)
                (on-module-statements ast stmts)
-               (after-module-statements ast stmts)
-               (loop (collect-new-dependencies ast (rest sources))))])))
+               (loop (collect-new-dependencies ast (rest sources)))
+               (after-module-statements ast stmts))])))
 
-       (before-first)
-       (follow-dependencies sources)
-       (after-last)])))
-
-
-
-(define-struct: OnlyStatements ([code : (Listof Statement)]))
-
-
-(: only-bootstrapped-code : OnlyStatements)
-(define only-bootstrapped-code (make-OnlyStatements (get-bootstrapping-code)))
-
-
+       (follow-dependencies sources)])))
 

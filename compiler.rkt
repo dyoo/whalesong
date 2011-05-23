@@ -6,28 +6,14 @@
          "compiler-structs.rkt"
          "kernel-primitives.rkt"
          "optimize-il.rkt"
+         "parameters.rkt"
          racket/match
          racket/bool
          racket/list)
 
 (provide (rename-out [-compile compile])
          compile-general-procedure-call
-         current-warn-unimplemented-kernel-primitive
          append-instruction-sequences)
-
-
-
-
-
-(: default-warn-unimplemented-kernel-primitive (Symbol -> Void))
-(define (default-warn-unimplemented-kernel-primitive id)
-  (printf "WARNING: Primitive Kernel Value ~s has not been implemented\n"
-          id))
-
-
-(: current-warn-unimplemented-kernel-primitive (Parameterof (Symbol -> Void)))
-(define current-warn-unimplemented-kernel-primitive (make-parameter default-warn-unimplemented-kernel-primitive))
-
 
 
 

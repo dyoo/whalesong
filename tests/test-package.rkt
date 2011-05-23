@@ -8,7 +8,9 @@
   #t)
 
 (define (test s-exp)
-  (package s-exp follow? (open-output-string) #;(current-output-port)))
+  (package s-exp
+           #:should-follow? follow?
+           #:output-port (open-output-string) #;(current-output-port)))
 
 
 (test '(define (factorial n)

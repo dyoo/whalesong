@@ -18,7 +18,9 @@
                     (newline op)
                     
                     (fprintf op "var innerInvoke = ")
-                    (package-anonymous program should-follow? op)
+                    (package-anonymous program
+                                       #:should-follow? should-follow?
+                                       #:output-port op)
                     (fprintf op "();\n")
                     
                     (fprintf op #<<EOF

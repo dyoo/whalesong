@@ -20,7 +20,9 @@
                     (newline op)
                     
                     (fprintf op "var innerInvoke = ")
-                    (package-anonymous program (lambda (p) #t) op)
+                    (package-anonymous program
+                                       #:should-follow? (lambda (p) #t)
+                                       #:output-port op)
                     (fprintf op "();\n")
                     
                     (fprintf op #<<EOF

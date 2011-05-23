@@ -29,9 +29,13 @@
 
 
 
-(define (package-anonymous source-code should-follow? op)
+(define (package-anonymous source-code
+                           #:should-follow? should-follow?
+                           #:output-port op)
   (fprintf op "(function() {\n")
-  (package source-code should-follow? op)
+  (package source-code
+           #:should-follow? should-follow?
+           #:output-port op)
   (fprintf op " return invoke; })\n"))
 
 
@@ -41,7 +45,9 @@
 
 ;; Compile package for the given source program.  should-follow?
 ;; indicates whether we should continue following module paths.
-(define (package source-code should-follow? op)  
+(define (package source-code
+                 #:should-follow? should-follow?
+                 #:output-port op)  
   (let ([source-code-op (open-output-bytes)])
     (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
     (follow-dependencies (cons bootstrap (list source-code))
@@ -79,7 +85,6 @@
      [(hash-has-key? visited (first sources))
       (loop (rest sources))]
      [else
-      (printf "visiting ~s\n" (first sources))
       (hash-set! visited (first sources) #t)
       (let-values ([(ast stmts) (get-ast-and-statements (first sources))])
         (assemble/write-invoke stmts op)

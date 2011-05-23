@@ -540,3 +540,24 @@ I'm running my bytecode parser over the entire racket collects tree,
 just to make sure the parser itself is robust.
 
 Parsing takes milliseconds, except on Typed Racket code, which is expected.
+
+
+
+----------------------------------------------------------------------
+
+May 23, 2011
+
+Let me list out, roughly, what's left for me to do do:
+
+
+    Get module invokation working.
+
+    Get enough of the racket/base helper functions working to get
+    basic programs in place.
+
+    Get the runtime of Moby in the system.
+
+    Integrate the raw JavaScript-specific extensions in.
+
+    Isolate performance issues.
+

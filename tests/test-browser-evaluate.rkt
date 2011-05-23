@@ -5,6 +5,7 @@
          
 
 
+(define should-follow? (lambda (p) #t))
 
 (define evaluate (make-evaluate 
                   (lambda (program op)
@@ -17,7 +18,7 @@
                     (newline op)
                     
                     (fprintf op "var innerInvoke = ")
-                    (package-anonymous program op)
+                    (package-anonymous program should-follow? op)
                     (fprintf op "();\n")
                     
                     (fprintf op #<<EOF

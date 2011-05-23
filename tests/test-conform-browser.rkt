@@ -18,7 +18,7 @@
                     (newline op)
                     
                     (fprintf op "var innerInvoke = ")
-                    (package-anonymous program op)
+                    (package-anonymous program (lambda (p) #t) op)
                     (fprintf op "();\n")
                     
                     (fprintf op #<<EOF

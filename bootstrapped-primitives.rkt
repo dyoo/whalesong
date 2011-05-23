@@ -20,14 +20,6 @@
 
 
 
-;; We'll hardcode the compilation of some Racket modules here.
-(: hardcoded-modules-to-compile (Listof Path))
-(define hardcoded-modules-to-compile
-  (list
-   (build-path collects-path "racket" "private" "modbeg.rkt")
-   ))
-
-
 
 
 ;; The primitive code necessary to do call/cc
@@ -98,13 +90,6 @@
 (define (get-bootstrapping-code)
   
   (append
-
-   ;; module code
-   (apply append (map (lambda: ([p : Path])
-                               (compile (parse-bytecode p)
-                                        'val
-                                        next-linkage/drop-multiple))
-                      hardcoded-modules-to-compile))
 
    
    ;; Other primitives

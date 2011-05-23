@@ -25,17 +25,20 @@
 
 (: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
 ;; Writes out the JavaScript code that represents the anonymous invocation expression.
+;; What's emitted is a function expression that, when invoked, runs the
+;; statements.
 (define (assemble/write-invoke stmts op)
+  (fprintf op "(function(MACHINE, success, fail, params) {\n")
+  (fprintf op "var param;\n")
+  (fprintf op "var RUNTIME = plt.runtime;\n")
   (let: ([basic-blocks : (Listof BasicBlock) (fracture stmts)])
-        (fprintf op "(function(MACHINE, success, fail, params) {\n")
-        (fprintf op "var param;\n")
-        (fprintf op "var RUNTIME = plt.runtime;\n")
         (for-each
          (lambda: ([basic-block : BasicBlock])
                   (displayln (assemble-basic-block basic-block) op)
                   (newline op))
          basic-blocks)
         (write-linked-label-attributes stmts op)
+        
         (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
         (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
         (fprintf op #<<EOF

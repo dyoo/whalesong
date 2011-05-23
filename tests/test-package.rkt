@@ -2,8 +2,13 @@
 
 (require "../package.rkt")
 
+
+
+(define (follow? p)
+  #t)
+
 (define (test s-exp)
-  (package s-exp (open-output-string) #;(current-output-port)))
+  (package s-exp follow? (open-output-string) #;(current-output-port)))
 
 
 (test '(define (factorial n)

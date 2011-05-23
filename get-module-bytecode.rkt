@@ -1,13 +1,21 @@
 #lang racket/base
 (require racket/contract 
          racket/path
-         syntax/modcode)
+         racket/runtime-path
+         syntax/modcode
+         "language-namespace.rkt")
 (provide/contract [get-module-bytecode ((or/c string? path? input-port?) . -> . bytes?)])
 
 
-(define base-namespace (make-base-namespace))
+(define-runtime-path kernel-language-path
+  "lang/kernel.rkt")
 
-
+(define base-namespace
+  (lookup-language-namespace
+   #;'racket/base
+   `(file ,(path->string kernel-language-path)))
+  #;(make-base-namespace))
+  
 (define (get-module-bytecode x)
   (let ([compiled-code
          (cond

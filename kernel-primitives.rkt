@@ -60,6 +60,10 @@
 				    'call-with-values
                                     'apply
                                     'printf
+                                    
+                                    'map
+                                    'for-each
+                                    'current-print
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

@@ -453,6 +453,9 @@
           
           
           [(InstallModuleEntry!? op)
+           (printf "installing module ~s\n"
+                   (ModuleName-name 
+                    (InstallModuleEntry!-path op)))
            (hash-set! (machine-modules m)
                       (ModuleName-name (InstallModuleEntry!-path op))
                       (make-module-record (InstallModuleEntry!-name op)

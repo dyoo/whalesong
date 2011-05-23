@@ -3,7 +3,11 @@
 (require "../simulator/simulator.rkt"
          "../simulator/simulator-structs.rkt"
          "../simulator/simulator-helpers.rkt"
-         "test-helpers.rkt")
+         "../parameters.rkt"
+         "test-helpers.rkt"
+         racket/runtime-path)
+
+(define-runtime-path this-test-path ".")
 
   
 
@@ -1335,11 +1339,12 @@
       #:with-bootstrapping? #t)
 
 
-
-(test '(module foo racket/base
-         (printf "hello world"))
-      (make-undefined)
-      #:as-main-module 'foo)
+(parameterize ([current-module-path (build-path this-test-path "foo.rkt")])
+  (test '(module foo racket/base
+           (printf "hello world"))
+        (make-undefined)
+        #:as-main-module 'whalesong/tests/foo.rkt
+        #:with-bootstrapping? #t))
 
 
 
@@ -1347,7 +1352,7 @@
 
 ;; begin0 is still broken.
 
-#;(test '(letrec ([f (lambda (x)
+(test '(letrec ([f (lambda (x)
                      (if (= x 0)
                          0
                          (+ x (f (sub1 x)))))])
@@ -1357,14 +1362,14 @@
 
 
 
-#;(test '(let () (define (f x y z)
+(test '(let () (define (f x y z)
                  (values y x z))
            (call-with-values (lambda () (f 3 1 4))
                              (lambda args (list args))))
         '((1 3 4))
         #:with-bootstrapping? #t)
 
-#;(test '(let () (define (f x y z)
+(test '(let () (define (f x y z)
                  (begin0 (values y x z)
                          (display "")))
            (call-with-values (lambda () (f 3 1 4))

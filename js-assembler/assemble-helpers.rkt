@@ -223,7 +223,8 @@
    [(natural? an-arity)
     (format "~a" an-arity)]
    [(ArityAtLeast? an-arity)
-    (format "(new RUNTIME.ArityAtLeast(~a))" (ArityAtLeast-value an-arity))]
+    (format "(new RUNTIME.ArityAtLeast(~a))"
+            (ArityAtLeast-value an-arity))]
    [(listof-atomic-arity? an-arity)
     (assemble-listof-assembled-values
      (map
@@ -231,10 +232,9 @@
 	       (cond
 		[(natural? atomic-arity)
 		 (format "~a" an-arity)]
-		[(ArityAtLeast? an-arity)
-		 (format "(new RUNTIME.ArityAtLeast(~a))" (ArityAtLeast-value an-arity))]
-		;; Can't seem to make the type checker happy without this...
-		[else (error 'assemble-arity)]))
+		[(ArityAtLeast? atomic-arity)
+		 (format "(new RUNTIME.ArityAtLeast(~a))"
+                         (ArityAtLeast-value atomic-arity))]))
       an-arity))]))
 
 

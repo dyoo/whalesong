@@ -182,12 +182,9 @@
     [(struct prefix (num-lifts toplevels stxs))
      (make-Prefix 
       (append (map parse-prefix-toplevel toplevels)
-              (if (empty? stxs)
-                  empty
-                  (list #f))
-              (build-list num-lifts
-                          (lambda (i)
-                            #f))))]))
+              (map (lambda (x) #f) stxs)
+              (if (empty? stxs) empty (list #f))
+              (build-list num-lifts (lambda (i) #f))))]))
 
 
 ;; parse-top-code: (U form Any -> Expression)

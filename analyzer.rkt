@@ -21,12 +21,12 @@
 
 
 
-(: -analyze (Expression -> (HashTable Expression CompileTimeEnvironmentEntry)))
+(: -analyze (Expression -> Analysis))
 (define (-analyze exp)
   (parameterize ([current-expression-map 
 		  ((inst make-hasheq Expression CompileTimeEnvironmentEntry))])
     (analyze exp '())
-    (current-expression-map)))
+    (make-Analysis (current-expression-map))))
 
 
 

@@ -33,3 +33,11 @@
 
 
 
+
+
+(define-struct: Analysis ([ht : (HashTable Expression CompileTimeEnvironmentEntry)]))
+
+
+(: empty-analysis (-> Analysis))
+(define (empty-analysis)
+  (make-Analysis (make-hash)))

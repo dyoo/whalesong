@@ -9,6 +9,7 @@
          "parameters.rkt"
          "sets.rkt"
 	 "analyzer-structs.rkt"
+         "analyzer.rkt"
          racket/match
          racket/bool
          racket/list)
@@ -19,6 +20,9 @@
 
 
 
+(: current-analysis (Parameterof Analysis))
+(define current-analysis (make-parameter (empty-analysis)))
+
 
 
 (: -compile (Expression Target Linkage -> (Listof Statement)))
@@ -26,32 +30,35 @@
 ;; Note: the toplevel generates the lambda body streams at the head, and then the
 ;; rest of the instruction stream.
 (define (-compile exp target linkage)
-  (let* ([after-lam-bodies (make-label 'afterLamBodies)]
-         [before-pop-prompt-multiple (make-label 'beforePopPromptMultiple)]
-         [before-pop-prompt (make-LinkedLabel (make-label 'beforePopPrompt) before-pop-prompt-multiple)])
-    (optimize-il
-     (statements
-      (append-instruction-sequences 
-       
-       ;; Layout the lambda bodies...
-       (make-instruction-sequence 
-        `(,(make-GotoStatement (make-Label after-lam-bodies))))
-       (compile-lambda-bodies (collect-all-lambdas-with-bodies exp))
-       after-lam-bodies
-       
-       ;; Begin a prompted evaluation:
-       (make-instruction-sequence
-        `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                         before-pop-prompt)))
-       (compile exp '() 'val return-linkage/nontail)
-       before-pop-prompt-multiple
-       (make-instruction-sequence
-        `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
-       before-pop-prompt
-       (if (eq? target 'val)
-           empty-instruction-sequence
-           (make-instruction-sequence
-            `(,(make-AssignImmediateStatement target (make-Reg 'val))))))))))
+  (parameterize ([current-analysis (analyze exp)])
+    (let* ([after-lam-bodies (make-label 'afterLamBodies)]
+           [before-pop-prompt-multiple (make-label 'beforePopPromptMultiple)]
+           [before-pop-prompt (make-LinkedLabel
+                               (make-label 'beforePopPrompt)
+                               before-pop-prompt-multiple)])
+      (optimize-il
+       (statements
+        (append-instruction-sequences 
+         
+         ;; Layout the lambda bodies...
+         (make-instruction-sequence 
+          `(,(make-GotoStatement (make-Label after-lam-bodies))))
+         (compile-lambda-bodies (collect-all-lambdas-with-bodies exp))
+         after-lam-bodies
+         
+         ;; Begin a prompted evaluation:
+         (make-instruction-sequence
+          `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                           before-pop-prompt)))
+         (compile exp '() 'val return-linkage/nontail)
+         before-pop-prompt-multiple
+         (make-instruction-sequence
+          `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+         before-pop-prompt
+         (if (eq? target 'val)
+             empty-instruction-sequence
+             (make-instruction-sequence
+              `(,(make-AssignImmediateStatement target (make-Reg 'val)))))))))))
 
 (define-struct: lam+cenv ([lam : (U Lam CaseLam)]
                           [cenv : CompileTimeEnvironment]))

@@ -1,6 +1,8 @@
 #lang typed/racket/base
 
-(provide (rename-out [-analyze analyze]))
+(provide (rename-out [-analyze analyze])
+         analysis-lookup
+         analysis-alias!)
 
 (require "analyzer-structs.rkt"
 	 "expression-structs.rkt"
@@ -24,9 +26,12 @@
 (: -analyze (Expression -> Analysis))
 (define (-analyze exp)
   (parameterize ([current-expression-map 
-		  ((inst make-hasheq Expression CompileTimeEnvironmentEntry))])
+                  ((inst make-hasheq Expression CompileTimeEnvironmentEntry))])
     (analyze exp '())
     (make-Analysis (current-expression-map))))
+
+
+
 
 
 
@@ -354,6 +359,39 @@
    
    [else
     '?]))
+
+
+
+
+(: analysis-lookup (Analysis Expression -> CompileTimeEnvironmentEntry))
+(define (analysis-lookup an-analysis an-exp)
+  (cond
+    [(Lam? exp)
+     (make-StaticallyKnownLam (Lam-name exp)
+                              (Lam-entry-label exp)
+                              (if (Lam-rest? exp)
+                                  (make-ArityAtLeast (Lam-num-parameters exp))
+                                  (Lam-num-parameters exp)))]
+    
+    [(and (LocalRef? exp) (not (LocalRef-unbox? exp)))
+     (hash-ref (Analysis-ht an-analysis) an-exp '?)]
+
+    
+    [(ToplevelRef? exp)
+     (hash-ref (Analysis-ht an-analysis) an-exp '?)]
+    
+    [(Constant? exp)
+     (make-Const (Constant-v exp))]
+    
+    [else
+     '?]))
+
+
+(: analysis-alias! (Analysis Expression Expression -> Void))
+(define (analysis-alias! an-analysis from to)
+  (hash-set! (Analysis-ht an-analysis) to
+            (analysis-lookup an-analysis from)))
+
 
 
 (: ensure-prefix (Any -> Prefix))

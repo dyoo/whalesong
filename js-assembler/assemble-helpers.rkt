@@ -284,7 +284,7 @@
 
 (: assemble-is-module-invoked (IsModuleInvoked -> String))
 (define (assemble-is-module-invoked entry)
-  (format "MACHINE.modules[~s].label"
+  (format "MACHINE.modules[~s].isInvoked"
           (symbol->string (ModuleLocator-name (IsModuleInvoked-name entry)))))
 
 

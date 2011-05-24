@@ -60,21 +60,8 @@
 				    'values
 				    'call-with-values
                                     'apply
-                                    'printf
                                     
-                                    'map
-                                    'for-each
-                                    'current-print
 
-
-                                    ;; These are necessary to get racket/base compiled
-                                    ;; and running
-                                    'raise-type-error
-                                    'hash-map
-                                    'abort-current-continuation
-                                    'raise
-                                    'list?
-                                    'keyword<?
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

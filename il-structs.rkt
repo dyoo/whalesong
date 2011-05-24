@@ -413,6 +413,11 @@
   #:transparent)
 
 
+;; Mark that the module has been invoked.
+(define-struct: MarkModuleInvoked! ([path : ModuleLocator])
+  #:transparent)
+
+
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
                                CheckClosureArity!
@@ -437,6 +442,7 @@
                                RestoreControl!
                                
                                InstallModuleEntry!
+                               MarkModuleInvoked!
                                ))
 
 

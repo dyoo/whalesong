@@ -457,9 +457,6 @@
 
           
           [(InstallModuleEntry!? op)
-           (printf "installing module ~s\n"
-                   (ModuleLocator-name 
-                    (InstallModuleEntry!-path op)))
            (hash-set! (machine-modules m)
                       (ModuleLocator-name (InstallModuleEntry!-path op))
                       (make-module-record (InstallModuleEntry!-name op)
@@ -468,7 +465,15 @@
                                           (InstallModuleEntry!-entry-point op)
                                           #f
                                           (make-hash)))
-           'ok])))
+           'ok]
+
+
+          [(MarkModuleInvoked!? op)
+           (let ([module-record
+                  (hash-ref (machine-modules m)
+                            (ModuleLocator-name (MarkModuleInvoked!-path op)))])
+             (set-module-record-invoked?! module-record #t)
+           'ok)])))
 
 
 

@@ -336,6 +336,7 @@
               
               
               module-entry
+              (make-PerformStatement (make-MarkModuleInvoked! path))
               ;; Module body definition:
               ;; 1.  First invoke all the modules that this requires.
               (apply append-instruction-sequences (map compile-module-invoke (Module-requires mod)))
@@ -1652,7 +1653,7 @@
 ;; We should do more here eventually, including things like type inference or flow analysis, so that
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
-  '? #;(cond
+  (cond
     [(Lam? exp)
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)

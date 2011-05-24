@@ -109,7 +109,10 @@
 	 let/cc
 	 with-continuation-mark
 	 null
-	 *
+
+
+         ;; Kernel inlinable
+         *
 	 -
 	 +
 	 =
@@ -119,7 +122,14 @@
 	 <
 	 >
 	 <=
-	 >=)
+	 >=
+         cons
+         car
+         cdr
+         list
+         null?
+         not
+         eq?)
 
 
 (define (-identity x) x)
@@ -161,7 +171,6 @@
                        compose
                        current-inexact-milliseconds
                        current-seconds
-                       not
                        void
                        random
                        sleep
@@ -223,7 +232,6 @@
                        string->number
                        procedure?
                        pair?
-                       null?
                        (undefined? -undefined?)
 		       immutable?
                        void?
@@ -250,12 +258,8 @@
                        negative?
                        box?
                        hash?
-                       eq?
                        eqv?
                        equal?
-                       cons
-                       car
-                       cdr
                        caar
                        cadr
                        cdar
@@ -271,7 +275,6 @@
                        cadddr
                        length
                        list?
-                       list
                        list*
                        list-ref
                        list-tail

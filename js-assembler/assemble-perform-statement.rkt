@@ -135,4 +135,8 @@
      (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s, ~a);"
              (symbol->string (ModuleLocator-name (InstallModuleEntry!-path op)))
              (symbol->string (InstallModuleEntry!-name op))
-             (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]))
+             (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]
+
+    [(MarkModuleInvoked!? op)
+     (format "MACHINE.modules[~s].isInvoked = true;"
+             (symbol->string (ModuleLocator-name (MarkModuleInvoked!-path op))))]))

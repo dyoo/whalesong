@@ -1,6 +1,6 @@
-test-analyzer:
-	raco make -v --disable-inline test-analyzer.rkt
-	racket test-analyzer.rkt
+# test-analyzer:
+# 	raco make -v --disable-inline test-analyzer.rkt
+# 	racket test-analyzer.rkt
 
 test-all:
 	raco make -v --disable-inline tests/test-all.rkt

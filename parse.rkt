@@ -51,7 +51,7 @@
     [(current-language)
      => (lambda (lang)
           (if (member sym lang)
-              (make-ModuleVariable sym (make-ModuleName '#%kernel '#%kernel))
+              (make-ModuleVariable sym (make-ModuleLocator '#%kernel '#%kernel))
               #f))]
     [else
      #f]))

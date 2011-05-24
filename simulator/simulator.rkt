@@ -458,12 +458,12 @@
           
           [(InstallModuleEntry!? op)
            (printf "installing module ~s\n"
-                   (ModuleName-name 
+                   (ModuleLocator-name 
                     (InstallModuleEntry!-path op)))
            (hash-set! (machine-modules m)
-                      (ModuleName-name (InstallModuleEntry!-path op))
+                      (ModuleLocator-name (InstallModuleEntry!-path op))
                       (make-module-record (InstallModuleEntry!-name op)
-                                          (ModuleName-name 
+                                          (ModuleLocator-name 
                                            (InstallModuleEntry!-path op))
                                           (InstallModuleEntry!-entry-point op)
                                           #f
@@ -856,17 +856,17 @@
     
     [(ModuleEntry? an-oparg)
      (let ([a-module (hash-ref (machine-modules m) 
-                               (ModuleName-name (ModuleEntry-name an-oparg)))])
+                               (ModuleLocator-name (ModuleEntry-name an-oparg)))])
        (module-record-label a-module))]
 
     [(IsModuleInvoked? an-oparg)
      (let ([a-module (hash-ref (machine-modules m) 
-                               (ModuleName-name (IsModuleInvoked-name an-oparg)))])
+                               (ModuleLocator-name (IsModuleInvoked-name an-oparg)))])
        (module-record-invoked? a-module))]
 
     [(IsModuleLinked? an-oparg)
      (hash-has-key? (machine-modules m) 
-		    (ModuleName-name (IsModuleLinked-name an-oparg)))]
+		    (ModuleLocator-name (IsModuleLinked-name an-oparg)))]
 
     [(VariableReference? an-oparg)
      (let ([t (VariableReference-toplevel an-oparg)])

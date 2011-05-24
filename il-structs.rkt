@@ -95,15 +95,15 @@
   #:transparent)
 
 ;; Produces the entry point of the module.
-(define-struct: ModuleEntry ([name : ModuleName])
+(define-struct: ModuleEntry ([name : ModuleLocator])
   #:transparent)
 
 ;; Produces true if the module has already been invoked
-(define-struct: IsModuleInvoked ([name : ModuleName])
+(define-struct: IsModuleInvoked ([name : ModuleLocator])
   #:transparent)
 
 ;; Produces true if the module has been loaded into the machine
-(define-struct: IsModuleLinked ([name : ModuleName])
+(define-struct: IsModuleLinked ([name : ModuleLocator])
   #:transparent)
 
 
@@ -408,7 +408,7 @@
 
 ;; Installs a module record into the machine
 (define-struct: InstallModuleEntry! ([name : Symbol]
-                                     [path : ModuleName]
+                                     [path : ModuleLocator]
                                      [entry-point : Symbol])
   #:transparent)
 

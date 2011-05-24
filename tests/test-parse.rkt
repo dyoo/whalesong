@@ -211,7 +211,7 @@
                           'lamEntry2)))
 
 (test (parse '(+ x x))
-      (make-Top (make-Prefix `(,(make-ModuleVariable '+ (make-ModuleName '#%kernel '#%kernel))
+      (make-Top (make-Prefix `(,(make-ModuleVariable '+ (make-ModuleLocator '#%kernel '#%kernel))
                                x))
                 (make-App (make-ToplevelRef 2 0)
                           (list (make-ToplevelRef 2 1)
@@ -219,7 +219,7 @@
   
 
 (test (parse '(lambda (x) (+ x x)))
-      (make-Top (make-Prefix `(,(make-ModuleVariable '+ (make-ModuleName '#%kernel '#%kernel))))
+      (make-Top (make-Prefix `(,(make-ModuleVariable '+ (make-ModuleLocator '#%kernel '#%kernel))))
                 (make-Lam 'unknown 1 #f
                           (make-App (make-ToplevelRef 2 0)
                                     (list (make-LocalRef 3 #f)
@@ -229,8 +229,8 @@
 
 (test (parse '(lambda (x) 
                 (+ (* x x) x)))
-      (make-Top (make-Prefix `(,(make-ModuleVariable '* (make-ModuleName '#%kernel '#%kernel))
-                               ,(make-ModuleVariable '+ (make-ModuleName '#%kernel '#%kernel))))
+      (make-Top (make-Prefix `(,(make-ModuleVariable '* (make-ModuleLocator '#%kernel '#%kernel))
+                               ,(make-ModuleVariable '+ (make-ModuleLocator '#%kernel '#%kernel))))
                 (make-Lam 'unknown 1 #f
                           ;; stack layout: [???, ???, prefix, x]
                           (make-App (make-ToplevelRef 2 1)
@@ -289,7 +289,7 @@
 (test (parse '(let* ([x 3]
                      [x (add1 x)])
                 (add1 x)))
-      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 (make-ModuleName '#%kernel '#%kernel))))
+      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 (make-ModuleLocator '#%kernel '#%kernel))))
                 
                 ;; stack layout: [prefix]
                 
@@ -418,7 +418,7 @@
 (test (parse '(let ([x 0])
                 (lambda ()
                   (set! x (add1 x)))))
-      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 (make-ModuleName '#%kernel '#%kernel))))
+      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 (make-ModuleLocator '#%kernel '#%kernel))))
                 (make-Let1 (make-Constant 0)
                            (make-BoxEnv 0
                                         (make-Lam 'unknown 0 #f
@@ -437,7 +437,7 @@
                     [y 1])
                 (lambda ()
                   (set! x (add1 x)))))
-      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 (make-ModuleName '#%kernel '#%kernel))))
+      (make-Top (make-Prefix `(,(make-ModuleVariable 'add1 (make-ModuleLocator '#%kernel '#%kernel))))
                 (make-LetVoid 2
                               (make-Seq (list
                                          (make-InstallValue 1 0 (make-Constant 0) #t)
@@ -465,7 +465,7 @@
                      (reset!)
                      (list a b)))
       (make-Top
-       (make-Prefix `(a b ,(make-ModuleVariable 'list (make-ModuleName '#%kernel '#%kernel)) reset!))
+       (make-Prefix `(a b ,(make-ModuleVariable 'list (make-ModuleLocator '#%kernel '#%kernel)) reset!))
        (make-Splice
         (list
          (make-ToplevelSet 0 0 (make-Constant '(hello)))

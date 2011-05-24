@@ -34,9 +34,9 @@
 
 
 (define-struct: Module ([name : Symbol]
-                        [path : ModuleName]
+                        [path : ModuleLocator]
                         [prefix : Prefix]
-                        [requires : (Listof ModuleName)]
+                        [requires : (Listof ModuleLocator)]
                         [code : Expression])
   #:transparent)
 
@@ -143,7 +143,7 @@
 (define-struct: VariableReference ([toplevel : ToplevelRef]) #:transparent)
 
 
-(define-struct: Require ([path : ModuleName]) #:transparent)
+(define-struct: Require ([path : ModuleLocator]) #:transparent)
 
 
 

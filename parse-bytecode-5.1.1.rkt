@@ -157,18 +157,18 @@
 
 ;; maybe-fix-module-name: expression -> expression
 ;; When we're compiling a module directly from memory, it doesn't have a file path.
-;; We rewrite the ModuleName to its given name.
+;; We rewrite the ModuleLocator to its given name.
 (define (maybe-fix-module-name exp)
   (match exp
     [(struct Top (top-prefix 
                   (struct Module ((and name (? symbol?))
-                                  (struct ModuleName ('self 'self))
+                                  (struct ModuleLocator ('self 'self))
                                   module-prefix
                                   module-requires
                                   module-code))))
      (make-Top top-prefix
                (make-Module name
-                            (make-ModuleName name name) (current-module-path)
+                            (make-ModuleLocator name name) (current-module-path)
                             module-prefix
                             module-requires
                             module-code))]
@@ -218,12 +218,12 @@
 (define (wrap-module-name resolved-path-name)
   (cond
     [(symbol? resolved-path-name)
-     (make-ModuleName resolved-path-name resolved-path-name)]
+     (make-ModuleLocator resolved-path-name resolved-path-name)]
     [(path? resolved-path-name)
      (let ([rewritten-path (rewrite-path resolved-path-name)])
        (cond
          [(symbol? rewritten-path)
-          (make-ModuleName (rewrite-path resolved-path-name)
+          (make-ModuleLocator (rewrite-path resolved-path-name)
                            (normalize-path resolved-path-name))]
          [else
           (error 'wrap-module-name "Unable to resolve module path ~s."
@@ -287,12 +287,12 @@
             (let ([resolved-path ((current-module-path-resolver) path (current-module-path))])
               (cond
                 [(symbol? resolved-path)
-                 (make-Require (make-ModuleName resolved-path resolved-path))]
+                 (make-Require (make-ModuleLocator resolved-path resolved-path))]
                 [(path? resolved-path)
                  (let ([rewritten-path (rewrite-path resolved-path)])
                    (cond
                      [(symbol? rewritten-path)
-                      (make-Require (make-ModuleName rewritten-path
+                      (make-Require (make-ModuleLocator rewritten-path
                                                      (normalize-path resolved-path)))]
                      [else
                       (printf "Internal error: I don't know how to handle the require for ~s" require-statement)
@@ -304,7 +304,7 @@
             (printf "Internal error: I don't know how to handle the require for ~s" require-statement)
             (error 'parse-req)]))])))
      
-;; parse-req-reqs: (stx -> (listof ModuleName))
+;; parse-req-reqs: (stx -> (listof ModuleLocator))
 (define (parse-req-reqs reqs)
   (match reqs
     [(struct stx (encoded))
@@ -371,7 +371,7 @@
        (cond
         [(symbol? self-path)
          (make-Module name
-                      (make-ModuleName self-path self-path)
+                      (make-ModuleLocator self-path self-path)
                       (parse-prefix prefix)
                       (parse-mod-requires self-modidx requires)
                       (parse-mod-body body))]
@@ -380,7 +380,7 @@
            (cond
              [(symbol? rewritten-path)
               (make-Module name
-                           (make-ModuleName rewritten-path 
+                           (make-ModuleLocator rewritten-path 
                                             (normalize-path self-path))
                            (parse-prefix prefix)
                            (parse-mod-requires self-modidx requires)
@@ -389,7 +389,7 @@
               (error 'parse-mod "Internal error: unable to resolve module path ~s" self-path)]))]))]))
 
 
-;; parse-mod-requires: module-path-index (listof (pair (U Integer #f) (listof module-path-index))) -> (listof ModuleName)
+;; parse-mod-requires: module-path-index (listof (pair (U Integer #f) (listof module-path-index))) -> (listof ModuleLocator)
 (define (parse-mod-requires enclosing-module-path-index requires)
   ;; We only care about phase 0 --- the runtime.
   (let ([resolver (current-module-path-index-resolver)])

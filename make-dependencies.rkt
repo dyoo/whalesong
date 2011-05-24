@@ -74,9 +74,9 @@
             [else
              (let* ([dependent-module-names (get-dependencies ast)]
                     [paths
-                     (foldl (lambda: ([mp : ModuleName]
+                     (foldl (lambda: ([mp : ModuleLocator]
                                       [acc : (Listof Source)])
-                                     (let ([rp [ModuleName-real-path mp]])
+                                     (let ([rp [ModuleLocator-real-path mp]])
                                        
                                        (cond [(and (path? rp)
                                                    (should-follow? rp)

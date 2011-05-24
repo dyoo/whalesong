@@ -340,7 +340,7 @@
                           42))
    [(struct Top ((struct Prefix (list))
                  (struct Module ((? symbol?)
-                                 (? ModuleName?)
+                                 (? ModuleLocator?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
                                  (struct Splice ((list (struct ApplyValues 
@@ -354,7 +354,7 @@
                           (define x "x")))
    [(struct Top ((struct Prefix ((? list?)))
                  (struct Module ((? symbol?)
-                                 (? ModuleName?)
+                                 (? ModuleLocator?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
                                  (struct Splice ((list (struct DefValues 
@@ -409,7 +409,7 @@
    (match (run-my-parse #'(module foo racket/base))
      [(struct Top ((? Prefix?)
                    (struct Module ('foo
-                                   (struct ModuleName 
+                                   (struct ModuleLocator 
                                      ('whalesong/tests/foo.rkt
                                       (? (lambda (p)
                                            (and (path? p)
@@ -418,7 +418,7 @@
                                                          (build-path this-test-path "foo.rkt"))))))))
                                       
                                    (struct Prefix (list))
-                                   (list (struct ModuleName ('collects/racket/base.rkt
+                                   (list (struct ModuleLocator ('collects/racket/base.rkt
                                                              _)))
                                    (struct Splice ('()))))))
       #t]
@@ -434,9 +434,9 @@
                                  (#%provide f))))
    [(struct Top ((struct Prefix ((list '#f)))
                  (struct Module ('foo
-                                 (struct ModuleName ('self _ #;(build-path "root/foo/bar.rkt")))
+                                 (struct ModuleLocator ('self _ #;(build-path "root/foo/bar.rkt")))
                                  (struct Prefix ((list 'f)))
-                                 (list (struct ModuleName ('#%kernel '#%kernel)))
+                                 (list (struct ModuleLocator ('#%kernel '#%kernel)))
                                  (struct Splice ((list (struct DefValues ((list (struct ToplevelRef (0 0)))
                                                                           (struct Constant ('ok)))))))))))
     '#t]))

@@ -31,8 +31,8 @@
 
 
 (define (module-name< x y)
-  (string<? (symbol->string (ModuleName-name x))
-            (symbol->string (ModuleName-name y))))
+  (string<? (symbol->string (ModuleLocator-name x))
+            (symbol->string (ModuleLocator-name y))))
 
 
 
@@ -61,10 +61,10 @@
                       module-name<)
 
                 (sort
-                 (list (make-ModuleName 'collects/racket/base.rkt
+                 (list (make-ModuleLocator 'collects/racket/base.rkt
                                         (normalize-path (build-path collects-dir "racket" "base.rkt")))
-                       (make-ModuleName 'collects/racket/math.rkt
+                       (make-ModuleLocator 'collects/racket/math.rkt
                                         (normalize-path (build-path collects-dir "racket" "math.rkt")))
-                       (make-ModuleName 'whalesong/get-module-bytecode.rkt
+                       (make-ModuleLocator 'whalesong/get-module-bytecode.rkt
                                         (normalize-path (build-path compiler-path "get-module-bytecode.rkt"))))
                  module-name<)))

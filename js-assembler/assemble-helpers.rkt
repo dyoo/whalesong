@@ -279,19 +279,19 @@
 (: assemble-module-entry (ModuleEntry -> String))
 (define (assemble-module-entry entry)
   (format "MACHINE.modules[~s].label"
-          (symbol->string (ModuleName-name (ModuleEntry-name entry)))))
+          (symbol->string (ModuleLocator-name (ModuleEntry-name entry)))))
 
 
 (: assemble-is-module-invoked (IsModuleInvoked -> String))
 (define (assemble-is-module-invoked entry)
   (format "MACHINE.modules[~s].label"
-          (symbol->string (ModuleName-name (IsModuleInvoked-name entry)))))
+          (symbol->string (ModuleLocator-name (IsModuleInvoked-name entry)))))
 
 
 (: assemble-is-module-linked (IsModuleLinked -> String))
 (define (assemble-is-module-linked entry)
   (format "(MACHINE.modules[~s] !== undefined)"
-          (symbol->string (ModuleName-name (IsModuleLinked-name entry)))))
+          (symbol->string (ModuleLocator-name (IsModuleLinked-name entry)))))
 
 
 

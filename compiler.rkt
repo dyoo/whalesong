@@ -359,7 +359,7 @@
      `(,(make-AssignImmediateStatement target (make-Const (void))))))))
 
 
-(: compile-module-invoke (ModuleName -> InstructionSequence))
+(: compile-module-invoke (ModuleLocator -> InstructionSequence))
 ;; Generates code that will invoke a module (if it hasn't been invoked yet)
 ;; FIXME: assumes the module has already been linked.  We should error out
 ;; if the module hasn't been linked yet.
@@ -381,7 +381,7 @@
          ;; linked yet.
          ,(make-DebugPrint (make-Const 
                             (format "DEBUG: the module ~a hasn't been linked in!!!"
-                                    (ModuleName-name a-module-name))))
+                                    (ModuleLocator-name a-module-name))))
          ,(make-GotoStatement (make-Label already-loaded))
          ,linked
          ,(make-TestAndBranchStatement (make-TestTrue 
@@ -397,12 +397,12 @@
          ,already-loaded)))]))
 
 
-(: kernel-module-name? (ModuleName -> Boolean))
+(: kernel-module-name? (ModuleLocator -> Boolean))
 ;; Produces true if the module is hardcoded.
 (define (kernel-module-name? name)
-  (or (and (eq? (ModuleName-name name) '#%kernel)
-           (eq? (ModuleName-real-path name) '#%kernel))
-      (eq? (ModuleName-name name) 'whalesong/lang/kernel)))
+  (or (and (eq? (ModuleLocator-name name) '#%kernel)
+           (eq? (ModuleLocator-real-path name) '#%kernel))
+      (eq? (ModuleLocator-name name) 'whalesong/lang/kernel)))
 
 
 
@@ -977,7 +977,7 @@
              (default)]
             [(ModuleVariable? op-knowledge)
              (cond
-               [(symbol=? (ModuleName-name
+               [(symbol=? (ModuleLocator-name
                            (ModuleVariable-module-name op-knowledge))
                           '#%kernel)
                 (let ([op (ModuleVariable-name op-knowledge)])

@@ -11,16 +11,16 @@
          expression-module-path)
 
 
-(: get-dependencies (Expression -> (Listof ModuleName)))
+(: get-dependencies (Expression -> (Listof ModuleLocator)))
 (define (get-dependencies expr)
-  (let ([deps ((inst new-set ModuleName))])
+  (let ([deps ((inst new-set ModuleLocator))])
     (let: visit : 'ok ([expr : Expression expr])
           (cond
                  [(Top? expr)
                   (visit (Top-code expr))
                   'ok]
                  [(Module? expr)
-                  (for-each (lambda: ([mn : ModuleName])
+                  (for-each (lambda: ([mn : ModuleLocator])
                                      (set-insert! deps mn))
                             (Module-requires expr))
                   'ok]
@@ -29,8 +29,8 @@
     (set->list deps)))
 
 
-(: expression-module-path (Expression -> (U False ModuleName)))
-;; Given a toplevel expression of a module, returns its self-declared ModuleName.
+(: expression-module-path (Expression -> (U False ModuleLocator)))
+;; Given a toplevel expression of a module, returns its self-declared ModuleLocator.
 ;; If we can't find one, return false.
 (define (expression-module-path expr)
   (cond

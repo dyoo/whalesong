@@ -16,14 +16,14 @@
   #:transparent)
 
 
-;; A ModuleName is an identifier for a Module.
-(define-struct: ModuleName ([name : Symbol]
+;; A ModuleLocator is an identifier for a Module.
+(define-struct: ModuleLocator ([name : Symbol]
                             [real-path : (U Symbol Path)])
   #:transparent)
 
 
 (define-struct: ModuleVariable ([name : Symbol]
-                                [module-name : ModuleName])
+                                [module-name : ModuleLocator])
   #:transparent)
 
 

@@ -8,6 +8,7 @@
          "optimize-il.rkt"
          "parameters.rkt"
          "sets.rkt"
+	 "analyzer-structs.rkt"
          racket/match
          racket/bool
          racket/list)

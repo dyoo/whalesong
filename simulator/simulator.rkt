@@ -464,7 +464,8 @@
                                            (InstallModuleEntry!-path op))
                                           (InstallModuleEntry!-entry-point op)
                                           #f
-                                          (make-hash)))
+                                          (make-hash)
+                                          #f))
            'ok]
 
 
@@ -554,6 +555,15 @@
                 (hash-set! ht
                            (ControlFrameTemporary-name t)
                            (ensure-primitive-value v))
+                'ok))]
+    [(ModulePrefixTarget? t)
+     (lambda: ([m : machine] [v : SlotValue])
+              (let ([module-record
+                     (hash-ref (machine-modules m)
+                               (ModuleLocator-name
+                                (ModulePrefixTarget-path t)))])
+                (set-module-record-toplevel! module-record
+                                             (ensure-toplevel v))
                 'ok))]))
 
 

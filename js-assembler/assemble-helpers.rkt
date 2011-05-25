@@ -82,7 +82,10 @@
     [(PrimitivesReference? target)
      (format "MACHINE.primitives[~s]" (symbol->string (PrimitivesReference-name target)))]
     [(ControlFrameTemporary? target)
-     (assemble-control-frame-temporary target)]))
+     (assemble-control-frame-temporary target)]
+    [(ModulePrefixTarget? target)
+     (format "MACHINE.modules[~s].prefix"
+             (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))]))
 
 
 (: assemble-control-frame-temporary (ControlFrameTemporary -> String))

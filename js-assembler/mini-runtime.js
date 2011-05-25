@@ -97,7 +97,7 @@
 	this.name = name;
 	this.label = label;
 	this.isInvoked = false;
-	this.exports = {};
+        this.prefix = false;
     };
 
 

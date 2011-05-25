@@ -344,6 +344,9 @@
               ;; 2.  Next, evaluate the module body.
               (make-instruction-sequence 
                `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+
+              (make-AssignImmediateStatement (make-ModulePrefixTarget path)
+                                             (make-EnvWholePrefixReference 0))
               ;; TODO: we need to sequester the prefix of the module with the record.
               (compile (Module-code mod) 
                        (cons (Module-prefix mod) module-cenv)
@@ -2122,6 +2125,8 @@
     [(PrimitivesReference? target)
      target]
     [(ControlFrameTemporary? target)
+     target]
+    [(ModulePrefixTarget? target)
      target]))
 
 

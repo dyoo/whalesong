@@ -45,7 +45,8 @@
                        EnvLexicalReference
                        EnvPrefixReference
                        PrimitivesReference                   
-                       ControlFrameTemporary))
+                       ControlFrameTemporary
+                       ModulePrefixTarget))
 
 
 ;; When we need to store a value temporarily in the top control frame, we can use this as a target.
@@ -54,6 +55,11 @@
                                                   'pendingBegin0Count
                                                   'pendingBegin0Values
                                                   )])
+  #:transparent)
+
+
+;; Targetting the prefix attribute of a module.
+(define-struct: ModulePrefixTarget ([path : ModuleLocator])
   #:transparent)
 
 

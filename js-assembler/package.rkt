@@ -1,14 +1,17 @@
 #lang racket/base
 
 (require "assemble.rkt"
-         "get-runtime.rkt"
          "../quote-cdata.rkt"
-         "../make-dependencies.rkt"
+         "../make.rkt"
          "../make-structs.rkt"
-	 (prefix-in racket: racket/base))
+         "get-runtime.rkt"
+         (prefix-in racket: racket/base))
+
+
 
 (provide package
-         package-anonymous)
+         package-anonymous
+         package-standalone-xhtml)
 
 ;; Packager: produce single .js files to be included to execute a
 ;; program.  Follows module dependencies.
@@ -55,11 +58,11 @@
      (lambda ()
        (fprintf op "SUCCESS();"))))
 
-
+  
     (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
-    (make/dependencies (cons only-bootstrapped-code
-                             (list source-code))
-                       packaging-configuration)
+    (make (cons only-bootstrapped-code
+                (list (make-MainModuleSource source-code)))
+      packaging-configuration)
     (fprintf op "});\n"))
 
 
@@ -92,7 +95,15 @@ EOF
 var invokeMainModule = function() {
     var MACHINE = new plt.runtime.Machine();
     invoke(MACHINE,
-           function() {}, 
+           function() {
+                MACHINE.modules['*main*'].invoke(
+                    MACHINE,
+                    function() {
+                        // On main module invokation success
+                    },
+                    function() {
+                        // On main module invokation failure
+                    })}, 
            function() {},
            {
                currentDisplayer : function(v) {

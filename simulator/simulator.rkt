@@ -474,7 +474,15 @@
                   (hash-ref (machine-modules m)
                             (ModuleLocator-name (MarkModuleInvoked!-path op)))])
              (set-module-record-invoked?! module-record #t)
-           'ok)])))
+           'ok)]
+          [(AliasModuleName!? op)
+           (let ([module-record
+                  (hash-ref (machine-modules m)
+                            (ModuleLocator-name (AliasModuleName!-from op)))])
+             (hash-set! (machine-modules m)
+                        (ModuleLocator-name (AliasModuleName!-to op))
+                        module-record)
+             'ok)])))
 
 
 

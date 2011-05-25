@@ -2,6 +2,7 @@
 (require "../browser-evaluate.rkt"
          "../js-assembler/package.rkt"
 	 "../js-assembler/get-runtime.rkt"
+         "../make-structs.rkt"
          racket/port
          racket/runtime-path
          racket/runtime-path
@@ -22,7 +23,7 @@
                     (newline op)
                     
                     (fprintf op "var innerInvoke = ")
-                    (package-anonymous program
+                    (package-anonymous (make-SexpSource program)
                                        #:should-follow? (lambda (p) #t)
                                        #:output-port op)
                     (fprintf op "();\n")

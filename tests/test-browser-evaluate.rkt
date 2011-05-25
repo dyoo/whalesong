@@ -1,7 +1,8 @@
 #lang racket
 (require "../js-assembler/get-runtime.rkt"
          "../browser-evaluate.rkt"
-         "../js-assembler/package.rkt")
+         "../js-assembler/package.rkt"
+         "../make-structs.rkt")
 
 (printf "test-browser-evaluate.rkt\n")
 
@@ -19,7 +20,7 @@
                     (newline op)
                     
                     (fprintf op "var innerInvoke = ")
-                    (package-anonymous program
+                    (package-anonymous (make-SexpSource program)
                                        #:should-follow? should-follow?
                                        #:output-port op)
                     (fprintf op "();\n")

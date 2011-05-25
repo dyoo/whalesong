@@ -424,6 +424,14 @@
   #:transparent)
 
 
+;; Give an alternative locator to the module.  Assumes the module has
+;; already been installed.
+(define-struct: AliasModuleName! ([from : ModuleLocator]
+                                  [to : ModuleLocator])
+  #:transparent)
+
+
+
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
                                CheckClosureArity!
@@ -449,6 +457,7 @@
                                
                                InstallModuleEntry!
                                MarkModuleInvoked!
+                               AliasModuleName!
                                ))
 
 

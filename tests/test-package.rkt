@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require "../js-assembler/package.rkt")
+(require "../js-assembler/package.rkt"
+         "../make-structs.rkt")
 
 (printf "test-package.rkt\n")
 
@@ -9,7 +10,7 @@
   #t)
 
 (define (test s-exp)
-  (package s-exp
+  (package (make-SexpSource s-exp)
            #:should-follow? follow?
            #:output-port (open-output-string) #;(current-output-port)))
 

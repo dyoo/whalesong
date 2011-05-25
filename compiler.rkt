@@ -452,8 +452,11 @@
               (if (= context 1)
                   empty-instruction-sequence
                   (make-instruction-sequence
-                   `(,(make-AssignImmediateStatement 'argcount (make-Const 1))
-                     ,(make-PerformStatement (make-RaiseContextExpectedValuesError! context)))))]))]))
+                   `(,(make-AssignImmediateStatement 'argcount
+                                                     (make-Const 1))
+                     ,(make-PerformStatement
+                       (make-RaiseContextExpectedValuesError!
+                        context)))))]))]))
 
 
 

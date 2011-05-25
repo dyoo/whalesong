@@ -21,13 +21,70 @@
                [get-module-bytecode ((U String Path Input-Port) -> Bytes)])
 
 
-(provide make/dependencies)
+(provide make
+         get-ast-and-statements)
+
+
+
+(: get-ast-and-statements (Source -> (values (U False Expression)
+                                             (Listof Statement))))
+(define (get-ast-and-statements a-source)
+  (cond
+   [(StatementsSource? a-source)
+    (values #f (StatementsSource-stmts a-source))]
+
+   [(MainModuleSource? a-source)
+    (let-values ([(ast stmts)
+                  (get-ast-and-statements (MainModuleSource-source a-source))])
+      (let ([maybe-module-locator (find-module-locator ast)])
+        (cond
+         [(ModuleLocator? maybe-module-locator)
+          (values ast (append stmts
+                             ;; Set the main module name
+                              (list (make-PerformStatement
+                                     (make-AliasModuleName!
+                                      maybe-module-locator
+                                      (make-ModuleLocator '*main* '*main*))))))]
+         [else
+          (values ast stmts)])))]
+
+   [else
+    (let ([ast
+           (cond
+            [(ModuleSource? a-source)
+             (parse-bytecode (ModuleSource-path a-source))]
+            [(SexpSource? a-source)
+             (let ([source-code-op (open-output-bytes)])
+               (write (SexpSource-sexp a-source) source-code-op)
+               (parse-bytecode
+                (open-input-bytes
+                 (get-module-bytecode
+                  (open-input-bytes
+                   (get-output-bytes source-code-op))))))])])
+      (values ast
+              (compile ast 'val next-linkage/drop-multiple)))]))
+
+
+
+(: find-module-locator ((U Expression False) -> (U False ModuleLocator)))
+;; Tries to look for the module locator of this expression.
+(define (find-module-locator exp)
+  (match exp
+    [(struct Top ((? Prefix?)
+                  (struct Module (name
+                                  (and path (? ModuleLocator?))
+                                  prefix
+                                  requires
+                                  code))))
+     path]
+    [else
+     #f]))
 
 
 
 
-(: make/dependencies ((Listof Source) Configuration -> Void))
-(define (make/dependencies sources config)
+(: make ((Listof Source) Configuration -> Void))
+(define (make sources config)
   (parameterize ([current-seen-unimplemented-kernel-primitives
                   ((inst new-seteq Symbol))])
 
@@ -36,29 +93,6 @@
                               on-module-statements
                               after-module-statements
                               after-last))
-
-       (: get-ast-and-statements (Source -> (values (U False Expression)
-                                                    (Listof Statement))))
-       (define (get-ast-and-statements source-code)
-         (cond
-          [(OnlyStatements? source-code)
-           (values #f (get-bootstrapping-code))]
-          [else
-           (let ([ast
-                  (cond
-                   [(path? source-code)
-                    (parse-bytecode source-code)]
-                   [else
-                    (let ([source-code-op (open-output-bytes)])
-                      (write source-code source-code-op)
-                      (parse-bytecode
-                       (open-input-bytes
-                        (get-module-bytecode
-                         (open-input-bytes
-                          (get-output-bytes source-code-op))))))])])
-             (values ast
-                     (compile ast 'val next-linkage/drop-multiple)))]))
-
 
 
        (: follow-dependencies ((Listof Source) -> Void))
@@ -80,7 +114,8 @@
                                        
                                        (cond [(and (path? rp)
                                                    (should-follow? rp)
-                                                   (cons rp acc))]
+                                                   (cons (make-ModuleSource rp)
+                                                         acc))]
                                              [else
                                               acc])))
                             '()

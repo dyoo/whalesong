@@ -139,4 +139,10 @@
 
     [(MarkModuleInvoked!? op)
      (format "MACHINE.modules[~s].isInvoked = true;"
-             (symbol->string (ModuleLocator-name (MarkModuleInvoked!-path op))))]))
+             (symbol->string (ModuleLocator-name (MarkModuleInvoked!-path op))))]
+
+
+    [(AliasModuleName!? op)
+     (format "MACHINE.modules[~s] = MACHINE.modules[~s];"
+             (symbol->string (ModuleLocator-name (AliasModuleName!-to op)))
+             (symbol->string (ModuleLocator-name (AliasModuleName!-from op))))]))

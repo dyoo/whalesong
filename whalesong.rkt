@@ -1,25 +1,17 @@
+#!/usr/bin/env racket
 #lang racket/base
 
 (require racket/list
          racket/match
          racket/string
-         "package.rkt"
-         "sets.rkt")
+         racket/path
+         "make-structs.rkt"
+         "js-assembler/package.rkt")
+
 
 ;; Usage:
 ;;
-;;
-;; * Get complete list of dependency modules up to kernel
-;;
-;;     $ whalesong deps 
-;;
-;;
-;; * Compile JavaScript object files (.jso)
-;;
-;;     $ whalesong compile [file.rkt] ...
-;;
-;;
-;; * Build standalone application
+;; * Build standalone .xhtml application.
 ;;
 ;;     $ whalesong build main-module-name.rkt
 
@@ -57,11 +49,19 @@
 
 
 (define (do-the-build filenames)
-  (let ([seen-module-names (new-set)])
-    (let loop ([queue filenames])
-      (void))))
-
-
+  (for ([f filenames])
+       (let-values ([(base filename dir?)
+                     (split-path f)])
+         (let ([output-filename
+                (build-path
+                 (regexp-replace #rx"[.](rkt|ss)$" (path->string filename) ".xhtml"))])
+           (call-with-output-file* output-filename
+                                   (lambda (op)
+                                     (package-standalone-xhtml
+                                      (make-ModuleSource (build-path f))
+                                      op))
+                                   #:exists 'replace)))))
+             
 
 
 (at-toplevel)

@@ -326,41 +326,45 @@
              [names : (Listof (U False Symbol GlobalBucket ModuleVariable))
                     (Prefix-names prefix)]
              [module-cenv : CompileTimeEnvironment (list prefix)])
-            
-            (end-with-linkage 
-             linkage cenv
-             (append-instruction-sequences
-              (make-instruction-sequence
-               `(,(make-PerformStatement (make-InstallModuleEntry! name path module-entry))
-                 ,(make-GotoStatement (make-Label after-module-body))))
-              
-              
-              module-entry
-              (make-PerformStatement (make-MarkModuleInvoked! path))
-              ;; Module body definition:
-              ;; 1.  First invoke all the modules that this requires.
-              (apply append-instruction-sequences (map compile-module-invoke (Module-requires mod)))
-           
-              ;; 2.  Next, evaluate the module body.
-              (make-instruction-sequence 
-               `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+       
+       (end-with-linkage 
+        linkage cenv
+        (append-instruction-sequences
+         (make-PerformStatement (make-InstallModuleEntry! name path module-entry))
+         (make-GotoStatement (make-Label after-module-body))
 
-              (make-AssignImmediateStatement (make-ModulePrefixTarget path)
-                                             (make-EnvWholePrefixReference 0))
-              ;; TODO: we need to sequester the prefix of the module with the record.
-              (compile (Module-code mod) 
-                       (cons (Module-prefix mod) module-cenv)
-                       'val
-                       next-linkage/drop-multiple)
-              
-              ;; 3. Finally, cleanup and return.
-              (make-instruction-sequence
-               `(,(make-PopEnvironment (make-Const 1) (make-Const 0))
-                 ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-                 ,(make-PopControlFrame)
-                 ,(make-GotoStatement (make-Reg 'proc))))
-              
-              after-module-body)))]))
+         
+         module-entry
+         (make-PerformStatement (make-MarkModuleInvoked! path))
+         ;; Module body definition:
+         ;; 1.  First invoke all the modules that this requires.
+         (make-DebugPrint (make-Const "handling internal requires"))
+         (apply append-instruction-sequences
+                (map compile-module-invoke (Module-requires mod)))
+         
+         ;; 2.  Next, evaluate the module body.
+         (make-DebugPrint (make-Const (format "evaluating module body of ~s" path)))
+         (make-PerformStatement (make-ExtendEnvironment/Prefix! names))
+
+         (make-AssignImmediateStatement (make-ModulePrefixTarget path)
+                                        (make-EnvWholePrefixReference 0))
+         ;; TODO: we need to sequester the prefix of the module with the record.
+         (compile (Module-code mod) 
+                  (cons (Module-prefix mod) module-cenv)
+                  'val
+                  next-linkage/drop-multiple)
+
+         (make-DebugPrint (make-Const (format "About to clean up ~s" path)))
+         
+         ;; 3. Finally, cleanup and return.
+         (make-PopEnvironment (make-Const 1) (make-Const 0))
+         (make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+         (make-PopControlFrame)
+         (make-DebugPrint (make-Const "Returning from module invokation."))
+         (make-DebugPrint (make-Reg 'proc))
+         (make-GotoStatement (make-Reg 'proc))
+         
+         after-module-body)))]))
 
 (: compile-require (Require CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-require exp cenv target linkage)
@@ -399,6 +403,7 @@
          ,(make-TestAndBranchStatement (make-TestTrue 
                                         (make-IsModuleInvoked a-module-name))
                                        already-loaded)
+         ,(make-DebugPrint (make-Const (format "entering module ~s" a-module-name)))
          ,(make-PushControlFrame/Call on-return)
          ,(make-GotoStatement (ModuleEntry a-module-name))
          ,on-return-multiple
@@ -406,6 +411,7 @@
                                                  (make-Const 1))
                                (make-Const 0))
          ,on-return
+         ,(make-DebugPrint (make-Const (format "coming back from module ~s" a-module-name)))
          ,already-loaded)))]))
 
 

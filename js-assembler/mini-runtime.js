@@ -496,8 +496,9 @@
                 }
 	        outputPort.write(MACHINE, "\n");
             }
-            MACHINE.env.length = MACHINE.env.length - (MACHINE.argcount - 1);
-            throw MACHINE.control.pop();
+            MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
+            var frame = MACHINE.control.pop();
+            return frame.label(MACHINE);
         },
         new ArityAtLeast(0),
         [],

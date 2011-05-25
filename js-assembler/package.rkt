@@ -99,15 +99,18 @@ var invokeMainModule = function() {
                 MACHINE.modules['*main*'].invoke(
                     MACHINE,
                     function() {
+                        console.log("done with main module invokation");
                         // On main module invokation success
                     },
-                    function() {
+                    function(MACHINE, e) {
+                        console.log(e.stack);
                         // On main module invokation failure
                     })}, 
            function() {},
            {
                currentDisplayer : function(v) {
                    document.body.appendChild(document.createTextNode(String(v)));
+                   document.body.appendChild(document.createElement("br"));
                }
            });
 };

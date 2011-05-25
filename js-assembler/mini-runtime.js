@@ -485,14 +485,25 @@
     Primitives['print-values'] = new Closure(
         function(MACHINE) {
 	    var outputPort = MACHINE.params.currentOutputPort;
+            var prependNewline = false;
             if (MACHINE.argcount > 0) {
-	        outputPort.write(MACHINE, MACHINE.val);
-	        outputPort.write(MACHINE, "\n");
+                if (MACHINE.val !== undefined) {
+                    if (prependNewline) {
+                        outputPort.write(MACHINE, "\n");
+                    }
+	            outputPort.write(MACHINE, MACHINE.val);
+                    prependNewline = true;
+                }
 
                 for(var i = 0; i < MACHINE.argcount - 1; i++) {
-	            outputPort.write(MACHINE, "\n");
-                    outputPort.write(MACHINE,
-                                     MACHINE.env[MACHINE.env.length - 1 - i]);
+                    if (MACHINE.env[MACHINE.env.length - 1 - i] !== undefined) {
+	                if (prependNewline) {
+                            outputPort.write(MACHINE, "\n");
+                        }
+                        outputPort.write(MACHINE,
+                                         MACHINE.env[MACHINE.env.length - 1 - i]);
+                        prependNewline = true;
+                    }
                 }
 	        outputPort.write(MACHINE, "\n");
             }

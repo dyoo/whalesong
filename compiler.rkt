@@ -412,11 +412,7 @@
 (: kernel-module-name? (ModuleLocator -> Boolean))
 ;; Produces true if the module is hardcoded.
 (define (kernel-module-name? name)
-  (or (and (eq? (ModuleLocator-name name) '#%kernel)
-           (eq? (ModuleLocator-real-path name) '#%kernel))
-      (eq? (ModuleLocator-name name) 'whalesong/lang/kernel)))
-
-
+  ((current-kernel-module-locator?) name))
 
 
 

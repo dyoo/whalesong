@@ -112,7 +112,10 @@
                                       [acc : (Listof Source)])
                                      (let ([rp [ModuleLocator-real-path mp]])
                                        
-                                       (cond [(and (path? rp)
+                                       (cond [((current-kernel-module-locator?)
+                                               mp)
+                                              acc]
+                                             [(and (path? rp)
                                                    (should-follow? rp)
                                                    (cons (make-ModuleSource rp)
                                                          acc))]

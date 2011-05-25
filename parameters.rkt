@@ -1,14 +1,17 @@
 #lang typed/racket/base
 
 (require "expression-structs.rkt"
+         "lexical-structs.rkt"
          "sets.rkt"
          racket/path)
+
 
 (provide current-defined-name
          current-module-path
          current-root-path
          current-warn-unimplemented-kernel-primitive
-         current-seen-unimplemented-kernel-primitives)
+         current-seen-unimplemented-kernel-primitives
+         current-kernel-module-locator?)
 
 
 
@@ -29,6 +32,17 @@
    (lambda: ([id : Symbol])
             (printf "WARNING: Primitive Kernel Value ~s has not been implemented\n"
                     id))))
+
+
+(: current-kernel-module-locator? (Parameterof (ModuleLocator -> Boolean)))
+;; Produces true if the given module locator should be treated as a root one.
+(define current-kernel-module-locator?
+  (make-parameter
+   (lambda: ([locator : ModuleLocator])
+            (or (and (eq? (ModuleLocator-name locator) '#%kernel)
+                     (eq? (ModuleLocator-real-path locator) '#%kernel))
+                (eq? (ModuleLocator-name locator)
+                     'whalesong/lang/kernel.rkt)))))
 
 
 

@@ -2,6 +2,9 @@
 # 	raco make -v --disable-inline test-analyzer.rkt
 # 	racket test-analyzer.rkt
 
+whalesong:
+	raco make -v --disable-inline whalesong.rkt
+
 test-all:
 	raco make -v --disable-inline tests/test-all.rkt
 	racket tests/test-all.rkt

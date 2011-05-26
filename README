@@ -1,5 +1,7 @@
+======================================================================
 Whalesong: a compiler from Racket to JavaScript.
 
+Danny Yoo (dyoo@cs.wpi.edu)
 
 ======================================================================
 
@@ -45,7 +47,7 @@ controlled environment.
 
 ======================================================================
 
-parse-bytecode.rkt
+parser/parse-bytecode.rkt
 
 This is intended to reuse the Racket compiler to produce the AST
 structures defined in compiler/zo-parse.
@@ -53,9 +55,11 @@ structures defined in compiler/zo-parse.
 
 ======================================================================
 
-compiler.rkt translates the AST to the intermediate language.  The
-compiler has its origins in the register compiler in Structure and
-Interpretation of Computer Programs:
+compiler/compiler.rkt
+
+translates the AST to the intermediate language.  The compiler has its
+origins in the register compiler in Structure and Interpretation of
+Computer Programs:
 
     http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-35.html#%_sec_5.5
 
@@ -94,10 +98,10 @@ and two stack registers:
 
 ======================================================================
 
+js-assembler/assemble.rkt
 
-The JavaScript assembler (js-assembler/assemble.rkt) plays a few
-tricks to make things like tail calls work:
-
+The JavaScript assembler plays a few tricks to make things like tail
+calls work:
 
    * Each basic block is translated to a function taking a MACHINE
      argument.
@@ -144,6 +148,9 @@ browser.
 
 ======================================================================
 
+Acknowledgements and Thanks
+
+
 This uses code from the following projects:
 
    jshashtable (http://www.timdown.co.uk/jshashtable/)
@@ -151,3 +158,5 @@ This uses code from the following projects:
    JSON (http://www.json.org/js.html)
    jquery (http://jquery.com/)
 
+
+   [FIXME: add more]

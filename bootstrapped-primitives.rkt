@@ -3,8 +3,8 @@
          "lexical-structs.rkt"
          "il-structs.rkt"
          "compiler.rkt"
-         "compiler-structs.rkt"
-         "where-is-collects.rkt")
+         "compiler-structs.rkt")
+
 
 (require/typed "parameters.rkt"
                (current-defined-name (Parameterof (U Symbol LamPositionalName))))

@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require "../parameters.rkt"
-         "../where-is-collects.rkt"
+         "where-is-collects.rkt"
          racket/path
          racket/contract
          racket/list

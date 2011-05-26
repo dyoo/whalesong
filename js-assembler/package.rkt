@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require "assemble.rkt"
-         "../quote-cdata.rkt"
+         "quote-cdata.rkt"
          "../make.rkt"
          "../make-structs.rkt"
          "get-runtime.rkt"
@@ -18,9 +18,6 @@
 
 
 
-
-
-
 (define (package-anonymous source-code
                            #:should-follow? should-follow?
                            #:output-port op)  
@@ -33,10 +30,15 @@
 
 
 
-;; package: s-expression (path -> boolean) output-port -> void
+;; package: Source (path -> boolean) output-port -> void
 
 ;; Compile package for the given source program.  should-follow?
 ;; indicates whether we should continue following module paths.
+;;
+;; The generated output defines a function called 'invoke' with
+;; four arguments (MACHINE, SUCCESS, FAIL, PARAMS).  When called, it'll
+;; execute the code to either run standalone expressions or
+;; load in modules.
 (define (package source-code
                  #:should-follow? should-follow?
                  #:output-port op)  
@@ -62,7 +64,7 @@
     (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
     (make (cons only-bootstrapped-code
                 (list (make-MainModuleSource source-code)))
-      packaging-configuration)
+          packaging-configuration)
     (fprintf op "});\n"))
 
 
@@ -99,18 +101,26 @@ var invokeMainModule = function() {
                 MACHINE.modules['*main*'].invoke(
                     MACHINE,
                     function() {
-                        console.log("done with main module invokation");
                         // On main module invokation success
                     },
                     function(MACHINE, e) {
-                        console.log(e.stack);
                         // On main module invokation failure
+                        if (console && console.log) {
+                            console.log(e.stack || e);
+                        }
                     })}, 
-           function() {},
+           function() {
+               // On module loading failure
+               if (console && console.log) {
+                   console.log(e.stack || e);
+               }                       
+           },
            {
                currentDisplayer : function(v) {
-                   document.body.appendChild(document.createTextNode(String(v)));
-                   document.body.appendChild(document.createElement("br"));
+                   document.body.appendChild(
+                       document.createTextNode(String(v)));
+                   document.body.appendChild(
+                       document.createElement("br"));
                }
            });
 };

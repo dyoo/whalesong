@@ -5,7 +5,7 @@
          racket/match
          racket/path
          "../parameters.rkt"
-         "../parse-bytecode.rkt"
+         "../parser/parse-bytecode.rkt"
          "../lexical-structs.rkt"
          "../expression-structs.rkt"
          racket/runtime-path

@@ -4,7 +4,7 @@
          racket/runtime-path
          "../compiler-structs.rkt"
          "../compiler.rkt"
-         "../parse-bytecode.rkt"
+         "../parser/parse-bytecode.rkt"
          "../get-module-bytecode.rkt"
          "../language-namespace.rkt")
 

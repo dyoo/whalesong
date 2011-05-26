@@ -14,7 +14,7 @@
          racket/match)
 
 
-(require/typed "parse-bytecode.rkt"
+(require/typed "parser/parse-bytecode.rkt"
                [parse-bytecode (Any -> Expression)])
 
 (require/typed "get-module-bytecode.rkt"

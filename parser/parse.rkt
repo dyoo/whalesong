@@ -1,11 +1,11 @@
 #lang racket/base
 
-(require "expression-structs.rkt"
-         "lexical-env.rkt"
-         "lexical-structs.rkt"
-         "helpers.rkt"
-         "parameters.rkt"
-         "lam-entry-gensym.rkt"
+(require "../expression-structs.rkt"
+         "../lexical-env.rkt"
+         "../lexical-structs.rkt"
+         "../helpers.rkt"
+         "../parameters.rkt"
+         "../lam-entry-gensym.rkt"
          racket/list)
 
 (provide (rename-out (-parse parse)))

@@ -6,7 +6,7 @@
 ;; collects/tests/matrix-test.rkt.  I'm seeing the following:
 ;; read-syntax: cannot load snip-class reader
 
-(require "../parse-bytecode.rkt"
+(require "../parser/parse-bytecode.rkt"
          racket/list
          racket/path)
 

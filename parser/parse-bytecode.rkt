@@ -1,7 +1,7 @@
 #lang racket/base
-(require "version-case/version-case.rkt"
+(require "../version-case/version-case.rkt"
          racket/file
-         (prefix-in whalesong: "version.rkt")
+         (prefix-in whalesong: "../version.rkt")
          (for-syntax racket/base))
 
 (version-case

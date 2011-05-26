@@ -4,12 +4,12 @@
          "il-structs.rkt"
          "compiler.rkt"
          "compiler-structs.rkt"
-         "typed-parse.rkt"
+         "parser/typed-parse.rkt"
          "where-is-collects.rkt")
 
 (require/typed "parameters.rkt"
                (current-defined-name (Parameterof (U Symbol LamPositionalName))))
-(require/typed "parse-bytecode.rkt"
+(require/typed "parser/parse-bytecode.rkt"
                (parse-bytecode (Path -> Expression)))
 
 

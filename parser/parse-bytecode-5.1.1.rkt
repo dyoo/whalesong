@@ -1,12 +1,12 @@
 #lang racket/base
 
-(require "expression-structs.rkt"
-         "lexical-structs.rkt"
-         "typed-module-path.rkt"
-         "path-rewriter.rkt"
-         "parameters.rkt"
-         "lam-entry-gensym.rkt"
-         "get-module-bytecode.rkt"
+(require "../expression-structs.rkt"
+         "../lexical-structs.rkt"
+         "../typed-module-path.rkt"
+         "../path-rewriter.rkt"
+         "../parameters.rkt"
+         "../lam-entry-gensym.rkt"
+         "../get-module-bytecode.rkt"
          racket/path
          syntax/modresolve)
 

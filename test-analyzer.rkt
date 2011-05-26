@@ -4,6 +4,5 @@
 
 
 ;; For some reason, this is breaking.  Why?
-(make/dependencies
- (list (build-path "make.rkt"))
- debug-configuration)
+(make (list (make-ModuleSource (build-path "make.rkt")))
+      debug-configuration)

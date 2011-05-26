@@ -22,10 +22,14 @@
                        ModuleSource
                        SexpSource))
 
-(define-struct: StatementsSource ([stmts : (Listof Statement)]))
-(define-struct: MainModuleSource ([source : Source]))
-(define-struct: ModuleSource ([path : Path]))
-(define-struct: SexpSource ([sexp : Any]))
+(define-struct: StatementsSource ([stmts : (Listof Statement)])
+  #:transparent)
+(define-struct: MainModuleSource ([source : Source])
+  #:transparent)
+(define-struct: ModuleSource ([path : Path])
+  #:transparent)
+(define-struct: SexpSource ([sexp : Any])
+  #:transparent)
 
 
 (define-struct: Configuration

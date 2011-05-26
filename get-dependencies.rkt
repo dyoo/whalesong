@@ -1,6 +1,6 @@
 #lang typed/racket/base
-(require "expression-structs.rkt"
-	 "lexical-structs.rkt"
+(require "compiler/expression-structs.rkt"
+	 "compiler/lexical-structs.rkt"
 	 "sets.rkt"
 	 racket/match)
 

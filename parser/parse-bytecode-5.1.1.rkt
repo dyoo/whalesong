@@ -4,8 +4,8 @@
 (require "typed-module-path.rkt"
          "lam-entry-gensym.rkt"
          "path-rewriter.rkt"
-         "../expression-structs.rkt"
-         "../lexical-structs.rkt"
+         "../compiler/expression-structs.rkt"
+         "../compiler/lexical-structs.rkt"
          "../parameters.rkt"
          "../get-module-bytecode.rkt"
          syntax/modresolve

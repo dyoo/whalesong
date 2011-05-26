@@ -1,8 +1,8 @@
 #lang typed/racket/base
 
-(require "../il-structs.rkt"
-         "../expression-structs.rkt"
-         "../lexical-structs.rkt"
+(require "../compiler/il-structs.rkt"
+         "../compiler/expression-structs.rkt"
+         "../compiler/lexical-structs.rkt"
          racket/list)
 
 (provide assemble-oparg

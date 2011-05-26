@@ -2,8 +2,8 @@
 
 (require "../parser/baby-parser.rkt"
          "../parser/lam-entry-gensym.rkt"
-         "../lexical-structs.rkt"
-         "../expression-structs.rkt"
+         "../compiler/lexical-structs.rkt"
+         "../compiler/expression-structs.rkt"
          (for-syntax racket/base))
 
 (printf "test-parse.rkt\n");

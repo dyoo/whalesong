@@ -5,10 +5,10 @@
          "assemble-expression.rkt"
          "assemble-perform-statement.rkt"
          "collect-jump-targets.rkt"
-         "../il-structs.rkt"
-         "../lexical-structs.rkt"
+         "../compiler/il-structs.rkt"
+         "../compiler/lexical-structs.rkt"
+         "../compiler/expression-structs.rkt"
          "../helpers.rkt"
-         "../expression-structs.rkt"
          racket/string
          racket/list)
 

@@ -3,9 +3,8 @@
 (require "browser-evaluate.rkt"
          "../js-assembler/assemble.rkt"
          "../js-assembler/get-runtime.rkt"
-
-         "../lexical-structs.rkt"
-         "../il-structs.rkt"
+         "../compiler/lexical-structs.rkt"
+         "../compiler/il-structs.rkt"
          racket/port
          racket/promise
          racket/runtime-path)

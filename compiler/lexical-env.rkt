@@ -2,7 +2,7 @@
 
 (require racket/list
          "lexical-structs.rkt"
-         "sets.rkt")
+         "../sets.rkt")
 (provide find-variable 
          extend-lexical-environment
          extend-lexical-environment/names

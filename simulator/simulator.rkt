@@ -6,12 +6,11 @@
 ;; I also need to do things like count pushes and pops.  Basically, low-level benchmarking.
 
 (require "simulator-structs.rkt"
-         "../expression-structs.rkt"
-         "../il-structs.rkt"
-         "../lexical-structs.rkt"
-         "../bootstrapped-primitives.rkt"
-         "../kernel-primitives.rkt"
-         "../expression-structs.rkt"
+         "../compiler/expression-structs.rkt"
+         "../compiler/il-structs.rkt"
+         "../compiler/lexical-structs.rkt"
+         "../compiler/bootstrapped-primitives.rkt"
+         "../compiler/kernel-primitives.rkt"
          racket/list
          racket/match
          (for-syntax racket/base))

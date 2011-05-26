@@ -6,8 +6,8 @@
          racket/path
          "../parameters.rkt"
          "../parser/parse-bytecode.rkt"
-         "../lexical-structs.rkt"
-         "../expression-structs.rkt"
+         "../compiler/lexical-structs.rkt"
+         "../compiler/expression-structs.rkt"
          racket/runtime-path
          (for-syntax racket/base))
 

@@ -1,7 +1,7 @@
 #lang typed/racket/base
-(require "../expression-structs.rkt"
-         "../il-structs.rkt"
-	 "../lexical-structs.rkt"
+(require "../compiler/expression-structs.rkt"
+         "../compiler/il-structs.rkt"
+	 "../compiler/lexical-structs.rkt"
 	 "../helpers.rkt"
 	 racket/list)
 

@@ -1,8 +1,8 @@
 #lang racket/base
 
-(require "../expression-structs.rkt"
-         "../lexical-env.rkt"
-         "../lexical-structs.rkt"
+(require "../compiler/expression-structs.rkt"
+         "../compiler/lexical-env.rkt"
+         "../compiler/lexical-structs.rkt"
          "../helpers.rkt"
          "../parameters.rkt"
          "lam-entry-gensym.rkt"

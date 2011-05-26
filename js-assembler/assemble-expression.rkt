@@ -3,8 +3,8 @@
 (require "assemble-structs.rkt"
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
-         "../il-structs.rkt"
-         "../lexical-structs.rkt"
+         "../compiler/il-structs.rkt"
+         "../compiler/lexical-structs.rkt"
          racket/string
          racket/list)
 

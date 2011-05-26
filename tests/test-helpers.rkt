@@ -2,8 +2,8 @@
 
 (require (prefix-in racket: racket/base)
          racket/runtime-path
-         "../compiler-structs.rkt"
-         "../compiler.rkt"
+         "../compiler/compiler-structs.rkt"
+         "../compiler/compiler.rkt"
          "../parser/parse-bytecode.rkt"
          "../get-module-bytecode.rkt"
          "../language-namespace.rkt")

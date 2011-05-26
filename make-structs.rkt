@@ -1,12 +1,13 @@
 #lang typed/racket/base
 
-(require "compiler.rkt"
-         "il-structs.rkt"
+(require "compiler/compiler.rkt"
+         "compiler/il-structs.rkt"
+         "compiler/lexical-structs.rkt"
+         "compiler/bootstrapped-primitives.rkt"
+         "compiler/compiler-structs.rkt"
+         "compiler/expression-structs.rkt"
+
          "get-dependencies.rkt"
-         "lexical-structs.rkt"
-         "bootstrapped-primitives.rkt"
-         "compiler-structs.rkt"
-         "expression-structs.rkt"
          "parameters.rkt"
          "sets.rkt"
          racket/list

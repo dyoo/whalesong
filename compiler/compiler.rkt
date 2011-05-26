@@ -6,10 +6,10 @@
          "compiler-structs.rkt"
          "kernel-primitives.rkt"
          "optimize-il.rkt"
-         "parameters.rkt"
-         "sets.rkt"
 	 "analyzer-structs.rkt"
          "analyzer.rkt"
+         "../parameters.rkt"
+         "../sets.rkt"
          racket/match
          racket/bool
          racket/list)

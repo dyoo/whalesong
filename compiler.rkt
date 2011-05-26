@@ -338,12 +338,12 @@
          (make-PerformStatement (make-MarkModuleInvoked! path))
          ;; Module body definition:
          ;; 1.  First invoke all the modules that this requires.
-         (make-DebugPrint (make-Const "handling internal requires"))
+         #;(make-DebugPrint (make-Const "handling internal requires"))
          (apply append-instruction-sequences
                 (map compile-module-invoke (Module-requires mod)))
          
          ;; 2.  Next, evaluate the module body.
-         (make-DebugPrint (make-Const (format "evaluating module body of ~s" path)))
+         #;(make-DebugPrint (make-Const (format "evaluating module body of ~s" path)))
          (make-PerformStatement (make-ExtendEnvironment/Prefix! names))
 
          (make-AssignImmediateStatement (make-ModulePrefixTarget path)
@@ -354,14 +354,14 @@
                   'val
                   next-linkage/drop-multiple)
 
-         (make-DebugPrint (make-Const (format "About to clean up ~s" path)))
+         #;(make-DebugPrint (make-Const (format "About to clean up ~s" path)))
          
          ;; 3. Finally, cleanup and return.
          (make-PopEnvironment (make-Const 1) (make-Const 0))
          (make-AssignImmediateStatement 'proc (make-ControlStackLabel))
          (make-PopControlFrame)
-         (make-DebugPrint (make-Const "Returning from module invokation."))
-         (make-DebugPrint (make-Reg 'proc))
+         #;(make-DebugPrint (make-Const "Returning from module invokation."))
+         #;(make-DebugPrint (make-Reg 'proc))
          (make-GotoStatement (make-Reg 'proc))
          
          after-module-body)))]))
@@ -403,7 +403,7 @@
          ,(make-TestAndBranchStatement (make-TestTrue 
                                         (make-IsModuleInvoked a-module-name))
                                        already-loaded)
-         ,(make-DebugPrint (make-Const (format "entering module ~s" a-module-name)))
+         #;,(make-DebugPrint (make-Const (format "entering module ~s" a-module-name)))
          ,(make-PushControlFrame/Call on-return)
          ,(make-GotoStatement (ModuleEntry a-module-name))
          ,on-return-multiple
@@ -411,7 +411,7 @@
                                                  (make-Const 1))
                                (make-Const 0))
          ,on-return
-         ,(make-DebugPrint (make-Const (format "coming back from module ~s" a-module-name)))
+         #;,(make-DebugPrint (make-Const (format "coming back from module ~s" a-module-name)))
          ,already-loaded)))]))
 
 

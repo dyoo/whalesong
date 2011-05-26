@@ -3,9 +3,9 @@
 ;; Parsing Racket 5.1.1 bytecode structures into our own structures.
 (require "typed-module-path.rkt"
          "lam-entry-gensym.rkt"
+         "path-rewriter.rkt"
          "../expression-structs.rkt"
          "../lexical-structs.rkt"
-         "../path-rewriter.rkt"
          "../parameters.rkt"
          "../get-module-bytecode.rkt"
          syntax/modresolve

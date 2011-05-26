@@ -1,7 +1,7 @@
 #lang racket/base
 
-(require "parameters.rkt"
-         "where-is-collects.rkt"
+(require "../parameters.rkt"
+         "../where-is-collects.rkt"
          racket/path
          racket/contract
          racket/list
@@ -13,10 +13,10 @@
 
 
 
-(define-runtime-path this-path ".")
-(define this-normal-path
+(define-runtime-path whalesong-path "..")
+(define normal-whalesong-path
   (let ()
-    (normalize-path this-path)))
+    (normalize-path whalesong-path)))
 
 
 
@@ -31,16 +31,16 @@
 (define (rewrite-path a-path)
   (let ([a-path (normalize-path a-path)])
     (cond
+     [(within-this-project-path? a-path)
+      (string->symbol
+       (string-append "whalesong/"
+                      (path->string
+                       (find-relative-path normal-whalesong-path a-path))))]
      [(within-collects? a-path)
       (string->symbol
        (string-append "collects/"
                       (path->string
                        (find-relative-path collects-path a-path))))]
-     [(within-this-project-path? a-path)
-      (string->symbol
-       (string-append "whalesong/"
-                      (path->string
-                       (find-relative-path this-normal-path a-path))))]
      [(within-root? a-path)
       (string->symbol
        (string-append "root/"
@@ -61,7 +61,7 @@
 
 
 (define (within-this-project-path? a-path)
-  (within? this-normal-path a-path))
+  (within? normal-whalesong-path a-path))
 
 
 ;; within?: normalized-path normalized-path -> boolean

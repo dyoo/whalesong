@@ -1,9 +1,9 @@
 #lang racket/base
 
 (require "../parser/baby-parser.rkt"
+         "../parser/lam-entry-gensym.rkt"
          "../lexical-structs.rkt"
          "../expression-structs.rkt"
-         "../lam-entry-gensym.rkt"
          (for-syntax racket/base))
 
 (printf "test-parse.rkt\n");

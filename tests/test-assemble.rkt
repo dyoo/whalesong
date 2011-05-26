@@ -1,8 +1,9 @@
 #lang racket
 
-(require "../js-assembler/assemble.rkt"
+(require "browser-evaluate.rkt"
+         "../js-assembler/assemble.rkt"
          "../js-assembler/get-runtime.rkt"
-         "../browser-evaluate.rkt"
+
          "../lexical-structs.rkt"
          "../il-structs.rkt"
          racket/port

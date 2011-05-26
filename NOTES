@@ -566,3 +566,10 @@ I've isolated exactly what primitives I need to get racket/base up and
 running.  It looks like I need 231 of them.  That's not that much,
 actually.  experiments/primitives-for-racket-base describes which ones
 we need.
+
+
+----------------------------------------------------------------------
+
+May 25, 2011
+
+About to make modules work.  Need to make sure exports can rename names.

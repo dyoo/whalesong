@@ -2,6 +2,7 @@
 (require "assemble-helpers.rkt"
          "../il-structs.rkt"
 	 "../lexical-structs.rkt"
+         "../parameters.rkt"
 	 racket/string)
 
 (provide assemble-op-statement)
@@ -46,8 +47,17 @@
                                                 ;; FIXME:  this should be looking at the module path and getting
                                                 ;; the value here!  It shouldn't be looking into Primitives...
                                                 [(ModuleVariable? n)
-                                                 (format "MACHINE.primitives[~s]"
-                                                         (symbol->string (ModuleVariable-name n)))]))
+                                                 (cond
+                                                  [((current-kernel-module-locator?)
+                                                    (ModuleVariable-module-name n))
+                                                   (format "MACHINE.primitives[~s]"
+                                                           (symbol->string (ModuleVariable-name n)))]
+                                                  [else
+                                                   (format "MACHINE.modules[~s].namespace[~s]"
+                                                           (symbol->string
+                                                            (ModuleLocator-name
+                                                             (ModuleVariable-module-name n)))
+                                                           (symbol->string (ModuleVariable-name n)))])]))
                                  names)
                                 ",")
                    (string-join (map
@@ -145,4 +155,7 @@
     [(AliasModuleName!? op)
      (format "MACHINE.modules[~s] = MACHINE.modules[~s];"
              (symbol->string (ModuleLocator-name (AliasModuleName!-to op)))
-             (symbol->string (ModuleLocator-name (AliasModuleName!-from op))))]))
+             (symbol->string (ModuleLocator-name (AliasModuleName!-from op))))]
+
+    [(FinalizeModuleInvokation!? op)
+     (format "MACHINE.modules[~s].finalizeModuleInvokation();")]))

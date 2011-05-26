@@ -74,7 +74,7 @@
                                [self-path : Symbol]
                                [label : Symbol]
                                [invoked? : Boolean]
-                               [exports : (HashTable Symbol PrimitiveValue)]
+                               [namespace : (HashTable Symbol PrimitiveValue)]
                                [toplevel : (U False toplevel)])
   #:transparent
   #:mutable)

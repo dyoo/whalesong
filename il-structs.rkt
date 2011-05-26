@@ -430,6 +430,11 @@
                                   [to : ModuleLocator])
   #:transparent)
 
+;; Given the module locator, do any finalizing operations, like
+;; setting up the module namespace.
+(define-struct: FinalizeModuleInvokation! ([path : ModuleLocator])
+  #:transparent)
+
 
 
 (define-type PrimitiveCommand (U                                
@@ -458,6 +463,7 @@
                                InstallModuleEntry!
                                MarkModuleInvoked!
                                AliasModuleName!
+                               FinalizeModuleInvokation!
                                ))
 
 

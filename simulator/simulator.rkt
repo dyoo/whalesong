@@ -337,17 +337,19 @@
           
           [(ExtendEnvironment/Prefix!? op)
            (env-push! m 
-                      (make-toplevel (ExtendEnvironment/Prefix!-names op)
-                                     (map (lambda: ([name : (U False Symbol GlobalBucket ModuleVariable)])
-                                                   (cond [(eq? name #f)
-                                                          (make-undefined)]
-                                                         [(symbol? name)
-                                                          (lookup-primitive name)]
-                                                         [(GlobalBucket? name)
-                                                          (lookup-primitive (GlobalBucket-name name))]
-                                                         [(ModuleVariable? name)
-                                                          (lookup-primitive (ModuleVariable-name name))]))
-                                          (ExtendEnvironment/Prefix!-names op))))]
+                      (make-toplevel
+                       (ExtendEnvironment/Prefix!-names op)
+                       (map (lambda: ([name : (U False Symbol GlobalBucket ModuleVariable)])
+                                     (cond [(eq? name #f)
+                                            (make-undefined)]
+                                           [(symbol? name)
+                                            (lookup-primitive name)]
+                                           [(GlobalBucket? name)
+                                            (lookup-primitive
+                                             (GlobalBucket-name name))]
+                                           [(ModuleVariable? name)
+                                            (lookup-module-variable m name)]))
+                            (ExtendEnvironment/Prefix!-names op))))]
 
           [(InstallClosureValues!? op)
            (let: ([a-proc : SlotValue (machine-proc m)])
@@ -482,8 +484,58 @@
              (hash-set! (machine-modules m)
                         (ModuleLocator-name (AliasModuleName!-to op))
                         module-record)
-             'ok)])))
+             'ok)]
+          [(FinalizeModuleInvokation!? op)
+           (let* ([mrecord
+                   (hash-ref (machine-modules m)
+                             (ModuleLocator-name (FinalizeModuleInvokation!-path op)))]
+                  [ns (module-record-namespace mrecord)]
+                  [top
+                   (module-record-toplevel mrecord)])
+             (cond
+              [(toplevel? top)
+               (for-each (lambda: ([n : (U False Symbol GlobalBucket ModuleVariable)]
+                                   [v : PrimitiveValue])
+                           (cond
+                            [(eq? n #f)
+                             (void)]
+                            [(symbol? n)
+                             (hash-set! ns n v)]
+                            [(GlobalBucket? n)
+                             (hash-set! ns (GlobalBucket-name n) v)]
+                            [(ModuleVariable? n)
+                             (hash-set! ns (ModuleVariable-name n) v)]))
+                         (toplevel-names top)
+                         (toplevel-vals top))
+               'ok]
+              [(eq? top #f)
+               ;; This should never happen.  But let's make sure we can see the
+               ;; error.
+               (error 'FinalizeModuleInvokation
+                      "internal error: toplevel hasn't been initialized.")]))])))
 
+
+(: lookup-module-variable (machine ModuleVariable -> PrimitiveValue))
+(define (lookup-module-variable m mv)
+  (cond
+   [(or (eq?
+         (ModuleLocator-name
+          (ModuleVariable-module-name mv))
+         '#%kernel)
+        (eq?
+         (ModuleLocator-name
+          (ModuleVariable-module-name mv))
+         'whalesong/lang/kernel.rkt))
+    (lookup-primitive (ModuleVariable-name mv))]
+   [else
+    
+    (let ([mrecord
+           (hash-ref (machine-modules m)
+                     (ModuleLocator-name (ModuleVariable-module-name mv)))])
+      (hash-ref (module-record-namespace mrecord)
+                (ModuleVariable-name mv)))]))
+   
+  
 
 
 (: mutable-pair-list->list ((U Null MutablePair) -> (Listof PrimitiveValue)))

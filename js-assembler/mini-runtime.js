@@ -98,9 +98,22 @@
 	this.label = label;
 	this.isInvoked = false;
         this.prefix = false;
+	this.namespace = {};
     };
 
+    // Returns access to the names defined in the module.
+    ModuleRecord.prototype.getNamespace = function() {
+	return this.namespace;
+    };
 
+    ModuleRecord.prototype.finalizeModuleInvokation = function() {
+	var i, len = this.prefix.names.length;
+	for (i=0; i < len; i++) {
+	    this.namespace[this.prefix.names[i]] = this.prefix[i];
+	}
+    };
+    
+    // External invokation of a module.
     ModuleRecord.prototype.invoke = function(MACHINE, succ, fail) {
         var oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function(MACHINE) { 
@@ -113,11 +126,13 @@
         } else {
             MACHINE.params['currentErrorHandler'] = function(MACHINE, anError) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                setTimeout(function() { fail(MACHINE, anError)}, 0);
+                setTimeout(
+		    function() { 
+			fail(MACHINE, anError)
+		    },
+		    0);
             };
-            MACHINE.control.push(new CallFrame(
-                afterGoodInvoke,
-                null));
+            MACHINE.control.push(new CallFrame(afterGoodInvoke, null));
             trampoline(MACHINE, this.label);
         }
     };

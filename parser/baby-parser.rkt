@@ -5,7 +5,7 @@
          "../lexical-structs.rkt"
          "../helpers.rkt"
          "../parameters.rkt"
-         "../lam-entry-gensym.rkt"
+         "lam-entry-gensym.rkt"
          racket/list)
 
 (provide (rename-out (-parse parse)))

@@ -1,19 +1,16 @@
 #lang racket/base
 
-(require "../expression-structs.rkt"
+;; Parsing Racket 5.1.1 bytecode structures into our own structures.
+(require "typed-module-path.rkt"
+         "lam-entry-gensym.rkt"
+         "../expression-structs.rkt"
          "../lexical-structs.rkt"
-         "../typed-module-path.rkt"
          "../path-rewriter.rkt"
          "../parameters.rkt"
-         "../lam-entry-gensym.rkt"
          "../get-module-bytecode.rkt"
+         syntax/modresolve
+         compiler/zo-parse
          racket/path
-         syntax/modresolve)
-
-
-;; Parsing Racket 5.1.1 bytecode structures into our own structures.
-
-(require compiler/zo-parse
          racket/match
          racket/list)
 

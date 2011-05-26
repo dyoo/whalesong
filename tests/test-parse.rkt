@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "../parser/parse.rkt"
+(require "../parser/baby-parser.rkt"
          "../lexical-structs.rkt"
          "../expression-structs.rkt"
          "../lam-entry-gensym.rkt"

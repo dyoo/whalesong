@@ -573,3 +573,14 @@ we need.
 May 25, 2011
 
 About to make modules work.  Need to make sure exports can rename names.
+
+
+
+----------------------------------------------------------------------
+
+What's currently preventing racket/base?
+
+Nan, INF Numbers, Regular expressions, keywords, byte strings,
+character literals
+
+Missing #%paramz module

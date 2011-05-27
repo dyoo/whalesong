@@ -69,31 +69,50 @@
 
 
 
-
 ;; package-standalone-xhtml: X output-port -> void
 (define (package-standalone-xhtml source-code op)
-  (fprintf op #<<EOF
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <title>Example</title>
-</head>
-<script>
-EOF
-           )
-  (display (quote-as-cdata (get-runtime)) op)
+  (display *header* op)
+  (display (quote-cdata (get-runtime)) op)
+
   (let ([buffer (open-output-string)])
     (package source-code
              #:should-follow? (lambda (p) #t)
              #:output-port buffer)
-    (write-string (quote-as-cdata (get-output-string buffer))
-                  op))
-
+    (display (quote-cdata (get-output-string buffer))
+             op))
 
   ;; FIXME: Finally, invoke the main module.
-  (display (quote-as-cdata #<<EOF
+  (display (quote-cdata *invoke-main-module-text*) op)
+  (display *footer* op))
 
+
+
+
+(define *header*
+  #<<EOF
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Example</title>
+  </head>
+  <script>
+EOF
+)
+
+
+(define *footer*
+  #<<EOF
+  </script>
+  <body onload='invokeMainModule()'>
+  </body>
+</html>
+EOF
+)
+
+
+(define *invoke-main-module-text*
+  #<<EOF
 var invokeMainModule = function() {
     var MACHINE = new plt.runtime.Machine();
     invoke(MACHINE,
@@ -115,15 +134,7 @@ var invokeMainModule = function() {
                    console.log(e.stack || e);
                }                       
            },
-           {
-               currentDisplayer : function(v) {
-                   document.body.appendChild(
-                       document.createTextNode(String(v)));
-                   document.body.appendChild(
-                       document.createElement("br"));
-               }
-           });
+           {});
 };
 EOF
-          ) op)
-  (display "  </script>\n<body onload='invokeMainModule()'>\n</body>\n</html>" op))
+)

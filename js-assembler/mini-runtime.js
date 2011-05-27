@@ -65,47 +65,50 @@
 	this.control = [];     // Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.modules = {};     // String -> ModuleRecord
-	this.params = { 'currentDisplayer': function(v) {},
-			
-			'currentOutputPort': new StandardOutputPort(),
-			'currentSuccessHandler': function(MACHINE) {},
-			'currentErrorHandler': function(MACHINE, exn) {},
-			
-			'currentNamespace': {},
-			
-			// These parameters control how often
-			// control yields back to the browser
-			// for response.  The implementation is a
-			// simple PID controller.
-			//
-			// To tune this, adjust desiredYieldsPerSecond.
-			// Do no touch numBouncesBeforeYield or
-			// maxNumBouncesBeforeYield, because those
-			// are adjusted automatically by the
-			// recomputeMaxNumBouncesBeforeYield
-			// procedure.
-			'desiredYieldsPerSecond': 5,
-			'numBouncesBeforeYield': 2000,   // self-adjusting
-			'maxNumBouncesBeforeYield': 2000, // self-adjusting
+	this.params = {
 
-			
+	    // currentDisplayer: DomNode -> Void
+	    // currentDisplayer is responsible for displaying to the browser.
+	    'currentDisplayer': function(v) {
+		    $(document.body).append(v);
+	    },
+	    
+	    'currentOutputPort': new StandardOutputPort(),
+	    'currentSuccessHandler': function(MACHINE) {},
+	    'currentErrorHandler': function(MACHINE, exn) {},
+	    
+	    'currentNamespace': {},
+	    
+	    // These parameters control how often
+	    // control yields back to the browser
+	    // for response.  The implementation is a
+	    // simple PID controller.
+	    //
+	    // To tune this, adjust desiredYieldsPerSecond.
+	    // Do no touch numBouncesBeforeYield or
+	    // maxNumBouncesBeforeYield, because those
+	    // are adjusted automatically by the
+	    // recomputeMaxNumBouncesBeforeYield
+	    // procedure.
+	    'desiredYieldsPerSecond': 5,
+	    'numBouncesBeforeYield': 2000,   // self-adjusting
+	    'maxNumBouncesBeforeYield': 2000, // self-adjusting
 
-
-			'current-print': new Closure(
-			    function(MACHINE) {
-				var elt = MACHINE.env.pop();
-				var outputPort = 
-				    MACHINE.params.currentOutputPort;
-				if (elt !== undefined) {
-				    outputPort.write(MACHINE, elt);
-				    outputPort.write(MACHINE, "\n");
-				}
-				var frame = MACHINE.control.pop();
-				return frame.label(MACHINE);
-			    },
-			    1,
-			    [],
-			    "printer")
+	    'current-print': new Closure(
+		function(MACHINE) {
+		    var elt = MACHINE.env.pop();
+		    var outputPort = 
+			MACHINE.params.currentOutputPort;
+		    if (elt !== undefined) {
+			outputPort.write(MACHINE, elt);
+			outputPort.write(MACHINE, "\n");
+		    }
+		    var frame = MACHINE.control.pop();
+		    return frame.label(MACHINE);
+		},
+		1,
+		[],
+		"printer")
 
 
 		      };
@@ -222,7 +225,19 @@
     var StandardOutputPort = function() {};
     StandardOutputPort.prototype = heir(OutputPort.prototype);
     StandardOutputPort.prototype.write = function(MACHINE, v) {
-	MACHINE.params['currentDisplayer'](v);
+	var domNode;
+	// TODO: v must be coerced into a DOMNode in a more systematic way.
+	// This function may need to be a Closure.
+	if(typeof(v) === 'string' || 
+	   typeof(v) === 'number' ||
+	   typeof(v) === 'boolean' ||
+	   typeof(v) === 'null' ||
+	   typeof(v) === 'undefined') {
+	    domNode = $('<span/>').text(String(v)).css('white-space', 'pre');
+        } else {
+	    domNode = $('<span/>').text(String(v)).css('white-space', 'pre');
+        }
+	MACHINE.params['currentDisplayer'](domNode);
     };
 
 

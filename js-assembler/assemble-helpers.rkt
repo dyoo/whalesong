@@ -224,7 +224,7 @@
 (define (assemble-arity an-arity)
   (cond
    [(natural? an-arity)
-    (format "~a" an-arity)]
+    (number->string an-arity)]
    [(ArityAtLeast? an-arity)
     (format "(new RUNTIME.ArityAtLeast(~a))"
             (ArityAtLeast-value an-arity))]
@@ -234,7 +234,7 @@
       (lambda: ([atomic-arity : (U Natural ArityAtLeast)])
 	       (cond
 		[(natural? atomic-arity)
-		 (format "~a" an-arity)]
+		 (number->string atomic-arity)]
 		[(ArityAtLeast? atomic-arity)
 		 (format "(new RUNTIME.ArityAtLeast(~a))"
                          (ArityAtLeast-value atomic-arity))]))

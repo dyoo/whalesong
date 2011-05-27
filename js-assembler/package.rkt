@@ -73,16 +73,7 @@
 (define (package-standalone-xhtml source-code op)
   (display *header* op)
   (display (quote-cdata (get-runtime)) op)
-
-  (let ([buffer (open-output-string)])
-    (package source-code
-             #:should-follow? (lambda (p) #t)
-             #:output-port buffer)
-    (display (quote-cdata (get-output-string buffer))
-             op))
-
-  ;; FIXME: Finally, invoke the main module.
-  (display (quote-cdata *invoke-main-module-text*) op)
+  (display (quote-cdata (get-code source-code)) op)
   (display *footer* op))
 
 
@@ -97,22 +88,23 @@
     <title>Example</title>
   </head>
   <script>
+
 EOF
 )
+
+
+(define (get-code source-code)
+  (let ([buffer (open-output-string)])
+    (package source-code
+             #:should-follow? (lambda (p) #t)
+             #:output-port buffer)
+    (get-output-string buffer)))
 
 
 (define *footer*
   #<<EOF
-  </script>
-  <body onload='invokeMainModule()'>
-  </body>
-</html>
-EOF
-)
 
-
-(define *invoke-main-module-text*
-  #<<EOF
+<![CDATA[
 var invokeMainModule = function() {
     var MACHINE = new plt.runtime.Machine();
     invoke(MACHINE,
@@ -136,5 +128,11 @@ var invokeMainModule = function() {
            },
            {});
 };
+  
+  $(document).ready(invokeMainModule);
+]]>
+  </script>
+  <body></body>
+</html>
 EOF
 )

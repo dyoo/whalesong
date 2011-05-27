@@ -496,40 +496,54 @@
 
 
 
-    // This should be attached to the module corresponding for print-values
-    Primitives['print-values'] = new Closure(
-        function(MACHINE) {
-	    var outputPort = MACHINE.params.currentOutputPort;
-            var prependNewline = false;
-            if (MACHINE.argcount > 0) {
-                if (MACHINE.val !== undefined) {
-                    if (prependNewline) {
-                        outputPort.write(MACHINE, "\n");
-                    }
-	            outputPort.write(MACHINE, MACHINE.val);
-                    prependNewline = true;
-                }
+    Primitives['current-print'] = function(MACHINE) {
+	return new Closure(
+	    function(MACHINE) {
+		var elt = MACHINE.env.pop();
+		var outputPort = MACHINE.params.currentOutputPort;
+		outputPort.write(MACHINE, elt);
+		var frame = MACHINE.control.pop();
+		return frame.label(MACHINE);
+	    },
+	    1,
+	    [],
+	    "printer")
+    };
 
-                for(var i = 0; i < MACHINE.argcount - 1; i++) {
-                    if (MACHINE.env[MACHINE.env.length - 1 - i] !== undefined) {
-	                if (prependNewline) {
-                            outputPort.write(MACHINE, "\n");
-                        }
-                        outputPort.write(MACHINE,
-                                         MACHINE.env[MACHINE.env.length - 1 - i]);
-                        prependNewline = true;
-                    }
-                }
-	        outputPort.write(MACHINE, "\n");
-            }
-            MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
-            var frame = MACHINE.control.pop();
-            return frame.label(MACHINE);
-        },
-        new ArityAtLeast(0),
-        [],
-        "print-values"
-    );
+//     // This should be attached to the module corresponding for print-values
+//     Primitives['print-values'] = new Closure(
+//         function(MACHINE) {
+// 	    var outputPort = MACHINE.params.currentOutputPort;
+//             var prependNewline = false;
+//             if (MACHINE.argcount > 0) {
+//                 if (MACHINE.val !== undefined) {
+//                     if (prependNewline) {
+//                         outputPort.write(MACHINE, "\n");
+//                     }
+// 	            outputPort.write(MACHINE, MACHINE.val);
+//                     prependNewline = true;
+//                 }
+
+//                 for(var i = 0; i < MACHINE.argcount - 1; i++) {
+//                     if (MACHINE.env[MACHINE.env.length - 1 - i] !== undefined) {
+// 	                if (prependNewline) {
+//                             outputPort.write(MACHINE, "\n");
+//                         }
+//                         outputPort.write(MACHINE,
+//                                          MACHINE.env[MACHINE.env.length - 1 - i]);
+//                         prependNewline = true;
+//                     }
+//                 }
+// 	        outputPort.write(MACHINE, "\n");
+//             }
+//             MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
+//             var frame = MACHINE.control.pop();
+//             return frame.label(MACHINE);
+//         },
+//         new ArityAtLeast(0),
+//         [],
+//         "print-values"
+//     );
 
 
 

@@ -92,7 +92,7 @@ EOF
 
 
   ;; FIXME: Finally, invoke the main module.
-  (fprintf op #<<EOF
+  (display (quote-as-cdata #<<EOF
 
 var invokeMainModule = function() {
     var MACHINE = new plt.runtime.Machine();
@@ -124,9 +124,6 @@ var invokeMainModule = function() {
                }
            });
 };
-</script>
-<body onload='invokeMainModule()'>
-</body>
-</html>
 EOF
-          ))
+          ) op)
+  (display "  </script>\n<body onload='invokeMainModule()'>\n</body>\n</html>" op))

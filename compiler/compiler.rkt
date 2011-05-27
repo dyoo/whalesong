@@ -362,6 +362,8 @@
          (make-PopControlFrame)
          #;(make-DebugPrint (make-Const "Returning from module invokation."))
          #;(make-DebugPrint (make-Reg 'proc))
+         
+         (make-PerformStatement (make-FinalizeModuleInvokation! path))
          (make-GotoStatement (make-Reg 'proc))
          
          after-module-body)))]))

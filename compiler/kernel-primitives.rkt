@@ -62,6 +62,8 @@
                                     'apply
                                     
 
+                                    'for-each
+                                    'current-print
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

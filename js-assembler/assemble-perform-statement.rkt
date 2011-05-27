@@ -158,4 +158,6 @@
              (symbol->string (ModuleLocator-name (AliasModuleName!-from op))))]
 
     [(FinalizeModuleInvokation!? op)
-     (format "MACHINE.modules[~s].finalizeModuleInvokation();")]))
+     (format "MACHINE.modules[~s].finalizeModuleInvokation();"
+             (symbol->string
+              (ModuleLocator-name (FinalizeModuleInvokation!-path op))))]))

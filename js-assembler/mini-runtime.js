@@ -86,7 +86,28 @@
 			// procedure.
 			'desiredYieldsPerSecond': 5,
 			'numBouncesBeforeYield': 2000,   // self-adjusting
-			'maxNumBouncesBeforeYield': 2000 // self-adjusting
+			'maxNumBouncesBeforeYield': 2000, // self-adjusting
+
+			
+
+
+			'current-print': new Closure(
+			    function(MACHINE) {
+				var elt = MACHINE.env.pop();
+				var outputPort = 
+				    MACHINE.params.currentOutputPort;
+				if (elt !== undefined) {
+				    outputPort.write(MACHINE, elt);
+				    outputPort.write(MACHINE, "\n");
+				}
+				var frame = MACHINE.control.pop();
+				return frame.label(MACHINE);
+			    },
+			    1,
+			    [],
+			    "printer")
+
+
 		      };
 	this.primitives = Primitives;
     };
@@ -497,18 +518,11 @@
 
 
     Primitives['current-print'] = function(MACHINE) {
-	return new Closure(
-	    function(MACHINE) {
-		var elt = MACHINE.env.pop();
-		var outputPort = MACHINE.params.currentOutputPort;
-		outputPort.write(MACHINE, elt);
-		var frame = MACHINE.control.pop();
-		return frame.label(MACHINE);
-	    },
-	    1,
-	    [],
-	    "printer")
+	return MACHINE.params['current-print'];
     };
+    Primitives['current-print'].arity = [0, [1, NULL]];
+    Primitives['current-print'].displayName = "current-print";
+    
 
 //     // This should be attached to the module corresponding for print-values
 //     Primitives['print-values'] = new Closure(

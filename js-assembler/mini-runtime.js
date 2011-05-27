@@ -313,7 +313,8 @@
 	if (typeof(window.console) !== 'undefined' &&
 	    typeof(console.log) === 'function') {
 	    console.log(MACHINE);
-	    console.log(e);
+	    if (e.stack) { console.log(e.stack); }
+	    else { console.log(e); }
 	} 
 	throw e; 
     };
@@ -1292,6 +1293,7 @@
 
     exports['testArgument'] = testArgument;
     exports['testArity'] = testArity;
+
     exports['raise'] = raise;
     exports['raiseContextExpectedValuesError'] = raiseContextExpectedValuesError;
     exports['raiseArityMismatchError'] = raiseArityMismatchError;

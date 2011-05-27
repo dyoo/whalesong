@@ -34,11 +34,13 @@
 
 
 (define-struct: Configuration
-  ([should-follow? : (Path -> Boolean)]
-   [on-module-statements : ((U Expression #f)
+  ([should-follow? : (Source Path -> Boolean)]
+   [on-module-statements : (Source
+                            (U Expression #f)
                             (Listof Statement)
                             -> Void)]
-   [after-module-statements : ((U Expression #f)
+   [after-module-statements : (Source
+                               (U Expression #f)
                                (Listof Statement)
                                -> Void)]
    [after-last : (-> Void)])
@@ -46,12 +48,12 @@
 
 (define debug-configuration
   (make-Configuration
-   (lambda (p) #t)
-   (lambda (ast stmt)
+   (lambda (src p) #t)
+   (lambda (src ast stmt)
      (when (and ast (expression-module-path ast))
        (printf "debug build configuration: visiting ~s\n"
                (expression-module-path ast))))
-   (lambda (ast stmt)
+   (lambda (src ast stmt)
      (void))
    (lambda ()
      (void))))

@@ -48,12 +48,12 @@
      should-follow?
 
      ;; on
-     (lambda (ast stmts)
+     (lambda (src ast stmts)
        (assemble/write-invoke stmts op)
        (fprintf op "(MACHINE, function() { "))
 
      ;; after
-     (lambda (ast stmts)
+     (lambda (src ast stmts)
        (fprintf op " }, FAIL, PARAMS);"))
 
      ;; last
@@ -96,7 +96,7 @@ EOF
 (define (get-code source-code)
   (let ([buffer (open-output-string)])
     (package source-code
-             #:should-follow? (lambda (p) #t)
+             #:should-follow? (lambda (src p) #t)
              #:output-port buffer)
     (get-output-string buffer)))
 

@@ -22,7 +22,16 @@
 
 
 (provide make
+         current-module-source-compiling-hook
          get-ast-and-statements)
+
+
+(: current-module-source-compiling-hook
+   (Parameterof (Source -> Source)))
+(define current-module-source-compiling-hook
+  (make-parameter (lambda: ([s : Source]) s)))
+
+
 
 
 
@@ -100,11 +109,11 @@
          (define visited ((inst make-hash Any Boolean)))
 
          (: collect-new-dependencies
-            ((U False Expression) (Listof Source) -> (Listof Source)))
-         (define (collect-new-dependencies ast sources)
+            (Source (U False Expression) -> (Listof Source)))
+         (define (collect-new-dependencies this-source ast)
            (cond
             [(eq? ast #f)
-             sources]
+             empty]
             [else
              (let* ([dependent-module-names (get-dependencies ast)]
                     [paths
@@ -116,14 +125,14 @@
                                                mp)
                                               acc]
                                              [(and (path? rp)
-                                                   (should-follow? rp)
+                                                   (should-follow? this-source rp)
                                                    (cons (make-ModuleSource rp)
                                                          acc))]
                                              [else
                                               acc])))
                             '()
                             dependent-module-names)])
-               (append paths sources))]))
+               paths)]))
          
          (let: loop : Void ([sources : (Listof Source) sources])
            (cond
@@ -133,11 +142,15 @@
              (loop (rest sources))]
             [else
              (hash-set! visited (first sources) #t)
-             (let-values ([(ast stmts)
-                           (get-ast-and-statements (first sources))])
-               (on-module-statements ast stmts)
-               (loop (collect-new-dependencies ast (rest sources)))
-               (after-module-statements ast stmts))])))
+             (let*-values ([(this-source)
+                             ((current-module-source-compiling-hook)
+                              (first sources))]
+                           [(ast stmts)
+                            (get-ast-and-statements this-source)])
+               (on-module-statements this-source ast stmts)
+               (loop (append (collect-new-dependencies this-source ast)
+                             (rest sources)))
+               (after-module-statements this-source ast stmts))])))
 
        (follow-dependencies sources)])))
 

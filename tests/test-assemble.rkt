@@ -2,7 +2,7 @@
 
 (require "browser-evaluate.rkt"
          "../js-assembler/assemble.rkt"
-         "../js-assembler/get-runtime.rkt"
+         "../js-assembler/package.rkt"
          "../compiler/lexical-structs.rkt"
          "../compiler/il-structs.rkt"
          racket/port

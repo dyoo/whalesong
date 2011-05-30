@@ -1320,11 +1320,11 @@
                                 (length (App-operands exp)))
                 empty-instruction-sequence]
                [else
-                (make-instruction-sequence 
-                 `(,(make-PerformStatement
-                     (make-RaiseArityMismatchError! 
-                      (StaticallyKnownLam-arity static-knowledge)
-                      (make-Const (length (App-operands exp)))))))])])
+                (make-PerformStatement
+                 (make-RaiseArityMismatchError! 
+                  (make-Reg 'proc)
+                  (StaticallyKnownLam-arity static-knowledge)
+                  (make-Const (length (App-operands exp)))))])])
     (let* ([extended-cenv 
             (extend-compile-time-environment/scratch-space 
              cenv 

@@ -14,18 +14,42 @@
   (cond 
     
     [(CheckToplevelBound!? op)
-     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { throw new Error(\"Not bound: \" + MACHINE.env[MACHINE.env.length - 1 - ~a].names[~a]); }"
+     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { RUNTIME.raiseUnboundToplevelError(MACHINE.env[MACHINE.env.length - 1 - ~a].names[~a]); }"
              (CheckToplevelBound!-depth op)
              (CheckToplevelBound!-pos op)
              (CheckToplevelBound!-depth op)
              (CheckToplevelBound!-pos op))]
-    
+
+
+    ;; FIXME: use raiseArityMismatchError
     [(CheckClosureArity!? op)
-     (format "if (! (MACHINE.proc instanceof RUNTIME.Closure && RUNTIME.isArityMatching(MACHINE.proc.arity, ~a))) { if (! (MACHINE.proc instanceof RUNTIME.Closure)) { throw new Error(\"not a closure\"); } else { throw new Error(\"arity failure:\" + MACHINE.proc.displayName); } }"
+     (format #<<EOF
+              if (! (MACHINE.proc instanceof RUNTIME.Closure)) {
+                  RUNTIME.raiseOperatorIsNotClosure(MACHINE, MACHINE.proc);
+              }
+              if (! RUNTIME.isArityMatching(MACHINE.proc.arity, ~a)) {
+                  RUNTIME.raiseArityMismatchError(MACHINE.proc,
+                                                  MACHINE.proc.arity,
+                                                  ~a);
+              }
+EOF
+             (assemble-oparg (CheckClosureArity!-arity op))
              (assemble-oparg (CheckClosureArity!-arity op)))]
+
     
+    ;; FIXME: use raiseArityMismatchError
     [(CheckPrimitiveArity!? op)
-     (format "if (! (typeof(MACHINE.proc) === 'function'  && RUNTIME.isArityMatching(MACHINE.proc.arity, ~a))) { if (! (typeof(MACHINE.proc) === 'function')) { throw new Error(\"not a primitive procedure\"); } else { throw new Error(\"arity failure:\" + MACHINE.proc.displayName); } }"
+     (format #<<EOF
+              if (! (typeof(MACHINE.proc) === 'function')) {
+                  RUNTIME.raiseOperatorIsNotPrimitiveProcedure(MACHINE, MACHINE.proc);
+              }
+              if (! RUNTIME.isArityMatching(MACHINE.proc.arity, ~a)) {
+                  RUNTIME.raiseArityMismatchError(MACHINE.proc,
+                                                  MACHINE.proc.arity,
+                                                  ~a);
+              }
+EOF
+             (assemble-oparg (CheckPrimitiveArity!-arity op))
              (assemble-oparg (CheckPrimitiveArity!-arity op)))]
      
     
@@ -126,7 +150,8 @@
 
 
     [(RaiseArityMismatchError!? op)
-     (format "RUNTIME.raiseArityMismatchError(MACHINE, ~a, ~a);"
+     (format "RUNTIME.raiseArityMismatchError(MACHINE, ~a, ~a, ~a);"
+             (assemble-oparg (RaiseArityMismatchError!-proc op))
              (assemble-arity (RaiseArityMismatchError!-expected op))
              (assemble-oparg (RaiseArityMismatchError!-received op)))]
 

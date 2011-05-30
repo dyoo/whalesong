@@ -383,7 +383,8 @@
 
 ;; Raises an exception that says that we're doing a
 ;; procedure application, but got sent an incorrect number.
-(define-struct: RaiseArityMismatchError! ([expected : Arity]
+(define-struct: RaiseArityMismatchError! ([proc : OpArg]
+                                          [expected : Arity]
 					  [received : OpArg])
   #:transparent)
 

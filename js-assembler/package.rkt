@@ -103,10 +103,10 @@
              (fprintf buffer "SUCCESS();")))])
 
     (display (runtime:get-runtime) buffer)
-        
+    (newline buffer)
     (fprintf buffer "(function(MACHINE, SUCCESS, FAIL, PARAMS) {")
     (make (list only-bootstrapped-code) packaging-configuration)
-    (fprintf buffer "})(new plt.runtime.Machine(), function(){ plt.runtime.setReadyTrue(); }, function(){}, {});\n")
+    (fprintf buffer "})(new plt.runtime.Machine(),\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")
     (get-output-string buffer)))
 
 

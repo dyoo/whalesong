@@ -331,11 +331,12 @@
 				callerName) {
 	if (predicate(val)) {
 	    return true;
-	}
-	else {
-	    raise(MACHINE, new Error(callerName + ": expected " + expectedTypeName
-				     + " as argument " + (index + 1)
-				     + " but received " + val));
+	} else {
+	    raiseArgumentTypeError(MACHINE, 
+                                   callerName,
+                                   expectedTypeName,
+				   index,
+				   val);
 	}
     };
 
@@ -348,6 +349,22 @@
 	}
     };
 
+
+    var raiseUnboundToplevelError = function(MACHINE, name) {
+        raise(MACHINE, new Error("Not bound: " + name)); 
+    };
+
+    var raiseArgumentTypeError = function(MACHINE, 
+                                          callerName,
+                                          expectedTypeName,
+                                          argumentOffset,
+                                          actualValue) {
+	raise(MACHINE,
+              new Error(callerName + ": expected " + expectedTypeName
+			+ " as argument " + (argumentOffset + 1)
+			+ " but received " + actualValue));
+    };
+
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
 	raise(MACHINE, 
 	      new Error("expected " + expected +
@@ -355,11 +372,9 @@
 			MACHINE.argcount + " values"));
     };
 
-    var raiseArityMismatchError = function(MACHINE, expected, received) {
+    var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
 	raise(MACHINE, 
-	      new Error("expected " + expected +
-			" values, received " + 
-			received + " values"));
+	      new Error("expected " + expected + " values, received " + received + " values"));
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
@@ -367,6 +382,17 @@
 	      new Error("not a procedure: " + expected +
                         operator));
     };
+
+    var raiseOperatorIsNotClosure = function(MACHINE, operator) {
+        raise(MACHINE,
+              new Error("not a closure: " + operator));
+    };
+
+    var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
+        raise(MACHINE,
+              new Error("not a primitive procedure: " + operator));
+    };
+
 
     var raiseUnimplementedPrimitiveError = function(MACHINE, name) {
 	raise(MACHINE, 
@@ -1331,10 +1357,16 @@
     exports['testArgument'] = testArgument;
     exports['testArity'] = testArity;
 
+
     exports['raise'] = raise;
+    exports['raiseUnboundToplevelError'] = raiseUnboundToplevelError;
+    exports['raiseArgumentTypeError'] = raiseArgumentTypeError;
     exports['raiseContextExpectedValuesError'] = raiseContextExpectedValuesError;
     exports['raiseArityMismatchError'] = raiseArityMismatchError;
     exports['raiseOperatorApplicationError'] = raiseOperatorApplicationError;
+    exports['raiseOperatorIsNotPrimitiveProcedure'] = raiseOperatorIsNotPrimitiveProcedure;
+    exports['raiseOperatorIsNotClosure'] = raiseOperatorIsNotClosure;
+
     exports['raiseUnimplementedPrimitiveError'] = raiseUnimplementedPrimitiveError;
 
 

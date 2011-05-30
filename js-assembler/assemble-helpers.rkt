@@ -80,7 +80,7 @@
     [(EnvPrefixReference? target)
      (assemble-prefix-reference target)]
     [(PrimitivesReference? target)
-     (format "MACHINE.primitives[~s]" (symbol->string (PrimitivesReference-name target)))]
+     (format "RUNTIME.Primitives[~s]" (symbol->string (PrimitivesReference-name target)))]
     [(ControlFrameTemporary? target)
      (assemble-control-frame-temporary target)]
     [(ModulePrefixTarget? target)

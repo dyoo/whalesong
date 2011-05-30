@@ -6,8 +6,7 @@
          racket/string
          racket/path
          "make-structs.rkt"
-         "js-assembler/package.rkt"
-         "js-assembler/get-runtime.rkt")
+         "js-assembler/package.rkt")
 
 
 ;; Usage:
@@ -20,14 +19,25 @@
 ;; * Print out the runtime library to standard output.
 ;;
 ;;     $ whalesong get-runtime
+;;
+;;
+;; * Print out the JavaScript for the program.
+;;
+;;     $ whalesong get-javascript main-module-name.rkt
 
 
+
+;; TODO: error trapping
 (define commands `((build 
                     ,(lambda (args)
                       (do-the-build args)))
                    (get-runtime 
                     ,(lambda (args)
-                      (print-the-runtime)))))
+                      (print-the-runtime)))
+                   (get-javascript
+                    ,(lambda (args)
+                       (get-javascript-code (first args))))))
+
 
 ;; listof string
 (define command-names (map (lambda (x) (symbol->string (car x)))
@@ -77,6 +87,11 @@
 
 (define (print-the-runtime)
   (display (get-runtime)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (get-javascript-code filename)
+  (display (get-code (make-ModuleSource (build-path filename)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

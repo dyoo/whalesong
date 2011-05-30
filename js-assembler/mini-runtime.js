@@ -1278,7 +1278,44 @@
 
 
 
+    //////////////////////////////////////////////////////////////////////
+    (function(scope) {
+        scope.ready = function(f) {
+            if (runtimeIsReady) {
+                notifyWaiter(f);
+            } else {
+                readyWaiters.push(f);
+            }
+        };
+        scope.setReadyTrue = function() {
+            var i;
+            runtimeIsReady = true;
+            for (i = 0; i < readyWaiters.length; i++) {
+                notifyWaiter(readyWaiters[i]);
+            }
+            readyWaiters = [];
+        };
+
+        var runtimeIsReady = false;
+        var readyWaiters = [];
+        var notifyWaiter = function(w) {
+            setTimeout(w, 0);
+        };
+    })(this);
+    //////////////////////////////////////////////////////////////////////
+
+
+
+
     // Exports
+    exports['Primitives'] = Primitives;
+
+    exports['ready'] = ready;
+    // Private: the runtime library will set this flag to true when
+    // the library has finished loading.
+    exports['setReadyTrue'] = setReadyTrue;
+
+
     exports['Machine'] = Machine;
     exports['Frame'] = Frame;
     exports['CallFrame'] = CallFrame;

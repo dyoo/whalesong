@@ -4,14 +4,16 @@
          "quote-cdata.rkt"
          "../make.rkt"
          "../make-structs.rkt"
-         "get-runtime.rkt"
+         (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
 
 
 
 (provide package
          package-anonymous
-         package-standalone-xhtml)
+         package-standalone-xhtml
+         get-code
+         get-runtime)
 
 ;; Packager: produce single .js files to be included to execute a
 ;; program.  Follows module dependencies.
@@ -36,7 +38,7 @@
 ;; indicates whether we should continue following module paths.
 ;;
 ;; The generated output defines a function called 'invoke' with
-;; four arguments (MACHINE, SUCCESS, FAIL, PARAMS).  When called, it'll
+;; four arguments (MACHINE, SUCCESS, FAIL, PARAMS).  When called, it will
 ;; execute the code to either run standalone expressions or
 ;; load in modules.
 (define (package source-code
@@ -62,10 +64,12 @@
 
   
     (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
-    (make (cons only-bootstrapped-code
-                (list (make-MainModuleSource source-code)))
+    (fprintf op "    plt.runtime.ready(function() {")
+    (make (list (make-MainModuleSource source-code))
           packaging-configuration)
+    (fprintf op "    });");
     (fprintf op "});\n"))
+
 
 
 
@@ -75,6 +79,35 @@
   (display (quote-cdata (get-runtime)) op)
   (display (quote-cdata (get-code source-code)) op)
   (display *footer* op))
+
+
+
+;; get-runtime: -> string
+(define (get-runtime)
+  (let* ([buffer (open-output-string)]
+         [packaging-configuration
+          (make-Configuration
+           ;; should-follow?
+           (lambda (p) #t)
+           ;; on
+           (lambda (ast stmts)
+             (assemble/write-invoke stmts buffer)
+             (fprintf buffer "(MACHINE, function() { "))
+           
+           ;; after
+           (lambda (ast stmts)
+             (fprintf buffer " }, FAIL, PARAMS);"))
+           
+           ;; last
+           (lambda ()
+             (fprintf buffer "SUCCESS();")))])
+
+    (display (runtime:get-runtime) buffer)
+        
+    (fprintf buffer "(function(MACHINE, SUCCESS, FAIL, PARAMS) {")
+    (make (list only-bootstrapped-code) packaging-configuration)
+    (fprintf buffer "})(new plt.runtime.Machine(), function(){ plt.runtime.setReadyTrue(); }, function(){}, {});\n")
+    (get-output-string buffer)))
 
 
 

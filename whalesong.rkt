@@ -6,7 +6,8 @@
          racket/string
          racket/path
          "make-structs.rkt"
-         "js-assembler/package.rkt")
+         "js-assembler/package.rkt"
+         "js-assembler/get-runtime.rkt")
 
 
 ;; Usage:
@@ -14,11 +15,19 @@
 ;; * Build standalone .xhtml application.
 ;;
 ;;     $ whalesong build main-module-name.rkt
+;;
+;;
+;; * Print out the runtime library to standard output.
+;;
+;;     $ whalesong get-runtime
 
 
 (define commands `((build 
                     ,(lambda (args)
-                      (do-the-build args)))))
+                      (do-the-build args)))
+                   (get-runtime 
+                    ,(lambda (args)
+                      (print-the-runtime)))))
 
 ;; listof string
 (define command-names (map (lambda (x) (symbol->string (car x)))
@@ -61,7 +70,15 @@
                                       (make-ModuleSource (build-path f))
                                       op))
                                    #:exists 'replace)))))
-             
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (print-the-runtime)
+  (display (get-runtime)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (at-toplevel)

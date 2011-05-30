@@ -12,11 +12,14 @@
 (provide package
          package-anonymous
          package-standalone-xhtml
-         get-code
-         get-runtime)
+         get-standalone-code
+         write-standalone-code
+         get-runtime
+         write-runtime)
+
 
 ;; Packager: produce single .js files to be included to execute a
-;; program.  Follows module dependencies.
+;; program.
 
 
 
@@ -84,34 +87,41 @@
 
 ;; get-runtime: -> string
 (define (get-runtime)
-  (let* ([buffer (open-output-string)]
-         [packaging-configuration
-          (make-Configuration
-           ;; should-follow?
-           (lambda (p) #t)
-           ;; on
-           (lambda (ast stmts)
-             (assemble/write-invoke stmts buffer)
-             (fprintf buffer "(MACHINE, function() { "))
-           
-           ;; after
-           (lambda (ast stmts)
-             (fprintf buffer " }, FAIL, PARAMS);"))
-           
-           ;; last
-           (lambda ()
-             (fprintf buffer "SUCCESS();")))])
-
-    (display (runtime:get-runtime) buffer)
-    (newline buffer)
-    (fprintf buffer "(function(MACHINE, SUCCESS, FAIL, PARAMS) {")
-    (make (list only-bootstrapped-code) packaging-configuration)
-    (fprintf buffer "})(new plt.runtime.Machine(),\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")
+  (let ([buffer (open-output-string)])
+    (write-runtime buffer)
     (get-output-string buffer)))
 
 
+;; write-runtime: output-port -> void
+(define (write-runtime op)
+  (let ([packaging-configuration
+         (make-Configuration
+          ;; should-follow?
+          (lambda (p) #t)
+          ;; on
+          (lambda (ast stmts)
+            (assemble/write-invoke stmts op)
+            (fprintf op "(MACHINE, function() { "))
+          
+          ;; after
+          (lambda (ast stmts)
+            (fprintf op " }, FAIL, PARAMS);"))
+          
+          ;; last
+          (lambda ()
+            (fprintf op "SUCCESS();")))])
+
+    (display (runtime:get-runtime) op)
+    (newline op)
+    (fprintf op "(function(MACHINE, SUCCESS, FAIL, PARAMS) {")
+    (make (list only-bootstrapped-code) packaging-configuration)
+    (fprintf op "})(plt.runtime.currentMachine,\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")))
+
+  
 
 
+
+;; *header* : string
 (define *header*
   #<<EOF
 <!DOCTYPE html>
@@ -126,6 +136,7 @@ EOF
 )
 
 
+;; get-code: source -> string
 (define (get-code source-code)
   (let ([buffer (open-output-string)])
     (package source-code
@@ -134,15 +145,33 @@ EOF
     (get-output-string buffer)))
 
 
+
+;; get-standalone-code: source -> string
+(define (get-standalone-code source-code)
+  (let ([buffer (open-output-string)])
+    (write-standalone-code source-code buffer)
+    (get-output-string buffer)))
+
+
+;; write-standalone-code: source output-port -> void
+(define (write-standalone-code source-code op)
+  (package-anonymous source-code
+                     #:should-follow? (lambda (p) #t)
+                     #:output-port op)
+  (fprintf op "()(plt.runtime.currentMachine, function() {}, function() {}, {});\n"))
+
+
+
+
 (define *footer*
   #<<EOF
 
 <![CDATA[
 var invokeMainModule = function() {
-    var MACHINE = new plt.runtime.Machine();
+    var MACHINE = plt.runtime.currentMachine;
     invoke(MACHINE,
            function() {
-                MACHINE.modules['*main*'].invoke(
+                plt.runtime.invokeMains(
                     MACHINE,
                     function() {
                         // On main module invokation success
@@ -152,7 +181,7 @@ var invokeMainModule = function() {
                         if (console && console.log) {
                             console.log(e.stack || e);
                         }
-                    })}, 
+                    })},
            function() {
                // On module loading failure
                if (console && console.log) {

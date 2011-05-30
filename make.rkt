@@ -42,9 +42,8 @@
           (values ast (append stmts
                              ;; Set the main module name
                               (list (make-PerformStatement
-                                     (make-AliasModuleName!
-                                      maybe-module-locator
-                                      (make-ModuleLocator '*main* '*main*))))))]
+                                     (make-AliasModuleAsMain!
+                                      maybe-module-locator)))))]
          [else
           (values ast stmts)])))]
 

@@ -425,10 +425,9 @@
   #:transparent)
 
 
-;; Give an alternative locator to the module.  Assumes the module has
-;; already been installed.
-(define-struct: AliasModuleName! ([from : ModuleLocator]
-                                  [to : ModuleLocator])
+;; Give an alternative locator to the module as a main module.
+;; Assumes the module has already been installed.
+(define-struct: AliasModuleAsMain! ([from : ModuleLocator])
   #:transparent)
 
 ;; Given the module locator, do any finalizing operations, like
@@ -463,7 +462,7 @@
                                
                                InstallModuleEntry!
                                MarkModuleInvoked!
-                               AliasModuleName!
+                               AliasModuleAsMain!
                                FinalizeModuleInvokation!
                                ))
 

@@ -65,6 +65,7 @@
 	this.control = [];     // Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.modules = {};     // String -> ModuleRecord
+        this.mainModules = []; // Arrayof String
 	this.params = {
 
 	    // currentDisplayer: DomNode -> Void
@@ -139,6 +140,10 @@
     
     // External invokation of a module.
     ModuleRecord.prototype.invoke = function(MACHINE, succ, fail) {
+        MACHINE = MACHINE || plt.runtime.currentMachine;
+        succ = succ || function(){};
+        fail = fail || function(){};
+
         var oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function(MACHINE) { 
             MACHINE.params['currentErrorHandler'] = oldErrorHandler;
@@ -1305,6 +1310,9 @@
 
 
     //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
     (function(scope) {
         scope.ready = function(f) {
             if (runtimeIsReady) {
@@ -1328,14 +1336,44 @@
             setTimeout(w, 0);
         };
     })(this);
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
+    // Executes all programs that have been labeled as a main module
+    var invokeMains = function(machine, succ, fail) {
+        plt.runtime.ready(function() {
+            machine = machine || plt.runtime.currentMachine;
+            succ = succ || function() {};
+            fail = fail || function() {};
+            var mainModules = machine.mainModules.slice();
+            var loop = function() {
+                if (mainModules.length > 0) {
+                    var nextModule = mainModules.shift();
+                    nextModule.invoke(machine, loop, fail);
+                } else {
+                    succ();
+                }
+            };
+            setTimeout(loop, 0);
+        });
+    };
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
 
 
-
-
     // Exports
-    exports['Primitives'] = Primitives;
+ 
+    exports['currentMachine'] = new Machine();
+    exports['invokeMains'] = invokeMains;
 
+    exports['Primitives'] = Primitives;
+    
     exports['ready'] = ready;
     // Private: the runtime library will set this flag to true when
     // the library has finished loading.

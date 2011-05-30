@@ -86,12 +86,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (print-the-runtime)
-  (display (get-runtime)))
+  (write-runtime (current-output-port)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (get-javascript-code filename)
-  (display (get-code (make-ModuleSource (build-path filename)))))
+  (write-standalone-code (make-ModuleSource (build-path filename)) (current-output-port)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -21,7 +21,6 @@
              (CheckToplevelBound!-pos op))]
 
 
-    ;; FIXME: use raiseArityMismatchError
     [(CheckClosureArity!? op)
      (format #<<EOF
               if (! (MACHINE.proc instanceof RUNTIME.Closure)) {
@@ -37,7 +36,6 @@ EOF
              (assemble-oparg (CheckClosureArity!-arity op)))]
 
     
-    ;; FIXME: use raiseArityMismatchError
     [(CheckPrimitiveArity!? op)
      (format #<<EOF
               if (! (typeof(MACHINE.proc) === 'function')) {
@@ -177,10 +175,9 @@ EOF
              (symbol->string (ModuleLocator-name (MarkModuleInvoked!-path op))))]
 
 
-    [(AliasModuleName!? op)
-     (format "MACHINE.modules[~s] = MACHINE.modules[~s];"
-             (symbol->string (ModuleLocator-name (AliasModuleName!-to op)))
-             (symbol->string (ModuleLocator-name (AliasModuleName!-from op))))]
+    [(AliasModuleAsMain!? op)
+     (format "MACHINE.mainModules.push(MACHINE.modules[~s]);"
+             (symbol->string (ModuleLocator-name (AliasModuleAsMain!-from op))))]
 
     [(FinalizeModuleInvokation!? op)
      (format "MACHINE.modules[~s].finalizeModuleInvokation();"

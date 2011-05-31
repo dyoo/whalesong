@@ -140,7 +140,7 @@
            (format "((~a) ? (~a) : RUNTIME.raiseArgumentTypeError(MACHINE, ~s, ~s, ~s, ~a))"
                    test-string
                    operand-string
-		   caller
+		   (symbol->string caller)
                    (symbol->string domain)
                    pos
                    operand-string))]))

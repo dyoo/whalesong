@@ -7,7 +7,7 @@
          "kernel-primitives.rkt"
          "optimize-il.rkt"
 	 "analyzer-structs.rkt"
-         "analyzer.rkt"
+         #;"analyzer.rkt"
          "../parameters.rkt"
          "../sets.rkt"
          racket/match
@@ -20,8 +20,8 @@
 
 
 
-(: current-analysis (Parameterof Analysis))
-(define current-analysis (make-parameter (empty-analysis)))
+#;(: current-analysis (Parameterof Analysis))
+#;(define current-analysis (make-parameter (empty-analysis)))
 
 
 
@@ -30,7 +30,7 @@
 ;; Note: the toplevel generates the lambda body streams at the head, and then the
 ;; rest of the instruction stream.
 (define (-compile exp target linkage)
-  (parameterize ([current-analysis (analyze exp)])
+  (parameterize (#;[current-analysis (analyze exp)])
     (let* ([after-lam-bodies (make-label 'afterLamBodies)]
            [before-pop-prompt-multiple (make-label 'beforePopPromptMultiple)]
            [before-pop-prompt (make-LinkedLabel
@@ -59,6 +59,7 @@
              empty-instruction-sequence
              (make-instruction-sequence
               `(,(make-AssignImmediateStatement target (make-Reg 'val)))))))))))
+
 
 (define-struct: lam+cenv ([lam : (U Lam CaseLam)]
                           [cenv : CompileTimeEnvironment]))
@@ -338,12 +339,10 @@
          (make-PerformStatement (make-MarkModuleInvoked! path))
          ;; Module body definition:
          ;; 1.  First invoke all the modules that this requires.
-         #;(make-DebugPrint (make-Const "handling internal requires"))
          (apply append-instruction-sequences
                 (map compile-module-invoke (Module-requires mod)))
          
          ;; 2.  Next, evaluate the module body.
-         #;(make-DebugPrint (make-Const (format "evaluating module body of ~s" path)))
          (make-PerformStatement (make-ExtendEnvironment/Prefix! names))
 
          (make-AssignImmediateStatement (make-ModulePrefixTarget path)
@@ -354,14 +353,11 @@
                   'val
                   next-linkage/drop-multiple)
 
-         #;(make-DebugPrint (make-Const (format "About to clean up ~s" path)))
-         
          ;; 3. Finally, cleanup and return.
          (make-PopEnvironment (make-Const 1) (make-Const 0))
          (make-AssignImmediateStatement 'proc (make-ControlStackLabel))
          (make-PopControlFrame)
-         #;(make-DebugPrint (make-Const "Returning from module invokation."))
-         #;(make-DebugPrint (make-Reg 'proc))
+
          
          (make-PerformStatement (make-FinalizeModuleInvokation! path))
          (make-GotoStatement (make-Reg 'proc))
@@ -405,7 +401,6 @@
          ,(make-TestAndBranchStatement (make-TestTrue 
                                         (make-IsModuleInvoked a-module-name))
                                        already-loaded)
-         #;,(make-DebugPrint (make-Const (format "entering module ~s" a-module-name)))
          ,(make-PushControlFrame/Call on-return)
          ,(make-GotoStatement (ModuleEntry a-module-name))
          ,on-return-multiple
@@ -413,7 +408,6 @@
                                                  (make-Const 1))
                                (make-Const 0))
          ,on-return
-         #;,(make-DebugPrint (make-Const (format "coming back from module ~s" a-module-name)))
          ,already-loaded)))]))
 
 
@@ -994,6 +988,13 @@
           (cond
             [(eq? op-knowledge '?)
              (default)]
+            [(PrimitiveKernelValue? op-knowledge)
+             (let ([id (PrimitiveKernelValue-id op-knowledge)])
+               (cond
+                 [(KernelPrimitiveName/Inline? id)
+                  (compile-kernel-primitive-application id exp cenv target linkage)]
+                 [else
+                  (default)]))]
             [(ModuleVariable? op-knowledge)
              (cond
                [(symbol=? (ModuleLocator-name
@@ -1689,6 +1690,9 @@
     
     [(Constant? exp)
      (make-Const (Constant-v exp))]
+
+    [(PrimitiveKernelValue? exp)
+     exp]
     
     [else
      '?]))

@@ -14,10 +14,10 @@
 (: optimize-il ((Listof Statement) -> (Listof Statement)))
 (define (optimize-il statements)
 
-  statements
+  #;statements
   ;; For now, replace pairs of PushEnvironment / AssignImmediate(0, ...)
   ;; We should do some more optimizations here, like peephole...
-  #;(let loop ([statements (filter not-no-op? statements)])
+  (let loop ([statements (filter not-no-op? statements)])
     (cond
       [(empty? statements)
        empty]

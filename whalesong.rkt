@@ -2,9 +2,7 @@
 #lang racket/base
 
 (require racket/list
-         racket/match
          racket/string
-         racket/path
          "make-structs.rkt"
          "js-assembler/package.rkt")
 

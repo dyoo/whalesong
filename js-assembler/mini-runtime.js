@@ -65,6 +65,7 @@
 	this.control = [];     // Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.modules = {};     // String -> ModuleRecord
+        this.mainModules = []; // Arrayof String
 	this.params = {
 
 	    // currentDisplayer: DomNode -> Void
@@ -139,6 +140,10 @@
     
     // External invokation of a module.
     ModuleRecord.prototype.invoke = function(MACHINE, succ, fail) {
+        MACHINE = MACHINE || plt.runtime.currentMachine;
+        succ = succ || function(){};
+        fail = fail || function(){};
+
         var oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function(MACHINE) { 
             MACHINE.params['currentErrorHandler'] = oldErrorHandler;
@@ -331,11 +336,12 @@
 				callerName) {
 	if (predicate(val)) {
 	    return true;
-	}
-	else {
-	    raise(MACHINE, new Error(callerName + ": expected " + expectedTypeName
-				     + " as argument " + (index + 1)
-				     + " but received " + val));
+	} else {
+	    raiseArgumentTypeError(MACHINE, 
+                                   callerName,
+                                   expectedTypeName,
+				   index,
+				   val);
 	}
     };
 
@@ -348,6 +354,22 @@
 	}
     };
 
+
+    var raiseUnboundToplevelError = function(MACHINE, name) {
+        raise(MACHINE, new Error("Not bound: " + name)); 
+    };
+
+    var raiseArgumentTypeError = function(MACHINE, 
+                                          callerName,
+                                          expectedTypeName,
+                                          argumentOffset,
+                                          actualValue) {
+	raise(MACHINE,
+              new Error(callerName + ": expected " + expectedTypeName
+			+ " as argument " + (argumentOffset + 1)
+			+ " but received " + actualValue));
+    };
+
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
 	raise(MACHINE, 
 	      new Error("expected " + expected +
@@ -355,11 +377,9 @@
 			MACHINE.argcount + " values"));
     };
 
-    var raiseArityMismatchError = function(MACHINE, expected, received) {
+    var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
 	raise(MACHINE, 
-	      new Error("expected " + expected +
-			" values, received " + 
-			received + " values"));
+	      new Error("expected " + expected + " values, received " + received + " values"));
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
@@ -367,6 +387,17 @@
 	      new Error("not a procedure: " + expected +
                         operator));
     };
+
+    var raiseOperatorIsNotClosure = function(MACHINE, operator) {
+        raise(MACHINE,
+              new Error("not a closure: " + operator));
+    };
+
+    var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
+        raise(MACHINE,
+              new Error("not a primitive procedure: " + operator));
+    };
+
 
     var raiseUnimplementedPrimitiveError = function(MACHINE, name) {
 	raise(MACHINE, 
@@ -1278,7 +1309,77 @@
 
 
 
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
+    (function(scope) {
+        scope.ready = function(f) {
+            if (runtimeIsReady) {
+                notifyWaiter(f);
+            } else {
+                readyWaiters.push(f);
+            }
+        };
+        scope.setReadyTrue = function() {
+            var i;
+            runtimeIsReady = true;
+            for (i = 0; i < readyWaiters.length; i++) {
+                notifyWaiter(readyWaiters[i]);
+            }
+            readyWaiters = [];
+        };
+
+        var runtimeIsReady = false;
+        var readyWaiters = [];
+        var notifyWaiter = function(w) {
+            setTimeout(w, 0);
+        };
+    })(this);
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
+    // Executes all programs that have been labeled as a main module
+    var invokeMains = function(machine, succ, fail) {
+        plt.runtime.ready(function() {
+            machine = machine || plt.runtime.currentMachine;
+            succ = succ || function() {};
+            fail = fail || function() {};
+            var mainModules = machine.mainModules.slice();
+            var loop = function() {
+                if (mainModules.length > 0) {
+                    var nextModule = mainModules.shift();
+                    nextModule.invoke(machine, loop, fail);
+                } else {
+                    succ();
+                }
+            };
+            setTimeout(loop, 0);
+        });
+    };
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
+
     // Exports
+ 
+    exports['currentMachine'] = new Machine();
+    exports['invokeMains'] = invokeMains;
+
+    exports['Primitives'] = Primitives;
+    
+    exports['ready'] = ready;
+    // Private: the runtime library will set this flag to true when
+    // the library has finished loading.
+    exports['setReadyTrue'] = setReadyTrue;
+
+
     exports['Machine'] = Machine;
     exports['Frame'] = Frame;
     exports['CallFrame'] = CallFrame;
@@ -1294,10 +1395,16 @@
     exports['testArgument'] = testArgument;
     exports['testArity'] = testArity;
 
+
     exports['raise'] = raise;
+    exports['raiseUnboundToplevelError'] = raiseUnboundToplevelError;
+    exports['raiseArgumentTypeError'] = raiseArgumentTypeError;
     exports['raiseContextExpectedValuesError'] = raiseContextExpectedValuesError;
     exports['raiseArityMismatchError'] = raiseArityMismatchError;
     exports['raiseOperatorApplicationError'] = raiseOperatorApplicationError;
+    exports['raiseOperatorIsNotPrimitiveProcedure'] = raiseOperatorIsNotPrimitiveProcedure;
+    exports['raiseOperatorIsNotClosure'] = raiseOperatorIsNotClosure;
+
     exports['raiseUnimplementedPrimitiveError'] = raiseUnimplementedPrimitiveError;
 
 

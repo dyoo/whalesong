@@ -476,12 +476,12 @@
                             (ModuleLocator-name (MarkModuleInvoked!-path op)))])
              (set-module-record-invoked?! module-record #t)
            'ok)]
-          [(AliasModuleName!? op)
+          [(AliasModuleAsMain!? op)
            (let ([module-record
                   (hash-ref (machine-modules m)
-                            (ModuleLocator-name (AliasModuleName!-from op)))])
+                            (ModuleLocator-name (AliasModuleAsMain!-from op)))])
              (hash-set! (machine-modules m)
-                        (ModuleLocator-name (AliasModuleName!-to op))
+                        '*main*
                         module-record)
              'ok)]
           [(FinalizeModuleInvokation!? op)

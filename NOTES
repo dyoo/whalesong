@@ -584,3 +584,15 @@ Nan, INF Numbers, Regular expressions, keywords, byte strings,
 character literals
 
 Missing #%paramz module
+
+
+----------------------------------------------------------------------
+
+
+What needs to be done next?
+
+benchmarks
+
+being able to write modules in javascript
+
+being able to bundle external resources (like images)

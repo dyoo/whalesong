@@ -137,12 +137,12 @@
                            [(box)
                             (format "(typeof(~a) === 'object' && (~a).length === 1)"
                                     operand-string operand-string)])])
-           (format "((~a) ? (~a) : RUNTIME.raise(MACHINE, new Error('~a: expected ' + ~s + ' as argument ' + ~s + ' but received ' + ~a)))"
+           (format "((~a) ? (~a) : RUNTIME.raiseArgumentTypeError(MACHINE, ~s, ~s, ~s, ~a))"
                    test-string
                    operand-string
-		   caller
+		   (symbol->string caller)
                    (symbol->string domain)
-                   (add1 pos)
+                   pos
                    operand-string))]))
 
 

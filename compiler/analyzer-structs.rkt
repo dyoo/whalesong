@@ -22,7 +22,8 @@
   (U '?          ;; no knowledge
      Prefix      ;; placeholder: necessary since the toplevel lives in the environment too
      StaticallyKnownLam     ;; The value is a known lam
-     ModuleVariable         ;; The value is a known module variable
+     ModuleVariable         ;; The value is a variable from a module
+     PrimitiveKernelValue
      Const
      ))
 

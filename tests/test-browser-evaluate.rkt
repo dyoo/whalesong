@@ -1,6 +1,5 @@
 #lang racket
 (require "browser-evaluate.rkt"
-         "../js-assembler/get-runtime.rkt"
          "../js-assembler/package.rkt"
          "../make-structs.rkt")
 

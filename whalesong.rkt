@@ -2,9 +2,7 @@
 #lang racket/base
 
 (require racket/list
-         racket/match
          racket/string
-         racket/path
          "make-structs.rkt"
          "js-assembler/package.rkt")
 
@@ -14,11 +12,30 @@
 ;; * Build standalone .xhtml application.
 ;;
 ;;     $ whalesong build main-module-name.rkt
+;;
+;;
+;; * Print out the runtime library to standard output.
+;;
+;;     $ whalesong get-runtime
+;;
+;;
+;; * Print out the JavaScript for the program.
+;;
+;;     $ whalesong get-javascript main-module-name.rkt
 
 
+
+;; TODO: error trapping
 (define commands `((build 
                     ,(lambda (args)
-                      (do-the-build args)))))
+                      (do-the-build args)))
+                   (get-runtime 
+                    ,(lambda (args)
+                      (print-the-runtime)))
+                   (get-javascript
+                    ,(lambda (args)
+                       (get-javascript-code (first args))))))
+
 
 ;; listof string
 (define command-names (map (lambda (x) (symbol->string (car x)))
@@ -61,7 +78,20 @@
                                       (make-ModuleSource (build-path f))
                                       op))
                                    #:exists 'replace)))))
-             
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (print-the-runtime)
+  (write-runtime (current-output-port)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (get-javascript-code filename)
+  (write-standalone-code (make-ModuleSource (build-path filename)) (current-output-port)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (at-toplevel)

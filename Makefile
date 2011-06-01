@@ -9,6 +9,9 @@ test-all:
 	raco make -v --disable-inline tests/test-all.rkt
 	racket tests/test-all.rkt
 
+test-browser-evaluate:
+	raco make -v --disable-inline tests/test-browser-evaluate.rkt
+	racket tests/test-browser-evaluate.rkt
 
 test-compiler:
 	raco make -v --disable-inline tests/test-compiler.rkt

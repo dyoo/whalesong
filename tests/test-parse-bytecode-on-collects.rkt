@@ -7,6 +7,7 @@
 ;; read-syntax: cannot load snip-class reader
 
 (require "../parser/parse-bytecode.rkt"
+         "../call-with-timeout.rkt"
          racket/list
          racket/path)
 
@@ -20,6 +21,8 @@
        [else
         p]))))
 
+
+
 (define failures '())
 
 (for ([path (in-directory collects-dir)])
@@ -28,11 +31,17 @@
     (flush-output)
     (let ([start-time (current-inexact-milliseconds)])
       (with-handlers ((exn:fail? (lambda (exn)
-                                   (set! failures (cons path failures))
-                                   (printf "FAILED!  ~a" (exn-message exn)))))
-        (void (parse-bytecode path))
+                                   (set! failures (cons (list path exn)
+                                                        failures))
+                                   (printf "FAILED: ~a\n" (exn-message exn)))))
+        (call-with-timeout (lambda ()
+                             (void (parse-bytecode path)))
+                           ;; timeout
+                           1000)
         (let ([end-time (current-inexact-milliseconds)])
           (printf "~a msecs\n" (inexact->exact (floor (- end-time start-time)))))))))
+
+
 
 (unless (empty? failures)
   (printf "Failed on: ~s" failures))

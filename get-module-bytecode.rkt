@@ -10,11 +10,6 @@
 (define-runtime-path kernel-language-path
   "lang/kernel.rkt")
 
-(define base-namespace
-  (lookup-language-namespace
-   #;'racket/base
-   `(file ,(path->string kernel-language-path)))
-  #;(make-base-namespace))
   
 (define (get-module-bytecode x)
   (let ([compiled-code
@@ -37,8 +32,9 @@
       (get-output-bytes op))))
 
 
-;; Tries to use get-module-code to grab at module bytecode.  Sometimes this fails
-;; because it appears get-module-code tries to write to compiled/.
+;; Tries to use get-module-code to grab at module bytecode.  Sometimes
+;; this fails because it appears get-module-code tries to write to
+;; compiled/.
 (define (get-compiled-code-from-path p)
   (with-handlers ([void (lambda (exn)
                           ;; Failsafe: try to do it from scratch
@@ -48,6 +44,17 @@
     (get-module-code p)))
 
 
+
+
+
+
+(define base-namespace
+  (lookup-language-namespace
+   #;'racket/base
+   `(file ,(path->string kernel-language-path)))
+  #;(make-base-namespace))
+
+   
 (define (get-compiled-code-from-port ip)
   (parameterize ([read-accept-reader #t]
                  [current-namespace base-namespace])

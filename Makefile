@@ -18,6 +18,11 @@ test-compiler:
 	racket tests/test-compiler.rkt
 
 
+test-parse-bytecode-on-collects:
+	raco make -v --disable-inline tests/test-parse-bytecode-on-collects.rkt
+	racket tests/test-parse-bytecode-on-collects.rkt
+
+
 test-earley:
 	raco make -v --disable-inline tests/test-earley.rkt
 	racket tests/test-earley.rkt

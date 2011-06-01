@@ -6,7 +6,7 @@
 (printf "test-browser-evaluate.rkt\n")
 
 
-(define should-follow? (lambda (p) #t))
+(define should-follow? (lambda (src p) #t))
 
 (define evaluate (make-evaluate 
                   (lambda (program op)

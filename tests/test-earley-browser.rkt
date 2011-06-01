@@ -23,7 +23,7 @@
                     
                     (fprintf op "var innerInvoke = ")
                     (package-anonymous (make-SexpSource program)
-                                       #:should-follow? (lambda (p) #t)
+                                       #:should-follow? (lambda (src path) #t)
                                        #:output-port op)
                     (fprintf op "();\n")
                     

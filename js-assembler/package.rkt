@@ -8,6 +8,8 @@
          (prefix-in racket: racket/base))
 
 
+;; TODO: put proper contracts here
+
 
 (provide package
          package-anonymous
@@ -97,14 +99,14 @@
   (let ([packaging-configuration
          (make-Configuration
           ;; should-follow?
-          (lambda (p) #t)
+          (lambda (src p) #t)
           ;; on
-          (lambda (ast stmts)
+          (lambda (src ast stmts)
             (assemble/write-invoke stmts op)
             (fprintf op "(MACHINE, function() { "))
           
           ;; after
-          (lambda (ast stmts)
+          (lambda (src ast stmts)
             (fprintf op " }, FAIL, PARAMS);"))
           
           ;; last
@@ -156,7 +158,7 @@ EOF
 ;; write-standalone-code: source output-port -> void
 (define (write-standalone-code source-code op)
   (package-anonymous source-code
-                     #:should-follow? (lambda (p) #t)
+                     #:should-follow? (lambda (src p) #t)
                      #:output-port op)
   (fprintf op "()(plt.runtime.currentMachine, function() {}, function() {}, {});\n"))
 

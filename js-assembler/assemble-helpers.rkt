@@ -19,7 +19,8 @@
 	 assemble-arity
 	 assemble-jump
 	 assemble-display-name
-	 assemble-location)
+	 assemble-location
+         assemble-numeric-constant)
 
 (require/typed typed/racket/base
                [regexp-split (Regexp String -> (Listof String))])
@@ -110,7 +111,7 @@
               [(empty? val)
                (format "RUNTIME.NULL")]
               [(number? val)
-               (format "(~s)" val)]
+               (assemble-numeric-constant val)]
               [else
                (format "~s" val)])))
 
@@ -123,6 +124,15 @@
       [else
        (format "[~a, ~a]" (first vals) (loop (rest vals)))])))
 
+
+
+
+
+(: assemble-numeric-constant (Number -> String))
+(define (assemble-numeric-constant val)
+  (format "(~s)" val))
+
+   
 
 
 

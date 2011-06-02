@@ -23,12 +23,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
 
 
-    var isNumber = function(x) { return typeof(x) === 'number'; };
+    var isNumber = jsnums.isSchemeNumber;
 
-    var isNatural = function(x) { return typeof(x) === 'number' &&
-				  x >= 0 &&
-				  Math.floor(x) === x; };
-
+    var isNatural = function(x) { return (jsnums.isInteger(x) &&
+                                          jsnums.greaterThanOrEqual(x, 0)); }
 
     var isPair = function(x) { return (typeof(x) == 'object' && 
 				       x.length === 2 &&
@@ -605,9 +603,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    Primitives['pi'] = Math.PI;
+    Primitives['pi'] = jsnums.pi;
 
-    Primitives['e'] = Math.E;
+    Primitives['e'] = jsnums.e;
 
     Primitives['='] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -619,8 +617,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
 			 '=');
-	    if (MACHINE.env[MACHINE.env.length - 1 - i] !==
-		MACHINE.env[MACHINE.env.length - 1 - i - 1]) {
+	    if (! (jsnums.equals(MACHINE.env[MACHINE.env.length - 1 - i],
+		                 MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		return false; 
 	    }
 	}
@@ -641,8 +639,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
 			 '<');
-	    if (! (MACHINE.env[MACHINE.env.length - 1 - i] <
-		   MACHINE.env[MACHINE.env.length - 1 - i - 1])) {
+	    if (! (jsnums.lessThan(MACHINE.env[MACHINE.env.length - 1 - i],
+		                   MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		return false; 
 	    }
 	}
@@ -662,8 +660,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
 			 '>');
-	    if (! (MACHINE.env[MACHINE.env.length - 1 - i] >
-		   MACHINE.env[MACHINE.env.length - 1 - i - 1])) {
+	    if (! (jsnums.greaterThan(MACHINE.env[MACHINE.env.length - 1 - i],
+		                      MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		return false; 
 	    }
 	}
@@ -683,8 +681,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
 			 '<=');
-	    if (! (MACHINE.env[MACHINE.env.length - 1 - i] <=
-		   MACHINE.env[MACHINE.env.length - 1 - i - 1])) {
+	    if (! (jsnums.lessThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
+		                          MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		return false; 
 	    }
 	}
@@ -705,8 +703,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
 			 '>=');
-	    if (! (MACHINE.env[MACHINE.env.length - 1 - i] >=
-		   MACHINE.env[MACHINE.env.length - 1 - i - 1])) {
+	    if (! (jsnums.greaterThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
+		                             MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		return false; 
 	    }
 	}
@@ -726,7 +724,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
 			 '+');
-	    result += MACHINE.env[MACHINE.env.length - 1 - i];
+	    result = jsnums.add(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	};
 	return result;
     };
@@ -744,7 +742,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length - 1 - i],
 			 i,
 			 '*');
-	    result *= MACHINE.env[MACHINE.env.length - 1 - i];
+	    result = jsnums.multiply(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	}
 	return result;
     };
@@ -759,7 +757,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length-1],
 			 0,
 			 '-');
-	    return -(MACHINE.env[MACHINE.env.length-1]);
+	    return jsnums.subtract(0, MACHINE.env[MACHINE.env.length-1]);
 	}
 	var result = MACHINE.env[MACHINE.env.length - 1];
 	for (var i = 1; i < MACHINE.argcount; i++) {
@@ -769,7 +767,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length-1-i],
 			 i,
 			 '-');
-	    result -= MACHINE.env[MACHINE.env.length - 1 - i];
+	    result = jsnums.subtract(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	}
 	return result;
     };
@@ -791,13 +789,54 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 MACHINE.env[MACHINE.env.length-1-i],
 			 i,
 			 '/');
-	    result /= MACHINE.env[MACHINE.env.length - 1 - i];
+	    result = jsnums.divide(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	}
 	return result;
     };
     Primitives['/'].arity = new ArityAtLeast(1);
     Primitives['/'].displayName = '/';
     
+
+
+    Primitives['add1'] = function(MACHINE) {
+	testArgument(MACHINE,
+		     'number',
+		     isNumber,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'add1');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return jsnums.add(firstArg, 1);
+    };
+    Primitives['add1'].arity = 1;
+    Primitives['add1'].displayName = 'add1';
+
+    Primitives['sub1'] = function(MACHINE) {
+	testArgument(MACHINE,
+		     'number',
+		     isNumber,
+		     MACHINE.env[MACHINE.env.length - 1],
+		     0,
+		     'sub1');
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return jsnums.subtract(firstArg, 1);
+    };
+    Primitives['sub1'].arity = 1;
+    Primitives['sub1'].displayName = 'sub1';
+
+    Primitives['zero?'] = function(MACHINE) {
+	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	return jsnums.equals(firstArg, 0);
+    };
+    Primitives['zero?'].arity = 1;
+    Primitives['zero?'].displayName = 'zero?';
+
+
+
+
+
+
+
 
     Primitives['cons'] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -896,39 +935,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     Primitives['null?'].arity = 1;
     Primitives['null?'].displayName = 'null?';
 
-    Primitives['add1'] = function(MACHINE) {
-	testArgument(MACHINE,
-		     'number',
-		     isNumber,
-		     MACHINE.env[MACHINE.env.length - 1],
-		     0,
-		     'add1');
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	return firstArg + 1;
-    };
-    Primitives['add1'].arity = 1;
-    Primitives['add1'].displayName = 'add1';
-
-    Primitives['sub1'] = function(MACHINE) {
-	testArgument(MACHINE,
-		     'number',
-		     isNumber,
-		     MACHINE.env[MACHINE.env.length - 1],
-		     0,
-		     'sub1');
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	return firstArg - 1;
-    };
-    Primitives['sub1'].arity = 1;
-    Primitives['sub1'].displayName = 'sub1';
-
-    Primitives['zero?'] = function(MACHINE) {
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	return firstArg === 0;
-    };
-    Primitives['zero?'].arity = 1;
-    Primitives['zero?'].displayName = 'zero?';
-
     Primitives['vector'] = function(MACHINE) {
 	var i;
 	var result = [];
@@ -994,7 +1000,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     0,
 		     'vector-set!');
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	var secondArg = MACHINE.env[MACHINE.env.length-2];
+	var secondArg = jsnums.toFixnum(MACHINE.env[MACHINE.env.length-2]);
 	var thirdArg = MACHINE.env[MACHINE.env.length-3];
 	firstArg[secondArg] = thirdArg;
 	return null;
@@ -1010,7 +1016,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
 		     'vector-length');
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var firstArg = MACHINE.env[jsnums.toFixnum(MACHINE.env.length-1)];
 	return firstArg.length;
     };
     Primitives['vector-length'].arity = 1;
@@ -1028,7 +1034,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	if (MACHINE.argcount == 2) {
 	    value = MACHINE.env[MACHINE.env.length - 2];
 	}
-	var length = MACHINE.env[MACHINE.env.length-1];
+	var length = jsnums.toFixnum(MACHINE.env[MACHINE.env.length-1]);
 	var arr = [];
 	for(var i = 0; i < length; i++) {
 	    arr[i] = value;

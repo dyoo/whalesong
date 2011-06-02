@@ -5,7 +5,8 @@
          "../compiler/lexical-structs.rkt"
          "../compiler/kernel-primitives.rkt"
          racket/string
-         racket/list)
+         racket/list
+         typed/rackunit)
 
 (provide open-code-kernel-primitive-procedure)
 
@@ -28,45 +29,48 @@
         (case operator
           [(+)
            (cond [(empty? checked-operands)
-                  "0"]
+                  (assemble-numeric-constant 0)]
                  [else
-                  (string-append "(" (string-join checked-operands " + ") ")")])]
+                  (assemble-binop-chain "jsnums.add" checked-operands)])]
           
           [(-)
            (cond [(empty? (rest checked-operands))
-                  (format "(-(~a))" (first checked-operands))]
+                  (assemble-binop-chain "jsnums.subtract" (cons "0" checked-operands))]
                  [else
-                  (string-append "(" (string-join checked-operands "-") ")")])]
+                  (assemble-binop-chain "jsnums.subtract" checked-operands)])]
           
           [(*)
            (cond [(empty? checked-operands)
-                  "1"]
+                  (assemble-numeric-constant 1)]
                  [else
-                  (string-append "(" (string-join checked-operands "*") ")")])]
+                  (assemble-binop-chain "jsnums.multiply" checked-operands)])]
 
           [(/)
-           (string-append "(" (string-join checked-operands "/") ")")]
+           (assemble-binop-chain "jsnums.divide" checked-operands)]
 
           [(add1)
-           (format "(~a + 1)" (first checked-operands))]
+           (assemble-binop-chain "jsnums.add" (cons "1" checked-operands))]
           
           [(sub1)
-           (format "(~a - 1)" (first checked-operands))]
-          
+           (assemble-binop-chain "jsnums.subtract" (append checked-operands (list "1")))]
+
           [(<)
-           (assemble-chain "<" checked-operands)]
+           (assemble-boolean-chain "jsnums.lessThan" checked-operands)]
 
           [(<=)
-           (assemble-chain "<=" checked-operands)]
+           (assemble-boolean-chain "jsnums.lessThanOrEqual" checked-operands)]
           
           [(=)
-           (assemble-chain "===" checked-operands)]
+           (assemble-boolean-chain "jsnums.equals" checked-operands)]
           
           [(>)
-           (assemble-chain ">" checked-operands)]
+           (assemble-boolean-chain "jsnums.greaterThan" checked-operands)]
           
           [(>=)
-           (assemble-chain ">=" checked-operands)]
+           (assemble-boolean-chain "jsnums.greaterThanOrEqual" checked-operands)]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
+
           
           [(cons)
            (format "[~a, ~a]" (first checked-operands) (second checked-operands))]
@@ -95,8 +99,32 @@
            (format "(~a === ~a)" (first checked-operands) (second checked-operands))])))
 
 
-(: assemble-chain (String (Listof String) -> String))
-(define (assemble-chain rator rands)
+
+(: assemble-binop-chain (String (Listof String) -> String))
+(define (assemble-binop-chain rator rands)
+  (cond
+   [(empty? rands)
+    ""]
+   [(empty? (rest rands))
+    (first rands)]
+   [else
+    (assemble-binop-chain
+     rator
+     (cons (string-append rator "(" (first rands) ", " (second rands) ")")
+           (rest (rest rands))))]))
+
+(check-equal? (assemble-binop-chain "jsnums.add" '("3" "4" "5"))
+              "jsnums.add(jsnums.add(3, 4), 5)")
+(check-equal? (assemble-binop-chain "jsnums.subtract" '("0" "42"))
+              "jsnums.subtract(0, 42)")
+
+
+
+
+
+
+(: assemble-boolean-chain (String (Listof String) -> String))
+(define (assemble-boolean-chain rator rands)
   (string-append "("
                  (string-join (let: loop : (Listof String) ([rands : (Listof String) rands])
                                 (cond
@@ -105,7 +133,7 @@
                                   [(empty? (rest rands))
                                    '()]
                                   [else
-                                   (cons (format "(~a ~a ~a)" (first rands) rator (second rands))
+                                   (cons (format "(~a(~a,~a))" rator (first rands) (second rands))
                                          (loop (rest rands)))]))
                               "&&")
                  ")"))

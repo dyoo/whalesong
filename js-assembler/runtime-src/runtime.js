@@ -1,13 +1,10 @@
-    if(this['plt'] === undefined) {
-	this['plt'] = {};
-    }
-
+if(this['plt'] === undefined) { this['plt'] = {}; }
 
 // All of the values here are namespaced under "plt.runtime".
 
-(function() {
-    this['plt']['runtime'] = {};
-    var exports = this['plt']['runtime'];
+(function(scope) {
+    var runtime = {};
+    scope['runtime'] = runtime;
 
 
 
@@ -1343,8 +1340,8 @@
 
     // Executes all programs that have been labeled as a main module
     var invokeMains = function(machine, succ, fail) {
-        plt.runtime.ready(function() {
-            machine = machine || plt.runtime.currentMachine;
+        runtime.ready(function() {
+            machine = machine || runtime.currentMachine;
             succ = succ || function() {};
             fail = fail || function() {};
             var mainModules = machine.mainModules.slice();
@@ -1368,7 +1365,7 @@
 
 
     // Exports
- 
+    var exports = runtime;
     exports['currentMachine'] = new Machine();
     exports['invokeMains'] = invokeMains;
 
@@ -1433,4 +1430,6 @@
 
     exports['HaltError'] = HaltError;
 
-}).call(this);
+
+    scope.link.announceReady('runtime');
+})(this['plt']);

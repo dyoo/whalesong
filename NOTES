@@ -657,3 +657,15 @@ Other things to consider:
 restrictions.
 
     Can resources be input-port sources?
+
+
+----------------------------------------------------------------------
+
+I've at least imported the libraries from Moby so that they're loaded
+in the same runtime.  However, there are some ugly things happening
+here: for some reason, there's a circular dependency between types and
+helpers.  That dependency needs to be cut!  I've added a workaround
+for now, using the link library to delay initialization until the
+modules are present, but this is an unsatisfactory solution.  We
+really shouldn't get into this problem in the first place...  I must
+do a lot of code cleanup once things stabilize...

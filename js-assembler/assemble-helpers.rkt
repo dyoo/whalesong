@@ -126,11 +126,93 @@
 
 
 
+;; Slightly ridiculous definition, but I need it to get around what appear to
+;; be Typed Racket bugs in its numeric tower.
+(define-predicate int? Integer)
+
 
 
 (: assemble-numeric-constant (Number -> String))
-(define (assemble-numeric-constant val)
-  (format "(~s)" val))
+(define (assemble-numeric-constant a-num)
+
+  (: floating-number->js (Real -> String))
+  (define (floating-number->js a-num)
+    (cond
+     [(eqv? a-num -0.0)
+      "jsnums.negative_zero"]
+     [(eqv? a-num +inf.0)
+      "jsnums.inf"]
+     [(eqv? a-num -inf.0)
+      "jsnums.negative_inf"]
+     [(eqv? a-num +nan.0)
+      "jsnums.nan"]
+     [else
+      (string-append "jsnums.makeFloat(" (number->string a-num) ")")]))
+
+  ;; FIXME: fix the type signature when typed-racket isn't breaking on
+  ;; (define-predicate ExactRational? (U Exact-Rational))
+  (: rational-number->js (Real -> String))
+  (define (rational-number->js a-num)
+    (cond [(= (denominator a-num) 1)
+           (string-append (integer->js (ensure-integer (numerator a-num))))]
+          [else
+           (string-append "jsnums.makeRational("
+                          (integer->js (ensure-integer (numerator a-num)))
+                          ", "
+                          (integer->js (ensure-integer (denominator a-num)))
+                          ")")]))
+
+  
+  (: ensure-integer (Any -> Integer))
+  (define (ensure-integer x)
+    (if (int? x)
+        x
+        (error "not an integer: ~e" x)))
+  
+
+
+  (: integer->js (Integer -> String))
+  (define (integer->js an-int)
+    (cond
+     ;; non-overflow case
+     [(< (abs an-int) 9e15)
+      (number->string an-int)]
+     ;; overflow case
+     [else
+      (string-append "jsnums.makeBignum("
+                     (format "~s" (number->string an-int))
+                     ")")]))
+
+  (cond 
+   [(and (exact? a-num) (rational? a-num))
+    (rational-number->js a-num)]
+   
+   [(real? a-num)
+    (floating-number->js a-num)]
+   
+   [(complex? a-num)
+    (string-append "jsnums.makeComplex("
+                   (assemble-numeric-constant (real-part a-num))
+                   ", "
+                   (assemble-numeric-constant (imag-part a-num))
+                   ")")]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
    
 

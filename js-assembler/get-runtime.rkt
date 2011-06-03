@@ -21,8 +21,8 @@
 
 (require racket/contract
          racket/runtime-path
-         racket/port
-         (planet dyoo/closure-compile:1:1))
+         racket/port)
+
 
 
 (provide/contract [get-runtime (-> string?)])
@@ -57,9 +57,8 @@
                   (port->string ip))))
 
 
-(define text (closure-compile
-              (apply string-append
-                     (map path->string files))))
+(define text (apply string-append
+                    (map path->string files)))
 
 
 (define (get-runtime)

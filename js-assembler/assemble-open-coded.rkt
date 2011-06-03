@@ -151,7 +151,7 @@
      (let: ([test-string : String
                          (case domain
                            [(number)
-                            (format "(typeof(~a) === 'number')"
+                            (format "(jsnums.isSchemeNumber(~a))"
                                     operand-string)]             
                            [(string)
                             (format "(typeof(~a) === 'string')"

@@ -14,15 +14,23 @@ if (! this['plt']) { this['plt'] = {}; }
     var helpers = scope['helpers'];
 
 
-    var getEqHashCode, makeLowLevelEqHash;
-    // makeLowLevelEqHash: -> hashtable
-    // Constructs an eq hashtable that uses Moby's getEqHashCode function.
-    var makeLowLevelEqHash;
+    var getEqHashCode = helpers.getEqHashCode, 
+         // makeLowLevelEqHash: -> hashtable
+        // Constructs an eq hashtable that uses Moby's getEqHashCode function.
+
+        makeLowLevelEqHash = helpers.makeLowLevelEqHash;
+
+    var toWrittenString = helpers.toWrittenString;
+    var toDisplayedString = helpers.toDisplayedString;
+    var toDomNode = helpers.toDomNode;
 
     scope.link.ready('helpers', function() { 
         helpers = scope['helpers']; 
         getEqHashCode = helpers.getEqHashCode;
         makeLowLevelEqHash = helpers.makeLowLevelEqHash;
+        toWrittenString = helpers.toWrittenString;
+        toDisplayedString = helpers.toDisplayedString;
+        toDomNode = helpers.toDomNode;
     });
 
 
@@ -761,17 +769,6 @@ if (! this['plt']) { this['plt'] = {}; }
 	    texts.push('.');
 	    texts.push(toWrittenString(p, cache));
         }
-        //    while (true) {
-        //	if ((!(p instanceof Cons)) && (!(p instanceof Empty))) {
-        //	    texts.push(".");
-        //	    texts.push(toWrittenString(p, cache));
-        //	    break;
-        //	}
-        //	if (p.isEmpty())
-        //	    break;
-        //	texts.push(toWrittenString(p.first(), cache));
-        //	p = p.rest();
-        //    }
         return "(" + texts.join(" ") + ")";
     };
 
@@ -1121,8 +1118,8 @@ String.prototype.toDisplayedString = function(cache) {
         var keys = this.hash.keys();
         var ret = [];
         for (var i = 0; i < keys.length; i++) {
-	    var keyStr = types.toDisplayedString(keys[i], cache);
-	    var valStr = types.toDisplayedString(this.hash.get(keys[i]), cache);
+	    var keyStr = toDisplayedString(keys[i], cache);
+	    var valStr = toDisplayedString(this.hash.get(keys[i]), cache);
 	    ret.push('(' + keyStr + ' . ' + valStr + ')');
         }
         return ('#hasheq(' + ret.join(' ') + ')');
@@ -1177,8 +1174,8 @@ String.prototype.toDisplayedString = function(cache) {
         var keys = this.hash.keys();
         var ret = [];
         for (var i = 0; i < keys.length; i++) {
-	    var keyStr = types.toDisplayedString(keys[i], cache);
-	    var valStr = types.toDisplayedString(this.hash.get(keys[i]), cache);
+	    var keyStr = toDisplayedString(keys[i], cache);
+	    var valStr = toDisplayedString(this.hash.get(keys[i]), cache);
 	    ret.push('(' + keyStr + ' . ' + valStr + ')');
         }
         return ('#hash(' + ret.join(' ') + ')');
@@ -1349,180 +1346,6 @@ String.prototype.toDisplayedString = function(cache) {
 
     //////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-    var toWrittenString = function(x, cache) {
-        if (! cache) { 
-     	    cache = makeLowLevelEqHash();
-        }
-
-        if (typeof(x) === 'object') {
-	    if (cache.containsKey(x)) {
-		return "...";
-	    }
-        }
-
-        if (x == undefined || x == null) {
-	    return "#<undefined>";
-        }
-        if (typeof(x) == 'string') {
-	    return escapeString(x.toString());
-        }
-        if (typeof(x) != 'object' && typeof(x) != 'function') {
-	    return x.toString();
-        }
-
-        var returnVal;
-        if (typeof(x.toWrittenString) !== 'undefined') {
-	    returnVal = x.toWrittenString(cache);
-        } else if (typeof(x.toDisplayedString) !== 'undefined') {
-	    returnVal = x.toDisplayedString(cache);
-        } else {
-	    returnVal = x.toString();
-        }
-        cache.remove(x);
-        return returnVal;
-    };
-
-
-
-    var toDisplayedString = function(x, cache) {
-        if (! cache) {
-    	    cache = makeLowLevelEqHash();
-        }
-        if (typeof(x) === 'object') {
-	    if (cache.containsKey(x)) {
-		return "...";
-	    }
-        }
-
-        if (x == undefined || x == null) {
-	    return "#<undefined>";
-        }
-        if (typeof(x) == 'string') {
-	    return x;
-        }
-        if (typeof(x) != 'object' && typeof(x) != 'function') {
-	    return x.toString();
-        }
-
-        var returnVal;
-        if (typeof(x.toDisplayedString) !== 'undefined') {
-	    returnVal = x.toDisplayedString(cache);
-        } else if (typeof(x.toWrittenString) !== 'undefined') {
-	    returnVal = x.toWrittenString(cache);
-        } else {
-	    returnVal = x.toString();
-        }
-        cache.remove(x);
-        return returnVal;
-    };
-
-
-
-    // toDomNode: scheme-value -> dom-node
-    var toDomNode = function(x, cache) {
-        if (! cache) {
-    	    cache = makeLowLevelEqHash();
-        }
-        if (isNumber(x)) {
-	    return numberToDomNode(x);
-        }
-
-        if (typeof(x) == 'object') {
-	    if (cache.containsKey(x)) {
-		var node = document.createElement("span");
-		node.appendChild(document.createTextNode("..."));
-		return node;
-	    }
-        }
-
-        if (x == undefined || x == null) {
-	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode("#<undefined>"));
-	    return node;
-        }
-        if (typeof(x) == 'string') {
-	    var wrapper = document.createElement("span");
-            wrapper.style["white-space"] = "pre";	
-	    var node = document.createTextNode(toWrittenString(x));
-	    wrapper.appendChild(node);
-	    return wrapper;
-        }
-        if (typeof(x) != 'object' && typeof(x) != 'function') {
-	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toString()));
-	    return node;
-        }
-
-        var returnVal;
-        if (x.nodeType) {
-	    returnVal =  x;
-        } else if (typeof(x.toDomNode) !== 'undefined') {
-	    returnVal =  x.toDomNode(cache);
-        } else if (typeof(x.toWrittenString) !== 'undefined') {
-	    
-	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toWrittenString(cache)));
-	    returnVal =  node;
-        } else if (typeof(x.toDisplayedString) !== 'undefined') {
-	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toDisplayedString(cache)));
-	    returnVal =  node;
-        } else {
-	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toString()));
-	    returnVal =  node;
-        }
-        cache.remove(x);
-        return returnVal;
-    };
-
-
-    // numberToDomNode: jsnum -> dom
-    // Given a jsnum, produces a dom-node representation.
-    var numberToDomNode = function(n) {
-        var node;
-        if (jsnums.isExact(n)) {
-	    if (jsnums.isInteger(n)) {
-	        node = document.createElement("span");
-	        node.appendChild(document.createTextNode(n.toString()));
-	        return node;
-	    } else if (jsnums.isRational(n)) {
-	        return rationalToDomNode(n);
-	    } else if (jsnums.isComplex(n)) {
-	        node = document.createElement("span");
-	        node.appendChild(document.createTextNode(n.toString()));
-	        return node;
-	    } else {
-	        node = document.createElement("span");
-	        node.appendChild(document.createTextNode(n.toString()));
-	        return node;
-	    }
-        } else {
-	    node = document.createElement("span");
-	    node.appendChild(document.createTextNode(n.toString()));
-	    return node;
-        }
-    };
-
-    // rationalToDomNode: rational -> dom-node
-    var rationalToDomNode = function(n) {
-        var node = document.createElement("span");
-        var chunks = jsnums.toRepeatingDecimal(jsnums.numerator(n),
-					       jsnums.denominator(n));
-        node.appendChild(document.createTextNode(chunks[0] + '.'))
-        node.appendChild(document.createTextNode(chunks[1]));
-        var overlineSpan = document.createElement("span");
-        overlineSpan.style.textDecoration = 'overline';
-        overlineSpan.appendChild(document.createTextNode(chunks[2]));
-        node.appendChild(overlineSpan);
-        return node;
-    }
 
 
 
@@ -2316,10 +2139,6 @@ String.prototype.toDisplayedString = function(cache) {
     types.hashEq = makeHashEq;
     types.jsValue = function(name, val) { return new JsValue(name, val); };
     types.wrappedSchemeValue = function(val) { return new WrappedSchemeValue(val); };
-
-    types.toWrittenString = toWrittenString;
-    types.toDisplayedString = toDisplayedString;
-    types.toDomNode = toDomNode;
 
 
     types.color = Color.constructor;

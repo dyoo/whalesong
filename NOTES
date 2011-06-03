@@ -669,3 +669,14 @@ for now, using the link library to delay initialization until the
 modules are present, but this is an unsatisfactory solution.  We
 really shouldn't get into this problem in the first place...  I must
 do a lot of code cleanup once things stabilize...
+
+
+----------------------------------------------------------------------
+
+June 3, 2011
+
+How do I test what I'm integrating?  I should at least absorb the
+js-vm test suite, at the very least.
+
+11am: I'm going to spend the next hour trying to disentangle the
+circularity between helpers and types.

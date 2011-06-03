@@ -35,9 +35,9 @@ if (! this['plt']) { this['plt'] = {}; }
 	    var expectedNumberOfArgs = matches == null ? 0 : matches.length;
 	    var errorStrBuffer = [functionName + ': format string requires ' + expectedNumberOfArgs
 				  + ' arguments, given ' + args.length + '; arguments were:',
-				  types.toWrittenString(formatStr)];
+				  toWrittenString(formatStr)];
 	    for (var i = 0; i < args.length; i++) {
-		errorStrBuffer.push( types.toWrittenString(args[i]) );
+		errorStrBuffer.push( toWrittenString(args[i]) );
 	    }
 
 	    raise( types.incompleteExn(types.exnFailContract, errorStrBuffer.join(' '), []) );
@@ -54,19 +54,19 @@ if (! this['plt']) { this['plt'] = {}; }
 		if (buffer.length == 0) {
 		    throwFormatError();
 		}
-		return types.toWrittenString(buffer.shift());
+		return toWrittenString(buffer.shift());
 	    } else if (s == '~e' || s == "~E") {
 		// FIXME: we don't yet have support for the error-print
 		// handler, and currently treat ~e just like ~s.
 		if (buffer.length == 0) {
 		    throwFormatError();
 		}
-		return types.toWrittenString(buffer.shift());
+		return toWrittenString(buffer.shift());
 	    } else if (s == '~a' || s == "~A") {
 		if (buffer.length == 0) {
 		    throwFormatError();
 		}
-		return types.toDisplayedString(buffer.shift());
+		return toDisplayedString(buffer.shift());
 	    } else {
 		throw types.internalError('format: string.replace matched invalid regexp', false);
 	    }
@@ -184,7 +184,7 @@ if (! this['plt']) { this['plt'] = {}; }
 	    var errorFormatStrBuffer = ['~a: expects type <~a> as ~a arguments, given: ~s; other arguments were:'];
 	    for (var i = 0; i < args.length; i++) {
 		if ( i != pos-1 ) {
-		    errorFormatStrBuffer.push( types.toWrittenString(args[i]) );
+		    errorFormatStrBuffer.push(toWrittenString(args[i]));
 		}
 	    }
 	    errorFormatStr = errorFormatStrBuffer.join(' ');
@@ -564,6 +564,188 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
+ 
+    // toWrittenString: Any Hashtable -> String
+    var toWrittenString = function(x, cache) {
+        if (! cache) { 
+     	    cache = makeLowLevelEqHash();
+        }
+
+        if (typeof(x) === 'object') {
+	    if (cache.containsKey(x)) {
+		return "...";
+	    }
+        }
+
+        if (x == undefined || x == null) {
+	    return "#<undefined>";
+        }
+        if (typeof(x) == 'string') {
+	    return escapeString(x.toString());
+        }
+        if (typeof(x) != 'object' && typeof(x) != 'function') {
+	    return x.toString();
+        }
+
+        var returnVal;
+        if (typeof(x.toWrittenString) !== 'undefined') {
+	    returnVal = x.toWrittenString(cache);
+        } else if (typeof(x.toDisplayedString) !== 'undefined') {
+	    returnVal = x.toDisplayedString(cache);
+        } else {
+	    returnVal = x.toString();
+        }
+        cache.remove(x);
+        return returnVal;
+    };
+
+
+
+    // toDisplayedString: Any Hashtable -> String
+    var toDisplayedString = function(x, cache) {
+        if (! cache) {
+    	    cache = makeLowLevelEqHash();
+        }
+        if (typeof(x) === 'object') {
+	    if (cache.containsKey(x)) {
+		return "...";
+	    }
+        }
+
+        if (x == undefined || x == null) {
+	    return "#<undefined>";
+        }
+        if (typeof(x) == 'string') {
+	    return x;
+        }
+        if (typeof(x) != 'object' && typeof(x) != 'function') {
+	    return x.toString();
+        }
+
+        var returnVal;
+        if (typeof(x.toDisplayedString) !== 'undefined') {
+	    returnVal = x.toDisplayedString(cache);
+        } else if (typeof(x.toWrittenString) !== 'undefined') {
+	    returnVal = x.toWrittenString(cache);
+        } else {
+	    returnVal = x.toString();
+        }
+        cache.remove(x);
+        return returnVal;
+    };
+
+
+    // toDomNode: scheme-value -> dom-node
+    var toDomNode = function(x, cache) {
+        if (! cache) {
+    	    cache = makeLowLevelEqHash();
+        }
+
+        if (jsnums.isSchemeNumber(x)) {
+	    return numberToDomNode(x);
+        }
+
+        if (typeof(x) == 'object') {
+	    if (cache.containsKey(x)) {
+		var node = document.createElement("span");
+		node.appendChild(document.createTextNode("..."));
+		return node;
+	    }
+        }
+
+        if (x == undefined || x == null) {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode("#<undefined>"));
+	    return node;
+        }
+
+        if (typeof(x) == 'string') {
+	    var wrapper = document.createElement("span");
+            wrapper.style["white-space"] = "pre";	
+	    var node = document.createTextNode(toWrittenString(x));
+	    wrapper.appendChild(node);
+	    return wrapper;
+        }
+        if (typeof(x) != 'object' && typeof(x) != 'function') {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode(x.toString()));
+	    return node;
+        }
+
+        var returnVal;
+        if (x.nodeType) {
+	    returnVal =  x;
+        } else if (typeof(x.toDomNode) !== 'undefined') {
+	    returnVal =  x.toDomNode(cache);
+        } else if (typeof(x.toWrittenString) !== 'undefined') {
+	    
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode(x.toWrittenString(cache)));
+	    returnVal =  node;
+        } else if (typeof(x.toDisplayedString) !== 'undefined') {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode(x.toDisplayedString(cache)));
+	    returnVal =  node;
+        } else {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode(x.toString()));
+	    returnVal =  node;
+        }
+        cache.remove(x);
+        return returnVal;
+    };
+
+
+
+    // numberToDomNode: jsnum -> dom
+    // Given a jsnum, produces a dom-node representation.
+    var numberToDomNode = function(n) {
+        var node;
+        if (jsnums.isExact(n)) {
+	    if (jsnums.isInteger(n)) {
+	        node = document.createElement("span");
+	        node.appendChild(document.createTextNode(n.toString()));
+	        return node;
+	    } else if (jsnums.isRational(n)) {
+	        return rationalToDomNode(n);
+	    } else if (jsnums.isComplex(n)) {
+	        node = document.createElement("span");
+	        node.appendChild(document.createTextNode(n.toString()));
+	        return node;
+	    } else {
+	        node = document.createElement("span");
+	        node.appendChild(document.createTextNode(n.toString()));
+	        return node;
+	    }
+        } else {
+	    node = document.createElement("span");
+	    node.appendChild(document.createTextNode(n.toString()));
+	    return node;
+        }
+    };
+
+    // rationalToDomNode: rational -> dom-node
+    var rationalToDomNode = function(n) {
+        var node = document.createElement("span");
+        var chunks = jsnums.toRepeatingDecimal(jsnums.numerator(n),
+					       jsnums.denominator(n));
+        node.appendChild(document.createTextNode(chunks[0] + '.'))
+        node.appendChild(document.createTextNode(chunks[1]));
+        var overlineSpan = document.createElement("span");
+        overlineSpan.style.textDecoration = 'overline';
+        overlineSpan.appendChild(document.createTextNode(chunks[2]));
+        node.appendChild(overlineSpan);
+        return node;
+    }
+
+
+
+
+
+
+
+
+
     ////////////////////////////////////////////////
 
     helpers.format = format;
@@ -602,6 +784,12 @@ if (! this['plt']) { this['plt'] = {}; }
 
     helpers.heir = heir;
 
+
+
+
+    helpers.toWrittenString = toWrittenString;
+    helpers.toDisplayedString = toDisplayedString;
+    helpers.toDomNode = toDomNode;
 
 
 

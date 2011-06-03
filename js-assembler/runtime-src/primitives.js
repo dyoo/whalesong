@@ -620,7 +620,7 @@ That way, we can do a simple grep.
 		     false, 
 		     true, 
 		     function(state, x) {
-		         state.getPrintHook()(types.toWrittenString(x));
+		         state.getPrintHook()(helpers.toDisplayedString(x));
 		         state.v = types.VOID;
 		     });
 
@@ -1230,7 +1230,7 @@ That way, we can do a simple grep.
 			 else {
 			     var msgBuffer = [arg1.toString()];
 			     for (var i = 0; i < args.length; i++) {
-				 msgBuffer.push( types.toWrittenString(args[i]) );
+				 msgBuffer.push( helpers.toDisplayedString(args[i]) );
 			     }
 			     raise( types.incompleteExn(types.exnFail, msgBuffer.join(''), []) );
 			 }
@@ -1952,7 +1952,7 @@ That way, we can do a simple grep.
 			     return jsnums.toExact(x);
 			 } catch(e) {
 			     raise( types.exnFailContract('inexact->exact: no exact representation for '
-							  + types.toWrittenString(x),
+							  + helpers.toDisplayedString(x),
 							  false) );
 			 }
 		     });
@@ -2525,7 +2525,7 @@ That way, we can do a simple grep.
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 				 var msg = ('list-ref: index ' + n +
 					    ' is too large for list (not a proper list): ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2533,7 +2533,7 @@ That way, we can do a simple grep.
 		 	     if (lst.isEmpty()) {
 				 var msg = ('list-ref: index ' + n +
 					    ' is too large for list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract, msg, []) );
 		 	     }
 	  		     lst = lst.rest();
@@ -2543,7 +2543,7 @@ That way, we can do a simple grep.
 		         if (! isPair(lst) && lst !== types.EMPTY) {
 			     var msg = ('list-ref: index ' + n +
 				        ' is too large for list (not a proper list): ' +
-				        types.toWrittenString(origList));
+				        helpers.toDisplayedString(origList));
 			     raise( types.incompleteExn(types.exnFailContract,
 						        msg,
 						        []) );
@@ -2567,7 +2567,7 @@ That way, we can do a simple grep.
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 				 var msg = ('list-tail: index ' + n +
 					    ' is too large for list (not a proper list): ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2575,7 +2575,7 @@ That way, we can do a simple grep.
 			     if (lst.isEmpty()) {
 				 var msg = ('list-tail: index ' + n +
 					    ' is too large for list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			     }
 			     lst = lst.rest();
@@ -2727,7 +2727,7 @@ That way, we can do a simple grep.
 		         var lst = origList;
 		         if (! isPair(lst) && lst !== types.EMPTY) {
 			     var msg = ('memq: not a proper list: ' +
-				        types.toWrittenString(origList));
+				        helpers.toDisplayedString(origList));
 			     raise( types.incompleteExn(types.exnFailContract,
 							msg,
 						        []) );
@@ -2740,7 +2740,7 @@ That way, we can do a simple grep.
 			     lst = lst.rest();
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 				 var msg = ('memq: not a proper list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2758,7 +2758,7 @@ That way, we can do a simple grep.
 		         var lst = origList;
 			 if (! isPair(lst) && lst !== types.EMPTY) {
 			     var msg = ('memv: not a proper list: ' +
-					types.toWrittenString(origList));
+					helpers.toDisplayedString(origList));
 			     raise( types.incompleteExn(types.exnFailContract,
 							msg,
 							[]) );
@@ -2770,7 +2770,7 @@ That way, we can do a simple grep.
 			     lst = lst.rest();
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 				 var msg = ('memv: not a proper list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2789,7 +2789,7 @@ That way, we can do a simple grep.
 		 	 //checkList(lst, 'member', 2, arguments);
 		         if (! isPair(lst) && lst !== types.EMPTY) {
 			     var msg = ('member: not a proper list: ' +
-				        types.toWrittenString(origList));
+				        helpers.toDisplayedString(origList));
 			     raise( types.incompleteExn(types.exnFailContract,
 						        msg,
 						        []) );
@@ -2802,7 +2802,7 @@ That way, we can do a simple grep.
 
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 				 var msg = ('member: not a proper list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2846,7 +2846,7 @@ That way, we can do a simple grep.
 		         // checkListOf(lst, isPair, 'assq', 'pair', 2, arguments);
 		         if (! isPair(lst) && lst !== types.EMPTY) {
 			     var msg = ('assq: not a proper list: ' +
-				        types.toWrittenString(origList));
+				        helpers.toDisplayedString(origList));
 			     raise( types.incompleteExn(types.exnFailContract,
 						        msg,
 						        []) );
@@ -2854,8 +2854,8 @@ That way, we can do a simple grep.
 			 while ( !lst.isEmpty() ) {
 			     if (! isPair(lst.first())) {
 				 var msg = ('assq: non-pair found in list: ' +
-					    types.toWrittenString(lst.first()) +' in  ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(lst.first()) +' in  ' +
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2867,7 +2867,7 @@ That way, we can do a simple grep.
 
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 				 var msg = ('assq: not a proper list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2886,7 +2886,7 @@ That way, we can do a simple grep.
 		         var lst = origList;
 		         if (! isPair(lst) && lst !== types.EMPTY) {
 			     var msg = ('assv: not a proper list: ' +
-				        types.toWrittenString(origList));
+				        helpers.toDisplayedString(origList));
 			     raise( types.incompleteExn(types.exnFailContract,
 						        msg,
 						        []) );
@@ -2894,8 +2894,8 @@ That way, we can do a simple grep.
 		         while ( !lst.isEmpty() ) {
 			     if (! isPair(lst.first())) {
 			         var msg = ('assv: non-pair found in list: ' +
-					    types.toWrittenString(lst.first()) +' in  ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(lst.first()) +' in  ' +
+					    helpers.toDisplayedString(origList));
 			         raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2906,7 +2906,7 @@ That way, we can do a simple grep.
 			     lst = lst.rest();
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 			         var msg = ('assv: not a proper list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 			         raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2925,7 +2925,7 @@ That way, we can do a simple grep.
 		         //checkListOf(lst, isPair, 'assoc', 'pair', 2, arguments);
 		         if (! isPair(lst) && lst !== types.EMPTY) {
 			     var msg = ('assoc: not a proper list: ' +
-					types.toWrittenString(origList));
+					helpers.toDisplayedString(origList));
 			     raise( types.incompleteExn(types.exnFailContract,
 						        msg,
 						        []) );
@@ -2933,8 +2933,8 @@ That way, we can do a simple grep.
 			 while ( !lst.isEmpty() ) {
 			     if (! isPair(lst.first())) {
 				 var msg = ('assoc: non-pair found in list: ' +
-					    types.toWrittenString(lst.first()) +' in  ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(lst.first()) +' in  ' +
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -2946,7 +2946,7 @@ That way, we can do a simple grep.
 
 			     if (! isPair(lst) && lst !== types.EMPTY) {
 				 var msg = ('assoc: not a proper list: ' +
-					    types.toWrittenString(origList));
+					    helpers.toDisplayedString(origList));
 				 raise( types.incompleteExn(types.exnFailContract,
 							    msg,
 							    []) );
@@ -3208,7 +3208,7 @@ That way, we can do a simple grep.
 			                    check(obj, isHash, 'hash-ref', 'hash', 1, arguments);
 
 			                    if ( !obj.hash.containsKey(key) ) {
-			  	                var msg = 'hash-ref: no value found for key: ' + types.toWrittenString(key);
+			  	                var msg = 'hash-ref: no value found for key: ' + helpers.toDisplayedString(key);
 			  	                raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			                    }
 			                    return obj.hash.get(key);
@@ -3373,7 +3373,7 @@ That way, we can do a simple grep.
 			 if (n >= str.length) {
 			     var msg = ('string-ref: index ' + n + ' out of range ' +
 					'[0, ' + (str.length-1) + '] for string: ' +
-					types.toWrittenString(str));
+					helpers.toDisplayedString(str));
 			     raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			 }
 			 return types.char(str.charAt(n));
@@ -3542,7 +3542,7 @@ That way, we can do a simple grep.
 			                    var start = jsnums.toFixnum(theStart);
 			                    if (start > str.length) {
 			   	                var msg = ('substring: starting index ' + start + ' out of range ' +
-					                   '[0, ' + str.length + '] for string: ' + types.toWrittenString(str));
+					                   '[0, ' + str.length + '] for string: ' + helpers.toDisplayedString(str));
 				                raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			                    }
 			                    else {
@@ -3561,12 +3561,12 @@ That way, we can do a simple grep.
 			                    var end = jsnums.toFixnum(theEnd);
 			                    if (start > str.length) {
 			   	                var msg = ('substring: starting index ' + start + ' out of range ' +
-					                   '[0, ' + str.length + '] for string: ' + types.toWrittenString(str));
+					                   '[0, ' + str.length + '] for string: ' + helpers.toDisplayedString(str));
 				                raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			                    }
 			                    if (end < start || end > str.length) {
 			   	                var msg = ('substring: ending index ' + end + ' out of range ' + '[' + start +
-					                   ', ' + str.length + '] for string: ' + types.toWrittenString(str));
+					                   ', ' + str.length + '] for string: ' + helpers.toDisplayedString(str));
 				                raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			                    }
 			                    return types.string( str.substring(start, end) );
@@ -3851,7 +3851,7 @@ That way, we can do a simple grep.
 			 if ( jsnums.greaterThanOrEqual(k, str.length) ) {
 			     var msg = ('string-set!: index ' + k + ' out of range ' +
 					'[0, ' + (str.length-1) + '] for string: ' +
-					types.toWrittenString(str));
+					helpers.toDisplayedString(str));
 			     raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			 }
 			 str.set(jsnums.toFixnum(k), c.val);
@@ -3997,7 +3997,7 @@ That way, we can do a simple grep.
 			 if ( n >= bstr.length() ) {
 			     var msg = ('bytes-ref: index ' + n + ' out of range ' +
 					'[0, ' + (bstr.length-1) + '] for byte-string: ' +
-					types.toWrittenString(bstr));
+					helpers.toDisplayedString(bstr));
 			     raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			 }
 			 return bstr.get(n);
@@ -4018,7 +4018,7 @@ That way, we can do a simple grep.
 			 if ( n >= bstr.length() ) {
 			     var msg = ('bytes-set!: index ' + n + ' out of range ' +
 					'[0, ' + (bstr.length-1) + '] for byte-string: ' +
-					types.toWrittenString(bstr));
+					helpers.toDisplayedString(bstr));
 			     raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			 }
 			 bstr.set(n, b);
@@ -4039,7 +4039,7 @@ That way, we can do a simple grep.
 			                    if (start > bstr.length()) {
 			   	                var msg = ('subbytes: starting index ' + start + ' out of range ' +
 					                   '[0, ' + bstr.length + '] for byte-string: ' +
-					                   types.toWrittenString(bstr));
+					                   helpers.toDisplayedString(bstr));
 				                raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			                    }
 			                    else {
@@ -4059,13 +4059,13 @@ That way, we can do a simple grep.
 			                    if (start > bstr.length()) {
 			   	                var msg = ('subbytes: starting index ' + start + ' out of range ' +
 					                   '[0, ' + bstr.length() + '] for byte-string: ' +
-					                   types.toWrittenString(bstr));
+					                   helpers.toDisplayedString(bstr));
 				                raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			                    }
 			                    if (end < start || end > bstr.length()) {
 			   	                var msg = ('subbytes: ending index ' + end + ' out of range ' + '[' + start +
 					                   ', ' + bstr.length() + '] for byte-string: ' +
-					                   types.toWrittenString(bstr));
+					                   helpers.toDisplayedString(bstr));
 				                raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			                    }
 			                    else {
@@ -4244,7 +4244,7 @@ That way, we can do a simple grep.
 			 if (i >= vec.length()) {
 			     var msg = ('vector-ref: index ' + i + ' out of range ' +
 					'[0, ' + (vec.length()-1) + '] for vector: ' +
-					types.toWrittenString(vec));
+					helpers.toDisplayedString(vec));
 			     raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			 }
 			 return vec.ref(i);
@@ -4263,7 +4263,7 @@ That way, we can do a simple grep.
 			 if (i >= vec.length()) {
 			     var msg = ('vector-set!: index ' + i + ' out of range ' +
 					'[0, ' + (vec.length()-1) + '] for vector: ' +
-					types.toWrittenString(vec));
+					helpers.toDisplayedString(vec));
 			     raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			 }
 			 vec.set(i, val);

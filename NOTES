@@ -680,3 +680,7 @@ js-vm test suite, at the very least.
 
 11am: I'm going to spend the next hour trying to disentangle the
 circularity between helpers and types.
+
+
+The parameters I'm using to control bounce are too high for Firefox,
+leading it to raise the dialog about an out of control jva process.  Not good.

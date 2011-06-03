@@ -2117,7 +2117,7 @@ String.prototype.toDisplayedString = function(cache) {
 
     types.symbol = Symbol.makeInstance;
     types.rational = jsnums.makeRational;
-    types.float = jsnums.makeFloat;
+    types.floatpoint = jsnums.makeFloat;
     types.complex = jsnums.makeComplex;
     types.bignum = jsnums.makeBignum;
     types.list = makeList;
@@ -2125,7 +2125,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.vectorImmutable = makeVectorImmutable;
     types.regexp = function(p) { return new RegularExpression(p) ; }
     types.byteRegexp = function(p) { return new ByteRegularExpression(p) ; }
-    types['char'] = Char.makeInstance;
+    types.character = Char.makeInstance;
     types['string'] = makeString;
     types.box = function(x) { return new Box(x, true); };
     types.placeholder = function(x) { return new Placeholder(x); };

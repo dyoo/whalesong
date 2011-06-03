@@ -1173,7 +1173,7 @@ That way, we can do a simple grep.
     PRIMITIVES['random'] =
 	new CasePrimitive('random',
 	                  [new PrimProc('random', 0, false, false,
-		                        function() {return types.float(Math.random());}),
+		                        function() {return types.floatpoint(Math.random());}),
 	                   new PrimProc('random', 1, false, false,
 		                        function(n) {
 			                    check(n, isNatural, 'random', 'non-negative exact integer', 1, arguments);
@@ -3315,7 +3315,7 @@ That way, we can do a simple grep.
 			  1,
 			  false, false,
 			  function(n) {
-			      return makeStringImpl(n, types.char(String.fromCharCode(0)));
+			      return makeStringImpl(n, types.character(String.fromCharCode(0)));
 			  })]);
     
     
@@ -3376,7 +3376,7 @@ That way, we can do a simple grep.
 					helpers.toDisplayedString(str));
 			     raise( types.incompleteExn(types.exnFailContract, msg, []) );
 			 }
-			 return types.char(str.charAt(n));
+			 return types.character(str.charAt(n));
 		     });
 
 
@@ -3599,7 +3599,7 @@ That way, we can do a simple grep.
 		         str = str.toString();
 			 var lst = types.EMPTY;
 			 for (var i = str.length-1; i >= 0; i--) {
-			     lst = types.cons(types.char(str.charAt(i)), lst);
+			     lst = types.cons(types.character(str.charAt(i)), lst);
 			 }
 			 return lst;
 		     });
@@ -4542,7 +4542,7 @@ That way, we can do a simple grep.
 			       'exact integer in [0,#x10FFFF], not in [#xD800,#xDFFF]',
 			       1);
 
-			 return types.char( String.fromCharCode(jsnums.toFixnum(num)) );
+			 return types.character( String.fromCharCode(jsnums.toFixnum(num)) );
 		     });
 
 
@@ -4552,7 +4552,7 @@ That way, we can do a simple grep.
 		     false, false,
 		     function(c) {
 		 	 check(c, isChar, 'char-upcase', 'char', 1);
-			 return types.char( c.val.toUpperCase() );
+			 return types.character( c.val.toUpperCase() );
 		     });
 
 
@@ -4562,7 +4562,7 @@ That way, we can do a simple grep.
 		     false, false,
 		     function(c) {
 		 	 check(c, isChar, 'char-downcase', 'char', 1);
-			 return types.char( c.val.toLowerCase() );
+			 return types.character( c.val.toLowerCase() );
 		     });
 
 

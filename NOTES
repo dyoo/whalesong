@@ -596,3 +596,91 @@ benchmarks
 being able to write modules in javascript
 
 being able to bundle external resources (like images)
+
+
+----------------------------------------------------------------------
+
+
+June 2, 2011
+
+
+We need a mechanism for attaching external resources to a program and
+to be able to refer to them.  External resources refer to things like:
+
+   Images
+   HTML files
+   Sounds
+
+Each of these should be findable by path, and they should also be
+packaged when a program is built.  The user should be able to say
+something like this:
+
+    (define my-html-file (local-resource-path ...))
+
+and the packager should automatically be able to statically walk
+though all local-resource-path calls.
+
+
+    These files must be represented as separate files.
+
+
+There may be additional resources that need to be included, though
+they aren't directly used in the program.  (Say, for example, an image
+is refered to in an html resource.  Maybe we should have a toplevel
+element (include-resources ...) that take in a bunch of
+build-resource-path.
+
+   (include-resources (build-resource-path ...)
+                      ...)
+
+
+
+The Whalesong make system needs to know how to deal with resources.
+
+
+I also want to be able to refer to external web resources, and somehow
+capture or cache them during building.
+
+
+
+Imaginary: I would like to be able to write something like this:
+
+    (define my-file (remote-resource-path ...))
+
+and be able to treat my-file as if it were a local resource.  During
+packaging, the file should be directly downloaded.
+
+
+Other things to consider:
+
+    We may need to consider workarounds for same-origin policy
+restrictions.
+
+    Can resources be input-port sources?
+
+
+----------------------------------------------------------------------
+
+I've at least imported the libraries from Moby so that they're loaded
+in the same runtime.  However, there are some ugly things happening
+here: for some reason, there's a circular dependency between types and
+helpers.  That dependency needs to be cut!  I've added a workaround
+for now, using the link library to delay initialization until the
+modules are present, but this is an unsatisfactory solution.  We
+really shouldn't get into this problem in the first place...  I must
+do a lot of code cleanup once things stabilize...
+
+
+----------------------------------------------------------------------
+
+June 3, 2011
+
+How do I test what I'm integrating?  I should at least absorb the
+js-vm test suite, at the very least.
+
+11am: I'm going to spend the next hour trying to disentangle the
+circularity between helpers and types.
+
+
+The parameters I'm using to control bounce are too high for Firefox,
+leading it to raise the dialog about an out of control jva process.  Not good.

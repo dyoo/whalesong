@@ -213,9 +213,15 @@ var comet = function() {
     sendRequest("/eval", 
                 function(req) {
                     // debug:
-                    if (window.console && typeof(console.log) === 'function') { console.log(req.responseText); }
-
-                    var invoke = eval(req.responseText)();
+                    //if (window.console && typeof(console.log) === 'function') {
+                    //    console.log(req.responseText);
+                    //}
+                    try {
+                        var invoke = eval(req.responseText)();
+                    } catch (e) {
+                        if (window.console && window.console.log && e.stack) { window.console.log(e.stack); }
+                        throw e;
+                    }
                     var output = [];
                     var startTime, endTime;
                     var params = { currentDisplayer: function(v) {

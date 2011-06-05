@@ -4,6 +4,7 @@
          "quote-cdata.rkt"
          "../make.rkt"
          "../make-structs.rkt"
+         (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
 
@@ -87,13 +88,6 @@
 
 
 
-;; get-runtime: -> string
-(define (get-runtime)
-  (let ([buffer (open-output-string)])
-    (write-runtime buffer)
-    (get-output-string buffer)))
-
-
 ;; write-runtime: output-port -> void
 (define (write-runtime op)
   (let ([packaging-configuration
@@ -121,6 +115,19 @@
 
   
 
+(define *the-runtime*
+  (let ([buffer (open-output-string)])
+    (write-runtime buffer)
+    (closure-compile
+     (get-output-string buffer))))
+
+  
+;; get-runtime: -> string
+(define (get-runtime)
+  *the-runtime*)
+
+
+
 
 
 ;; *header* : string
@@ -144,7 +151,8 @@ EOF
     (package source-code
              #:should-follow? (lambda (src p) #t)
              #:output-port buffer)
-    (get-output-string buffer)))
+    (closure-compile
+     (get-output-string buffer))))
 
 
 
@@ -152,7 +160,8 @@ EOF
 (define (get-standalone-code source-code)
   (let ([buffer (open-output-string)])
     (write-standalone-code source-code buffer)
-    (get-output-string buffer)))
+    (closure-compile
+     (get-output-string buffer))))
 
 
 ;; write-standalone-code: source output-port -> void

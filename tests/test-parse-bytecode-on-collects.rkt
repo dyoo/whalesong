@@ -31,8 +31,10 @@
     (flush-output)
     (let ([start-time (current-inexact-milliseconds)])
       (with-handlers ((exn:fail? (lambda (exn)
-                                   (set! failures (cons (list path exn)
-                                                        failures))
+                                   (set! failures
+                                         (cons (list (path->string path)
+                                                     (exn-message exn))
+                                               failures))
                                    (printf "FAILED: ~a\n" (exn-message exn)))))
         (call-with-timeout (lambda ()
                              (void (parse-bytecode path)))

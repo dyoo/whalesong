@@ -1,5 +1,7 @@
 if(this['plt'] === undefined) { this['plt'] = {}; }
 
+
+
 // All of the values here are namespaced under "plt.runtime".
 
 (function(scope) {
@@ -92,6 +94,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 	    'current-print': new Closure(
 		function(MACHINE) {
+                    if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
+
 		    var elt = MACHINE.env.pop();
 		    var outputPort = 
 			MACHINE.params.currentOutputPort;
@@ -1304,7 +1308,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     setTimeout(function() {
 	findStackLimit(function(v) {
 	    // Trying to be a little conservative.
-	    STACK_LIMIT_ESTIMATE = Math.floor(v / 2);
+	    STACK_LIMIT_ESTIMATE = Math.floor(v / 10);
 	});
     },
 	       0);

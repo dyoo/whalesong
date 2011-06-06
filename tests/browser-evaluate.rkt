@@ -173,10 +173,11 @@ function sendRequest(url,callback,postData) {
 			return;
 		}
                 if (req.status === 200 && req.statusText === 'Try again') {
-                   req.abort();
+                   delete req.onreadystateschange;
                    setTimeout(function() { sendRequest(url, callback, postData); }, 0);
                    return;
                 }
+                delete req.onreadystateschange;
 		callback(req);
 	}
 	if (req.readyState == 4) return;
@@ -208,9 +209,9 @@ var comet = function() {
     sendRequest("/eval", 
                 function(req) {
                     // debug:
-                    if (window.console && typeof(console.log) === 'function') {
-                        console.log(req.responseText);
-                    }
+                    //if (window.console && typeof(console.log) === 'function') {
+                    //    console.log(req.responseText);
+                    //}
                     try {
                         var invoke = eval(req.responseText)();
                     } catch (e) {

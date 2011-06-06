@@ -14,6 +14,7 @@
 
 
 (provide make-evaluate
+         simple-js-evaluate
          (struct-out error-happened)
          (struct-out evaluated))
 
@@ -75,13 +76,14 @@
   (let/ec return
     (let* ([alarm (alarm-evt (+ (current-inexact-milliseconds) *alarm-timeout*))]
            [javascript-compiler+program (sync ch alarm)]
-           [javascript-compiler (first javascript-compiler+program)]
-           [program (second javascript-compiler+program)]
            [op (open-output-bytes)])
       (cond
-        [(eq? program alarm)
+        [(eq? javascript-compiler+program alarm)
          (try-again-response)]
         [else
+         (let ([javascript-compiler (first javascript-compiler+program)]
+               [program (second javascript-compiler+program)])
+
          (with-handlers ([exn:fail? (lambda (exn)
                                       (let ([sentinel
                                              (format
@@ -106,7 +108,7 @@ EOF
                         (current-seconds) 
                         #"text/plain; charset=utf-8"
                         empty 
-                        (list #"" (get-output-bytes op)))]))))
+                        (list #"" (get-output-bytes op))))]))))
 
 
 
@@ -206,9 +208,9 @@ var comet = function() {
     sendRequest("/eval", 
                 function(req) {
                     // debug:
-                    //if (window.console && typeof(console.log) === 'function') {
-                    //    console.log(req.responseText);
-                    //}
+                    if (window.console && typeof(console.log) === 'function') {
+                        console.log(req.responseText);
+                    }
                     try {
                         var invoke = eval(req.responseText)();
                     } catch (e) {
@@ -414,3 +416,12 @@ EOF
              result])))
   
   evaluate)
+
+
+(define simple-js-evaluate
+  (make-evaluate (lambda (p op)
+                   (display "(function() {" op)
+                   (display "    return (function(succ, fail, params) {" op)
+                   (display p op)
+                   (display "\n               succ(); });" op)
+                   (display " })" op))))

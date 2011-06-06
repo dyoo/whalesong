@@ -426,3 +426,6 @@ EOF
                    (display p op)
                    (display "\n               succ(); });" op)
                    (display " })" op))))
+
+
+#;(simple-js-evaluate "alert('hello world');")

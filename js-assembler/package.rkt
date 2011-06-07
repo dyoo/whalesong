@@ -108,6 +108,7 @@
             (fprintf op "SUCCESS();")))])
 
     (display (runtime:get-runtime) op)
+
     (newline op)
     (fprintf op "(function(MACHINE, SUCCESS, FAIL, PARAMS) {")
     (make (list only-bootstrapped-code) packaging-configuration)

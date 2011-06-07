@@ -27,7 +27,7 @@
 
 (provide/contract [get-runtime (-> string?)])
          
-(define-runtime-path jquery.js "runtime-src/jquery-1.6.1.min.js")
+(define-runtime-path jquery.js "runtime-src/jquery.js")
 (define-runtime-path hashtable.js "runtime-src/jshashtable-2.1_src.js")
 (define-runtime-path jsnums.js "runtime-src/js-numbers.js")
 (define-runtime-path link.js "runtime-src/link.js")

@@ -687,7 +687,7 @@ if (! this['plt']) { this['plt'] = {}; }
         } 
 
         if (jsnums.isSchemeNumber(x)) {
-	    return numberToDomNode(x);
+	    return numberToDomNode(x, params);
         }
 
         if (typeof(x) == 'object') {
@@ -750,7 +750,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
     // numberToDomNode: jsnum -> dom
     // Given a jsnum, produces a dom-node representation.
-    var numberToDomNode = function(n) {
+    var numberToDomNode = function(n, params) {
         var node;
         if (jsnums.isExact(n)) {
 	    if (jsnums.isInteger(n)) {

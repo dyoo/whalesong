@@ -479,6 +479,31 @@ EOF
       "false\n")
 
       
+;;(test '(displayln 2/3)
+;;      "2/3\n")
+
+
+;;(test '(displayln -2/3)
+;;      "-2/3\n")
+
+
+(test '(displayln -0.0)
+      "-0.0\n")
+
+(test '(displayln +nan.0)
+      "+nan.0\n")
+
+(test '(displayln +inf.0)
+      "+inf.0\n")
+
+(test '(displayln -inf.0)
+      "-inf.0\n")
+
+
+
+
+
+
 
 
 ;; Knuth's Man-or-boy-test.

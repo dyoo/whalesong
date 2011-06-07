@@ -731,7 +731,9 @@ Working out the type mappings between values in Racket and values in JavaScript
 
 ----------------------------------------------------------------------
 
-get-viewport-width
+I should add the functions:
 
-get-viewport-height
+    get-viewport-width
+    get-viewport-height
    
+Other notes from Shriram: too slow, inconsistent positioning from jsworld.

@@ -549,8 +549,8 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     var makeLowLevelEqHash = function() {
-	return new _Hashtable(function(x) { return getEqHashCode(x); },
-			      function(x, y) { return x === y; });
+	return new Hashtable(function(x) { return getEqHashCode(x); },
+			     function(x, y) { return x === y; });
     };
 
 
@@ -635,24 +635,68 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
-    // toDomNode: scheme-value -> dom-node
-    var toDomNode = function(x, cache) {
-        if (! cache) {
-    	    cache = makeLowLevelEqHash();
+
+
+    var ToDomNodeParameters = function(params) {
+        if (! params) { params = {}; }
+        this.cache = makeLowLevelEqHash();
+        for (var k in params) {
+            if (params.hasOwnProperty(k)) {
+                this[k] = params[k];
+            }
         }
+        this.objectCounter = 0;
+    };
+
+    // getMode: -> (U "print" "display" "write")
+    ToDomNodeParameters.prototype.getMode = function() {
+        if (this.mode) { 
+            return this.mode; 
+        }
+        return 'print';
+    };
+
+    ToDomNodeParameters.prototype.containsKey = function(x) {
+        return this.cache.containsKey(x);
+    };
+
+    ToDomNodeParameters.prototype.get = function(x) {
+        return this.cache.get(x);
+    };
+
+    ToDomNodeParameters.prototype.remove = function(x) {
+        return this.cache.remove(x);
+    };
+
+    ToDomNodeParameters.prototype.put = function(x) {
+        this.objectCounter++;
+        return this.cache.put(x, this.objectCounter);
+    };
+
+
+    // toDomNode: scheme-value -> dom-node
+    var toDomNode = function(x, params) {
+        if (params === 'write') {
+            params = new ToDomNodeParameters({'mode' : 'write'});
+        } else if (params === 'print') {
+            params = new ToDomNodeParameters({'mode' : 'print'});
+        } else if (params === 'display') {
+            params = new ToDomNodeParameters({'mode' : 'display'});
+        } else {
+            params = params || new DomNodeParameters({'mode' : 'display'});
+        } 
 
         if (jsnums.isSchemeNumber(x)) {
 	    return numberToDomNode(x);
         }
 
         if (typeof(x) == 'object') {
-	    if (cache.containsKey(x)) {
+	    if (params.containsKey(x)) {
 		var node = document.createElement("span");
-		node.appendChild(document.createTextNode("..."));
+		node.appendChild(document.createTextNode("#" + params.get(x)));
 		return node;
 	    }
         }
-
         if (x == undefined || x == null) {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode("#<undefined>"));
@@ -661,11 +705,17 @@ if (! this['plt']) { this['plt'] = {}; }
 
         if (typeof(x) == 'string') {
 	    var wrapper = document.createElement("span");
-            wrapper.style["white-space"] = "pre";	
-	    var node = document.createTextNode(toWrittenString(x));
+            wrapper.style["white-space"] = "pre";
+	    var node;
+            if (params.getMode() === 'write' || params.getMode() === 'print') {
+                node = document.createTextNode(toWrittenString(x));
+            } else {
+                node = document.createTextNode(toDisplayedString(x));
+            }
 	    wrapper.appendChild(node);
 	    return wrapper;
         }
+
         if (typeof(x) != 'object' && typeof(x) != 'function') {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode(x.toString()));
@@ -676,22 +726,23 @@ if (! this['plt']) { this['plt'] = {}; }
         if (x.nodeType) {
 	    returnVal =  x;
         } else if (typeof(x.toDomNode) !== 'undefined') {
-	    returnVal =  x.toDomNode(cache);
-        } else if (typeof(x.toWrittenString) !== 'undefined') {
-	    
+	    returnVal =  x.toDomNode(params);
+        } else if (params.getMode() === 'write' && 
+                   typeof(x.toWrittenString) !== 'undefined') {
 	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toWrittenString(cache)));
+	    node.appendChild(document.createTextNode(x.toWrittenString(params)));
 	    returnVal =  node;
-        } else if (typeof(x.toDisplayedString) !== 'undefined') {
+        } else if (params.getMode() === 'display' &&
+                   typeof(x.toDisplayedString) !== 'undefined') {
 	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toDisplayedString(cache)));
+	    node.appendChild(document.createTextNode(x.toDisplayedString(params)));
 	    returnVal =  node;
         } else {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode(x.toString()));
 	    returnVal =  node;
         }
-        cache.remove(x);
+        params.remove(x);
         return returnVal;
     };
 
@@ -743,6 +794,62 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
+    var escapeString = function(s) {
+        return '"' + replaceUnprintableStringChars(s) + '"';
+    };
+
+    var replaceUnprintableStringChars = function(s) {
+	var ret = [];
+	for (var i = 0; i < s.length; i++) {
+	    var val = s.charCodeAt(i);
+	    switch(val) {
+	    case 7: ret.push('\\a'); break;
+	    case 8: ret.push('\\b'); break;
+	    case 9: ret.push('\\t'); break;
+	    case 10: ret.push('\\n'); break;
+	    case 11: ret.push('\\v'); break;
+	    case 12: ret.push('\\f'); break;
+	    case 13: ret.push('\\r'); break;
+	    case 34: ret.push('\\"'); break;
+	    case 92: ret.push('\\\\'); break;
+	    default: if (val >= 32 && val <= 126) {
+		ret.push( s.charAt(i) );
+	    }
+		else {
+		    var numStr = val.toString(16).toUpperCase();
+		    while (numStr.length < 4) {
+			numStr = '0' + numStr;
+		    }
+		    ret.push('\\u' + numStr);
+		}
+		break;
+	    }
+	}
+	return ret.join('');
+    };
+
+
+
+
+
+
+    // clone: object -> object
+    // Copies an object.  The new object should respond like the old
+    // object, including to things like instanceof
+    var clone = function(obj) {
+        var C = function() {}
+        C.prototype = obj;
+        var c = new C();
+        for (property in obj) {
+	    if (obj.hasOwnProperty(property)) {
+	        c[property] = obj[property];
+	    }
+        }
+        return c;
+    };
+
+
+
 
 
 
@@ -783,14 +890,15 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.makeLowLevelEqHash = makeLowLevelEqHash;
 
     helpers.heir = heir;
-
-
-
-
+    helpers.escapeString = escapeString;
     helpers.toWrittenString = toWrittenString;
     helpers.toDisplayedString = toDisplayedString;
-    helpers.toDomNode = toDomNode;
 
+
+    helpers.toDomNode = toDomNode;
+    helpers.ToDomNodeParameters = ToDomNodeParameters;
+
+    helpers.clone = clone;
 
 
     scope.link.announceReady('helpers');

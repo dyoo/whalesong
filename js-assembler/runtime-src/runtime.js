@@ -8,16 +8,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var runtime = {};
     scope['runtime'] = runtime;
 
+    var helpers = plt.helpers;
 
+    var heir = helpers.heir;
 
-    // Type helpers
-    //
-    // Defines inheritance between prototypes.
-    var heir = function(parentPrototype) {
-	var f = function() {}
-	f.prototype = parentPrototype;
-	return new f();
-    };
 
     // Consumes a class and creates a predicate that recognizes subclasses.
     var makeClassPredicate = function(aClass) {
@@ -68,12 +62,23 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    // currentDisplayer: DomNode -> Void
 	    // currentDisplayer is responsible for displaying to the browser.
 	    'currentDisplayer': function(v) {
-		    $(document.body).append(v);
+		$(document.body).append(v);
 	    },
 	    
+	    // currentErrorDisplayer: DomNode -> Void
+	    // currentErrorDisplayer is responsible for displaying errors to the browser.
+	    'currentErrorDisplayer': function(v) {
+		$(document.body).append($(v).css("color", "red"));
+	    },
+	    
+
 	    'currentOutputPort': new StandardOutputPort(),
+	    'currentErrorPort': new StandardErrorPort(),
 	    'currentSuccessHandler': function(MACHINE) {},
-	    'currentErrorHandler': function(MACHINE, exn) {},
+	    'currentErrorHandler': function(MACHINE, exn) {
+                MACHINE.params.currentErrorDisplayer(
+                    helpers.toDomNode(exn.message, 'print'));
+            },
 	    
 	    'currentNamespace': {},
 	    
@@ -100,8 +105,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		    var outputPort = 
 			MACHINE.params.currentOutputPort;
 		    if (elt !== undefined) {
-			outputPort.write(MACHINE, elt);
-			outputPort.write(MACHINE, "\n");
+			outputPort.writeDomNode(MACHINE, helpers.toDomNode(elt, 'print'));
+			outputPort.writeDomNode(MACHINE, helpers.toDomNode("\n", 'print'));
 		    }
 		    var frame = MACHINE.control.pop();
 		    return frame.label(MACHINE);
@@ -218,31 +223,30 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-
-
-
+    // Output Ports
 
     var OutputPort = function() {};
     var isOutputPort = makeClassPredicate(OutputPort);
 
 
-    var StandardOutputPort = function() {};
+    var StandardOutputPort = function() {
+        OutputPort.call(this);
+    };
     StandardOutputPort.prototype = heir(OutputPort.prototype);
-    StandardOutputPort.prototype.write = function(MACHINE, v) {
-	var domNode;
-	// TODO: v must be coerced into a DOMNode in a more systematic way.
-	// This function may need to be a Closure.
-	if(typeof(v) === 'string' || 
-	   typeof(v) === 'number' ||
-	   typeof(v) === 'boolean' ||
-	   typeof(v) === 'null' ||
-	   typeof(v) === 'undefined') {
-	    domNode = $('<span/>').text(String(v)).css('white-space', 'pre');
-        } else {
-	    domNode = $('<span/>').text(String(v)).css('white-space', 'pre');
-        }
+    StandardOutputPort.prototype.writeDomNode = function(MACHINE, domNode) {
 	MACHINE.params['currentDisplayer'](domNode);
     };
+
+    var StandardErrorPort = function() {
+        OutputPort.call(this);
+    };
+    StandardErrorPort.prototype = heir(OutputPort.prototype);
+    StandardErrorPort.prototype.writeDomNode = function(MACHINE, domNode) {
+	MACHINE.params['currentErrorDisplayer'](domNode);
+    };
+
+
+
 
 
 
@@ -250,8 +254,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	this.buf = [];
     };
     OutputStringPort.prototype = heir(OutputPort.prototype);
-    OutputStringPort.prototype.write = function(MACHINE, v) {
-	this.buf.push(String(v));
+    OutputStringPort.prototype.writeDomNode = function(MACHINE, v) {
+	this.buf.push($(v).text());
     };
     OutputStringPort.prototype.getOutputString = function() {
 	return this.buf.join('');
@@ -520,7 +524,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 'display');
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
-	outputPort.write(MACHINE, firstArg);
+	outputPort.writeDomNode(MACHINE, helpers.toDomNode(firstArg, 'display'));
     };
     Primitives['display'].arity = [1, [2, NULL]];
     Primitives['display'].displayName = 'display';
@@ -537,7 +541,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 'newline');
 	    outputPort = MACHINE.env[MACHINE.env.length-1];
 	}
-	outputPort.write(MACHINE, "\n");
+	outputPort.writeDomNode(MACHINE, helpers.toDomNode("\n", 'display'));
     };
     Primitives['newline'].arity = [0, [1, NULL]];
     Primitives['newline'].displayName = 'newline';
@@ -555,8 +559,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 'displayln'); 
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
-	outputPort.write(MACHINE, firstArg);
-	outputPort.write(MACHINE, "\n");
+	outputPort.writeDomNode(MACHINE, helpers.toDomNode(firstArg, 'display'));
+	outputPort.writeDomNode(MACHINE, helpers.toDomNode("\n", 'display'));
     };
     Primitives['displayln'].arity = [1, [2, NULL]];
     Primitives['displayln'].displayName = 'displayln';
@@ -568,44 +572,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
     Primitives['current-print'].arity = [0, [1, NULL]];
     Primitives['current-print'].displayName = "current-print";
-    
-
-//     // This should be attached to the module corresponding for print-values
-//     Primitives['print-values'] = new Closure(
-//         function(MACHINE) {
-// 	    var outputPort = MACHINE.params.currentOutputPort;
-//             var prependNewline = false;
-//             if (MACHINE.argcount > 0) {
-//                 if (MACHINE.val !== undefined) {
-//                     if (prependNewline) {
-//                         outputPort.write(MACHINE, "\n");
-//                     }
-// 	            outputPort.write(MACHINE, MACHINE.val);
-//                     prependNewline = true;
-//                 }
-
-//                 for(var i = 0; i < MACHINE.argcount - 1; i++) {
-//                     if (MACHINE.env[MACHINE.env.length - 1 - i] !== undefined) {
-// 	                if (prependNewline) {
-//                             outputPort.write(MACHINE, "\n");
-//                         }
-//                         outputPort.write(MACHINE,
-//                                          MACHINE.env[MACHINE.env.length - 1 - i]);
-//                         prependNewline = true;
-//                     }
-//                 }
-// 	        outputPort.write(MACHINE, "\n");
-//             }
-//             MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
-//             var frame = MACHINE.control.pop();
-//             return frame.label(MACHINE);
-//         },
-//         new ArityAtLeast(0),
-//         [],
-//         "print-values"
-//     );
-
-
 
     Primitives['pi'] = jsnums.pi;
 

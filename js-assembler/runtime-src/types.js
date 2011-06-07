@@ -47,8 +47,6 @@ if (! this['plt']) { this['plt'] = {}; }
     
 
 
-
-
     // Union/find for circular equality testing.
 
     var UnionFind = function() {
@@ -2071,7 +2069,7 @@ String.prototype.toDisplayedString = function(cache) {
         }
 
         if (types.isStruct(x)) {
-	    var aStruct = clone(x);
+	    var aStruct = helpers.clone(x);
 	    objectHash.put(x, aStruct);
 	    for(var i = 0 ;i < x._fields.length; i++) {
 	        x._fields[i] = readerGraph(x._fields[i], objectHash, n+1);
@@ -2086,22 +2084,6 @@ String.prototype.toDisplayedString = function(cache) {
         return x;
     };
 
-
-
-    // clone: object -> object
-    // Copies an object.  The new object should respond like the old
-    // object, including to things like instanceof
-    var clone = function(obj) {
-        var C = function() {}
-        C.prototype = obj;
-        var c = new C();
-        for (property in obj) {
-	    if (obj.hasOwnProperty(property)) {
-	        c[property] = obj[property];
-	    }
-        }
-        return c;
-    };
 
 
 

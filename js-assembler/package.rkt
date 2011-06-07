@@ -4,6 +4,7 @@
          "quote-cdata.rkt"
          "../make.rkt"
          "../make-structs.rkt"
+         "../parameters.rkt"
          (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
@@ -114,12 +115,19 @@
     (make (list only-bootstrapped-code) packaging-configuration)
     (fprintf op "})(plt.runtime.currentMachine,\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")))
 
-  
+
+
+(define (compress x)
+  (if (current-compress-javascript?)
+      (closure-compile x)
+      x))
+
+
 
 (define *the-runtime*
   (let ([buffer (open-output-string)])
     (write-runtime buffer)
-    (closure-compile
+    (compress
      (get-output-string buffer))))
 
   
@@ -152,7 +160,7 @@ EOF
     (package source-code
              #:should-follow? (lambda (src p) #t)
              #:output-port buffer)
-    (closure-compile
+    (compress
      (get-output-string buffer))))
 
 
@@ -161,7 +169,7 @@ EOF
 (define (get-standalone-code source-code)
   (let ([buffer (open-output-string)])
     (write-standalone-code source-code buffer)
-    (closure-compile
+    (compress
      (get-output-string buffer))))
 
 

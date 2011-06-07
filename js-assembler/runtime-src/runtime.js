@@ -9,8 +9,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     scope['runtime'] = runtime;
 
     var helpers = plt.helpers;
+    var types = plt.types;
 
-    var heir = helpers.heir;
 
 
     // Consumes a class and creates a predicate that recognizes subclasses.
@@ -19,27 +19,32 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
 
 
-    var isNumber = jsnums.isSchemeNumber;
 
-    var isNatural = function(x) { return (jsnums.isInteger(x) &&
-                                          jsnums.greaterThanOrEqual(x, 0)); }
 
-    var isPair = function(x) { return (typeof(x) == 'object' && 
-				       x.length === 2 &&
-				       x.type !== 'vector') };
-    var isList = function(x) {
-	while (x !== NULL) {
-	    if (typeof(x) == 'object' && x.length === 2) {
-		x = x[1];
-	    } else {
-		return false;
-	    }
-	}
-	return true;
-    };
 
-    var isVector = function(x) { return (typeof(x) == 'object' && 
-					 x.type === 'vector') };
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // We try to isolate the effect of external modules: all the identifiers we
+    // pull from external modules should be listed here, and should otherwise not
+    // show up outside this section!
+    var isNumber = types.isNumber;
+    var isNatural = types.isNatural;
+    var isPair = types.isPair;
+    var isList = types.isList;
+    var isVector = types.isVector;
+    var NULL = types.EMPTY;
+
+    var makeVector = types.vector;
+    var makeList = types.list;
+    var makePair = types.pair;
+
+    var heir = helpers.heir;
+    var toDomNode = helpers.toDomNode;
+    //////////////////////////////////////////////////////////////////////]
+
+
+
 
 
     // This value will be dynamically determined.
@@ -77,7 +82,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    'currentSuccessHandler': function(MACHINE) {},
 	    'currentErrorHandler': function(MACHINE, exn) {
                 MACHINE.params.currentErrorDisplayer(
-                    helpers.toDomNode(exn.message, 'print'));
+                    toDomNode(exn.message, 'print'));
             },
 	    
 	    'currentNamespace': {},
@@ -105,8 +110,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		    var outputPort = 
 			MACHINE.params.currentOutputPort;
 		    if (elt !== undefined) {
-			outputPort.writeDomNode(MACHINE, helpers.toDomNode(elt, 'print'));
-			outputPort.writeDomNode(MACHINE, helpers.toDomNode("\n", 'print'));
+			outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
+			outputPort.writeDomNode(MACHINE, toDomNode("\n", 'print'));
 		    }
 		    var frame = MACHINE.control.pop();
 		    return frame.label(MACHINE);
@@ -314,7 +319,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	new ContinuationPromptTag("default-continuation-prompt-tag");
 
 
-    var NULL = [];
 
 
     var raise = function(MACHINE, e) { 
@@ -452,8 +456,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	var lst = MACHINE.env[MACHINE.env.length - 1 - depth];
 	var vals = [];
 	while(lst !== NULL) {
-	    vals.push(lst[0]);
-	    lst = lst[1];
+	    vals.push(lst.first);
+	    lst = lst.rest;
 	}
 	vals.reverse();
 	MACHINE.env.splice.apply(MACHINE.env,
@@ -466,7 +470,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	var lst = NULL;
 	var i;
 	for (i = 0; i < length; i++) {
-	    lst = [MACHINE.env[MACHINE.env.length - depth - length + i], lst];
+	    lst = makePair(MACHINE.env[MACHINE.env.length - depth - length + i], 
+                           lst);
 	}
 	MACHINE.env.splice(MACHINE.env.length - depth - length,
 			   length, 
@@ -492,12 +497,12 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    return n >= arity.value;
 	} else {
 	    while (arity !== NULL) {
-		if (typeof(arity[0]) === 'number') {
-		    if (arity[0] === n) { return true; }
+		if (typeof(arity.first) === 'number') {
+		    if (arity.first === n) { return true; }
 		} else if (arity instanceof ArityAtLeast) {
-		    if (n >= arity[0].value) { return true; }
+		    if (n >= arity.first.value) { return true; }
 		}
-		arity = arity[1];
+		arity = arity.rest;
 	    }
 	    return false;
 	}
@@ -524,9 +529,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 'display');
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
-	outputPort.writeDomNode(MACHINE, helpers.toDomNode(firstArg, 'display'));
+	outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
     };
-    Primitives['display'].arity = [1, [2, NULL]];
+    Primitives['display'].arity = makeList(1, 2);
     Primitives['display'].displayName = 'display';
 
 
@@ -541,9 +546,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 'newline');
 	    outputPort = MACHINE.env[MACHINE.env.length-1];
 	}
-	outputPort.writeDomNode(MACHINE, helpers.toDomNode("\n", 'display'));
+	outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
     };
-    Primitives['newline'].arity = [0, [1, NULL]];
+    Primitives['newline'].arity = makeList(0, 1);
     Primitives['newline'].displayName = 'newline';
 
 
@@ -559,10 +564,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			 'displayln'); 
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
-	outputPort.writeDomNode(MACHINE, helpers.toDomNode(firstArg, 'display'));
-	outputPort.writeDomNode(MACHINE, helpers.toDomNode("\n", 'display'));
+	outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
+	outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
     };
-    Primitives['displayln'].arity = [1, [2, NULL]];
+    Primitives['displayln'].arity = makeList(1, 2);
     Primitives['displayln'].displayName = 'displayln';
 
 
@@ -570,7 +575,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     Primitives['current-print'] = function(MACHINE) {
 	return MACHINE.params['current-print'];
     };
-    Primitives['current-print'].arity = [0, [1, NULL]];
+    Primitives['current-print'].arity = makeList(0, 1);
     Primitives['current-print'].displayName = "current-print";
 
     Primitives['pi'] = jsnums.pi;
@@ -811,7 +816,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     Primitives['cons'] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
-	return [firstArg, secondArg];
+	return makePair(firstArg, secondArg);
     };
     Primitives['cons'].arity = 2;
     Primitives['cons'].displayName = 'cons';
@@ -820,8 +825,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     Primitives['list'] = function(MACHINE) {
 	var result = NULL;
 	for (var i = 0; i < MACHINE.argcount; i++) {
-	    result = [MACHINE.env[MACHINE.env.length - (MACHINE.argcount - i)],
-		      result];
+	    result = makePair(MACHINE.env[MACHINE.env.length - (MACHINE.argcount - i)],
+		              result);
 	}
 	return result;
     };
@@ -836,7 +841,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     0,
 		     'car');
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	return firstArg[0];
+	return firstArg.first;
     };
     Primitives['car'].arity = 1;
     Primitives['car'].displayName = 'car';
@@ -849,7 +854,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     0,
 		     'cdr');
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	return firstArg[1];
+	return firstArg.rest;
     };
     Primitives['cdr'].arity = 1;
     Primitives['cdr'].displayName = 'cdr';
@@ -870,7 +875,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     'set-car!');
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
-	firstArg[0] = secondArg;
+	firstArg.first = secondArg;
     };
     Primitives['set-car!'].arity = 2;
     Primitives['set-car!'].displayName = 'set-car!';
@@ -884,7 +889,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     'set-cdr!');
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
-	firstArg[1] = secondArg;
+	firstArg.rest = secondArg;
     };
     Primitives['set-cdr!'].arity = 2;
     Primitives['set-cdr!'].displayName = 'set-cdr!';
@@ -912,7 +917,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    result.push(MACHINE.env[MACHINE.env.length-1-i]);
 	}
 	result.type = 'vector';
-	return result;
+	return makeVector.apply(null, result);
     };
     Primitives['vector'].arity = new ArityAtLeast(0);
     Primitives['vector'].displayName = 'vector';
@@ -924,11 +929,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
 		     'vector->list');
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
+	var elts = MACHINE.env[MACHINE.env.length-1].elts;
 	var i;
 	var result = NULL;
-	for (i = 0; i < firstArg.length; i++) {
-	    result = [firstArg[firstArg.length - 1 - i], result];
+	for (i = 0; i < elts.length; i++) {
+	    result = makePair(elts[elts.length - 1 - i], result);
 	}
 	return result;
     };
@@ -939,11 +944,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var result = [];
 	while (firstArg !== NULL) {
-	    result.push(firstArg[0]);
-	    firstArg = firstArg[1];
+	    result.push(firstArg.first);
+	    firstArg = firstArg.rest;
 	}
-	result.type='vector';
-	return result;
+        return makeVector.apply(null, result);
     };
     Primitives['list->vector'].arity = 1;
     Primitives['list->vector'].displayName = 'list->vector';
@@ -955,9 +959,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
 		     'vector-ref');
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	var secondArg = MACHINE.env[MACHINE.env.length-2];
-	return firstArg[secondArg];
+	var elts = MACHINE.env[MACHINE.env.length-1].elts;
+	var index = MACHINE.env[MACHINE.env.length-2];
+	return elts[index];
     };
     Primitives['vector-ref'].arity = 2;
     Primitives['vector-ref'].displayName = 'vector-ref';
@@ -969,10 +973,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
 		     'vector-set!');
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	var secondArg = jsnums.toFixnum(MACHINE.env[MACHINE.env.length-2]);
-	var thirdArg = MACHINE.env[MACHINE.env.length-3];
-	firstArg[secondArg] = thirdArg;
+	var elts = MACHINE.env[MACHINE.env.length-1].elts;
+	var index = jsnums.toFixnum(MACHINE.env[MACHINE.env.length-2]);
+	var val = MACHINE.env[MACHINE.env.length-3];
+	elts[index] = val;
 	return null;
     };
     Primitives['vector-set!'].arity = 3;
@@ -986,7 +990,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
 		     'vector-length');
-	var firstArg = MACHINE.env[jsnums.toFixnum(MACHINE.env.length-1)];
+	var firstArg = MACHINE.env[MACHINE.env.length-1].elts;
 	return firstArg.length;
     };
     Primitives['vector-length'].arity = 1;
@@ -1009,10 +1013,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	for(var i = 0; i < length; i++) {
 	    arr[i] = value;
 	}
-	arr.type='vector';
-	return arr;
+        return makeVector.apply(null, arr);
     };
-    Primitives['make-vector'].arity = [1, [2, NULL]];
+    Primitives['make-vector'].arity = makeList(1, 2);
     Primitives['make-vector'].displayName = 'make-vector';
 
 
@@ -1098,27 +1101,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     Primitives['equal?'].displayName = 'equal?';
 
 
-
-    var isEqual = function(firstArg, secondArg) {
-	var lset = [firstArg], rset = [secondArg];
-	while (lset.length !== 0 && rset.length !== 0) {
-	    var lhs = lset.pop();
-	    var rhs = rset.pop();
-	    if (lhs === rhs) {
-		continue;
-	    } else if (typeof(lhs) === 'object' &&
-		       typeof(rhs) === 'object' &&
-		       typeof(lhs.length) === 'number' &&
-		       typeof(rhs.length) === 'number' &&
-		       lhs.length === rhs.length) {
-		lset.push.apply(lset, lhs);
-		rset.push.apply(rset, rhs);
-	    } else {
-		return false;
-	    }
-	}
-	return true;
-    };
+    var isEqual = types.isEqual;
 
 
     Primitives['member'] = function(MACHINE) {
@@ -1134,10 +1117,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    if (lst === NULL) {
 		return false;
 	    }
-	    if (isEqual(x, (lst[0]))) {
+	    if (isEqual(x, (lst.first))) {
 		return lst;
 	    }
-	    lst = lst[1];
+	    lst = lst.rest;
 	}	
     };
     Primitives['member'].arity = 2;
@@ -1151,8 +1134,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	while(lst !== NULL) {
 	    testArgument(MACHINE,
 			 'pair', isPair, lst, 0, 'reverse');
-	    rev = [lst[0], rev];
-	    lst = lst[1];
+	    rev = makePair(lst.first, rev);
+	    lst = lst.rest;
 	}
 	return rev;
     };
@@ -1389,6 +1372,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['unspliceRestFromStack'] = unspliceRestFromStack;
 
 
+    // Type predicates
     exports['isNumber'] = isNumber;
     exports['isNatural'] = isNatural;
     exports['isPair'] = isPair;
@@ -1397,6 +1381,12 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['isOutputPort'] = isOutputPort;
     exports['isOutputStringPort'] = isOutputStringPort;
     exports['isEqual'] = isEqual;
+
+
+    // Type constructors
+    exports['makeList'] = makeList;
+    exports['makePair'] = makePair;
+
 
     exports['ArityAtLeast'] = ArityAtLeast;
     exports['isArityMatching'] = isArityMatching;

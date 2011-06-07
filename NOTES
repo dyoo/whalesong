@@ -691,11 +691,11 @@ Working out the type mappings between values in Racket and values in JavaScript
 
 
 
-    Racket                              JavaScript
+    Racket                              JavaScript                   Switched over?
 
 
-    number                              jsnums.SchemeNumber
-    immutable strings                   JavaScript strings
+    number                              jsnums.SchemeNumber                yes
+    immutable strings                   JavaScript string
     mutable strings                     types.Str
 
     vector
@@ -710,8 +710,8 @@ Working out the type mappings between values in Racket and values in JavaScript
     symbol
     keyword
     
-    pair
-    empty
+    pair                                                                   yes
+    empty                                                                  yes
 
     eq-hashtable
     equal-hashtable

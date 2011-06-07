@@ -777,16 +777,49 @@ if (! this['plt']) { this['plt'] = {}; }
 
     // rationalToDomNode: rational -> dom-node
     var rationalToDomNode = function(n) {
-        var node = document.createElement("span");
+        var repeatingDecimalNode = document.createElement("span");
         var chunks = jsnums.toRepeatingDecimal(jsnums.numerator(n),
-					       jsnums.denominator(n));
-        node.appendChild(document.createTextNode(chunks[0] + '.'))
-        node.appendChild(document.createTextNode(chunks[1]));
-        var overlineSpan = document.createElement("span");
-        overlineSpan.style.textDecoration = 'overline';
-        overlineSpan.appendChild(document.createTextNode(chunks[2]));
-        node.appendChild(overlineSpan);
-        return node;
+                                               jsnums.denominator(n),
+                                               {limit: 25});
+        repeatingDecimalNode.appendChild(document.createTextNode(chunks[0] + '.'))
+        repeatingDecimalNode.appendChild(document.createTextNode(chunks[1]));
+        if (chunks[2] === '...') {
+            repeatingDecimalNode.appendChild(
+                document.createTextNode(chunks[2]));
+        } else if (chunks[2] !== '0') {
+            var overlineSpan = document.createElement("span");
+            overlineSpan.style.textDecoration = 'overline';
+            overlineSpan.appendChild(document.createTextNode(chunks[2]));
+            repeatingDecimalNode.appendChild(overlineSpan);
+        }
+
+
+        var fractionalNode = document.createElement("span");
+        var numeratorNode = document.createElement("sup");
+        numeratorNode.appendChild(document.createTextNode(String(jsnums.numerator(n))));
+        var denominatorNode = document.createElement("sub");
+        denominatorNode.appendChild(document.createTextNode(String(jsnums.denominator(n))));
+        fractionalNode.appendChild(numeratorNode);
+        fractionalNode.appendChild(document.createTextNode("/"));
+        fractionalNode.appendChild(denominatorNode);
+
+        
+        var numberNode = document.createElement("span");
+        numberNode.appendChild(repeatingDecimalNode);
+        numberNode.appendChild(fractionalNode);
+        fractionalNode.style['display'] = 'none';
+
+        var showingRepeating = true;
+
+        numberNode.onclick = function(e) {
+            showingRepeating = !showingRepeating;
+            repeatingDecimalNode.style['display'] = 
+                (showingRepeating ? 'inline' : 'none')
+            fractionalNode.style['display'] = 
+                (!showingRepeating ? 'inline' : 'none')
+        };
+        numberNode.style['cursor'] = 'pointer';
+        return numberNode;
     }
 
 

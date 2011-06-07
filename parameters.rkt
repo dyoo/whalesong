@@ -11,7 +11,8 @@
          current-root-path
          current-warn-unimplemented-kernel-primitive
          current-seen-unimplemented-kernel-primitives
-         current-kernel-module-locator?)
+         current-kernel-module-locator?
+         current-compress-javascript?)
 
 
 
@@ -46,6 +47,9 @@
 
 
 
+
+(: current-compress-javascript? (Parameterof Boolean))
+(define current-compress-javascript? (make-parameter #f))
 
 
 

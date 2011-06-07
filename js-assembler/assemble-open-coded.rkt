@@ -68,26 +68,21 @@
           
           [(>=)
            (assemble-boolean-chain "jsnums.greaterThanOrEqual" checked-operands)]
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
-
           
           [(cons)
-           (format "[~a, ~a]" (first checked-operands) (second checked-operands))]
+           (format "RUNTIME.makePair(~a, ~a)"
+                   (first checked-operands)
+                   (second checked-operands))]
 
           [(car)
-           (format "(~a)[0]" (first checked-operands))]
+           (format "(~a).first" (first checked-operands))]
           
           [(cdr)
-           (format "(~a)[1]" (first checked-operands))]
+           (format "(~a).rest" (first checked-operands))]
           
           [(list)
            (let loop ([checked-operands checked-operands])
-             (cond
-               [(empty? checked-operands)
-                "RUNTIME.NULL"]
-               [else
-                (format "[~a,~a]" (first checked-operands) (loop (rest checked-operands)))]))]
+             (assemble-listof-assembled-values checked-operands))]
           
           [(null?)
            (format "(~a === RUNTIME.NULL)" (first checked-operands))]
@@ -151,17 +146,15 @@
      (let: ([test-string : String
                          (case domain
                            [(number)
-                            (format "(jsnums.isSchemeNumber(~a))"
+                            (format "jsnums.isSchemeNumber(~a)"
                                     operand-string)]             
                            [(string)
                             (format "(typeof(~a) === 'string')"
                                     operand-string)]
                            [(list)
-                            (format "(~a === [] || (typeof(~a) === 'object' && (~a).length === 2))"
-                                    operand-string operand-string operand-string)]
+                            (format "RUNTIME.isList(~a)" operand-string)]
                            [(pair)
-                            (format "(typeof(~a) === 'object' && (~a).length === 2)"
-                                    operand-string operand-string)]
+                            (format "RUNTIME.isPair(~a)" operand-string)]
                            [(box)
                             (format "(typeof(~a) === 'object' && (~a).length === 1)"
                                     operand-string operand-string)])])

@@ -34,6 +34,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var isList = types.isList;
     var isVector = types.isVector;
     var NULL = types.EMPTY;
+    var VOID = types.VOID;
 
     var makeVector = types.vector;
     var makeList = types.list;
@@ -41,6 +42,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var heir = helpers.heir;
     var toDomNode = helpers.toDomNode;
+    var toWrittenString = helpers.toWrittenString;
+    var toDisplayedString = helpers.toDisplayedString;
     //////////////////////////////////////////////////////////////////////]
 
 
@@ -530,6 +533,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    outputPort = MACHINE.env[MACHINE.env.length-2];
 	}
 	outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
+        return VOID;
     };
     Primitives['display'].arity = makeList(1, 2);
     Primitives['display'].displayName = 'display';
@@ -547,6 +551,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    outputPort = MACHINE.env[MACHINE.env.length-1];
 	}
 	outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+        return VOID;
     };
     Primitives['newline'].arity = makeList(0, 1);
     Primitives['newline'].displayName = 'newline';
@@ -566,6 +571,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	}
 	outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
 	outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+        return VOID;
     };
     Primitives['displayln'].arity = makeList(1, 2);
     Primitives['displayln'].displayName = 'displayln';
@@ -876,6 +882,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
 	firstArg.first = secondArg;
+        return VOID;
     };
     Primitives['set-car!'].arity = 2;
     Primitives['set-car!'].displayName = 'set-car!';
@@ -890,6 +897,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
 	firstArg.rest = secondArg;
+        return VOID;
     };
     Primitives['set-cdr!'].arity = 2;
     Primitives['set-cdr!'].displayName = 'set-cdr!';
@@ -916,8 +924,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	for (i = 0; i < MACHINE.argcount; i++) {
 	    result.push(MACHINE.env[MACHINE.env.length-1-i]);
 	}
-	result.type = 'vector';
-	return makeVector.apply(null, result);
+	var newVector = makeVector.apply(null, result);
+        return newVector;
     };
     Primitives['vector'].arity = new ArityAtLeast(0);
     Primitives['vector'].displayName = 'vector';
@@ -973,11 +981,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		     MACHINE.env[MACHINE.env.length - 1],
 		     0,
 		     'vector-set!');
+	testArgument(MACHINE,
+		     'natural',
+		     isNatural,
+		     MACHINE.env[MACHINE.env.length - 2],
+		     1,
+		     'vector-set!');
 	var elts = MACHINE.env[MACHINE.env.length-1].elts;
 	var index = jsnums.toFixnum(MACHINE.env[MACHINE.env.length-2]);
 	var val = MACHINE.env[MACHINE.env.length-3];
 	elts[index] = val;
-	return null;
+	return VOID;
     };
     Primitives['vector-set!'].arity = 3;
     Primitives['vector-set!'].displayName = 'vector-set!';
@@ -1073,13 +1087,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
 	var secondArg = MACHINE.env[MACHINE.env.length-2];
 	firstArg[0] = secondArg;
-	return;
+	return VOID;
     };
     Primitives['set-box!'].arity = 2;
     Primitives['set-box!'].displayName = 'set-box!';
 
     Primitives['void'] = function(MACHINE) {
-	return;
+	return VOID;
     };
     Primitives['void'].arity = new ArityAtLeast(0);
     Primitives['void'].displayName = 'void';
@@ -1347,6 +1361,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['DEFAULT_CONTINUATION_PROMPT_TAG'] = 
 	DEFAULT_CONTINUATION_PROMPT_TAG;
     exports['NULL'] = NULL;
+    exports['VOID'] = VOID;
 
     exports['testArgument'] = testArgument;
     exports['testArity'] = testArity;
@@ -1382,10 +1397,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['isOutputStringPort'] = isOutputStringPort;
     exports['isEqual'] = isEqual;
 
+    exports['toDomNode'] = toDomNode;
+    exports['toWrittenString'] = toWrittenString;
+    exports['toDisplayedString'] = toDisplayedString;
+
 
     // Type constructors
     exports['makeList'] = makeList;
     exports['makePair'] = makePair;
+    exports['makeVector'] = makeVector;
 
 
     exports['ArityAtLeast'] = ArityAtLeast;

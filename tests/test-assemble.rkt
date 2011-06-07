@@ -45,11 +45,12 @@
                               "(function() { "
 
                               runtime
+                              "var RUNTIME = plt.runtime;"
                               "var MACHINE = new plt.runtime.Machine();\n"
 
                               "return function(success, fail, params){" 
 			      snippet
-                              (format "success(String(~a)); };" inspector)
+                              (format "success(plt.runtime.toDisplayedString(~a)); };" inspector)
                               "});")])
                        (displayln snippet)
                        (display code op))))))
@@ -63,6 +64,7 @@
                                  [inspector (cdr a-statement+inspector)])
 
                             (display runtime op)
+                            "var RUNTIME = plt.runtime;"
                             (display "var MACHINE = new plt.runtime.Machine();\n" op)                           
                             (display "(function() { " op)
                             (display "var myInvoke = " op)
@@ -70,7 +72,7 @@
                             (display ";" op)
                             
                             (fprintf op 
-                                     "return function(succ, fail, params) { myInvoke(MACHINE, function(v) { succ(String(~a));}, fail, params); }"
+                                     "return function(succ, fail, params) { myInvoke(MACHINE, function(v) { succ(plt.runtime.toDisplayedString(~a));}, fail, params); }"
                                      inspector)
                             (display "})" op))))))
 (define (E-many stmts (inspector "MACHINE.val"))
@@ -91,13 +93,13 @@
       "Danny")
 ;; Assigning a cons
 (test (E-single (make-AssignImmediateStatement 'val (make-Const (cons 1 2))))
-      "1,2")
+      "(1 . 2)")
 ;; Assigning a void
 (test (E-single (make-AssignImmediateStatement 'val (make-Const (void))))
-      "null")
+      "#<void>")
 ;; Assigning to proc means val should still be uninitialized.
 (test (E-single (make-AssignImmediateStatement 'proc (make-Const "Danny")))
-      "undefined")
+      "#<undefined>")
 ;; But we should see the assignment if we inspect MACHINE.proc.
 (test (E-single (make-AssignImmediateStatement 'proc (make-Const "Danny"))
                 "MACHINE.proc")
@@ -133,7 +135,7 @@
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 12345)))
               "MACHINE.env[0]")
-      "undefined")
+      "#<undefined>")
 (test (E-many (list (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const 12345)))
@@ -143,7 +145,7 @@
 
 ;; Toplevel Environment loading
 (test (E-single (make-PerformStatement (make-ExtendEnvironment/Prefix! '(pi)))
-                "String(MACHINE.env[0]).slice(0, 5)")
+                "plt.runtime.toWrittenString(MACHINE.env[0]).slice(0, 5)")
       "3.141")
 
 
@@ -210,7 +212,7 @@
                                          (make-Const 0))
                     (make-GotoStatement (make-Label 'closureStart))
                     'theEnd)
-              "String(MACHINE.env.length) + ',' + MACHINE.env[1] + ',' + MACHINE.env[0]")
+              "plt.runtime.toWrittenString(MACHINE.env.length) + ',' + MACHINE.env[1] + ',' + MACHINE.env[0]")
       "2,hello,world")
 
 

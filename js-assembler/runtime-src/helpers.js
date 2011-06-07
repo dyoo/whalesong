@@ -570,14 +570,15 @@ if (! this['plt']) { this['plt'] = {}; }
         if (! cache) { 
      	    cache = makeLowLevelEqHash();
         }
-
+        if (x === null) {
+            return "null";
+        }
         if (typeof(x) === 'object') {
 	    if (cache.containsKey(x)) {
 		return "...";
 	    }
         }
-
-        if (x == undefined || x == null) {
+        if (x == undefined) {
 	    return "#<undefined>";
         }
         if (typeof(x) == 'string') {
@@ -606,12 +607,14 @@ if (! this['plt']) { this['plt'] = {}; }
         if (! cache) {
     	    cache = makeLowLevelEqHash();
         }
+        if (x === null) {
+            return "null";
+        }
         if (typeof(x) === 'object') {
 	    if (cache.containsKey(x)) {
 		return "...";
 	    }
         }
-
         if (x == undefined || x == null) {
 	    return "#<undefined>";
         }
@@ -688,6 +691,12 @@ if (! this['plt']) { this['plt'] = {}; }
 
         if (jsnums.isSchemeNumber(x)) {
 	    return numberToDomNode(x, params);
+        }
+        
+        if (x === null) {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode("null"));
+	    return node;
         }
 
         if (typeof(x) == 'object') {

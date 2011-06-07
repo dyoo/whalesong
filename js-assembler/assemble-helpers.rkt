@@ -107,7 +107,7 @@
               [(boolean? val)
                (if val "true" "false")]
               [(void? val)
-               "null"]
+               "RUNTIME.VOID"]
               [(empty? val)
                (format "RUNTIME.NULL")]
               [(number? val)

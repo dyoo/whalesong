@@ -1951,12 +1951,12 @@ String.prototype.toDisplayedString = function(cache) {
     };
 
 
-    var makeVector = function(arguments) {
+    var makeVector = function() {
         return Vector.makeInstance(arguments.length, arguments);
     };
 
 
-    var makeVectorImmutable = function(arguments) {
+    var makeVectorImmutable = function() {
         var v = Vector.makeInstance(arguments.length, arguments);
         v.mutable = false;
         return v;
@@ -1983,7 +1983,7 @@ String.prototype.toDisplayedString = function(cache) {
 				      ' given ' + s.toString(),
 				      false);
 	}
-    }
+    };
 
 
     var makeHashEq = function(lst) {
@@ -1993,7 +1993,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    lst = lst.rest;
 	}
 	return newHash;
-    }
+    };
 
 
     var makeHashEqual = function(lst) {
@@ -2003,7 +2003,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    lst = lst.rest;
 	}
 	return newHash;
-    }
+    };
 
 
     var Color = makeStructureType('color', false, 3, 0, false, false);

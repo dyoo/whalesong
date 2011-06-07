@@ -728,6 +728,8 @@ Working out the type mappings between values in Racket and values in JavaScript
     case-lambda    
 
 
+    undefined                            undefined
+    void                                 plt.runtime.VOID
 
 ----------------------------------------------------------------------
 

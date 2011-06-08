@@ -112,7 +112,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		    var elt = MACHINE.env.pop();
 		    var outputPort = 
 			MACHINE.params.currentOutputPort;
-		    if (elt !== undefined) {
+		    if (elt !== VOID) {
 			outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
 			outputPort.writeDomNode(MACHINE, toDomNode("\n", 'print'));
 		    }
@@ -520,94 +520,113 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // are coded here; several of them (including call/cc) are injected by
     // the bootstrapping code.
     var Primitives = {};
-    Primitives['display'] = function(MACHINE) {
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	var outputPort = MACHINE.params.currentOutputPort;
-	if (MACHINE.argcount === 2) {
-	    testArgument(MACHINE,
-			 'isOutputPort', 
-			 isOutputPort, 
-			 MACHINE.env.length-2,
-			 1,
-			 'display');
-	    outputPort = MACHINE.env[MACHINE.env.length-2];
-	}
-	outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
-        return VOID;
+
+    var installPrimitiveProcedure = function(name, arity, f) {
+        Primitives[name] = f;
+        Primitives[name].arity = arity;
+        Primitives[name].displayName = name;
     };
-    Primitives['display'].arity = makeList(1, 2);
-    Primitives['display'].displayName = 'display';
 
-
-    Primitives['newline'] = function(MACHINE) {
-	var outputPort = MACHINE.params.currentOutputPort;
-	if (MACHINE.argcount === 1) { 
-	    testArgument(MACHINE,
-			 'isOutputPort', 
-			 isOutputPort, 
-			 MACHINE.env.length-1,
-			 1,
-			 'newline');
-	    outputPort = MACHINE.env[MACHINE.env.length-1];
-	}
-	outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
-        return VOID;
+    var installPrimitiveConstant = function(name, v) {
+        Primitives[name] = v;
     };
-    Primitives['newline'].arity = makeList(0, 1);
-    Primitives['newline'].displayName = 'newline';
 
 
-    Primitives['displayln'] = function(MACHINE){
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	var outputPort = MACHINE.params.currentOutputPort;
-	if (MACHINE.argcount === 2) {
-	    testArgument(MACHINE,
-			 'isOutputPort', 
-			 isOutputPort, 
-			 MACHINE.env.length-2,
-			 1,
-			 'displayln'); 
-	    outputPort = MACHINE.env[MACHINE.env.length-2];
-	}
-	outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
-	outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
-        return VOID;
-    };
-    Primitives['displayln'].arity = makeList(1, 2);
-    Primitives['displayln'].displayName = 'displayln';
+    installPrimitiveConstant('pi', jsnums.pi);
+    installPrimitiveConstant('e', jsnums.e);
 
-
-
-    Primitives['current-print'] = function(MACHINE) {
-	return MACHINE.params['current-print'];
-    };
-    Primitives['current-print'].arity = makeList(0, 1);
-    Primitives['current-print'].displayName = "current-print";
-
-    Primitives['pi'] = jsnums.pi;
-
-    Primitives['e'] = jsnums.e;
-
-    Primitives['='] = function(MACHINE) {
-	var firstArg = MACHINE.env[MACHINE.env.length-1];
-	testArgument(MACHINE, 'number', isNumber, firstArg, 0, '=');
-	for (var i = 0; i < MACHINE.argcount - 1; i++) {
-	    testArgument(MACHINE, 
-			 'number',
-			 isNumber, 
-			 MACHINE.env[MACHINE.env.length - 1 - i],
-			 i,
-			 '=');
-	    if (! (jsnums.equals(MACHINE.env[MACHINE.env.length - 1 - i],
-		                 MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
-		return false; 
+    installPrimitiveProcedure(
+        'display', makeList(1, 2),
+        function(MACHINE) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var outputPort = MACHINE.params.currentOutputPort;
+	    if (MACHINE.argcount === 2) {
+	        testArgument(MACHINE,
+			     'isOutputPort', 
+			     isOutputPort, 
+			     MACHINE.env.length-2,
+			     1,
+			     'display');
+	        outputPort = MACHINE.env[MACHINE.env.length-2];
 	    }
-	}
-	return true;
-    };
-    Primitives['='].arity = new ArityAtLeast(2);
-    Primitives['='].displayName = '=';
+	    outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
+            return VOID;
+        });
 
+    installPrimitiveProcedure(
+        'newline', makeList(0, 1),
+        function(MACHINE) {
+	    var outputPort = MACHINE.params.currentOutputPort;
+	    if (MACHINE.argcount === 1) { 
+	        testArgument(MACHINE,
+			     'isOutputPort', 
+			     isOutputPort, 
+			     MACHINE.env.length-1,
+			     1,
+			     'newline');
+	        outputPort = MACHINE.env[MACHINE.env.length-1];
+	    }
+	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+            return VOID;
+        });
+
+    installPrimitiveProcedure(
+        'displayln',
+        makeList(1, 2),
+        function(MACHINE){
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var outputPort = MACHINE.params.currentOutputPort;
+	    if (MACHINE.argcount === 2) {
+	        testArgument(MACHINE,
+			     'isOutputPort', 
+			     isOutputPort, 
+			     MACHINE.env.length-2,
+			     1,
+			     'displayln'); 
+	        outputPort = MACHINE.env[MACHINE.env.length-2];
+	    }
+	    outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
+	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+            return VOID;
+        });
+
+
+    installPrimitiveProcedure(
+        'current-print',
+        makeList(0, 1),
+        function(MACHINE) {
+            if (MACHINE.argcount === 1) {
+                MACHINE.params['current-print'] = MACHINE.env[MACHINE.env.length - 1];
+                return VOID;
+            } else {
+	        return MACHINE.params['current-print'];
+            }
+        });
+
+
+    installPrimitiveProcedure(
+        '=',
+        new ArityAtLeast(2),
+        function(MACHINE) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    testArgument(MACHINE, 'number', isNumber, firstArg, 0, '=');
+	    for (var i = 0; i < MACHINE.argcount - 1; i++) {
+	        testArgument(MACHINE, 
+			     'number',
+			     isNumber, 
+			     MACHINE.env[MACHINE.env.length - 1 - i],
+			     i,
+			     '=');
+	        if (! (jsnums.equals(MACHINE.env[MACHINE.env.length - 1 - i],
+		                     MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
+		    return false; 
+	        }
+	    }
+	    return true;
+        });
+
+
+    // TODO: use installPrimitiveProcedure for the rest...
 
     Primitives['<'] = function(MACHINE) {
 	var firstArg = MACHINE.env[MACHINE.env.length-1];
@@ -1161,6 +1180,24 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
+    // Extensions.  A small experiment.
+    installPrimitiveProcedure(
+        'viewport-width',
+        0,
+        function(MACHINE) {
+            return $(window).width();
+        });
+
+    installPrimitiveProcedure(
+        'viewport-height',
+        0,
+        function(MACHINE) {
+            return $(window).height();
+        });
+
+
+
+
 
 
     // recomputeGas: state number -> number
@@ -1342,6 +1379,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['currentMachine'] = new Machine();
     exports['invokeMains'] = invokeMains;
 
+
+    // installing new primitives
+    exports['installPrimitiveProcedure'] = installPrimitiveProcedure;
     exports['Primitives'] = Primitives;
     
     exports['ready'] = ready;
@@ -1415,6 +1455,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['makeClassPredicate'] = makeClassPredicate;
 
     exports['HaltError'] = HaltError;
+
+
 
 
     scope.link.announceReady('runtime');

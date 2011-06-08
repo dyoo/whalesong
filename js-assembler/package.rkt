@@ -38,6 +38,9 @@
 
 
 
+(define (wrap-source src)
+  src)
+
 
 ;; package: Source (path -> boolean) output-port -> void
 
@@ -55,7 +58,8 @@
                  #:output-port op)  
   (define packaging-configuration
     (make-Configuration
-
+     wrap-source
+     
      should-follow?
 
      ;; on
@@ -95,8 +99,11 @@
 (define (write-runtime op)
   (let ([packaging-configuration
          (make-Configuration
+
+          wrap-source
+          
           ;; should-follow-children?
-          (lambda (src p) #t)
+          (lambda (src) #t)
           ;; on
           (lambda (src ast stmts)
             (assemble/write-invoke stmts op)
@@ -160,7 +167,7 @@ EOF
 (define (get-code source-code)
   (let ([buffer (open-output-string)])
     (package source-code
-             #:should-follow-children? (lambda (src p) #t)
+             #:should-follow-children? (lambda (src) #t)
              #:output-port buffer)
     (compress
      (get-output-string buffer))))
@@ -178,7 +185,7 @@ EOF
 ;; write-standalone-code: source output-port -> void
 (define (write-standalone-code source-code op)
   (package-anonymous source-code
-                     #:should-follow-children? (lambda (src p) #t)
+                     #:should-follow-children? (lambda (src) #t)
                      #:output-port op)
   (fprintf op "()(plt.runtime.currentMachine, function() {}, function() {}, {});\n"))
 

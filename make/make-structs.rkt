@@ -13,7 +13,8 @@
 (define-type Source (U StatementsSource
                        MainModuleSource
                        ModuleSource
-                       SexpSource))
+                       SexpSource
+                       UninterpretedSource))
 
 (define-struct: StatementsSource ([stmts : (Listof Statement)])
   #:transparent)
@@ -23,10 +24,14 @@
   #:transparent)
 (define-struct: SexpSource ([sexp : Any])
   #:transparent)
+(define-struct: UninterpretedSource ([datum : Any])
+  #:transparent)
+
 
 
 (define-struct: Configuration
-  ([should-follow-children? : (Source Path -> Boolean)]
+  ([wrap-source : (Source -> Source)]
+   [should-follow-children? : (Source -> Boolean)]
    [on-module-statements : (Source
                             (U Expression #f)
                             (Listof Statement)
@@ -40,7 +45,8 @@
 
 (define debug-configuration
   (make-Configuration
-   (lambda (src p) #t)
+   (lambda (src) src)
+   (lambda (src) #t)
    (lambda (src ast stmt)
      (when (and ast (expression-module-path ast))
        (printf "debug build configuration: visiting ~s\n"

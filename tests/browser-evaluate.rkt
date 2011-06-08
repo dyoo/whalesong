@@ -236,7 +236,7 @@ var comet = function() {
                     var onFail = function(machine, e) {
                         endTime = new Date();
                         sendRequest("/eval", function(req) { setTimeout(comet, 0); },
-                            "e=" + encodeURIComponent(String(e)) +
+                            "e=" + encodeURIComponent(String(e.stack || e)) +
                             "&t=" + encodeURIComponent(String(endTime - startTime)));
                     };
                     startTime = new Date();

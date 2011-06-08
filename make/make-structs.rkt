@@ -1,8 +1,8 @@
 #lang typed/racket/base
 
-(require "compiler/il-structs.rkt"
-         "compiler/bootstrapped-primitives.rkt"
-         "compiler/expression-structs.rkt"
+(require "../compiler/il-structs.rkt"
+         "../compiler/bootstrapped-primitives.rkt"
+         "../compiler/expression-structs.rkt"
          "get-dependencies.rkt")
 
 
@@ -26,7 +26,7 @@
 
 
 (define-struct: Configuration
-  ([should-follow? : (Source Path -> Boolean)]
+  ([should-follow-children? : (Source Path -> Boolean)]
    [on-module-statements : (Source
                             (U Expression #f)
                             (Listof Statement)

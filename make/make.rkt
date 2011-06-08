@@ -1,22 +1,22 @@
 #lang typed/racket/base
 
-(require "compiler/compiler.rkt"
-         "compiler/il-structs.rkt"
-         "compiler/lexical-structs.rkt"
-         "compiler/compiler-structs.rkt"
-         "compiler/expression-structs.rkt"
+(require "../compiler/compiler.rkt"
+         "../compiler/il-structs.rkt"
+         "../compiler/lexical-structs.rkt"
+         "../compiler/compiler-structs.rkt"
+         "../compiler/expression-structs.rkt"
+         "../parameters.rkt"
+         "../sets.rkt"
          "get-dependencies.rkt"
-         "parameters.rkt"
-         "sets.rkt"
          "make-structs.rkt"
          racket/list
          racket/match)
 
 
-(require/typed "parser/parse-bytecode.rkt"
+(require/typed "../parser/parse-bytecode.rkt"
                [parse-bytecode (Any -> Expression)])
 
-(require/typed "get-module-bytecode.rkt"
+(require/typed "../get-module-bytecode.rkt"
                [get-module-bytecode ((U String Path Input-Port) -> Bytes)])
 
 
@@ -96,7 +96,7 @@
                   ((inst new-seteq Symbol))])
 
     (match config
-      [(struct Configuration (should-follow?
+      [(struct Configuration (should-follow-children?
                               on-module-statements
                               after-module-statements
                               after-last))
@@ -113,6 +113,8 @@
             [(eq? ast #f)
              empty]
             [else
+             ;; FIXME: the logic here is wrong.
+             ;; Needs to check should-follow-children before continuing here.
              (let* ([dependent-module-names (get-dependencies ast)]
                     [paths
                      (foldl (lambda: ([mp : ModuleLocator]
@@ -123,7 +125,7 @@
                                                mp)
                                               acc]
                                              [(and (path? rp)
-                                                   (should-follow? this-source rp)
+                                                   (should-follow-children? this-source rp)
                                                    (cons (make-ModuleSource rp)
                                                          acc))]
                                              [else

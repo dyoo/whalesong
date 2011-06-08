@@ -2,8 +2,8 @@
 
 (require "assemble.rkt"
          "quote-cdata.rkt"
-         "../make.rkt"
-         "../make-structs.rkt"
+         "../make/make.rkt"
+         "../make/make-structs.rkt"
          "../parameters.rkt"
          (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
@@ -28,11 +28,11 @@
 
 
 (define (package-anonymous source-code
-                           #:should-follow? should-follow?
+                           #:should-follow-children? should-follow?
                            #:output-port op)  
   (fprintf op "(function() {\n")
   (package source-code
-           #:should-follow? should-follow?
+           #:should-follow-children? should-follow?
            #:output-port op)
   (fprintf op " return invoke; })\n"))
 
@@ -41,15 +41,17 @@
 
 ;; package: Source (path -> boolean) output-port -> void
 
-;; Compile package for the given source program.  should-follow?
-;; indicates whether we should continue following module paths.
+;; Compile package for the given source program.
+;;
+;; should-follow-children?  indicates whether we should continue
+;; following module paths of a source's dependencies.
 ;;
 ;; The generated output defines a function called 'invoke' with
 ;; four arguments (MACHINE, SUCCESS, FAIL, PARAMS).  When called, it will
 ;; execute the code to either run standalone expressions or
 ;; load in modules.
 (define (package source-code
-                 #:should-follow? should-follow?
+                 #:should-follow-children? should-follow?
                  #:output-port op)  
   (define packaging-configuration
     (make-Configuration
@@ -93,7 +95,7 @@
 (define (write-runtime op)
   (let ([packaging-configuration
          (make-Configuration
-          ;; should-follow?
+          ;; should-follow-children?
           (lambda (src p) #t)
           ;; on
           (lambda (src ast stmts)
@@ -158,7 +160,7 @@ EOF
 (define (get-code source-code)
   (let ([buffer (open-output-string)])
     (package source-code
-             #:should-follow? (lambda (src p) #t)
+             #:should-follow-children? (lambda (src p) #t)
              #:output-port buffer)
     (compress
      (get-output-string buffer))))
@@ -176,7 +178,7 @@ EOF
 ;; write-standalone-code: source output-port -> void
 (define (write-standalone-code source-code op)
   (package-anonymous source-code
-                     #:should-follow? (lambda (src p) #t)
+                     #:should-follow-children? (lambda (src p) #t)
                      #:output-port op)
   (fprintf op "()(plt.runtime.currentMachine, function() {}, function() {}, {});\n"))
 

@@ -1,5 +1,5 @@
 #lang racket
-(require "../get-dependencies.rkt"
+(require "../make/get-dependencies.rkt"
          "../get-module-bytecode.rkt"
          "../parser/parse-bytecode.rkt"
          "../compiler/lexical-structs.rkt"
@@ -11,7 +11,7 @@
 
 
 (define-runtime-path get-dependencies-path
-  (build-path ".." "get-dependencies.rkt"))
+  (build-path ".." "make" "get-dependencies.rkt"))
 (define-runtime-path get-module-bytecode-path
   (build-path ".." "get-module-bytecode.rkt"))
 

@@ -1,7 +1,7 @@
 #lang typed/racket/base
-(require "compiler/expression-structs.rkt"
-	 "compiler/lexical-structs.rkt"
-	 "sets.rkt")
+(require "../compiler/expression-structs.rkt"
+	 "../compiler/lexical-structs.rkt"
+	 "../sets.rkt")
 
 ;; Collect the complete list of dependencies for a module.
 

@@ -220,7 +220,7 @@ var comet = function() {
                     }
                     var output = [];
                     var startTime, endTime;
-                    var params = { currentDisplayer: function(v) {
+                    var params = { currentDisplayer: function(MACHINE, v) {
                                                          $(document.body).append(v);
                                                          output.push($(v).text()); } };
 

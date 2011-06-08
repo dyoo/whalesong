@@ -360,7 +360,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	if (observed < minimum || observed > maximum) {
 	    raise(MACHINE, new Error(callerName + ": expected at least " + minimum
 				     + " arguments "
-				     + " but received " + observer));
+				     + " but received " + observed));
 
 	}
     };
@@ -378,7 +378,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	raise(MACHINE,
               new Error(callerName + ": expected " + expectedTypeName
 			+ " as argument " + (argumentOffset + 1)
-			+ " but received " + actualValue));
+			+ " but received " + helpers.toWrittenString(actualValue)));
     };
 
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
@@ -390,23 +390,23 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
 	raise(MACHINE, 
-	      new Error(proc.displayName + ": " + "expected " + expected + " value(s), received " + received + " value(s)"));
+	      new Error(proc.displayName + ": " + "expected " + expected 
+                        + " value(s), received " + received + " value(s)"));
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
 	raise(MACHINE, 
-	      new Error("not a procedure: " + expected +
-                        operator));
+	      new Error("not a procedure: " + helpers.toWrittenString(operator)));
     };
 
     var raiseOperatorIsNotClosure = function(MACHINE, operator) {
         raise(MACHINE,
-              new Error("not a closure: " + operator));
+              new Error("not a closure: " + helpers.toWrittenString(operator)));
     };
 
     var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
         raise(MACHINE,
-              new Error("not a primitive procedure: " + operator));
+              new Error("not a primitive procedure: " + helpers.toWrittenString(operator)));
     };
 
 

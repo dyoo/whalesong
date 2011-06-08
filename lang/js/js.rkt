@@ -17,7 +17,7 @@
     (file->string a-path)))
 
 
-(define-syntax (declare-conditional-implementation stx)
+(define-syntax (declare-implementation stx)
   (syntax-parse stx
     [(_ #:racket racket-module-name
         #:javascript (javascript-module-name ...))
@@ -48,5 +48,5 @@
            (provide (all-from-out racket-module-name)))))]))
 
 
-(provide declare-conditional-implementation
+(provide declare-implementation
          (rename-out [#%plain-module-begin #%module-begin]))

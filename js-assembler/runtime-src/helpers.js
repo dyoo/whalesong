@@ -686,7 +686,7 @@ if (! this['plt']) { this['plt'] = {}; }
         } else if (params === 'display') {
             params = new ToDomNodeParameters({'mode' : 'display'});
         } else {
-            params = params || new DomNodeParameters({'mode' : 'display'});
+            params = params || new ToDomNodeParameters({'mode' : 'display'});
         } 
 
         if (jsnums.isSchemeNumber(x)) {

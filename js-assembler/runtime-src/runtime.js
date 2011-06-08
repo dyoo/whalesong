@@ -69,14 +69,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 	    // currentDisplayer: DomNode -> Void
 	    // currentDisplayer is responsible for displaying to the browser.
-	    'currentDisplayer': function(v) {
-		$(document.body).append(v);
+	    'currentDisplayer': function(MACHINE, domNode) {
+		$(domNode).appendTo(document.body);
 	    },
 	    
 	    // currentErrorDisplayer: DomNode -> Void
 	    // currentErrorDisplayer is responsible for displaying errors to the browser.
-	    'currentErrorDisplayer': function(v) {
-		$(document.body).append($(v).css("color", "red"));
+	    'currentErrorDisplayer': function(MACHINE, domNode) {
+                $(domNode).appendTo(document.body);
 	    },
 	    
 
@@ -85,7 +85,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    'currentSuccessHandler': function(MACHINE) {},
 	    'currentErrorHandler': function(MACHINE, exn) {
                 MACHINE.params.currentErrorDisplayer(
-                    toDomNode(exn.message, 'print'));
+                    MACHINE,
+                    exn);
             },
 	    
 	    'currentNamespace': {},
@@ -242,7 +243,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
     StandardOutputPort.prototype = heir(OutputPort.prototype);
     StandardOutputPort.prototype.writeDomNode = function(MACHINE, domNode) {
-	MACHINE.params['currentDisplayer'](domNode);
+	MACHINE.params['currentDisplayer'](MACHINE, domNode);
     };
 
     var StandardErrorPort = function() {
@@ -250,7 +251,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
     StandardErrorPort.prototype = heir(OutputPort.prototype);
     StandardErrorPort.prototype.writeDomNode = function(MACHINE, domNode) {
-	MACHINE.params['currentErrorDisplayer'](domNode);
+	MACHINE.params['currentErrorDisplayer'](MACHINE, domNode);
     };
 
 
@@ -389,7 +390,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
 	raise(MACHINE, 
-	      new Error("expected " + expected + " values, received " + received + " values"));
+	      new Error(proc.displayName + ": " + "expected " + expected + " value(s), received " + received + " value(s)"));
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
@@ -1196,6 +1197,12 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
+    installPrimitiveProcedure(
+        'in-javascript-context?',
+        0,
+        function(MACHINE) {
+            return true;
+        });
 
 
 

@@ -201,6 +201,8 @@ var invokeMainModule = function() {
                         if (console && console.log) {
                             console.log(e.stack || e);
                         }
+                        MACHINE.params.currentErrorDisplayer(
+                             MACHINE, $(plt.helpers.toDomNode(e.stack || e)).css('color', 'red'));
                     })},
            function() {
                // On module loading failure

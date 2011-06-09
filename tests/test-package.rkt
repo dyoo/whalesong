@@ -6,7 +6,7 @@
 (printf "test-package.rkt\n")
 
 
-(define (follow? src p)
+(define (follow? src)
   #t)
 
 (define (test s-exp)

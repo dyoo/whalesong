@@ -99,7 +99,6 @@
     (let ([name (rewrite-path (ModuleSource-path src))]
           [text (query:query `(file ,(path->string (ModuleSource-path src))))]
           [bytecode (parse-bytecode (ModuleSource-path src))])
-      (printf "bytecode: ~s\n" bytecode)
       (make-UninterpretedSource
        (format "
 MACHINE.modules[~s] =
@@ -109,11 +108,9 @@ MACHINE.modules[~s] =
            var modrec = MACHINE.modules[~s];
            var exports = {};
            modrec.isInvoked = true;
-           (function(MACHINE, EXPORTS){~a})(MACHINE, exports);
-
+           (function(MACHINE, RUNTIME, EXPORTS){~a})(MACHINE, plt.runtime, exports);
            // FIXME: we need to inject the namespace with the values defined in exports.
            ~a
-
            return MACHINE.control.pop().label(MACHINE);
         });
 "
@@ -156,8 +153,6 @@ MACHINE.modules[~s] =
   (define (wrap-source src)
     (cond
      [(source-is-javascript-module? src)
-      (notify "the module ~s has a javascript implementation.\n"
-              src)
       (get-javascript-implementation src)]
      [else
       src]))

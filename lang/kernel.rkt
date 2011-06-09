@@ -175,7 +175,7 @@
 ;;  compose
 ;;  current-inexact-milliseconds
 ;;  current-seconds
-;;  void
+  void
 ;;  random
 ;;  sleep
 ;;  (identity -identity)

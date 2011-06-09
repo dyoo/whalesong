@@ -5,7 +5,9 @@
          "../make/make.rkt"
          "../make/make-structs.rkt"
          "../parameters.rkt"
+         "../compiler/expression-structs.rkt"
          "../parser/path-rewriter.rkt"
+         "../parser/parse-bytecode.rkt"
          racket/match
          (prefix-in query: "../lang/js/query.rkt")
          (planet dyoo/closure-compile:1:1)
@@ -76,6 +78,18 @@
 
 ;; get-javascript-implementation: source -> UninterpretedSource
 (define (get-javascript-implementation src)
+
+  (define (get-provided-name-code bytecode)
+    (match bytecode
+      [(struct Top [_ (struct Module (name path prefix requires provides code))])
+       (apply string-append
+              (map (lambda (p)
+                     (format "modrec.namespace[~s] = exports[~s];\n"
+                             (symbol->string (ModuleProvide-internal-name p))
+                             (symbol->string (ModuleProvide-external-name p))))
+                   provides))]
+      [else
+       ""]))
   (cond
    [(StatementsSource? src)
     (error 'get-javascript-implementation src)]
@@ -83,15 +97,23 @@
     (get-javascript-implementation (MainModuleSource-source src))]
    [(ModuleSource? src)
     (let ([name (rewrite-path (ModuleSource-path src))]
-          [text (query:query `(file ,(path->string (ModuleSource-path src))))])
+          [text (query:query `(file ,(path->string (ModuleSource-path src))))]
+          [bytecode (parse-bytecode (ModuleSource-path src))])
+      (printf "bytecode: ~s\n" bytecode)
       (make-UninterpretedSource
        (format "
 MACHINE.modules[~s] =
     new plt.runtime.ModuleRecord(~s,
         function(MACHINE) {
            if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
-           MACHINE.modules[~s].isInvoked = true;
-           (function(MACHINE, EXPORTS){~a})(MACHINE, MACHINE.modules[~s].namespace);
+           var modrec = MACHINE.modules[~s];
+           var exports = {};
+           modrec.isInvoked = true;
+           (function(MACHINE, EXPORTS){~a})(MACHINE, exports);
+
+           // FIXME: we need to inject the namespace with the values defined in exports.
+           ~a
+
            return MACHINE.control.pop().label(MACHINE);
         });
 "
@@ -99,11 +121,15 @@ MACHINE.modules[~s] =
                   (symbol->string name)
                   (symbol->string name)
                   text
-                  (symbol->string name))))]
+                  (get-provided-name-code bytecode))))]
    [(SexpSource? src)
     (error 'get-javascript-implementation)]
    [(UninterpretedSource? src)
     (error 'get-javascript-implementation)]))
+
+        
+
+
 
 
 

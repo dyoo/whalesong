@@ -531,6 +531,12 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         Primitives[name].displayName = name;
     };
 
+    var makePrimitiveProcedure = function(name, arity, f) {
+        f.arity = arity;
+        f.displayName = name;
+        return f;
+    };
+
     var installPrimitiveConstant = function(name, v) {
         Primitives[name] = v;
     };
@@ -1392,6 +1398,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     // installing new primitives
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;
+    exports['makePrimitiveProcedure'] = makePrimitiveProcedure;
     exports['Primitives'] = Primitives;
     
     exports['ready'] = ready;

@@ -85,6 +85,7 @@
                                   (and path (? ModuleLocator?))
                                   prefix
                                   requires
+                                  provides
                                   code))))
      path]
     [else

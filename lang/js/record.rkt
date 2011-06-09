@@ -5,7 +5,11 @@
          lookup-javascript-implementation
          
          record-redirection!
-         follow-redirection)
+         follow-redirection
+
+         record-exported-name!
+         
+         collect-redirections-to)
 
 
 (define-struct record (path impl))
@@ -58,5 +62,22 @@
        #f]
       [(equal? (redirection-from (car redirections)) a-path)
        (redirection-to (car redirections))]
+      [else
+       (loop (cdr redirections))])))
+
+
+(define (record-exported-name! a-path internal-name external-name)
+  (printf "I need to remember to export ~s as ~s\n" internal-name external-name)
+  (void))
+
+
+;; collect-redirections-to: path -> (listof path)
+(define (collect-redirections-to a-path)
+  (let loop ([redirections redirections])
+    (cond
+      [(null? redirections)
+       '()]
+      [(equal? (redirection-to (car redirections)) a-path)
+       (redirection-from (car redirections))]
       [else
        (loop (cdr redirections))])))

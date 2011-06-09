@@ -162,12 +162,14 @@
                                   (struct ModuleLocator ('self 'self))
                                   module-prefix
                                   module-requires
+                                  module-provides
                                   module-code))))
      (make-Top top-prefix
                (make-Module name
                             (make-ModuleLocator name name) (current-module-path)
                             module-prefix
                             module-requires
+                            module-provides
                             module-code))]
     [else
      exp]))
@@ -368,6 +370,7 @@
                       (make-ModuleLocator self-path self-path)
                       (parse-prefix prefix)
                       (parse-mod-requires self-modidx requires)
+                      (parse-mod-provides self-modidx provides)
                       (parse-mod-body body))]
         [else
          (let ([rewritten-path (rewrite-path self-path)])
@@ -378,6 +381,7 @@
                                             (normalize-path self-path))
                            (parse-prefix prefix)
                            (parse-mod-requires self-modidx requires)
+                           (parse-mod-provides self-modidx provides)
                            (parse-mod-body body))]
              [else
               (error 'parse-mod "Internal error: unable to resolve module path ~s" self-path)]))]))]))
@@ -403,6 +407,34 @@
               (cdr (first requires)))]
         [else
          (loop (rest requires))]))))
+
+
+
+(define (parse-mod-provides enclosing-module-path-index provides)
+  (let* ([resolver
+          (current-module-path-index-resolver)]
+         [enclosing-path
+          (resolver enclosing-module-path-index (current-module-path))]
+         [subresolver
+          (lambda (p)
+            (cond
+             [(symbol? enclosing-path)
+              (wrap-module-name (resolver p (current-module-path)))]
+             [(path? enclosing-path)
+              (wrap-module-name (resolver p enclosing-path))]))])
+    (let loop ([provides provides])
+      (cond
+       [(empty? provides)
+        empty]
+       [(= (first (first provides)) 0)
+        (let ([provided-values (second (first provides))])
+          (for/list ([v provided-values])
+                    (match v
+                      [(struct provided (name src src-name nom-mod
+                                              src-phase protected? insp))
+                       (make-ModuleProvide src-name name (subresolver src))])))]
+       [else
+        (loop (rest provides))]))))
 
 
 

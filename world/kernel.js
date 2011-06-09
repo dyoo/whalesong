@@ -1,8 +1,9 @@
 var world = {};
 world.Kernel = {};
 
-EXPORTS['kernel'] = world.Kernel;
+EXPORTS['_kernel'] = world.Kernel;
 
+var types = plt.types;
 
 
 

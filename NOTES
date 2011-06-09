@@ -684,3 +684,63 @@ circularity between helpers and types.
 
 The parameters I'm using to control bounce are too high for Firefox,
 leading it to raise the dialog about an out of control jva process.  Not good.
+
+----------------------------------------------------------------------
+
+Working out the type mappings between values in Racket and values in JavaScript
+
+
+
+    Racket                              JavaScript                   Switched over?
+
+
+    number                              jsnums.SchemeNumber                yes
+    immutable strings                   JavaScript string
+    mutable strings                     types.Str
+
+    vector
+
+
+    regular-expressions
+    path
+    bytes
+    box
+    placeholder
+    character
+    symbol
+    keyword
+    
+    pair                                                                   yes
+    empty                                                                  yes
+
+    eq-hashtable
+    equal-hashtable
+
+    struct-type
+    struct
+
+    path
+
+    continuation-mark-set
+
+    primitive-procedure
+    closure
+    case-lambda    
+
+
+    undefined                            undefined
+    void                                 plt.runtime.VOID
+
+----------------------------------------------------------------------
+
+I should add the functions:
+
+    get-viewport-width
+    get-viewport-height
+   
+Other notes from Shriram: too slow, inconsistent positioning from jsworld.
+
+
+----------------------------------------------------------------------
+
+Added base as the default planet language.

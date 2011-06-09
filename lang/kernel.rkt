@@ -148,7 +148,7 @@
  display
  newline
 
- #;displayln
+;;  displayln
 
 ;;  current-print
 ;;  current-continuation-marks
@@ -175,7 +175,7 @@
 ;;  compose
 ;;  current-inexact-milliseconds
 ;;  current-seconds
-;;  void
+  void
 ;;  random
 ;;  sleep
 ;;  (identity -identity)
@@ -394,6 +394,36 @@
 ;;  make-reader-graph
 ;;  make-placeholder
 ;;  placeholder-set!
-
-
  )
+
+
+
+
+
+(provide
+ ;; FIXME:
+ ;; Extensions: these may need to be hidden in a JavaScript-implemented module
+ in-javascript-context?
+ viewport-width
+ viewport-height)
+
+
+
+;; in-javascript-context: -> boolean
+;; Produces true if we're in a JavaScript context.
+(define (in-javascript-context?)
+  #f)
+
+
+;; viewport-width: -> natural
+;; The viewport width in pixels.
+(define (viewport-width)
+  (error 'viewport-width "Not available outside JavaScript context."))
+
+
+;; viewport-height: -> natural
+;; The viewport height in pixels.
+(define (viewport-height)
+  (error 'viewport-width "Not available outside JavaScript context."))
+
+

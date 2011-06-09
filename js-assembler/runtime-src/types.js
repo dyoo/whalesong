@@ -47,8 +47,6 @@ if (! this['plt']) { this['plt'] = {}; }
     
 
 
-
-
     // Union/find for circular equality testing.
 
     var UnionFind = function() {
@@ -85,7 +83,7 @@ if (! this['plt']) { this['plt'] = {}; }
     //////////////////////////////////////////////////////////////////////
 
 
-    StructType = function(name, type, numberOfArgs, numberOfFields, firstField,
+    var StructType = function(name, type, numberOfArgs, numberOfFields, firstField,
 		          applyGuard, constructor, predicate, accessor, mutator) {
 	this.name = name;
 	this.type = type;
@@ -698,17 +696,24 @@ if (! this['plt']) { this['plt'] = {}; }
         return b;
     };
     
-    Cons = function(f, r) {
-        this.f = f;
-        this.r = r;
+
+
+
+    //////////////////////////////////////////////////////////////////////
+
+    // Cons Pairs
+
+    var Cons = function(f, r) {
+        this.first = f;
+        this.rest = r;
     };
 
     Cons.prototype.reverse = function() {
         var lst = this;
         var ret = Empty.EMPTY;
         while (!lst.isEmpty()){
-	    ret = Cons.makeInstance(lst.first(), ret);
-	    lst = lst.rest();
+	    ret = Cons.makeInstance(lst.first, ret);
+	    lst = lst.rest;
         }
         return ret;
     };
@@ -717,28 +722,21 @@ if (! this['plt']) { this['plt'] = {}; }
         return new Cons(f, r);
     };
 
-
     // FIXME: can we reduce the recursion on this?
     Cons.prototype.isEqual = function(other, aUnionFind) {
         if (! (other instanceof Cons)) {
 	    return Logic.FALSE;
         }
-        return (isEqual(this.first(), other.first(), aUnionFind) &&
-	        isEqual(this.rest(), other.rest(), aUnionFind));
+        return (isEqual(this.first, other.first, aUnionFind) &&
+	        isEqual(this.rest, other.rest, aUnionFind));
     };
     
-    Cons.prototype.first = function() {
-        return this.f;
-    };
-    
-    Cons.prototype.rest = function() {
-        return this.r;
-    };
-    
+
     Cons.prototype.isEmpty = function() {
         return false;
     };
     
+
     // Cons.append: (listof X) -> (listof X)
     Cons.prototype.append = function(b){
         if (b === Empty.EMPTY)
@@ -746,8 +744,8 @@ if (! this['plt']) { this['plt'] = {}; }
         var ret = b;
         var lst = this.reverse();
         while ( !lst.isEmpty() ) {
-	    ret = Cons.makeInstance(lst.first(), ret);
-	    lst = lst.rest();
+	    ret = Cons.makeInstance(lst.first, ret);
+	    lst = lst.rest;
         }
 	
         return ret;
@@ -759,8 +757,8 @@ if (! this['plt']) { this['plt'] = {}; }
         var texts = [];
         var p = this;
         while ( p instanceof Cons ) {
-	    texts.push(toWrittenString(p.first(), cache));
-	    p = p.rest();
+	    texts.push(toWrittenString(p.first, cache));
+	    p = p.rest;
 	    if (typeof(p) === 'object' && cache.containsKey(p)) {
 	        break;
 	    }
@@ -779,8 +777,8 @@ if (! this['plt']) { this['plt'] = {}; }
         var texts = [];
         var p = this;
         while ( p instanceof Cons ) {
-	    texts.push(toDisplayedString(p.first(), cache));
-	    p = p.rest();
+	    texts.push(toDisplayedString(p.first, cache));
+	    p = p.rest;
 	    if (typeof(p) === 'object' && cache.containsKey(p)) {
 	        break;
 	    }
@@ -789,17 +787,6 @@ if (! this['plt']) { this['plt'] = {}; }
 	    texts.push('.');
 	    texts.push(toDisplayedString(p, cache));
         }
-        //    while (true) {
-        //	if ((!(p instanceof Cons)) && (!(p instanceof Empty))) {
-        //	    texts.push(".");
-        //	    texts.push(toDisplayedString(p, cache));
-        //	    break;
-        //	}
-        //	if (p.isEmpty()) 
-        //	    break;
-        //	texts.push(toDisplayedString(p.first(), cache));
-        //	p = p.rest();
-        //    }
         return "(" + texts.join(" ") + ")";
     };
 
@@ -811,8 +798,8 @@ if (! this['plt']) { this['plt'] = {}; }
         node.appendChild(document.createTextNode("("));
         var p = this;
         while ( p instanceof Cons ) {
-	    appendChild(node, toDomNode(p.first(), cache));
-	    p = p.rest();
+	    appendChild(node, toDomNode(p.first, cache));
+	    p = p.rest;
 	    if ( p !== Empty.EMPTY ) {
 	        appendChild(node, document.createTextNode(" "));
 	    }
@@ -825,25 +812,25 @@ if (! this['plt']) { this['plt'] = {}; }
 	    appendChild(node, document.createTextNode(" "));
 	    appendChild(node, toDomNode(p, cache));
         }
-        //    while (true) {
-        //	if ((!(p instanceof Cons)) && (!(p instanceof Empty))) {
-        //	    appendChild(node, document.createTextNode(" "));
-        //	    appendChild(node, document.createTextNode("."));
-        //	    appendChild(node, document.createTextNode(" "));
-        //	    appendChild(node, toDomNode(p, cache));
-        //	    break;
-        //	}
-        //	if (p.isEmpty())
-        //	    break;
-        //	appendChild(node, toDomNode(p.first(), cache));
-        //	p = p.rest();
-        //	if (! p.isEmpty()) {
-        //	    appendChild(node, document.createTextNode(" "));
-        //	}
-        //    }
+
         node.appendChild(document.createTextNode(")"));
         return node;
     };
+
+
+    // isList: Any -> Boolean
+    // Returns true if x is a list (a chain of pairs terminated by EMPTY).
+    var isList = function(x) { 
+	while (x !== Empty.EMPTY) {
+	    if (x instanceof Cons){
+		x = x.rest;
+	    } else {
+		return false;
+	    }
+	}
+	return true;
+    };
+
 
 
 
@@ -1955,22 +1942,22 @@ String.prototype.toDisplayedString = function(cache) {
 
 
 
-    var makeList = function(args) {
+    var makeList = function() {
         var result = Empty.EMPTY;
-        for(var i = args.length-1; i >= 0; i--) {
-	    result = Cons.makeInstance(args[i], result);
+        for(var i = arguments.length-1; i >= 0; i--) {
+	    result = Cons.makeInstance(arguments[i], result);
         }
         return result;
     };
 
 
-    var makeVector = function(args) {
-        return Vector.makeInstance(args.length, args);
+    var makeVector = function() {
+        return Vector.makeInstance(arguments.length, arguments);
     };
 
 
-    var makeVectorImmutable = function(args) {
-        var v = Vector.makeInstance(args.length, args);
+    var makeVectorImmutable = function() {
+        var v = Vector.makeInstance(arguments.length, arguments);
         v.mutable = false;
         return v;
     };
@@ -1996,27 +1983,27 @@ String.prototype.toDisplayedString = function(cache) {
 				      ' given ' + s.toString(),
 				      false);
 	}
-    }
+    };
 
 
     var makeHashEq = function(lst) {
 	var newHash = new EqHashTable();
 	while ( !lst.isEmpty() ) {
-	    newHash.hash.put(lst.first().first(), lst.first().rest());
-	    lst = lst.rest();
+	    newHash.hash.put(lst.first.first, lst.first.rest);
+	    lst = lst.rest;
 	}
 	return newHash;
-    }
+    };
 
 
     var makeHashEqual = function(lst) {
 	var newHash = new EqualHashTable();
 	while ( !lst.isEmpty() ) {
-	    newHash.hash.put(lst.first().first(), lst.first().rest());
-	    lst = lst.rest();
+	    newHash.hash.put(lst.first.first, lst.first.rest);
+	    lst = lst.rest;
 	}
 	return newHash;
-    }
+    };
 
 
     var Color = makeStructureType('color', false, 3, 0, false, false);
@@ -2042,10 +2029,10 @@ String.prototype.toDisplayedString = function(cache) {
         }
 
         if (types.isPair(x)) {
-	    var consPair = types.cons(x.first(), x.rest());
+	    var consPair = types.cons(x.first, x.rest);
 	    objectHash.put(x, consPair);
-	    consPair.f = readerGraph(x.first(), objectHash, n+1);
-	    consPair.r = readerGraph(x.rest(), objectHash, n+1);
+	    consPair.f = readerGraph(x.first, objectHash, n+1);
+	    consPair.r = readerGraph(x.rest, objectHash, n+1);
 	    return consPair;
         }
 
@@ -2071,7 +2058,7 @@ String.prototype.toDisplayedString = function(cache) {
         }
 
         if (types.isStruct(x)) {
-	    var aStruct = clone(x);
+	    var aStruct = helpers.clone(x);
 	    objectHash.put(x, aStruct);
 	    for(var i = 0 ;i < x._fields.length; i++) {
 	        x._fields[i] = readerGraph(x._fields[i], objectHash, n+1);
@@ -2086,22 +2073,6 @@ String.prototype.toDisplayedString = function(cache) {
         return x;
     };
 
-
-
-    // clone: object -> object
-    // Copies an object.  The new object should respond like the old
-    // object, including to things like instanceof
-    var clone = function(obj) {
-        var C = function() {}
-        C.prototype = obj;
-        var c = new C();
-        for (property in obj) {
-	    if (obj.hasOwnProperty(property)) {
-	        c[property] = obj[property];
-	    }
-        }
-        return c;
-    };
 
 
 
@@ -2170,6 +2141,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.isChar = function(x) { return x instanceof Char; };
     types.isString = isString;
     types.isPair = function(x) { return x instanceof Cons; };
+    types.isList = isList;
     types.isEmpty = function(x) { return x === Empty.EMPTY; };
     types.isVector = function(x) { return x instanceof Vector; };
     types.isBox = function(x) { return x instanceof Box; };

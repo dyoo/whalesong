@@ -312,10 +312,10 @@
                  (cond
                    [(closure? clos)
                     (if (arity-match? (closure-arity clos)
-                                      (ensure-natural (evaluate-oparg m (CheckClosureArity!-arity op))))
+                                      (ensure-natural (evaluate-oparg m (CheckClosureArity!-num-args op))))
                         'ok
                         (error 'check-closure-arity "arity mismatch: passed ~s args to ~s"
-                               (ensure-natural (evaluate-oparg m (CheckClosureArity!-arity op)))
+                               (ensure-natural (evaluate-oparg m (CheckClosureArity!-num-args op)))
                                (closure-display-name clos)))]
                    [else
                     (error 'check-closure-arity "not a closure: ~s" clos)]))]
@@ -325,10 +325,10 @@
                  (cond
                    [(primitive-proc? clos)
                     (if (arity-match? (primitive-proc-arity clos)
-                                      (ensure-natural (evaluate-oparg m (CheckPrimitiveArity!-arity op))))
+                                      (ensure-natural (evaluate-oparg m (CheckPrimitiveArity!-num-args op))))
                         'ok
                         (error 'check-primitive-arity "arity mismatch: passed ~s args to ~s"
-                               (ensure-natural (evaluate-oparg m (CheckPrimitiveArity!-arity op)))
+                               (ensure-natural (evaluate-oparg m (CheckPrimitiveArity!-num-args op)))
                                (primitive-proc-display-name clos)))]
                    [else
                     (error 'check-primitive-arity "not a primitive: ~s" clos)]))]

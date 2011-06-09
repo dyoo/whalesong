@@ -37,8 +37,16 @@
                         [path : ModuleLocator]
                         [prefix : Prefix]
                         [requires : (Listof ModuleLocator)]
+                        [provides : (Listof ModuleProvide)]
                         [code : Expression])
   #:transparent)
+
+
+(define-struct: ModuleProvide ([internal-name : Symbol]
+                               [external-name : Symbol]
+                               [source : ModuleLocator])
+  #:transparent)
+
 
 
 (define-struct: Top ([prefix : Prefix]

@@ -321,7 +321,7 @@
   ;; that has not yet been invoked.
   ;; fixme: This also needs to generate code for the requires and provides.
   (match mod
-    [(struct Module (name path prefix requires code))
+    [(struct Module (name path prefix requires provides code))
      (let*: ([after-module-body (make-label 'afterModuleBody)]
              [module-entry (make-label 'module-entry)]
              [names : (Listof (U False Symbol GlobalBucket ModuleVariable))
@@ -2156,6 +2156,7 @@
                   (Module-path exp)
                   (Module-prefix exp)
                   (Module-requires exp)
+                  (Module-provides exp)
                   (adjust-expression-depth (Module-code exp) n (add1 skip)))]
     
     [(Constant? exp)

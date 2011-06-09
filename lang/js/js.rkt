@@ -17,10 +17,11 @@
     (file->string a-path)))
 
 
-(define-syntax (declare-conditional-implementation stx)
+(define-syntax (declare-implementation stx)
   (syntax-parse stx
     [(_ #:racket racket-module-name
-        #:javascript (javascript-module-name ...))
+        #:javascript (javascript-module-name ...)
+        #:provided-values (provided-name ...))
      (with-syntax 
          ([resolved-racket-module-name 
            (my-resolve-path (syntax-e #'racket-module-name))]
@@ -28,7 +29,8 @@
            (string-join 
             (map (compose read-implementation syntax-e)
                  (syntax->list #'(javascript-module-name ...)))
-            "\n")])
+            "\n")]
+          [(internal-name ...) (generate-temporaries #'(provided-name ...))])
        (syntax/loc stx
          (begin
            
@@ -42,11 +44,14 @@
                     [key (resolved-module-path-name this-module)])
                (record-redirection! (#%datum . resolved-racket-module-name)
                                     key)
-               (record-javascript-implementation! key (#%datum . impl))))
+               (record-javascript-implementation! key (#%datum . impl))
+               ;;(record-exported-name! key 'internal-name 'provided-name) ...
+               ))
 
            (require racket-module-name)
-           (provide (all-from-out racket-module-name)))))]))
+           (define internal-name provided-name) ...
+           (provide (rename-out [internal-name provided-name] ...)))))]))
 
 
-(provide declare-conditional-implementation
+(provide declare-implementation
          (rename-out [#%plain-module-begin #%module-begin]))

@@ -27,13 +27,14 @@
                   RUNTIME.raiseOperatorIsNotClosure(MACHINE, MACHINE.proc);
               }
               if (! RUNTIME.isArityMatching(MACHINE.proc.arity, ~a)) {
-                  RUNTIME.raiseArityMismatchError(MACHINE.proc,
+                  RUNTIME.raiseArityMismatchError(MACHINE,
+                                                  MACHINE.proc,
                                                   MACHINE.proc.arity,
                                                   ~a);
               }
 EOF
-             (assemble-oparg (CheckClosureArity!-arity op))
-             (assemble-oparg (CheckClosureArity!-arity op)))]
+             (assemble-oparg (CheckClosureArity!-num-args op))
+             (assemble-oparg (CheckClosureArity!-num-args op)))]
 
     
     [(CheckPrimitiveArity!? op)
@@ -42,13 +43,14 @@ EOF
                   RUNTIME.raiseOperatorIsNotPrimitiveProcedure(MACHINE, MACHINE.proc);
               }
               if (! RUNTIME.isArityMatching(MACHINE.proc.arity, ~a)) {
-                  RUNTIME.raiseArityMismatchError(MACHINE.proc,
+                  RUNTIME.raiseArityMismatchError(MACHINE,
+                                                  MACHINE.proc,
                                                   MACHINE.proc.arity,
                                                   ~a);
               }
 EOF
-             (assemble-oparg (CheckPrimitiveArity!-arity op))
-             (assemble-oparg (CheckPrimitiveArity!-arity op)))]
+             (assemble-oparg (CheckPrimitiveArity!-num-args op))
+             (assemble-oparg (CheckPrimitiveArity!-num-args op)))]
      
     
     [(ExtendEnvironment/Prefix!? op)

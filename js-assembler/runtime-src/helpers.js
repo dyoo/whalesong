@@ -549,8 +549,8 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     var makeLowLevelEqHash = function() {
-	return new _Hashtable(function(x) { return getEqHashCode(x); },
-			      function(x, y) { return x === y; });
+	return new Hashtable(function(x) { return getEqHashCode(x); },
+			     function(x, y) { return x === y; });
     };
 
 
@@ -570,14 +570,15 @@ if (! this['plt']) { this['plt'] = {}; }
         if (! cache) { 
      	    cache = makeLowLevelEqHash();
         }
-
+        if (x === null) {
+            return "null";
+        }
         if (typeof(x) === 'object') {
 	    if (cache.containsKey(x)) {
 		return "...";
 	    }
         }
-
-        if (x == undefined || x == null) {
+        if (x == undefined) {
 	    return "#<undefined>";
         }
         if (typeof(x) == 'string') {
@@ -606,12 +607,14 @@ if (! this['plt']) { this['plt'] = {}; }
         if (! cache) {
     	    cache = makeLowLevelEqHash();
         }
+        if (x === null) {
+            return "null";
+        }
         if (typeof(x) === 'object') {
 	    if (cache.containsKey(x)) {
 		return "...";
 	    }
         }
-
         if (x == undefined || x == null) {
 	    return "#<undefined>";
         }
@@ -635,24 +638,74 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
-    // toDomNode: scheme-value -> dom-node
-    var toDomNode = function(x, cache) {
-        if (! cache) {
-    	    cache = makeLowLevelEqHash();
+
+
+    var ToDomNodeParameters = function(params) {
+        if (! params) { params = {}; }
+        this.cache = makeLowLevelEqHash();
+        for (var k in params) {
+            if (params.hasOwnProperty(k)) {
+                this[k] = params[k];
+            }
         }
+        this.objectCounter = 0;
+    };
+
+    // getMode: -> (U "print" "display" "write")
+    ToDomNodeParameters.prototype.getMode = function() {
+        if (this.mode) { 
+            return this.mode; 
+        }
+        return 'print';
+    };
+
+    ToDomNodeParameters.prototype.containsKey = function(x) {
+        return this.cache.containsKey(x);
+    };
+
+    ToDomNodeParameters.prototype.get = function(x) {
+        return this.cache.get(x);
+    };
+
+    ToDomNodeParameters.prototype.remove = function(x) {
+        return this.cache.remove(x);
+    };
+
+    ToDomNodeParameters.prototype.put = function(x) {
+        this.objectCounter++;
+        return this.cache.put(x, this.objectCounter);
+    };
+
+
+    // toDomNode: scheme-value -> dom-node
+    var toDomNode = function(x, params) {
+        if (params === 'write') {
+            params = new ToDomNodeParameters({'mode' : 'write'});
+        } else if (params === 'print') {
+            params = new ToDomNodeParameters({'mode' : 'print'});
+        } else if (params === 'display') {
+            params = new ToDomNodeParameters({'mode' : 'display'});
+        } else {
+            params = params || new ToDomNodeParameters({'mode' : 'display'});
+        } 
 
         if (jsnums.isSchemeNumber(x)) {
-	    return numberToDomNode(x);
+	    return numberToDomNode(x, params);
+        }
+        
+        if (x === null) {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode("null"));
+	    return node;
         }
 
         if (typeof(x) == 'object') {
-	    if (cache.containsKey(x)) {
+	    if (params.containsKey(x)) {
 		var node = document.createElement("span");
-		node.appendChild(document.createTextNode("..."));
+		node.appendChild(document.createTextNode("#" + params.get(x)));
 		return node;
 	    }
         }
-
         if (x == undefined || x == null) {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode("#<undefined>"));
@@ -661,11 +714,17 @@ if (! this['plt']) { this['plt'] = {}; }
 
         if (typeof(x) == 'string') {
 	    var wrapper = document.createElement("span");
-            wrapper.style["white-space"] = "pre";	
-	    var node = document.createTextNode(toWrittenString(x));
+            wrapper.style["white-space"] = "pre";
+	    var node;
+            if (params.getMode() === 'write' || params.getMode() === 'print') {
+                node = document.createTextNode(toWrittenString(x));
+            } else {
+                node = document.createTextNode(toDisplayedString(x));
+            }
 	    wrapper.appendChild(node);
 	    return wrapper;
         }
+
         if (typeof(x) != 'object' && typeof(x) != 'function') {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode(x.toString()));
@@ -676,22 +735,23 @@ if (! this['plt']) { this['plt'] = {}; }
         if (x.nodeType) {
 	    returnVal =  x;
         } else if (typeof(x.toDomNode) !== 'undefined') {
-	    returnVal =  x.toDomNode(cache);
-        } else if (typeof(x.toWrittenString) !== 'undefined') {
-	    
+	    returnVal =  x.toDomNode(params);
+        } else if (params.getMode() === 'write' && 
+                   typeof(x.toWrittenString) !== 'undefined') {
 	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toWrittenString(cache)));
+	    node.appendChild(document.createTextNode(x.toWrittenString(params)));
 	    returnVal =  node;
-        } else if (typeof(x.toDisplayedString) !== 'undefined') {
+        } else if (params.getMode() === 'display' &&
+                   typeof(x.toDisplayedString) !== 'undefined') {
 	    var node = document.createElement("span");
-	    node.appendChild(document.createTextNode(x.toDisplayedString(cache)));
+	    node.appendChild(document.createTextNode(x.toDisplayedString(params)));
 	    returnVal =  node;
         } else {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode(x.toString()));
 	    returnVal =  node;
         }
-        cache.remove(x);
+        params.remove(x);
         return returnVal;
     };
 
@@ -699,7 +759,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
     // numberToDomNode: jsnum -> dom
     // Given a jsnum, produces a dom-node representation.
-    var numberToDomNode = function(n) {
+    var numberToDomNode = function(n, params) {
         var node;
         if (jsnums.isExact(n)) {
 	    if (jsnums.isInteger(n)) {
@@ -726,20 +786,109 @@ if (! this['plt']) { this['plt'] = {}; }
 
     // rationalToDomNode: rational -> dom-node
     var rationalToDomNode = function(n) {
-        var node = document.createElement("span");
+        var repeatingDecimalNode = document.createElement("span");
         var chunks = jsnums.toRepeatingDecimal(jsnums.numerator(n),
-					       jsnums.denominator(n));
-        node.appendChild(document.createTextNode(chunks[0] + '.'))
-        node.appendChild(document.createTextNode(chunks[1]));
-        var overlineSpan = document.createElement("span");
-        overlineSpan.style.textDecoration = 'overline';
-        overlineSpan.appendChild(document.createTextNode(chunks[2]));
-        node.appendChild(overlineSpan);
-        return node;
+                                               jsnums.denominator(n),
+                                               {limit: 25});
+        repeatingDecimalNode.appendChild(document.createTextNode(chunks[0] + '.'))
+        repeatingDecimalNode.appendChild(document.createTextNode(chunks[1]));
+        if (chunks[2] === '...') {
+            repeatingDecimalNode.appendChild(
+                document.createTextNode(chunks[2]));
+        } else if (chunks[2] !== '0') {
+            var overlineSpan = document.createElement("span");
+            overlineSpan.style.textDecoration = 'overline';
+            overlineSpan.appendChild(document.createTextNode(chunks[2]));
+            repeatingDecimalNode.appendChild(overlineSpan);
+        }
+
+
+        var fractionalNode = document.createElement("span");
+        var numeratorNode = document.createElement("sup");
+        numeratorNode.appendChild(document.createTextNode(String(jsnums.numerator(n))));
+        var denominatorNode = document.createElement("sub");
+        denominatorNode.appendChild(document.createTextNode(String(jsnums.denominator(n))));
+        fractionalNode.appendChild(numeratorNode);
+        fractionalNode.appendChild(document.createTextNode("/"));
+        fractionalNode.appendChild(denominatorNode);
+
+        
+        var numberNode = document.createElement("span");
+        numberNode.appendChild(repeatingDecimalNode);
+        numberNode.appendChild(fractionalNode);
+        fractionalNode.style['display'] = 'none';
+
+        var showingRepeating = true;
+
+        numberNode.onclick = function(e) {
+            showingRepeating = !showingRepeating;
+            repeatingDecimalNode.style['display'] = 
+                (showingRepeating ? 'inline' : 'none')
+            fractionalNode.style['display'] = 
+                (!showingRepeating ? 'inline' : 'none')
+        };
+        numberNode.style['cursor'] = 'pointer';
+        return numberNode;
     }
 
 
 
+
+
+
+    var escapeString = function(s) {
+        return '"' + replaceUnprintableStringChars(s) + '"';
+    };
+
+    var replaceUnprintableStringChars = function(s) {
+	var ret = [];
+	for (var i = 0; i < s.length; i++) {
+	    var val = s.charCodeAt(i);
+	    switch(val) {
+	    case 7: ret.push('\\a'); break;
+	    case 8: ret.push('\\b'); break;
+	    case 9: ret.push('\\t'); break;
+	    case 10: ret.push('\\n'); break;
+	    case 11: ret.push('\\v'); break;
+	    case 12: ret.push('\\f'); break;
+	    case 13: ret.push('\\r'); break;
+	    case 34: ret.push('\\"'); break;
+	    case 92: ret.push('\\\\'); break;
+	    default: if (val >= 32 && val <= 126) {
+		ret.push( s.charAt(i) );
+	    }
+		else {
+		    var numStr = val.toString(16).toUpperCase();
+		    while (numStr.length < 4) {
+			numStr = '0' + numStr;
+		    }
+		    ret.push('\\u' + numStr);
+		}
+		break;
+	    }
+	}
+	return ret.join('');
+    };
+
+
+
+
+
+
+    // clone: object -> object
+    // Copies an object.  The new object should respond like the old
+    // object, including to things like instanceof
+    var clone = function(obj) {
+        var C = function() {}
+        C.prototype = obj;
+        var c = new C();
+        for (property in obj) {
+	    if (obj.hasOwnProperty(property)) {
+	        c[property] = obj[property];
+	    }
+        }
+        return c;
+    };
 
 
 
@@ -783,14 +932,15 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.makeLowLevelEqHash = makeLowLevelEqHash;
 
     helpers.heir = heir;
-
-
-
-
+    helpers.escapeString = escapeString;
     helpers.toWrittenString = toWrittenString;
     helpers.toDisplayedString = toDisplayedString;
-    helpers.toDomNode = toDomNode;
 
+
+    helpers.toDomNode = toDomNode;
+    helpers.ToDomNodeParameters = ToDomNodeParameters;
+
+    helpers.clone = clone;
 
 
     scope.link.announceReady('helpers');

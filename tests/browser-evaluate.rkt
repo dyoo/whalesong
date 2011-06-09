@@ -85,6 +85,7 @@
                [program (second javascript-compiler+program)])
 
          (with-handlers ([exn:fail? (lambda (exn)
+                                      (displayln exn)
                                       (let ([sentinel
                                              (format
                                               #<<EOF
@@ -220,7 +221,7 @@ var comet = function() {
                     }
                     var output = [];
                     var startTime, endTime;
-                    var params = { currentDisplayer: function(v) {
+                    var params = { currentDisplayer: function(MACHINE, v) {
                                                          $(document.body).append(v);
                                                          output.push($(v).text()); } };
 
@@ -236,7 +237,7 @@ var comet = function() {
                     var onFail = function(machine, e) {
                         endTime = new Date();
                         sendRequest("/eval", function(req) { setTimeout(comet, 0); },
-                            "e=" + encodeURIComponent(String(e)) +
+                            "e=" + encodeURIComponent(String(e.stack || e)) +
                             "&t=" + encodeURIComponent(String(endTime - startTime)));
                     };
                     startTime = new Date();

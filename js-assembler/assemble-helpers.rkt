@@ -101,13 +101,13 @@
         (cond [(symbol? val)
                (format "~s" (symbol->string val))]
               [(pair? val)
-               (format "[~a, ~a]" 
+               (format "RUNTIME.makePair(~a, ~a)" 
                        (loop (car val))
                        (loop (cdr val)))]
               [(boolean? val)
                (if val "true" "false")]
               [(void? val)
-               "null"]
+               "RUNTIME.VOID"]
               [(empty? val)
                (format "RUNTIME.NULL")]
               [(number? val)
@@ -122,7 +122,7 @@
       [(empty? vals)
        "RUNTIME.NULL"]
       [else
-       (format "[~a, ~a]" (first vals) (loop (rest vals)))])))
+       (format "RUNTIME.makePair(~a, ~a)" (first vals) (loop (rest vals)))])))
 
 
 

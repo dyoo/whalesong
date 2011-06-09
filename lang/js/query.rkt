@@ -9,7 +9,8 @@
                   [has-javascript-implementation? (module-path? . -> . boolean?)]
                   
                   [redirected? (path? . -> . boolean?)]
-                  [follow-redirection (path? . -> . path?)])
+                  [follow-redirection (path? . -> . path?)]
+                  [collect-redirections-to (path? . -> . (listof path?))])
 
 (define-runtime-path record.rkt "record.rkt")
 (define ns (make-base-empty-namespace))
@@ -49,3 +50,12 @@
       ((dynamic-require-for-syntax record.rkt 'follow-redirection)
        resolved-path))))
 
+
+
+;; collect-redirections-to: module-path -> (listof path)
+(define (collect-redirections-to a-module-path)
+  (let ([resolved-path (resolve-module-path a-module-path #f)])
+    (parameterize ([current-namespace ns])
+      (dynamic-require a-module-path (void)) ;; get the compile-time code running.
+      ((dynamic-require-for-syntax record.rkt 'collect-redirections-to)
+       resolved-path))))

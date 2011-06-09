@@ -3,6 +3,7 @@ Whalesong: a compiler from Racket to JavaScript.
 
 Danny Yoo (dyoo@cs.wpi.edu)
 
+
 ======================================================================
 
 
@@ -16,9 +17,25 @@ amount of time.
 
 Example usage
 
-[FIXME]
 
 
+Create a simple, standalong executable of your program.  At the
+moment, the program must be written in the base language of whalesong.
+(This restriction currently prevents arbitrary racket/base programs
+from compiling, and we'll be working to remove this restriction.)
+
+    $ cat hello.rkt 
+    #lang planet dyoo/whalesong
+    (display "hello world")
+    (newline)
+
+    $ ./whalesong.rkt build hello.rkt
+
+    $ ls -l hello.xhtml
+    -rw-rw-r-- 1 dyoo nogroup 692213 Jun  7 18:00 hello.xhtml
+
+
+[FIXME: add more examples]
 
 
 ======================================================================

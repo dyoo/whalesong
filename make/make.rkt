@@ -1,22 +1,22 @@
 #lang typed/racket/base
 
-(require "compiler/compiler.rkt"
-         "compiler/il-structs.rkt"
-         "compiler/lexical-structs.rkt"
-         "compiler/compiler-structs.rkt"
-         "compiler/expression-structs.rkt"
+(require "../compiler/compiler.rkt"
+         "../compiler/il-structs.rkt"
+         "../compiler/lexical-structs.rkt"
+         "../compiler/compiler-structs.rkt"
+         "../compiler/expression-structs.rkt"
+         "../parameters.rkt"
+         "../sets.rkt"
          "get-dependencies.rkt"
-         "parameters.rkt"
-         "sets.rkt"
          "make-structs.rkt"
          racket/list
          racket/match)
 
 
-(require/typed "parser/parse-bytecode.rkt"
+(require/typed "../parser/parse-bytecode.rkt"
                [parse-bytecode (Any -> Expression)])
 
-(require/typed "get-module-bytecode.rkt"
+(require/typed "../get-module-bytecode.rkt"
                [get-module-bytecode ((U String Path Input-Port) -> Bytes)])
 
 
@@ -41,6 +41,9 @@
    [(StatementsSource? a-source)
     (values #f (StatementsSource-stmts a-source))]
 
+   [(UninterpretedSource? a-source)
+    (values #f '())]
+   
    [(MainModuleSource? a-source)
     (let-values ([(ast stmts)
                   (get-ast-and-statements (MainModuleSource-source a-source))])
@@ -82,6 +85,7 @@
                                   (and path (? ModuleLocator?))
                                   prefix
                                   requires
+                                  provides
                                   code))))
      path]
     [else
@@ -96,7 +100,8 @@
                   ((inst new-seteq Symbol))])
 
     (match config
-      [(struct Configuration (should-follow?
+      [(struct Configuration (wrap-source
+                              should-follow-children?
                               on-module-statements
                               after-module-statements
                               after-last))
@@ -112,20 +117,19 @@
            (cond
             [(eq? ast #f)
              empty]
+            [(not (should-follow-children? this-source))
+             empty]
             [else
              (let* ([dependent-module-names (get-dependencies ast)]
                     [paths
                      (foldl (lambda: ([mp : ModuleLocator]
                                       [acc : (Listof Source)])
                                      (let ([rp [ModuleLocator-real-path mp]])
-                                       
                                        (cond [((current-kernel-module-locator?)
                                                mp)
                                               acc]
-                                             [(and (path? rp)
-                                                   (should-follow? this-source rp)
-                                                   (cons (make-ModuleSource rp)
-                                                         acc))]
+                                             [(path? rp)
+                                              (cons (make-ModuleSource rp) acc)]
                                              [else
                                               acc])))
                             '()
@@ -146,9 +150,8 @@
                            [(ast stmts)
                             (get-ast-and-statements this-source)])
                (on-module-statements this-source ast stmts)
-               (loop (append (collect-new-dependencies this-source ast)
+               (loop (append (map wrap-source (collect-new-dependencies this-source ast))
                              (rest sources)))
                (after-module-statements this-source ast stmts))])))
 
-       (follow-dependencies sources)])))
-
+       (follow-dependencies (map wrap-source sources))])))

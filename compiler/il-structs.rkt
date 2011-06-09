@@ -334,10 +334,10 @@
   #:transparent)
 
 ;; Check the closure procedure value in 'proc and make sure it can accept the
-;; # of arguments (stored as a number in the val register.).
-(define-struct: CheckClosureArity! ([arity : OpArg])
+;; # of arguments (stored as a number in the argcount register.).
+(define-struct: CheckClosureArity! ([num-args : OpArg])
   #:transparent)
-(define-struct: CheckPrimitiveArity! ([arity : OpArg])
+(define-struct: CheckPrimitiveArity! ([num-args : OpArg])
   #:transparent)
 
 

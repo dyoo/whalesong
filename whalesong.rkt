@@ -3,7 +3,7 @@
 
 (require racket/list
          racket/string
-         "make-structs.rkt"
+         "make/make-structs.rkt"
          "js-assembler/package.rkt")
 
 

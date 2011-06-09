@@ -5,6 +5,7 @@
          "../make/make.rkt"
          "../make/make-structs.rkt"
          "../parameters.rkt"
+         "../lang/js/query.rkt"
          (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
@@ -38,6 +39,19 @@
 
 
 
+;; source-is-javascript-module?: Source -> (or Source #f)
+(define (source-is-javascript-module? src)
+  (cond
+   [(StatementsSource? src)
+    src]
+   [(MainModuleSource? src)
+    src]
+   [(ModuleSource? src)
+    src]
+   [(SexpSource? src)
+    src]
+   [(UninterpretedSource? src)
+    src]))
 
 
 
@@ -59,15 +73,32 @@
   ;; wrap-source: source -> source
   (define (wrap-source src)
     (printf "adding ~s\n" src)
-    src)
+    (cond
+     [(source-is-javascript-module? src)
+      =>
+      (lambda (wrapped-src)
+        wrapped-src)]
+     [else
+      src]))
 
+  
   (define (on-visit-src src ast stmts)
-    (assemble/write-invoke stmts op)
-    (fprintf op "(MACHINE, function() { "))
+    (cond
+     [(UninterpretedSource? src)
+      ;; FIXME
+      (void)]
+     [else
+      (assemble/write-invoke stmts op)
+      (fprintf op "(MACHINE, function() { ")]))
 
 
   (define (after-visit-src src ast stmts)
-    (fprintf op " }, FAIL, PARAMS);"))
+    (cond
+     [(UninterpretedSource? src)
+      ;; FIXME
+      (void)]
+     [else
+      (fprintf op " }, FAIL, PARAMS);")]))
 
 
   (define (on-last-src)

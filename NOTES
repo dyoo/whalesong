@@ -739,3 +739,8 @@ I should add the functions:
     get-viewport-height
    
 Other notes from Shriram: too slow, inconsistent positioning from jsworld.
+
+
+----------------------------------------------------------------------
+
+Added base as the default planet language.

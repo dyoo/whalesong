@@ -17,8 +17,6 @@ amount of time.
 
 Example usage
 
-[TODO: make this a reality...  The lang line would preferably be
-    #lang planet dyoo/whalesong]
 
 
 Create a simple, standalong executable of your program.  At the
@@ -27,7 +25,7 @@ moment, the program must be written in the base language of whalesong.
 from compiling, and we'll be working to remove this restriction.)
 
     $ cat hello.rkt 
-    #lang s-exp "lang/base.rkt"
+    #lang planet dyoo/whalesong
     (display "hello world")
     (newline)
 

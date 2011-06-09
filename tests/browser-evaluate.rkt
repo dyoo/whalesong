@@ -85,6 +85,7 @@
                [program (second javascript-compiler+program)])
 
          (with-handlers ([exn:fail? (lambda (exn)
+                                      (displayln exn)
                                       (let ([sentinel
                                              (format
                                               #<<EOF

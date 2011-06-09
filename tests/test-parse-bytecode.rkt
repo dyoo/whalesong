@@ -343,6 +343,7 @@
                                  (? ModuleLocator?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
+                                 _  ;; provides
                                  (struct Splice ((list (struct ApplyValues 
                                                          ((struct ToplevelRef ('0 '0)) (struct Constant ('42)))))))))))
     #t]))
@@ -357,6 +358,7 @@
                                  (? ModuleLocator?)
                                  (? Prefix?) ;; the prefix will include a reference to print-values.
                                  _  ;; requires
+                                 _  ;; provides
                                  (struct Splice ((list (struct DefValues 
                                                          ((list (struct ToplevelRef ('0 '0)))
                                                           (struct Constant ("x")))))))))))
@@ -420,6 +422,7 @@
                                    (struct Prefix (list))
                                    (list (struct ModuleLocator ('collects/racket/base.rkt
                                                              _)))
+                                   _  ;; provides
                                    (struct Splice ('()))))))
       #t]
      [else
@@ -437,6 +440,7 @@
                                  (struct ModuleLocator ('self _ #;(build-path "root/foo/bar.rkt")))
                                  (struct Prefix ((list 'f)))
                                  (list (struct ModuleLocator ('#%kernel '#%kernel)))
+                                 _
                                  (struct Splice ((list (struct DefValues ((list (struct ToplevelRef (0 0)))
                                                                           (struct Constant ('ok)))))))))))
     '#t]))

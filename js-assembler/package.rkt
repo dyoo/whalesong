@@ -5,7 +5,9 @@
          "../make/make.rkt"
          "../make/make-structs.rkt"
          "../parameters.rkt"
-         "../lang/js/query.rkt"
+         "../parser/path-rewriter.rkt"
+         racket/match
+         (prefix-in query: "../lang/js/query.rkt")
          (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
@@ -21,6 +23,23 @@
          write-standalone-code
          get-runtime
          write-runtime)
+
+
+
+;; notify: string (listof any)* -> void
+;; Print out log message during the build process.
+(define (notify msg . args)
+  (displayln (apply format msg args)))
+
+
+
+
+
+(define-struct js-impl (name ;; symbol
+                        real-path ;; path
+                        src ;; string
+                        )
+  #:transparent)
 
 
 ;; Packager: produce single .js files to be included to execute a
@@ -39,19 +58,53 @@
 
 
 
-;; source-is-javascript-module?: Source -> (or Source #f)
+;; source-is-javascript-module?: Source -> boolean
+;; Returns true if the source looks like a Javascript-implemented module.
 (define (source-is-javascript-module? src)
   (cond
    [(StatementsSource? src)
-    src]
+    #f]
    [(MainModuleSource? src)
-    src]
+    (source-is-javascript-module? (MainModuleSource-source src))]
    [(ModuleSource? src)
-    src]
+    (query:has-javascript-implementation? `(file ,(path->string (ModuleSource-path src))))]
    [(SexpSource? src)
-    src]
+    #f]
    [(UninterpretedSource? src)
-    src]))
+    #f]))
+
+
+;; get-javascript-implementation: source -> UninterpretedSource
+(define (get-javascript-implementation src)
+  (cond
+   [(StatementsSource? src)
+    (error 'get-javascript-implementation src)]
+   [(MainModuleSource? src)
+    (get-javascript-implementation (MainModuleSource-source src))]
+   [(ModuleSource? src)
+    (let ([name (rewrite-path (ModuleSource-path src))]
+          [text (query:query `(file ,(path->string (ModuleSource-path src))))])
+      (make-UninterpretedSource
+       (format "
+MACHINE.modules[~s] =
+    new plt.runtime.ModuleRecord(~s,
+        function(MACHINE) {
+           if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
+           MACHINE.modules[~s].isInvoked = true;
+           (function(MACHINE, EXPORTS){~a})(MACHINE, MACHINE.modules[~s].namespace);
+           return MACHINE.control.pop().label(MACHINE);
+        });
+"
+                  (symbol->string name)
+                  (symbol->string name)
+                  (symbol->string name)
+                  text
+                  (symbol->string name))))]
+   [(SexpSource? src)
+    (error 'get-javascript-implementation)]
+   [(UninterpretedSource? src)
+    (error 'get-javascript-implementation)]))
+
 
 
 
@@ -69,15 +122,17 @@
 (define (package source-code
                  #:should-follow-children? should-follow?
                  #:output-port op)  
+
   
   ;; wrap-source: source -> source
+  ;; Translate all JavaScript-implemented sources into uninterpreted sources;
+  ;; we'll leave its interpretation to on-visit-src.
   (define (wrap-source src)
-    (printf "adding ~s\n" src)
     (cond
      [(source-is-javascript-module? src)
-      =>
-      (lambda (wrapped-src)
-        wrapped-src)]
+      (notify "the module ~s has a javascript implementation.\n"
+              src)
+      (get-javascript-implementation src)]
      [else
       src]))
 
@@ -85,8 +140,7 @@
   (define (on-visit-src src ast stmts)
     (cond
      [(UninterpretedSource? src)
-      ;; FIXME
-      (void)]
+      (fprintf op (UninterpretedSource-datum src))]
      [else
       (assemble/write-invoke stmts op)
       (fprintf op "(MACHINE, function() { ")]))
@@ -95,7 +149,6 @@
   (define (after-visit-src src ast stmts)
     (cond
      [(UninterpretedSource? src)
-      ;; FIXME
       (void)]
      [else
       (fprintf op " }, FAIL, PARAMS);")]))

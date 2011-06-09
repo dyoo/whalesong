@@ -202,4 +202,4 @@ colorDb.put("DIMGRAY", types.color(105, 105, 105));
 colorDb.put("BLACK", types.color(0, 0, 0));
 
 
-EXPORTS['colorDb'] = colorDb;
+EXPORTS['_colorDb'] = colorDb;

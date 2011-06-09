@@ -25,7 +25,7 @@
   #:transparent)
 (define-struct: SexpSource ([sexp : Any])
   #:transparent)
-(define-struct: UninterpretedSource ([datum : Any])
+(define-struct: UninterpretedSource ([datum : String])
   #:transparent)
 
 

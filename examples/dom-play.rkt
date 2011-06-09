@@ -16,7 +16,7 @@
 (insert-break)
 (void (call body "append" "hello, this is a test"))
 (insert-break)
-(void (call body "css" "background-color" "green"))
+(void (call body "css" "background-color" "lightgreen"))
 
 
 

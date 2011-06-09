@@ -14,7 +14,7 @@
                        MainModuleSource
                        ModuleSource
                        SexpSource
-                       ;UninterpretedSource
+                       UninterpretedSource
                        ))
 
 (define-struct: StatementsSource ([stmts : (Listof Statement)])
@@ -25,8 +25,8 @@
   #:transparent)
 (define-struct: SexpSource ([sexp : Any])
   #:transparent)
-;;(define-struct: UninterpretedSource ([datum : Any])
-;;  #:transparent)
+(define-struct: UninterpretedSource ([datum : Any])
+  #:transparent)
 
 
 

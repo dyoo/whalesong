@@ -38,8 +38,7 @@
 
 
 
-(define (wrap-source src)
-  src)
+
 
 
 ;; package: Source (path -> boolean) output-port -> void
@@ -56,6 +55,25 @@
 (define (package source-code
                  #:should-follow-children? should-follow?
                  #:output-port op)  
+  
+  ;; wrap-source: source -> source
+  (define (wrap-source src)
+    (printf "adding ~s\n" src)
+    src)
+
+  (define (on-visit-src src ast stmts)
+    (assemble/write-invoke stmts op)
+    (fprintf op "(MACHINE, function() { "))
+
+
+  (define (after-visit-src src ast stmts)
+    (fprintf op " }, FAIL, PARAMS);"))
+
+
+  (define (on-last-src)
+    (fprintf op "SUCCESS();"))
+  
+
   (define packaging-configuration
     (make-Configuration
      wrap-source
@@ -63,17 +81,13 @@
      should-follow?
 
      ;; on
-     (lambda (src ast stmts)
-       (assemble/write-invoke stmts op)
-       (fprintf op "(MACHINE, function() { "))
+     on-visit-src
 
      ;; after
-     (lambda (src ast stmts)
-       (fprintf op " }, FAIL, PARAMS);"))
-
+     after-visit-src
+     
      ;; last
-     (lambda ()
-       (fprintf op "SUCCESS();"))))
+     on-last-src))
 
   
     (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
@@ -97,6 +111,8 @@
 
 ;; write-runtime: output-port -> void
 (define (write-runtime op)
+  
+  (define (wrap-source src) src)
   (let ([packaging-configuration
          (make-Configuration
 

@@ -41,8 +41,8 @@
    [(StatementsSource? a-source)
     (values #f (StatementsSource-stmts a-source))]
 
-   ;;[(UninterpretedSource? a-source)
-   ;; (values #f '())]
+   [(UninterpretedSource? a-source)
+    (values #f '())]
    
    [(MainModuleSource? a-source)
     (let-values ([(ast stmts)
@@ -116,11 +116,9 @@
            (cond
             [(eq? ast #f)
              empty]
-            ;;[(not (should-follow-children? this-source))
-            ;; empty]
+            [(not (should-follow-children? this-source))
+             empty]
             [else
-             ;; FIXME: the logic here is wrong.
-             ;; Needs to check should-follow-children before continuing here.
              (let* ([dependent-module-names (get-dependencies ast)]
                     [paths
                      (foldl (lambda: ([mp : ModuleLocator]
@@ -144,7 +142,6 @@
             [(hash-has-key? visited (first sources))
              (loop (rest sources))]
             [else
-             (printf "visiting\n")
              (hash-set! visited (first sources) #t)
              (let*-values ([(this-source)
                              ((current-module-source-compiling-hook)
@@ -152,11 +149,8 @@
                            [(ast stmts)
                             (get-ast-and-statements this-source)])
                (on-module-statements this-source ast stmts)
-               (loop (append (collect-new-dependencies this-source ast) ;; (map wrap-source )
+               (loop (append (map wrap-source (collect-new-dependencies this-source ast))
                              (rest sources)))
                (after-module-statements this-source ast stmts))])))
 
-       (follow-dependencies sources ;;(map wrap-source sources)
-                            )]))
-  (printf "done\n"))
-
+       (follow-dependencies (map wrap-source sources))])))

@@ -115,7 +115,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			MACHINE.params.currentOutputPort;
 		    if (elt !== VOID) {
 			outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
-			outputPort.writeDomNode(MACHINE, toDomNode("\n", 'print'));
+			outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
 		    }
 		    var frame = MACHINE.control.pop();
 		    return frame.label(MACHINE);

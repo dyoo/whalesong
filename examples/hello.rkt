@@ -1,4 +1,4 @@
-#lang s-exp "../lang/base.rkt"
+#lang planet dyoo/whalesong
 
-(display "hello world\n")
+(display "hello world")
 (newline)

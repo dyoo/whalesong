@@ -9,17 +9,29 @@
   (void))
 
 
-(void (call ($ "<h1>Hello world</h1>") "appendTo" body))
+(define (write-message msg)
+  (void (call (call (call ($ "<span/>") "text" msg)
+                    "css" "white-space" "pre")
+              "appendTo"
+              body)))
 
 
-(void (call body "append" "hello, this is a test"))
-(insert-break)
-(void (call body "append" "hello, this is a test"))
-(insert-break)
+
+;; Set the background green.
 (void (call body "css" "background-color" "lightgreen"))
+(void (call ($ "<h1>Hello World</h1>") "appendTo" body))
+(write-message "Hello, this is a test!")
+(insert-break)
+(let loop ([i 0])
+  (cond
+   [(= i 10)
+    (void)]
+   [else
+    (write-message "iteration ") (write-message i)
+    (insert-break)
+    (loop (add1 i))]))
 
-
-
-(void (call ($ "<span>This is another thing that has been added.</span>")
-            "appendTo"
-            body))
+(write-message "viewport-width: ") (write-message (viewport-width))
+(insert-break)
+(write-message "viewport-height: ") (write-message (viewport-height))
+(insert-break)

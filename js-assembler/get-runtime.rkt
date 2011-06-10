@@ -31,9 +31,15 @@
 (define-runtime-path hashtable.js "runtime-src/jshashtable-2.1_src.js")
 (define-runtime-path jsnums.js "runtime-src/js-numbers.js")
 (define-runtime-path link.js "runtime-src/link.js")
+
+;; from js-vm
 (define-runtime-path helpers.js "runtime-src/helpers.js")
+;; from js-vm
 (define-runtime-path types.js "runtime-src/types.js")
-(define-runtime-path primitives.js "runtime-src/primitives.js")
+;; These primitives were coded for the js-vm project, and we'll gradually
+;; absorb them in.
+(define-runtime-path js-vm-primitives.js "runtime-src/js-vm-primitives.js")
+
 (define-runtime-path runtime.js "runtime-src/runtime.js")
 
 
@@ -46,7 +52,7 @@
                     link.js
                     helpers.js
                     types.js
-                    primitives.js
+                    js-vm-primitives.js
                     runtime.js))
 
 

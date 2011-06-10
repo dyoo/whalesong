@@ -1,4 +1,4 @@
-#lang s-exp "../../lang/base.rkt"
+#lang planet dyoo/whalesong
 
 
 (provide test test-values Section record-error arity-test err/rt-test disable

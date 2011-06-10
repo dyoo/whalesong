@@ -5,26 +5,33 @@ What is Whalesong?
 
 Why would anyone care?
 
-    Because it allows Racket programs to be deployed on the web.
-    Furthermore, Racket programs can access native JavaScript APIs.
+    * Because it allows Racket programs to be deployed on the web.
+
+    * Furthermore, Racket programs can access native JavaScript APIs.
+
+    * Because my previous attempt at this produced a slower evaluator;
+    this is much faster.
 
 
 What do you want to show?
 
-    I want to show the tool in action, programs that use it, and some
-    of the internals of how it works.
+    I want to show the tool in action, programs that use it
+       - like World programming, FFI
 
-    I want to show uses of the FFI.
+    I want to show performance numbers (which means benchmarks...)
 
-    As well as World programming.
-
-    I also want to show performance numbers (which means benchmarks...)
+    I also want to show some of the internals, to show why the
+    JavaScript context makes things more complicated.
 
 
 How do you use it?
 
     I have a command line tool that consumes Racket programs and
     produces standalone JavaScript applications.
+
+    I'll be using this as the underlying evaluator for WeScheme
+
+       Why?  Performance.
 
 
 What were the technical advantages of your approach?

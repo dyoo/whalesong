@@ -1,0 +1,35 @@
+mcons, mcar, mcdr, set-mcar!, set-mcdr!
+
+make-weak-box, weak-box-value, weak-box?
+
+hash-eq? hash-count
+make-immutable-hasheq, make-immutable-hash
+make-hasheqv
+make-weak-hasheq, make-weak-hash, make-weak-hasheqv
+
+parameterize
+read-case-sensitive
+
+keywords: keyword? string->keyword keyword->string
+
+eq-hash-code
+
+string-copy!
+
+exn:fail:out-of-memory?
+
+regular expressions: regexp-match, regexp-match-positions, ...
+
+call-with-escape-continuation, dynamic-wind, let/ec, call/ec
+
+call-with-exception-handler, uncaught-exception-handler
+
+normalize-arity
+
+read
+
+make-placeholder
+
+version, banner, system-type, current-command-line-arguments, system-library-subpath, current-output-port
+
+eval, eval-jit-enabled

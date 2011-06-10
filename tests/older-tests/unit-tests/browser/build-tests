@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd `dirname $0`
+
+../../../lib/build-test browser run-tests.js
+cat ../tests.js >> run-tests.js

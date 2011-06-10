@@ -1,0 +1,36 @@
+#!/bin/bash
+
+cd `dirname $0`
+
+if [ -z $1 ] || [ $1 == 'unit' ]
+    then
+	srcFile='tests.js'
+	target='exec-tests.js'
+    else if [ $1 == 'struct' ]
+	then
+	    srcFile='struct-tests.js'
+	    target='exec-struct-tests.js'
+	else
+	    echo $1 'is not a valid type of test'
+	    exit
+    fi
+fi
+
+#if [ -f $target ]
+#    then
+#	echo "File exec-tests.js already exists."
+#	echo "Please remove" $target "or use a different file."
+#	exit
+#fi
+
+rm -f $target
+
+echo 'Building support files'
+echo
+../../private/lib/build-test node $target
+echo
+
+#cat imports.js >> $target
+cat $srcFile >> $target
+node $target
+#rm -f $target

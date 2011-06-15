@@ -4,8 +4,12 @@
           planet/resolver
           scribble/eval
           racket/sandbox
-          (for-label racket/base))
+          (for-label racket/base)
+          racket/runtime-path
+          
+          "../js-assembler/get-js-vm-implemented-primitives.rkt")
 
+@(define-runtime-path whalesong-path "..")
 
 
 @;; I may need an evaluator for some small examples.
@@ -228,12 +232,15 @@ commands to do something interesting...)
 @section{Internals}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-Skip this section if you're a regular user: this is really notes internal
-to Whalesong development.
+Please skip this section if you're a regular user: this is really
+notes internal to Whalesong development, and is not relevant to most
+people.
 
-(This section should describe the internal details of the runtime,
-including the type map from Racket values to JavaScript values.  It
-should also describe how to write FFI bindings.)
+
+These are notes that describe the internal details of the
+implementation, including the type map from Racket values to
+JavaScript values.  It should also describe how to write FFI
+bindings, eventually.
 
 @subsection{Architecture}
 
@@ -246,15 +253,15 @@ compile that to an
 intermediate language, and finally assemble JavaScript.
 
 @verbatim|{
-                        AST          IL                     JS
- parse-bytecode.rkt ----------> compiler.rkt --------> assembler.rkt ------->
-    (todo)
+                     AST                 IL                 
+ parse-bytecode.rkt -----> compiler.rkt ----> assembler.rkt 
+
 }|
 
 The IL is intended to be translated straightforwardly.  We currently
-have an assembler to JavaScript, as well as a simulator
-in @filepath{simulator.rkt}.  The simulator allows us to test the compiler in a
-controlled environment.
+have an assembler to JavaScript @filepath{js-assembler/assemble.rkt},
+as well as a simulator in @filepath{simulator/simulator.rkt}.  The
+simulator allows us to test the compiler in a controlled environment.
 
 
 @subsection{parser/parse-bytecode.rkt}
@@ -275,7 +282,7 @@ we don't need any of the register-saving infrastructure in the
 original compiler.  We also need to support slightly different linkage
 structures, since we want to support multiple value contexts.  We're
 trying to generate code that works effectively on a machine like the
-one described in \url{http://plt.eecs.northwestern.edu/racket-machine/}.
+one described in @url{http://plt.eecs.northwestern.edu/racket-machine/}.
 
 
 The intermediate language is defined in @filepath{il-structs.rkt}, and a
@@ -313,7 +320,7 @@ calls work:
 
            @item{ The head of each basic-blocked function checks to see if we
      should trampoline
-     (http://en.wikipedia.org/wiki/Trampoline_(computers))}
+     (@url{http://en.wikipedia.org/wiki/Trampoline_(computers)})}
 
            @item{We support a limited form of computed jump by assigning an
      attribute to the function corresponding to a return point.  See
@@ -350,10 +357,54 @@ browser for testing output.
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-@section{Incomplete features}
+@subsection{Incomplete features}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (This section should describe what needs to get done next.)
+
+The only types that are mapped so far are
+@itemlist[
+@item{immutable strings}
+@item{numbers}
+@item{pairs}
+@item{null}
+@item{void}
+@item{vectors}
+]
+We need to bring around the following types previously defined in @tt{js-vm}:
+(This list will shrink as I get to the work!)
+@itemlist[
+@item{immutable vectors}
+@item{regexp}
+@item{byteRegexp}
+@item{character}
+@item{box}
+@item{placeholder}
+@item{path}
+@item{bytes}
+@item{immutable bytes}
+@item{keywords}
+@item{hash}
+@item{hasheq}
+@item{color}
+@item{structs}
+@item{struct types}
+@item{exceptions}
+@item{thread cells}
+
+@item{big bang info}
+@item{worldConfig}
+@item{effectType}
+@item{renderEffectType}
+@item{readerGraph}
+]
+
+What are the list of primitives in @filepath{js-vm-primitives.js}?  They are:
+@(apply itemlist (map (lambda (name)
+                        (item (symbol->string name)))
+                      js-vm-primitive-names))
+
+
 
 (I should catalog the bug list in GitHub, as well as the feature list,
 so I have a better idea of what's needed to complete the project.)

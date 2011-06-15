@@ -2,6 +2,9 @@
 # 	raco make -v --disable-inline test-analyzer.rkt
 # 	racket test-analyzer.rkt
 
+launcher: whalesong
+	racket make-launcher.rkt
+
 whalesong:
 	raco make -v --disable-inline whalesong.rkt
 
@@ -32,3 +35,8 @@ test-conform:
 	raco make -v --disable-inline tests/test-conform.rkt
 	racket tests/test-conform.rkt
 
+
+
+
+doc:
+	scribble ++xref-in setup/xref load-collections-xref --redirect-main http://docs.racket-lang.org/ --dest generated-docs --dest-name index.html scribblings/manual.scrbl

@@ -7,6 +7,17 @@ Danny Yoo (dyoo@cs.wpi.edu)
 ======================================================================
 
 
+See:  http://hashcollision.org/whalesong/index.html for documentation.
+
+The rest of the content in this document will migrate there shortly.
+
+
+======================================================================
+
+
+
+
+
 Prerequisite: Racket 5.1.1.  The majority of the project is written
 Typed Racket, and I highly recommend you use a version of Racket
 that's at least 5.1.1; otherwise, compilation may take an unusual

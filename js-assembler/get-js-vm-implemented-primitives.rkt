@@ -8,7 +8,7 @@
 
 (define-runtime-path js-vm-primitives.js "runtime-src/js-vm-primitives.js")
 
-(define-runtime-path whalesong-primitives.js "runtime-src/primitives.js")
+(define-runtime-path whalesong-primitives.js "runtime-src/runtime.js")
 
 ;; sort&unique: (listof string) -> (listof string)
 (define (sort&unique names)

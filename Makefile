@@ -2,7 +2,8 @@
 # 	raco make -v --disable-inline test-analyzer.rkt
 # 	racket test-analyzer.rkt
 
-launcher: whalesong
+launcher: 
+	raco make -v --disable-inline whalesong.rkt
 	racket make-launcher.rkt
 
 whalesong:

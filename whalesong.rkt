@@ -27,30 +27,10 @@
 
 
 
-;; TODO: error trapping
-(define commands `((build 
-                    ,(lambda (args)
-                      (do-the-build args)))
-                   (get-runtime 
-                    ,(lambda (args)
-                      (print-the-runtime)))
-                   (get-javascript
-                    ,(lambda (args)
-                       (get-javascript-code (first args))))))
-
-
-;; listof string
-(define command-names (map (lambda (x) (symbol->string (car x)))
-                           commands))
-
-
-(define (print-expected-command)
-  (printf "Expected one of the following: [~a].\n"
-          (string-join command-names ", ")))
 
 (define (at-toplevel)
   (svn-style-command-line
-   #:program (short-program+command-name)
+   #:program "whalesong" #;(short-program+command-name)
    #:argv (current-command-line-arguments)
    "The Whalesong command-line tool for compiling Racket to JavaScript"
    ["build" "build a standalone xhtml package" 
@@ -64,20 +44,7 @@
    ["get-javascript" "Gets just the JavaScript code and prints it to standard output"
                      "Builds a racket program into JavaScript.  The outputted file depends on the runtime."
                      #:args (file)
-                     (get-javascript-code file)])
-  #;(define args (vector->list (current-command-line-arguments)))
-  #;(cond [(empty? args)
-         (print-expected-command)]
-        [else
-         (cond
-          [(assoc (string->symbol (first args))
-                  commands)
-           =>
-           (lambda (p)
-             ((cadr p) (rest args)))]
-          [else
-           (printf "Unknown command ~s.\n" (first args))
-           (print-expected-command)])]))
+                     (get-javascript-code file)]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

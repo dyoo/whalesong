@@ -1,8 +1,10 @@
 #lang racket/base
 
 
-;; copy of launcher/launcher since it has a bug.  I'll send a bug patch
-;; upstream.
+;; copy of launcher/launcher since it has a bug in 5.1.1.
+;; The bug's fixed in later versions of Racket, but my local machine still
+;; has 5.1.1.  As soon as I switch over, this module will lose
+;; its meaning.
 
 
 (require scheme/path

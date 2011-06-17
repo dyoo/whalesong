@@ -102,7 +102,7 @@ if (! this['plt']) { this['plt'] = {}; }
 	return '#<struct-type:' + this.name + '>';
     };
 
-    StructType.prototype.isEqual = function(other, aUnionFind) {
+    StructType.prototype.equals = function(other, aUnionFind) {
 	return this === other;
     };
 
@@ -209,7 +209,7 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
-    Struct.prototype.isEqual = function(other, aUnionFind) {
+    Struct.prototype.equals = function(other, aUnionFind) {
 	if ( other.type == undefined ||
 	     this.type !== other.type ||
 	     !(other instanceof this.type) ) {
@@ -217,7 +217,7 @@ if (! this['plt']) { this['plt'] = {}; }
 	}
 
 	for (var i = 0; i < this._fields.length; i++) {
-	    if (! isEqual(this._fields[i],
+	    if (! equals(this._fields[i],
 			  other._fields[i],
 			  aUnionFind)) {
 		return false;
@@ -318,7 +318,7 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
-    Bytes.prototype.isEqual = function(other) {
+    Bytes.prototype.equals = function(other) {
         if (! (other instanceof Bytes)) {
 	    return false;
         }
@@ -424,9 +424,9 @@ if (! this['plt']) { this['plt'] = {}; }
         return parent;
     };
 
-    Box.prototype.isEqual = function(other, aUnionFind) {
+    Box.prototype.equals = function(other, aUnionFind) {
         return ((other instanceof Box) &&
-	        isEqual(this.val, other.val, aUnionFind));
+	        equals(this.val, other.val, aUnionFind));
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -463,9 +463,9 @@ if (! this['plt']) { this['plt'] = {}; }
         return parent;
     };
 
-    Placeholder.prototype.isEqual = function(other, aUnionFind) {
+    Placeholder.prototype.equals = function(other, aUnionFind) {
         return ((other instanceof Placeholder) &&
-	        isEqual(this.val, other.val, aUnionFind));
+	        equals(this.val, other.val, aUnionFind));
     };
 
 
@@ -540,7 +540,7 @@ if (! this['plt']) { this['plt'] = {}; }
         return this.val;
     };
 
-    Char.prototype.isEqual = function(other, aUnionFind){
+    Char.prototype.equals = function(other, aUnionFind){
         return other instanceof Char && this.val == other.val;
     };
 
@@ -565,7 +565,7 @@ if (! this['plt']) { this['plt'] = {}; }
         return symbolCache[val];
     };
     
-    Symbol.prototype.isEqual = function(other, aUnionFind) {
+    Symbol.prototype.equals = function(other, aUnionFind) {
         return other instanceof Symbol &&
             this.val == other.val;
     };
@@ -603,7 +603,7 @@ if (! this['plt']) { this['plt'] = {}; }
         return keywordCache[val];
     };
     
-    Keyword.prototype.isEqual = function(other, aUnionFind) {
+    Keyword.prototype.equals = function(other, aUnionFind) {
         return other instanceof Keyword &&
             this.val == other.val;
     };
@@ -633,7 +633,7 @@ if (! this['plt']) { this['plt'] = {}; }
     Empty.EMPTY = new Empty();
 
 
-    Empty.prototype.isEqual = function(other, aUnionFind) {
+    Empty.prototype.equals = function(other, aUnionFind) {
         return other instanceof Empty;
     };
 
@@ -694,12 +694,12 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
     // FIXME: can we reduce the recursion on this?
-    Cons.prototype.isEqual = function(other, aUnionFind) {
+    Cons.prototype.equals = function(other, aUnionFind) {
         if (! (other instanceof Cons)) {
 	    return false;
         }
-        return (isEqual(this.first, other.first, aUnionFind) &&
-	        isEqual(this.rest, other.rest, aUnionFind));
+        return (equals(this.first, other.first, aUnionFind) &&
+	        equals(this.rest, other.rest, aUnionFind));
     };
     
 
@@ -833,13 +833,13 @@ if (! this['plt']) { this['plt'] = {}; }
         this.elts[k] = v;
     };
 
-    Vector.prototype.isEqual = function(other, aUnionFind) {
+    Vector.prototype.equals = function(other, aUnionFind) {
         if (other != null && other != undefined && other instanceof Vector) {
 	    if (other.length() != this.length()) {
 	        return false
 	    }
 	    for (var i = 0; i <  this.length(); i++) {
-	        if (! isEqual(this.elts[i], other.elts[i], aUnionFind)) {
+	        if (! equals(this.elts[i], other.elts[i], aUnionFind)) {
 		    return false;
 	        }
 	    }
@@ -948,7 +948,7 @@ if (! this['plt']) { this['plt'] = {}; }
     }
 
 
-    Str.prototype.isEqual = function(other, aUnionFind) {
+    Str.prototype.equals = function(other, aUnionFind) {
 	if ( !(other instanceof Str || typeof(other) == 'string') ) {
 	    return false;
 	}
@@ -1025,7 +1025,7 @@ String.makeInstance = function(s) {
 // WARNING
 // WARNING: we are extending the built-in Javascript string class here!
 // WARNING
-String.prototype.isEqual = function(other, aUnionFind){
+String.prototype.equals = function(other, aUnionFind){
     return this == other;
 };
     
@@ -1083,7 +1083,7 @@ String.prototype.toDisplayedString = function(cache) {
         return ('#hasheq(' + ret.join(' ') + ')');
     };
 
-    EqHashTable.prototype.isEqual = function(other, aUnionFind) {
+    EqHashTable.prototype.equals = function(other, aUnionFind) {
         if ( !(other instanceof EqHashTable) ) {
 	    return false; 
         }
@@ -1095,7 +1095,7 @@ String.prototype.toDisplayedString = function(cache) {
         var keys = this.hash.keys();
         for (var i = 0; i < keys.length; i++){
 	    if ( !(other.hash.containsKey(keys[i]) &&
-	           isEqual(this.hash.get(keys[i]),
+	           equals(this.hash.get(keys[i]),
 		           other.hash.get(keys[i]),
 		           aUnionFind)) ) {
 		return false;
@@ -1111,7 +1111,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    return toWrittenString(x); 
 	},
 		                   function(x, y) {
-			               return isEqual(x, y, new UnionFind()); 
+			               return equals(x, y, new UnionFind()); 
 		                   });
 	this.mutable = true;
     };
@@ -1139,7 +1139,7 @@ String.prototype.toDisplayedString = function(cache) {
         return ('#hash(' + ret.join(' ') + ')');
     };
 
-    EqualHashTable.prototype.isEqual = function(other, aUnionFind) {
+    EqualHashTable.prototype.equals = function(other, aUnionFind) {
         if ( !(other instanceof EqualHashTable) ) {
 	    return false; 
         }
@@ -1151,7 +1151,7 @@ String.prototype.toDisplayedString = function(cache) {
         var keys = this.hash.keys();
         for (var i = 0; i < keys.length; i++){
 	    if (! (other.hash.containsKey(keys[i]) &&
-	           isEqual(this.hash.get(keys[i]),
+	           equals(this.hash.get(keys[i]),
 		           other.hash.get(keys[i]),
 		           aUnionFind))) {
 	        return false;
@@ -1176,7 +1176,7 @@ String.prototype.toDisplayedString = function(cache) {
 	return toDomNode(this.val, cache);
     };
 
-    JsValue.prototype.isEqual = function(other, aUnionFind) {
+    JsValue.prototype.equals = function(other, aUnionFind) {
 	return (this.val === other.val);
     };
 
@@ -1216,11 +1216,11 @@ String.prototype.toDisplayedString = function(cache) {
 	return '#<world-config>';
     };
 
-    WorldConfig.prototype.isEqual = function(other, aUnionFind) {
-	return ( isEqual(this.startup, other.startup, aUnionFind) &&
-		 isEqual(this.shutdown, other.shutdown, aUnionFind) &&
-		 isEqual(this.shutdownArg, other.shutdownArg, aUnionFind) &&
-		 isEqual(this.restartArg, other.restartArg, aUnionFind) );
+    WorldConfig.prototype.equals = function(other, aUnionFind) {
+	return ( equals(this.startup, other.startup, aUnionFind) &&
+		 equals(this.shutdown, other.shutdown, aUnionFind) &&
+		 equals(this.shutdownArg, other.shutdownArg, aUnionFind) &&
+		 equals(this.restartArg, other.restartArg, aUnionFind) );
     };
 
 
@@ -1333,9 +1333,9 @@ String.prototype.toDisplayedString = function(cache) {
     }
 
 
-    // isEqual: X Y -> boolean
+    // equals: X Y -> boolean
     // Returns true if the objects are equivalent; otherwise, returns false.
-    var isEqual = function(x, y, aUnionFind) {
+    var equals = function(x, y, aUnionFind) {
         if (x === y) { return true; }
 
         if (isNumber(x) && isNumber(y)) {
@@ -1352,8 +1352,8 @@ String.prototype.toDisplayedString = function(cache) {
 
         if ( typeof(x) == 'object' &&
 	     typeof(y) == 'object' &&
-	     x.isEqual &&
-	     y.isEqual) {
+	     x.equals &&
+	     y.equals) {
 
 	    if (typeof (aUnionFind) === 'undefined') {
 	        aUnionFind = new UnionFind();
@@ -1364,7 +1364,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    }
 	    else {
 	        aUnionFind.merge(x, y); 
-	        return x.isEqual(y, aUnionFind);
+	        return x.equals(y, aUnionFind);
 	    }
         }
         return false;
@@ -1384,7 +1384,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    var lifted = function(args) {
 	        return primitiveF.apply(null, args.slice(0, minArity).concat([args.slice(minArity)]));
 	    };
-	    lifted.isEqual = function(other, cache) { 
+	    lifted.equals = function(other, cache) { 
 	        return this === other; 
 	    }
 	    lifted.toWrittenString = function(cache) { 
@@ -1429,7 +1429,7 @@ String.prototype.toDisplayedString = function(cache) {
         return parent;
     };
 
-    ValuesWrapper.prototype.isEqual = function(other, aUnionFind)  {
+    ValuesWrapper.prototype.equals = function(other, aUnionFind)  {
         if (! other instanceof ValuesWrapper) {
 	    return false;
         }
@@ -1437,7 +1437,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    return false;
         }
         for (var i = 0; i < this.elts.length; i++) {
-	    if (! isEqual(this.elts[i], other.elts[i], aUnionFind)) {
+	    if (! equals(this.elts[i], other.elts[i], aUnionFind)) {
 	        return false;
 	    }
         }
@@ -2096,7 +2096,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.TRUE = true;
     types.EMPTY = Empty.EMPTY;
 
-    types.isEqual = isEqual;
+    types.equals = equals;
     types.isNumber = isNumber;
 
     types.isReal = jsnums.isReal;

@@ -27,7 +27,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var isPair = types.isPair;
     var isList = types.isList;
     var isVector = types.isVector;
-    var isEqual = types.isEqual;
+    var equals = types.equals;
 
 
     var NULL = types.EMPTY;
@@ -1180,7 +1180,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    return isEqual(firstArg, secondArg);
+	    return equals(firstArg, secondArg);
         });
 
 
@@ -1201,7 +1201,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	        if (lst === NULL) {
 		    return false;
 	        }
-	        if (isEqual(x, (lst.first))) {
+	        if (equals(x, (lst.first))) {
 		    return lst;
 	        }
 	        lst = lst.rest;
@@ -1484,6 +1484,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['unspliceRestFromStack'] = unspliceRestFromStack;
 
 
+    //////////////////////////////////////////////////////////////////////
+
+
     // Type constructors
 
     // numbers
@@ -1500,7 +1503,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['isOutputPort'] = isOutputPort;
     exports['isOutputStringPort'] = isOutputStringPort;
     exports['isBox'] = isBox;
-    exports['isEqual'] = isEqual;
+    exports['equals'] = equals;
 
     exports['toDomNode'] = toDomNode;
     exports['toWrittenString'] = toWrittenString;

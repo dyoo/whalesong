@@ -370,9 +370,22 @@ other hand, have full access to the machine, but they are responsible
 for calling the continuation and popping off their arguments when
 they're finished.
 
+
+
+
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-@subsection{Types}
+@subsection{Values}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+All values should support the following functions
+
+@itemlist[
+   @item{plt.runtime.toDomNode(x, mode): produces a dom representation.  mode can be either 'write', 'display', or 'print'}
+
+   @item{plt.runtime.equals(x, y): tests if two values are equal to each other}
+
+]
+
 
 
 
@@ -428,10 +441,35 @@ time of this writing, it does NOT check for cycles.
 
 
 
+@subsection{Vectors}
+Vectors can be constructed with @{plt.runtime.makeVector(x ...)}, which takes
+in any number of arguments.  They can be tested with @tt{plt.runtime.isVector}, 
+and support the following methods and attributes:
+@itemlist[
+    @item{ref(n): get the nth element}
+    @item{set(n, v): set the nth element with value v}
+    @item{length: the length of the vector }]
+
+
+
+
 @subsection{Strings}
 
 Immutable strings are represented as regular JavaScript strings.
 
+Mutable strings haven't been mapped yet.
+
+
+
+@subsection{VOID}
+
+The distinguished void value is @tt{plt.runtime.VOID}; functions
+implemented in JavaScript that don't have a useful return value should
+return @tt{plt.runtime.VOID}.
+
+
+@subsection{Undefined}
+The undefined values is 
 
 
 

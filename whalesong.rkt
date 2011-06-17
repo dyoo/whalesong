@@ -35,8 +35,8 @@
    "The Whalesong command-line tool for compiling Racket to JavaScript"
    ["build" "build a standalone xhtml package" 
             "Builds a Racket program and its required dependencies into a standalone .xhtml file."
-            #:args paths
-            (do-the-build paths)]
+            #:args (path)
+            (do-the-build path)]
    ["get-runtime" "print the runtime library to standard output"
                   "Prints the runtime JavaScript library that's used by Whalesong programs."
                   #:args ()
@@ -50,19 +50,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(define (do-the-build filenames)
-  (for ([f filenames])
-       (let-values ([(base filename dir?)
-                     (split-path f)])
-         (let ([output-filename
-                (build-path
-                 (regexp-replace #rx"[.](rkt|ss)$" (path->string filename) ".xhtml"))])
-           (call-with-output-file* output-filename
-                                   (lambda (op)
-                                     (package-standalone-xhtml
-                                      (make-ModuleSource (build-path f))
-                                      op))
-                                   #:exists 'replace)))))
+(define (do-the-build f)
+  (let-values ([(base filename dir?)
+                (split-path f)])
+    (let ([output-filename
+           (build-path
+            (regexp-replace #rx"[.](rkt|ss)$" (path->string filename) ".xhtml"))])
+      (call-with-output-file* output-filename
+                              (lambda (op)
+                                (package-standalone-xhtml
+                                 (make-ModuleSource (build-path f))
+                                 op))
+                              #:exists 'replace))))
 
 
 

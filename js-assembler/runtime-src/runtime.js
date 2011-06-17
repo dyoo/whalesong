@@ -22,7 +22,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // We try to isolate the effect of external modules: all the identifiers we
     // pull from external modules should be listed here, and should otherwise not
     // show up outside this section!
-    var isNumber = types.isNumber;
+    var isNumber = jsnums.isSchemeNumber;
     var isNatural = types.isNatural;
     var isPair = types.isPair;
     var isList = types.isList;
@@ -41,6 +41,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var toDomNode = helpers.toDomNode;
     var toWrittenString = helpers.toWrittenString;
     var toDisplayedString = helpers.toDisplayedString;
+
+
+    var makeBox = types.box;
+    var isBox = types.isBox;
     //////////////////////////////////////////////////////////////////////]
 
 
@@ -1480,26 +1484,27 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['unspliceRestFromStack'] = unspliceRestFromStack;
 
 
+    // Type constructors
+
+    // numbers
+    exports['makeList'] = makeList;
+    exports['makePair'] = makePair;
+    exports['makeVector'] = makeVector;
+    exports['makeBox'] = makeBox;
+
+
     // Type predicates
-    exports['isNumber'] = isNumber;
-    exports['isNatural'] = isNatural;
     exports['isPair'] = isPair;
     exports['isList'] = isList;
     exports['isVector'] = isVector;
     exports['isOutputPort'] = isOutputPort;
     exports['isOutputStringPort'] = isOutputStringPort;
+    exports['isBox'] = isBox;
     exports['isEqual'] = isEqual;
 
     exports['toDomNode'] = toDomNode;
     exports['toWrittenString'] = toWrittenString;
     exports['toDisplayedString'] = toDisplayedString;
-
-
-    // Type constructors
-    exports['makeList'] = makeList;
-    exports['makePair'] = makePair;
-    exports['makeVector'] = makeVector;
-
 
     exports['ArityAtLeast'] = ArityAtLeast;
     exports['isArityMatching'] = isArityMatching;

@@ -391,7 +391,7 @@ if (! this['plt']) { this['plt'] = {}; }
 	this.mutable = mutable;
     };
 
-    Box.prototype.unbox = function() {
+    Box.prototype.ref = function() {
         return this.val;
     };
 
@@ -475,38 +475,9 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-
-
-
-
-
-    // We are reusing the built-in Javascript boolean class here.
-    Logic = {
-        TRUE : true,
-        FALSE : false
-    };
-
-
     var isBoolean = function(x) {
 	return (x === true || x === false);
     }
-
-
-    // WARNING
-    // WARNING: we are extending the built-in Javascript boolean class here!
-    // WARNING
-    Boolean.prototype.toWrittenString = function(cache) {
-        if (this.valueOf()) { return "true"; }
-        return "false";
-    };
-    Boolean.prototype.toDisplayedString = Boolean.prototype.toWrittenString;
-
-    Boolean.prototype.toString = function(cache) { return this.valueOf() ? "true" : "false"; };
-
-    Boolean.prototype.isEqual = function(other, aUnionFind){
-        return this == other;
-    };
-
 
 
 
@@ -725,7 +696,7 @@ if (! this['plt']) { this['plt'] = {}; }
     // FIXME: can we reduce the recursion on this?
     Cons.prototype.isEqual = function(other, aUnionFind) {
         if (! (other instanceof Cons)) {
-	    return Logic.FALSE;
+	    return false;
         }
         return (isEqual(this.first, other.first, aUnionFind) &&
 	        isEqual(this.rest, other.rest, aUnionFind));
@@ -2047,9 +2018,9 @@ String.prototype.toDisplayedString = function(cache) {
         }
 
         if (types.isBox(x)) {
-	    var aBox = types.box(x.unbox());
+	    var aBox = types.box(x.ref());
 	    objectHash.put(x, aBox);
-	    aBox.val = readerGraph(x.unbox(), objectHash, n+1);
+	    aBox.val = readerGraph(x.ref(), objectHash, n+1);
 	    return aBox;
         }
 
@@ -2121,8 +2092,8 @@ String.prototype.toDisplayedString = function(cache) {
     types.arityAtLeastValue = function(arity) { return ArityAtLeast.accessor(arity, 0); };
 
 
-    types.FALSE = Logic.FALSE;
-    types.TRUE = Logic.TRUE;
+    types.FALSE = false;
+    types.TRUE = true;
     types.EMPTY = Empty.EMPTY;
 
     types.isEqual = isEqual;

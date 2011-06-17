@@ -3146,7 +3146,7 @@ That way, we can do a simple grep.
 		     false, false,
 		     function(box) {
 		 	 check(box, isBox, 'unbox', 'box', 1);
-			 return box.unbox();
+			 return box.ref();
 		     });
 
 

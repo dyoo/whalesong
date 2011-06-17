@@ -38,7 +38,7 @@
 (define-runtime-path types.js "runtime-src/types.js")
 ;; These primitives were coded for the js-vm project, and we'll gradually
 ;; absorb them in.
-(define-runtime-path js-vm-primitives.js "runtime-src/js-vm-primitives.js")
+;(define-runtime-path js-vm-primitives.js "runtime-src/js-vm-primitives.js")
 
 (define-runtime-path runtime.js "runtime-src/runtime.js")
 
@@ -52,7 +52,7 @@
                     link.js
                     helpers.js
                     types.js
-                    js-vm-primitives.js
+;                    js-vm-primitives.js
                     runtime.js))
 
 

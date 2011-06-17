@@ -573,6 +573,8 @@ if (! this['plt']) { this['plt'] = {}; }
         if (x === null) {
             return "null";
         }
+        if (x === true) { return "true"; }
+        if (x === false) { return "false"; }
         if (typeof(x) === 'object') {
 	    if (cache.containsKey(x)) {
 		return "...";
@@ -610,6 +612,8 @@ if (! this['plt']) { this['plt'] = {}; }
         if (x === null) {
             return "null";
         }
+        if (x === true) { return "true"; }
+        if (x === false) { return "false"; }
         if (typeof(x) === 'object') {
 	    if (cache.containsKey(x)) {
 		return "...";
@@ -690,12 +694,29 @@ if (! this['plt']) { this['plt'] = {}; }
         } 
 
         if (jsnums.isSchemeNumber(x)) {
-	    return numberToDomNode(x, params);
+	    var node = numberToDomNode(x, params);
+            $(node).addClass("number");
+            return node;
         }
         
         if (x === null) {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode("null"));
+            $(node).addClass("null");
+	    return node;
+        }
+
+        if (x === true) {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode("true"));
+            $(node).addClass("boolean");
+	    return node;
+        }
+
+        if (x === false) {
+	    var node = document.createElement("span");
+	    node.appendChild(document.createTextNode("false"));
+            $(node).addClass("boolean");
 	    return node;
         }
 
@@ -706,7 +727,7 @@ if (! this['plt']) { this['plt'] = {}; }
 		return node;
 	    }
         }
-        if (x == undefined || x == null) {
+        if (x === undefined || x == null) {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode("#<undefined>"));
 	    return node;
@@ -722,12 +743,14 @@ if (! this['plt']) { this['plt'] = {}; }
                 node = document.createTextNode(toDisplayedString(x));
             }
 	    wrapper.appendChild(node);
+            $(wrapper).addClass("string");
 	    return wrapper;
         }
 
         if (typeof(x) != 'object' && typeof(x) != 'function') {
 	    var node = document.createElement("span");
 	    node.appendChild(document.createTextNode(x.toString()));
+            $(node).addClass("procedure");
 	    return node;
         }
 

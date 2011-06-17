@@ -370,8 +370,87 @@ other hand, have full access to the machine, but they are responsible
 for calling the continuation and popping off their arguments when
 they're finished.
 
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@subsection{Types}
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+
+
+@subsubsection{Numbers}
+
+Numbers are represented with the
+@link["https://github.com/dyoo/js-numbers"]{js-numbers} JavaScript
+library, which introduces a @tt{jsnums} namespace which provides the
+numeric tower API.
+
+Example uses of the @tt{js-numbers} library include:
+
+@itemlist[
+@item{Creating integers: @verbatim{42}  @verbatim{16}}
+
+@item{Creating big integers: @verbatim{jsnums.makeBignum("29837419826")}}
+
+@item{Creating floats: @verbatim{jsnums.makeFloat(3.1415)}}
+
+@item{Predicate for numbers: @verbatim{jsnums.isSchemeNumber(42)}}
+
+@item{Adding two numbers together: @verbatim{jsnums.add(42, jsnums.makeFloat(3.1415))}}
+
+@item{Converting a jsnums number back into native JavaScript floats: @verbatim{jsnums.toFixnum(...)}}
+]
+
+Do all arithmetic using the functions in the @tt{jsnums} namespace.
+One thing to also remember to do is apply @tt{jsnums.toFixnum} to any
+native JavaScript function that expects numbers.
+
+
+
+
+@subsubsection{Pairs, @tt{NULL}, and lists}
+
+Pairs can be constructed with @tt{plt.runtime.makePair(f, r)}.  A pair
+is an object with @tt{first} and @tt{rest} attributes.  They can be
+tested with @tt{plt.runtime.isPair()};
+
+The empty list value, @tt{plt.runtime.NULL}, is a single,
+distinguished value, so compare it with @tt{===}.
+
+Lists can be constructed with @tt{plt.runtime.makeList}, which can take in
+multiple arguments.  For example,
+@verbatim|{ var aList = plt.runtime.makeList(3, 4, 5); }|
+constructs a list of three numbers.
+
+The predicate @tt{plt.runtime.isList(x)} takes an argument x and
+reports if the value is chain of pairs, terminates by NULL.  At the
+time of this writing, it does NOT check for cycles.
+
+
+
+
+@subsection{Strings}
+
+Immutable strings are represented as regular JavaScript strings.
+
+
+
+
+@subsubsection{Boxes}
+Boxes can be constructed with @tt{plt.runtime.makeBox(x)}.  They can be
+tested with @tt{plt.runtime.isBox()}, and they support two methods:
+@verbatim|{
+   box.get(): returns the value in the box
+   box.set(v): replaces the value in the box with v 
+}|
+
+
+
+
+
+
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @subsection{Tests}
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 The test suite in @filepath{tests/test-all.rkt} runs the test suite.
 You'll need to

@@ -4,7 +4,9 @@
 (require racket/list
          racket/string
          "make/make-structs.rkt"
-         "js-assembler/package.rkt")
+         "js-assembler/package.rkt"
+         "private/command.rkt"
+         raco/command-name)
 
 
 ;; Usage:
@@ -47,8 +49,24 @@
           (string-join command-names ", ")))
 
 (define (at-toplevel)
-  (define args (vector->list (current-command-line-arguments)))
-  (cond [(empty? args)
+  (svn-style-command-line
+   #:program (short-program+command-name)
+   #:argv (current-command-line-arguments)
+   "The Whalesong command-line tool for compiling Racket to JavaScript"
+   ["build" "build a standalone xhtml package" 
+            "Builds a Racket program and its required dependencies into a standalone .xhtml file."
+            #:args paths
+            (do-the-build paths)]
+   ["get-runtime" "print the runtime library to standard output"
+                  "Prints the runtime JavaScript library that's used by Whalesong programs."
+                  #:args ()
+                  (print-the-runtime)]
+   ["get-javascript" "Gets just the JavaScript code and prints it to standard output"
+                     "Builds a racket program into JavaScript.  The outputted file depends on the runtime."
+                     #:args (file)
+                     (get-javascript-code file)])
+  #;(define args (vector->list (current-command-line-arguments)))
+  #;(cond [(empty? args)
          (print-expected-command)]
         [else
          (cond

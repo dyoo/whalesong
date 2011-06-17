@@ -42,7 +42,7 @@
 Whalesong is a compiler from Racket to JavaScript; it takes Racket
 programs and translates them so that they can run stand-alone on a
 user's web browser.  It should allow Racket programs to run with
-little modification, and provide access through the foreign-function
+(hopefully!) little modification, and provide access through the foreign-function
 interface to native JavaScript APIs.  The included runtime library
 also includes a framework to programming the web in functional
 event-driven style.
@@ -73,14 +73,16 @@ Prerequisites: at least @link["http://racket-lang.org/"]{Racket
 
 @subsection{Installing Whalesong}
 
-At the time of this writing, Whalesong hasn't been deployed to
-@link["http://planet.racket-lang.org"]{PLaneT} yet, so getting it
+At the time of this writing, although Whalesong has been deployed to
+@link["http://planet.racket-lang.org"]{PLaneT}, what's up there is probably
+already out of date!  You may want to get the latest sources instead
+of using the version on PLaneT.  Doing so
 requires doing a little bit of manual work.  The steps are:
 
 @itemlist[
 @item{Check Whalesong out of Github.}
 @item{Set up the PLaneT development link to your local Whalesong instance.}
-@item{Run @tt{raco setup} over Whalesong to finish the installation}]
+@item{Run @link["http://docs.racket-lang.org/raco/setup.html"]{@tt{raco setup}} over Whalesong to finish the installation}]
 
 We can check it out of the source repository in
 @link["https://github.com/"]{GitHub}; the repository can be checked out by
@@ -96,6 +98,9 @@ then run this on your command line:
 @verbatim|{
 $ planet link dyoo whalesong.plt 1 0 whalesong
 }|
+(You may need to adjust the @tt{1} and @tt{0} major/minor numbers a bit to be larger
+than the latest version that's on PLaneT at the time.)
+
 
 
 Finally, we need to set up Whalesong with @tt{raco setup}.
@@ -123,9 +128,10 @@ and if this does appear, then Whalesong should be installed successfully.
 
 Let's try making a simple, standalone executable.  At the moment, the
 program must be written in the base language of @racket[(planet
-dyoo/whalesong)].  This restriction currently prevents arbitrary
-racket/base programs from compiling, and the developers will be working
-to remove this restriction.
+dyoo/whalesong)].  This restriction unfortunately  prevents arbitrary
+@racketmodname[racket/base] programs from compiling at the moment;
+the developers (namely, dyoo) will be working to remove this
+restriction as quickly as possible.
 
 
 Write a @filepath{hello.rkt} with the following content
@@ -135,13 +141,13 @@ Write a @filepath{hello.rkt} with the following content
     (display "hello world")
     (newline)
 }}
-This program can be executed in Racket,
+This program is a regular Racket program, and can be executed normally,
 @verbatim|{
 $ racket hello.rkt 
 hello world
 $
 }|
-and it can also be packaged with @filepath{whalesong}.
+However, it can also be packaged with @filepath{whalesong}.
 @verbatim|{
     $ whalesong build hello.rkt
 
@@ -206,6 +212,11 @@ web browser, we should see a pale, green page with some output.
 @section{Extended example}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(This example needs to use modules.  It should also show how we can use the
+other command-line options to compress the javascript, and how to
+use @tt{get-javascript} and @tt{get-runtime}, to allow the user to 
+build a customized html file.)
+
 
 
 
@@ -226,6 +237,24 @@ we can use.)
 
 (We also need an example that shows how to use the get-javascript and get-runtime
 commands to do something interesting...)
+
+@subsection{@tt{build}}
+
+@subsection{@tt{get-runtime}}
+
+@subsection{@tt{get-javascript}}
+
+
+
+@section{The JavaScript API}
+
+(This needs to describe what hooks we've got from the JavaScript side of things.
+
+In particular, we need to talk about the plt namespace constructed by the runtime,
+and the major, external bindings, like @tt{plt.runtime.invokeMains})
+
+
+
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

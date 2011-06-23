@@ -1230,7 +1230,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // Extensions.  A small experiment.
+
+
+
+    // Javascript-specific extensions.  A small experiment.
     installPrimitiveProcedure(
         'viewport-width',
         0,

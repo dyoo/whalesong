@@ -6,8 +6,22 @@
           racket/sandbox
           (for-label racket/base)
           racket/runtime-path
-          
+          "scribble-helpers.rkt"
           "../js-assembler/get-js-vm-implemented-primitives.rkt")
+
+
+@inject-javascript|{
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-24146890-1']);
+  _gaq.push(['_trackPageview']);
+ 
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();      
+}|
+
 
 @(define-runtime-path whalesong-path "..")
 
@@ -26,10 +40,20 @@
 @author+email["Danny Yoo" "dyoo@cs.wpi.edu"]
 
 
+
+@centered{@smaller{Source code can be found at:
+@url{https://github.com/dyoo/whalesong}.  The latest version of this
+document lives in @url{http://hashcollision.org/whalesong}.}}
+
+
+
+
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @; Warning Will Robinson, Warning!
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @centered{@larger{@bold{@italic{Warning: this is work in progress!}}}}
+
+
 
 
 
@@ -442,7 +466,7 @@ time of this writing, it does NOT check for cycles.
 
 
 @subsection{Vectors}
-Vectors can be constructed with @{plt.runtime.makeVector(x ...)}, which takes
+Vectors can be constructed with @tt{plt.runtime.makeVector(x ...)}, which takes
 in any number of arguments.  They can be tested with @tt{plt.runtime.isVector}, 
 and support the following methods and attributes:
 @itemlist[

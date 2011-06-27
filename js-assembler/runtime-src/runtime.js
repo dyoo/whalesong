@@ -1300,6 +1300,67 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             }
         });
 
+    installPrimitiveProcedure(
+        'angle',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'angle');
+            return jsnums.angle(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'exp',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'exp');
+            return jsnums.exp(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'expt',
+        2,
+        function(MACHINE) {
+                testArgument(MACHINE,
+                             'number',
+                             isNumber,
+                             MACHINE.env[MACHINE.env.length - 1],
+                             0,
+                             'expt');
+                testArgument(MACHINE,
+                             'number',
+                             isNumber,
+                             MACHINE.env[MACHINE.env.length - 2],
+                             1,
+                             'expt');
+            return jsnums.expt(MACHINE.env[MACHINE.env.length - 1],
+                               MACHINE.env[MACHINE.env.length - 2]);
+        });
+
+
+    installPrimitiveProcedure(
+        'exact?',
+        1,
+        function(MACHINE) {
+                testArgument(MACHINE,
+                             'number',
+                             isNumber,
+                             MACHINE.env[MACHINE.env.length - 1],
+                             0,
+                             'exact?');
+            return jsnums.isExact(x);
+        });
 
 
 

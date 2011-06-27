@@ -1,4 +1,4 @@
-if(this['plt'] === undefined) { this['plt'] = {}; }
+    if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 // All of the values here are namespaced under "plt.runtime".
@@ -27,6 +27,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var isPair = types.isPair;
     var isList = types.isList;
     var isVector = types.isVector;
+    var isString = types.isString;
     var equals = types.equals;
 
 
@@ -46,6 +47,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var makeBox = types.box;
     var isBox = types.isBox;
     //////////////////////////////////////////////////////////////////////]
+
+
+    var isNonNegativeReal = function(x) {
+	return jsnums.isReal(x) && jsnums.greaterThanOrEqual(x, 0);
+    };
 
 
 
@@ -640,7 +646,37 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
-    // TODO: use installPrimitiveProcedure for the rest...
+    
+    installPrimitiveProcedure(
+        '=~',
+        3,
+        function(MACHINE) {
+	    testArgument(MACHINE,
+		         'real',
+		         jsnums.isReal,
+		         MACHINE.env[MACHINE.env.length - 1],
+		         0,
+		         '=~');
+            testArgument(MACHINE,
+		         'real',
+		         jsnums.isReal,
+		         MACHINE.env[MACHINE.env.length - 2],
+		         1,
+		         '=~');
+            testArgument(MACHINE,
+		         'nonnegative real',
+		         isNonNegativeReal,
+		         MACHINE.env[MACHINE.env.length - 3],
+		         2,
+		         '=~');
+	    var x = MACHINE.env[MACHINE.env.length-1];
+	    var y = MACHINE.env[MACHINE.env.length-2];
+	    var range = MACHINE.env[MACHINE.env.length-3];
+            return jsnums.lessThanOrEqual(jsnums.abs(jsnums.subtract(x, y)), range);
+        });
+
+
+
 
     installPrimitiveProcedure(
         '<',
@@ -1236,7 +1272,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          'number',
                          isNumber,
                          MACHINE.env[MACHINE.env.length-1],
-                         0
+                         0,
                          'abs');
             return jsnums.abs(MACHINE.env[MACHINE.env.length-1]);
         });
@@ -1268,6 +1304,49 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             return jsnums.asin(MACHINE.env[MACHINE.env.length-1]);
         });
 
+    installPrimitiveProcedure(
+        'sin',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'sin');
+            return jsnums.sin(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+
+    installPrimitiveProcedure(
+        'sinh',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'sinh');
+            return jsnums.sinh(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'tan',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'tan');
+            return jsnums.tan(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+    
 
     installPrimitiveProcedure(
         'atan',
@@ -1300,6 +1379,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             }
         });
 
+
     installPrimitiveProcedure(
         'angle',
         1,
@@ -1312,6 +1392,102 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          'angle');
             return jsnums.angle(MACHINE.env[MACHINE.env.length-1]);
         });
+
+    installPrimitiveProcedure(
+        'magnitude',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'magnitude');
+            return jsnums.magnitude(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+    installPrimitiveProcedure(
+        'conjugate',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'conjugate');
+            return jsnums.conjugate(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+
+
+    installPrimitiveProcedure(
+        'cos',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'cos');
+            return jsnums.cos(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'cosh',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'cosh');
+            return jsnums.cosh(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+    installPrimitiveProcedure(
+        'gcd',
+        new ArityAtLeast(1),
+        function(MACHINE) {
+            var args = [], i, x;
+            for (i = 0; i < MACHINE.argcount; i++) {
+                testArgument(MACHINE,
+                             'integer',
+                             jsnums.isInteger,
+                             MACHINE.env[MACHINE.env.length - 1 - i],
+                             i,
+                             'gcd');
+                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+
+            }
+            x = args.shift();
+	    return jsnums.gcd(x, args);
+        });
+
+    installPrimitiveProcedure(
+        'lcm',
+        new ArityAtLeast(1),
+        function(MACHINE) {
+            var args = [], i, x;
+            for (i = 0; i < MACHINE.argcount; i++) {
+                testArgument(MACHINE,
+                             'integer',
+                             jsnums.isInteger,
+                             MACHINE.env[MACHINE.env.length - 1 - i],
+                             i,
+                             'lcm');
+                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+
+            }
+            x = args.shift();
+	    return jsnums.lcm(x, args);
+        });
+
+
 
 
     installPrimitiveProcedure(
@@ -1332,18 +1508,18 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'expt',
         2,
         function(MACHINE) {
-                testArgument(MACHINE,
-                             'number',
-                             isNumber,
-                             MACHINE.env[MACHINE.env.length - 1],
-                             0,
-                             'expt');
-                testArgument(MACHINE,
-                             'number',
-                             isNumber,
-                             MACHINE.env[MACHINE.env.length - 2],
-                             1,
-                             'expt');
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'expt');
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length - 2],
+                         1,
+                         'expt');
             return jsnums.expt(MACHINE.env[MACHINE.env.length - 1],
                                MACHINE.env[MACHINE.env.length - 2]);
         });
@@ -1353,14 +1529,365 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'exact?',
         1,
         function(MACHINE) {
-                testArgument(MACHINE,
-                             'number',
-                             isNumber,
-                             MACHINE.env[MACHINE.env.length - 1],
-                             0,
-                             'exact?');
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'exact?');
             return jsnums.isExact(x);
         });
+
+
+    installPrimitiveProcedure(
+        'imag-part',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'imag-part');
+            return jsnums.imaginaryPart(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+    installPrimitiveProcedure(
+        'real-part',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'real-part');
+            return jsnums.realPart(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
+
+    installPrimitiveProcedure(
+        'make-polar',
+        2,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'make-polar');
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 2],
+                         1,
+                         'make-polar');
+            return jsnums.makeComplexPolar(MACHINE.env[MACHINE.env.length - 1],
+                                           MACHINE.env[MACHINE.env.length - 2]);
+        });
+
+
+    installPrimitiveProcedure(
+        'make-rectangular',
+        2,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'make-rectangular');
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 2],
+                         1,
+                         'make-rectangular');
+            return jsnums.makeComplex(MACHINE.env[MACHINE.env.length - 1],
+                                      MACHINE.env[MACHINE.env.length - 2]);
+        });
+
+    installPrimitiveProcedure(
+        'modulo',
+        2,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'modulo');
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length - 2],
+                         1,
+                         'modulo');
+            return jsnums.modulo(MACHINE.env[MACHINE.env.length - 1],
+                                 MACHINE.env[MACHINE.env.length - 2]);
+        });
+
+
+    installPrimitiveProcedure(
+        'remainder',
+        2,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'remainder');
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length - 2],
+                         1,
+                         'remainder');
+            return jsnums.remainder(MACHINE.env[MACHINE.env.length - 1],
+                                    MACHINE.env[MACHINE.env.length - 2]);
+        });
+
+
+    installPrimitiveProcedure(
+        'quotient',
+        2,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'quotient');
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length - 2],
+                         1,
+                         'quotient');
+            return jsnums.quotient(MACHINE.env[MACHINE.env.length - 1],
+                                   MACHINE.env[MACHINE.env.length - 2]);
+        });
+
+
+
+
+
+    installPrimitiveProcedure(
+        'floor',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'floor');
+            return jsnums.floor(MACHINE.env[MACHINE.env.length - 1]);
+        });
+    
+
+    installPrimitiveProcedure(
+        'ceiling',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'ceiling');
+            return jsnums.ceiling(MACHINE.env[MACHINE.env.length - 1]);
+        });
+   
+
+    installPrimitiveProcedure(
+        'round',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'round');
+            return jsnums.round(MACHINE.env[MACHINE.env.length - 1]);
+        });
+    
+
+    installPrimitiveProcedure(
+        'truncate',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'real',
+                         jsnums.isReal,
+                         MACHINE.env[MACHINE.env.length - 1],
+                         0,
+                         'truncate');
+	    if (jsnums.lessThan(MACHINE.env[MACHINE.env.length - 1], 0)) {
+		return jsnums.ceiling(MACHINE.env[MACHINE.env.length - 1]);
+	    } else {
+		return jsnums.floor(MACHINE.env[MACHINE.env.length - 1]);
+	    }
+        });
+    
+
+    installPrimitiveProcedure(
+        'numerator',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'rational',
+                         jsnums.isRational,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'numerator');
+            return jsnums.numerator(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+    installPrimitiveProcedure(
+        'denominator',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'rational',
+                         jsnums.isRational,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'denominator');
+            return jsnums.denominator(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'log',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'log');
+            return jsnums.log(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'sqr',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'sqr');
+            return jsnums.sqr(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+
+
+    installPrimitiveProcedure(
+        'sqrt',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'sqrt');
+            return jsnums.sqrt(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+
+
+    installPrimitiveProcedure(
+        'integer-sqrt',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'integer-sqrt');
+            return jsnums.integerSqrt(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    // rawSgn: number -> number
+    var rawSgn = function(x) {
+        if (jsnums.isInexact(x)) {
+	    if ( jsnums.greaterThan(x, 0) ) {
+		return jsnums.makeFloat(1);
+	    } else if ( jsnums.lessThan(x, 0) ) {
+		return jsnums.makeFloat(-1);
+	    } else {
+		return jsnums.makeFloat(0);
+	    }
+	} else {
+	    if ( jsnums.greaterThan(x, 0) ) {
+		return 1;
+	    } else if ( jsnums.lessThan(x, 0) ) {
+		return -1;
+	    } else {
+		return 0;
+	    }
+	}
+    };
+
+    installPrimitiveProcedure(
+        'sgn',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'integer',
+                         jsnums.isInteger,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'sgn');
+            return rawSgn(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'number->string',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'integer',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'number->string');
+            return MACHINE.env[MACHINE.env.length-1].toString();
+        });
+
+    installPrimitiveProcedure(
+        'string->number',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'integer',
+                         isString,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'number->string');
+            return jsnums.fromString(MACHINE.env[MACHINE.env.length-1].toString());
+        });
+
+
+
+    
+
+
+
 
 
 
@@ -1641,6 +2168,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['isOutputPort'] = isOutputPort;
     exports['isOutputStringPort'] = isOutputStringPort;
     exports['isBox'] = isBox;
+    exports['isString'] = isString;
     exports['equals'] = equals;
 
     exports['toDomNode'] = toDomNode;

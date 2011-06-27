@@ -27,12 +27,13 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-
+    // format: string [X ...] string -> string
+    // String formatting.
     var format = function(formatStr, args, functionName) {
 	var throwFormatError = function() {
-	    functionName = functionName || '#<procedure>';
+	    functionName = functionName || 'format';
 	    var matches = formatStr.match(new RegExp('~[sSaA]', 'g'));
-	    var expectedNumberOfArgs = matches == null ? 0 : matches.length;
+	    var expectedNumberOfArgs = (matches === null ? 0 : matches.length);
 	    var errorStrBuffer = [functionName + ': format string requires ' + expectedNumberOfArgs
 				  + ' arguments, given ' + args.length + '; arguments were:',
 				  toWrittenString(formatStr)];
@@ -40,43 +41,54 @@ if (! this['plt']) { this['plt'] = {}; }
 		errorStrBuffer.push( toWrittenString(args[i]) );
 	    }
 
-	    raise( types.incompleteExn(types.exnFailContract, errorStrBuffer.join(' '), []) );
+	    throw new Error(errorStrBuffer.join(' '));
 	}
 
-	var pattern = new RegExp("~[sSaAneE%~]", "g");
-	var buffer = args.slice(0);;
-	function f(s) {
-	    if (s == "~~") {
+	var pattern = new RegExp("~[sSaAnevE%~]", "g");
+	var buffer = args.slice(0);
+	var onTemplate = function(s) {
+	    if (s === "~~") {
 		return "~";
-	    } else if (s == '~n' || s == '~%') {
+	    } else if (s === '~n' || s === '~%') {
 		return "\n";
-	    } else if (s == '~s' || s == "~S") {
-		if (buffer.length == 0) {
+	    } else if (s === '~s' || s === "~S") {
+		if (buffer.length === 0) {
 		    throwFormatError();
 		}
 		return toWrittenString(buffer.shift());
-	    } else if (s == '~e' || s == "~E") {
+	    } else if (s === '~e' || s === "~E") {
 		// FIXME: we don't yet have support for the error-print
 		// handler, and currently treat ~e just like ~s.
-		if (buffer.length == 0) {
+		if (buffer.length === 0) {
 		    throwFormatError();
 		}
+		return toWrittenString(buffer.shift()); 
+            }
+            else if (s === '~v') {
+		if (buffer.length === 0) {
+		    throwFormatError();
+		}
+                // fprintf must do something more interesting here by
+                // printing the dom representation directly...
 		return toWrittenString(buffer.shift());
-	    } else if (s == '~a' || s == "~A") {
-		if (buffer.length == 0) {
+	    } else if (s === '~a' || s === "~A") {
+		if (buffer.length === 0) {
 		    throwFormatError();
 		}
 		return toDisplayedString(buffer.shift());
 	    } else {
-		throw types.internalError('format: string.replace matched invalid regexp', false);
+		throw new Error(functionName + 
+                                ': string.replace matched invalid regexp');
 	    }
 	}
-	var result = formatStr.replace(pattern, f);
+	var result = formatStr.replace(pattern, onTemplate);
 	if (buffer.length > 0) {
 	    throwFormatError();
 	}
 	return result;
     };
+
+
 
 
     // forEachK: CPS( array CPS(array -> void) (error -> void) -> void )

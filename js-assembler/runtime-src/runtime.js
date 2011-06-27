@@ -113,7 +113,7 @@
 	    'numBouncesBeforeYield': 2000,   // self-adjusting
 	    'maxNumBouncesBeforeYield': 2000, // self-adjusting
 
-	    'current-print': new Closure(
+	    'currentPrint': new Closure(
 		function(MACHINE) {
                     if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
 
@@ -562,7 +562,7 @@
 	    var outputPort = MACHINE.params.currentOutputPort;
 	    if (MACHINE.argcount === 2) {
 	        testArgument(MACHINE,
-			     'isOutputPort', 
+			     'output-port', 
 			     isOutputPort, 
 			     MACHINE.env.length-2,
 			     1,
@@ -579,7 +579,7 @@
 	    var outputPort = MACHINE.params.currentOutputPort;
 	    if (MACHINE.argcount === 1) { 
 	        testArgument(MACHINE,
-			     'isOutputPort', 
+			     'output-port', 
 			     isOutputPort, 
 			     MACHINE.env.length-1,
 			     1,
@@ -598,7 +598,7 @@
 	    var outputPort = MACHINE.params.currentOutputPort;
 	    if (MACHINE.argcount === 2) {
 	        testArgument(MACHINE,
-			     'isOutputPort', 
+			     'output-port', 
 			     isOutputPort, 
 			     MACHINE.env.length-2,
 			     1,
@@ -611,17 +611,108 @@
         });
 
 
+
+    installPrimitiveProcedure(
+        'format',
+        new ArityAtLeast(1),
+        function(MACHINE) {
+            var args = [], i, formatString;
+            testArgument(MACHINE,
+                         'string',
+                         isString,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'format');
+            for(i = 0; i < MACHINE.argcount; i++) {
+                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+            }
+            formatString = args.shift();
+            return helpers.format(formatString, args, 'format');
+        });
+
+
+
+    installPrimitiveProcedure(
+        'printf',
+        new ArityAtLeast(1),
+        function(MACHINE) {
+            var args = [], i, formatString;
+            testArgument(MACHINE,
+                         'string',
+                         isString,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'printf');
+            for(i = 0; i < MACHINE.argcount; i++) {
+                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+            }
+            formatString = args.shift();
+            var result = helpers.format(formatString, args, 'format');
+            var outputPort = MACHINE.params.currentOutputPort;            
+	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
+            return VOID;
+        });
+
+
+    installPrimitiveProcedure(
+        'fprintf',
+        new ArityAtLeast(2),
+        function(MACHINE) {
+            var args = [], i, formatString;
+            testArgument(MACHINE,
+                         'output-port',
+                         isOutputPort,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'fprintf');
+            testArgument(MACHINE,
+                         'string',
+                         isString,
+                         MACHINE.env[MACHINE.env.length-2],
+                         1,
+                         'fprintf');
+            for(i = 1; i < MACHINE.argcount; i++) {
+                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+            }
+            formatString = args.shift();
+            var result = helpers.format(formatString, args, 'format');
+            var outputPort = MACHINE.env[MACHINE.env.length-1];
+	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
+            return VOID;
+        });
+
+
+
+
+
+
     installPrimitiveProcedure(
         'current-print',
         makeList(0, 1),
         function(MACHINE) {
             if (MACHINE.argcount === 1) {
-                MACHINE.params['current-print'] = MACHINE.env[MACHINE.env.length - 1];
+                MACHINE.params['currentPrint'] = MACHINE.env[MACHINE.env.length - 1];
                 return VOID;
             } else {
-	        return MACHINE.params['current-print'];
+	        return MACHINE.params['currentPrint'];
             }
         });
+
+
+    installPrimitiveProcedure(
+        'current-output-port',
+        makeList(0, 1),
+        function(MACHINE) {
+            if (MACHINE.argcount === 1) {
+                MACHINE.params['currentOutputPort'] = MACHINE.env[MACHINE.env.length - 1];
+                return VOID;
+            } else {
+	        return MACHINE.params['currentOutputPort'];
+            }
+        });
+
+
+
 
 
     installPrimitiveProcedure(
@@ -1885,6 +1976,23 @@
     
 
 
+    installPrimitiveProcedure(
+        'format',
+        new ArityAtLeast(1),
+        function(MACHINE) {
+            var args = [], i, formatString;
+            testArgument(MACHINE,
+                         'string',
+                         isString,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'format');
+            for(i = 0; i < MACHINE.argcount; i++) {
+                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+            }
+            formatString = args.shift();
+            return helpers.format(formatString, args, 'format');
+        });
 
 
 
@@ -1936,9 +2044,26 @@
     };
 
 
-    var HaltError = function() {}
+    var HaltError = function(onHalt) {
+        // onHalt: MACHINE -> void
+        this.onHalt = onHalt || function(MACHINE) {};
+    };
 
 
+
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // The toplevel trampoline.
+    //
+    //
+    // trampoline: MACHINE (MACHINE -> void) -> void
+    //
+    // All evaluation in Racketland happens in the context of this
+    // trampoline.
+    //
     var trampoline = function(MACHINE, initialJump) {
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
@@ -1947,11 +2072,23 @@
 	    MACHINE.params.maxNumBouncesBeforeYield;
 	MACHINE.running = true;
 
-	while(thunk) {
+	while(true) {
             try {
 		thunk(MACHINE);
 		break;
             } catch (e) {
+                // There are a few kinds of things that can get thrown
+                // during racket evaluation:
+                //
+                // functions: this gets thrown if the Racket code realizes
+                // that the number of bounces has grown too large.  The thrown
+                // function represents a restarter function.
+                //
+                // HaltError: causes evaluation to immediately halt.  We schedule
+                // the onHalt function of the HaltError to call afterwards.
+                //
+                // everything else: otherwise, we send the exception value
+                // to the current error handler and exit.
 		if (typeof(e) === 'function') {
                     thunk = e;
                     MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
@@ -1961,24 +2098,36 @@
 			    MACHINE,
 			    (new Date()).valueOf() - startTime);
 			setTimeout(
-			    function() {
-				trampoline(MACHINE, thunk);
-			    },
+			    function() { trampoline(MACHINE, thunk); },
 			    0);
 			return;
-		    }
+		    } else {
+                        continue;
+                    }
 		} else if (e instanceof HaltError) {
-                    // FIXME: work out what it really means to Halt.
+		    MACHINE.running = false;
+                    setTimeout(
+                        function() { e.onHalt(MACHINE); },
+                        0);
                     return;
                 } else {
 		    MACHINE.running = false;
-	            return MACHINE.params.currentErrorHandler(MACHINE, e);
+                    setTimeout(
+                        function() { MACHINE.params.currentErrorHandler(MACHINE, e); },
+                        0);
+	            return;
 		}
             }
 	}
 	MACHINE.running = false;
-	return MACHINE.params.currentSuccessHandler(MACHINE);
+        setTimeout(
+            function() { MACHINE.params.currentSuccessHandler(MACHINE); },
+            0);
+	return;
     };
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
 
 
 

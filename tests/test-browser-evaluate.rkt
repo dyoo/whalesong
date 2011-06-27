@@ -623,6 +623,18 @@ EOF
 (test '(displayln (string->number  "42"))
       "42\n")
 
+(test '(displayln (format "The number is ~a" 42))
+      "The number is 42\n")
+
+
+(test '(printf "The number is ~a" 42)
+      "The number is 42")
+
+(test '(fprintf (current-output-port) "The number is ~a" 42)
+      "The number is 42")
+
+
+
 
 
 

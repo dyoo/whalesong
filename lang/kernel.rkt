@@ -145,6 +145,8 @@
 ;; Racket's compiler can optimize these.
 (provide-stub-function
 
+ current-output-port
+ 
  write
  display
  newline
@@ -338,8 +340,9 @@
 ;;  string-copy
 ;;  string->symbol
 ;;  symbol->string
-;;  format
-;;  printf
+  format
+  printf
+  fprintf
 ;;  build-string
 ;;  string->immutable-string
 ;;  string-set!

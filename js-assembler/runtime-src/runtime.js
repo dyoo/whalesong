@@ -1535,7 +1535,7 @@
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'exact?');
-            return jsnums.isExact(x);
+            return jsnums.isExact(MACHINE.env[MACHINE.env.length - 1]);
         });
 
 
@@ -1872,11 +1872,11 @@
         1,
         function(MACHINE) {
             testArgument(MACHINE,
-                         'integer',
+                         'string',
                          isString,
                          MACHINE.env[MACHINE.env.length-1],
                          0,
-                         'number->string');
+                         'string->number');
             return jsnums.fromString(MACHINE.env[MACHINE.env.length-1].toString());
         });
 

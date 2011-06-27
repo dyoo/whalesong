@@ -610,6 +610,20 @@ EOF
 (test '(displayln (sqrt 4))
       "2\n")
 
+(test '(displayln (integer-sqrt 4))
+      "2\n")
+
+(test '(displayln (sgn 3))
+      "1\n")
+
+
+(test '(displayln (number->string 42))
+      "42\n")
+
+(test '(displayln (string->number  "42"))
+      "42\n")
+
+
 
 
 ;; Knuth's Man-or-boy-test.

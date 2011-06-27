@@ -616,6 +616,7 @@ if (typeof(exports) !== 'undefined') {
 
     // tan: scheme-number -> scheme-number
     var tan = function(n) {
+	if (eqv(n, 0)) { return 0; }
 	if (typeof(n) === 'number') {
 	    return FloatPoint.makeInstance(Math.tan(n));
 	}
@@ -624,6 +625,7 @@ if (typeof(exports) !== 'undefined') {
 
     // atan: scheme-number -> scheme-number
     var atan = function(n) {
+	if (eqv(n, 0)) { return 0; }
 	if (typeof(n) === 'number') {
 	    return FloatPoint.makeInstance(Math.atan(n));
 	}
@@ -659,6 +661,7 @@ if (typeof(exports) !== 'undefined') {
 
     // asin: scheme-number -> scheme-number
     var asin = function(n) {
+        if (eqv(n, 0)) { return 0; }
 	if (typeof(n) === 'number') {
 	    return FloatPoint.makeInstance(Math.asin(n));
 	}
@@ -806,7 +809,7 @@ if (typeof(exports) !== 'undefined') {
     var makeComplexPolar = function(r, theta) {
 	// special case: if theta is zero, just return
 	// the scalar.
-	if (equals(theta, 0)) {
+	if (eqv(theta, 0)) {
 	    return r;
 	}
 	return Complex.makeInstance(multiply(r, cos(theta)),

@@ -1,5 +1,6 @@
 #lang racket/base
-(require (prefix-in math: (only-in racket/math pi sinh))
+(require (prefix-in racket: (only-in racket/math pi sinh cosh sqr
+                                     sgn conjugate))
          (prefix-in racket: racket/base)
 	 racket/local
 	 (for-syntax racket/base))
@@ -9,7 +10,7 @@
 ;; constants
 (define constant:true #t)
 (define constant:false #f)
-(define constant:pi math:pi)
+(define constant:pi racket:pi)
 (define constant:e (racket:exp 1))
 
 
@@ -198,42 +199,46 @@
 ;;  exn:fail:contract:arity?
 ;;  exn:fail:contract:variable?
 ;;  exn:fail:contract:divide-by-zero?
-;;  abs
-;;  quotient
-;;  remainder
-;;  modulo
+  abs
+  quotient
+  remainder
+  modulo
 ;;  max
 ;;  min
-;;  gcd
-;;  lcm
-;;  floor
-;;  ceiling
-;;  round
-;;  truncate
-;;  numerator
-;;  denominator
-;;  expt
-;;  exp
-;;  log
-;;  sin
-;;  cos
-;;  tan
-;;  asin
-;;  acos
-;;  atan
-
-;;  sqrt
-;;  integer-sqrt
-;;  make-rectangular
-;;  make-polar
-;;  real-part
-;;  imag-part
-;;  angle
-;;  magnitude
-;;  inexact->exact
+  gcd
+  lcm
+  floor
+  ceiling
+  round
+  truncate
+  numerator
+  denominator
+  expt
+  exp
+  log
+  sin
+  sinh
+  cos
+  cosh
+  tan
+  asin
+  acos
+  atan
+  sqr
+  sqrt
+  integer-sqrt
+  sgn
+  make-rectangular
+  make-polar
+  real-part
+  imag-part
+  angle
+  magnitude
+  conjugate
+  ;;  inexact->exact
 ;;  exact->inexact
-;;  number->string
-;;  string->number
+  number->string
+  string->number
 ;;  procedure?
   pair?
 ;;  (undefined? -undefined?)
@@ -253,7 +258,7 @@
 ;;  real?
 ;;  rational?
 ;;  integer?
-;;  exact?
+  exact?
 ;;  inexact?
 ;;  odd?
 ;;  even?

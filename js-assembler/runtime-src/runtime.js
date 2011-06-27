@@ -1672,8 +1672,6 @@
 
 
 
-
-
     installPrimitiveProcedure(
         'floor',
         1,

@@ -491,6 +491,7 @@ EOF
 (test '(displayln -0.0)
       "-0.0\n")
 
+
 (test '(displayln +nan.0)
       "+nan.0\n")
 
@@ -504,6 +505,110 @@ EOF
 
 
 
+
+(test '(displayln (abs -42))
+      "42\n")
+
+(test '(displayln (acos 1))
+      "0\n")
+
+(test '(displayln (asin 0))
+      "0\n")
+
+(test '(displayln (sin 0))
+      "0\n")
+
+(test '(displayln (sinh 0))
+      "0\n")
+
+(test '(displayln (tan 0))
+      "0\n")
+
+(test '(displayln (atan 0))
+      "0\n")
+
+(test '(displayln (angle 1))
+      "0\n")
+
+(test '(displayln (magnitude 1))
+      "1\n")
+
+(test '(displayln (conjugate 1))
+      "1\n")
+
+(test '(displayln (cos 0))
+      "1\n")
+
+(test '(displayln (cosh 0))
+      "1.0\n")
+
+(test '(displayln (gcd 3 4))
+      "1\n")
+
+(test '(displayln (lcm 3 4))
+      "12\n")
+
+(test '(displayln (exp 0))
+      "1\n")
+
+(test '(displayln (expt 5 2))
+      "25\n")
+
+(test '(displayln (exact? 42))
+      "true\n")
+
+(test '(displayln (imag-part 42))
+      "0\n")
+
+(test '(displayln (real-part 42))
+      "42\n")
+
+(test '(displayln (make-polar 0.0 0.0))
+      "0.0+0.0i\n")
+
+(test '(displayln (make-rectangular 0.0 0.0))
+      "0.0+0.0i\n")
+
+(test '(displayln (modulo 3 2))
+      "1\n")
+
+(test '(displayln (remainder 3 2))
+      "1\n")
+
+(test '(displayln (quotient 3 2))
+      "1\n")
+
+(test '(displayln (floor 3))
+      "3\n")
+
+(test '(displayln (ceiling 3))
+      "3\n")
+
+(test '(displayln (round 3))
+      "3\n")
+
+(test '(displayln (truncate 3))
+      "3\n")
+
+(test '(displayln (truncate -3))
+      "-3\n")
+
+(test '(displayln (numerator 2/3))
+      "2\n")
+
+(test '(displayln (denominator 2/3))
+      "3\n")
+
+
+(test '(displayln (log 1))
+      "0\n")
+
+
+(test '(displayln (sqr 4))
+      "16\n")
+
+(test '(displayln (sqrt 4))
+      "2\n")
 
 
 

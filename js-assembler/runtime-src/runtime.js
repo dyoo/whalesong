@@ -1228,6 +1228,80 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
+    installPrimitiveProcedure(
+        'abs',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0
+                         'abs');
+            return jsnums.abs(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+    installPrimitiveProcedure(
+        'acos',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'acos');
+            return jsnums.acos(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'asin',
+        1,
+        function(MACHINE) {
+            testArgument(MACHINE,
+                         'number',
+                         isNumber,
+                         MACHINE.env[MACHINE.env.length-1],
+                         0,
+                         'asin');
+            return jsnums.asin(MACHINE.env[MACHINE.env.length-1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'atan',
+        makeList(1, 2),
+        function(MACHINE) {
+            if (MACHINE.argcount === 1) {
+                testArgument(MACHINE,
+                             'number',
+                             isNumber,
+                             MACHINE.env[MACHINE.env.length - 1],
+                             0,
+                             'atan');
+		return jsnums.atan(MACHINE.env[MACHINE.env.length - 1]);
+            } else {
+                testArgument(MACHINE,
+                             'number',
+                             isNumber,
+                             MACHINE.env[MACHINE.env.length - 1],
+                             0,
+                             'atan');
+                testArgument(MACHINE,
+                             'number',
+                             isNumber,
+                             MACHINE.env[MACHINE.env.length - 2],
+                             1,
+                             'atan');
+                return jsnums.makeFloat(
+		    Math.atan2(jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 1]),
+			       jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2])));
+            }
+        });
+
+
+
 
 
 

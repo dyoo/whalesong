@@ -527,7 +527,7 @@ browser for testing output.
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-@subsection{Incomplete features}
+@subsection{What's in @tt{js-vm} that's missing from Whalesong?}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (This section should describe what needs to get done next.)
@@ -569,11 +569,23 @@ We need to bring around the following types previously defined in @tt{js-vm}:
 @item{readerGraph}
 ]
 
-What are the list of primitives in @filepath{js-vm-primitives.js}?  They are:
-@(apply itemlist (map (lambda (name)
-                        (item (symbol->string name)))
-                      js-vm-primitive-names))
 
+
+@(define missing-primitives
+   (let ([in-whalesong-ht (make-hash)])
+     (for ([name whalesong-primitive-names])
+          (hash-set! in-whalesong-ht name #t))
+     (filter (lambda (name)
+               (not (hash-has-key? in-whalesong-ht name)))
+             js-vm-primitive-names))))
+
+
+What are the list of primitives in @filepath{js-vm-primitives.js} that we
+haven't yet exposed in whalesong?  We're missing @(number->string (length missing-primitives)):
+   @(apply itemlist (map (lambda (name)
+                           (item (symbol->string name)))
+                         missing-primitives))
+        
 
 
 (I should catalog the bug list in GitHub, as well as the feature list,

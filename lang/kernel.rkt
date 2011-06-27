@@ -146,14 +146,13 @@
 (provide-stub-function
 
  current-output-port
- 
+ current-print 
  write
  display
  newline
+ displayln
 
-;;  displayln
-
-;;  current-print
+ 
 ;;  current-continuation-marks
 
 ;;  continuation-mark-set?

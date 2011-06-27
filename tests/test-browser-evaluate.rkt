@@ -634,7 +634,8 @@ EOF
       "The number is 42")
 
 
-
+(test '((current-print) 32)
+      "32\n")
 
 
 

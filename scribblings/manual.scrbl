@@ -4,6 +4,7 @@
           planet/resolver
           scribble/eval
           racket/sandbox
+          (only-in racket/contract any/c)
           (for-label racket/base)
           racket/runtime-path
           "scribble-helpers.rkt"
@@ -272,14 +273,64 @@ commands to do something interesting...)
 
 @section{The JavaScript API}
 
-(This needs to describe what hooks we've got from the JavaScript side of things.
-
-In particular, we need to talk about the plt namespace constructed by the runtime,
-and the major, external bindings, like @tt{plt.runtime.invokeMains})
+@defmodule/this-package[js]{
 
 
+This needs to describe what hooks we've got from the JavaScript side
+of things.
+
+In particular, we need to talk about the plt namespace constructed by
+the runtime, and the major, external bindings, like
+@tt{plt.runtime.invokeMains}.
+
+The contracts here are not quite right either.  I want to use JQuery
+as the type in several of the bindings here, but don't quite know how
+to teach Scribble about them yet.
 
 
+
+@defproc[(alert [msg string?]) void]{
+
+Displays an alert.  Currently implemented using JavaScript's
+@litchar{alert} function.}
+
+@defthing[body any/c]{
+A JQuery-wrapped value representing the body of the DOM.
+}
+
+@defproc[(call-method [object javascript-function] 
+                      [method-name string?]
+                      [arg any/c] ...) any/c]{
+
+Calls theAssuming @racket[object] is a JavaScript value that supports
+the method call.  Returns a raw JavaScript value back.
+
+For example,
+@racketblock[(call-method body "css" "background-color")]
+should return the css color of the body.
+}
+
+
+
+@defproc[($ [locator any/c]) -> any/c]{
+
+Uses JQuery to construct or collect a set of DOM elements, as
+described in the @link["http://api.jquery.com/jQuery/"]{JQuery
+documentation}.
+
+For example, @racketblock[(call-method ($ "<h1>Hello World</h1>")
+"appendTo" body)] will construct a @tt{h1} header, and append it to
+the document body.
+
+
+}
+
+
+
+
+
+
+}
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @section{Internals}

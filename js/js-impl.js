@@ -1,6 +1,6 @@
 EXPORTS['alert'] =
     RUNTIME.makePrimitiveProcedure(
-        'is-color?',
+        'alert',
         1,
         function(MACHINE) {
             var elt = MACHINE.env[MACHINE.env.length - 1];
@@ -20,9 +20,9 @@ EXPORTS['$'] =
             return $(obj);
         });
 
-EXPORTS['call'] = 
+EXPORTS['call-method'] = 
     RUNTIME.makePrimitiveProcedure(
-        'call',
+        'call-method',
         new RUNTIME.ArityAtLeast(2),
         function(MACHINE) {
             var obj = MACHINE.env[MACHINE.env.length - 1];

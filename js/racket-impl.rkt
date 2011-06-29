@@ -1,6 +1,6 @@
 #lang s-exp "../lang/base.rkt"
 
-(provide alert body call $)
+(provide alert body call-method $)
 
 (define (alert x)
   (display x)
@@ -8,7 +8,7 @@
 
 (define body 'blah)
 
-(define (call object method . args)
+(define (call-method object method . args)
   'not-done-yet)
 
 (define ($ name)

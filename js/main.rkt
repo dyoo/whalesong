@@ -5,5 +5,5 @@
  #:javascript ("js-impl.js")
  #:provided-values (alert
                     body
-                    call
+                    call-method
                     $))

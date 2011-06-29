@@ -5,12 +5,12 @@
 
 ;; insert-break: -> void
 (define (insert-break)
-  (call ($ "<br/>") "appendTo" body)
+  (call-method ($ "<br/>") "appendTo" body)
   (void))
 
 
 (define (write-message msg)
-  (void (call (call (call ($ "<span/>") "text" msg)
+  (void (call-method (call-method (call-method ($ "<span/>") "text" msg)
                     "css" "white-space" "pre")
               "appendTo"
               body)))
@@ -18,8 +18,8 @@
 
 
 ;; Set the background green.
-(void (call body "css" "background-color" "lightgreen"))
-(void (call ($ "<h1>Hello World</h1>") "appendTo" body))
+(void (call-method body "css" "background-color" "lightgreen"))
+(void (call-method ($ "<h1>Hello World</h1>") "appendTo" body))
 (write-message "Hello, this is a test!")
 (insert-break)
 (let loop ([i 0])

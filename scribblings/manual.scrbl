@@ -271,6 +271,141 @@ commands to do something interesting...)
 
 
 
+
+@section{The Whalesong language}
+
+@defmodule/this-package[lang/base]{
+
+This needs to at least show all the bindings available from the base
+language.
+
+@defthing[true]{The boolean value @racket[#t]}
+@defthing[false]{The boolean value @racket[#f]}
+@defthing[pi]{The math constant @racket[pi].}
+@defthing[e]{The math constant @racket[pi].}
+@defthing[null]{The empty list value @racket[null].}
+
+
+
+@defform[(let/cc id body ...)]{}
+
+@defform[(null? ...)]{}
+@defform[(not ...)]{}
+@defform[(eq? ...)]{}
+@defform[(equal? ...)]{}
+@defform[(void ...)]{}
+
+
+
+
+
+
+@subsection{IO}
+@defform[(current-output-port ...)]{}
+@defform[(current-print ...)]{}
+@defform[(write ...)]{}
+@defform[(display ...)]{}
+@defform[(newline ...)]{}
+@defform[(format ...)]{}
+@defform[(printf ...)]{}
+@defform[(fprintf ...)]{}
+@defform[(displayln ...)]{}
+
+
+
+@subsection{Numeric operations}
+@defform[(+ ...)]{}
+@defform[(- ...)]{}
+@defform[(* ...)]{}
+@defform[(/ ...)]{}
+@defform[(= ...)]{}
+@defform[(add1 ...)]{}
+@defform[(sub1 ...)]{}
+@defform[(< ...)]{}
+@defform[(<= ...)]{}
+@defform[(> ...)]{}
+@defform[(>= ...)]{}
+@defform[(abs ...)]{}
+@defform[(quotient ...)]{}
+@defform[(remainder ...)]{}
+@defform[(modulo ...)]{}
+@defform[(gcd ...)]{}
+@defform[(lcm ...)]{}
+@defform[(floor ...)]{}
+@defform[(ceiling ...)]{}
+@defform[(round ...)]{}
+@defform[(truncate ...)]{}
+@defform[(numerator ...)]{}
+@defform[(denominator ...)]{}
+@defform[(expt ...)]{}
+@defform[(exp ...)]{}
+@defform[(log ...)]{}
+@defform[(sin ...)]{}
+@defform[(sinh ...)]{}
+@defform[(cos ...)]{}
+@defform[(cosh ...)]{}
+@defform[(tan ...)]{}
+@defform[(asin ...)]{}
+@defform[(acos ...)]{}
+@defform[(atan ...)]{}
+@defform[(sqr ...)]{}
+@defform[(sqrt ...)]{}
+@defform[(integer-sqrt ...)]{}
+@defform[(sgn ...)]{}
+@defform[(make-rectangular ...)]{}
+@defform[(make-polar ...)]{}
+@defform[(real-part ...)]{}
+@defform[(imag-part ...)]{}
+@defform[(angle ...)]{}
+@defform[(magnitude ...)]{}
+@defform[(conjugate ...)]{}
+@defform[(number->string ...)]{}
+@defform[(string->number ...)]{}
+@defform[(pair? ...)]{}
+@defform[(exact? ...)]{}
+
+
+
+@subsection{List operations}
+@defform[(cons ...)]{}
+@defform[(car ...)]{}
+@defform[(cdr ...)]{}
+@defform[(list ...)]{}
+@defform[(length ...)]{}
+@defform[(append ...)]{}
+@defform[(reverse ...)]{}
+@defform[(map ...)]{}
+@defform[(member ...)]{}
+
+
+
+@subsection{Vector operations}
+
+@defform[(make-vector ...)]{}
+@defform[(vector ...)]{}
+@defform[(vector-length ...)]{}
+@defform[(vector-ref ...)]{}
+@defform[(vector-set! ...)]{}
+@defform[(vector->list ...)]{}
+@defform[(list->vector ...)]{}
+
+
+
+
+@subsection{Misc}
+
+The bindings here might relocate!
+
+@defform[(in-javascript-context? ...)]{}
+@defform[(viewport-width)]{}
+@defform[(viewport-height)]{}
+
+
+}
+
+
+
+
 @section{The JavaScript API}
 
 @defmodule/this-package[js]{
@@ -298,12 +433,13 @@ Displays an alert.  Currently implemented using JavaScript's
 A JQuery-wrapped value representing the body of the DOM.
 }
 
-@defproc[(call-method [object javascript-function] 
+@defproc[(call-method [object any/c] 
                       [method-name string?]
                       [arg any/c] ...) any/c]{
 
-Calls theAssuming @racket[object] is a JavaScript value that supports
-the method call.  Returns a raw JavaScript value back.
+Calls the method of the given object, assuming @racket[object] is a
+JavaScript value that supports that method call.  The raw return
+value is passed back.
 
 For example,
 @racketblock[(call-method body "css" "background-color")]
@@ -312,14 +448,17 @@ should return the css color of the body.
 
 
 
-@defproc[($ [locator any/c]) -> any/c]{
+@defproc[($ [locator any/c]) any/c]{
 
 Uses JQuery to construct or collect a set of DOM elements, as
 described in the @link["http://api.jquery.com/jQuery/"]{JQuery
 documentation}.
 
-For example, @racketblock[(call-method ($ "<h1>Hello World</h1>")
-"appendTo" body)] will construct a @tt{h1} header, and append it to
+For example,
+@racketblock[(call-method ($ "<h1>Hello World</h1>")
+                          "appendTo"
+                          body)]
+will construct a @tt{h1} header, and append it to
 the document body.
 
 

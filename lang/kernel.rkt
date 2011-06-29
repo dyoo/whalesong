@@ -59,6 +59,7 @@
                      (constant:false false)
                      (constant:pi pi)
                      (constant:e e))
+         null
 	 #%module-begin
 	 #%datum
 	 #%app
@@ -107,9 +108,13 @@
 	 struct-out
 	 define-syntax
 	 define-syntaxes
-	 let/cc
+
+
+         let/cc
 	 with-continuation-mark
-	 null
+
+
+         
 
 
          ;; Kernel inlinable

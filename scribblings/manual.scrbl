@@ -5,7 +5,11 @@
           scribble/eval
           racket/sandbox
           (only-in racket/contract any/c)
-          (for-label racket/base)
+          ;          (for-label racket/base)
+          (for-label (this-package-in lang/base))
+          (for-label (this-package-in js))
+
+
           racket/runtime-path
           "scribble-helpers.rkt"
           "../js-assembler/get-js-vm-implemented-primitives.rkt")
@@ -196,20 +200,20 @@ that accesses the JavaScript DOM.  Call this file @filepath{dom-play.rkt}.
 
 ;; insert-break: -> void
 (define (insert-break)
-  (call ($ "<br/>") "appendTo" body)
+  (call-method ($ "<br/>") "appendTo" body)
   (void))
 
 ;; write-message: any -> void
 (define (write-message msg)
-  (void (call (call (call ($ "<span/>") "text" msg)
+  (void (call-method (call-method (call-method ($ "<span/>") "text" msg)
                     "css" "white-space" "pre")
               "appendTo"
               body)))
 
 ;; Set the background green, and show some content
 ;; on the browser.
-(void (call body "css" "background-color" "lightgreen"))
-(void (call ($ "<h1>Hello World</h1>") "appendTo" body))
+(void (call-method body "css" "background-color" "lightgreen"))
+(void (call-method ($ "<h1>Hello World</h1>") "appendTo" body))
 (write-message "Hello, this is a test!")
 (insert-break)
 (let loop ([i 0])
@@ -274,29 +278,25 @@ commands to do something interesting...)
 
 @section{The Whalesong language}
 
-@defmodule/this-package[lang/base]{
+@defmodule/this-package[lang/base]
 
 This needs to at least show all the bindings available from the base
 language.
 
-@defthing[true]{The boolean value @racket[#t]}
-@defthing[false]{The boolean value @racket[#f]}
-@defthing[pi]{The math constant @racket[pi].}
-@defthing[e]{The math constant @racket[pi].}
-@defthing[null]{The empty list value @racket[null].}
+@defthing[true boolean]{The boolean value @racket[#t].}
+@defthing[false boolean]{The boolean value @racket[#f].}
+@defthing[pi number]{The math constant @racket[pi].}
+@defthing[e number]{The math constant @racket[pi].}
+@defthing[null null]{The empty list value @racket[null].}
 
 
 
 @defform[(let/cc id body ...)]{}
-
 @defform[(null? ...)]{}
 @defform[(not ...)]{}
 @defform[(eq? ...)]{}
 @defform[(equal? ...)]{}
 @defform[(void ...)]{}
-
-
-
 
 
 
@@ -314,6 +314,7 @@ language.
 
 
 @subsection{Numeric operations}
+
 @defform[(+ ...)]{}
 @defform[(- ...)]{}
 @defform[(* ...)]{}
@@ -401,7 +402,6 @@ The bindings here might relocate!
 @defform[(viewport-height)]{}
 
 
-}
 
 
 

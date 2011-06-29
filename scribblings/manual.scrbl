@@ -397,9 +397,20 @@ language.
 
 The bindings here might relocate!
 
-@defform[(in-javascript-context? ...)]{}
-@defform[(viewport-width)]{}
-@defform[(viewport-height)]{}
+@defproc[(in-javascript-context?) boolean]{Returns true if the running context
+supports JavaScript-specific functions.}
+
+@defform[(viewport-width)]{
+Can only be called in a JavaScript context.
+
+Returns wthe width of the viewport.
+}
+
+@defform[(viewport-height)]{
+Can only be called in a JavaScript context.
+
+Returns the height of the viewport.
+}
 
 
 

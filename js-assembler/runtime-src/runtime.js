@@ -116,16 +116,14 @@
 	    'currentPrint': new Closure(
 		function(MACHINE) {
                     if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
-
-		    var elt = MACHINE.env.pop();
+		    var elt = MACHINE.env[MACHINE.env.length - 1];
 		    var outputPort = 
 			MACHINE.params.currentOutputPort;
 		    if (elt !== VOID) {
 			outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
 			outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
 		    }
-		    var frame = MACHINE.control.pop();
-		    return frame.label(MACHINE);
+                    return finalizeClosureCall(MACHINE, VOID);
 		},
 		1,
 		[],
@@ -135,6 +133,52 @@
 	};
 	this.primitives = Primitives;
     };
+
+
+
+    // Finalize the return from a closure.  This is a helper function
+    // for those who implement Closures by hand.
+    //
+    // If used in the body of a Closure, it must be in tail
+    // position.  This finishes the closure call, and does the following:
+    //
+    //     * Clears out the existing arguments off the stack frame
+    //     * Sets up the return value
+    //     * Jumps either to the single-value return point, or the multiple-value
+    //       return point.
+    //
+    // I'd personally love for this to be a macro and avoid the
+    // extra function call here.
+    var finalizeClosureCall = function(MACHINE) {
+        MACHINE.callsBeforeTrampoline--;
+        var frame, i, returnArgs = [].slice.call(arguments, 1);
+
+        // clear out stack space
+        // TODO: replace with a splice.
+        for(i = 0; i < MACHINE.argcount; i++) {
+            MACHINE.env.pop();
+        }
+
+        if (returnArgs.length === 1) {
+            MACHINE.val = returnArgs[0];
+	    frame = MACHINE.control.pop();
+	    return frame.label(MACHINE);
+        } else if (returnArgs.length === 0) {
+            MACHINE.argcount = 0;
+	    frame = MACHINE.control.pop();
+	    return frame.label.multipleValueReturn(MACHINE);
+        } else {
+            MACHINE.argcount = returnArgs.length;
+            MACHINE.val = returnArgs.shift();
+            // TODO: replace with a splice.
+            for(i = 0; i < MACHINE.argcount - 1; i++) {
+                MACHINE.env.push(returnArgs.pop());
+            }
+	    frame = MACHINE.control.pop();
+	    return frame.label.multipleValueReturn(MACHINE);
+        }
+    };
+
 
 
 
@@ -529,7 +573,7 @@
 
     // Primitives are the set of primitive values.  Not all primitives
     // are coded here; several of them (including call/cc) are injected by
-    // the bootstrapping code.
+    // the bootstrapping code in compiler/boostrapped-primitives.rkt
     var Primitives = {};
 
     var installPrimitiveProcedure = function(name, arity, f) {
@@ -537,6 +581,12 @@
         Primitives[name].arity = arity;
         Primitives[name].displayName = name;
     };
+
+    var installPrimitiveClosure = function(name, arity, f) {
+        Primitives[name] = 
+            new Closure(f, arity, [], name);
+    };
+
 
     var makePrimitiveProcedure = function(name, arity, f) {
         f.arity = arity;
@@ -1998,65 +2048,99 @@
 
 
 
+    
+
+    installPrimitiveClosure(
+        'make-struct-type',
+        makeList(4, 5, 6, 7, 8, 9, 10, 11),
+        function(MACHINE) {
+            // FIXME: we need to return those five values back.
+            finalizeClosureCall(MACHINE,
+                                "type",
+                                "constructor",
+                                "predicate",
+                                "accessor",
+                                "mutator");
+        });
+        
+     installPrimitiveProcedure(
+         'current-inspector',
+         makeList(0, 1),
+         function(MACHINE) {
+             return "inspector gadget";
+         }
+     ); 
+
     installPrimitiveProcedure(
         'make-struct-field-accessor',
         makeList(2, 3),
-        function(MACHINE) {
-
-            var accessor, fieldPos, fieldName;
-            accessor = MACHINE.env[MACHINE.env.length-1];
-            fieldPos = MACHINE.env[MACHINE.env.length-2];
-            if (MACHINE.argcount === 2) {
-                fieldName = 'field' + fieldPos;
-            } else {
-                fieldName = MACHINE.env[MACHINE.env.length-3];
-            }
-
-	    testArgument(MACHINE,
-                         'accessor procedure that requires a field index',
-                         function(x) {
-                             return (x instanceof types.StructAccessorProc &&
-                                     x.numParams > 1);
-                         },
-                         accessor,
-                         0,
-		         'make-struct-field-accessor');
-
-	    testArgument(MACHINE,
-                         'exact non-negative integer', 
-                         isNatural,
-                         fieldPos,
-                         'make-struct-field-accessor', 
-                         1)
-
-	    testArgument(MACHINE,
-                         'symbol or #f',
-                         function(x) { 
-                             return x === false || isSymbol(x);
-                         },
-		         'make-struct-field-accessor', 
-                         fieldName,
-                         2);
-
-
-	    var procName = accessor.type.name + '-' fieldName;           
-	    return new types.StructAccessorProc(
-                accessor.type,
-                procName,
-                1, 
-                false,
-                false,
-		function(MACHINE) {
-		    testArgument(MACHINE, 
-                                 'struct:' + accessor.type.name, 
-                                 accessor.type.predicate,
-                                 MACHINE.env[MACHINE.env.length - 1],
-                                 procName, 
-                                 0);
-		    return accessor.impl(x, fieldPos);
-		});
-
+        function(MACHINE){
+            return 'a procedure';
         });
+
+
+
+
+
+//     installPrimitiveProcedure(
+//         'make-struct-field-accessor',
+//         makeList(2, 3),
+//         function(MACHINE) {
+
+//             var accessor, fieldPos, fieldName;
+//             accessor = MACHINE.env[MACHINE.env.length-1];
+//             fieldPos = MACHINE.env[MACHINE.env.length-2];
+//             if (MACHINE.argcount === 2) {
+//                 fieldName = 'field' + fieldPos;
+//             } else {
+//                 fieldName = MACHINE.env[MACHINE.env.length-3];
+//             }
+
+// 	    testArgument(MACHINE,
+//                          'accessor procedure that requires a field index',
+//                          function(x) {
+//                              return (x instanceof types.StructAccessorProc &&
+//                                      x.numParams > 1);
+//                          },
+//                          accessor,
+//                          0,
+// 		         'make-struct-field-accessor');
+
+// 	    testArgument(MACHINE,
+//                          'exact non-negative integer', 
+//                          isNatural,
+//                          fieldPos,
+//                          'make-struct-field-accessor', 
+//                          1)
+
+// 	    testArgument(MACHINE,
+//                          'symbol or #f',
+//                          function(x) { 
+//                              return x === false || isSymbol(x);
+//                          },
+// 		         'make-struct-field-accessor', 
+//                          fieldName,
+//                          2);
+
+
+// 	    var procName = accessor.type.name + '-' fieldName;           
+// 	    return new types.StructAccessorProc(
+//                 accessor.type,
+//                 procName,
+//                 1, 
+//                 false,
+//                 false,
+// 		function(MACHINE) {
+// 		    testArgument(MACHINE, 
+//                                  'struct:' + accessor.type.name, 
+//                                  accessor.type.predicate,
+//                                  MACHINE.env[MACHINE.env.length - 1],
+//                                  procName, 
+//                                  0);
+// 		    return accessor.impl(x, fieldPos);
+// 		});
+
+//         });
 
 
 
@@ -2328,6 +2412,7 @@
 
     // installing new primitives
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;
+    exports['installPrimitiveClosure'] = installPrimitiveClosure;
     exports['makePrimitiveProcedure'] = makePrimitiveProcedure;
     exports['Primitives'] = Primitives;
     
@@ -2372,6 +2457,9 @@
     exports['trampoline'] = trampoline;
     exports['spliceListIntoStack'] = spliceListIntoStack;
     exports['unspliceRestFromStack'] = unspliceRestFromStack;
+
+
+    exports['finalizeClosureCall'] = finalizeClosureCall;
 
 
     //////////////////////////////////////////////////////////////////////

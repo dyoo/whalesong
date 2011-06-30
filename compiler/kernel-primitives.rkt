@@ -64,6 +64,10 @@
 
                                     'for-each
                                     'current-print
+
+                                    'make-struct-type
+                                    'current-inspector
+                                    'make-struct-field-accessor
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

@@ -10,7 +10,8 @@
          "test-package.rkt"
          "test-conform-browser.rkt"
          "test-earley-browser.rkt"
-         "test-get-dependencies.rkt")
+         "test-get-dependencies.rkt"
+         "more-tests/run-more-tests.rkt")
 
 
 ;; This test takes a bit too much time.

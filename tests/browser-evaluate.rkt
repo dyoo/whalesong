@@ -225,7 +225,10 @@ var comet = function() {
                                                          $(document.body).append(v);
                                                          output.push($(v).text()); } };
 
+                    var successCalled = false;
                     var onSuccess = function(v) {
+                        if (successCalled) { return; }
+                        successCalled = true;
                         endTime = new Date();
                         sendRequest("/eval", function(req) { setTimeout(comet, 0); },
                             "v=" + encodeURIComponent(String(v)) +
@@ -234,7 +237,10 @@ var comet = function() {
                             "&b=" + encodeURIComponent(String(BrowserDetect.browser + ' ' + BrowserDetect.version + '/' + BrowserDetect.OS)));
                     };
 
+                    var failCalled = false;
                     var onFail = function(machine, e) {
+                        if (failCalled) { return; }
+                        failCalled = true;
                         endTime = new Date();
                         sendRequest("/eval", function(req) { setTimeout(comet, 0); },
                             "e=" + encodeURIComponent(String(e.stack || e)) +

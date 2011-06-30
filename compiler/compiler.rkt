@@ -1775,8 +1775,13 @@
               ,(make-PushEnvironment n (LetVoid-boxes? exp))))
            body-code
            after-body-code
+           
+           ;; There may be multiple values coming back at this point.
+           ;; We need to route around those.
            (make-instruction-sequence 
-            `(,(make-PopEnvironment (make-Const n) (make-Const 0))))
+            `(,(make-PopEnvironment (make-Const n) (make-SubtractArg
+                                                    (make-Reg 'argcount)
+                                                    (make-Const 1)))))
            after-let))))
 
 

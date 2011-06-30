@@ -1998,6 +1998,84 @@
 
 
 
+    installPrimitiveProcedure(
+        'make-struct-field-accessor',
+        makeList(2, 3),
+        function(MACHINE) {
+
+            var accessor, fieldPos, fieldName;
+            accessor = MACHINE.env[MACHINE.env.length-1];
+            fieldPos = MACHINE.env[MACHINE.env.length-2];
+            if (MACHINE.argcount === 2) {
+                fieldName = 'field' + fieldPos;
+            } else {
+                fieldName = MACHINE.env[MACHINE.env.length-3];
+            }
+
+	    testArgument(MACHINE,
+                         'accessor procedure that requires a field index',
+                         function(x) {
+                             return (x instanceof types.StructAccessorProc &&
+                                     x.numParams > 1);
+                         },
+                         accessor,
+                         0,
+		         'make-struct-field-accessor');
+
+	    testArgument(MACHINE,
+                         'exact non-negative integer', 
+                         isNatural,
+                         fieldPos,
+                         'make-struct-field-accessor', 
+                         1)
+
+	    testArgument(MACHINE,
+                         'symbol or #f',
+                         function(x) { 
+                             return x === false || isSymbol(x);
+                         },
+		         'make-struct-field-accessor', 
+                         fieldName,
+                         2);
+
+
+	    var procName = accessor.type.name + '-' fieldName;           
+	    return new types.StructAccessorProc(
+                accessor.type,
+                procName,
+                1, 
+                false,
+                false,
+		function(MACHINE) {
+		    testArgument(MACHINE, 
+                                 'struct:' + accessor.type.name, 
+                                 accessor.type.predicate,
+                                 MACHINE.env[MACHINE.env.length - 1],
+                                 procName, 
+                                 0);
+		    return accessor.impl(x, fieldPos);
+		});
+
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

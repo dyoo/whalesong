@@ -1788,37 +1788,37 @@ String.prototype.toDisplayedString = function(cache) {
     };
     //////////////////////////////////////////////////////////////////////
 
-    var makeOptionPrimitive = function(name,
-				       numArgs,
-				       defaultVals,
-				       usesState,
-				       bodyF) {
-        var makeNthPrimitive = function(n) {
-	    return new PrimProc(name,
-			        numArgs + n,
-			        false,
-			        usesState,
-			        function() {
-				    var expectedNumArgs = numArgs + n + (usesState ? 1 : 0);
-				    assert.equal(arguments.length,
-					         expectedNumArgs);
-				    var args = [arguments];
-				    for (var i = 0; i < arguments.length; i++) {
-				        args.push(arguments[i]);
-				    }
-				    var startDefaults = i - numArgs - (usesState ? 1 : 0);
-				    return bodyF.apply(
-				        bodyF,
-				        args.concat(defaultVals.slice(startDefaults)));
-			        });
-        };
+//     var makeOptionPrimitive = function(name,
+// 				       numArgs,
+// 				       defaultVals,
+// 				       usesState,
+// 				       bodyF) {
+//         var makeNthPrimitive = function(n) {
+// 	    return new PrimProc(name,
+// 			        numArgs + n,
+// 			        false,
+// 			        usesState,
+// 			        function() {
+// 				    var expectedNumArgs = numArgs + n + (usesState ? 1 : 0);
+// 				    assert.equal(arguments.length,
+// 					         expectedNumArgs);
+// 				    var args = [arguments];
+// 				    for (var i = 0; i < arguments.length; i++) {
+// 				        args.push(arguments[i]);
+// 				    }
+// 				    var startDefaults = i - numArgs - (usesState ? 1 : 0);
+// 				    return bodyF.apply(
+// 				        bodyF,
+// 				        args.concat(defaultVals.slice(startDefaults)));
+// 			        });
+//         };
 	
-        var cases = [];
-        for (var i = 0; i <= defaultVals.length; i++) {
-	    cases.push(makeNthPrimitive(i));
-        }
-        return new CasePrimitive(name, cases);
-    };
+//         var cases = [];
+//         for (var i = 0; i <= defaultVals.length; i++) {
+// 	    cases.push(makeNthPrimitive(i));
+//         }
+//         return new CasePrimitive(name, cases);
+//     };
 
 
 
@@ -2149,7 +2149,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.CaseLambdaValue = CaseLambdaValue;
     types.PrimProc = PrimProc;
     types.CasePrimitive = CasePrimitive;
-    types.makeOptionPrimitive = makeOptionPrimitive;
+//     types.makeOptionPrimitive = makeOptionPrimitive;
 
     types.internalCall = function(op, args, k) { return new INTERNAL_CALL(op, args, k); };
     types.isInternalCall = function(x) { return (x instanceof INTERNAL_CALL); };

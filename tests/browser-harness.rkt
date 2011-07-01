@@ -63,6 +63,14 @@ EOF
 
 (define-syntax (test stx)
   (syntax-case stx ()
+    [(_ original-source-file-path)
+     (with-syntax ([expected-file-path
+                    (regexp-replace "\\.rkt$"
+                                    (syntax-e
+                                     #'original-source-file-path)
+                                    ".expected")])
+
+       #'(test original-source-file-path expected-file-path))]
     [(_ original-source-file-path expected-file-path)
      (with-syntax ([stx stx]
                    [source-file-path (parameterize ([current-directory

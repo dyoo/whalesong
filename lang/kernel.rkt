@@ -396,7 +396,7 @@
 
  
 ;;  call-with-current-continuation
-;;  call/cc
+  call/cc
 ;;  call-with-continuation-prompt
 ;;  abort-current-continuation
 ;;  default-continuation-prompt-tag

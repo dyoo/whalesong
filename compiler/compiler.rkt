@@ -1777,16 +1777,40 @@
               ,(make-PushEnvironment n (LetVoid-boxes? exp))))
            body-code
            after-body-code
-           
-           ;; There may be multiple values coming back at this point.
-           ;; We need to route around those.
-           (make-instruction-sequence 
-            `(,(make-PopEnvironment (make-Const n)
-                                    (make-Const 0)
-                                    ;(make-SubtractArg
-                                    ; (make-Reg 'argcount)
-                                    ; (make-Const 1))
-                                    )))
+
+           ;; We want to clear out the scratch space introduced by the
+           ;; let-void.  However, there may be multiple values coming
+           ;; back at this point, from the evaluation of the body.  We
+           ;; look at the context and route around those values
+           ;; appropriate.
+           (cond
+            [(eq? context 'tail)
+             empty-instruction-sequence]
+            [(eq? context 'drop-multiple)
+             (make-PopEnvironment (make-Const n)
+                                  (make-Const 0))]
+            [(eq? context 'keep-multiple)
+             ;; dynamic number of arguments that need
+             ;; to be preserved
+             (make-PopEnvironment (make-Const n)
+                                  (make-SubtractArg
+                                   (make-Reg 'argcount)
+                                   (make-Const 1)))]
+            [else
+             (cond [(= context 0)
+                    (make-PopEnvironment (make-Const n)                                  
+                                         (make-Const 0))]
+                   [(= context 1)
+                    (make-PopEnvironment (make-Const n)
+                                         (make-Const 0))]
+                   [else
+                    
+                    ;; n-1 values on stack that we need to route
+                                             ;; around
+                    (make-PopEnvironment (make-Const n)
+                                         (make-SubtractArg
+                                          (make-Const context)
+                                          (make-Const 1)))])])
            after-let))))
 
 

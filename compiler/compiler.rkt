@@ -1748,9 +1748,11 @@
   (let*: ([n : Natural (LetVoid-count exp)]
           [after-let : Symbol (make-label 'afterLet)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
-          [extended-cenv : CompileTimeEnvironment (append (build-list (LetVoid-count exp) 
-                                                                      (lambda: ([i : Natural]) '?))
-                                                          cenv)]
+          [extended-cenv : CompileTimeEnvironment
+                         (append (build-list (LetVoid-count exp) 
+                                             (lambda: ([i : Natural]) '?))
+                                 cenv)]
+          [context : ValuesContext (linkage-context linkage)]
           [let-linkage : Linkage
                        (cond
                          [(NextLinkage? linkage)
@@ -1760,9 +1762,9 @@
                             [(ReturnLinkage-tail? linkage)
                              linkage]
                             [else
-                             (make-LabelLinkage after-body-code (linkage-context linkage))])]
+                             (make-LabelLinkage after-body-code context)])]
                          [(LabelLinkage? linkage)
-                          (make-LabelLinkage after-body-code (LabelLinkage-context linkage))])]
+                          (make-LabelLinkage after-body-code context)])]
           [body-target : Target (adjust-target-depth target n)]
           [body-code : InstructionSequence
                      (compile (LetVoid-body exp) extended-cenv body-target let-linkage)])
@@ -1779,9 +1781,12 @@
            ;; There may be multiple values coming back at this point.
            ;; We need to route around those.
            (make-instruction-sequence 
-            `(,(make-PopEnvironment (make-Const n) (make-SubtractArg
-                                                    (make-Reg 'argcount)
-                                                    (make-Const 1)))))
+            `(,(make-PopEnvironment (make-Const n)
+                                    (make-Const 0)
+                                    ;(make-SubtractArg
+                                    ; (make-Reg 'argcount)
+                                    ; (make-Const 1))
+                                    )))
            after-let))))
 
 

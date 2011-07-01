@@ -16,6 +16,7 @@
          racket/runtime-path
          racket/runtime-path
          (for-syntax racket/base
+                     racket/path
                      racket/port))
 
 (define evaluate (make-evaluate 
@@ -62,14 +63,19 @@ EOF
 
 (define-syntax (test stx)
   (syntax-case stx ()
-    [(_ source-file-path expected-file-path)
+    [(_ original-source-file-path expected-file-path)
      (with-syntax ([stx stx]
-                   [exp (call-with-input-file (syntax-e #'expected-file-path)
-                          port->string)])
+                   [source-file-path (parameterize ([current-directory
+                                        (current-load-relative-directory)])
+                                       (normalize-path (syntax-e #'original-source-file-path)))]
+                   [exp (parameterize ([current-directory
+                                        (current-load-relative-directory)])
+                          (call-with-input-file (syntax-e #'expected-file-path)
+                            port->string))])
        (quasisyntax/loc #'stx
          (begin
-           (printf "running test on ~s..." source-file-path)
-           (let* ([src-path (normalize-path source-file-path)]
+           (printf "running test on ~s..." original-source-file-path)
+           (let* ([src-path source-file-path]
                   [result (evaluate (make-MainModuleSource (make-ModuleSource src-path)))]
                   [output (evaluated-stdout result)])
              (cond [(string=? output exp)

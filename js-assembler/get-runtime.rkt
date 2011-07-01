@@ -26,8 +26,13 @@
 
 
 (provide/contract [get-runtime (-> string?)])
-         
+
+;; jquery is special: we need to make sure it's resilient against
+;; multiple invokation and inclusion.
+(define-runtime-path jquery-protect-header.js "runtime-src/jquery-protect-header.js")
 (define-runtime-path jquery.js "runtime-src/jquery.js")
+(define-runtime-path jquery-protect-footer.js "runtime-src/jquery-protect-footer.js")
+
 (define-runtime-path hashtable.js "runtime-src/jshashtable-2.1_src.js")
 (define-runtime-path jsnums.js "runtime-src/js-numbers.js")
 (define-runtime-path link.js "runtime-src/link.js")
@@ -46,7 +51,10 @@
 ;; The order matters here.  link needs to come near the top, because
 ;; the other modules below have some circular dependencies that are resolved
 ;; by link.
-(define files (list jquery.js
+(define files (list jquery-protect-header.js
+                    jquery.js
+                    jquery-protect-footer.js
+                    
                     hashtable.js
                     jsnums.js
                     link.js

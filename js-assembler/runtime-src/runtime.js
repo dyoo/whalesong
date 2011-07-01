@@ -1,4 +1,7 @@
-    if(this['plt'] === undefined) { this['plt'] = {}; }
+// runtime.js: the main runtime library for whalesong.
+//
+
+if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 // All of the values here are namespaced under "plt.runtime".
@@ -565,6 +568,35 @@
 	    return false;
 	}
     }
+
+
+
+
+
+    // Helper to deal with the argument-passing of primitives.  Call f
+    // with arguments bound from MACHINE.env, assuming
+    // MACHINE.argcount has been initialized with the number of
+    // arguments on the stack.  vs provides optional values for the
+    // arguments that go beyond those of the mandatoryArgCount.
+    var withArguments = function(MACHINE,
+                                 mandatoryArgCount,
+                                 vs,
+                                 f) {
+        var args = [];
+        for (var i = 0; i < MACHINE.argcount.length; i++) {
+            if (i < mandatoryArgCount) {
+                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+            } else {
+                if (i < MACHINE.argcount) {
+                    args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+                } else {
+                    args.push(vs[mandatoryArgCount - i]);
+                }
+            }
+        }
+        return f.apply(null, args);
+    };
+    
 
 
 
@@ -2047,20 +2079,42 @@
 
 
 
-
     
 
     installPrimitiveClosure(
         'make-struct-type',
         makeList(4, 5, 6, 7, 8, 9, 10, 11),
         function(MACHINE) {
-            // FIXME: we need to return those five values back.
-            finalizeClosureCall(MACHINE,
-                                "type",
-                                "constructor",
-                                "predicate",
-                                "accessor",
-                                "mutator");
+            withArguments(
+                MACHINE,
+                4,
+                [false, 
+	         NULL,
+	         false,
+	         false,
+	         NULL,
+	         false,
+	         false],
+                function(name, 
+                         superType,
+	                 initFieldCount,
+	                 autoFieldCount,
+	                 autoV,
+	                 props,	 // FIXME: currently ignored
+	                 inspector,  // FIXME: currently ignored
+	                 procSpec,	 // FIXME: currently ignored
+	                 immutables, // FIXME: currently ignored
+	                 guard,
+                         constructorName) {
+
+                    // FIXME: we need to return those five values back.
+                    finalizeClosureCall(MACHINE,
+                                        "type",
+                                        "constructor",
+                                        "predicate",
+                                        "accessor",
+                                        "mutator");
+                });
         });
         
      installPrimitiveProcedure(

@@ -312,10 +312,10 @@
 ;;  foldr
 ;;  sort
 ;;  build-list
-;;  box
+  box
 ;;  box-immutable
-;;  unbox
-;;  set-box!
+  unbox
+  set-box!
 ;;  make-hash
 ;;  make-hasheq
 ;;  hash-set!

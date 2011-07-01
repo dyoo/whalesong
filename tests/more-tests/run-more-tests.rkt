@@ -8,4 +8,5 @@
 
 (test "hello.rkt")
 (test "sk-generator.rkt")
+(test "sk-generator-2.rkt")
 #;(test "simple-structs.rkt")

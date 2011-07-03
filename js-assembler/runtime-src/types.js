@@ -61,161 +61,6 @@ if (! this['plt']) { this['plt'] = {}; }
     //////////////////////////////////////////////////////////////////////
 
 
-    var StructType = function(name, type, numberOfArgs, numberOfFields, firstField,
-		          applyGuard, constructor, predicate, accessor, mutator) {
-	this.name = name;
-	this.type = type;
-	this.numberOfArgs = numberOfArgs;
-	this.numberOfFields = numberOfFields;
-	this.firstField = firstField;
-
-	this.applyGuard = applyGuard;
-	this.constructor = constructor;
-	this.predicate = predicate;
-	this.accessor = accessor;
-	this.mutator = mutator;
-    };
-
-    StructType.prototype.toString = function(cache) {
-	return '#<struct-type:' + this.name + '>';
-    };
-
-    StructType.prototype.equals = function(other, aUnionFind) {
-	return this === other;
-    };
-
-
-    var makeStructureType = function(theName, parentType, initFieldCnt, autoFieldCnt, autoV, guard) {
-	var defaultGuard = function(args, name, k) { return k(args); };
-
-	// If no parent type given, then the parent type is Struct
-	if ( !parentType ) {
-	    parentType = ({ type: Struct,
-			    numberOfArgs: 0,
-			    numberOfFields: 0,
-			    firstField: 0,
-			    applyGuard: defaultGuard });
-	}
-	// if there's no guard, use the default one
-	if (!guard) {
-	    guard = defaultGuard;
-	}
-
-	var numParentArgs = parentType.numberOfArgs;
-
-	// Create a new struct type inheriting from the parent
-        var aStruct = function(name, args) {
-	    parentType.type.call(this, name, args);
-	    for (var i = 0; i < initFieldCnt; i++) {
-	        this._fields.push(args[i+numParentArgs]);
-	    }
-	    for (var i = 0; i < autoFieldCnt; i++) {
-	        this._fields.push(autoV);
-	    }
-        };
-        aStruct.prototype = helpers.heir(parentType.type.prototype);
-
-
-
-	// Set type, necessary for equality checking
-        aStruct.prototype.type = aStruct;
-
-	// construct and return the new type
-	var newType = new StructType(theName,
-				     aStruct,
-				     initFieldCnt + numParentArgs,
-				     initFieldCnt + autoFieldCnt,
-				     parentType.firstField + parentType.numberOfFields,
-				     function(args, name, k) {
-					 return guard(args, name,
-						      function(result) {
-							  var parentArgs = result.slice(0, parentType.numberOfArgs);
-							  var restArgs = result.slice(parentType.numberOfArgs);
-							  return parentType.applyGuard(parentArgs, name,
-								                       function(parentRes) { return k( parentRes.concat(restArgs) ); });
-						      });
-				     },
-				     function() {
-					 var args = helpers.map(function(x) { return x; }, arguments);
-					 return newType.applyGuard(args,
-								   Symbol.makeInstance(theName),
-								   function(res) { return new aStruct(theName, res); });
-				     },
-				     function(x) { 
-					 return x instanceof aStruct; 
-				     },
-				     function(x, i) { return x._fields[i + this.firstField]; },
-				     function(x, i, v) { x._fields[i + this.firstField] = v; });
-	return newType;
-    };
-
-
-
-    var Struct = function(constructorName, fields) {
-	this._constructorName = constructorName; 
-	this._fields = [];
-    };
-
-    Struct.prototype.toWrittenString = function(cache) { 
-	cache.put(this, true);
-	var buffer = [];
-	buffer.push("(");
-	buffer.push(this._constructorName);
-	for(var i = 0; i < this._fields.length; i++) {
-	    buffer.push(" ");
-	    buffer.push(toWrittenString(this._fields[i], cache));
-	}
-	buffer.push(")");
-	return buffer.join("");
-    };
-
-    Struct.prototype.toDisplayedString = function(cache) {
-	return toWrittenString(this, cache); 
-    };
-
-    Struct.prototype.toDomNode = function(cache) {
-	cache.put(this, true);
-	var node = document.createElement("div");
-	node.appendChild(document.createTextNode("("));
-	node.appendChild(document.createTextNode(this._constructorName));
-	for(var i = 0; i < this._fields.length; i++) {
-	    node.appendChild(document.createTextNode(" "));
-	    appendChild(node, toDomNode(this._fields[i], cache));
-	}
-	node.appendChild(document.createTextNode(")"));
-	return node;
-    };
-
-
-    Struct.prototype.equals = function(other, aUnionFind) {
-	if ( other.type == undefined ||
-	     this.type !== other.type ||
-	     !(other instanceof this.type) ) {
-	    return false;
-	}
-
-	for (var i = 0; i < this._fields.length; i++) {
-	    if (! equals(this._fields[i],
-			  other._fields[i],
-			  aUnionFind)) {
-		return false;
-	    }
-	}
-	return true;
-    }
-
-    Struct.prototype.type = Struct;
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1179,7 +1024,7 @@ String.prototype.toDisplayedString = function(cache) {
     };
 
 
-    var Effect = makeStructureType('effect', false, 0, 0, false, false);
+    var Effect = plt.baselib.structs.makeStructureType('effect', false, 0, 0, false, false);
     Effect.type.prototype.invokeEffect = function() {
 	helpers.raise(types.incompleteExn(
 	    types.exnFail,
@@ -1193,7 +1038,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    superType = Effect;
 	}
 	
-	var newType = makeStructureType(name, superType, initFieldCnt, 0, false, guard);
+	var newType = plt.baselib.structs.makeStructureType(name, superType, initFieldCnt, 0, false, guard);
 	var lastFieldIndex = newType.firstField + newType.numberOfFields;
 
 	newType.type.prototype.invokeEffect = function(aBigBang, k) {
@@ -1223,7 +1068,7 @@ String.prototype.toDisplayedString = function(cache) {
     };
 
 
-    var RenderEffect = makeStructureType('render-effect', false, 0, 0, false, false);
+    var RenderEffect = plt.baselib.structs.makeStructureType('render-effect', false, 0, 0, false, false);
     RenderEffect.type.prototype.callImplementation = function(caller, k) {
 	helpers.raise(types.incompleteExn(
 	    types.exnFail,
@@ -1236,7 +1081,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    superType = RenderEffect;
 	}
 	
-	var newType = makeStructureType(name, superType, initFieldCnt, 0, false, guard);
+	var newType = plt.baselib.structs.makeStructureType(name, superType, initFieldCnt, 0, false, guard);
 	var lastFieldIndex = newType.firstField + newType.numberOfFields;
 
 	newType.type.prototype.callImplementation = function(caller, k) {
@@ -1366,39 +1211,6 @@ String.prototype.toDisplayedString = function(cache) {
     //////////////////////////////////////////////////////////////////////
 
 
-    // Wrapper around functions that return multiple values.
-    var ValuesWrapper = function(elts) {
-        this.elts = elts;
-    };
-
-    ValuesWrapper.prototype.toDomNode = function(cache) {
-        var parent = document.createElement("span");
-        parent.style["white-space"] = "pre";
-        if ( this.elts.length > 0 ) {
-	    parent.appendChild( toDomNode(this.elts[0], cache) );
-	    for (var i = 1; i < this.elts.length; i++) {
-		parent.appendChild( document.createTextNode('\n') );
-		parent.appendChild( toDomNode(this.elts[i], cache) );
-	    }
-        }
-        return parent;
-    };
-
-    ValuesWrapper.prototype.equals = function(other, aUnionFind)  {
-        if (! other instanceof ValuesWrapper) {
-	    return false;
-        }
-        if (this.elts.length !== other.elts.length) {
-	    return false;
-        }
-        for (var i = 0; i < this.elts.length; i++) {
-	    if (! equals(this.elts[i], other.elts[i], aUnionFind)) {
-	        return false;
-	    }
-        }
-        return true;
-    };
-
 
 
     var UndefinedValue = function() {
@@ -1444,19 +1256,6 @@ String.prototype.toDisplayedString = function(cache) {
         }
     };
 
-
-    var CaseLambdaValue = function(name, closures) {
-        this.name = name;
-        this.closures = closures;
-    };
-
-    CaseLambdaValue.prototype.toString = function() {
-        if (this.name !== undefined && this.name !== Empty.EMPTY) {
-	    return helpers.format("#<case-lambda-procedure:~a>", [this.name]);
-        } else {
-	    return "#<case-lambda-procedure>";
-        }
-    };
 
 
 
@@ -1564,25 +1363,6 @@ String.prototype.toDisplayedString = function(cache) {
     };
 
 
-    var CasePrimitive = function(name, cases) {
-        this.name = name;
-        this.cases = cases;
-    };
-
-
-    CasePrimitive.prototype.toDomNode = function(cache) {
-        var div = document.createElement("span");
-        div.appendChild(document.createTextNode("#<procedure:"+ this.name +">"));
-        return div;    
-    };
-
-    CasePrimitive.prototype.toWrittenString = function(cache) {
-        return ("#<procedure:" + this.name + ">");
-    };
-
-    CasePrimitive.prototype.toDisplayedString = function(cache) {
-        return ("#<procedure:" + this.name + ">");
-    };
     //////////////////////////////////////////////////////////////////////
 
 //     var makeOptionPrimitive = function(name,
@@ -1619,36 +1399,6 @@ String.prototype.toDisplayedString = function(cache) {
 
 
 
-
-
-
-
-    // Struct Procedure types
-    var StructProc = function(type, name, numParams, isRest, usesState, impl) {
-        PrimProc.call(this, name, numParams, isRest, usesState, impl);
-        this.type = type;
-    };
-    StructProc.prototype = helpers.heir(PrimProc.prototype);
-
-    var StructConstructorProc = function() {
-        StructProc.apply(this, arguments);
-    };
-    StructConstructorProc.prototype = helpers.heir(StructProc.prototype);
-
-    var StructPredicateProc = function() {
-        StructProc.apply(this, arguments);
-    };
-    StructPredicateProc.prototype = helpers.heir(StructProc.prototype);
-
-    var StructAccessorProc = function() {
-        StructProc.apply(this, arguments);
-    };
-    StructAccessorProc.prototype = helpers.heir(StructProc.prototype);
-
-    var StructMutatorProc = function() {
-        StructProc.apply(this, arguments);
-    };
-    StructMutatorProc.prototype = helpers.heir(StructProc.prototype);
 
 
 
@@ -1774,8 +1524,8 @@ String.prototype.toDisplayedString = function(cache) {
     };
 
 
-    var Color = makeStructureType('color', false, 3, 0, false, false);
-    var ArityAtLeast = makeStructureType(
+    var Color = plt.baselib.structs.makeStructureType('color', false, 3, 0, false, false);
+    var ArityAtLeast = plt.baselib.structs.makeStructureType(
         'arity-at-least', false, 1, 0, false,
 	function(args, name, k) {
 // 	    helpers.check(args[0],
@@ -1925,9 +1675,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.isColor = Color.predicate;
     types.isFunction = function(x) {
 	return (x instanceof PrimProc ||
-		x instanceof CasePrimitive ||
 		x instanceof ClosureValue ||
-		x instanceof CaseLambdaValue ||
 		x instanceof ContinuationClosureValue);
     };
     types.isJsValue = function(x) { return x instanceof JsValue; };
@@ -1939,15 +1687,12 @@ String.prototype.toDisplayedString = function(cache) {
     types.VOID = VOID_VALUE;
     types.EOF = EOF_VALUE;
 
-    types.ValuesWrapper = ValuesWrapper;
     types.ClosureValue = ClosureValue;
     types.ContinuationPromptTag = ContinuationPromptTag;
     types.defaultContinuationPromptTag = defaultContinuationPromptTag;
     types.defaultContinuationPromptTagHandler = defaultContinuationPromptTagHandler;
     types.ContinuationClosureValue = ContinuationClosureValue;
-    types.CaseLambdaValue = CaseLambdaValue;
     types.PrimProc = PrimProc;
-    types.CasePrimitive = CasePrimitive;
 //     types.makeOptionPrimitive = makeOptionPrimitive;
 
     types.internalCall = function(op, args, k) { return new INTERNAL_CALL(op, args, k); };
@@ -1967,16 +1712,15 @@ String.prototype.toDisplayedString = function(cache) {
     types.ThreadCell = ThreadCell;
 
 
+    types.isStructType = function(x) { return x instanceof plt.baselib.structs.StructType; };
+
+//     types.StructProc = StructProc;
+//     types.StructConstructorProc = StructConstructorProc;
+//     types.StructPredicateProc = StructPredicateProc;
+//     types.StructAccessorProc = StructAccessorProc;
+//     types.StructMutatorProc = StructMutatorProc;
 
 
-    types.makeStructureType = makeStructureType;
-    types.isStructType = function(x) { return x instanceof StructType; };
-
-    types.StructProc = StructProc;
-    types.StructConstructorProc = StructConstructorProc;
-    types.StructPredicateProc = StructPredicateProc;
-    types.StructAccessorProc = StructAccessorProc;
-    types.StructMutatorProc = StructMutatorProc;
 
 
     types.makeLowLevelEqHash = makeLowLevelEqHash;
@@ -2005,7 +1749,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.incompleteExn = function(constructor, msg, args) { return new IncompleteExn(constructor, msg, args); };
     types.isIncompleteExn = function(x) { return x instanceof IncompleteExn; };
 
-    var Exn = makeStructureType(
+    var Exn = plt.baselib.structs.makeStructureType(
         'exn', 
         false, 
         2, 
@@ -2024,7 +1768,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.exnSetContMarks = function(exn, v) { Exn.mutator(exn, 1, v); };
 
     // (define-struct (exn:break exn) (continuation))
-    var ExnBreak = makeStructureType(
+    var ExnBreak = plt.baselib.structs.makeStructureType(
         'exn:break', Exn, 1, 0, false,
 	function(args, name, k) {
 // 	    helpers.check(args[2], function(x) { return x instanceof ContinuationClosureValue; },
@@ -2035,24 +1779,24 @@ String.prototype.toDisplayedString = function(cache) {
     types.isExnBreak = ExnBreak.predicate;
     types.exnBreakContinuation = function(exn) { return ExnBreak.accessor(exn, 0); };
 
-    var ExnFail = makeStructureType('exn:fail', Exn, 0, 0, false, false);
+    var ExnFail = plt.baselib.structs.makeStructureType('exn:fail', Exn, 0, 0, false, false);
     types.exnFail = ExnFail.constructor;
     types.isExnFail = ExnFail.predicate;
 
-    var ExnFailContract = makeStructureType('exn:fail:contract', ExnFail, 0, 0, false, false);
+    var ExnFailContract = plt.baselib.structs.makeStructureType('exn:fail:contract', ExnFail, 0, 0, false, false);
     types.exnFailContract = ExnFailContract.constructor;
     types.isExnFailContract = ExnFailContract.predicate;
 
-    var ExnFailContractArity = makeStructureType('exn:fail:contract:arity', ExnFailContract, 0, 0, false, false);
+    var ExnFailContractArity = plt.baselib.structs.makeStructureType('exn:fail:contract:arity', ExnFailContract, 0, 0, false, false);
     types.exnFailContractArity = ExnFailContractArity.constructor;
     types.isExnFailContractArity = ExnFailContractArity.predicate;
 
-    var ExnFailContractVariable = makeStructureType('exn:fail:contract:variable', ExnFailContract, 1, 0, false, false);
+    var ExnFailContractVariable = plt.baselib.structs.makeStructureType('exn:fail:contract:variable', ExnFailContract, 1, 0, false, false);
     types.exnFailContractVariable = ExnFailContractVariable.constructor;
     types.isExnFailContractVariable = ExnFailContractVariable.predicate;
     types.exnFailContractVariableId = function(exn) { return ExnFailContractVariable.accessor(exn, 0); };
 
-    var ExnFailContractDivisionByZero = makeStructureType('exn:fail:contract:divide-by-zero', ExnFailContract, 0, 0, false, false);
+    var ExnFailContractDivisionByZero = plt.baselib.structs.makeStructureType('exn:fail:contract:divide-by-zero', ExnFailContract, 0, 0, false, false);
     types.exnFailContractDivisionByZero = ExnFailContractDivisionByZero.constructor;
     types.isExnFailContractDivisionByZero = ExnFailContractDivisionByZero.predicate;
 
@@ -2061,7 +1805,7 @@ String.prototype.toDisplayedString = function(cache) {
     // World-specific exports
 
     // big bang info to be passed into a make-world-config startup argument
-    var BigBangInfo = makeStructureType('bb-info', false, 2, 0, false,
+    var BigBangInfo = plt.baselib.structs.makeStructureType('bb-info', false, 2, 0, false,
 			                function(args, name, k) {
 				            //helpers.check(args[0], helpers.procArityContains(1), name, 'procedure (arity 1)', 1);
 				            //helpers.check(args[1], types.isJsValue, name, 'js-object', 2);
@@ -2083,7 +1827,7 @@ String.prototype.toDisplayedString = function(cache) {
     // exporting information to create effect types
     types.makeEffectType = makeEffectType;
     types.isEffectType = function(x) {
-	return ((x instanceof StructType)&& x.type.prototype.invokeEffect) ? true : false;
+	return ((x instanceof plt.baselib.structs.StructType)&& x.type.prototype.invokeEffect) ? true : false;
     };
 
     types.isEffect = Effect.predicate;
@@ -2092,7 +1836,7 @@ String.prototype.toDisplayedString = function(cache) {
     // exporting functions to create render effect types
     types.makeRenderEffectType = makeRenderEffectType;
     types.isRenderEffectType = function(x) {
-	return (x instanceof StructType && x.type.prototype.callImplementation) ? true : false;
+	return (x instanceof plt.baselib.structs.StructType && x.type.prototype.callImplementation) ? true : false;
     };
 
     types.isRenderEffect = RenderEffect.predicate;

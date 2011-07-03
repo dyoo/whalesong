@@ -1,7 +1,8 @@
-(function(scope) {
+
+(function(baselib) {
     var hash = {};
 
-    scope.hash = hash;
+    baselib.hash = hash;
 
 
     
@@ -13,7 +14,7 @@
 
 
     // getHashCode: any -> (or fixnum string)
-    // Produces a hashcode appropriate for eq.
+    // Given a value, produces a hashcode appropriate for eq.
     var getEqHashCode = function(x) {
 	if (typeof(x) === 'string') {
 	    return x;
@@ -30,6 +31,11 @@
 	return 0;
     };
 
+
+    // Creates a low-level hashtable, following the interface of 
+    // http://www.timdown.co.uk/jshashtable/
+    //
+    // Defined to use the getEqHashCode defined in baselib_hash.js.
     var makeLowLevelEqHash = function() {
 	return new Hashtable(function(x) { return getEqHashCode(x); },
 			     function(x, y) { return x === y; });

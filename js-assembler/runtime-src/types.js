@@ -453,11 +453,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    var isBoolean = function(x) {
-	return (x === true || x === false);
-    }
-
-
 
     // Chars
     // Char: string -> Char
@@ -1481,165 +1476,7 @@ String.prototype.toDisplayedString = function(cache) {
 
 
 
-    //////////////////////////////////////////////////////////////////////
 
-
-
-    var PrefixValue = function() {
-        this.slots = [];
-        this.definedMask = [];
-    };
-
-    PrefixValue.prototype.addSlot = function(v) {
-        if (v === undefined) { 
-	    this.slots.push(types.UNDEFINED);
-	    this.definedMask.push(false);
-        } else {
-            this.slots.push(v);
-	    if (v instanceof GlobalBucket) {
-	        if (v.value === types.UNDEFINED) {
-		    this.definedMask.push(false);
-	        } else {
-		    this.definedMask.push(true);
-	        }
-	    } else if (v instanceof NamedSlot) {
-	        if (v.value === types.UNDEFINED) {
-		    this.definedMask.push(false);
-	        } else {
-		    this.definedMask.push(true);
-	        }
-	    } else {
-	        this.definedMask.push(true);
-	    }
-        }
-    };
-
-    PrefixValue.prototype.ref = function(n) {
-        if (this.slots[n] instanceof GlobalBucket) {
-	    if (this.definedMask[n]) {
-	        return this.slots[n].value;
-	    } else {
-	        helpers.raise(types.incompleteExn(
-		    types.exnFailContractVariable,
-		    "reference to an identifier before its definition: " + this.slots[n].name,
-		    [this.slots[n].name]));
-	    }
-        } else if (this.slots[n] instanceof NamedSlot) {
-	    if (this.definedMask[n]) {
-	        return this.slots[n].value;
-	    } else {
-	        helpers.raise(types.incompleteExn(
-		    types.exnFailContractVariable,
-		    "reference to an identifier before its definition: " + this.slots[n].name,
-		    [this.slots[n].name]));
-	    }
-        } else {
-	    if (this.definedMask[n]) {
-	        return this.slots[n];
-	    } else {
-	        helpers.raise(types.incompleteExn(
-		    types.exnFailContractVariable,
-		    "variable has not been defined",
-		    [false]));
-	    }
-        }
-    };
-
-    PrefixValue.prototype.lookup = function(name) {
-        for (var i = 0; i < this.slots.length; i++) {
-	    if (this.slots[i] instanceof NamedSlot) {
-	        if (this.slots[i].name === name) {
-		    return this.slots[i].value;
-	        }
-	    } else if (this.slots[i] instanceof GlobalBucket) {
-	        if (this.slots[i].name === name) {
-		    return this.slots[i].value;
-	        }
-	    }
-        };
-        return types.UNDEFINED;
-    };
-
-    PrefixValue.prototype.set = function(n, v) {
-        if (this.slots[n] instanceof GlobalBucket) {
-	    this.slots[n].value = v;
-	    this.definedMask[n] = true;
-        } else if (this.slots[n] instanceof NamedSlot) {
-	    this.slots[n].value = v;
-	    this.definedMask[n] = true;
-        } else {
-	    this.slots[n] = v;
-	    this.definedMask[n] = true;
-        }
-    };
-
-
-    PrefixValue.prototype.length = function() { 
-        return this.slots.length;
-    };
-
-
-    var GlobalBucket = function(name, value) {
-        this.name = name;
-        this.value = value;
-    };
-
-    var NamedSlot = function(name, value) {
-        this.name = name;
-        this.value = value;
-    };
-
-    var ModuleVariableRecord = function(resolvedModuleName,
-				        variableName) {
-        this.resolvedModuleName = resolvedModuleName;
-        this.variableName = variableName;
-    };
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-    var Namespace = function() {
-        this.prefixes = [];
-        this.bindings = {};
-    };
-
-
-    Namespace.prototype.addPrefix = function(prefixValue) {
-        this.prefixes.push(prefixValue);
-    };
-
-
-    Namespace.prototype.getVariableValue = function(name) {
-        // FIXME: fill me in.
-        // first, look in bindings.
-        // if not there, then look into each of the prefixes.
-    };
-
-
-    Namespace.prototype.setVariableValue = function(name, value) {
-        // FIXME: fill me in.
-        this.bindings[name] = value;
-    };
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-    var VariableReference = function(prefix, pos) {
-        this.prefix = prefix;
-        this.pos = pos;
-    };
-
-    VariableReference.prototype.ref = function() {
-        return this.prefix.ref(this.pos);
-    };
-
-    VariableReference.prototype.set = function(v) {
-        this.prefix.set(this.pos, v);
-    }
 
     //////////////////////////////////////////////////////////////////////
 
@@ -2064,7 +1901,6 @@ String.prototype.toDisplayedString = function(cache) {
     types.isNumber = isNumber;
 
     types.isReal = jsnums.isReal;
-    types.isBoolean = isBoolean;
     types.isRational = jsnums.isRational;
     types.isComplex = isNumber;
     types.isInteger = jsnums.isInteger;
@@ -2125,12 +1961,6 @@ String.prototype.toDisplayedString = function(cache) {
     types.isContinuationMarkSet = function(x) { return x instanceof ContinuationMarkSet; };
     types.isContinuationPromptTag = function(x) { return x instanceof ContinuationPromptTag; };
 
-
-    types.PrefixValue = PrefixValue;
-    types.GlobalBucket = GlobalBucket;
-    types.NamedSlot = NamedSlot;
-    types.ModuleVariableRecord = ModuleVariableRecord;
-    types.VariableReference = VariableReference;
 
     types.Box = Box;
     types.Placeholder = Placeholder;

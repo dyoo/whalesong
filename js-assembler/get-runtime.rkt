@@ -37,6 +37,7 @@
 (define-runtime-path baselib.js "runtime-src/baselib.js")
 (define-runtime-path baselib_unionfind.js "runtime-src/baselib_unionfind.js")
 (define-runtime-path baselib_hash.js "runtime-src/baselib_hash.js")
+(define-runtime-path baselib_structs.js "runtime-src/baselib_structs.js")
 
 
 (define-runtime-path jshashtable.js "runtime-src/jshashtable-2.1_src.js")
@@ -62,12 +63,16 @@
                     jquery-protect-footer.js
 
                     
+                    jshashtable.js
+                    jsnums.js
+
+                    
                     baselib.js
                     baselib_unionfind.js
                     baselib_hash.js
+                    baselib_structs.js
                     
-                    jshashtable.js
-                    jsnums.js
+
                     link.js
                     helpers.js
                     types.js

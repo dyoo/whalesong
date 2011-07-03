@@ -1,4 +1,4 @@
-(function(scope) {
+(function(baselib) {
 
 
 
@@ -10,7 +10,7 @@
     var UnionFind = function() {
 	// this.parenMap holds the arrows from an arbitrary pointer
 	// to its parent.
-	this.parentMap = scope.hash.makeLowLevelEqHash();
+	this.parentMap = baselib.hash.makeLowLevelEqHash();
     }
 
     // find: ptr -> UnionFindNode
@@ -36,6 +36,6 @@
 
 
 
-    scope.UnionFind = UnionFind;
+    baselib.UnionFind = UnionFind;
 
 })(this['plt'].baselib);

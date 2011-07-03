@@ -338,13 +338,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // its argument stack space.
     //
     //
+
+
     // A Closure is a function that takes on more responsibilities: it is
     // responsible for popping off stack space before it finishes, and it
     // is also explicitly responsible for continuing the computation by 
     // popping off the control stack and doing the jump.  Because of this,
     // closures can do pretty much anything to the machine.
-
-
 
     // A closure consists of its free variables as well as a label
     // into its text segment.

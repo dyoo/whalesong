@@ -54,35 +54,6 @@ if (! this['plt']) { this['plt'] = {}; }
     
 
 
-    // Union/find for circular equality testing.
-
-    var UnionFind = function() {
-	// this.parenMap holds the arrows from an arbitrary pointer
-	// to its parent.
-	this.parentMap = makeLowLevelEqHash();
-    }
-
-    // find: ptr -> UnionFindNode
-    // Returns the representative for this ptr.
-    UnionFind.prototype.find = function(ptr) {
-	var parent = (this.parentMap.containsKey(ptr) ? 
-		      this.parentMap.get(ptr) : ptr);
-	if (parent === ptr) {
-	    return parent;
-	} else {
-	    var rep = this.find(parent);
-	    // Path compression:
-	    this.parentMap.put(ptr, rep);
-	    return rep;
-	}
-    };
-
-    // merge: ptr ptr -> void
-    // Merge the representative nodes for ptr1 and ptr2.
-    UnionFind.prototype.merge = function(ptr1, ptr2) {
-	this.parentMap.put(this.find(ptr1), this.find(ptr2));
-    };
-
 
 
 
@@ -1100,7 +1071,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    return toWrittenString(x); 
 	},
 		                   function(x, y) {
-			               return equals(x, y, new UnionFind()); 
+			               return equals(x, y, new plt.baselib.UnionFind()); 
 		                   });
 	this.mutable = true;
     };
@@ -1345,7 +1316,7 @@ String.prototype.toDisplayedString = function(cache) {
 	     y.equals) {
 
 	    if (typeof (aUnionFind) === 'undefined') {
-	        aUnionFind = new UnionFind();
+	        aUnionFind = new plt.baselib.UnionFind();
 	    }
 
 	    if (aUnionFind.find(x) === aUnionFind.find(y)) {
@@ -2126,7 +2097,6 @@ String.prototype.toDisplayedString = function(cache) {
     types.isJsValue = function(x) { return x instanceof JsValue; };
     types.isWrappedSchemeValue = function(x) { return x instanceof WrappedSchemeValue; };
 
-    types.UnionFind = UnionFind;
     types.cons = Cons.makeInstance;
 
     types.UNDEFINED = UNDEFINED_VALUE;

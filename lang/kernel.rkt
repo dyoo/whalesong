@@ -187,7 +187,7 @@
 ;;  sleep
 ;;  (identity -identity)
 ;;  raise
-;;  error
+error
 
 ;;  make-exn
 ;;  make-exn:fail
@@ -250,11 +250,11 @@
 ;;  (undefined? -undefined?)
 ;;  immutable?
 ;;  void?
-;;  symbol?
+symbol?
 ;;  string?
 ;;  char?
 ;;  boolean?
-;;  vector?
+vector?
 ;;  struct?
 ;;  eof-object?
 ;;  bytes?
@@ -268,14 +268,14 @@
 ;;  inexact?
 ;;  odd?
 ;;  even?
-;;  zero?
+  zero?
 ;;  positive?
 ;;  negative?
 ;;  box?
 ;;  hash?
 ;;  eqv?
   equal?
-;;  caar
+  caar
 ;;  cadr
 ;;  cdar
 ;;  cddr
@@ -295,15 +295,15 @@
 ;;  list-tail
   append
   reverse
-;;  for-each
+  for-each
   map
 ;;  andmap
 ;;  ormap
-;;  memq
+memq
 ;;  memv
   member
 ;;  memf
-;;  assq
+  assq
 ;;  assv
 ;;  assoc
 ;;  remove
@@ -325,7 +325,7 @@
 ;;  hash-for-each
 ;;  make-string
 ;;  string
-;;  string-length
+  string-length
 ;;  string-ref
 ;;  string=?
 ;;  string-ci=?
@@ -338,12 +338,12 @@
 ;;  string-ci<=?
 ;;  string-ci>=?
 ;;  substring
-;;  string-append
+  string-append
 ;;  string->list
 ;;  list->string
 ;;  string-copy
 ;;  string->symbol
-;;  symbol->string
+symbol->string
   format
   printf
   fprintf
@@ -439,3 +439,13 @@
   (error 'viewport-width "Not available outside JavaScript context."))
 
 
+
+
+
+(provide set-car! set-cdr!)
+
+(define (set-car! x v)
+  (error 'set-car! "Not available outside JavaScript context."))
+
+(define (set-cdr! x v)
+  (error 'set-car! "Not available outside JavaScript context."))

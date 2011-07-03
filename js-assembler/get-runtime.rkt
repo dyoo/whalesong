@@ -33,7 +33,13 @@
 (define-runtime-path jquery.js "runtime-src/jquery.js")
 (define-runtime-path jquery-protect-footer.js "runtime-src/jquery-protect-footer.js")
 
-(define-runtime-path hashtable.js "runtime-src/jshashtable-2.1_src.js")
+
+(define-runtime-path baselib.js "runtime-src/baselib.js")
+(define-runtime-path baselib_unionfind.js "runtime-src/baselib_unionfind.js")
+(define-runtime-path baselib_hash.js "runtime-src/baselib_hash.js")
+
+
+(define-runtime-path jshashtable.js "runtime-src/jshashtable-2.1_src.js")
 (define-runtime-path jsnums.js "runtime-src/js-numbers.js")
 (define-runtime-path link.js "runtime-src/link.js")
 
@@ -54,8 +60,13 @@
 (define files (list jquery-protect-header.js
                     jquery.js
                     jquery-protect-footer.js
+
                     
-                    hashtable.js
+                    baselib.js
+                    baselib_unionfind.js
+                    baselib_hash.js
+                    
+                    jshashtable.js
                     jsnums.js
                     link.js
                     helpers.js

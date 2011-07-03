@@ -7,6 +7,7 @@
 ;; type replaced with .expected.
 
 (test "hello.rkt")
+(test "conform.rkt")
 (test "sk-generator.rkt")
 (test "sk-generator-2.rkt")
 #;(test "simple-structs.rkt")

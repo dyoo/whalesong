@@ -202,7 +202,7 @@ if (! this['plt']) { this['plt'] = {}; }
 //     };
 
     var isList = function(x) {
-	var seenPairs = makeLowLevelEqHash();
+	var seenPairs = plt.baselib.hash.makeLowLevelEqHash();
 	while (true) {
 	    if (seenPairs.containsKey(x)) {
 		return true;
@@ -218,7 +218,7 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
     var isListOf = function(x, f) {
-	var seenPairs = makeLowLevelEqHash();
+	var seenPairs = plt.baselib.hash.makeLowLevelEqHash();
 	while (true) {
 	    if (seenPairs.containsKey(x)) {
 		return true;
@@ -323,18 +323,6 @@ if (! this['plt']) { this['plt'] = {}; }
 	return ret;
     };
 
-
-    // assocListToHash: (listof (list X Y)) -> (hashof X Y)
-    var assocListToHash = function(lst) {
-	var result = {};
-	while ( !lst.isEmpty() ) {
-	    var key = lst.first().first();
-	    var val = lst.first().rest().first();
-	    result[key] = val;
-	    lst = lst.rest();
-	}
-	return result;
-    };
 
 
     var ordinalize = function(n) {
@@ -509,43 +497,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-
-
-    var _eqHashCodeCounter = 0;
-    makeEqHashCode = function() {
-	_eqHashCodeCounter++;
-	return _eqHashCodeCounter;
-    };
-
-    
-    // getHashCode: any -> (or fixnum string)
-    // Produces a hashcode appropriate for eq.
-    getEqHashCode = function(x) {
-	if (typeof(x) === 'string') {
-	    return x;
-	}
-	if (typeof(x) === 'number') {
-	    return String(x);
-	}
-	if (x && !x._eqHashCode) {
-	    x._eqHashCode = makeEqHashCode();
-	}
-	if (x && x._eqHashCode) {
-	    return x._eqHashCode;
-	}
-	return 0;
-    };
-
-
-
-
-    var makeLowLevelEqHash = function() {
-	return new Hashtable(function(x) { return getEqHashCode(x); },
-			     function(x, y) { return x === y; });
-    };
-
-
-
     // Inheritance.
     var heir = function(parentPrototype) {
 	var f = function() {}
@@ -559,7 +510,7 @@ if (! this['plt']) { this['plt'] = {}; }
     // toWrittenString: Any Hashtable -> String
     var toWrittenString = function(x, cache) {
         if (! cache) { 
-     	    cache = makeLowLevelEqHash();
+     	    cache = plt.baselib.hash.makeLowLevelEqHash();
         }
         if (x === null) {
             return "null";
@@ -598,7 +549,7 @@ if (! this['plt']) { this['plt'] = {}; }
     // toDisplayedString: Any Hashtable -> String
     var toDisplayedString = function(x, cache) {
         if (! cache) {
-    	    cache = makeLowLevelEqHash();
+    	    cache = plt.baselib.hash.makeLowLevelEqHash();
         }
         if (x === null) {
             return "null";
@@ -637,7 +588,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
     var ToDomNodeParameters = function(params) {
         if (! params) { params = {}; }
-        this.cache = makeLowLevelEqHash();
+        this.cache = plt.baselib.hash.makeLowLevelEqHash();
         for (var k in params) {
             if (params.hasOwnProperty(k)) {
                 this[k] = params[k];
@@ -928,7 +879,6 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.schemeListToArray = schemeListToArray;
     helpers.deepListToArray = deepListToArray;
     helpers.flattenSchemeListToArray = flattenSchemeListToArray;
-    helpers.assocListToHash = assocListToHash;
 
     helpers.ordinalize = ordinalize;
     helpers.wrapJsValue = wrapJsValue;
@@ -941,8 +891,8 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.isLocationDom = isLocationDom;
 
 
-    helpers.getEqHashCode = getEqHashCode;
-    helpers.makeLowLevelEqHash = makeLowLevelEqHash;
+    helpers.getEqHashCode = plt.baselib.hash.getEqHashCode;
+    helpers.makeLowLevelEqHash = plt.baselib.hash.makeLowLevelEqHash;
 
     helpers.heir = heir;
     helpers.escapeString = escapeString;

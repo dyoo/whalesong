@@ -1236,26 +1236,6 @@ String.prototype.toDisplayedString = function(cache) {
     var EOF_VALUE = new EofValue();
 
 
-    var ClosureValue = function(name, numParams, paramTypes, isRest, closureVals, body) {
-        this.name = name;
-        this.numParams = numParams;
-        this.paramTypes = paramTypes;
-        this.isRest = isRest;
-        this.closureVals = closureVals;
-        this.body = body;
-    };
-
-
-
-
-    ClosureValue.prototype.toString = function() {
-        if (this.name !== undefined && this.name !== Empty.EMPTY) {
-	    return helpers.format("#<procedure:~a>", [this.name]);
-        } else {
-	    return "#<procedure>";
-        }
-    };
-
 
 
 
@@ -1675,7 +1655,6 @@ String.prototype.toDisplayedString = function(cache) {
     types.isColor = Color.predicate;
     types.isFunction = function(x) {
 	return (x instanceof PrimProc ||
-		x instanceof ClosureValue ||
 		x instanceof ContinuationClosureValue);
     };
     types.isJsValue = function(x) { return x instanceof JsValue; };
@@ -1687,7 +1666,6 @@ String.prototype.toDisplayedString = function(cache) {
     types.VOID = VOID_VALUE;
     types.EOF = EOF_VALUE;
 
-    types.ClosureValue = ClosureValue;
     types.ContinuationPromptTag = ContinuationPromptTag;
     types.defaultContinuationPromptTag = defaultContinuationPromptTag;
     types.defaultContinuationPromptTagHandler = defaultContinuationPromptTagHandler;
@@ -1725,80 +1703,6 @@ String.prototype.toDisplayedString = function(cache) {
 
     types.makeLowLevelEqHash = makeLowLevelEqHash;
 
-
-    // Error type exports
-    var InternalError = function(val, contMarks) {
-	this.val = val;
-	this.contMarks = (contMarks ? contMarks : false);
-    }
-    types.internalError = function(v, contMarks) { return new InternalError(v, contMarks); };
-    types.isInternalError = function(x) { return x instanceof InternalError; };
-
-    var SchemeError = function(val) {
-	this.val = val;
-    }
-    types.schemeError = function(v) { return new SchemeError(v); };
-    types.isSchemeError = function(v) { return v instanceof SchemeError; };
-
-
-    var IncompleteExn = function(constructor, msg, otherArgs) {
-	this.constructor = constructor;
-	this.msg = msg;
-	this.otherArgs = otherArgs;
-    };
-    types.incompleteExn = function(constructor, msg, args) { return new IncompleteExn(constructor, msg, args); };
-    types.isIncompleteExn = function(x) { return x instanceof IncompleteExn; };
-
-    var Exn = plt.baselib.structs.makeStructureType(
-        'exn', 
-        false, 
-        2, 
-        0,
-        false,
-	function(args, name, k) {
-// 	    helpers.check(args[0], isString, name, 'string', 1);
-// 	    helpers.check(args[1], types.isContinuationMarkSet,
-//                           name, 'continuation mark set', 2);
-	    return k(args);
-	});
-    types.exn = Exn.constructor;
-    types.isExn = Exn.predicate;
-    types.exnMessage = function(exn) { return Exn.accessor(exn, 0); };
-    types.exnContMarks = function(exn) { return Exn.accessor(exn, 1); };
-    types.exnSetContMarks = function(exn, v) { Exn.mutator(exn, 1, v); };
-
-    // (define-struct (exn:break exn) (continuation))
-    var ExnBreak = plt.baselib.structs.makeStructureType(
-        'exn:break', Exn, 1, 0, false,
-	function(args, name, k) {
-// 	    helpers.check(args[2], function(x) { return x instanceof ContinuationClosureValue; },
-// 			  name, 'continuation', 3);
-	    return k(args);
-	});
- types.exnBreak = ExnBreak.constructor;
-    types.isExnBreak = ExnBreak.predicate;
-    types.exnBreakContinuation = function(exn) { return ExnBreak.accessor(exn, 0); };
-
-    var ExnFail = plt.baselib.structs.makeStructureType('exn:fail', Exn, 0, 0, false, false);
-    types.exnFail = ExnFail.constructor;
-    types.isExnFail = ExnFail.predicate;
-
-    var ExnFailContract = plt.baselib.structs.makeStructureType('exn:fail:contract', ExnFail, 0, 0, false, false);
-    types.exnFailContract = ExnFailContract.constructor;
-    types.isExnFailContract = ExnFailContract.predicate;
-
-    var ExnFailContractArity = plt.baselib.structs.makeStructureType('exn:fail:contract:arity', ExnFailContract, 0, 0, false, false);
-    types.exnFailContractArity = ExnFailContractArity.constructor;
-    types.isExnFailContractArity = ExnFailContractArity.predicate;
-
-    var ExnFailContractVariable = plt.baselib.structs.makeStructureType('exn:fail:contract:variable', ExnFailContract, 1, 0, false, false);
-    types.exnFailContractVariable = ExnFailContractVariable.constructor;
-    types.isExnFailContractVariable = ExnFailContractVariable.predicate;
-    types.exnFailContractVariableId = function(exn) { return ExnFailContractVariable.accessor(exn, 0); };
-
-    var ExnFailContractDivisionByZero = plt.baselib.structs.makeStructureType('exn:fail:contract:divide-by-zero', ExnFailContract, 0, 0, false, false);
-    types.exnFailContractDivisionByZero = ExnFailContractDivisionByZero.constructor;
-    types.isExnFailContractDivisionByZero = ExnFailContractDivisionByZero.predicate;
 
 
     ///////////////////////////////////////

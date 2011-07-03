@@ -96,7 +96,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    'currentErrorHandler': function(MACHINE, exn) {
                 MACHINE.params.currentErrorDisplayer(
                     MACHINE,
-                    exn);
+                    toDomNode(exn));
             },
 	    
 	    'currentNamespace': {},
@@ -542,33 +542,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // An arity is either a primitive number, an ArityAtLeast instance,
-    // or a list of either primitive numbers or ArityAtLeast instances.
-
-    var ArityAtLeast = function(n) {
-	this.value = n;
-    };
-
-    // isArityMatching: arity natural -> boolean
-    // Produces true if n satisfies the arity.
-    var isArityMatching = function(arity, n) {
-	if (typeof(arity) === 'number') {
-	    return arity === n;
-	} else if (arity instanceof ArityAtLeast) {
-	    return n >= arity.value;
-	} else {
-	    while (arity !== NULL) {
-		if (typeof(arity.first) === 'number') {
-		    if (arity.first === n) { return true; }
-		} else if (arity instanceof ArityAtLeast) {
-		    if (n >= arity.first.value) { return true; }
-		}
-		arity = arity.rest;
-	    }
-	    return false;
-	}
-    }
-
 
 
 
@@ -696,7 +669,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'format',
-        new ArityAtLeast(1),
+        new plt.baselib.arity.ArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -716,7 +689,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'printf',
-        new ArityAtLeast(1),
+        new plt.baselib.arity.ArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -738,7 +711,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'fprintf',
-        new ArityAtLeast(2),
+        new plt.baselib.arity.ArityAtLeast(2),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -799,7 +772,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '=',
-        new ArityAtLeast(2),
+        new plt.baselib.arity.ArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE, 'number', isNumber, firstArg, 0, '=');
@@ -853,7 +826,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '<',
-        new ArityAtLeast(2),
+        new plt.baselib.arity.ArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -876,7 +849,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '>',
-        new ArityAtLeast(2),
+        new plt.baselib.arity.ArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -898,7 +871,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '<=',
-        new ArityAtLeast(2),
+        new plt.baselib.arity.ArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -921,7 +894,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '>=',
-        new ArityAtLeast(2),
+        new plt.baselib.arity.ArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -944,7 +917,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '+',
-        new ArityAtLeast(0),
+        new plt.baselib.arity.ArityAtLeast(0),
         function(MACHINE) {
 	    var result = 0;
 	    var i = 0;
@@ -963,7 +936,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '*',
-        new ArityAtLeast(0),
+        new plt.baselib.arity.ArityAtLeast(0),
         function(MACHINE) {
 	    var result = 1;
 	    var i = 0;
@@ -981,7 +954,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '-',
-        new ArityAtLeast(1),
+        new plt.baselib.arity.ArityAtLeast(1),
         function(MACHINE) {
 	    if (MACHINE.argcount === 1) { 
 	        testArgument(MACHINE,
@@ -1007,7 +980,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     
     installPrimitiveProcedure(
         '/',
-        new ArityAtLeast(1),
+        new plt.baselib.arity.ArityAtLeast(1),
         function(MACHINE) {
 	    testArgument(MACHINE,
 		         'number',
@@ -1080,7 +1053,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'list',
-        new ArityAtLeast(0),
+        new plt.baselib.arity.ArityAtLeast(0),
         function(MACHINE) {
 	    var result = NULL;
 	    for (var i = 0; i < MACHINE.argcount; i++) {
@@ -1180,7 +1153,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'vector',
-        new ArityAtLeast(0),
+        new plt.baselib.arity.ArityAtLeast(0),
         function(MACHINE) {
 	    var i;
 	    var result = [];
@@ -1322,7 +1295,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'string-append',
-        new ArityAtLeast(0),
+        new plt.baselib.arity.ArityAtLeast(0),
         function(MACHINE) {
 	    var buffer = [];
 	    var i;
@@ -1369,7 +1342,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'void',
-        new ArityAtLeast(0),
+        new plt.baselib.arity.ArityAtLeast(0),
         function(MACHINE) {
 	    return VOID;
         });
@@ -1624,7 +1597,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'gcd',
-        new ArityAtLeast(1),
+        new plt.baselib.arity.ArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
@@ -1643,7 +1616,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'lcm',
-        new ArityAtLeast(1),
+        new plt.baselib.arity.ArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
@@ -2060,7 +2033,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'format',
-        new ArityAtLeast(1),
+        new plt.baselib.arity.ArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -2104,8 +2077,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	                 inspector,  // FIXME: currently ignored
 	                 procSpec,	 // FIXME: currently ignored
 	                 immutables, // FIXME: currently ignored
-	                 guard,
-                         constructorName) {
+	                 guard,      // FIXME: currently ignored
+                         constructorName // FIXME, currently ignored
+                        ) {
 
                     // FIXME: we need to return those five values back.
                     finalizeClosureCall(MACHINE,
@@ -2542,8 +2516,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['toWrittenString'] = toWrittenString;
     exports['toDisplayedString'] = toDisplayedString;
 
-    exports['ArityAtLeast'] = ArityAtLeast;
-    exports['isArityMatching'] = isArityMatching;
+    exports['ArityAtLeast'] = plt.baselib.arity.ArityAtLeast;
+    exports['isArityMatching'] = plt.baselib.arity.isArityMatching;
 
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;

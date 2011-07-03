@@ -963,134 +963,134 @@ String.prototype.toDisplayedString = function(cache) {
 
     //////////////////////////////////////////////////////////////////////
 
-    var JsValue = function(name, val) {
-	this.name = name;
-	this.val = val;
-    };
+//     var JsValue = function(name, val) {
+// 	this.name = name;
+// 	this.val = val;
+//     };
 
-    JsValue.prototype.toString = function() {
-	return '#<js-value:' + typeof(this.val) + ':' + this.name + '>';
-    };
+//     JsValue.prototype.toString = function() {
+// 	return '#<js-value:' + typeof(this.val) + ':' + this.name + '>';
+//     };
 
-    JsValue.prototype.toDomNode = function(cache) {
-	return toDomNode(this.val, cache);
-    };
+//     JsValue.prototype.toDomNode = function(cache) {
+// 	return toDomNode(this.val, cache);
+//     };
 
-    JsValue.prototype.equals = function(other, aUnionFind) {
-	return (this.val === other.val);
-    };
+//     JsValue.prototype.equals = function(other, aUnionFind) {
+// 	return (this.val === other.val);
+//     };
 
-    // unbox: jsvalue -> any
-    // Unwraps the value out of the JsValue box.
-    JsValue.prototype.unbox = function()  {
-        return this.val;
-    };
-
-
-
-    var WrappedSchemeValue = function(val) {
-	this.val = val;
-    };
-
-    WrappedSchemeValue.prototype.toString = function() { return toString(this.val); };
-    WrappedSchemeValue.prototype.toWrittenString = function(cache) { return toWrittenString(this.val, cache); };
-    WrappedSchemeValue.prototype.toDisplayedString = function(cache) { return toDisplayedString(this.val, cache); };
+//     // unbox: jsvalue -> any
+//     // Unwraps the value out of the JsValue box.
+//     JsValue.prototype.unbox = function()  {
+//         return this.val;
+//     };
 
 
-    // unbox: jsvalue -> any
-    // Unwraps the value out of the WrappedSchemeValue box.
-    WrappedSchemeValue.prototype.unbox = function() {
-        return this.val;
-    };
+
+//     var WrappedSchemeValue = function(val) {
+// 	this.val = val;
+//     };
+
+//     WrappedSchemeValue.prototype.toString = function() { return toString(this.val); };
+//     WrappedSchemeValue.prototype.toWrittenString = function(cache) { return toWrittenString(this.val, cache); };
+//     WrappedSchemeValue.prototype.toDisplayedString = function(cache) { return toDisplayedString(this.val, cache); };
+
+
+//     // unbox: jsvalue -> any
+//     // Unwraps the value out of the WrappedSchemeValue box.
+//     WrappedSchemeValue.prototype.unbox = function() {
+//         return this.val;
+//     };
 
 
     //////////////////////////////////////////////////////////////////////
 
-    var WorldConfig = function(startup, shutdown, startupArgs) {
-	this.startup = startup;
-	this.shutdown = shutdown;
-        this.startupArgs = startupArgs;
-    };
+//     var WorldConfig = function(startup, shutdown, startupArgs) {
+// 	this.startup = startup;
+// 	this.shutdown = shutdown;
+//         this.startupArgs = startupArgs;
+//     };
 
-    WorldConfig.prototype.toString = function() {
-	return '#<world-config>';
-    };
+//     WorldConfig.prototype.toString = function() {
+// 	return '#<world-config>';
+//     };
 
-    WorldConfig.prototype.equals = function(other, aUnionFind) {
-	return ( equals(this.startup, other.startup, aUnionFind) &&
-		 equals(this.shutdown, other.shutdown, aUnionFind) &&
-		 equals(this.shutdownArg, other.shutdownArg, aUnionFind) &&
-		 equals(this.restartArg, other.restartArg, aUnionFind) );
-    };
-
-
-    var Effect = plt.baselib.structs.makeStructureType('effect', false, 0, 0, false, false);
-    Effect.type.prototype.invokeEffect = function() {
-	helpers.raise(types.incompleteExn(
-	    types.exnFail,
-	    'effect type created without using make-effect-type',
-	    []));
-    };
+//     WorldConfig.prototype.equals = function(other, aUnionFind) {
+// 	return ( equals(this.startup, other.startup, aUnionFind) &&
+// 		 equals(this.shutdown, other.shutdown, aUnionFind) &&
+// 		 equals(this.shutdownArg, other.shutdownArg, aUnionFind) &&
+// 		 equals(this.restartArg, other.restartArg, aUnionFind) );
+//     };
 
 
-    var makeEffectType = function(name, superType, initFieldCnt, impl, guard) {
-	if ( !superType ) {
-	    superType = Effect;
-	}
+//     var Effect = plt.baselib.structs.makeStructureType('effect', false, 0, 0, false, false);
+//     Effect.type.prototype.invokeEffect = function() {
+// 	helpers.raise(types.incompleteExn(
+// 	    types.exnFail,
+// 	    'effect type created without using make-effect-type',
+// 	    []));
+//     };
+
+
+//     var makeEffectType = function(name, superType, initFieldCnt, impl, guard) {
+// 	if ( !superType ) {
+// 	    superType = Effect;
+// 	}
 	
-	var newType = plt.baselib.structs.makeStructureType(name, superType, initFieldCnt, 0, false, guard);
-	var lastFieldIndex = newType.firstField + newType.numberOfFields;
+// 	var newType = plt.baselib.structs.makeStructureType(name, superType, initFieldCnt, 0, false, guard);
+// 	var lastFieldIndex = newType.firstField + newType.numberOfFields;
 
-	newType.type.prototype.invokeEffect = function(aBigBang, k) {
-	    var schemeChangeWorld = new PrimProc('update-world', 1, false, false,
-			                         function(worldUpdater) {
-				                     //helpers.check(worldUpdater, helpers.procArityContains(1),
-					             //              'update-world', 'procedure (arity 1)', 1);
+// 	newType.type.prototype.invokeEffect = function(aBigBang, k) {
+// 	    var schemeChangeWorld = new PrimProc('update-world', 1, false, false,
+// 			                         function(worldUpdater) {
+// 				                     //helpers.check(worldUpdater, helpers.procArityContains(1),
+// 					             //              'update-world', 'procedure (arity 1)', 1);
 				                     
-				                     return new INTERNAL_PAUSE(
-					                 function(caller, onSuccess, onFail) {
-						             aBigBang.changeWorld(function(w, k2) {
-								 caller(worldUpdater,
-									[w], k2,
-									function(e) { throw e; },
-									'change-world (effect)');
-							     },
-								                  function() { onSuccess(VOID_VALUE, 'restarting (change-world (effect))'); });
-					                 });
-			                         });
+// 				                     return new INTERNAL_PAUSE(
+// 					                 function(caller, onSuccess, onFail) {
+// 						             aBigBang.changeWorld(function(w, k2) {
+// 								 caller(worldUpdater,
+// 									[w], k2,
+// 									function(e) { throw e; },
+// 									'change-world (effect)');
+// 							     },
+// 								                  function() { onSuccess(VOID_VALUE, 'restarting (change-world (effect))'); });
+// 					                 });
+// 			                         });
 
-	    var args = this._fields.slice(0, lastFieldIndex);
-	    args.unshift(schemeChangeWorld);
-	    return aBigBang.caller(impl, args, k, function(e) { throw e; }, 'invoking effect ' + name);
-	}
+// 	    var args = this._fields.slice(0, lastFieldIndex);
+// 	    args.unshift(schemeChangeWorld);
+// 	    return aBigBang.caller(impl, args, k, function(e) { throw e; }, 'invoking effect ' + name);
+// 	}
 
-	return newType;
-    };
+// 	return newType;
+//     };
 
 
-    var RenderEffect = plt.baselib.structs.makeStructureType('render-effect', false, 0, 0, false, false);
-    RenderEffect.type.prototype.callImplementation = function(caller, k) {
-	helpers.raise(types.incompleteExn(
-	    types.exnFail,
-	    'render effect created without using make-render-effect-type',
-	    []));
-    };
+//     var RenderEffect = plt.baselib.structs.makeStructureType('render-effect', false, 0, 0, false, false);
+//     RenderEffect.type.prototype.callImplementation = function(caller, k) {
+// 	helpers.raise(types.incompleteExn(
+// 	    types.exnFail,
+// 	    'render effect created without using make-render-effect-type',
+// 	    []));
+//     };
 
-    var makeRenderEffectType = function(name, superType, initFieldCnt, impl, guard) {
-	if ( !superType ) {
-	    superType = RenderEffect;
-	}
+//     var makeRenderEffectType = function(name, superType, initFieldCnt, impl, guard) {
+// 	if ( !superType ) {
+// 	    superType = RenderEffect;
+// 	}
 	
-	var newType = plt.baselib.structs.makeStructureType(name, superType, initFieldCnt, 0, false, guard);
-	var lastFieldIndex = newType.firstField + newType.numberOfFields;
+// 	var newType = plt.baselib.structs.makeStructureType(name, superType, initFieldCnt, 0, false, guard);
+// 	var lastFieldIndex = newType.firstField + newType.numberOfFields;
 
-	newType.type.prototype.callImplementation = function(caller, k) {
-	    var args = this._fields.slice(0, lastFieldIndex);
-	    caller(impl, args, k);
-	}
+// 	newType.type.prototype.callImplementation = function(caller, k) {
+// 	    var args = this._fields.slice(0, lastFieldIndex);
+// 	    caller(impl, args, k);
+// 	}
 
-	return newType;
-    };
+// 	return newType;
+//     };
 
     //////////////////////////////////////////////////////////////////////
 
@@ -1239,20 +1239,6 @@ String.prototype.toDisplayedString = function(cache) {
 
 
 
-    var ContinuationClosureValue = function(vstack, cstack) {
-        this.name = types.EMPTY;
-        this.vstack = vstack.slice(0);
-        this.cstack = cstack.slice(0);
-    };
-
-    ContinuationClosureValue.prototype.toString = function() {
-        if (this.name !== Empty.EMPTY) {
-	    return helpers.format("#<continuation:~a>", [this.name]);
-        } else {
-	    return "#<continuation>";
-        }
-    };
-
 
 
 
@@ -1314,33 +1300,6 @@ String.prototype.toDisplayedString = function(cache) {
     //////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////
-
-    var PrimProc = function(name, numParams, isRest, usesState, impl) {
-        this.name = name;
-        this.numParams = numParams;
-        this.isRest = isRest;
-        this.usesState = usesState;
-        this.impl = impl;
-    };
-
-    PrimProc.prototype.toString = function() {
-        return ("#<procedure:" + this.name + ">");
-    };
-
-    PrimProc.prototype.toWrittenString = function(cache) {
-        return ("#<procedure:" + this.name + ">");
-    };
-
-    PrimProc.prototype.toDisplayedString = function(cache) {
-        return ("#<procedure:" + this.name + ">");
-    };
-
-
-    PrimProc.prototype.toDomNode = function(cache) {
-        var div = document.createElement("span");
-        div.appendChild(document.createTextNode("#<procedure:"+ this.name +">"));
-        return div;
-    };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -1414,24 +1373,24 @@ String.prototype.toDisplayedString = function(cache) {
     //////////////////////////////////////////////////////////////////////
 
 
-    // ContinuationPromptTag: symbol | false -> ContinuationPromptTag
-    var ContinuationPromptTag = function(sym) {
-        this.sym = sym;
-    };
+//     // ContinuationPromptTag: symbol | false -> ContinuationPromptTag
+//     var ContinuationPromptTag = function(sym) {
+//         this.sym = sym;
+//     };
 
-    var defaultContinuationPromptTag = new ContinuationPromptTag();
+//     var defaultContinuationPromptTag = new ContinuationPromptTag();
 
-    var defaultContinuationPromptTagHandler = new PrimProc(
-        'default-continuation-prompt-tag-handler',
-        1,
-        false, 
-        true,
-        function(aState, thunk) {
-	    aState.pushControl(
-	        new control.ApplicationControl(
-		    new control.ConstantControl(thunk), 
-		    []));
-        });
+//     var defaultContinuationPromptTagHandler = new PrimProc(
+//         'default-continuation-prompt-tag-handler',
+//         1,
+//         false, 
+//         true,
+//         function(aState, thunk) {
+// 	    aState.pushControl(
+// 	        new control.ApplicationControl(
+// 		    new control.ConstantControl(thunk), 
+// 		    []));
+//         });
 
 
     //////////////////////////////////////////////////////////////////////
@@ -1653,10 +1612,12 @@ String.prototype.toDisplayedString = function(cache) {
     types.isStruct = function(x) { return x instanceof Struct; };
     types.isArityAtLeast = ArityAtLeast.predicate;
     types.isColor = Color.predicate;
-    types.isFunction = function(x) {
-	return (x instanceof PrimProc ||
-		x instanceof ContinuationClosureValue);
-    };
+
+//     types.isFunction = function(x) {
+// 	return (x instanceof PrimProc);
+//     };
+
+
     types.isJsValue = function(x) { return x instanceof JsValue; };
     types.isWrappedSchemeValue = function(x) { return x instanceof WrappedSchemeValue; };
 
@@ -1666,11 +1627,9 @@ String.prototype.toDisplayedString = function(cache) {
     types.VOID = VOID_VALUE;
     types.EOF = EOF_VALUE;
 
-    types.ContinuationPromptTag = ContinuationPromptTag;
-    types.defaultContinuationPromptTag = defaultContinuationPromptTag;
-    types.defaultContinuationPromptTagHandler = defaultContinuationPromptTagHandler;
-    types.ContinuationClosureValue = ContinuationClosureValue;
-    types.PrimProc = PrimProc;
+//     types.ContinuationPromptTag = ContinuationPromptTag;
+//     types.defaultContinuationPromptTag = defaultContinuationPromptTag;
+//     types.defaultContinuationPromptTagHandler = defaultContinuationPromptTagHandler;
 //     types.makeOptionPrimitive = makeOptionPrimitive;
 
     types.internalCall = function(op, args, k) { return new INTERNAL_CALL(op, args, k); };
@@ -1682,7 +1641,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.isContMarkRecordControl = function(x) { return x instanceof ContMarkRecordControl; };
     types.continuationMarkSet = function(dict) { return new ContinuationMarkSet(dict); };
     types.isContinuationMarkSet = function(x) { return x instanceof ContinuationMarkSet; };
-    types.isContinuationPromptTag = function(x) { return x instanceof ContinuationPromptTag; };
+//     types.isContinuationPromptTag = function(x) { return x instanceof ContinuationPromptTag; };
 
 
     types.Box = Box;
@@ -1708,42 +1667,42 @@ String.prototype.toDisplayedString = function(cache) {
     ///////////////////////////////////////
     // World-specific exports
 
-    // big bang info to be passed into a make-world-config startup argument
-    var BigBangInfo = plt.baselib.structs.makeStructureType('bb-info', false, 2, 0, false,
-			                function(args, name, k) {
-				            //helpers.check(args[0], helpers.procArityContains(1), name, 'procedure (arity 1)', 1);
-				            //helpers.check(args[1], types.isJsValue, name, 'js-object', 2);
-				            return k(args);
-			                });
-    types.BigBangInfo = BigBangInfo;
-    types.makeBigBangInfo = BigBangInfo.constructor;
-    types.isBigBangInfo = BigBangInfo.predicate;
-    types.bbInfoChangeWorld = function(info) { return BigBangInfo.accessor(info, 0); };
-    types.bbInfoToplevelNode = function(info) { return BigBangInfo.accessor(info, 1); };
+//     // big bang info to be passed into a make-world-config startup argument
+//     var BigBangInfo = plt.baselib.structs.makeStructureType('bb-info', false, 2, 0, false,
+// 			                function(args, name, k) {
+// 				            //helpers.check(args[0], helpers.procArityContains(1), name, 'procedure (arity 1)', 1);
+// 				            //helpers.check(args[1], types.isJsValue, name, 'js-object', 2);
+// 				            return k(args);
+// 			                });
+//     types.BigBangInfo = BigBangInfo;
+//     types.makeBigBangInfo = BigBangInfo.constructor;
+//     types.isBigBangInfo = BigBangInfo.predicate;
+//     types.bbInfoChangeWorld = function(info) { return BigBangInfo.accessor(info, 0); };
+//     types.bbInfoToplevelNode = function(info) { return BigBangInfo.accessor(info, 1); };
 
 
 
     // World config information for user-defined configurations
-    types.worldConfig = function(startup, shutdown, pause, restart) { return new WorldConfig(startup, shutdown, pause, restart); };
-    types.isWorldConfig = function(x) { return x instanceof WorldConfig; };
+//     types.worldConfig = function(startup, shutdown, pause, restart) { return new WorldConfig(startup, shutdown, pause, restart); };
+//     types.isWorldConfig = function(x) { return x instanceof WorldConfig; };
 
 
     // exporting information to create effect types
-    types.makeEffectType = makeEffectType;
-    types.isEffectType = function(x) {
-	return ((x instanceof plt.baselib.structs.StructType)&& x.type.prototype.invokeEffect) ? true : false;
-    };
+//     types.makeEffectType = makeEffectType;
+//     types.isEffectType = function(x) {
+// 	return ((x instanceof plt.baselib.structs.StructType)&& x.type.prototype.invokeEffect) ? true : false;
+//     };
 
-    types.isEffect = Effect.predicate;
+//     types.isEffect = Effect.predicate;
 
 
     // exporting functions to create render effect types
-    types.makeRenderEffectType = makeRenderEffectType;
-    types.isRenderEffectType = function(x) {
-	return (x instanceof plt.baselib.structs.StructType && x.type.prototype.callImplementation) ? true : false;
-    };
+//     types.makeRenderEffectType = makeRenderEffectType;
+//     types.isRenderEffectType = function(x) {
+// 	return (x instanceof plt.baselib.structs.StructType && x.type.prototype.callImplementation) ? true : false;
+//     };
 
-    types.isRenderEffect = RenderEffect.predicate;
+//     types.isRenderEffect = RenderEffect.predicate;
 
 
 

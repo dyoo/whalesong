@@ -9,8 +9,16 @@
 
 
 
-    var StructType = function(name, type, numberOfArgs, numberOfFields, firstField,
-		              applyGuard, constructor, predicate, accessor, mutator) {
+    var StructType = function(name,             // string
+                              type,             // StructType
+                              numberOfArgs,     // number
+                              numberOfFields,   // number
+                              firstField,
+		              applyGuard,
+                              constructor,
+                              predicate, 
+                              accessor,
+                              mutator) {
 	this.name = name;
 	this.type = type;
 	this.numberOfArgs = numberOfArgs;
@@ -38,10 +46,17 @@
 
 
 
+    // guard-function: array string (array -> value)
 
 
 
+
+
+    // makeStructureType: string StructType number number boolean
+    //                    guard-function -> StructType
+    //
     // Creates a new structure type.
+
     var makeStructureType = function(theName,
                                      parentType, 
                                      initFieldCnt, 

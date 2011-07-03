@@ -1,3 +1,10 @@
+// Helper functions for whalesong.
+//
+// Note: this originally came from js-vm, and may have cruft that
+// doesn't belong in whalesong.  I need to clean this up.
+
+
+
 if (! this['plt']) { this['plt'] = {}; }
 
 // Helpers library: includes a bunch of helper functions that will be used
@@ -159,36 +166,6 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
-    var procArityContains = function(n) {
-	return function(proc) {
-	    var singleCase = function(aCase) {
-		if ( aCase instanceof types.ContinuationClosureValue ) {
-		    return true;
-		}
-		return (aCase.numParams == n ||
-			(aCase.isRest && aCase.numParams <= n));
-	    };
-
-	    var cases = [];
-	    if ( proc instanceof types.ContinuationClosureValue ||
-		 proc instanceof types.ClosureValue ||
-		 proc instanceof types.PrimProc ) {
-		return singleCase(proc);
-	    }
-	    else if (proc instanceof types.CasePrimitive) {
-		cases = proc.cases;
-	    }
-	    else if (proc instanceof types.CaseLambdaValue) {
-		cases = proc.closures;
-	    }
-
-	    for (var i = 0; i < cases.length; i++) {
-		if ( singleCase(cases[i]) )
-		    return true;
-	    }
-	    return false;
-	}
-    };
 
     var throwCheckError = function(details, pos, args) {
 	var errorFormatStr;
@@ -937,7 +914,6 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.reportError = reportError;
     helpers.raise = raise;
 
-    helpers.procArityContains = procArityContains;
     helpers.throwCheckError = throwCheckError;
     helpers.isList = isList;
     helpers.isListOf = isListOf;

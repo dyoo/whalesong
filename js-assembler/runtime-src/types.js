@@ -1,3 +1,10 @@
+// The definitions of the basic types in Whalesong.
+//
+// Note: this originally came from js-vm, and as a result,
+// there's quite a lot of cruft and unused code in this module.
+// I need to filter and rip out the values that aren't used in Whalesong.
+
+
 if (! this['plt']) { this['plt'] = {}; }
 
 // FIXME: there's a circularity between this module and helpers, and that circularly
@@ -1244,7 +1251,7 @@ String.prototype.toDisplayedString = function(cache) {
 	newType.type.prototype.invokeEffect = function(aBigBang, k) {
 	    var schemeChangeWorld = new PrimProc('update-world', 1, false, false,
 			                         function(worldUpdater) {
-				                     helpers.check(worldUpdater, helpers.procArityContains(1),
+				                     //helpers.check(worldUpdater, helpers.procArityContains(1),
 					                           'update-world', 'procedure (arity 1)', 1);
 				                     
 				                     return new INTERNAL_PAUSE(
@@ -2263,7 +2270,7 @@ String.prototype.toDisplayedString = function(cache) {
     // big bang info to be passed into a make-world-config startup argument
     var BigBangInfo = makeStructureType('bb-info', false, 2, 0, false,
 			                function(args, name, k) {
-				            helpers.check(args[0], helpers.procArityContains(1), name, 'procedure (arity 1)', 1);
+				            //helpers.check(args[0], helpers.procArityContains(1), name, 'procedure (arity 1)', 1);
 				            helpers.check(args[1], types.isJsValue, name, 'js-object', 2);
 				            return k(args);
 			                });

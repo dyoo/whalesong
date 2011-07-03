@@ -167,37 +167,39 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    var throwCheckError = function(details, pos, args) {
-	var errorFormatStr;
-	if (args && args.length > 1) {
-	    var errorFormatStrBuffer = ['~a: expects type <~a> as ~a arguments, given: ~s; other arguments were:'];
-	    for (var i = 0; i < args.length; i++) {
-		if ( i != pos-1 ) {
-		    errorFormatStrBuffer.push(toWrittenString(args[i]));
-		}
-	    }
-	    errorFormatStr = errorFormatStrBuffer.join(' ');
-	}
-	else {
-	    errorFormatStr = "~a: expects argument of type <~a>, given: ~s";
-	    details.splice(2, 1);
-	}
+//     var throwCheckError = function(details, pos, args) {
+// 	var errorFormatStr;
+// 	if (args && args.length > 1) {
+// 	    var errorFormatStrBuffer = ['~a: expects type <~a> as ~a arguments, given: ~s; other arguments were:'];
+// 	    for (var i = 0; i < args.length; i++) {
+// 		if ( i != pos-1 ) {
+// 		    errorFormatStrBuffer.push(toWrittenString(args[i]));
+// 		}
+// 	    }
+// 	    errorFormatStr = errorFormatStrBuffer.join(' ');
+// 	}
+// 	else {
+// 	    errorFormatStr = "~a: expects argument of type <~a>, given: ~s";
+// 	    details.splice(2, 1);
+// 	}
 
-	raise( types.incompleteExn(types.exnFailContract,
-				   helpers.format(errorFormatStr, details),
-				   []) );
-    };
+// 	raise( types.incompleteExn(types.exnFailContract,
+// 				   helpers.format(errorFormatStr, details),
+// 				   []) );
+//     };
 
-    var check = function(x, f, functionName, typeName, position, args) {
-	if ( !f(x) ) {
-	    throwCheckError([functionName,
-			     typeName,
-			     helpers.ordinalize(position),
-			     x],
-			    position,
-			    args);
-	}
-    };
+
+
+//     var check = function(x, f, functionName, typeName, position, args) {
+// 	if ( !f(x) ) {
+// 	    throwCheckError([functionName,
+// 			     typeName,
+// 			     helpers.ordinalize(position),
+// 			     x],
+// 			    position,
+// 			    args);
+// 	}
+//     };
 
     var isList = function(x) {
 	var seenPairs = makeLowLevelEqHash();
@@ -235,16 +237,16 @@ if (! this['plt']) { this['plt'] = {}; }
 	}
     };
 
-    var checkListOf = function(lst, f, functionName, typeName, position, args) {
-	if ( !isListOf(lst, f) ) {
-	    helpers.throwCheckError([functionName,
-				     'list of ' + typeName,
-				     helpers.ordinalize(position),
-				     lst],
-				    position,
-				    args);
-	}
-    };
+//     var checkListOf = function(lst, f, functionName, typeName, position, args) {
+// 	if ( !isListOf(lst, f) ) {
+// 	    helpers.throwCheckError([functionName,
+// 				     'list of ' + typeName,
+// 				     helpers.ordinalize(position),
+// 				     lst],
+// 				    position,
+// 				    args);
+// 	}
+//     };
 
 
     //	// remove: array any -> array
@@ -914,11 +916,11 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.reportError = reportError;
     helpers.raise = raise;
 
-    helpers.throwCheckError = throwCheckError;
+//     helpers.throwCheckError = throwCheckError;
     helpers.isList = isList;
     helpers.isListOf = isListOf;
-    helpers.check = check;
-    helpers.checkListOf = checkListOf;
+//     helpers.check = check;
+//     helpers.checkListOf = checkListOf;
     
     //	helpers.remove = remove;
     helpers.map = map;

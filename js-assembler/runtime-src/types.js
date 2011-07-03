@@ -648,21 +648,6 @@ if (! this['plt']) { this['plt'] = {}; }
         return this;
     };
 
-    Empty.prototype.first = function() {
-        helpers.raise(types.incompleteExn(
-	    types.exnFailContract,
-	    "first can't be applied on empty.",
-	    []));
-    };
-    Empty.prototype.rest = function() {
-        helpers.raise(types.incompleteExn(
-	    types.exnFailContract,
-	    "rest can't be applied on empty.",
-	    []));
-    };
-    Empty.prototype.isEmpty = function() {
-        return true;
-    };
     Empty.prototype.toWrittenString = function(cache) { return "empty"; };
     Empty.prototype.toDisplayedString = function(cache) { return "empty"; };
     Empty.prototype.toString = function(cache) { return "()"; };
@@ -689,7 +674,7 @@ if (! this['plt']) { this['plt'] = {}; }
     Cons.prototype.reverse = function() {
         var lst = this;
         var ret = Empty.EMPTY;
-        while (!lst.isEmpty()){
+        while (!isEmpty(lst)){
 	    ret = Cons.makeInstance(lst.first, ret);
 	    lst = lst.rest;
         }
@@ -710,9 +695,6 @@ if (! this['plt']) { this['plt'] = {}; }
     };
     
 
-    Cons.prototype.isEmpty = function() {
-        return false;
-    };
     
 
     // Cons.append: (listof X) -> (listof X)
@@ -721,7 +703,7 @@ if (! this['plt']) { this['plt'] = {}; }
 	    return this;
         var ret = b;
         var lst = this.reverse();
-        while ( !lst.isEmpty() ) {
+        while ( !isEmpty(lst) ) {
 	    ret = Cons.makeInstance(lst.first, ret);
 	    lst = lst.rest;
         }
@@ -1252,7 +1234,7 @@ String.prototype.toDisplayedString = function(cache) {
 	    var schemeChangeWorld = new PrimProc('update-world', 1, false, false,
 			                         function(worldUpdater) {
 				                     //helpers.check(worldUpdater, helpers.procArityContains(1),
-					                           'update-world', 'procedure (arity 1)', 1);
+					             //              'update-world', 'procedure (arity 1)', 1);
 				                     
 				                     return new INTERNAL_PAUSE(
 					                 function(caller, onSuccess, onFail) {
@@ -1966,7 +1948,7 @@ String.prototype.toDisplayedString = function(cache) {
 
     var makeHashEq = function(lst) {
 	var newHash = new EqHashTable();
-	while ( !lst.isEmpty() ) {
+	while ( !isEmpty(lst) ) {
 	    newHash.hash.put(lst.first.first, lst.first.rest);
 	    lst = lst.rest;
 	}
@@ -1976,7 +1958,7 @@ String.prototype.toDisplayedString = function(cache) {
 
     var makeHashEqual = function(lst) {
 	var newHash = new EqualHashTable();
-	while ( !lst.isEmpty() ) {
+	while ( !isEmpty(lst) ) {
 	    newHash.hash.put(lst.first.first, lst.first.rest);
 	    lst = lst.rest;
 	}
@@ -1985,15 +1967,19 @@ String.prototype.toDisplayedString = function(cache) {
 
 
     var Color = makeStructureType('color', false, 3, 0, false, false);
-    var ArityAtLeast = makeStructureType('arity-at-least', false, 1, 0, false,
-		                         function(args, name, k) {
-			                     helpers.check(args[0], function(x) { return ( jsnums.isExact(x) &&
-								                           jsnums.isInteger(x) &&
-								                           jsnums.greaterThanOrEqual(x, 0) ); },
-				                           name, 'exact non-negative integer', 1);
-			                     return k(args);
-		                         });
-
+    var ArityAtLeast = makeStructureType(
+        'arity-at-least', false, 1, 0, false,
+	function(args, name, k) {
+// 	    helpers.check(args[0],
+//                           function(x) {
+//                               return ( jsnums.isExact(x) &&
+// 				       jsnums.isInteger(x) &&
+// 				       jsnums.greaterThanOrEqual(x, 0) ); },
+// 			  name, 
+//                           'exact non-negative integer', 1);
+	    return k(args);
+	});
+ 
 
 
 
@@ -2219,12 +2205,18 @@ String.prototype.toDisplayedString = function(cache) {
     types.incompleteExn = function(constructor, msg, args) { return new IncompleteExn(constructor, msg, args); };
     types.isIncompleteExn = function(x) { return x instanceof IncompleteExn; };
 
-    var Exn = makeStructureType('exn', false, 2, 0, false,
-		                function(args, name, k) {
-			            helpers.check(args[0], isString, name, 'string', 1);
-			            helpers.check(args[1], types.isContinuationMarkSet, name, 'continuation mark set', 2);
-			            return k(args);
-		                });
+    var Exn = makeStructureType(
+        'exn', 
+        false, 
+        2, 
+        0,
+        false,
+	function(args, name, k) {
+// 	    helpers.check(args[0], isString, name, 'string', 1);
+// 	    helpers.check(args[1], types.isContinuationMarkSet,
+//                           name, 'continuation mark set', 2);
+	    return k(args);
+	});
     types.exn = Exn.constructor;
     types.isExn = Exn.predicate;
     types.exnMessage = function(exn) { return Exn.accessor(exn, 0); };
@@ -2232,13 +2224,14 @@ String.prototype.toDisplayedString = function(cache) {
     types.exnSetContMarks = function(exn, v) { Exn.mutator(exn, 1, v); };
 
     // (define-struct (exn:break exn) (continuation))
-    var ExnBreak = makeStructureType('exn:break', Exn, 1, 0, false,
-		                     function(args, name, k) {
-			                 helpers.check(args[2], function(x) { return x instanceof ContinuationClosureValue; },
-				                       name, 'continuation', 3);
-			                 return k(args);
-		                     });
-    types.exnBreak = ExnBreak.constructor;
+    var ExnBreak = makeStructureType(
+        'exn:break', Exn, 1, 0, false,
+	function(args, name, k) {
+// 	    helpers.check(args[2], function(x) { return x instanceof ContinuationClosureValue; },
+// 			  name, 'continuation', 3);
+	    return k(args);
+	});
+ types.exnBreak = ExnBreak.constructor;
     types.isExnBreak = ExnBreak.predicate;
     types.exnBreakContinuation = function(exn) { return ExnBreak.accessor(exn, 0); };
 
@@ -2271,7 +2264,7 @@ String.prototype.toDisplayedString = function(cache) {
     var BigBangInfo = makeStructureType('bb-info', false, 2, 0, false,
 			                function(args, name, k) {
 				            //helpers.check(args[0], helpers.procArityContains(1), name, 'procedure (arity 1)', 1);
-				            helpers.check(args[1], types.isJsValue, name, 'js-object', 2);
+				            //helpers.check(args[1], types.isJsValue, name, 'js-object', 2);
 				            return k(args);
 			                });
     types.BigBangInfo = BigBangInfo;

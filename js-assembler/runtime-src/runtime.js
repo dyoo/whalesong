@@ -669,7 +669,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'format',
-        new plt.baselib.arity.ArityAtLeast(1),
+        plt.baselib.arity.arityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -689,7 +689,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'printf',
-        new plt.baselib.arity.ArityAtLeast(1),
+        plt.baselib.arity.arityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -711,7 +711,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'fprintf',
-        new plt.baselib.arity.ArityAtLeast(2),
+        plt.baselib.arity.arityAtLeast(2),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -772,7 +772,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '=',
-        new plt.baselib.arity.ArityAtLeast(2),
+        plt.baselib.arity.arityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE, 'number', isNumber, firstArg, 0, '=');
@@ -826,7 +826,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '<',
-        new plt.baselib.arity.ArityAtLeast(2),
+        plt.baselib.arity.arityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -849,7 +849,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '>',
-        new plt.baselib.arity.ArityAtLeast(2),
+        plt.baselib.arity.arityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -871,7 +871,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '<=',
-        new plt.baselib.arity.ArityAtLeast(2),
+        plt.baselib.arity.arityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -894,7 +894,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '>=',
-        new plt.baselib.arity.ArityAtLeast(2),
+        plt.baselib.arity.arityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -917,7 +917,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '+',
-        new plt.baselib.arity.ArityAtLeast(0),
+        plt.baselib.arity.arityAtLeast(0),
         function(MACHINE) {
 	    var result = 0;
 	    var i = 0;
@@ -936,7 +936,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '*',
-        new plt.baselib.arity.ArityAtLeast(0),
+        plt.baselib.arity.arityAtLeast(0),
         function(MACHINE) {
 	    var result = 1;
 	    var i = 0;
@@ -954,7 +954,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '-',
-        new plt.baselib.arity.ArityAtLeast(1),
+        plt.baselib.arity.arityAtLeast(1),
         function(MACHINE) {
 	    if (MACHINE.argcount === 1) { 
 	        testArgument(MACHINE,
@@ -980,7 +980,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     
     installPrimitiveProcedure(
         '/',
-        new plt.baselib.arity.ArityAtLeast(1),
+        plt.baselib.arity.arityAtLeast(1),
         function(MACHINE) {
 	    testArgument(MACHINE,
 		         'number',
@@ -1053,7 +1053,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'list',
-        new plt.baselib.arity.ArityAtLeast(0),
+        plt.baselib.arity.arityAtLeast(0),
         function(MACHINE) {
 	    var result = NULL;
 	    for (var i = 0; i < MACHINE.argcount; i++) {
@@ -1153,7 +1153,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'vector',
-        new plt.baselib.arity.ArityAtLeast(0),
+        plt.baselib.arity.arityAtLeast(0),
         function(MACHINE) {
 	    var i;
 	    var result = [];
@@ -1295,7 +1295,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'string-append',
-        new plt.baselib.arity.ArityAtLeast(0),
+        plt.baselib.arity.arityAtLeast(0),
         function(MACHINE) {
 	    var buffer = [];
 	    var i;
@@ -1342,7 +1342,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'void',
-        new plt.baselib.arity.ArityAtLeast(0),
+        plt.baselib.arity.arityAtLeast(0),
         function(MACHINE) {
 	    return VOID;
         });
@@ -1597,7 +1597,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'gcd',
-        new plt.baselib.arity.ArityAtLeast(1),
+        plt.baselib.arity.arityAtLeast(1),
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
@@ -1616,7 +1616,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'lcm',
-        new plt.baselib.arity.ArityAtLeast(1),
+        plt.baselib.arity.arityAtLeast(1),
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
@@ -2033,7 +2033,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'format',
-        new plt.baselib.arity.ArityAtLeast(1),
+        plt.baselib.arity.arityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -2517,6 +2517,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['toDisplayedString'] = toDisplayedString;
 
     exports['ArityAtLeast'] = plt.baselib.arity.ArityAtLeast;
+    exports['arityAtLeast'] = plt.baselib.arity.arityAtLeast;
     exports['isArityMatching'] = plt.baselib.arity.isArityMatching;
 
     exports['heir'] = heir;
@@ -2526,4 +2527,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
     scope.link.announceReady('runtime');
+
+
 })(this['plt']);

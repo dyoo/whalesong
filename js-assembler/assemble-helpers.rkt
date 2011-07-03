@@ -318,7 +318,7 @@
    [(natural? an-arity)
     (number->string an-arity)]
    [(ArityAtLeast? an-arity)
-    (format "(new RUNTIME.ArityAtLeast(~a))"
+    (format "(RUNTIME.arityAtLeast(~a))"
             (ArityAtLeast-value an-arity))]
    [(listof-atomic-arity? an-arity)
     (assemble-listof-assembled-values
@@ -328,7 +328,7 @@
 		[(natural? atomic-arity)
 		 (number->string atomic-arity)]
 		[(ArityAtLeast? atomic-arity)
-		 (format "(new RUNTIME.ArityAtLeast(~a))"
+		 (format "(RUNTIME.arityAtLeast(~a))"
                          (ArityAtLeast-value atomic-arity))]))
       an-arity))]))
 

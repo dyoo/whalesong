@@ -47,6 +47,10 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
+
+
+    var Symbol = plt.baselib.Symbol;
+
     //////////////////////////////////////////////////////////////////////
 
 
@@ -360,45 +364,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
     Char.prototype.equals = function(other, aUnionFind){
         return other instanceof Char && this.val == other.val;
-    };
-
-    //////////////////////////////////////////////////////////////////////
-    
-    // Symbols
-
-    //////////////////////////////////////////////////////////////////////
-    var Symbol = function(val) {
-        this.val = val;
-    };
-
-    var symbolCache = {};
-    
-    // makeInstance: string -> Symbol.
-    Symbol.makeInstance = function(val) {
-        // To ensure that we can eq? symbols with equal values.
-        if (!(val in symbolCache)) {
-	    symbolCache[val] = new Symbol(val);
-        } else {
-        }
-        return symbolCache[val];
-    };
-    
-    Symbol.prototype.equals = function(other, aUnionFind) {
-        return other instanceof Symbol &&
-            this.val == other.val;
-    };
-    
-
-    Symbol.prototype.toString = function(cache) {
-        return this.val;
-    };
-
-    Symbol.prototype.toWrittenString = function(cache) {
-        return this.val;
-    };
-
-    Symbol.prototype.toDisplayedString = function(cache) {
-        return this.val;
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1353,20 +1318,20 @@ String.prototype.toDisplayedString = function(cache) {
     // INTERNAL_CALL
     // used for interaction between the Primitives and the interpreter (callPrimitiveProcedure).
     // Don't confuse this with CallControl.
-    var INTERNAL_CALL = function(operator, operands, k) {
-        this.operator = operator;
-        this.operands = operands;
-        this.k = k;
-    };
+//     var INTERNAL_CALL = function(operator, operands, k) {
+//         this.operator = operator;
+//         this.operands = operands;
+//         this.k = k;
+//     };
 
-    // INTERNAL_PAUSE
-    // used for interaction between the Primitive functions and the
-    // interpreter.
-    // Halts the interpreter, but passing onPause the functions necessary
-    // to restart computation.
-    var INTERNAL_PAUSE = function(onPause) {
-        this.onPause = onPause;
-    };
+//     // INTERNAL_PAUSE
+//     // used for interaction between the Primitive functions and the
+//     // interpreter.
+//     // Halts the interpreter, but passing onPause the functions necessary
+//     // to restart computation.
+//     var INTERNAL_PAUSE = function(onPause) {
+//         this.onPause = onPause;
+//     };
 
 
 
@@ -1464,19 +1429,6 @@ String.prototype.toDisplayedString = function(cache) {
 
 
     var Color = plt.baselib.structs.makeStructureType('color', false, 3, 0, false, false);
-    var ArityAtLeast = plt.baselib.structs.makeStructureType(
-        'arity-at-least', false, 1, 0, false,
-	function(args, name, k) {
-// 	    helpers.check(args[0],
-//                           function(x) {
-//                               return ( jsnums.isExact(x) &&
-// 				       jsnums.isInteger(x) &&
-// 				       jsnums.greaterThanOrEqual(x, 0) ); },
-// 			  name, 
-//                           'exact non-negative integer', 1);
-	    return k(args);
-	});
- 
 
 
 
@@ -1544,8 +1496,9 @@ String.prototype.toDisplayedString = function(cache) {
 
 
 
-
     types.exceptionHandlerKey = new Symbol("exnh");
+
+
 
     types.symbol = Symbol.makeInstance;
     types.rational = jsnums.makeRational;
@@ -1569,8 +1522,8 @@ String.prototype.toDisplayedString = function(cache) {
     types.pair = function(x, y) { return Cons.makeInstance(x, y); };
     types.hash = makeHashEqual;
     types.hashEq = makeHashEq;
-    types.jsValue = function(name, val) { return new JsValue(name, val); };
-    types.wrappedSchemeValue = function(val) { return new WrappedSchemeValue(val); };
+//     types.jsValue = function(name, val) { return new JsValue(name, val); };
+//     types.wrappedSchemeValue = function(val) { return new WrappedSchemeValue(val); };
 
 
     types.color = Color.constructor;
@@ -1578,8 +1531,6 @@ String.prototype.toDisplayedString = function(cache) {
     types.colorGreen = function(x) { return Color.accessor(x, 1); };
     types.colorBlue = function(x) { return Color.accessor(x, 2); };
 
-    types.arityAtLeast = ArityAtLeast.constructor;
-    types.arityAtLeastValue = function(arity) { return ArityAtLeast.accessor(arity, 0); };
 
 
     types.FALSE = false;
@@ -1610,7 +1561,6 @@ String.prototype.toDisplayedString = function(cache) {
 				         x instanceof EqualHashTable); };
     types.isByteString = function(x) { return x instanceof Bytes; };
     types.isStruct = function(x) { return x instanceof Struct; };
-    types.isArityAtLeast = ArityAtLeast.predicate;
     types.isColor = Color.predicate;
 
 //     types.isFunction = function(x) {
@@ -1618,8 +1568,8 @@ String.prototype.toDisplayedString = function(cache) {
 //     };
 
 
-    types.isJsValue = function(x) { return x instanceof JsValue; };
-    types.isWrappedSchemeValue = function(x) { return x instanceof WrappedSchemeValue; };
+//     types.isJsValue = function(x) { return x instanceof JsValue; };
+//     types.isWrappedSchemeValue = function(x) { return x instanceof WrappedSchemeValue; };
 
     types.cons = Cons.makeInstance;
 
@@ -1632,10 +1582,10 @@ String.prototype.toDisplayedString = function(cache) {
 //     types.defaultContinuationPromptTagHandler = defaultContinuationPromptTagHandler;
 //     types.makeOptionPrimitive = makeOptionPrimitive;
 
-    types.internalCall = function(op, args, k) { return new INTERNAL_CALL(op, args, k); };
-    types.isInternalCall = function(x) { return (x instanceof INTERNAL_CALL); };
-    types.internalPause = function(onPause) { return new INTERNAL_PAUSE(onPause) };
-    types.isInternalPause = function(x) { return (x instanceof INTERNAL_PAUSE); };
+//     types.internalCall = function(op, args, k) { return new INTERNAL_CALL(op, args, k); };
+//     types.isInternalCall = function(x) { return (x instanceof INTERNAL_CALL); };
+//     types.internalPause = function(onPause) { return new INTERNAL_PAUSE(onPause) };
+//     types.isInternalPause = function(x) { return (x instanceof INTERNAL_PAUSE); };
 
     types.contMarkRecordControl = function(dict) { return new ContMarkRecordControl(dict); };
     types.isContMarkRecordControl = function(x) { return x instanceof ContMarkRecordControl; };

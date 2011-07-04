@@ -2096,7 +2096,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                         //immutables,
                         guard);
 
-                    console.log('constructor', name, superType, initFieldCount);
                     var constructorValue = 
                         makePrimitiveProcedure(
                             constructorName,
@@ -2127,6 +2126,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                                     MACHINE.env[MACHINE.env.length - 1],
                                     jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2]));
                             });
+                    accessorValue.structType = structType;
 
                     var mutatorValue = 
                         makePrimitiveProcedure(
@@ -2139,6 +2139,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                                     jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2]),
                                     MACHINE.env[MACHINE.env.length - 3]);
                             });
+                    mutatorValue.structType = structType;
 
 
                     finalizeClosureCall(MACHINE,
@@ -2169,7 +2170,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         makeList(2, 3),
         function(MACHINE){
             // FIXME: typechecks
-            var structType = MACHINE.env[MACHINE.env.length - 1];
+            // We must guarantee that the ref argument is good.
+            var structType = MACHINE.env[MACHINE.env.length - 1].structType;
             var index = MACHINE.env[MACHINE.env.length - 2];
             var name;
             if (MACHINE.argcount === 3) {
@@ -2194,7 +2196,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         makeList(2, 3),
         function(MACHINE){
             // FIXME: typechecks
-            var structType = MACHINE.env[MACHINE.env.length - 1];
+            // We must guarantee that the set! argument is good.
+            var structType = MACHINE.env[MACHINE.env.length - 1].structType;
             var index = MACHINE.env[MACHINE.env.length - 2];
             var name;
             if (MACHINE.argcount === 3) {

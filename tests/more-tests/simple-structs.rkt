@@ -1,16 +1,17 @@
 #lang planet dyoo/whalesong
 
-(define-struct p (f r))
-
-
-struct:p
-make-p
-p-f
-p-r
-p?
+(define-struct pair (f r))
+(define-struct color (r g b))
 
 
 
-(define p1 (make-p 3 4))
-(p-f p1)
-(p-r p1)
+
+(define p1 (make-pair 3 4))
+(pair-f p1)
+(pair-r p1)
+
+
+
+(color-r (make-color 3 4 5))
+(color-g (make-color 3 4 5))
+(color-b (make-color 3 4 5))

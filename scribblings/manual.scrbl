@@ -42,7 +42,7 @@
 
 
 @title{Whalesong: a Racket to JavaScript compiler}
-@author+email["Danny Yoo" "dyoo@cs.wpi.edu"]
+@author+email["Danny Yoo" "dyoo@hashcollision.org"]
 
 
 

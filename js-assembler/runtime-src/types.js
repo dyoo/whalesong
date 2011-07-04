@@ -664,9 +664,8 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    var isString = function(s) {
-	return (typeof s === 'string' || s instanceof plt.baselib.strings.Str);
-    }
+    var isString = plt.baselib.strings.isString;
+
 
 
 

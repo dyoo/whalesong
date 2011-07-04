@@ -10,6 +10,16 @@
     baselib.strings = exports;
 
 
+
+    var isString = function(s) {
+	return (typeof s === 'string' || 
+                s instanceof Str);
+    };
+
+
+
+
+
     // Now using mutable strings
     var Str = function(chars) {
 	this.chars = chars;
@@ -156,5 +166,7 @@ String.prototype.toDisplayedString = function(cache) {
 
     exports.Str = Str;
     exports.escapeString = escapeString;
+    exports.isString = isString;
+
 
 })(this['plt'].baselib);

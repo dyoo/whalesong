@@ -9,11 +9,11 @@
     var equals = function(x, y, aUnionFind) {
         if (x === y) { return true; }
 
-        if (isNumber(x) && isNumber(y)) {
+        if (jsnums.isSchemeNumber(x) && jsnums.isSchemeNumber(y)) {
 	    return jsnums.eqv(x, y);
         }
 
-        if (isString(x) && isString(y)) {
+        if (baselib.strings.isString(x) && baselib.strings.isString(y)) {
 	    return x.toString() === y.toString();
         }
 

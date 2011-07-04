@@ -27,17 +27,14 @@ if (! this['plt']) { this['plt'] = {}; }
 
         makeLowLevelEqHash = helpers.makeLowLevelEqHash;
 
-    var toWrittenString = helpers.toWrittenString;
-    var toDisplayedString = helpers.toDisplayedString;
-    var toDomNode = helpers.toDomNode;
+    var toWrittenString = plt.baselib.format.toWrittenString;
+    var toDisplayedString = plt.baselib.format.toDisplayedString;
+    var toDomNode = plt.baselib.format.toDomNode;
 
     scope.link.ready('helpers', function() { 
         helpers = scope['helpers']; 
         getEqHashCode = helpers.getEqHashCode;
         makeLowLevelEqHash = helpers.makeLowLevelEqHash;
-        toWrittenString = helpers.toWrittenString;
-        toDisplayedString = helpers.toDisplayedString;
-        toDomNode = helpers.toDomNode;
     });
 
 

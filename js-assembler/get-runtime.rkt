@@ -42,6 +42,7 @@
 (define-runtime-path baselib_arity.js "runtime-src/baselib_arity.js")
 (define-runtime-path baselib_inspectors.js "runtime-src/baselib_inspectors.js")
 (define-runtime-path baselib_exceptions.js "runtime-src/baselib_exceptions.js")
+(define-runtime-path baselib_format.js "runtime-src/baselib_format.js")
 
 
 (define-runtime-path jshashtable.js "runtime-src/jshashtable-2.1_src.js")
@@ -72,13 +73,13 @@
                     baselib.js
                     baselib_unionfind.js
                     baselib_hash.js
+                    baselib_format.js
                     baselib_symbol.js
                     baselib_structs.js
                     baselib_arity.js
                     baselib_inspectors.js
                     baselib_exceptions.js
 
-                    
 
                     link.js
                     helpers.js

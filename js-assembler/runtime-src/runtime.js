@@ -42,9 +42,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var makePair = types.pair;
 
     var heir = helpers.heir;
-    var toDomNode = helpers.toDomNode;
-    var toWrittenString = helpers.toWrittenString;
-    var toDisplayedString = helpers.toDisplayedString;
+    var toDomNode = plt.baselib.format.toDomNode;
+    var toWrittenString = plt.baselib.format.toWrittenString;
+    var toDisplayedString = plt.baselib.format.toDisplayedString;
 
 
     var makeBox = types.box;
@@ -436,7 +436,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	raise(MACHINE,
               new Error(callerName + ": expected " + expectedTypeName
 			+ " as argument " + (argumentOffset + 1)
-			+ " but received " + helpers.toWrittenString(actualValue)));
+			+ " but received " + toWrittenString(actualValue)));
     };
 
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
@@ -454,17 +454,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
 	raise(MACHINE, 
-	      new Error("not a procedure: " + helpers.toWrittenString(operator)));
+	      new Error("not a procedure: " + toWrittenString(operator)));
     };
 
     var raiseOperatorIsNotClosure = function(MACHINE, operator) {
         raise(MACHINE,
-              new Error("not a closure: " + helpers.toWrittenString(operator)));
+              new Error("not a closure: " + toWrittenString(operator)));
     };
 
     var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
         raise(MACHINE,
-              new Error("not a primitive procedure: " + helpers.toWrittenString(operator)));
+              new Error("not a primitive procedure: " + toWrittenString(operator)));
     };
 
 
@@ -683,7 +683,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
             formatString = args.shift();
-            return helpers.format(formatString, args, 'format');
+            return plt.baselib.format.format(formatString, args, 'format');
         });
 
 
@@ -703,7 +703,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
             formatString = args.shift();
-            var result = helpers.format(formatString, args, 'format');
+            var result = plt.baselib.format.format(formatString, args, 'format');
             var outputPort = MACHINE.params.currentOutputPort;            
 	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
             return VOID;
@@ -731,7 +731,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
             formatString = args.shift();
-            var result = helpers.format(formatString, args, 'format');
+            var result = plt.baselib.format.format(formatString, args, 'format');
             var outputPort = MACHINE.env[MACHINE.env.length-1];
 	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
             return VOID;
@@ -2047,7 +2047,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
             formatString = args.shift();
-            return helpers.format(formatString, args, 'format');
+            return plt.baselib.format.format(formatString, args, 'format');
         });
 
 

@@ -153,14 +153,14 @@
 	buffer.push(this._constructorName);
 	for(var i = 0; i < this._fields.length; i++) {
 	    buffer.push(" ");
-	    buffer.push(plt.helpers.toWrittenString(this._fields[i], cache));
+	    buffer.push(plt.baselib.format.toWrittenString(this._fields[i], cache));
 	}
 	buffer.push(")");
 	return buffer.join("");
     };
 
     Struct.prototype.toDisplayedString = function(cache) {
-	return plt.helpers.toWrittenString(this, cache); 
+	return plt.baselib.format.toWrittenString(this, cache); 
     };
 
     Struct.prototype.toDomNode = function(params) {
@@ -170,7 +170,7 @@
 	$(node).append(document.createTextNode(this._constructorName));
 	for(var i = 0; i < this._fields.length; i++) {
 	    $(node).append(document.createTextNode(" "));
-	    $(node).append(plt.helpers.toDomNode(this._fields[i], params));
+	    $(node).append(plt.baselib.format.toDomNode(this._fields[i], params));
 	}
 	$(node).append(document.createTextNode(")"));
 	return node;

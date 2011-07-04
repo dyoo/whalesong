@@ -88,8 +88,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    'currentErrorDisplayer': function(MACHINE, domNode) {
                 $(domNode).appendTo(document.body);
 	    },
-	    
 
+            'currentInspector': plt.baselib.inspectors.DEFAULT_INSPECTOR,
+	    
 	    'currentOutputPort': new StandardOutputPort(),
 	    'currentErrorPort': new StandardErrorPort(),
 	    'currentSuccessHandler': function(MACHINE) {},
@@ -383,10 +384,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
     var raise = function(MACHINE, e) { 
-	if (typeof(window.console) !== 'undefined' &&
-	    typeof(console.log) === 'function') {
+	if (typeof(window['console']) !== 'undefined' &&
+	    typeof(console['log']) === 'function') {
 	    console.log(MACHINE);
-	    if (e.stack) { console.log(e.stack); }
+	    if (e['stack']) { console.log(e['stack']); }
 	    else { console.log(e); }
 	} 
 	throw e; 
@@ -556,7 +557,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                                  vs,
                                  f) {
         var args = [];
-        for (var i = 0; i < MACHINE.argcount.length; i++) {
+        for (var i = 0; i < MACHINE.argcount; i++) {
             if (i < mandatoryArgCount) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             } else {
@@ -2078,16 +2079,74 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	                 procSpec,	 // FIXME: currently ignored
 	                 immutables, // FIXME: currently ignored
 	                 guard,      // FIXME: currently ignored
-                         constructorName // FIXME, currently ignored
+                         constructorName
                         ) {
 
-                    // FIXME: we need to return those five values back.
+                    // FIXME: typechecks.
+
+                    var structType = plt.baselib.structs.makeStructureType(
+                        name,
+                        superType,
+                        initFieldCount,
+                        autoFieldCount,
+                        autoV,
+                        //props,
+                        //inspector,
+                        //procSpec,
+                        //immutables,
+                        guard);
+
+                    console.log('constructor', name, superType, initFieldCount);
+                    var constructorValue = 
+                        makePrimitiveProcedure(
+                            constructorName,
+                            jsnums.toFixnum(initFieldCount),
+                            function(MACHINE) {
+                                var args = [];
+                                for(var i = 0; i < initFieldCount; i++) {
+                                    args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+                                }
+                                return structType.constructor.apply(null, args);
+                            });
+
+                    var predicateValue = 
+                        makePrimitiveProcedure(
+                            String(name) + "?",
+                            1,
+                            function(MACHINE) {
+                                return structType.predicate(MACHINE.env[MACHINE.env.length - 1]);
+                            });
+
+                    var accessorValue = 
+                        makePrimitiveProcedure(
+                            String(name) + "-accessor",
+                            2,
+                            function(MACHINE) {
+                                // FIXME: typechecks
+                                return structType.accessor(
+                                    MACHINE.env[MACHINE.env.length - 1],
+                                    jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2]));
+                            });
+
+                    var mutatorValue = 
+                        makePrimitiveProcedure(
+                            String(name) + "-mutator",
+                            3,
+                            function(MACHINE) {
+                                // FIXME: typechecks
+                                return structType.mutator(
+                                    MACHINE.env[MACHINE.env.length - 1],
+                                    jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2]),
+                                    MACHINE.env[MACHINE.env.length - 3]);
+                            });
+
+
                     finalizeClosureCall(MACHINE,
-                                        "type",
-                                        "constructor",
-                                        "predicate",
-                                        "accessor",
-                                        "mutator");
+                                        structType,
+                                        constructorValue,
+                                        predicateValue,
+                                        accessorValue,
+                                        mutatorValue);
                 });
         });
         
@@ -2095,16 +2154,66 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
          'current-inspector',
          makeList(0, 1),
          function(MACHINE) {
-             return "inspector gadget";
+            if (MACHINE.argcount === 1) {
+                MACHINE.params['currentInspector'] = MACHINE.env[MACHINE.env.length - 1];
+                return VOID;
+            } else {
+	        return MACHINE.params['currentInspector'];
+            }
          }
      ); 
+
 
     installPrimitiveProcedure(
         'make-struct-field-accessor',
         makeList(2, 3),
         function(MACHINE){
-            return 'a procedure';
+            // FIXME: typechecks
+            var structType = MACHINE.env[MACHINE.env.length - 1];
+            var index = MACHINE.env[MACHINE.env.length - 2];
+            var name;
+            if (MACHINE.argcount === 3) {
+                name = String(MACHINE.env[MACHINE.env.length - 3]);
+            } else {
+                name = 'field' + index;
+            }
+            return makePrimitiveProcedure(
+                name,
+                1,
+                function(MACHINE) {
+                    return structType.accessor(
+                        MACHINE.env[MACHINE.env.length - 1],
+                        jsnums.toFixnum(index));
+                });
+            
         });
+
+
+    installPrimitiveProcedure(
+        'make-struct-field-mutator',
+        makeList(2, 3),
+        function(MACHINE){
+            // FIXME: typechecks
+            var structType = MACHINE.env[MACHINE.env.length - 1];
+            var index = MACHINE.env[MACHINE.env.length - 2];
+            var name;
+            if (MACHINE.argcount === 3) {
+                name = String(MACHINE.env[MACHINE.env.length - 3]);
+            } else {
+                name = 'field' + index;
+            }
+            return makePrimitiveProcedure(
+                name,
+                2,
+                function(MACHINE) {
+                    return structType.mutator(
+                        MACHINE.env[MACHINE.env.length - 1],
+                        jsnums.toFixnum(index),
+                        MACHINE.env[MACHINE.env.length - 2]);
+                });            
+        });
+
+
 
 
 

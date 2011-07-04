@@ -163,16 +163,16 @@
 	return plt.helpers.toWrittenString(this, cache); 
     };
 
-    Struct.prototype.toDomNode = function(cache) {
-	cache.put(this, true);
+    Struct.prototype.toDomNode = function(params) {
+	params.put(this, true);
 	var node = document.createElement("div");
-	node.appendChild(document.createTextNode("("));
-	node.appendChild(document.createTextNode(this._constructorName));
+	$(node).append(document.createTextNode("("));
+	$(node).append(document.createTextNode(this._constructorName));
 	for(var i = 0; i < this._fields.length; i++) {
-	    node.appendChild(document.createTextNode(" "));
-	    appendChild(node, plt.helpers.toDomNode(this._fields[i], cache));
+	    $(node).append(document.createTextNode(" "));
+	    $(node).append(plt.helpers.toDomNode(this._fields[i], params));
 	}
-	node.appendChild(document.createTextNode(")"));
+	$(node).append(document.createTextNode(")"));
 	return node;
     };
 

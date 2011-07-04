@@ -25,7 +25,6 @@ if (! this['plt']) { this['plt'] = {}; }
     // makeLowLevelEqHash: -> hashtable
     // Constructs an eq hashtable that uses Moby's getEqHashCode function.
     var makeLowLevelEqHash = plt.baselib.hash.makeLowLevelEqHash;
-
     var toWrittenString = plt.baselib.format.toWrittenString;
     var toDisplayedString = plt.baselib.format.toDisplayedString;
     var toDomNode = plt.baselib.format.toDomNode;
@@ -194,69 +193,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-
-    // Chars
-    // Char: string -> Char
-    Char = function(val){
-        this.val = val;
-    };
-    // The characters less than 256 must be eq?, according to the
-    // documentation:
-    // http://docs.racket-lang.org/reference/characters.html
-    var _CharCache = {};
-    for (var i = 0; i < 256; i++) {
-        _CharCache[String.fromCharCode(i)] = new Char(String.fromCharCode(i));
-    }
-    
-    // makeInstance: 1-character string -> Char  
-    Char.makeInstance = function(val){
-        if (_CharCache[val]) {
-	    return _CharCache[val];
-        }
-        return new Char(val);
-    };
-
-    Char.prototype.toString = function(cache) {
-	var code = this.val.charCodeAt(0);
-	var returnVal;
-	switch (code) {
-	case 0: returnVal = '#\\nul'; break;
-	case 8: returnVal = '#\\backspace'; break;
-	case 9: returnVal = '#\\tab'; break;
-	case 10: returnVal = '#\\newline'; break;
-	case 11: returnVal = '#\\vtab'; break;
-	case 12: returnVal = '#\\page'; break;
-	case 13: returnVal = '#\\return'; break;
-	case 20: returnVal = '#\\space'; break;
-	case 127: returnVal = '#\\rubout'; break;
-	default: if (code >= 32 && code <= 126) {
-	    returnVal = ("#\\" + this.val);
-	}
-	    else {
-		var numStr = code.toString(16).toUpperCase();
-		while (numStr.length < 4) {
-		    numStr = '0' + numStr;
-		}
-		returnVal = ('#\\u' + numStr);
-	    }
-	    break;
-	}
-	return returnVal;
-    };
-
-    Char.prototype.toWrittenString = Char.prototype.toString;
-
-    Char.prototype.toDisplayedString = function (cache) {
-        return this.val;
-    };
-
-    Char.prototype.getValue = function() {
-        return this.val;
-    };
-
-    Char.prototype.equals = function(other, aUnionFind){
-        return other instanceof Char && this.val == other.val;
-    };
 
     //////////////////////////////////////////////////////////////////////
 
@@ -560,114 +496,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    //////////////////////////////////////////////////////////////////////
-    // Hashtables
-    var EqHashTable = function(inputHash) {
-        this.hash = makeLowLevelEqHash();
-        this.mutable = true;
-
-    };
-    EqHashTable = EqHashTable;
-
-    EqHashTable.prototype.toWrittenString = function(cache) {
-        var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = toWrittenString(keys[i], cache);
-	    var valStr = toWrittenString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
-        }
-        return ('#hasheq(' + ret.join(' ') + ')');
-    };
-
-    EqHashTable.prototype.toDisplayedString = function(cache) {
-        var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = toDisplayedString(keys[i], cache);
-	    var valStr = toDisplayedString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
-        }
-        return ('#hasheq(' + ret.join(' ') + ')');
-    };
-
-    EqHashTable.prototype.equals = function(other, aUnionFind) {
-        if ( !(other instanceof EqHashTable) ) {
-	    return false; 
-        }
-
-        if (this.hash.keys().length != other.hash.keys().length) { 
-	    return false;
-        }
-
-        var keys = this.hash.keys();
-        for (var i = 0; i < keys.length; i++){
-	    if ( !(other.hash.containsKey(keys[i]) &&
-	           equals(this.hash.get(keys[i]),
-		           other.hash.get(keys[i]),
-		           aUnionFind)) ) {
-		return false;
-	    }
-        }
-        return true;
-    };
-
-
-
-    var EqualHashTable = function(inputHash) {
-	this.hash = new _Hashtable(function(x) {
-	    return toWrittenString(x); 
-	},
-		                   function(x, y) {
-			               return equals(x, y, new plt.baselib.UnionFind()); 
-		                   });
-	this.mutable = true;
-    };
-
-    EqualHashTable = EqualHashTable;
-
-    EqualHashTable.prototype.toWrittenString = function(cache) {
-        var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = toWrittenString(keys[i], cache);
-	    var valStr = toWrittenString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
-        }
-        return ('#hash(' + ret.join(' ') + ')');
-    };
-    EqualHashTable.prototype.toDisplayedString = function(cache) {
-        var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = toDisplayedString(keys[i], cache);
-	    var valStr = toDisplayedString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
-        }
-        return ('#hash(' + ret.join(' ') + ')');
-    };
-
-    EqualHashTable.prototype.equals = function(other, aUnionFind) {
-        if ( !(other instanceof EqualHashTable) ) {
-	    return false; 
-        }
-
-        if (this.hash.keys().length != other.hash.keys().length) { 
-	    return false;
-        }
-
-        var keys = this.hash.keys();
-        for (var i = 0; i < keys.length; i++){
-	    if (! (other.hash.containsKey(keys[i]) &&
-	           equals(this.hash.get(keys[i]),
-		           other.hash.get(keys[i]),
-		           aUnionFind))) {
-	        return false;
-	    }
-        }
-        return true;
-    };
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -841,44 +669,8 @@ if (! this['plt']) { this['plt'] = {}; }
     }
 
 
-    // equals: X Y -> boolean
-    // Returns true if the objects are equivalent; otherwise, returns false.
-    var equals = function(x, y, aUnionFind) {
-        if (x === y) { return true; }
 
-        if (isNumber(x) && isNumber(y)) {
-	    return jsnums.eqv(x, y);
-        }
-
-        if (isString(x) && isString(y)) {
-	    return x.toString() === y.toString();
-        }
-
-        if (x == undefined || x == null) {
-	    return (y == undefined || y == null);
-        }
-
-        if ( typeof(x) == 'object' &&
-	     typeof(y) == 'object' &&
-	     x.equals &&
-	     y.equals) {
-
-	    if (typeof (aUnionFind) === 'undefined') {
-	        aUnionFind = new plt.baselib.UnionFind();
-	    }
-
-	    if (aUnionFind.find(x) === aUnionFind.find(y)) {
-	        return true;
-	    }
-	    else {
-	        aUnionFind.merge(x, y); 
-	        return x.equals(y, aUnionFind);
-	    }
-        }
-        return false;
-    };
-
-
+    var equals = plt.baselib.equality.equals;
 
 
 
@@ -1152,7 +944,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     var makeHashEq = function(lst) {
-	var newHash = new EqHashTable();
+	var newHash = new plt.baselib.hash.EqHashTable();
 	while ( !isEmpty(lst) ) {
 	    newHash.hash.put(lst.first.first, lst.first.rest);
 	    lst = lst.rest;
@@ -1162,7 +954,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     var makeHashEqual = function(lst) {
-	var newHash = new EqualHashTable();
+	var newHash = new plt.baselib.hash.EqualHashTable();
 	while ( !isEmpty(lst) ) {
 	    newHash.hash.put(lst.first.first, lst.first.rest);
 	    lst = lst.rest;
@@ -1178,56 +970,6 @@ if (! this['plt']) { this['plt'] = {}; }
     //////////////////////////////////////////////////////////////////////
 
 
-
-    var readerGraph = function(x, objectHash, n) {
-        if (typeof(x) === 'object' && objectHash.containsKey(x)) {
-	    return objectHash.get(x);
-        }
-
-        if (types.isPair(x)) {
-	    var consPair = types.cons(x.first, x.rest);
-	    objectHash.put(x, consPair);
-	    consPair.f = readerGraph(x.first, objectHash, n+1);
-	    consPair.r = readerGraph(x.rest, objectHash, n+1);
-	    return consPair;
-        }
-
-        if (types.isVector(x)) {
-	    var len = x.length();
-	    var aVector = types.vector(len, x.elts);
-	    objectHash.put(x, aVector);	
-	    for (var i = 0; i < len; i++) {
-	        aVector.elts[i] = readerGraph(aVector.elts[i], objectHash, n+1);
-	    }
-	    return aVector;
-        }
-
-        if (types.isBox(x)) {
-	    var aBox = types.box(x.ref());
-	    objectHash.put(x, aBox);
-	    aBox.val = readerGraph(x.ref(), objectHash, n+1);
-	    return aBox;
-        }
-
-        if (types.isHash(x)) {
-	    throw new Error("make-reader-graph of hash not implemented yet");
-        }
-
-        if (types.isStruct(x)) {
-	    var aStruct = helpers.clone(x);
-	    objectHash.put(x, aStruct);
-	    for(var i = 0 ;i < x._fields.length; i++) {
-	        x._fields[i] = readerGraph(x._fields[i], objectHash, n+1);
-	    }
-	    return aStruct;
-        }
-
-        if (types.isPlaceholder(x)) {
-	    return readerGraph(x.ref(), objectHash, n+1);
-        }
-
-        return x;
-    };
 
 
 
@@ -1253,7 +995,7 @@ if (! this['plt']) { this['plt'] = {}; }
     types.vectorImmutable = makeVectorImmutable;
     types.regexp = function(p) { return new RegularExpression(p) ; }
     types.byteRegexp = function(p) { return new ByteRegularExpression(p) ; }
-    types.character = Char.makeInstance;
+    types.character = plt.baselib.chars.Char.makeInstance;
     types['string'] = makeString;
     types.box = function(x) { return new Box(x, true); };
     types.placeholder = function(x) { return new Placeholder(x); };
@@ -1292,7 +1034,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     types.isSymbol = function(x) { return x instanceof Symbol; };
-    types.isChar = function(x) { return x instanceof Char; };
+    types.isChar = function(x) { return x instanceof plt.baselib.chars.Char; };
     types.isString = isString;
     types.isPair = function(x) { return x instanceof Cons; };
     types.isList = isList;
@@ -1300,8 +1042,8 @@ if (! this['plt']) { this['plt'] = {}; }
     types.isVector = function(x) { return x instanceof Vector; };
     types.isBox = function(x) { return x instanceof Box; };
     types.isPlaceholder = function(x) { return x instanceof Placeholder; };
-    types.isHash = function(x) { return (x instanceof EqHashTable ||
-				         x instanceof EqualHashTable); };
+    types.isHash = function(x) { return (x instanceof plt.baselib.hash.EqHashTable ||
+				         x instanceof plt.baselib.hash.EqualHashTable); };
     types.isByteString = function(x) { return x instanceof plt.baselib.bytes.Bytes; };
     types.isStruct = function(x) { return x instanceof Struct; };
     types.isColor = Color.predicate;
@@ -1398,8 +1140,6 @@ if (! this['plt']) { this['plt'] = {}; }
 //     types.isRenderEffect = RenderEffect.predicate;
 
 
-
-    types.readerGraph = readerGraph;
 
 
     scope.link.announceReady('types');

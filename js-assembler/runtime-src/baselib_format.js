@@ -8,7 +8,8 @@
 
     
     // format: string [X ...] string -> string
-    // String formatting.
+    // String formatting.  If an exception occurs, throws
+    // a plain Error whose message describes the formatting error.
     var format = function(formatStr, args, functionName) {
 	var throwFormatError = function() {
 	    functionName = functionName || 'format';

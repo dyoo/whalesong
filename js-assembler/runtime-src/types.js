@@ -21,21 +21,14 @@ if (! this['plt']) { this['plt'] = {}; }
     var helpers = scope['helpers'];
 
 
-    var getEqHashCode = helpers.getEqHashCode, 
-         // makeLowLevelEqHash: -> hashtable
-        // Constructs an eq hashtable that uses Moby's getEqHashCode function.
-
-        makeLowLevelEqHash = helpers.makeLowLevelEqHash;
+    var getEqHashCode = plt.baselib.hash.getEqHashCode;
+    // makeLowLevelEqHash: -> hashtable
+    // Constructs an eq hashtable that uses Moby's getEqHashCode function.
+    var makeLowLevelEqHash = plt.baselib.hash.makeLowLevelEqHash;
 
     var toWrittenString = plt.baselib.format.toWrittenString;
     var toDisplayedString = plt.baselib.format.toDisplayedString;
     var toDomNode = plt.baselib.format.toDomNode;
-
-    scope.link.ready('helpers', function() { 
-        helpers = scope['helpers']; 
-        getEqHashCode = helpers.getEqHashCode;
-        makeLowLevelEqHash = helpers.makeLowLevelEqHash;
-    });
 
 
 

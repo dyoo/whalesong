@@ -279,26 +279,26 @@ if (! this['plt']) { this['plt'] = {}; }
     }
 
 
-    var wrapJsValue = function(x) {
-	if (x === undefined) {
-	    return types.jsValue('undefined', x);
-	}
-	else if (x === null) {
-	    return types.jsValue('null', x);
-	}
-	else if (typeof(x) == 'function') {
-	    return types.jsValue('function', x);
-	}
-	else if ( x instanceof Array ) {
-	    return types.jsValue('array', x);
-	}
-	else if ( typeof(x) == 'string' ) {
-	    return types.jsValue("'" + x.toString() + "'", x);
-	}
-	else {
-	    return types.jsValue(x.toString(), x);
-	}
-    };
+//     var wrapJsValue = function(x) {
+// 	if (x === undefined) {
+// 	    return types.jsValue('undefined', x);
+// 	}
+// 	else if (x === null) {
+// 	    return types.jsValue('null', x);
+// 	}
+// 	else if (typeof(x) == 'function') {
+// 	    return types.jsValue('function', x);
+// 	}
+// 	else if ( x instanceof Array ) {
+// 	    return types.jsValue('array', x);
+// 	}
+// 	else if ( typeof(x) == 'string' ) {
+// 	    return types.jsValue("'" + x.toString() + "'", x);
+// 	}
+// 	else {
+// 	    return types.jsValue(x.toString(), x);
+// 	}
+//     };
 
 
     var getKeyCodeName = function(e) {
@@ -490,7 +490,7 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.flattenSchemeListToArray = flattenSchemeListToArray;
 
     helpers.ordinalize = ordinalize;
-    helpers.wrapJsValue = wrapJsValue;
+//     helpers.wrapJsValue = wrapJsValue;
 
     helpers.getKeyCodeName = getKeyCodeName;
 

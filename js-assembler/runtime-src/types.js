@@ -39,6 +39,8 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     var Symbol = plt.baselib.Symbol;
+    var Empty = plt.baselib.lists.Empty;
+    var Cons = plt.baselib.lists.Cons;
 
     //////////////////////////////////////////////////////////////////////
 
@@ -238,150 +240,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
     
     
-    
-    Empty = function() {
-    };
-    Empty.EMPTY = new Empty();
-
-
-    Empty.prototype.equals = function(other, aUnionFind) {
-        return other instanceof Empty;
-    };
-
-    Empty.prototype.reverse = function() {
-        return this;
-    };
-
-    Empty.prototype.toWrittenString = function(cache) { return "empty"; };
-    Empty.prototype.toDisplayedString = function(cache) { return "empty"; };
-    Empty.prototype.toString = function(cache) { return "()"; };
-
-
-    
-    // Empty.append: (listof X) -> (listof X)
-    Empty.prototype.append = function(b){
-        return b;
-    };
-    
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-    // Cons Pairs
-
-    var Cons = function(f, r) {
-        this.first = f;
-        this.rest = r;
-    };
-
-    Cons.prototype.reverse = function() {
-        var lst = this;
-        var ret = Empty.EMPTY;
-        while (!isEmpty(lst)){
-	    ret = Cons.makeInstance(lst.first, ret);
-	    lst = lst.rest;
-        }
-        return ret;
-    };
-    
-    Cons.makeInstance = function(f, r) {
-        return new Cons(f, r);
-    };
-
-    // FIXME: can we reduce the recursion on this?
-    Cons.prototype.equals = function(other, aUnionFind) {
-        if (! (other instanceof Cons)) {
-	    return false;
-        }
-        return (equals(this.first, other.first, aUnionFind) &&
-	        equals(this.rest, other.rest, aUnionFind));
-    };
-    
-
-    
-
-    // Cons.append: (listof X) -> (listof X)
-    Cons.prototype.append = function(b){
-        if (b === Empty.EMPTY)
-	    return this;
-        var ret = b;
-        var lst = this.reverse();
-        while ( !isEmpty(lst) ) {
-	    ret = Cons.makeInstance(lst.first, ret);
-	    lst = lst.rest;
-        }
-	
-        return ret;
-    };
-    
-
-    Cons.prototype.toWrittenString = function(cache) {
-        cache.put(this, true);
-        var texts = [];
-        var p = this;
-        while ( p instanceof Cons ) {
-	    texts.push(toWrittenString(p.first, cache));
-	    p = p.rest;
-	    if (typeof(p) === 'object' && cache.containsKey(p)) {
-	        break;
-	    }
-        }
-        if ( p !== Empty.EMPTY ) {
-	    texts.push('.');
-	    texts.push(toWrittenString(p, cache));
-        }
-        return "(" + texts.join(" ") + ")";
-    };
-
-    Cons.prototype.toString = Cons.prototype.toWrittenString;
-
-    Cons.prototype.toDisplayedString = function(cache) {
-        cache.put(this, true);
-        var texts = [];
-        var p = this;
-        while ( p instanceof Cons ) {
-	    texts.push(toDisplayedString(p.first, cache));
-	    p = p.rest;
-	    if (typeof(p) === 'object' && cache.containsKey(p)) {
-	        break;
-	    }
-        }
-        if ( p !== Empty.EMPTY ) {
-	    texts.push('.');
-	    texts.push(toDisplayedString(p, cache));
-        }
-        return "(" + texts.join(" ") + ")";
-    };
-
-
-
-    Cons.prototype.toDomNode = function(cache) {
-        cache.put(this, true);
-        var node = document.createElement("span");
-        node.appendChild(document.createTextNode("("));
-        var p = this;
-        while ( p instanceof Cons ) {
-	    appendChild(node, toDomNode(p.first, cache));
-	    p = p.rest;
-	    if ( p !== Empty.EMPTY ) {
-	        appendChild(node, document.createTextNode(" "));
-	    }
-	    if (typeof(p) === 'object' && cache.containsKey(p)) {
-	        break;
-	    }
-        }
-        if ( p !== Empty.EMPTY ) {
-	    appendChild(node, document.createTextNode("."));
-	    appendChild(node, document.createTextNode(" "));
-	    appendChild(node, toDomNode(p, cache));
-        }
-
-        node.appendChild(document.createTextNode(")"));
-        return node;
-    };
-
-
     // isList: Any -> Boolean
     // Returns true if x is a list (a chain of pairs terminated by EMPTY).
     var isList = function(x) { 
@@ -399,89 +257,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     //////////////////////////////////////////////////////////////////////
-
-    Vector = function(n, initialElements) {
-        this.elts = new Array(n);
-        if (initialElements) {
-	    for (var i = 0; i < n; i++) {
-	        this.elts[i] = initialElements[i];
-	    }
-        } else {
-	    for (var i = 0; i < n; i++) {
-	        this.elts[i] = undefined;
-	    }
-        }
-        this.mutable = true;
-    };
-    Vector.makeInstance = function(n, elts) {
-        return new Vector(n, elts);
-    }
-    Vector.prototype.length = function() {
-	return this.elts.length;
-    };
-    Vector.prototype.ref = function(k) {
-        return this.elts[k];
-    };
-    Vector.prototype.set = function(k, v) {
-        this.elts[k] = v;
-    };
-
-    Vector.prototype.equals = function(other, aUnionFind) {
-        if (other != null && other != undefined && other instanceof Vector) {
-	    if (other.length() != this.length()) {
-	        return false
-	    }
-	    for (var i = 0; i <  this.length(); i++) {
-	        if (! equals(this.elts[i], other.elts[i], aUnionFind)) {
-		    return false;
-	        }
-	    }
-	    return true;
-        } else {
-	    return false;
-        }
-    };
-
-    Vector.prototype.toList = function() {
-        var ret = Empty.EMPTY;
-        for (var i = this.length() - 1; i >= 0; i--) {
-	    ret = Cons.makeInstance(this.elts[i], ret);	    
-        }	
-        return ret;
-    };
-
-    Vector.prototype.toWrittenString = function(cache) {
-        cache.put(this, true);
-        var texts = [];
-        for (var i = 0; i < this.length(); i++) {
-	    texts.push(toWrittenString(this.ref(i), cache));
-        }
-        return "#(" + texts.join(" ") + ")";
-    };
-
-    Vector.prototype.toDisplayedString = function(cache) {
-        cache.put(this, true);
-        var texts = [];
-        for (var i = 0; i < this.length(); i++) {
-	    texts.push(toDisplayedString(this.ref(i), cache));
-        }
-        return "#(" + texts.join(" ") + ")";
-    };
-
-    Vector.prototype.toDomNode = function(cache) {
-        cache.put(this, true);
-        var node = document.createElement("span");
-        node.appendChild(document.createTextNode("#("));
-        for (var i = 0; i < this.length(); i++) {
-	    appendChild(node,
-		        toDomNode(this.ref(i), cache));
-	    if (i !== this.length()-1) {
-	        appendChild(node, document.createTextNode(" "));
-	    }
-        }
-        node.appendChild(document.createTextNode(")"));
-        return node;
-    };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -1003,7 +778,7 @@ if (! this['plt']) { this['plt'] = {}; }
     types.bytes = function(x, mutable) { return new plt.baselib.bytes.Bytes(x, mutable); };
     types.bytesImmutable = function(x) { return new plt.baselib.bytes.Bytes(x, false); };
     types.keyword = function(k) { return new Keyword(k); };
-    types.pair = function(x, y) { return Cons.makeInstance(x, y); };
+    types.pair = function(x, y) { return plt.baselib.lists.Cons.makeInstance(x, y); };
     types.hash = makeHashEqual;
     types.hashEq = makeHashEq;
 //     types.jsValue = function(name, val) { return new JsValue(name, val); };

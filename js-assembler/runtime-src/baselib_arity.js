@@ -35,7 +35,7 @@
 	} else if (isArityAtLeast(arity)) {
 	    return n >= arityAtLeastValue(arity);
 	} else {
-	    while (arity !== plt.types.EMPTY) {
+	    while (arity !== plt.baselib.lists.EMPTY) {
 		if (typeof(arity.first) === 'number') {
 		    if (arity.first === n) { return true; }
 		} else if (isArityAtLeast(arity)) {

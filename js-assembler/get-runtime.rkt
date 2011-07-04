@@ -37,6 +37,8 @@
 (define-runtime-path baselib.js "runtime-src/baselib.js")
 (define-runtime-path baselib_unionfind.js "runtime-src/baselib_unionfind.js")
 (define-runtime-path baselib_equality.js "runtime-src/baselib_equality.js")
+(define-runtime-path baselib_lists.js "runtime-src/baselib_lists.js")
+(define-runtime-path baselib_vectors.js "runtime-src/baselib_vectors.js")
 (define-runtime-path baselib_hash.js "runtime-src/baselib_hash.js")
 (define-runtime-path baselib_symbol.js "runtime-src/baselib_symbol.js")
 (define-runtime-path baselib_structs.js "runtime-src/baselib_structs.js")
@@ -79,16 +81,20 @@
                     baselib.js
                     baselib_unionfind.js
                     baselib_equality.js
-                    baselib_hash.js
                     baselib_format.js
+                    
+                    baselib_lists.js
+                    baselib_vectors.js
+                    baselib_chars.js
                     baselib_symbol.js
+                    baselib_strings.js
+                    baselib_bytes.js                    
+                    baselib_hash.js
+
                     baselib_structs.js
                     baselib_arity.js
                     baselib_inspectors.js
                     baselib_exceptions.js
-                    baselib_chars.js
-                    baselib_strings.js
-                    baselib_bytes.js
                     baselib_readergraph.js
 
                     link.js

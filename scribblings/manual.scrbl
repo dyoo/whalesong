@@ -720,7 +720,7 @@ structure types can be made with plt.runtime.makeStructureType.  For example,
         3,          // required number of arguments
         0,          // number of automatically-filled fields
         false,      // OPTIONAL: the auto-v value
-        false,      // OPTIONAL: a guard procedure
+        false       // OPTIONAL: a guard procedure
         );
 }|
 

@@ -100,104 +100,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
     //////////////////////////////////////////////////////////////////////
 
-    // Bytes
-
-    var Bytes = function(bts, mutable) {
-        // bytes: arrayof [0-255]
-        this.bytes = bts;
-        this.mutable = (mutable === undefined) ? false : mutable;
-    };
-
-    Bytes.prototype.get = function(i) {
-	return this.bytes[i];
-    };
-
-    Bytes.prototype.set = function(i, b) {
-	if (this.mutable) {
-	    this.bytes[i] = b;
-	}
-    };
-
-    Bytes.prototype.length = function() {
-	return this.bytes.length;
-    };
-
-    Bytes.prototype.copy = function(mutable) {
-	return new Bytes(this.bytes.slice(0), mutable);
-    };
-
-    Bytes.prototype.subbytes = function(start, end) {
-	if (end == null || end == undefined) {
-	    end = this.bytes.length;
-	}
-	
-	return new Bytes( this.bytes.slice(start, end), true );
-    };
-
-
-    Bytes.prototype.equals = function(other) {
-        if (! (other instanceof Bytes)) {
-	    return false;
-        }
-        if (this.bytes.length != other.bytes.length) {
-	    return false;
-        }
-        var A = this.bytes;
-        var B = other.bytes;
-        var n = this.bytes.length;
-        for (var i = 0; i < n; i++) {
-	    if (A[i] !== B[i])
-	        return false;
-        }
-        return true;
-    };
-
-
-    Bytes.prototype.toString = function(cache) {
-	var ret = '';
-	for (var i = 0; i < this.bytes.length; i++) {
-	    ret += String.fromCharCode(this.bytes[i]);
-	}
-
-	return ret;
-    };
-
-    Bytes.prototype.toDisplayedString = Bytes.prototype.toString;
-
-    Bytes.prototype.toWrittenString = function() {
-	var ret = ['#"'];
-	for (var i = 0; i < this.bytes.length; i++) {
-	    ret.push( escapeByte(this.bytes[i]) );
-	}
-	ret.push('"');
-	return ret.join('');
-    };
-
-    var escapeByte = function(aByte) {
-	var ret = [];
-	var returnVal;
-	switch(aByte) {
-	case 7: returnVal = '\\a'; break;
-	case 8: returnVal = '\\b'; break;
-	case 9: returnVal = '\\t'; break;
-	case 10: returnVal = '\\n'; break;
-	case 11: returnVal = '\\v'; break;
-	case 12: returnVal = '\\f'; break;
-	case 13: returnVal = '\\r'; break;
-	case 34: returnVal = '\\"'; break;
-	case 92: returnVal = '\\\\'; break;
-	default: if (aByte >= 32 && aByte <= 126) {
-	    returnVal = String.fromCharCode(aByte);
-	}
-	    else {
-		ret.push( '\\' + aByte.toString(8) );
-	    }
-	    break;
-	}
-	return returnVal;
-    };
-
-
 
 
     //////////////////////////////////////////////////////////////////////
@@ -653,155 +555,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    // Now using mutable strings
-    var Str = function(chars) {
-	this.chars = chars;
-	this.length = chars.length;
-	this.mutable = true;
-    }
-
-    Str.makeInstance = function(chars) {
-	return new Str(chars);
-    }
-
-    Str.fromString = function(s) {
-	return Str.makeInstance(s.split(""));
-    }
-
-    Str.prototype.toString = function() {
-	return this.chars.join("");
-    }
-
-    Str.prototype.toWrittenString = function(cache) {
-        return escapeString(this.toString());
-    }
-
-    Str.prototype.toDisplayedString = Str.prototype.toString;
-
-    Str.prototype.copy = function() {
-	return Str.makeInstance(this.chars.slice(0));
-    }
-
-    Str.prototype.substring = function(start, end) {
-	if (end == null || end == undefined) {
-	    end = this.length;
-	}
-	
-	return Str.makeInstance( this.chars.slice(start, end) );
-    }
-
-    Str.prototype.charAt = function(index) {
-	return this.chars[index];
-    }
-
-    Str.prototype.charCodeAt = function(index) {
-	return this.chars[index].charCodeAt(0);
-    }
-
-    Str.prototype.replace = function(expr, newStr) {
-	return Str.fromString( this.toString().replace(expr, newStr) );
-    }
-
-
-    Str.prototype.equals = function(other, aUnionFind) {
-	if ( !(other instanceof Str || typeof(other) == 'string') ) {
-	    return false;
-	}
-	return this.toString() === other.toString();
-    }
-
-
-    Str.prototype.set = function(i, c) {
-	this.chars[i] = c;
-    }
-
-    Str.prototype.toUpperCase = function() {
-	return Str.fromString( this.chars.join("").toUpperCase() );
-    }
-
-    Str.prototype.toLowerCase = function() {
-	return Str.fromString( this.chars.join("").toLowerCase() );
-    }
-
-    Str.prototype.match = function(regexpr) {
-	return this.toString().match(regexpr);
-    }
-
-
-    //var _quoteReplacingRegexp = new RegExp("[\"\\\\]", "g");
-    var escapeString = function(s) {
-        return '"' + replaceUnprintableStringChars(s) + '"';
-        //    return '"' + s.replace(_quoteReplacingRegexp,
-        //			      function(match, submatch, index) {
-        //				  return "\\" + match;
-        //			      }) + '"';
-    };
-
-    var replaceUnprintableStringChars = function(s) {
-	var ret = [];
-	for (var i = 0; i < s.length; i++) {
-	    var val = s.charCodeAt(i);
-	    switch(val) {
-	    case 7: ret.push('\\a'); break;
-	    case 8: ret.push('\\b'); break;
-	    case 9: ret.push('\\t'); break;
-	    case 10: ret.push('\\n'); break;
-	    case 11: ret.push('\\v'); break;
-	    case 12: ret.push('\\f'); break;
-	    case 13: ret.push('\\r'); break;
-	    case 34: ret.push('\\"'); break;
-	    case 92: ret.push('\\\\'); break;
-	    default: if (val >= 32 && val <= 126) {
-		ret.push( s.charAt(i) );
-	    }
-		else {
-		    var numStr = val.toString(16).toUpperCase();
-		    while (numStr.length < 4) {
-			numStr = '0' + numStr;
-		    }
-		    ret.push('\\u' + numStr);
-		}
-		break;
-	    }
-	}
-	return ret.join('');
-    };
-
-
-    /*
-// Strings
-// For the moment, we just reuse Javascript strings.
-String = String;
-String.makeInstance = function(s) {
-    return s.valueOf();
-};
-    
-    
-// WARNING
-// WARNING: we are extending the built-in Javascript string class here!
-// WARNING
-String.prototype.equals = function(other, aUnionFind){
-    return this == other;
-};
-    
-var _quoteReplacingRegexp = new RegExp("[\"\\\\]", "g");
-String.prototype.toWrittenString = function(cache) {
-    return '"' + this.replace(_quoteReplacingRegexp,
-			      function(match, submatch, index) {
-				  return "\\" + match;
-			      }) + '"';
-};
-
-String.prototype.toDisplayedString = function(cache) {
-    return this;
-};
-*/
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
 
 
 
@@ -1084,7 +837,7 @@ String.prototype.toDisplayedString = function(cache) {
 
 
     var isString = function(s) {
-	return (typeof s === 'string' || s instanceof Str);
+	return (typeof s === 'string' || s instanceof plt.baselib.strings.Str);
     }
 
 
@@ -1376,7 +1129,7 @@ String.prototype.toDisplayedString = function(cache) {
 
 
     var makeString = function(s) {
-	if (s instanceof Str) {
+	if (s instanceof plt.baselib.strings.Str) {
 	    return s;
 	}
 	else if (s instanceof Array) {
@@ -1385,10 +1138,10 @@ String.prototype.toDisplayedString = function(cache) {
             //				return undefined;
             //			}
             //		}
-	    return Str.makeInstance(s);
+	    return plt.baselib.strings.Str.makeInstance(s);
 	}
 	else if (typeof s === 'string') {
-	    return Str.fromString(s);
+	    return plt.baselib.strings.Str.fromString(s);
 	}
 	else {
 	    throw types.internalError('makeString expects and array of 1-character strings or a string;' +
@@ -1506,8 +1259,8 @@ String.prototype.toDisplayedString = function(cache) {
     types.placeholder = function(x) { return new Placeholder(x); };
     types.boxImmutable = function(x) { return new Box(x, false); };
     types.path = function(x) { return new Path(x); };
-    types.bytes = function(x, mutable) { return new Bytes(x, mutable); };
-    types.bytesImmutable = function(x) { return new Bytes(x, false); };
+    types.bytes = function(x, mutable) { return new plt.baselib.bytes.Bytes(x, mutable); };
+    types.bytesImmutable = function(x) { return new plt.baselib.bytes.Bytes(x, false); };
     types.keyword = function(k) { return new Keyword(k); };
     types.pair = function(x, y) { return Cons.makeInstance(x, y); };
     types.hash = makeHashEqual;
@@ -1549,7 +1302,7 @@ String.prototype.toDisplayedString = function(cache) {
     types.isPlaceholder = function(x) { return x instanceof Placeholder; };
     types.isHash = function(x) { return (x instanceof EqHashTable ||
 				         x instanceof EqualHashTable); };
-    types.isByteString = function(x) { return x instanceof Bytes; };
+    types.isByteString = function(x) { return x instanceof plt.baselib.bytes.Bytes; };
     types.isStruct = function(x) { return x instanceof Struct; };
     types.isColor = Color.predicate;
 

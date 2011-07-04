@@ -500,9 +500,6 @@ if (! this['plt']) { this['plt'] = {}; }
     helpers.isLocationDom = isLocationDom;
 
 
-    helpers.getEqHashCode = plt.baselib.hash.getEqHashCode;
-    helpers.makeLowLevelEqHash = plt.baselib.hash.makeLowLevelEqHash;
-
     helpers.heir = heir;
 
 

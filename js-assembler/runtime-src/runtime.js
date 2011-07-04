@@ -2526,6 +2526,12 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['HaltError'] = HaltError;
 
 
+
+    exports['makeStructureType'] = plt.baselib.structs.makeStructureType;
+    exports['Struct'] = plt.baselib.structs.Struct;
+    exports['StructType'] = plt.baselib.structs.StructType;
+
+
     scope.link.announceReady('runtime');
 
 

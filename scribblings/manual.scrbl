@@ -710,6 +710,75 @@ tested with @tt{plt.runtime.isBox()}, and they support two methods:
 
 
 
+@subsubsection{Structures}
+
+structure types can be made with plt.runtime.makeStructureType.  For example,
+@verbatim|{
+    var Color = plt.runtime.makeStructureType(
+        'color',    // name
+        false,      // parent structure type
+        3,          // required number of arguments
+        0,          // number of automatically-filled fields
+        false,      // OPTIONAL: the auto-v value
+        false,      // OPTIONAL: a guard procedure
+        );
+}|
+
+@tt{makeStructuretype} is meant to mimic the @racket[make-struct-type]
+function in Racket.  It produces a structure type value with the
+following methods:
+@itemlist[
+
+        @item{@tt{constructor}: create an instance of a structure type.
+
+For example,
+@verbatim|{
+    var aColor = Color.constructor(3, 4, 5);
+}|
+creates an instance of the Color structure type.
+}
+
+
+        @item{@tt{predicate}: test if a value is of the given structure type.
+
+For example,
+@verbatim|{
+     Color.predicate(aColor) --> true
+     Color.predicate("red") --> false
+}|
+}
+
+
+        @item{@tt{accessor}: access a field of a structure.
+
+For example,
+@verbatim|{
+    var colorRed = function(x) { return Color.accessor(x, 0); };
+    var colorGreen = function(x) { return Color.accessor(x, 1); };
+    var colorBlue = function(x) { return Color.accessor(x, 2); };
+}|
+}
+        @item{@tt{mutator}: mutate a field of a structure.
+
+For example,
+@verbatim|{
+    var setColorRed = function(x, v) { return Color.mutator(x, 0, v); };
+}|
+
+}
+]
+In addition, it has a @tt{type} whose @tt{prototype} can be changed in order
+to add methods to an instance of a structure type.  For example,
+@verbatim|{
+    Color.type.prototype.toString = function() {
+        return "rgb(" + colorRed(this) + ", "
+                      + colorGreen(this) + ", "
+                      + colorBlue(this) + ")";
+    };
+}|
+should add a toString method for instances of the @tt{Color} structure.
+
+
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @subsection{Tests}

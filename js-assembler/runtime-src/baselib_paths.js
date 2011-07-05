@@ -9,7 +9,7 @@
     };
 
     Path.prototype.toString = function() {
-        return this.path;
+        return String(this.path);
     };
 
     //////////////////////////////////////////////////////////////////////

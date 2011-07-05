@@ -1,8 +1,8 @@
 // Exceptions
 
 (function(baselib) {
-    var exceptions = {};
-    baselib.boxes = exceptions;
+    var exports = {};
+    baselib.boxes = exports;
 
 
     //////////////////////////////////////////////////////////////////////
@@ -25,30 +25,30 @@
 
     Box.prototype.toString = function(cache) {
         cache.put(this, true);
-        return "#&" + toWrittenString(this.val, cache);
+        return "#&" + plt.baselib.format.toWrittenString(this.val, cache);
     };
 
     Box.prototype.toWrittenString = function(cache) {
         cache.put(this, true);
-        return "#&" + toWrittenString(this.val, cache);
+        return "#&" + plt.baselib.format.toWrittenString(this.val, cache);
     };
 
     Box.prototype.toDisplayedString = function(cache) {
         cache.put(this, true);
-        return "#&" + toDisplayedString(this.val, cache);
+        return "#&" + plt.baselib.format.toDisplayedString(this.val, cache);
     };
 
     Box.prototype.toDomNode = function(cache) {
         cache.put(this, true);
         var parent = document.createElement("span");
         parent.appendChild(document.createTextNode('#&'));
-        parent.appendChild(toDomNode(this.val, cache));
+        parent.appendChild(plt.baselib.format.toDomNode(this.val, cache));
         return parent;
     };
 
     Box.prototype.equals = function(other, aUnionFind) {
         return ((other instanceof Box) &&
-	        equals(this.val, other.val, aUnionFind));
+	        plt.baselib.equality.equals(this.val, other.val, aUnionFind));
     };
     
 

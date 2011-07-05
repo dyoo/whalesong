@@ -1,7 +1,9 @@
 // Structure types
 
 (function(baselib) {
-
+    
+    var exports = {};
+    baselib.symbols = exports;
 
 
     //////////////////////////////////////////////////////////////////////
@@ -44,12 +46,8 @@
     };
 
 
+    //////////////////////////////////////////////////////////////////////
 
-
-    baselib.Symbol = Symbol;
-
-
-
-
+    exports.Symbol = Symbol;
 
 })(this['plt'].baselib);

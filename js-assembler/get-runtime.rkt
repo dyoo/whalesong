@@ -44,17 +44,19 @@
                 baselib-unionfind.js
                 baselib-equality.js
                 baselib-format.js
-                
+
+                baselib-constants.js
                 baselib-lists.js
                 baselib-vectors.js
                 baselib-chars.js
-                baselib-symbol.js
+                baselib-symbols.js
                 baselib-strings.js
                 baselib-bytes.js                    
                 baselib-hash.js
                 baselib-regexps.js
                 baselib-paths.js
                 baselib-boxes.js
+                baselib-placeholders.js
                 baselib-keywords.js
                 baselib-structs.js
 

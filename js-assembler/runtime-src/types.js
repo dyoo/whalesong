@@ -36,70 +36,34 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    var Symbol = plt.baselib.Symbol;
+    var Symbol = plt.baselib.symbols.Symbol;
     var Empty = plt.baselib.lists.Empty;
     var Cons = plt.baselib.lists.Cons;
 
-    //////////////////////////////////////////////////////////////////////
-
-
-
-    
 
 
 
 
 
 
-    //////////////////////////////////////////////////////////////////////
+    var isNumber = jsnums.isSchemeNumber;
 
+    var isReal = jsnums.isReal;
+    var isRational = jsnums.isRational;
+    var isComplex = isNumber;
+    var isInteger = jsnums.isInteger;
 
+    var isNatural = function(x) {
+        return (jsnums.isExact(x) && isInteger(x) 
+	        && jsnums.greaterThanOrEqual(x, 0));
+    };
+    var isNonNegativeReal = function(x) {
+	return isReal(x) && jsnums.greaterThanOrEqual(x, 0);
+    };
 
+    var isString = plt.baselib.strings.isString;
 
-
-
-
-
-
-
-
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-    
+    var equals = plt.baselib.equality.equals;
     
     // isList: Any -> Boolean
     // Returns true if x is a list (a chain of pairs terminated by EMPTY).
@@ -115,18 +79,72 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
+    var makeList = function() {
+        var result = Empty.EMPTY;
+        for(var i = arguments.length-1; i >= 0; i--) {
+	    result = Cons.makeInstance(arguments[i], result);
+        }
+        return result;
+    };
 
 
-    //////////////////////////////////////////////////////////////////////
+    var makeVector = function() {
+        return Vector.makeInstance(arguments.length, arguments);
+    };
 
 
-    //////////////////////////////////////////////////////////////////////
+    var makeVectorImmutable = function() {
+        var v = Vector.makeInstance(arguments.length, arguments);
+        v.mutable = false;
+        return v;
+    };
 
 
+    var makeString = function(s) {
+	if (s instanceof plt.baselib.strings.Str) {
+	    return s;
+	}
+	else if (s instanceof Array) {
+            //		for (var i = 0; i < s.length; i++) {
+            //			if ( typeof s[i] !== 'string' || s[i].length != 1 ) {
+            //				return undefined;
+            //			}
+            //		}
+	    return plt.baselib.strings.Str.makeInstance(s);
+	}
+	else if (typeof s === 'string') {
+	    return plt.baselib.strings.Str.fromString(s);
+	}
+	else {
+	    throw types.internalError('makeString expects and array of 1-character strings or a string;' +
+				      ' given ' + s.toString(),
+				      false);
+	}
+    };
 
 
+    var makeHashEq = function(lst) {
+	var newHash = new plt.baselib.hash.EqHashTable();
+	while ( !isEmpty(lst) ) {
+	    newHash.hash.put(lst.first.first, lst.first.rest);
+	    lst = lst.rest;
+	}
+	return newHash;
+    };
 
 
+    var makeHashEqual = function(lst) {
+	var newHash = new plt.baselib.hash.EqualHashTable();
+	while ( !isEmpty(lst) ) {
+	    newHash.hash.put(lst.first.first, lst.first.rest);
+	    lst = lst.rest;
+	}
+	return newHash;
+    };
+
+
+    var Color = plt.baselib.structs.makeStructureType(
+        'color', false, 3, 0, false, false);
 
 
 
@@ -280,154 +298,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    var isNumber = jsnums.isSchemeNumber;
-
-    var isReal = jsnums.isReal;
-    var isRational = jsnums.isRational;
-    var isComplex = isNumber;
-    var isInteger = jsnums.isInteger;
-
-    var isNatural = function(x) {
-        return (jsnums.isExact(x) && isInteger(x) 
-	        && jsnums.greaterThanOrEqual(x, 0));
-    };
-    var isNonNegativeReal = function(x) {
-	return isReal(x) && jsnums.greaterThanOrEqual(x, 0);
-    };
-
-
-
-
-
-
-    var isString = plt.baselib.strings.isString;
-
-
-
-
-    var equals = plt.baselib.equality.equals;
-
-
-
-    // liftToplevelToFunctionValue: primitive-function string fixnum scheme-value -> scheme-value
-    // Lifts a primitive toplevel or module-bound value to a scheme value.
-    var liftToplevelToFunctionValue = function(primitiveF,
-				               name,
-				               minArity, 
-				               procedureArityDescription) {
-        if (! primitiveF._mobyLiftedFunction) {
-	    var lifted = function(args) {
-	        return primitiveF.apply(null, args.slice(0, minArity).concat([args.slice(minArity)]));
-	    };
-	    lifted.equals = function(other, cache) { 
-	        return this === other; 
-	    }
-	    lifted.toWrittenString = function(cache) { 
-	        return "#<procedure:" + name + ">";
-	    };
-	    lifted.toDisplayedString = lifted.toWrittenString;
-	    lifted.procedureArity = procedureArityDescription;
-	    primitiveF._mobyLiftedFunction = lifted;
-	    
-        } 
-        return primitiveF._mobyLiftedFunction;
-    };
-
-
-
     //////////////////////////////////////////////////////////////////////
-    var ThreadCell = function(v, isPreserved) {
-        this.v = v;
-        this.isPreserved = isPreserved || false;
-    };
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
-
-    var UndefinedValue = function() {
-    };
-    UndefinedValue.prototype.toString = function() {
-        return "#<undefined>";
-    };
-    var UNDEFINED_VALUE = new UndefinedValue();
-
-    var VoidValue = function() {};
-    VoidValue.prototype.toString = function() {
-	return "#<void>";
-    };
-
-    var VOID_VALUE = new VoidValue();
-
-
-    var EofValue = function() {};
-    EofValue.prototype.toString = function() {
-	return "#<eof>";
-    }
-
-    var EOF_VALUE = new EofValue();
-
-
-
-
-
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-    // Continuation Marks
-
-    var ContMarkRecordControl = function(dict) {
-        this.dict = dict || makeLowLevelEqHash();
-    };
-
-    ContMarkRecordControl.prototype.invoke = function(state) {
-        // No-op: the record will simply pop off the control stack.
-    };
-
-    ContMarkRecordControl.prototype.update = function(key, val) {
-        var newDict = makeLowLevelEqHash();
-        // FIXME: what's the javascript idiom for hash key copy?
-        // Maybe we should use a rbtree instead?
-        var oldKeys = this.dict.keys();
-        for (var i = 0; i < oldKeys.length; i++) {
-	    newDict.put( oldKeys[i], this.dict.get(oldKeys[i]) );
-        }
-        newDict.put(key, val);
-        return new ContMarkRecordControl(newDict);
-    };
-
-
-
-    var ContinuationMarkSet = function(dict) {
-        this.dict = dict;
-    }
-
-    ContinuationMarkSet.prototype.toDomNode = function(cache) {
-        var dom = document.createElement("span");
-        dom.appendChild(document.createTextNode('#<continuation-mark-set>'));
-        return dom;
-    };
-
-    ContinuationMarkSet.prototype.toWrittenString = function(cache) {
-        return '#<continuation-mark-set>';
-    };
-
-    ContinuationMarkSet.prototype.toDisplayedString = function(cache) {
-        return '#<continuation-mark-set>';
-    };
-
-    ContinuationMarkSet.prototype.ref = function(key) {
-        if ( this.dict.containsKey(key) ) {
-	    return this.dict.get(key);
-        }
-        return [];
-    };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -534,89 +405,11 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    var makeList = function() {
-        var result = Empty.EMPTY;
-        for(var i = arguments.length-1; i >= 0; i--) {
-	    result = Cons.makeInstance(arguments[i], result);
-        }
-        return result;
-    };
-
-
-    var makeVector = function() {
-        return Vector.makeInstance(arguments.length, arguments);
-    };
-
-
-    var makeVectorImmutable = function() {
-        var v = Vector.makeInstance(arguments.length, arguments);
-        v.mutable = false;
-        return v;
-    };
-
-
-    var makeString = function(s) {
-	if (s instanceof plt.baselib.strings.Str) {
-	    return s;
-	}
-	else if (s instanceof Array) {
-            //		for (var i = 0; i < s.length; i++) {
-            //			if ( typeof s[i] !== 'string' || s[i].length != 1 ) {
-            //				return undefined;
-            //			}
-            //		}
-	    return plt.baselib.strings.Str.makeInstance(s);
-	}
-	else if (typeof s === 'string') {
-	    return plt.baselib.strings.Str.fromString(s);
-	}
-	else {
-	    throw types.internalError('makeString expects and array of 1-character strings or a string;' +
-				      ' given ' + s.toString(),
-				      false);
-	}
-    };
-
-
-    var makeHashEq = function(lst) {
-	var newHash = new plt.baselib.hash.EqHashTable();
-	while ( !isEmpty(lst) ) {
-	    newHash.hash.put(lst.first.first, lst.first.rest);
-	    lst = lst.rest;
-	}
-	return newHash;
-    };
-
-
-    var makeHashEqual = function(lst) {
-	var newHash = new plt.baselib.hash.EqualHashTable();
-	while ( !isEmpty(lst) ) {
-	    newHash.hash.put(lst.first.first, lst.first.rest);
-	    lst = lst.rest;
-	}
-	return newHash;
-    };
-
-
-    var Color = plt.baselib.structs.makeStructureType('color', false, 3, 0, false, false);
 
 
 
     //////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-
-
-
-
-    types.exceptionHandlerKey = new Symbol("exnh");
+    // Exports
 
 
 
@@ -632,8 +425,8 @@ if (! this['plt']) { this['plt'] = {}; }
     types.byteRegexp = function(p) { return new plt.baselib.regexps.ByteRegularExpression(p) ; }
     types.character = plt.baselib.chars.Char.makeInstance;
     types['string'] = makeString;
+    types.placeholder = function(x) { return new plt.baselib.placeholders.Placeholder(x); };
     types.box = function(x) { return new plt.baselib.boxes.Box(x, true); };
-    types.placeholder = function(x) { return new Placeholder(x); };
     types.boxImmutable = function(x) { return new plt.baselib.boxes.Box(x, false); };
     types.path = function(x) { return new plt.baselib.paths.Path(x); };
     types.bytes = function(x, mutable) { return new plt.baselib.bytes.Bytes(x, mutable); };
@@ -676,7 +469,7 @@ if (! this['plt']) { this['plt'] = {}; }
     types.isEmpty = function(x) { return x === Empty.EMPTY; };
     types.isVector = function(x) { return x instanceof Vector; };
     types.isBox = function(x) { return x instanceof plt.baselib.boxes.Box; };
-    types.isPlaceholder = function(x) { return x instanceof Placeholder; };
+    types.isPlaceholder = function(x) { return x instanceof plt.baselib.placeholders.Placeholder; };
     types.isHash = function(x) { return (x instanceof plt.baselib.hash.EqHashTable ||
 				         x instanceof plt.baselib.hash.EqualHashTable); };
     types.isByteString = function(x) { return x instanceof plt.baselib.bytes.Bytes; };
@@ -693,9 +486,8 @@ if (! this['plt']) { this['plt'] = {}; }
 
     types.cons = Cons.makeInstance;
 
-    types.UNDEFINED = UNDEFINED_VALUE;
-    types.VOID = VOID_VALUE;
-    types.EOF = EOF_VALUE;
+    types.VOID = plt.baselib.constants.VOID_VALUE;
+    types.EOF = plt.baselib.constants.EOF_VALUE;
 
 //     types.ContinuationPromptTag = ContinuationPromptTag;
 //     types.defaultContinuationPromptTag = defaultContinuationPromptTag;
@@ -707,16 +499,15 @@ if (! this['plt']) { this['plt'] = {}; }
 //     types.internalPause = function(onPause) { return new INTERNAL_PAUSE(onPause) };
 //     types.isInternalPause = function(x) { return (x instanceof INTERNAL_PAUSE); };
 
-    types.contMarkRecordControl = function(dict) { return new ContMarkRecordControl(dict); };
-    types.isContMarkRecordControl = function(x) { return x instanceof ContMarkRecordControl; };
-    types.continuationMarkSet = function(dict) { return new ContinuationMarkSet(dict); };
-    types.isContinuationMarkSet = function(x) { return x instanceof ContinuationMarkSet; };
+
+    types.continuationMarkSet = function(dict) { return new plt.baselib.contmarks.ContinuationMarkSet(dict); };
+    types.isContinuationMarkSet = function(x) { return x instanceof plt.baselib.contmarks.ContinuationMarkSet; };
 //     types.isContinuationPromptTag = function(x) { return x instanceof ContinuationPromptTag; };
 
 
     types.Box = plt.baselib.boxes.Box;
-    types.Placeholder = Placeholder;
-    types.ThreadCell = ThreadCell;
+    types.Placeholder = plt.baselib.placeholders.Placeholder;
+
 
 
     types.isStructType = function(x) { return x instanceof plt.baselib.structs.StructType; };

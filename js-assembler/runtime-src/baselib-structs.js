@@ -114,7 +114,7 @@
 		var args = [].slice.call(arguments);
 		return newType.applyGuard(
                     args,
-		    baselib.Symbol.makeInstance(theName),
+		    baselib.symbols.Symbol.makeInstance(theName),
 		    function(res) { 
                         return new rawConstructor(theName, res); });
 	    },

@@ -54,8 +54,11 @@
 
 
 
-    //////////////////////////////////////////////////////////////////////
+    var exceptionHandlerKey = new plt.baselib.symbols.Symbol("exnh");
 
+
+
+    //////////////////////////////////////////////////////////////////////
     // Exports
 
     exceptions.InternalError = InternalError;
@@ -110,6 +113,7 @@
     exceptions.isExnFailContractDivisionByZero = ExnFailContractDivisionByZero.predicate;
 
 
+    exceptions.exceptionHandlerKey = exceptionHandlerKey;
 
 
 })(this['plt'].baselib);

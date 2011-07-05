@@ -694,8 +694,11 @@ return @tt{plt.runtime.VOID}.
 
 
 @subsection{Undefined}
-The undefined values is 
+The undefined value is JavaScript's @tt{undefined}.
 
+
+@subsection{EOF}
+The eof object is @tt{plt.runtime.EOF}
 
 
 @subsubsection{Boxes}

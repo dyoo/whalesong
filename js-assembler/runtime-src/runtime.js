@@ -34,7 +34,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
     var NULL = types.EMPTY;
-    var VOID = types.VOID;
+    var VOID = plt.baselib.constants.VOID_VALUE;
+    var EOF = plt.baselib.constants.EOF_VALUE;
 
     var makeVector = types.vector;
     var makeList = types.list;
@@ -46,8 +47,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var toDisplayedString = plt.baselib.format.toDisplayedString;
 
 
-    var makeBox = types.box;
-    var isBox = types.isBox;
+    var makeBox = plt.baselib.boxes.makeBox;
+    var isBox = plt.baselib.boxes.isBox;
     //////////////////////////////////////////////////////////////////////]
 
 
@@ -1318,8 +1319,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         1,
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var result = [firstArg];
-	    return result;
+	    return makeBox(firstArg);
         });
 
     installPrimitiveProcedure(
@@ -1327,7 +1327,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         1,
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return firstArg[0];
+            // FIXME: typecheck for box
+            return firstArg.ref();
         });
 
     installPrimitiveProcedure(
@@ -1336,7 +1337,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    firstArg[0] = secondArg;
+            // FIXME: typecheck for box
+            firstArg.set(secondArg);
 	    return VOID;
         });
 

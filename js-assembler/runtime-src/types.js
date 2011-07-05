@@ -95,42 +95,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
     //////////////////////////////////////////////////////////////////////
 
-    // Keywords
-
-    var Keyword = function(val) {
-        this.val = val;
-    };
-
-    var keywordCache = {};
-    
-    // makeInstance: string -> Keyword.
-    Keyword.makeInstance = function(val) {
-        // To ensure that we can eq? symbols with equal values.
-        if (!(val in keywordCache)) {
-	    keywordCache[val] = new Keyword(val);
-        } else {
-        }
-        return keywordCache[val];
-    };
-    
-    Keyword.prototype.equals = function(other, aUnionFind) {
-        return other instanceof Keyword &&
-            this.val == other.val;
-    };
-    
-
-    Keyword.prototype.toString = function(cache) {
-        return this.val;
-    };
-
-    Keyword.prototype.toWrittenString = function(cache) {
-        return this.val;
-    };
-
-    Keyword.prototype.toDisplayedString = function(cache) {
-        return this.val;
-    };
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -674,7 +638,7 @@ if (! this['plt']) { this['plt'] = {}; }
     types.path = function(x) { return new plt.baselib.paths.Path(x); };
     types.bytes = function(x, mutable) { return new plt.baselib.bytes.Bytes(x, mutable); };
     types.bytesImmutable = function(x) { return new plt.baselib.bytes.Bytes(x, false); };
-    types.keyword = function(k) { return new Keyword(k); };
+    types.keyword = function(k) { return new plt.baselib.keywords.Keyword(k); };
     types.pair = function(x, y) { return plt.baselib.lists.Cons.makeInstance(x, y); };
     types.hash = makeHashEqual;
     types.hashEq = makeHashEq;

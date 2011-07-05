@@ -41,26 +41,27 @@
                 
                 baselib.js
                 
-                baselib_unionfind.js
-                baselib_equality.js
-                baselib_format.js
+                baselib-unionfind.js
+                baselib-equality.js
+                baselib-format.js
                 
-                baselib_lists.js
-                baselib_vectors.js
-                baselib_chars.js
-                baselib_symbol.js
-                baselib_strings.js
-                baselib_bytes.js                    
-                baselib_hash.js
-                baselib_regexps.js
-                baselib_paths.js
-                baselib_boxes.js
-                
-                baselib_structs.js
-                baselib_arity.js
-                baselib_inspectors.js
-                baselib_exceptions.js
-                baselib_readergraph.js
+                baselib-lists.js
+                baselib-vectors.js
+                baselib-chars.js
+                baselib-symbol.js
+                baselib-strings.js
+                baselib-bytes.js                    
+                baselib-hash.js
+                baselib-regexps.js
+                baselib-paths.js
+                baselib-boxes.js
+                baselib-keywords.js
+                baselib-structs.js
+
+                baselib-arity.js
+                baselib-inspectors.js
+                baselib-exceptions.js
+                baselib-readergraph.js
                 
                 link.js
                 types.js

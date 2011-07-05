@@ -69,31 +69,6 @@ if (! this['plt']) { this['plt'] = {}; }
 
     //////////////////////////////////////////////////////////////////////
 
-    // Regular expressions.
-
-    var RegularExpression = function(pattern) {
-        this.pattern = pattern;
-    };
-
-
-    var ByteRegularExpression = function(pattern) {
-        this.pattern = pattern;
-    };
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-    // Paths
-
-    var Path = function(p) {
-        this.path = p;
-    };
-
-    Path.prototype.toString = function() {
-        return this.path;
-    };
 
 
 
@@ -101,51 +76,11 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
+
     //////////////////////////////////////////////////////////////////////
-    // Boxes
-    
-    var Box = function(x, mutable) {
-	this.val = x;
-	this.mutable = mutable;
-    };
 
-    Box.prototype.ref = function() {
-        return this.val;
-    };
 
-    Box.prototype.set = function(newVal) {
-        if (this.mutable) {
-	    this.val = newVal;
-        }
-    };
 
-    Box.prototype.toString = function(cache) {
-        cache.put(this, true);
-        return "#&" + toWrittenString(this.val, cache);
-    };
-
-    Box.prototype.toWrittenString = function(cache) {
-        cache.put(this, true);
-        return "#&" + toWrittenString(this.val, cache);
-    };
-
-    Box.prototype.toDisplayedString = function(cache) {
-        cache.put(this, true);
-        return "#&" + toDisplayedString(this.val, cache);
-    };
-
-    Box.prototype.toDomNode = function(cache) {
-        cache.put(this, true);
-        var parent = document.createElement("span");
-        parent.appendChild(document.createTextNode('#&'));
-        parent.appendChild(toDomNode(this.val, cache));
-        return parent;
-    };
-
-    Box.prototype.equals = function(other, aUnionFind) {
-        return ((other instanceof Box) &&
-	        equals(this.val, other.val, aUnionFind));
-    };
 
     //////////////////////////////////////////////////////////////////////
 
@@ -765,14 +700,14 @@ if (! this['plt']) { this['plt'] = {}; }
     types.list = makeList;
     types.vector = makeVector;
     types.vectorImmutable = makeVectorImmutable;
-    types.regexp = function(p) { return new RegularExpression(p) ; }
-    types.byteRegexp = function(p) { return new ByteRegularExpression(p) ; }
+    types.regexp = function(p) { return new plt.baselib.regexps.RegularExpression(p) ; }
+    types.byteRegexp = function(p) { return new plt.baselib.regexps.ByteRegularExpression(p) ; }
     types.character = plt.baselib.chars.Char.makeInstance;
     types['string'] = makeString;
-    types.box = function(x) { return new Box(x, true); };
+    types.box = function(x) { return new plt.baselib.boxes.Box(x, true); };
     types.placeholder = function(x) { return new Placeholder(x); };
-    types.boxImmutable = function(x) { return new Box(x, false); };
-    types.path = function(x) { return new Path(x); };
+    types.boxImmutable = function(x) { return new plt.baselib.boxes.Box(x, false); };
+    types.path = function(x) { return new plt.baselib.paths.Path(x); };
     types.bytes = function(x, mutable) { return new plt.baselib.bytes.Bytes(x, mutable); };
     types.bytesImmutable = function(x) { return new plt.baselib.bytes.Bytes(x, false); };
     types.keyword = function(k) { return new Keyword(k); };
@@ -812,7 +747,7 @@ if (! this['plt']) { this['plt'] = {}; }
     types.isList = isList;
     types.isEmpty = function(x) { return x === Empty.EMPTY; };
     types.isVector = function(x) { return x instanceof Vector; };
-    types.isBox = function(x) { return x instanceof Box; };
+    types.isBox = function(x) { return x instanceof plt.baselib.boxes.Box; };
     types.isPlaceholder = function(x) { return x instanceof Placeholder; };
     types.isHash = function(x) { return (x instanceof plt.baselib.hash.EqHashTable ||
 				         x instanceof plt.baselib.hash.EqualHashTable); };
@@ -851,7 +786,7 @@ if (! this['plt']) { this['plt'] = {}; }
 //     types.isContinuationPromptTag = function(x) { return x instanceof ContinuationPromptTag; };
 
 
-    types.Box = Box;
+    types.Box = plt.baselib.boxes.Box;
     types.Placeholder = Placeholder;
     types.ThreadCell = ThreadCell;
 

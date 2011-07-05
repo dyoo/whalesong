@@ -22,85 +22,49 @@
 
 (provide/contract [get-runtime (-> string?)])
 
-;; jquery is special: we need to make sure it's resilient against
-;; multiple invokation and inclusion.
-(define-runtime-path jquery-protect-header.js "runtime-src/jquery-protect-header.js")
-(define-runtime-path jquery.js "runtime-src/jquery.js")
-(define-runtime-path jquery-protect-footer.js "runtime-src/jquery-protect-footer.js")
 
-
-(define-runtime-path baselib.js "runtime-src/baselib.js")
-(define-runtime-path baselib_unionfind.js "runtime-src/baselib_unionfind.js")
-(define-runtime-path baselib_equality.js "runtime-src/baselib_equality.js")
-(define-runtime-path baselib_lists.js "runtime-src/baselib_lists.js")
-(define-runtime-path baselib_vectors.js "runtime-src/baselib_vectors.js")
-(define-runtime-path baselib_hash.js "runtime-src/baselib_hash.js")
-(define-runtime-path baselib_symbol.js "runtime-src/baselib_symbol.js")
-(define-runtime-path baselib_structs.js "runtime-src/baselib_structs.js")
-(define-runtime-path baselib_arity.js "runtime-src/baselib_arity.js")
-(define-runtime-path baselib_inspectors.js "runtime-src/baselib_inspectors.js")
-(define-runtime-path baselib_exceptions.js "runtime-src/baselib_exceptions.js")
-(define-runtime-path baselib_format.js "runtime-src/baselib_format.js")
-(define-runtime-path baselib_chars.js "runtime-src/baselib_chars.js")
-(define-runtime-path baselib_strings.js "runtime-src/baselib_strings.js")
-(define-runtime-path baselib_bytes.js "runtime-src/baselib_bytes.js")
-(define-runtime-path baselib_readergraph.js "runtime-src/baselib_readergraph.js")
-
-
-
-(define-runtime-path jshashtable.js "runtime-src/jshashtable-2.1_src.js")
-(define-runtime-path jsnums.js "runtime-src/js-numbers.js")
-(define-runtime-path link.js "runtime-src/link.js")
-
-;; from js-vm
-;; Deprecated:
-;; (define-runtime-path helpers.js "runtime-src/helpers.js")
-
-
-;; from js-vm
-(define-runtime-path types.js "runtime-src/types.js")
-;; These primitives were coded for the js-vm project, and we'll gradually
-;; absorb them in.
-;(define-runtime-path js-vm-primitives.js "runtime-src/js-vm-primitives.js")
-
-(define-runtime-path runtime.js "runtime-src/runtime.js")
+(define-runtime-path base-path "runtime-src")
 
 
 ;; The order matters here.  link needs to come near the top, because
 ;; the other modules below have some circular dependencies that are resolved
 ;; by link.
-(define files (list jquery-protect-header.js
-                    jquery.js
-                    jquery-protect-footer.js
-                    
-                    jshashtable.js
-                    jsnums.js
-                   
-                    baselib.js
-
-                    baselib_unionfind.js
-                    baselib_equality.js
-                    baselib_format.js
-                    
-                    baselib_lists.js
-                    baselib_vectors.js
-                    baselib_chars.js
-                    baselib_symbol.js
-                    baselib_strings.js
-                    baselib_bytes.js                    
-                    baselib_hash.js
-
-                    baselib_structs.js
-                    baselib_arity.js
-                    baselib_inspectors.js
-                    baselib_exceptions.js
-                    baselib_readergraph.js
-
-                    link.js
-;                    helpers.js
-                    types.js
-;                    js-vm-primitives.js
-                    runtime.js))
+(define files '(
+                ;; jquery is special: we need to make sure it's resilient against
+                ;; multiple invokation and inclusion.
+                jquery-protect-header.js
+                jquery.js
+                jquery-protect-footer.js
+                
+                jshashtable-2.1_src.js
+                js-numbers.js
+                
+                baselib.js
+                
+                baselib_unionfind.js
+                baselib_equality.js
+                baselib_format.js
+                
+                baselib_lists.js
+                baselib_vectors.js
+                baselib_chars.js
+                baselib_symbol.js
+                baselib_strings.js
+                baselib_bytes.js                    
+                baselib_hash.js
+                baselib_regexps.js
+                baselib_paths.js
+                baselib_boxes.js
+                
+                baselib_structs.js
+                baselib_arity.js
+                baselib_inspectors.js
+                baselib_exceptions.js
+                baselib_readergraph.js
+                
+                link.js
+                types.js
+                runtime.js))
 
 
 
@@ -111,8 +75,10 @@
 
 
 (define text (apply string-append
-                    (map path->string files)))
-
+                    (map (lambda (n)
+                           (path->string 
+                            (build-path base-path (symbol->string n))))
+                         files)))
 
 (define (get-runtime)
   text)

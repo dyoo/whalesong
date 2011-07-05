@@ -9,13 +9,8 @@
 ;; HashTable at the toplevel
 ;; jsnums at the toplevel
 ;;
-;; followed by:
+;; followed by the base library
 ;;
-;;     plt.link
-;;     plt.helpers
-;;     plt.types
-;;     plt.primitives
-;;     plt.runtime
 
 
 
@@ -58,7 +53,10 @@
 (define-runtime-path link.js "runtime-src/link.js")
 
 ;; from js-vm
-(define-runtime-path helpers.js "runtime-src/helpers.js")
+;; Deprecated:
+;; (define-runtime-path helpers.js "runtime-src/helpers.js")
+
+
 ;; from js-vm
 (define-runtime-path types.js "runtime-src/types.js")
 ;; These primitives were coded for the js-vm project, and we'll gradually
@@ -79,6 +77,7 @@
                     jsnums.js
                    
                     baselib.js
+
                     baselib_unionfind.js
                     baselib_equality.js
                     baselib_format.js
@@ -98,7 +97,7 @@
                     baselib_readergraph.js
 
                     link.js
-                    helpers.js
+;                    helpers.js
                     types.js
 ;                    js-vm-primitives.js
                     runtime.js))

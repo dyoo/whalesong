@@ -39,7 +39,7 @@
         }
 
         if (types.isStruct(x)) {
-	    var aStruct = helpers.clone(x);
+	    var aStruct = baselib.clone(x);
 	    objectHash.put(x, aStruct);
 	    for(var i = 0 ;i < x._fields.length; i++) {
 	        x._fields[i] = readerGraph(x._fields[i], objectHash, n+1);

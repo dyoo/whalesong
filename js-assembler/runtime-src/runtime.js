@@ -9,7 +9,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var runtime = {};
     scope['runtime'] = runtime;
 
-    var helpers = plt.helpers;
     var types = plt.types;
 
 
@@ -41,7 +40,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var makeList = types.list;
     var makePair = types.pair;
 
-    var heir = helpers.heir;
+    var heir = plt.baselib.heir;
     var toDomNode = plt.baselib.format.toDomNode;
     var toWrittenString = plt.baselib.format.toWrittenString;
     var toDisplayedString = plt.baselib.format.toDisplayedString;

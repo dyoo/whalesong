@@ -17,8 +17,6 @@ if (! this['plt']) { this['plt'] = {}; }
     scope['types'] = types;
 
 
-    // helpers refers to plt.helpers.
-    var helpers = scope['helpers'];
 
 
     var getEqHashCode = plt.baselib.hash.getEqHashCode;

@@ -25,48 +25,30 @@
     };
 
 
+    // (define-struct exn (message continuation-mark-set))
     var Exn = plt.baselib.structs.makeStructureType(
-        'exn', 
-        false, 
-        2, 
-        0,
-        false,
-	function(args, name, k) {
-// 	    helpers.check(args[0], isString, name, 'string', 1);
-// 	    helpers.check(args[1], types.isContinuationMarkSet,
-//                           name, 'continuation mark set', 2);
-	    return k(args);
-	});
+        'exn', false, 2, 0, false, false);
+
 
     // (define-struct (exn:break exn) (continuation))
     var ExnBreak = plt.baselib.structs.makeStructureType(
-        'exn:break', Exn, 1, 0, false,
-	function(args, name, k) {
-// 	    helpers.check(args[2], function(x) { return x instanceof ContinuationClosureValue; },
-// 			  name, 'continuation', 3);
-	    return k(args);
-	});
+        'exn:break', Exn, 1, 0, false, false);
 
-    var ExnFail =
-        plt.baselib.structs.makeStructureType('exn:fail', 
-                                              Exn, 0, 0, false, false);
 
-    var ExnFailContract =
-        plt.baselib.structs.makeStructureType('exn:fail:contract',
-                                              ExnFail, 0, 0, false, false);
+    var ExnFail = plt.baselib.structs.makeStructureType(
+        'exn:fail', Exn, 0, 0, false, false);
 
-    var ExnFailContractArity = 
-        plt.baselib.structs.makeStructureType('exn:fail:contract:arity', 
-                                              ExnFailContract, 0, 0, false, false);
+    var ExnFailContract = plt.baselib.structs.makeStructureType(
+        'exn:fail:contract', ExnFail, 0, 0, false, false);
 
-    var ExnFailContractVariable =
-        plt.baselib.structs.makeStructureType('exn:fail:contract:variable', 
-                                              ExnFailContract, 1, 0, false, false);
+    var ExnFailContractArity = plt.baselib.structs.makeStructureType(
+        'exn:fail:contract:arity', ExnFailContract, 0, 0, false, false);
 
-    var ExnFailContractDivisionByZero = 
-        plt.baselib.structs.makeStructureType('exn:fail:contract:divide-by-zero',
-                                              ExnFailContract, 0, 0, false, false);
+    var ExnFailContractVariable = plt.baselib.structs.makeStructureType(
+        'exn:fail:contract:variable', ExnFailContract, 1, 0, false, false);
 
+    var ExnFailContractDivisionByZero = plt.baselib.structs.makeStructureType(
+        'exn:fail:contract:divide-by-zero', ExnFailContract, 0, 0, false, false);
 
 
 

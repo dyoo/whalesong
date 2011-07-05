@@ -19,10 +19,10 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
 
-    var getEqHashCode = plt.baselib.hash.getEqHashCode;
+    var getEqHashCode = plt.baselib.hashes.getEqHashCode;
     // makeLowLevelEqHash: -> hashtable
     // Constructs an eq hashtable that uses Moby's getEqHashCode function.
-    var makeLowLevelEqHash = plt.baselib.hash.makeLowLevelEqHash;
+    var makeLowLevelEqHash = plt.baselib.hashes.makeLowLevelEqHash;
     var toWrittenString = plt.baselib.format.toWrittenString;
     var toDisplayedString = plt.baselib.format.toDisplayedString;
     var toDomNode = plt.baselib.format.toDomNode;
@@ -124,7 +124,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     var makeHashEq = function(lst) {
-	var newHash = new plt.baselib.hash.EqHashTable();
+	var newHash = new plt.baselib.hashes.EqHashTable();
 	while ( !isEmpty(lst) ) {
 	    newHash.hash.put(lst.first.first, lst.first.rest);
 	    lst = lst.rest;
@@ -134,7 +134,7 @@ if (! this['plt']) { this['plt'] = {}; }
 
 
     var makeHashEqual = function(lst) {
-	var newHash = new plt.baselib.hash.EqualHashTable();
+	var newHash = new plt.baselib.hashes.EqualHashTable();
 	while ( !isEmpty(lst) ) {
 	    newHash.hash.put(lst.first.first, lst.first.rest);
 	    lst = lst.rest;
@@ -470,8 +470,8 @@ if (! this['plt']) { this['plt'] = {}; }
     types.isVector = function(x) { return x instanceof Vector; };
     types.isBox = function(x) { return x instanceof plt.baselib.boxes.Box; };
     types.isPlaceholder = function(x) { return x instanceof plt.baselib.placeholders.Placeholder; };
-    types.isHash = function(x) { return (x instanceof plt.baselib.hash.EqHashTable ||
-				         x instanceof plt.baselib.hash.EqualHashTable); };
+    types.isHash = function(x) { return (x instanceof plt.baselib.hashes.EqHashTable ||
+				         x instanceof plt.baselib.hashes.EqualHashTable); };
     types.isByteString = function(x) { return x instanceof plt.baselib.bytes.Bytes; };
     types.isStruct = function(x) { return x instanceof Struct; };
     types.isColor = Color.predicate;

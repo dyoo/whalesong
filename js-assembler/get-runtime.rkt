@@ -40,6 +40,8 @@
                 js-numbers.js
                 
                 baselib.js
+
+                baselib-frames.js
                 
                 baselib-unionfind.js
                 baselib-equality.js
@@ -52,7 +54,7 @@
                 baselib-symbols.js
                 baselib-strings.js
                 baselib-bytes.js                    
-                baselib-hash.js
+                baselib-hashes.js
                 baselib-regexps.js
                 baselib-paths.js
                 baselib-boxes.js

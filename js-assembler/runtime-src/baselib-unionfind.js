@@ -10,7 +10,7 @@
     var UnionFind = function() {
 	// this.parenMap holds the arrows from an arbitrary pointer
 	// to its parent.
-	this.parentMap = baselib.hash.makeLowLevelEqHash();
+	this.parentMap = baselib.hashes.makeLowLevelEqHash();
     }
 
     // find: ptr -> UnionFindNode

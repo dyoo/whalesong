@@ -73,7 +73,7 @@
     // toWrittenString: Any Hashtable -> String
     var toWrittenString = function(x, cache) {
         if (! cache) { 
-     	    cache = plt.baselib.hash.makeLowLevelEqHash();
+     	    cache = plt.baselib.hashes.makeLowLevelEqHash();
         }
         if (x === null) {
             return "null";
@@ -112,7 +112,7 @@
     // toDisplayedString: Any Hashtable -> String
     var toDisplayedString = function(x, cache) {
         if (! cache) {
-    	    cache = plt.baselib.hash.makeLowLevelEqHash();
+    	    cache = plt.baselib.hashes.makeLowLevelEqHash();
         }
         if (x === null) {
             return "null";
@@ -153,7 +153,7 @@
 
     var ToDomNodeParameters = function(params) {
         if (! params) { params = {}; }
-        this.cache = plt.baselib.hash.makeLowLevelEqHash();
+        this.cache = plt.baselib.hashes.makeLowLevelEqHash();
         for (var k in params) {
             if (params.hasOwnProperty(k)) {
                 this[k] = params[k];

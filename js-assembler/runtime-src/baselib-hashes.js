@@ -2,7 +2,7 @@
 (function(baselib) {
     var exports = {};
 
-    baselib.hash = exports;
+    baselib.hashes = exports;
 
 
     

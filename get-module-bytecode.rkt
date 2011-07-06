@@ -2,7 +2,8 @@
 (require racket/path
          racket/runtime-path
          syntax/modcode
-         "language-namespace.rkt")
+         "language-namespace.rkt"
+         "logger.rkt")
 
 (provide get-module-bytecode)
 
@@ -12,6 +13,7 @@
 
   
 (define (get-module-bytecode x)
+  (log-debug "grabbing module bytecode for ~s" x)
   (let ([compiled-code
          (cond
            ;; Assumed to be a path string

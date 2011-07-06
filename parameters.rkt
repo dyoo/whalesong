@@ -5,6 +5,10 @@
          "sets.rkt"
          racket/path)
 
+(require/typed "logger.rkt"
+               [log-warning (String -> Void)])
+
+
 
 (provide current-defined-name
          current-module-path
@@ -31,8 +35,9 @@
 (define current-warn-unimplemented-kernel-primitive
   (make-parameter
    (lambda: ([id : Symbol])
-            (printf "WARNING: Primitive Kernel Value ~s has not been implemented\n"
-                    id))))
+            (log-warning
+             (format "WARNING: Primitive Kernel Value ~s has not been implemented\n"
+                     id)))))
 
 
 (: current-kernel-module-locator? (Parameterof (ModuleLocator -> Boolean)))

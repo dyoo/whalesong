@@ -6,7 +6,6 @@ if (! this['plt']) { this['plt'] = {}; }
     var link = {};
     scope['link'] = link;
 
-
     // link.ready: (string (string -> void)) -> void
     // When the name announces that it's ready, calls the function f.
     link.ready = function(name, f) {
@@ -26,7 +25,6 @@ if (! this['plt']) { this['plt'] = {}; }
         notifyAll(name);
     };
  
-
 
     // notifyAll: string -> void
     // Tell all listeners that the name is ready.

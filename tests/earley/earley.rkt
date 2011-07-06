@@ -1,4 +1,4 @@
-#lang s-exp "../../lang/base.rkt"
+#lang planet dyoo/whalesong
 (begin
    (define make-parser
      (lambda (grammar lexer)

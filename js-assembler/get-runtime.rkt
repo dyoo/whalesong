@@ -68,8 +68,6 @@
                 baselib-exceptions.js
                 baselib-readergraph.js
                 
-                link.js
-                types.js
                 runtime.js))
 
 

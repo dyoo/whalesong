@@ -27,17 +27,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var isNumber = plt.baselib.numbers.isNumber;
     var isNatural = plt.baselib.numbers.isNatural;
     var isReal = plt.baselib.numbers.isReal;
-    var isPair = types.isPair;
-    var isList = types.isList;
-    var isVector = types.isVector;
-    var isString = types.isString;
-    var equals = types.equals;
+    var isPair = plt.baselib.lists.isPair;
+    var isList = plt.baselib.lists.isList;
+    var isVector = plt.baselib.vectors.isVector;
+    var isString = plt.baselib.strings.isString;
+    var equals = plt.baselib.equality.equals;
 
-
-    var NULL = types.EMPTY;
+    var NULL = plt.baselib.lists.EMPTY;
     var VOID = plt.baselib.constants.VOID_VALUE;
     var EOF = plt.baselib.constants.EOF_VALUE;
-
 
     var NEGATIVE_ZERO = plt.baselib.numbers.negative_zero;
     var INF = plt.baselib.numbers.inf;
@@ -50,9 +48,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var makeComplex = plt.baselib.numbers.makeComplex;
 
 
-    var makeVector = types.vector;
-    var makeList = types.list;
-    var makePair = types.pair;
+    var makeVector = plt.baselib.vectors.makeVector;
+    var makeList = plt.baselib.lists.makeList;
+    var makePair = plt.baselib.lists.makePair;
 
     var heir = plt.baselib.heir;
     var toDomNode = plt.baselib.format.toDomNode;
@@ -2631,9 +2629,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['makeStructureType'] = plt.baselib.structs.makeStructureType;
     exports['Struct'] = plt.baselib.structs.Struct;
     exports['StructType'] = plt.baselib.structs.StructType;
-
-
-    scope.link.announceReady('runtime');
 
 
 })(this['plt']);

@@ -153,6 +153,29 @@
     var makePair = Cons.makeInstance;
 
 
+    var makeList = function() {
+        var result = Empty.EMPTY;
+        for(var i = arguments.length-1; i >= 0; i--) {
+	    result = Cons.makeInstance(arguments[i], result);
+        }
+        return result;
+    };
+
+
+    // isList: Any -> Boolean
+    // Returns true if x is a list (a chain of pairs terminated by EMPTY).
+    var isList = function(x) { 
+	while (x !== Empty.EMPTY) {
+	    if (x instanceof Cons){
+		x = x.rest;
+	    } else {
+		return false;
+	    }
+	}
+	return true;
+    };
+
+
 
     //////////////////////////////////////////////////////////////////////
 
@@ -160,8 +183,9 @@
     exports.Empty = Empty;
     exports.Cons = Cons;
     exports.isPair = isPair;
+    exports.isList = isList;
     exports.makePair = makePair;
-
+    exports.makeList = makeList;
 
 
 })(this['plt'].baselib);

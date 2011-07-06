@@ -890,3 +890,15 @@ Whalesong uses code and utilities from the following external projects:
 @item{   jquery (@url{http://jquery.com/})}
 @item{   Google Closure Compiler (@url{http://code.google.com/p/closure-compiler/})}
 ]
+
+The following folks have helped tremendously in the implementation of
+Whalesong by implementing libraries, giving guidence, and suggesting
+improvements:
+
+@itemlist[
+   @item{Ethan Cecchetti}
+   @item{Scott Newman}
+   @item{Zhe Zhang}
+   @item{Shriram Krishnamurthi}
+   @item{Emmanuel Schanzer}
+]

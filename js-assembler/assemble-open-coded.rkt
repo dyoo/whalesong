@@ -31,43 +31,43 @@
            (cond [(empty? checked-operands)
                   (assemble-numeric-constant 0)]
                  [else
-                  (assemble-binop-chain "jsnums.add" checked-operands)])]
+                  (assemble-binop-chain "plt.baselib.numbers.add" checked-operands)])]
           
           [(-)
            (cond [(empty? (rest checked-operands))
-                  (assemble-binop-chain "jsnums.subtract" (cons "0" checked-operands))]
+                  (assemble-binop-chain "plt.baselib.numbers.subtract" (cons "0" checked-operands))]
                  [else
-                  (assemble-binop-chain "jsnums.subtract" checked-operands)])]
+                  (assemble-binop-chain "plt.baselib.numbers.subtract" checked-operands)])]
           
           [(*)
            (cond [(empty? checked-operands)
                   (assemble-numeric-constant 1)]
                  [else
-                  (assemble-binop-chain "jsnums.multiply" checked-operands)])]
+                  (assemble-binop-chain "plt.baselib.numbers.multiply" checked-operands)])]
 
           [(/)
-           (assemble-binop-chain "jsnums.divide" checked-operands)]
+           (assemble-binop-chain "plt.baselib.numbers.divide" checked-operands)]
 
           [(add1)
-           (assemble-binop-chain "jsnums.add" (cons "1" checked-operands))]
+           (assemble-binop-chain "plt.baselib.numbers.add" (cons "1" checked-operands))]
           
           [(sub1)
-           (assemble-binop-chain "jsnums.subtract" (append checked-operands (list "1")))]
+           (assemble-binop-chain "plt.baselib.numbers.subtract" (append checked-operands (list "1")))]
 
           [(<)
-           (assemble-boolean-chain "jsnums.lessThan" checked-operands)]
+           (assemble-boolean-chain "plt.baselib.numbers.lessThan" checked-operands)]
 
           [(<=)
-           (assemble-boolean-chain "jsnums.lessThanOrEqual" checked-operands)]
+           (assemble-boolean-chain "plt.baselib.numbers.lessThanOrEqual" checked-operands)]
           
           [(=)
-           (assemble-boolean-chain "jsnums.equals" checked-operands)]
+           (assemble-boolean-chain "plt.baselib.numbers.equals" checked-operands)]
           
           [(>)
-           (assemble-boolean-chain "jsnums.greaterThan" checked-operands)]
+           (assemble-boolean-chain "plt.baselib.numbers.greaterThan" checked-operands)]
           
           [(>=)
-           (assemble-boolean-chain "jsnums.greaterThanOrEqual" checked-operands)]
+           (assemble-boolean-chain "plt.baselib.numbers.greaterThanOrEqual" checked-operands)]
           
           [(cons)
            (format "RUNTIME.makePair(~a, ~a)"
@@ -108,10 +108,10 @@
      (cons (string-append rator "(" (first rands) ", " (second rands) ")")
            (rest (rest rands))))]))
 
-(check-equal? (assemble-binop-chain "jsnums.add" '("3" "4" "5"))
-              "jsnums.add(jsnums.add(3, 4), 5)")
-(check-equal? (assemble-binop-chain "jsnums.subtract" '("0" "42"))
-              "jsnums.subtract(0, 42)")
+(check-equal? (assemble-binop-chain "plt.baselib.numbers.add" '("3" "4" "5"))
+              "plt.baselib.numbers.add(plt.baselib.numbers.add(3, 4), 5)")
+(check-equal? (assemble-binop-chain "plt.baselib.numbers.subtract" '("0" "42"))
+              "plt.baselib.numbers.subtract(0, 42)")
 
 
 
@@ -146,7 +146,7 @@
      (let: ([test-string : String
                          (case domain
                            [(number)
-                            (format "jsnums.isSchemeNumber(~a)"
+                            (format "RUNTIME.isNumber(~a)"
                                     operand-string)]             
                            [(string)
                             (format "(typeof(~a) === 'string')"

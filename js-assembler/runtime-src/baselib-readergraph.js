@@ -9,17 +9,17 @@
 	    return objectHash.get(x);
         }
 
-        if (types.isPair(x)) {
-	    var consPair = types.cons(x.first, x.rest);
+        if (plt.baselib.lists.isPair(x)) {
+	    var consPair = plt.baselib.lists.makePair(x.first, x.rest);
 	    objectHash.put(x, consPair);
-	    consPair.f = readerGraph(x.first, objectHash, n+1);
-	    consPair.r = readerGraph(x.rest, objectHash, n+1);
+	    consPair.first = readerGraph(x.first, objectHash, n+1);
+	    consPair.rest = readerGraph(x.rest, objectHash, n+1);
 	    return consPair;
         }
 
-        if (types.isVector(x)) {
+        if (plt.baselib.vectors.isVector(x)) {
 	    var len = x.length();
-	    var aVector = types.vector(len, x.elts);
+	    var aVector = plt.baselib.vectors.makeVector(len, x.elts);
 	    objectHash.put(x, aVector);	
 	    for (var i = 0; i < len; i++) {
 	        aVector.elts[i] = readerGraph(aVector.elts[i], objectHash, n+1);
@@ -27,18 +27,18 @@
 	    return aVector;
         }
 
-        if (types.isBox(x)) {
-	    var aBox = types.box(x.ref());
+        if (plt.baselib.boxes.isBox(x)) {
+	    var aBox = plt.baselib.boxes.makeBox(x.ref());
 	    objectHash.put(x, aBox);
 	    aBox.val = readerGraph(x.ref(), objectHash, n+1);
 	    return aBox;
         }
 
-        if (types.isHash(x)) {
+        if (plt.baselib.hashes.isHash(x)) {
 	    throw new Error("make-reader-graph of hash not implemented yet");
         }
 
-        if (types.isStruct(x)) {
+        if (plt.baselib.structs.isStruct(x)) {
 	    var aStruct = baselib.clone(x);
 	    objectHash.put(x, aStruct);
 	    for(var i = 0 ;i < x._fields.length; i++) {
@@ -47,7 +47,7 @@
 	    return aStruct;
         }
 
-        if (types.isPlaceholder(x)) {
+        if (plt.baselib.placeholders.isPlaceholder(x)) {
 	    return readerGraph(x.ref(), objectHash, n+1);
         }
 

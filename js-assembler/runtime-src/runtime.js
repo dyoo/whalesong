@@ -24,8 +24,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // We try to isolate the effect of external modules: all the identifiers we
     // pull from external modules should be listed here, and should otherwise not
     // show up outside this section!
-    var isNumber = jsnums.isSchemeNumber;
-    var isNatural = types.isNatural;
+    var isNumber = plt.baselib.numbers.isNumber;
+    var isNatural = plt.baselib.numbers.isNatural;
+    var isReal = plt.baselib.numbers.isReal;
     var isPair = types.isPair;
     var isList = types.isList;
     var isVector = types.isVector;
@@ -36,6 +37,18 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var NULL = types.EMPTY;
     var VOID = plt.baselib.constants.VOID_VALUE;
     var EOF = plt.baselib.constants.EOF_VALUE;
+
+
+    var NEGATIVE_ZERO = plt.baselib.numbers.negative_zero;
+    var INF = plt.baselib.numbers.inf;
+    var NEGATIVE_INF = plt.baselib.numbers.negative_inf;
+    var NAN = plt.baselib.numbers.nan;
+
+    var makeFloat = plt.baselib.numbers.makeFloat;
+    var makeRational = plt.baselib.numbers.makeRational;
+    var makeBignum = plt.baselib.numbers.makeBignum;
+    var makeComplex = plt.baselib.numbers.makeComplex;
+
 
     var makeVector = types.vector;
     var makeList = types.list;
@@ -59,9 +72,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     //////////////////////////////////////////////////////////////////////]
 
 
-    var isNonNegativeReal = function(x) {
-	return jsnums.isReal(x) && jsnums.greaterThanOrEqual(x, 0);
-    };
+    var isNonNegativeReal = plt.baselib.numbers.isNonNegativeReal;
+
 
 
 
@@ -564,8 +576,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    installPrimitiveConstant('pi', jsnums.pi);
-    installPrimitiveConstant('e', jsnums.e);
+    installPrimitiveConstant('pi', plt.baselib.numbers.pi);
+    installPrimitiveConstant('e', plt.baselib.numbers.e);
     installPrimitiveConstant('null', NULL);
 
 
@@ -628,7 +640,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'format',
-        plt.baselib.arity.arityAtLeast(1),
+        plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -648,7 +660,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'printf',
-        plt.baselib.arity.arityAtLeast(1),
+        plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -670,7 +682,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'fprintf',
-        plt.baselib.arity.arityAtLeast(2),
+        plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -731,7 +743,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '=',
-        plt.baselib.arity.arityAtLeast(2),
+        plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE, 'number', isNumber, firstArg, 0, '=');
@@ -742,8 +754,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length - 1 - i],
 			     i,
 			     '=');
-	        if (! (jsnums.equals(MACHINE.env[MACHINE.env.length - 1 - i],
-		                     MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
+	        if (! (plt.baselib.numbers.equals(
+                    MACHINE.env[MACHINE.env.length - 1 - i],
+		    MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		    return false; 
 	        }
 	    }
@@ -758,13 +771,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
 	    testArgument(MACHINE,
 		         'real',
-		         jsnums.isReal,
+		         isReal,
 		         MACHINE.env[MACHINE.env.length - 1],
 		         0,
 		         '=~');
             testArgument(MACHINE,
 		         'real',
-		         jsnums.isReal,
+		         isReal,
 		         MACHINE.env[MACHINE.env.length - 2],
 		         1,
 		         '=~');
@@ -777,7 +790,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var x = MACHINE.env[MACHINE.env.length-1];
 	    var y = MACHINE.env[MACHINE.env.length-2];
 	    var range = MACHINE.env[MACHINE.env.length-3];
-            return jsnums.lessThanOrEqual(jsnums.abs(jsnums.subtract(x, y)), range);
+            return plt.baselib.numbers.lessThanOrEqual(plt.baselib.numbers.abs(plt.baselib.numbers.subtract(x, y)), range);
         });
 
 
@@ -785,7 +798,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '<',
-        plt.baselib.arity.arityAtLeast(2),
+        plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -797,7 +810,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length - 1 - i],
 			     i,
 			     '<');
-	        if (! (jsnums.lessThan(MACHINE.env[MACHINE.env.length - 1 - i],
+	        if (! (plt.baselib.numbers.lessThan(MACHINE.env[MACHINE.env.length - 1 - i],
 		                       MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		    return false; 
 	        }
@@ -808,7 +821,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '>',
-        plt.baselib.arity.arityAtLeast(2),
+        plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -820,7 +833,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length - 1 - i],
 			     i,
 			     '>');
-	        if (! (jsnums.greaterThan(MACHINE.env[MACHINE.env.length - 1 - i],
+	        if (! (plt.baselib.numbers.greaterThan(MACHINE.env[MACHINE.env.length - 1 - i],
 		                          MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		    return false; 
 	        }
@@ -830,7 +843,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '<=',
-        plt.baselib.arity.arityAtLeast(2),
+        plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -842,7 +855,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length - 1 - i],
 			     i,
 			     '<=');
-	        if (! (jsnums.lessThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
+	        if (! (plt.baselib.numbers.lessThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
 		                              MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		    return false; 
 	        }
@@ -853,7 +866,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '>=',
-        plt.baselib.arity.arityAtLeast(2),
+        plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    testArgument(MACHINE,
@@ -865,7 +878,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length - 1 - i],
 			     i,
 			     '>=');
-	        if (! (jsnums.greaterThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
+	        if (! (plt.baselib.numbers.greaterThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
 		                                 MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
 		    return false; 
 	        }
@@ -876,7 +889,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '+',
-        plt.baselib.arity.arityAtLeast(0),
+        plt.baselib.arity.makeArityAtLeast(0),
         function(MACHINE) {
 	    var result = 0;
 	    var i = 0;
@@ -887,7 +900,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length - 1 - i],
 			     i,
 			     '+');
-	        result = jsnums.add(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	        result = plt.baselib.numbers.add(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	    };
 	    return result;
         });
@@ -895,7 +908,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         '*',
-        plt.baselib.arity.arityAtLeast(0),
+        plt.baselib.arity.makeArityAtLeast(0),
         function(MACHINE) {
 	    var result = 1;
 	    var i = 0;
@@ -906,14 +919,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length - 1 - i],
 			     i,
 			     '*');
-	        result = jsnums.multiply(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	        result = plt.baselib.numbers.multiply(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	    }
 	    return result;
         });
 
     installPrimitiveProcedure(
         '-',
-        plt.baselib.arity.arityAtLeast(1),
+        plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
 	    if (MACHINE.argcount === 1) { 
 	        testArgument(MACHINE,
@@ -922,7 +935,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length-1],
 			     0,
 			     '-');
-	        return jsnums.subtract(0, MACHINE.env[MACHINE.env.length-1]);
+	        return plt.baselib.numbers.subtract(0, MACHINE.env[MACHINE.env.length-1]);
 	    }
 	    var result = MACHINE.env[MACHINE.env.length - 1];
 	    for (var i = 1; i < MACHINE.argcount; i++) {
@@ -932,14 +945,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length-1-i],
 			     i,
 			     '-');
-	        result = jsnums.subtract(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	        result = plt.baselib.numbers.subtract(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	    }
 	    return result;
         });
     
     installPrimitiveProcedure(
         '/',
-        plt.baselib.arity.arityAtLeast(1),
+        plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
 	    testArgument(MACHINE,
 		         'number',
@@ -955,7 +968,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			     MACHINE.env[MACHINE.env.length-1-i],
 			     i,
 			     '/');
-	        result = jsnums.divide(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	        result = plt.baselib.numbers.divide(result, MACHINE.env[MACHINE.env.length - 1 - i]);
 	    }
 	    return result;
         });
@@ -972,7 +985,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		         0,
 		         'add1');
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return jsnums.add(firstArg, 1);
+	    return plt.baselib.numbers.add(firstArg, 1);
         });
 
 
@@ -987,7 +1000,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		         0,
 		         'sub1');
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return jsnums.subtract(firstArg, 1);
+	    return plt.baselib.numbers.subtract(firstArg, 1);
         });
 
 
@@ -996,7 +1009,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         1,
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return jsnums.equals(firstArg, 0);
+	    return plt.baselib.numbers.equals(firstArg, 0);
         });
 
 
@@ -1012,7 +1025,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'list',
-        plt.baselib.arity.arityAtLeast(0),
+        plt.baselib.arity.makeArityAtLeast(0),
         function(MACHINE) {
 	    var result = NULL;
 	    for (var i = 0; i < MACHINE.argcount; i++) {
@@ -1112,7 +1125,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'vector',
-        plt.baselib.arity.arityAtLeast(0),
+        plt.baselib.arity.makeArityAtLeast(0),
         function(MACHINE) {
 	    var i;
 	    var result = [];
@@ -1191,7 +1204,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		         1,
 		         'vector-set!');
 	    var elts = MACHINE.env[MACHINE.env.length-1].elts;
-	    var index = jsnums.toFixnum(MACHINE.env[MACHINE.env.length-2]);
+	    var index = plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length-2]);
 	    var val = MACHINE.env[MACHINE.env.length-3];
 	    elts[index] = val;
 	    return VOID;
@@ -1226,7 +1239,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    if (MACHINE.argcount == 2) {
 	        value = MACHINE.env[MACHINE.env.length - 2];
 	    }
-	    var length = jsnums.toFixnum(MACHINE.env[MACHINE.env.length-1]);
+	    var length = plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length-1]);
 	    var arr = [];
 	    for(var i = 0; i < length; i++) {
 	        arr[i] = value;
@@ -1254,7 +1267,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'string-append',
-        plt.baselib.arity.arityAtLeast(0),
+        plt.baselib.arity.makeArityAtLeast(0),
         function(MACHINE) {
 	    var buffer = [];
 	    var i;
@@ -1302,7 +1315,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'void',
-        plt.baselib.arity.arityAtLeast(0),
+        plt.baselib.arity.makeArityAtLeast(0),
         function(MACHINE) {
 	    return VOID;
         });
@@ -1380,7 +1393,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'abs');
-            return jsnums.abs(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.abs(MACHINE.env[MACHINE.env.length-1]);
         });
 
     installPrimitiveProcedure(
@@ -1393,7 +1406,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'acos');
-            return jsnums.acos(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.acos(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1407,7 +1420,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'asin');
-            return jsnums.asin(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.asin(MACHINE.env[MACHINE.env.length-1]);
         });
 
     installPrimitiveProcedure(
@@ -1420,7 +1433,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'sin');
-            return jsnums.sin(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sin(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1435,7 +1448,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'sinh');
-            return jsnums.sinh(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sinh(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1449,7 +1462,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'tan');
-            return jsnums.tan(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.tan(MACHINE.env[MACHINE.env.length-1]);
         });
 
     
@@ -1465,7 +1478,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                              MACHINE.env[MACHINE.env.length - 1],
                              0,
                              'atan');
-		return jsnums.atan(MACHINE.env[MACHINE.env.length - 1]);
+		return plt.baselib.numbers.atan(MACHINE.env[MACHINE.env.length - 1]);
             } else {
                 testArgument(MACHINE,
                              'number',
@@ -1479,9 +1492,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                              MACHINE.env[MACHINE.env.length - 2],
                              1,
                              'atan');
-                return jsnums.makeFloat(
-		    Math.atan2(jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 1]),
-			       jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2])));
+                return plt.baselib.numbers.makeFloat(
+		    Math.atan2(plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 1]),
+			       plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2])));
             }
         });
 
@@ -1496,7 +1509,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'angle');
-            return jsnums.angle(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.angle(MACHINE.env[MACHINE.env.length-1]);
         });
 
     installPrimitiveProcedure(
@@ -1509,7 +1522,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'magnitude');
-            return jsnums.magnitude(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.magnitude(MACHINE.env[MACHINE.env.length-1]);
         });
 
     installPrimitiveProcedure(
@@ -1522,7 +1535,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'conjugate');
-            return jsnums.conjugate(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.conjugate(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1538,7 +1551,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'cos');
-            return jsnums.cos(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.cos(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1552,18 +1565,18 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'cosh');
-            return jsnums.cosh(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.cosh(MACHINE.env[MACHINE.env.length-1]);
         });
 
     installPrimitiveProcedure(
         'gcd',
-        plt.baselib.arity.arityAtLeast(1),
+        plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
                 testArgument(MACHINE,
                              'integer',
-                             jsnums.isInteger,
+                             plt.baselib.numbers.isInteger,
                              MACHINE.env[MACHINE.env.length - 1 - i],
                              i,
                              'gcd');
@@ -1571,18 +1584,18 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
             }
             x = args.shift();
-	    return jsnums.gcd(x, args);
+	    return plt.baselib.numbers.gcd(x, args);
         });
 
     installPrimitiveProcedure(
         'lcm',
-        plt.baselib.arity.arityAtLeast(1),
+        plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
                 testArgument(MACHINE,
                              'integer',
-                             jsnums.isInteger,
+                             plt.baselib.numbers.isInteger,
                              MACHINE.env[MACHINE.env.length - 1 - i],
                              i,
                              'lcm');
@@ -1590,7 +1603,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
             }
             x = args.shift();
-	    return jsnums.lcm(x, args);
+	    return plt.baselib.numbers.lcm(x, args);
         });
 
 
@@ -1606,7 +1619,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'exp');
-            return jsnums.exp(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.exp(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1626,7 +1639,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length - 2],
                          1,
                          'expt');
-            return jsnums.expt(MACHINE.env[MACHINE.env.length - 1],
+            return plt.baselib.numbers.expt(MACHINE.env[MACHINE.env.length - 1],
                                MACHINE.env[MACHINE.env.length - 2]);
         });
 
@@ -1641,7 +1654,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'exact?');
-            return jsnums.isExact(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.isExact(MACHINE.env[MACHINE.env.length - 1]);
         });
 
 
@@ -1655,7 +1668,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'imag-part');
-            return jsnums.imaginaryPart(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.imaginaryPart(MACHINE.env[MACHINE.env.length - 1]);
         });
 
     installPrimitiveProcedure(
@@ -1668,7 +1681,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'real-part');
-            return jsnums.realPart(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.realPart(MACHINE.env[MACHINE.env.length - 1]);
         });
 
 
@@ -1679,17 +1692,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'make-polar');
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 2],
                          1,
                          'make-polar');
-            return jsnums.makeComplexPolar(MACHINE.env[MACHINE.env.length - 1],
+            return plt.baselib.numbers.makeComplexPolar(MACHINE.env[MACHINE.env.length - 1],
                                            MACHINE.env[MACHINE.env.length - 2]);
         });
 
@@ -1700,17 +1713,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'make-rectangular');
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 2],
                          1,
                          'make-rectangular');
-            return jsnums.makeComplex(MACHINE.env[MACHINE.env.length - 1],
+            return plt.baselib.numbers.makeComplex(MACHINE.env[MACHINE.env.length - 1],
                                       MACHINE.env[MACHINE.env.length - 2]);
         });
 
@@ -1720,17 +1733,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'modulo');
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length - 2],
                          1,
                          'modulo');
-            return jsnums.modulo(MACHINE.env[MACHINE.env.length - 1],
+            return plt.baselib.numbers.modulo(MACHINE.env[MACHINE.env.length - 1],
                                  MACHINE.env[MACHINE.env.length - 2]);
         });
 
@@ -1741,17 +1754,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'remainder');
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length - 2],
                          1,
                          'remainder');
-            return jsnums.remainder(MACHINE.env[MACHINE.env.length - 1],
+            return plt.baselib.numbers.remainder(MACHINE.env[MACHINE.env.length - 1],
                                     MACHINE.env[MACHINE.env.length - 2]);
         });
 
@@ -1762,17 +1775,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'quotient');
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length - 2],
                          1,
                          'quotient');
-            return jsnums.quotient(MACHINE.env[MACHINE.env.length - 1],
+            return plt.baselib.numbers.quotient(MACHINE.env[MACHINE.env.length - 1],
                                    MACHINE.env[MACHINE.env.length - 2]);
         });
 
@@ -1784,11 +1797,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'floor');
-            return jsnums.floor(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.floor(MACHINE.env[MACHINE.env.length - 1]);
         });
     
 
@@ -1798,11 +1811,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'ceiling');
-            return jsnums.ceiling(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.ceiling(MACHINE.env[MACHINE.env.length - 1]);
         });
    
 
@@ -1812,11 +1825,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'round');
-            return jsnums.round(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.round(MACHINE.env[MACHINE.env.length - 1]);
         });
     
 
@@ -1826,14 +1839,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'real',
-                         jsnums.isReal,
+                         isReal,
                          MACHINE.env[MACHINE.env.length - 1],
                          0,
                          'truncate');
-	    if (jsnums.lessThan(MACHINE.env[MACHINE.env.length - 1], 0)) {
-		return jsnums.ceiling(MACHINE.env[MACHINE.env.length - 1]);
+	    if (plt.baselib.numbers.lessThan(MACHINE.env[MACHINE.env.length - 1], 0)) {
+		return plt.baselib.numbers.ceiling(MACHINE.env[MACHINE.env.length - 1]);
 	    } else {
-		return jsnums.floor(MACHINE.env[MACHINE.env.length - 1]);
+		return plt.baselib.numbers.floor(MACHINE.env[MACHINE.env.length - 1]);
 	    }
         });
     
@@ -1844,11 +1857,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'rational',
-                         jsnums.isRational,
+                         plt.baselib.numbers.isRational,
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'numerator');
-            return jsnums.numerator(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.numerator(MACHINE.env[MACHINE.env.length-1]);
         });
 
     installPrimitiveProcedure(
@@ -1857,11 +1870,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'rational',
-                         jsnums.isRational,
+                         plt.baselib.numbers.isRational,
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'denominator');
-            return jsnums.denominator(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.denominator(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1875,7 +1888,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'log');
-            return jsnums.log(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.log(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1889,7 +1902,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'sqr');
-            return jsnums.sqr(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sqr(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1905,7 +1918,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'sqrt');
-            return jsnums.sqrt(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sqrt(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
@@ -1917,28 +1930,28 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'integer-sqrt');
-            return jsnums.integerSqrt(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.integerSqrt(MACHINE.env[MACHINE.env.length-1]);
         });
 
 
     // rawSgn: number -> number
     var rawSgn = function(x) {
-        if (jsnums.isInexact(x)) {
-	    if ( jsnums.greaterThan(x, 0) ) {
-		return jsnums.makeFloat(1);
-	    } else if ( jsnums.lessThan(x, 0) ) {
-		return jsnums.makeFloat(-1);
+        if (plt.baselib.numbers.isInexact(x)) {
+	    if ( plt.baselib.numbers.greaterThan(x, 0) ) {
+		return plt.baselib.numbers.makeFloat(1);
+	    } else if ( plt.baselib.numbers.lessThan(x, 0) ) {
+		return plt.baselib.numbers.makeFloat(-1);
 	    } else {
-		return jsnums.makeFloat(0);
+		return plt.baselib.numbers.makeFloat(0);
 	    }
 	} else {
-	    if ( jsnums.greaterThan(x, 0) ) {
+	    if ( plt.baselib.numbers.greaterThan(x, 0) ) {
 		return 1;
-	    } else if ( jsnums.lessThan(x, 0) ) {
+	    } else if ( plt.baselib.numbers.lessThan(x, 0) ) {
 		return -1;
 	    } else {
 		return 0;
@@ -1952,7 +1965,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             testArgument(MACHINE,
                          'integer',
-                         jsnums.isInteger,
+                         plt.baselib.numbers.isInteger,
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'sgn');
@@ -1983,7 +1996,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                          MACHINE.env[MACHINE.env.length-1],
                          0,
                          'string->number');
-            return jsnums.fromString(MACHINE.env[MACHINE.env.length-1].toString());
+            return plt.baselib.numbers.fromString(MACHINE.env[MACHINE.env.length-1].toString());
         });
 
 
@@ -1993,7 +2006,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     installPrimitiveProcedure(
         'format',
-        plt.baselib.arity.arityAtLeast(1),
+        plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
             testArgument(MACHINE,
@@ -2058,7 +2071,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                     var constructorValue = 
                         makePrimitiveProcedure(
                             constructorName,
-                            jsnums.toFixnum(initFieldCount),
+                            plt.baselib.numbers.toFixnum(initFieldCount),
                             function(MACHINE) {
                                 var args = [];
                                 for(var i = 0; i < initFieldCount; i++) {
@@ -2083,7 +2096,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                                 // FIXME: typechecks
                                 return structType.accessor(
                                     MACHINE.env[MACHINE.env.length - 1],
-                                    jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2]));
+                                    plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]));
                             });
                     accessorValue.structType = structType;
 
@@ -2095,7 +2108,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                                 // FIXME: typechecks
                                 return structType.mutator(
                                     MACHINE.env[MACHINE.env.length - 1],
-                                    jsnums.toFixnum(MACHINE.env[MACHINE.env.length - 2]),
+                                    plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]),
                                     MACHINE.env[MACHINE.env.length - 3]);
                             });
                     mutatorValue.structType = structType;
@@ -2144,7 +2157,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 function(MACHINE) {
                     return structType.accessor(
                         MACHINE.env[MACHINE.env.length - 1],
-                        jsnums.toFixnum(index));
+                        plt.baselib.numbers.toFixnum(index));
                 });
             
         });
@@ -2170,7 +2183,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 function(MACHINE) {
                     return structType.mutator(
                         MACHINE.env[MACHINE.env.length - 1],
-                        jsnums.toFixnum(index),
+                        plt.baselib.numbers.toFixnum(index),
                         MACHINE.env[MACHINE.env.length - 2]);
                 });            
         });
@@ -2534,6 +2547,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['NULL'] = NULL;
     exports['VOID'] = VOID;
 
+    exports['NEGATIVE_ZERO'] = NEGATIVE_ZERO;
+    exports['INF'] = INF;
+    exports['NEGATIVE_INF'] = NEGATIVE_INF;
+    exports['NAN'] = NAN;
+
+
+
+
+
     exports['testArgument'] = testArgument;
     exports['testArity'] = testArity;
 
@@ -2571,6 +2593,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['makePair'] = makePair;
     exports['makeVector'] = makeVector;
     exports['makeBox'] = makeBox;
+    exports['makeFloat'] = makeFloat;
+    exports['makeRational'] = makeRational;
+    exports['makeBignum'] = makeBignum;
+    exports['makeComplex'] = makeComplex;
+
 
 
     // Type predicates
@@ -2581,6 +2608,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['isOutputStringPort'] = isOutputStringPort;
     exports['isBox'] = isBox;
     exports['isString'] = isString;
+    exports['isNumber'] = isNumber;
+    exports['isNatural'] = isNatural;
+    exports['isReal'] = isReal;
     exports['equals'] = equals;
 
     exports['toDomNode'] = toDomNode;
@@ -2588,7 +2618,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['toDisplayedString'] = toDisplayedString;
 
     exports['ArityAtLeast'] = plt.baselib.arity.ArityAtLeast;
-    exports['arityAtLeast'] = plt.baselib.arity.arityAtLeast;
+    exports['makeArityAtLeast'] = plt.baselib.arity.makeArityAtLeast;
     exports['isArityMatching'] = plt.baselib.arity.isArityMatching;
 
     exports['heir'] = heir;

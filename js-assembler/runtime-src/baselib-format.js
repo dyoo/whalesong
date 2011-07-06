@@ -200,7 +200,7 @@
             params = params || new ToDomNodeParameters({'mode' : 'display'});
         } 
 
-        if (jsnums.isSchemeNumber(x)) {
+        if (plt.baselib.numbers.isSchemeNumber(x)) {
 	    var node = numberToDomNode(x, params);
             $(node).addClass("number");
             return node;
@@ -291,14 +291,14 @@
     // Given a jsnum, produces a dom-node representation.
     var numberToDomNode = function(n, params) {
         var node;
-        if (jsnums.isExact(n)) {
-	    if (jsnums.isInteger(n)) {
+        if (plt.baselib.numbers.isExact(n)) {
+	    if (plt.baselib.numbers.isInteger(n)) {
 	        node = document.createElement("span");
 	        node.appendChild(document.createTextNode(n.toString()));
 	        return node;
-	    } else if (jsnums.isRational(n)) {
+	    } else if (plt.baselib.numbers.isRational(n)) {
 	        return rationalToDomNode(n);
-	    } else if (jsnums.isComplex(n)) {
+	    } else if (plt.baselib.numbers.isComplex(n)) {
 	        node = document.createElement("span");
 	        node.appendChild(document.createTextNode(n.toString()));
 	        return node;
@@ -317,8 +317,8 @@
     // rationalToDomNode: rational -> dom-node
     var rationalToDomNode = function(n) {
         var repeatingDecimalNode = document.createElement("span");
-        var chunks = jsnums.toRepeatingDecimal(jsnums.numerator(n),
-                                               jsnums.denominator(n),
+        var chunks = plt.baselib.numbers.toRepeatingDecimal(plt.baselib.numbers.numerator(n),
+                                               plt.baselib.numbers.denominator(n),
                                                {limit: 25});
         repeatingDecimalNode.appendChild(document.createTextNode(chunks[0] + '.'))
         repeatingDecimalNode.appendChild(document.createTextNode(chunks[1]));
@@ -335,9 +335,9 @@
 
         var fractionalNode = document.createElement("span");
         var numeratorNode = document.createElement("sup");
-        numeratorNode.appendChild(document.createTextNode(String(jsnums.numerator(n))));
+        numeratorNode.appendChild(document.createTextNode(String(plt.baselib.numbers.numerator(n))));
         var denominatorNode = document.createElement("sub");
-        denominatorNode.appendChild(document.createTextNode(String(jsnums.denominator(n))));
+        denominatorNode.appendChild(document.createTextNode(String(plt.baselib.numbers.denominator(n))));
         fractionalNode.appendChild(numeratorNode);
         fractionalNode.appendChild(document.createTextNode("/"));
         fractionalNode.appendChild(denominatorNode);

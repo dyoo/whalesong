@@ -161,6 +161,10 @@
 
 
 
+    var isHash = function(x) { 
+        return (x instanceof EqHashTable ||
+		x instanceof EqualHashTable); 
+    };
 
 
 
@@ -178,7 +182,7 @@
 
 
 
-
+    //////////////////////////////////////////////////////////////////////
 
     exports.getEqHashCode = getEqHashCode;
     exports.makeEqHashCode = makeEqHashCode;
@@ -187,7 +191,7 @@
 
     exports.EqualHashTable = EqualHashTable;
     exports.EqHashTable = EqHashTable;
-
+    exports.isHash = isHash;
 
 
 })(this['plt'].baselib);

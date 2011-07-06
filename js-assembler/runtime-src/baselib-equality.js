@@ -9,8 +9,8 @@
     var equals = function(x, y, aUnionFind) {
         if (x === y) { return true; }
 
-        if (jsnums.isSchemeNumber(x) && jsnums.isSchemeNumber(y)) {
-	    return jsnums.eqv(x, y);
+        if (plt.baselib.numbers.isNumber(x) && plt.baselib.numbers.isNumber(y)) {
+	    return plt.baselib.numbers.eqv(x, y);
         }
 
         if (baselib.strings.isString(x) && baselib.strings.isString(y)) {

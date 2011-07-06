@@ -619,27 +619,27 @@ All values should support the following functions
 
 Numbers are represented with the
 @link["https://github.com/dyoo/js-numbers"]{js-numbers} JavaScript
-library, which introduces a @tt{jsnums} namespace which provides the
-numeric tower API.
+library.  We re-exports it as a @tt{plt.baselib.numbers} namespace
+which provides the numeric tower API.
 
-Example uses of the @tt{js-numbers} library include:
+Example uses of the @tt{plt.baselib.numbers} library include:
 
 @itemlist[
 @item{Creating integers: @verbatim{42}  @verbatim{16}}
 
-@item{Creating big integers: @verbatim{jsnums.makeBignum("29837419826")}}
+@item{Creating big integers: @verbatim{plt.baselib.numbers.makeBignum("29837419826")}}
 
-@item{Creating floats: @verbatim{jsnums.makeFloat(3.1415)}}
+@item{Creating floats: @verbatim{plt.baselib.numbers.makeFloat(3.1415)}}
 
-@item{Predicate for numbers: @verbatim{jsnums.isSchemeNumber(42)}}
+@item{Predicate for numbers: @verbatim{plt.baselib.numbers.isSchemeNumber(42)}}
 
-@item{Adding two numbers together: @verbatim{jsnums.add(42, jsnums.makeFloat(3.1415))}}
+@item{Adding two numbers together: @verbatim{plt.baselib.numbers.add(42, plt.baselib.numbers.makeFloat(3.1415))}}
 
-@item{Converting a jsnums number back into native JavaScript floats: @verbatim{jsnums.toFixnum(...)}}
+@item{Converting a plt.baselib.numbers number back into native JavaScript floats: @verbatim{plt.baselib.numbers.toFixnum(...)}}
 ]
 
-Do all arithmetic using the functions in the @tt{jsnums} namespace.
-One thing to also remember to do is apply @tt{jsnums.toFixnum} to any
+Do all arithmetic using the functions in the @tt{plt.baselib.numbers} namespace.
+One thing to also remember to do is apply @tt{plt.baselib.numbers.toFixnum} to any
 native JavaScript function that expects numbers.
 
 

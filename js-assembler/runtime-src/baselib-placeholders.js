@@ -1,4 +1,4 @@
-// Exceptions
+// Placeholders
 
 (function(baselib) {
     var exports = {};
@@ -43,7 +43,16 @@
     };
 
 
+    var isPlaceholder = function(x) { 
+        return x instanceof Placeholder; 
+    };
+    
+
+
+    //////////////////////////////////////////////////////////////////////
     exports.Placeholder = Placeholder;
+    exports.isPlaceholder = isPlaceholder;
+
 
 
 })(this['plt'].baselib);

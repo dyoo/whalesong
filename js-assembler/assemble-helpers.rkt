@@ -139,15 +139,15 @@
   (define (floating-number->js a-num)
     (cond
      [(eqv? a-num -0.0)
-      "jsnums.negative_zero"]
+      "RUNTIME.NEGATIVE_ZERO"]
      [(eqv? a-num +inf.0)
-      "jsnums.inf"]
+      "RUNTIME.INF"]
      [(eqv? a-num -inf.0)
-      "jsnums.negative_inf"]
+      "RUNTIME.NEGATIVE_INF"]
      [(eqv? a-num +nan.0)
-      "jsnums.nan"]
+      "RUNTIME.NAN"]
      [else
-      (string-append "jsnums.makeFloat(" (number->string a-num) ")")]))
+      (string-append "RUNTIME.makeFloat(" (number->string a-num) ")")]))
 
   ;; FIXME: fix the type signature when typed-racket isn't breaking on
   ;; (define-predicate ExactRational? (U Exact-Rational))
@@ -156,7 +156,7 @@
     (cond [(= (denominator a-num) 1)
            (string-append (integer->js (ensure-integer (numerator a-num))))]
           [else
-           (string-append "jsnums.makeRational("
+           (string-append "RUNTIME.makeRational("
                           (integer->js (ensure-integer (numerator a-num)))
                           ", "
                           (integer->js (ensure-integer (denominator a-num)))
@@ -179,7 +179,7 @@
       (number->string an-int)]
      ;; overflow case
      [else
-      (string-append "jsnums.makeBignum("
+      (string-append "RUNTIME.makeBignum("
                      (format "~s" (number->string an-int))
                      ")")]))
 
@@ -191,7 +191,7 @@
     (floating-number->js a-num)]
    
    [(complex? a-num)
-    (string-append "jsnums.makeComplex("
+    (string-append "RUNTIME.makeComplex("
                    (assemble-numeric-constant (real-part a-num))
                    ", "
                    (assemble-numeric-constant (imag-part a-num))
@@ -318,7 +318,7 @@
    [(natural? an-arity)
     (number->string an-arity)]
    [(ArityAtLeast? an-arity)
-    (format "(RUNTIME.arityAtLeast(~a))"
+    (format "(RUNTIME.makeArityAtLeast(~a))"
             (ArityAtLeast-value an-arity))]
    [(listof-atomic-arity? an-arity)
     (assemble-listof-assembled-values
@@ -328,7 +328,7 @@
 		[(natural? atomic-arity)
 		 (number->string atomic-arity)]
 		[(ArityAtLeast? atomic-arity)
-		 (format "(RUNTIME.arityAtLeast(~a))"
+		 (format "(RUNTIME.makeArityAtLeast(~a))"
                          (ArityAtLeast-value atomic-arity))]))
       an-arity))]))
 

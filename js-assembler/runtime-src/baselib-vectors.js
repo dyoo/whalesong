@@ -93,7 +93,26 @@
     };
 
 
+    var isVector = function(x) { return x instanceof Vector; };
+
+    var makeVector = function() {
+        return Vector.makeInstance(arguments.length, arguments);
+    };
+
+    var makeVectorImmutable = function() {
+        var v = Vector.makeInstance(arguments.length, arguments);
+        v.mutable = false;
+        return v;
+    };
+
+
+
+    //////////////////////////////////////////////////////////////////////
 
     exports.Vector = Vector;
+    exports.isVector = isVector;
+    exports.makeVector = makeVector;
+    exports.makeVectorImmutable = makeVectorImmutable;
+
 
 })(this['plt'].baselib);

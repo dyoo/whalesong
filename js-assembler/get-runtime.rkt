@@ -48,6 +48,7 @@
                 baselib-format.js
 
                 baselib-constants.js
+                baselib-numbers.js
                 baselib-lists.js
                 baselib-vectors.js
                 baselib-chars.js

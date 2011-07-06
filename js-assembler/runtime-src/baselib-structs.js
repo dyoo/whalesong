@@ -1,8 +1,8 @@
 // Structure types
 
 (function(baselib) {
-    var structs = {};
-    baselib.structs = structs;
+    var exports = {};
+    baselib.structs = exports;
 
 
 
@@ -258,6 +258,7 @@
 
 
 
+    var isStruct = function(x) { return x instanceof Struct; };
 
 
 
@@ -273,18 +274,22 @@
 
 
 
-    structs.StructType = StructType;
-    structs.Struct = Struct;
 
 
-//     structs.StructProc = StructProc;
-//     structs.StructConstructorProc = StructConstructorProc;
-//     structs.StructPredicateProc = StructPredicateProc;
-//     structs.StructAccessorProc = StructAccessorProc;
-//     structs.StructMutatorProc = StructMutatorProc;
+
+    exports.StructType = StructType;
+    exports.Struct = Struct;
+    exports.makeStructureType = makeStructureType;
+    exports.isStruct = isStruct;
+
+//     exports.StructProc = StructProc;
+//     exports.StructConstructorProc = StructConstructorProc;
+//     exports.StructPredicateProc = StructPredicateProc;
+//     exports.StructAccessorProc = StructAccessorProc;
+//     exports.StructMutatorProc = StructMutatorProc;
 
 
-    structs.makeStructureType = makeStructureType;
+
 
     
 

@@ -37,9 +37,9 @@
 
     // Cons Pairs
 
-    var Cons = function(f, r) {
-        this.first = f;
-        this.rest = r;
+    var Cons = function(first, rest) {
+        this.first = first;
+        this.rest = rest;
     };
 
     Cons.prototype.reverse = function() {
@@ -52,8 +52,8 @@
         return ret;
     };
     
-    Cons.makeInstance = function(f, r) {
-        return new Cons(f, r);
+    Cons.makeInstance = function(first, rest) {
+        return new Cons(first, rest);
     };
 
     // FIXME: can we reduce the recursion on this?
@@ -149,10 +149,18 @@
     };
 
 
+    var isPair = function(x) { return x instanceof Cons; };
+    var makePair = Cons.makeInstance;
+
+
+
+    //////////////////////////////////////////////////////////////////////
 
     exports.EMPTY = Empty.EMPTY;
     exports.Empty = Empty;
     exports.Cons = Cons;
+    exports.isPair = isPair;
+    exports.makePair = makePair;
 
 
 

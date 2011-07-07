@@ -101,7 +101,11 @@
    [(ModuleSource? src)
     (let ([name (rewrite-path (ModuleSource-path src))]
           [text (query:query `(file ,(path->string (ModuleSource-path src))))]
+          [module-requires (query:lookup-module-requires (ModuleSource-path src))]
           [bytecode (parse-bytecode (ModuleSource-path src))])
+      (log-debug "~a requires ~a"
+                 (ModuleSource-path src)
+                 module-requires)
       (make-UninterpretedSource
        (format "
 MACHINE.modules[~s] =

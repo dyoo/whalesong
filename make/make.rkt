@@ -46,7 +46,8 @@
    [(SexpSource? a-source)
     "<SexpSource>"]
    [(ModuleSource? a-source)
-    "<ModuleSource>"]))
+    (format "<ModuleSource ~a>"
+            (ModuleSource-path a-source))]))
 
 
    

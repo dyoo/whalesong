@@ -12,7 +12,7 @@
                   [follow-redirection (path? . -> . path?)]
                   [collect-redirections-to (path? . -> . (listof path?))]
 
-                  [lookup-module-requires (path? . -> . (listof module-path?))])
+                  [lookup-module-requires (path? . -> . (listof path?))])
 
 (define-runtime-path record.rkt "record.rkt")
 (define ns (make-base-empty-namespace))

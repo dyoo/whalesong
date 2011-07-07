@@ -58,17 +58,21 @@
     [(_ module-path ...)
      (andmap (lambda (p) (module-path? (syntax-e p)))
              (syntax->list #'(module-path ...)))
-     (syntax/loc stx
-       (begin
-         (begin-for-syntax
-          (let* ([this-module 
-                  (variable-reference->resolved-module-path
-                   (#%variable-reference))]
-                 [key (resolved-module-path-name this-module)])
-            (record-module-require! this-module 'module-path)
-            ...
-            (void)))
-         (void)))]
+     (with-syntax ([(required-path ...)
+                    (map (lambda (p)
+                           (my-resolve-path (syntax-e p)))
+                         (syntax->list #'(module-path ...)))])
+       (syntax/loc stx
+         (begin
+           (begin-for-syntax
+            (let* ([this-module 
+                    (variable-reference->resolved-module-path
+                     (#%variable-reference))]
+                   [key (resolved-module-path-name this-module)])
+              (record-module-require! key 'required-path)
+              ...
+              (void)))
+           (void))))]
     [else
      (raise-syntax-error #f "Expected module path" stx)]))
      

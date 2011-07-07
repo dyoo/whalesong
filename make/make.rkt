@@ -13,6 +13,9 @@
          racket/match)
 
 
+(require/typed "../logger.rkt"
+               [log-debug (String -> Void)])
+
 (require/typed "../parser/parse-bytecode.rkt"
                [parse-bytecode (Any -> Expression)])
 
@@ -31,9 +34,22 @@
   (make-parameter (lambda: ([s : Source]) s)))
 
 
+(: source-name (Source -> String))
+(define (source-name a-source)
+  (cond
+   [(StatementsSource? a-source)
+    "<StatementsSource>"]
+   [(UninterpretedSource? a-source)
+    "<UninterpretedSource>"]
+   [(MainModuleSource? a-source)
+    "<MainModuleSource>"]
+   [(SexpSource? a-source)
+    "<SexpSource>"]
+   [(ModuleSource? a-source)
+    "<ModuleSource>"]))
 
 
-
+   
 (: get-ast-and-statements (Source -> (values (U False Expression)
                                              (Listof Statement))))
 (define (get-ast-and-statements a-source)
@@ -143,12 +159,15 @@
             [(hash-has-key? visited (first sources))
              (loop (rest sources))]
             [else
+             (log-debug (format "compiling a module ~a"
+                                (source-name (first sources))))
              (hash-set! visited (first sources) #t)
              (let*-values ([(this-source)
                              ((current-module-source-compiling-hook)
                               (first sources))]
                            [(ast stmts)
                             (get-ast-and-statements this-source)])
+               (log-debug "visiting")
                (on-module-statements this-source ast stmts)
                (loop (append (map wrap-source (collect-new-dependencies this-source ast))
                              (rest sources)))

@@ -1,8 +1,7 @@
-#lang s-exp "../lang/js/js.rkt"
+#lang s-exp "../lang/base.rkt"
 
-(declare-implementation
- #:racket "racket-impl.rkt"
- #:javascript ("colordb.js"
-               "kernel.js"
-               "js-impl.js")
- #:provided-values (is-color?))
+(require "private/main.rkt"
+         "private/color.rkt")
+
+(provide (all-from-out "private/main.rkt")
+         (all-from-out "private/color.rkt"))

@@ -2,6 +2,7 @@
 
 (require "assemble.rkt"
          "quote-cdata.rkt"
+         "../logger.rkt"
          "../make/make.rkt"
          "../make/make-structs.rkt"
          "../parameters.rkt"
@@ -67,9 +68,11 @@
    [(StatementsSource? src)
     #f]
    [(MainModuleSource? src)
-    (source-is-javascript-module? (MainModuleSource-source src))]
+    (source-is-javascript-module?
+     (MainModuleSource-source src))]
    [(ModuleSource? src)
-    (query:has-javascript-implementation? `(file ,(path->string (ModuleSource-path src))))]
+    (query:has-javascript-implementation?
+     `(file ,(path->string (ModuleSource-path src))))]
    [(SexpSource? src)
     #f]
    [(UninterpretedSource? src)
@@ -151,8 +154,10 @@ MACHINE.modules[~s] =
   ;; Translate all JavaScript-implemented sources into uninterpreted sources;
   ;; we'll leave its interpretation to on-visit-src.
   (define (wrap-source src)
+    (log-debug "Checking if the source has a JavaScript implementation")
     (cond
      [(source-is-javascript-module? src)
+      (log-debug "Replacing implementation with JavaScript one.")
       (get-javascript-implementation src)]
      [else
       src]))
@@ -208,7 +213,9 @@ MACHINE.modules[~s] =
 ;; package-standalone-xhtml: X output-port -> void
 (define (package-standalone-xhtml source-code op)
   (display *header* op)
+  (log-debug "writing the runtime")
   (display (quote-cdata (get-runtime)) op)
+  (log-debug "writing the source code")
   (display (quote-cdata (get-code source-code)) op)
   (display *footer* op))
 

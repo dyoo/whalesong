@@ -1,4 +1,5 @@
 #lang racket/base
+(require racket/match)
 
 ;; A small module to provide logging for Whalesong.
 
@@ -36,10 +37,13 @@
 (void (thread (lambda ()
                 (let ([receiver
                        (make-log-receiver whalesong-logger 'debug)])
-                  (let loop ([msg (sync receiver)])
-                    (when should-print-logs?
-                      (displayln msg))
-                    (loop))))))
+                  (let loop ()
+                    (let ([msg (sync receiver)])
+                      (when should-print-logs?
+                        (match msg
+                          [(vector level msg data)
+                           (printf "~a: ~a\n" level msg)]))
+                      (loop)))))))
                     
 
 

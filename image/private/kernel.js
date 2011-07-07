@@ -358,7 +358,7 @@ SceneImage.prototype.isEqual = function(other, aUnionFind) {
 	var rec2 = other.children[i];
 	if (rec1[1] !== rec2[1] ||
 	    rec1[2] !== rec2[2] ||
-	    !types.isEqual(rec1[0], 
+	    !plt.baselib.equality.equals(rec1[0], 
 			   rec2[0],
 			   aUnionFind)) {
 	    return false;
@@ -508,8 +508,8 @@ OverlayImage.prototype.isEqual = function(other, aUnionFind) {
 	     this.img1Dy == other.img1Dy &&
 	     this.img2Dx == other.img2Dx &&
 	     this.img2Dy == other.img2Dy &&
-	     types.isEqual(this.img1, other.img1, aUnionFind) &&
-	     types.isEqual(this.img2, other.img2, aUnionFind) );
+	     plt.baselib.equality.equals(this.img1, other.img1, aUnionFind) &&
+	     plt.baselib.equality.equals(this.img2, other.img2, aUnionFind) );
 };
 
 
@@ -585,7 +585,7 @@ RotateImage.prototype.isEqual = function(other, aUnionFind) {
 			this.angle == other.angle &&
 			this.translateX == other.translateX &&
 			this.translateY == other.translateY &&
-			types.isEqual(this.img, other.img, aUnionFind) );
+			plt.baselib.equality.equals(this.img, other.img, aUnionFind) );
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -635,7 +635,7 @@ ScaleImage.prototype.isEqual = function(other, aUnionFind) {
 	     this.height == other.height &&
 	     this.xFactor == other.xFactor &&
 	     this.yFactor == other.yFactor &&
-	     types.isEqual(this.img, other.img, aUnionFind) );
+	     plt.baselib.equality.equals(this.img, other.img, aUnionFind) );
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -697,7 +697,7 @@ RectangleImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.width == other.width &&
 	    this.height == other.height &&
 	    this.style == other.style &&
-	    types.isEqual(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -749,7 +749,7 @@ TextImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.pinholeY == other.pinholeY &&
 	    this.msg == other.msg &&
 	    this.size == other.size &&
-	    types.isEqual(this.color, other.color, aUnionFind) &&
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind) &&
 	    this.font == other.font);
 };
 
@@ -796,7 +796,7 @@ CircleImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.pinholeY == other.pinholeY &&
 	    this.radius == other.radius &&
 	    this.style == other.style &&
-	    types.isEqual(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -866,7 +866,7 @@ StarImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.outer == other.outer &&
 	    this.inner == other.inner &&
 	    this.style == other.style &&
-	    types.isEqual(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -924,7 +924,7 @@ TriangleImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.pinholeY == other.pinholeY &&
 	    this.side == other.side &&
 	    this.style == other.style &&
-	    types.isEqual(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -988,7 +988,7 @@ EllipseImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.width == other.width &&
 	    this.height == other.height &&
 	    this.style == other.style &&
-	    types.isEqual(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -1063,7 +1063,7 @@ LineImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.pinholeY == other.pinholeY &&
 	    this.x == other.x &&
 	    this.y == other.y &&
-	    types.isEqual(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -1081,9 +1081,9 @@ LineImage.prototype.isEqual = function(other, aUnionFind) {
      @param aCompEffect a compound effect is either a scheme list of
      compound effects or a single primitive effect */
 world.Kernel.applyEffect = function(aCompEffect) {
-    if ( types.isEmpty(aCompEffect) ) {
+    if ( plt.baselib.lists.isEmpty(aCompEffect) ) {
     	// Do Nothing
-    } else if ( types.isPair(aCompEffect) ) {
+    } else if ( plt.baselib.lists.isPair(aCompEffect) ) {
     	var results = world.Kernel.applyEffect(aCompEffect.first());
     	return results.concat(world.Kernel.applyEffect(aCompEffect.rest()));
     } else {
@@ -1135,7 +1135,7 @@ world.Kernel.isImage = isImage;
 world.Kernel.isScene = isScene;
 world.Kernel.isColor = function(thing) {
     return (types.isColor(thing) ||
-	    ((types.isString(thing) || types.isSymbol(thing)) &&
+	    ((types.isString(thing) || plt.baselib.symbols.isSymbol(thing)) &&
 	     typeof(colorDb.get(thing)) != 'undefined'));
 };
 world.Kernel.colorDb = colorDb;
@@ -1401,9 +1401,9 @@ world.Kernel.stimuli = world.stimuli;
     // args: [eventName, vals]
     StimuliHandler.prototype.onAnnounce = function(args, k) {
 	var vals = args[1];
-	var valsList = types.EMPTY;
+	var valsList = plt.baselib.lists.EMPTY;
 	for (var i = 0; i < vals.length; i++) {
-	    valsList = types.cons(vals[vals.length - i - 1], valsList);
+	    valsList = plt.baselib.lists.makeCons(vals[vals.length - i - 1], valsList);
 	}
 
 	var onAnnounce = this.lookup('onAnnounce');
@@ -1430,7 +1430,7 @@ world.Kernel.stimuli = world.stimuli;
 
     //////////////////////////////////////////////////////////////////////
     // Helpers
-    var flt = types.float;
+    var flt = plt.baselib.numbers.makeFloat;
 
     StimuliHandler.prototype.lookup = function(s) {
 	return this.config.lookup(s);

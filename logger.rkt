@@ -30,7 +30,7 @@
 
 
 
-(define should-print-logs? #t)
+(define should-print-logs? #f)
 (define (set-whalesong-log-printing! v)
   (set! should-print-logs? v))
 

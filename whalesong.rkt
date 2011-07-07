@@ -3,9 +3,11 @@
 
 (require racket/list
          racket/string
+         racket/match
          "make/make-structs.rkt"
          "js-assembler/package.rkt"
          "private/command.rkt"
+         "logger.rkt"
          raco/command-name)
 
 
@@ -27,35 +29,73 @@
 
 
 
+(define current-verbose? (make-parameter #f))
+
 
 (define (at-toplevel)
   (svn-style-command-line
-   #:program "whalesong" #;(short-program+command-name)
+   #:program "whalesong"  ; (short-program+command-name)
    #:argv (current-command-line-arguments)
    "The Whalesong command-line tool for compiling Racket to JavaScript"
    ["build" "build a standalone xhtml package" 
             "Builds a Racket program and its required dependencies into a standalone .xhtml file."
+            #:once-each
+            [("-v" "--verbose")
+             ("Display verbose messages.")
+             (current-verbose? #t)]
             #:args (path)
             (do-the-build path)]
    ["get-runtime" "print the runtime library to standard output"
                   "Prints the runtime JavaScript library that's used by Whalesong programs."
+                  #:once-each
+                  [("-v" "--verbose")
+                   ("Display verbose messages.")
+                   (current-verbose? #t)]
                   #:args ()
                   (print-the-runtime)]
    ["get-javascript" "Gets just the JavaScript code and prints it to standard output"
                      "Builds a racket program into JavaScript.  The outputted file depends on the runtime."
+                     #:once-each
+                     [("-v" "--verbose")
+                      ("Display verbose messages.")
+                      (current-verbose? #t)]
+            
                      #:args (file)
                      (get-javascript-code file)]))
+   
+   
 
 
+(define (turn-on-logger!)
+  (void (thread (lambda ()
+                  (let ([receiver
+                         (make-log-receiver whalesong-logger
+                                            (if (current-verbose?)
+                                                'debug
+                                                'info))])
+                    (let loop ()
+                      (let ([msg (sync receiver)])
+                        (match msg
+                          [(vector level msg data)
+                           (printf "~a: ~a\n" level msg)]))
+                      (loop)))))))
+                    
+
+
+
+   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (define (do-the-build f)
+  (turn-on-logger!)
   (let-values ([(base filename dir?)
                 (split-path f)])
     (let ([output-filename
            (build-path
-            (regexp-replace #rx"[.](rkt|ss)$" (path->string filename) ".xhtml"))])
+            (regexp-replace #rx"[.](rkt|ss)$"
+                            (path->string filename)
+                            ".xhtml"))])
       (call-with-output-file* output-filename
                               (lambda (op)
                                 (package-standalone-xhtml
@@ -68,12 +108,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (print-the-runtime)
+  (turn-on-logger!)
   (write-runtime (current-output-port)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (get-javascript-code filename)
-  (write-standalone-code (make-ModuleSource (build-path filename)) (current-output-port)))
+  (turn-on-logger!)
+  (write-standalone-code
+   (make-ModuleSource (build-path filename))
+   (current-output-port)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

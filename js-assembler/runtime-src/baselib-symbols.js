@@ -46,8 +46,13 @@
     };
 
 
+    var isSymbol = function(x) { return x instanceof Symbol; };
+
+
+
     //////////////////////////////////////////////////////////////////////
 
     exports.Symbol = Symbol;
+    exports.isSymbol = isSymbol;
 
 })(this['plt'].baselib);

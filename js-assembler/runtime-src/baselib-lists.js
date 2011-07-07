@@ -150,8 +150,10 @@
 
 
     var isPair = function(x) { return x instanceof Cons; };
-    var makePair = Cons.makeInstance;
+    var isEmpty = function(x) { return x === Empty.EMPTY; };
 
+
+    var makePair = Cons.makeInstance;
 
     var makeList = function() {
         var result = Empty.EMPTY;
@@ -177,6 +179,9 @@
 
 
 
+
+
+
     //////////////////////////////////////////////////////////////////////
 
     exports.EMPTY = Empty.EMPTY;
@@ -184,6 +189,7 @@
     exports.Cons = Cons;
     exports.isPair = isPair;
     exports.isList = isList;
+    exports.isEmpty = isEmpty;
     exports.makePair = makePair;
     exports.makeList = makeList;
 

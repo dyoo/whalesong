@@ -7,7 +7,7 @@
          record-redirection!
          follow-redirection
 
-         record-exported-name!
+         #;record-exported-name!
          
          collect-redirections-to)
 
@@ -66,7 +66,7 @@
        (loop (cdr redirections))])))
 
 
-(define (record-exported-name! a-path internal-name external-name)
+#;(define (record-exported-name! a-path internal-name external-name)
   (printf "I need to remember to export ~s as ~s\n" internal-name external-name)
   (void))
 

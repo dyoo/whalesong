@@ -10,7 +10,9 @@
                   
                   [redirected? (path? . -> . boolean?)]
                   [follow-redirection (path? . -> . path?)]
-                  [collect-redirections-to (path? . -> . (listof path?))])
+                  [collect-redirections-to (path? . -> . (listof path?))]
+
+                  [lookup-module-requires (path? . -> . (listof module-path?))])
 
 (define-runtime-path record.rkt "record.rkt")
 (define ns (make-base-empty-namespace))
@@ -59,3 +61,10 @@
       (dynamic-require a-module-path (void)) ;; get the compile-time code running.
       ((dynamic-require-for-syntax record.rkt 'collect-redirections-to)
        resolved-path))))
+
+
+(define (lookup-module-requires a-module-path)
+  (let ([resolved-path (resolve-module-path a-module-path #f)])
+    (parameterize ([current-namespace ns])
+      (dynamic-require a-module-path (void)) ;; get the compile-time code running.
+      ((dynamic-require-for-syntax record.rkt 'lookup-module-requires) resolved-path))))

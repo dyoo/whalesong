@@ -53,5 +53,27 @@
            (provide (rename-out [internal-name provided-name] ...)))))]))
 
 
+(define-syntax (my-require stx)
+  (syntax-case stx ()
+    [(_ module-path ...)
+     (andmap (lambda (p) (module-path? (syntax-e p)))
+             (syntax->list #'(module-path ...)))
+     (syntax/loc stx
+       (begin
+         (begin-for-syntax
+          (let* ([this-module 
+                  (variable-reference->resolved-module-path
+                   (#%variable-reference))]
+                 [key (resolved-module-path-name this-module)])
+            (record-module-require! this-module 'module-path)
+            ...
+            (void)))
+         (void)))]
+    [else
+     (raise-syntax-error #f "Expected module path" stx)]))
+     
+
+
 (provide declare-implementation
-         (rename-out [#%plain-module-begin #%module-begin]))
+         (rename-out [#%plain-module-begin #%module-begin]
+                     [my-require require]))

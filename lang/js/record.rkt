@@ -9,7 +9,11 @@
 
          #;record-exported-name!
          
-         collect-redirections-to)
+         collect-redirections-to
+
+         record-module-require!
+         lookup-module-requires
+         )
 
 
 (define-struct record (path impl))
@@ -17,6 +21,12 @@
 
 (define-struct redirection (from to))
 (define redirections '())
+
+
+
+(define-struct module-require (key path))
+(define module-requires '())
+
 
 ;; record-javascript-implementation!: path string -> void
 (define (record-javascript-implementation! a-path an-impl)
@@ -64,6 +74,27 @@
        (redirection-to (car redirections))]
       [else
        (loop (cdr redirections))])))
+
+
+
+(define (record-module-require! key path)
+  (set! module-requires
+        (cons (make-module-require key path)
+              module-requires)))
+
+
+(define (lookup-module-requires key)
+  (let loop ([requires module-requires])
+    (cond
+     [(null? requires)
+      '()]
+     [(equal? (module-require-key (car requires))
+              key)
+      (cons (module-require-path (car requires))
+            (loop (cdr requires)))]
+     [else
+      (loop (cdr requires))])))
+
 
 
 #;(define (record-exported-name! a-path internal-name external-name)

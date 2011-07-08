@@ -13,3 +13,4 @@
 (test "more-tests/simple-structs.rkt")
 (test "more-tests/man-vs-boy.rkt")
 (test "more-tests/colors.rkt")
+(test "more-tests/images.rkt")

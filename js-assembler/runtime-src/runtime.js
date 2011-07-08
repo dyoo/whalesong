@@ -351,16 +351,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
+    var raise = plt.baselib.exceptions.raise;
 
-    var raise = function(MACHINE, e) { 
-	if (typeof(window['console']) !== 'undefined' &&
-	    typeof(console['log']) === 'function') {
-	    console.log(MACHINE);
-	    if (e['stack']) { console.log(e['stack']); }
-	    else { console.log(e); }
-	} 
-	throw e; 
-    };
+    var raiseUnboundToplevelError = plt.baselib.exceptions.raiseUnboundToplevelError;
+    var raiseArgumentTypeError = plt.baselib.exceptions.raiseArgumentTypeError;
+    var raiseContextExpectedValuesError = plt.baselib.exceptions.raiseContextExpectedValuesError;
+    var raiseArityMismatchError = plt.baselib.exceptions.raiseArityMismatchError;
+    var raiseOperatorApplicationError = plt.baselib.exceptions.raiseOperatorApplicationError;
+    var raiseOperatorIsNotPrimitiveProcedure = plt.baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
+    var raiseOperatorIsNotClosure = plt.baselib.exceptions.raiseOperatorIsNotClosure;
+    var raiseUnimplementedPrimitiveError = plt.baselib.exceptions.raiseUnimplementedPrimitiveError;
+
 
 
 
@@ -392,55 +393,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	}
     };
 
-
-    var raiseUnboundToplevelError = function(MACHINE, name) {
-        raise(MACHINE, new Error("Not bound: " + name)); 
-    };
-
-    var raiseArgumentTypeError = function(MACHINE, 
-                                          callerName,
-                                          expectedTypeName,
-                                          argumentOffset,
-                                          actualValue) {
-	raise(MACHINE,
-              new Error(callerName + ": expected " + expectedTypeName
-			+ " as argument " + (argumentOffset + 1)
-			+ " but received " + toWrittenString(actualValue)));
-    };
-
-    var raiseContextExpectedValuesError = function(MACHINE, expected) {
-	raise(MACHINE, 
-	      new Error("expected " + expected +
-			" values, received " + 
-			MACHINE.argcount + " values"));
-    };
-
-    var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
-	raise(MACHINE, 
-	      new Error(proc.displayName + ": " + "expected " + expected 
-                        + " value(s), received " + received + " value(s)"));
-    };
-
-    var raiseOperatorApplicationError = function(MACHINE, operator) {
-	raise(MACHINE, 
-	      new Error("not a procedure: " + toWrittenString(operator)));
-    };
-
-    var raiseOperatorIsNotClosure = function(MACHINE, operator) {
-        raise(MACHINE,
-              new Error("not a closure: " + toWrittenString(operator)));
-    };
-
-    var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
-        raise(MACHINE,
-              new Error("not a primitive procedure: " + toWrittenString(operator)));
-    };
-
-
-    var raiseUnimplementedPrimitiveError = function(MACHINE, name) {
-	raise(MACHINE, 
-	      new Error("unimplemented kernel procedure: " + name))
-    };
 
 
 
@@ -2567,7 +2519,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['raiseOperatorApplicationError'] = raiseOperatorApplicationError;
     exports['raiseOperatorIsNotPrimitiveProcedure'] = raiseOperatorIsNotPrimitiveProcedure;
     exports['raiseOperatorIsNotClosure'] = raiseOperatorIsNotClosure;
-
     exports['raiseUnimplementedPrimitiveError'] = raiseUnimplementedPrimitiveError;
 
 

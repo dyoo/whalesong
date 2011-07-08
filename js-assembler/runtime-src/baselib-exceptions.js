@@ -58,6 +58,90 @@
 
 
 
+
+
+    //////////////////////////////////////////////////////////////////////
+
+    // Raise error to the toplevel.
+
+    // If the error is of an exception type, make sure e.message holds the string
+    // value to allow integration with systems that don't recognize Racket error 
+    // structures.
+    var raise = function(MACHINE, e) { 
+        if (Exn.predicate(e)) {
+            e.message = Exn.accessor(e, 0);
+        }
+
+	if (typeof(window['console']) !== 'undefined' &&
+	    typeof(console['log']) === 'function') {
+	    console.log(MACHINE);
+	    if (e['stack']) { console.log(e['stack']); }
+	    else { console.log(e); }
+	} 
+	throw e; 
+    };
+
+
+
+
+    var raiseUnboundToplevelError = function(MACHINE, name) {
+        raise(MACHINE, new Error("Not bound: " + name)); 
+    };
+
+
+    var raiseArgumentTypeError = function(MACHINE, 
+                                          callerName,
+                                          expectedTypeName,
+                                          argumentOffset,
+                                          actualValue) {
+	raise(MACHINE,
+              new Error(callerName + ": expected " + expectedTypeName
+			+ " as argument " + (argumentOffset + 1)
+			+ " but received " + plt.baselib.format.toWrittenString(actualValue)));
+    };
+
+    var raiseContextExpectedValuesError = function(MACHINE, expected) {
+	raise(MACHINE, 
+	      new Error("expected " + expected +
+			" values, received " + 
+			MACHINE.argcount + " values"));
+    };
+
+    var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
+	raise(MACHINE, 
+	      new Error(proc.displayName + ": " + "expected " + expected 
+                        + " value(s), received " + received + " value(s)"));
+    };
+
+    var raiseOperatorApplicationError = function(MACHINE, operator) {
+	raise(MACHINE, 
+	      new Error("not a procedure: " + plt.baselib.format.toWrittenString(operator)));
+    };
+
+    var raiseOperatorIsNotClosure = function(MACHINE, operator) {
+        raise(MACHINE,
+              new Error("not a closure: " + plt.baselib.format.toWrittenString(operator)));
+    };
+
+    var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
+        raise(MACHINE,
+              new Error("not a primitive procedure: " + plt.baselib.format.toWrittenString(operator)));
+    };
+
+
+    var raiseUnimplementedPrimitiveError = function(MACHINE, name) {
+	raise(MACHINE, 
+	      new Error("unimplemented kernel procedure: " + name))
+    };
+
+
+
+
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////
     // Exports
 
@@ -114,6 +198,19 @@
 
 
     exceptions.exceptionHandlerKey = exceptionHandlerKey;
+
+
+
+
+    exceptions.raise = raise;
+    exceptions.raiseUnboundToplevelError = raiseUnboundToplevelError;
+    exceptions.raiseArgumentTypeError = raiseArgumentTypeError;
+    exceptions.raiseContextExpectedValuesError = raiseContextExpectedValuesError;
+    exceptions.raiseArityMismatchError = raiseArityMismatchError;
+    exceptions.raiseOperatorApplicationError = raiseOperatorApplicationError;
+    exceptions.raiseOperatorIsNotClosure = raiseOperatorIsNotClosure;
+    exceptions.raiseOperatorIsNotPrimitiveProcedure = raiseOperatorIsNotPrimitiveProcedure;
+    exceptions.raiseUnimplementedPrimitiveError = raiseUnimplementedPrimitiveError;
 
 
 })(this['plt'].baselib);

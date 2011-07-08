@@ -63,8 +63,8 @@
                                      autoFieldCnt, 
                                      autoV, 
                                      guard) {
-
-	// If no parent type given, then the parent type is Struct
+        // Defaults
+        autoFieldCnt = autoFieldCnt || 0;
         parentType = parentType || DEFAULT_PARENT_TYPE;
         guard = guard || DEFAULT_GUARD;
 

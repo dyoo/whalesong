@@ -1,174 +1,24 @@
-var world = {};
-world.Kernel = {};
-
-EXPORTS['_kernel'] = world.Kernel;
-
-var types = plt.types;
 
 
+//////////////////////////////////////////////////////////////////////
+var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].namespace;
+var colorStruct = colorNamespace['struct:color'];
+var makeColor = colorStruct.constructor;
+var isColor = colorStruct.predicate;
+var colorRed = function(c) { return colorStruct.accessor(c, 0); };
+var colorGreen = function(c) { return colorStruct.accessor(c, 1); };
+var colorBlue = function(c) { return colorStruct.accessor(c, 2); };
+//////////////////////////////////////////////////////////////////////
 
 
-var worldListeners = [];
-var stopped;
-var timerInterval = false;
-
-
-// Inheritance from pg 168: Javascript, the Definitive Guide.
-var heir = function(p) {
-    var f = function() {}
-    f.prototype = p;
-    return new f();
+var isColorOrColorString = function(thing) {
+    return (isColor(thing) ||
+	    ((plt.baselib.strings.isString(thing) ||
+              plt.baselib.symbols.isSymbol(thing)) &&
+	     typeof(colorDb.get(thing)) != 'undefined'));
 }
 
 
-// clone: object -> object
-// Copies an object.  The new object should respond like the old
-// object, including to things like instanceof
-var clone = function(obj) {
-    var C = function() {}
-    C.prototype = obj;
-    var c = new C();
-    for (property in obj) {
-	if (obj.hasOwnProperty(property)) {
-	    c[property] = obj[property];
-	}
-    }
-    return c;
-};
-
-
-
-
-var announceListeners = [];
-world.Kernel.addAnnounceListener = function(listener) {
-    announceListeners.push(listener);
-};
-world.Kernel.removeAnnounceListener = function(listener) {
-    var idx = announceListeners.indexOf(listener);
-    if (idx != -1) {
-	announceListeners.splice(idx, 1);
-    }
-};
-world.Kernel.announce = function(eventName, vals) {
-    for (var i = 0; i < announceListeners.length; i++) {
-	try {
-	    announceListeners[i](eventName, vals);
-	} catch (e) {}
-    }
-};
-
-
-
-
-
-
-
-
-
-
-// changeWorld: world -> void
-// Changes the current world to newWorld.
-var changeWorld = function(newWorld) {
-    world = newWorld;
-    notifyWorldListeners();
-}
-
-
-// updateWorld: (world -> world) -> void
-// Public function: update the world, given the old state of the
-// world.
-world.Kernel.updateWorld = function(updater) {
-    var newWorld = updater(world);
-    changeWorld(newWorld);
-}
-
-
-world.Kernel.shutdownWorld = function() {
-    stopped = true;
-};
-
-
-// notifyWorldListeners: -> void
-// Tells all of the world listeners that the world has changed.
-var notifyWorldListeners = function() {
-    var i;
-    for (i = 0; i < worldListeners.length; i++) {
-	worldListeners[i](world);
-    }
-}
-
-// addWorldListener: (world -> void) -> void
-// Adds a new world listener: whenever the world is changed, the aListener
-// will be called with that new world.
-var addWorldListener = function(aListener) {
-    worldListeners.push(aListener);
-}
-
-
-// getKeyCodeName: keyEvent -> String
-// Given an event, try to get the name of the key.
-var getKeyCodeName = function(e) {
-    var code = e.charCode || e.keyCode;
-    var keyname;
-    if (code == 37) {
-	keyname = "left";
-    } else if (code == 38) {
-	keyname = "up";
-    } else if (code == 39) {
-	keyname = "right";
-    } else if (code == 40) {
-	keyname = "down";
-    } else {
-	keyname = String.fromCharCode(code); 
-    }
-    return keyname;
-}
-
-
-// resetWorld: -> void
-// Resets all of the world global values.
-var resetWorld = function() {
-    if (timerInterval) {
-	clearInterval(timerInterval);
-	timerInterval = false;
-    }
-    stopped = false;
-    worldListeners = [];
-}
-
-
-var getBigBangWindow = function(width, height) {
-    if (window.document.getElementById("canvas") != undefined) {
-	return window;
-    }
-
-    var newWindow = window.open(
-	"big-bang.html",
-	"big-bang");
-    //"toolbar=false,location=false,directories=false,status=false,menubar=false,width="+width+",height="+height);
-    if (newWindow == null) { 
-        throw new Error("Error: Not allowed to create a new window."); }
-
-    return newWindow;
-}
-
-
-
-// scheduleTimerTick: -> void
-// Repeatedly schedules an evaluation of the onTick until the program has stopped.
-var scheduleTimerTick = function(window, config) {
-    timerInterval = window.setInterval(
-	function() {
-	    if (stopped) {
-		window.clearTimeout(timerInterval);
-		timerInterval = false;
-	    }
-	    else {
-		world.Kernel.stimuli.onTick();
-	    }
-	},
-	config.lookup('tickDelay'));
-}
 
 
 
@@ -178,7 +28,7 @@ var BaseImage = function(pinholeX, pinholeY) {
     this.pinholeX = pinholeX;
     this.pinholeY = pinholeY;
 }
-world.Kernel.BaseImage = BaseImage;
+
 
 
 var isImage = function(thing) {
@@ -190,7 +40,7 @@ var isImage = function(thing) {
 
 
 BaseImage.prototype.updatePinhole = function(x, y) {
-    var aCopy = clone(this);
+    var aCopy = plt.baselib.clone(this);
     aCopy.pinholeX = x;
     aCopy.pinholeY = y;
     return aCopy;
@@ -213,7 +63,7 @@ BaseImage.prototype.render = function(ctx, x, y) {
 
 // makeCanvas: number number -> canvas
 // Constructs a canvas object of a particular width and height.
-world.Kernel.makeCanvas = function(width, height) {
+var makeCanvas = function(width, height) {
     var canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -251,7 +101,7 @@ BaseImage.prototype.toDomNode = function(cache) {
     var that = this;
     var width = that.getWidth();
     var height = that.getHeight();
-    var canvas = world.Kernel.makeCanvas(width, height);
+    var canvas = makeCanvas(width, height);
 
     // KLUDGE: on IE, the canvas rendering functions depend on a
     // context where the canvas is attached to the DOM tree.
@@ -295,7 +145,7 @@ var SceneImage = function(width, height, children, withBorder) {
     this.children = children; // arrayof [image, number, number]
     this.withBorder = withBorder;
 }
-SceneImage.prototype = heir(BaseImage.prototype);
+SceneImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 // add: image primitive-number primitive-number -> Scene
@@ -399,8 +249,7 @@ var FileImage = function(src, rawImage) {
 	this.img.src = src;
     }
 }
-FileImage.prototype = heir(BaseImage.prototype);
-//    world.Kernel.FileImage = FileImage;
+FileImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 var imageCache = {};
@@ -446,7 +295,6 @@ FileImage.prototype.isEqual = function(other, aUnionFind) {
 	    this.pinholeX == other.pinholeX &&
 	    this.pinholeY == other.pinholeY &&
 	    this.src == other.src);
-    //		    types.isEqual(this.img, other.img, aUnionFind));
 };
 
 
@@ -481,7 +329,7 @@ var OverlayImage = function(img1, img2, shiftX, shiftY) {
     this.img2Dy = deltaY - top;
 };
 
-OverlayImage.prototype = heir(BaseImage.prototype);
+OverlayImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 OverlayImage.prototype.render = function(ctx, x, y) {
@@ -556,7 +404,7 @@ var RotateImage = function(angle, img) {
 	this.translateY = -minY;
 };
 
-RotateImage.prototype = heir(BaseImage.prototype);
+RotateImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 // translate drawing point, so that this.img appears in the UL corner. Then rotate and render this.img.
@@ -607,7 +455,7 @@ var ScaleImage = function(xFactor, yFactor, img) {
     this.yFactor = yFactor;
 };
 
-ScaleImage.prototype = heir(BaseImage.prototype);
+ScaleImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 // scale the context, and pass it to the image's render function
@@ -644,9 +492,9 @@ ScaleImage.prototype.isEqual = function(other, aUnionFind) {
 
 var colorString = function(aColor) {
     return ("rgb(" + 
-	    types.colorRed(aColor) + "," +
-	    types.colorGreen(aColor) + ", " + 
-	    types.colorBlue(aColor) + ")");
+	    colorRed(aColor) + "," +
+	    colorGreen(aColor) + ", " + 
+	    colorBlue(aColor) + ")");
 };
 
 
@@ -658,7 +506,7 @@ var RectangleImage = function(width, height, style, color) {
     this.style = style;
     this.color = color;
 };
-RectangleImage.prototype = heir(BaseImage.prototype);
+RectangleImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 RectangleImage.prototype.render = function(ctx, x, y) {
@@ -711,7 +559,7 @@ var TextImage = function(msg, size, color) {
     this.font = this.size + "px Optimer";
 
     
-    var canvas = world.Kernel.makeCanvas(0, 0);
+    var canvas = makeCanvas(0, 0);
     var ctx = canvas.getContext("2d");
     ctx.font = this.font;
     var metrics = ctx.measureText(msg);
@@ -722,7 +570,7 @@ var TextImage = function(msg, size, color) {
 
 }
 
-TextImage.prototype = heir(BaseImage.prototype);
+TextImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 TextImage.prototype.render = function(ctx, x, y) {
     ctx.save();
@@ -762,7 +610,7 @@ var CircleImage = function(radius, style, color) {
     this.style = style;
     this.color = color;
 }
-CircleImage.prototype = heir(BaseImage.prototype);
+CircleImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 CircleImage.prototype.render = function(ctx, x, y) {
     ctx.save();
@@ -818,7 +666,7 @@ var StarImage = function(points, outer, inner, style, color) {
     this.radius = Math.max(this.inner, this.outer);
 };
 
-StarImage.prototype = heir(BaseImage.prototype);
+StarImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 var oneDegreeAsRadian = Math.PI / 180;
 
@@ -884,7 +732,7 @@ var TriangleImage = function(side, style, color) {
     this.style = style;
     this.color = color;
 }
-TriangleImage.prototype = heir(BaseImage.prototype);
+TriangleImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 TriangleImage.prototype.render = function(ctx, x, y) {
@@ -939,7 +787,7 @@ var EllipseImage = function(width, height, style, color) {
     this.color = color;
 };
 
-EllipseImage.prototype = heir(BaseImage.prototype);
+EllipseImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 EllipseImage.prototype.render = function(ctx, aX, aY) {
@@ -1017,7 +865,7 @@ var LineImage = function(x, y, color) {
     this.height = Math.abs(y) + 1;
 }
 
-LineImage.prototype = heir(BaseImage.prototype);
+LineImage.prototype = plt.baselib.heir(BaseImage.prototype);
 
 
 LineImage.prototype.render = function(ctx, xstart, ystart) {
@@ -1070,53 +918,6 @@ LineImage.prototype.isEqual = function(other, aUnionFind) {
 
 
 
-//////////////////////////////////////////////////////////////////////
-// Effects
-
-/**
-     * applyEffect: compound-effect -> (arrayof (world -> world))
-
-     applyEffect applies all of the effects
-
-     @param aCompEffect a compound effect is either a scheme list of
-     compound effects or a single primitive effect */
-world.Kernel.applyEffect = function(aCompEffect) {
-    if ( plt.baselib.lists.isEmpty(aCompEffect) ) {
-    	// Do Nothing
-    } else if ( plt.baselib.lists.isPair(aCompEffect) ) {
-    	var results = world.Kernel.applyEffect(aCompEffect.first());
-    	return results.concat(world.Kernel.applyEffect(aCompEffect.rest()));
-    } else {
-	var newResult = aCompEffect.run();
-	if (newResult) {
-	    return newResult;
-	}
-    }
-    return [];
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1131,609 +932,85 @@ world.Kernel.applyEffect = function(aCompEffect) {
 ///////////////////////////////////////////////////////////////
 // Exports
 
-world.Kernel.isImage = isImage;
-world.Kernel.isScene = isScene;
-world.Kernel.isColor = function(thing) {
-    return (types.isColor(thing) ||
-	    ((types.isString(thing) || plt.baselib.symbols.isSymbol(thing)) &&
-	     typeof(colorDb.get(thing)) != 'undefined'));
-};
-world.Kernel.colorDb = colorDb;
 
-world.Kernel.sceneImage = function(width, height, children, withBorder) {
+EXPORTS.makeCanvas = makeCanvas;
+
+
+
+EXPORTS.BaseImage = BaseImage;
+EXPORTS.SceneImage = SceneImage;
+EXPORTS.CircleImage = CircleImage;
+EXPORTS.StarImage = StarImage;
+EXPORTS.RectangleImage = RectangleImage;
+EXPORTS.TriangleImage = TriangleImage;
+EXPORTS.EllipseImage = EllipseImage;
+EXPORTS.LineImage = LineImage;
+EXPORTS.OverlayImage = OverlayImage;
+EXPORTS.RotateImage = RotateImage;
+EXPORTS.ScaleImage = ScaleImage;
+EXPORTS.TextImage = TextImage;
+EXPORTS.FileImage = FileImage;
+
+
+EXPORTS.colorDb = colorDb;
+
+
+EXPORTS.isImage = isImage;
+
+EXPORTS.isScene = isScene;
+
+EXPORTS.isColorOrColorString = isColorOrColorString;
+
+
+
+EXPORTS.makeSceneImage = function(width, height, children, withBorder) {
     return new SceneImage(width, height, children, withBorder);
 };
-world.Kernel.circleImage = function(radius, style, color) {
+EXPORTS.makeCircleImage = function(radius, style, color) {
     return new CircleImage(radius, style, color);
 };
-world.Kernel.starImage = function(points, outer, inner, style, color) {
+EXPORTS.makeStarImage = function(points, outer, inner, style, color) {
     return new StarImage(points, outer, inner, style, color);
 };
-world.Kernel.rectangleImage = function(width, height, style, color) {
+EXPORTS.makeRectangleImage = function(width, height, style, color) {
     return new RectangleImage(width, height, style, color);
 };
-world.Kernel.triangleImage = function(side, style, color) {
+EXPORTS.makeTriangleImage = function(side, style, color) {
     return new TriangleImage(side, style, color);
 };
-world.Kernel.ellipseImage = function(width, height, style, color) {
+EXPORTS.makeEllipseImage = function(width, height, style, color) {
     return new EllipseImage(width, height, style, color);
 };
-world.Kernel.lineImage = function(x, y, color) {
+EXPORTS.makeLineImage = function(x, y, color) {
     return new LineImage(x, y, color);
 };
-world.Kernel.overlayImage = function(img1, img2, shiftX, shiftY) {
+EXPORTS.makeOverlayImage = function(img1, img2, shiftX, shiftY) {
     return new OverlayImage(img1, img2, shiftX, shiftY);
 };
-world.Kernel.rotateImage = function(angle, img) {
+EXPORTS.makeRotateImage = function(angle, img) {
     return new RotateImage(angle, img);
 };
-world.Kernel.scaleImage = function(xFactor, yFactor, img) {
-	return new ScaleImage(xFactor, yFactor, img);
+EXPORTS.makeScaleImage = function(xFactor, yFactor, img) {
+    return new ScaleImage(xFactor, yFactor, img);
 };
-world.Kernel.textImage = function(msg, size, color) {
+EXPORTS.makeTextImage = function(msg, size, color) {
     return new TextImage(msg, size, color);
 };
-world.Kernel.fileImage = function(path, rawImage) {
+EXPORTS.makeFileImage = function(path, rawImage) {
     return FileImage.makeInstance(path, rawImage);
 };
 
 
-world.Kernel.isSceneImage = function(x) { return x instanceof SceneImage; };
-world.Kernel.isCircleImage = function(x) { return x instanceof CircleImage; };
-world.Kernel.isStarImage = function(x) { return x instanceof StarImage; };
-world.Kernel.isRectangleImage = function(x) { return x instanceof RectangleImage; };
-world.Kernel.isTriangleImage = function(x) { return x instanceof TriangleImage; };
-world.Kernel.isEllipseImage = function(x) { return x instanceof EllipseImage; };
-world.Kernel.isLineImage = function(x) { return x instanceof LineImage; };
-world.Kernel.isOverlayImage = function(x) { return x instanceof OverlayImage; };
-world.Kernel.isRotateImage = function(x) { return x instanceof RotateImage; };
-world.Kernel.isTextImage = function(x) { return x instanceof TextImage; };
-world.Kernel.isFileImage = function(x) { return x instanceof FileImage; };
+EXPORTS.isSceneImage = function(x) { return x instanceof SceneImage; };
+EXPORTS.isCircleImage = function(x) { return x instanceof CircleImage; };
+EXPORTS.isStarImage = function(x) { return x instanceof StarImage; };
+EXPORTS.isRectangleImage = function(x) { return x instanceof RectangleImage; };
+EXPORTS.isTriangleImage = function(x) { return x instanceof TriangleImage; };
+EXPORTS.isEllipseImage = function(x) { return x instanceof EllipseImage; };
+EXPORTS.isLineImage = function(x) { return x instanceof LineImage; };
+EXPORTS.isOverlayImage = function(x) { return x instanceof OverlayImage; };
+EXPORTS.isRotateImage = function(x) { return x instanceof RotateImage; };
+EXPORTS.isScaleImage = function(x) { return x instanceof ScaleImage; };
+EXPORTS.isTextImage = function(x) { return x instanceof TextImage; };
+EXPORTS.isFileImage = function(x) { return x instanceof FileImage; };
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-
-// Feeds stimuli inputs into the world.  The functions here
-// are responsible for converting to Scheme values.
-//
-// NOTE and WARNING: make sure to really do the coersions, even for
-// strings.  Bad things happen otherwise, as in the sms stuff, where
-// we're getting string-like values that aren't actually strings.
-
-
-
-world.stimuli = {};
-world.Kernel.stimuli = world.stimuli;
-
-
-(function() {
-    var handlers = [];
-
-    var doNothing = function() {};
-
-
-    var StimuliHandler = function(config, caller, restarter) {
-	this.config = config;
-	this.caller = caller;
-	this.restarter = restarter;
-	handlers.push(this);
-    };
-
-    //    StimuliHandler.prototype.failHandler = function(e) {
-    //	this.onShutdown();
-    //    	this.restarter(e);
-    //    };	
-
-    // doStimuli: CPS( (world -> effect) (world -> world) -> void )
-    //
-    // Processes a stimuli by compute the effect and applying it, and
-    // computing a new world to replace the old.
-    StimuliHandler.prototype.doStimuli = function(computeEffectF, computeWorldF, restArgs, k) {
-	var effectUpdaters = [];
-	var that = this;
-	try {
-	    that.change(function(w, k2) {
-		var args = [w].concat(restArgs);
-		var doStimuliHelper = function() {
-		    if (computeWorldF) {
-			that.caller(computeWorldF, args, k2);
-		    } else {
-			k2(w);
-		    }
-		};
-		doStimuliHelper();
-	    }, k);
- 	    // if (computeEffectF) {
-	    // 		    that.caller(computeEffectF, [args],
-	    // 			    function(effect) {
-	    // 			    	effectUpdaters = applyEffect(effect);
-	    // 				doStimuliHelper();
-	    // 			    },
-	    //	    		    this.failHandler);
-	    // 		}
-	    // 		else { doStimuliHelper(); }
-	    // 	    },
-	    // 	    function() {
-	    // 	    	helpers.forEachK(effectUpdaters,
-	    // 				 function(effect, k2) { that.change(effect, k2); },
-	    // 				 function(e) { throw e; },
-	    // 				 k);
-	    // 	    });
-	} catch (e) { 
-	    //		if (console && console.log && e.stack) {
-	    //			console.log(e.stack);
-	    //		}
-	    this.onShutdown();
-	}
-    }
-
-
-    // Orientation change
-    // args: [azimuth, pitch, roll]
-    StimuliHandler.prototype.onTilt = function(args, k) {
-	var onTilt = this.lookup("onTilt");
-	var onTiltEffect = this.lookup("onTiltEffect");
-	this.doStimuli(onTiltEffect, onTilt, helpers.map(flt, args), k);
-    };
-
-
-    // Accelerations
-    // args: [x, y, z]
-    StimuliHandler.prototype.onAcceleration = function(args, k) {
-	var onAcceleration = this.lookup('onAcceleration');
-	var onAccelerationEffect = this.lookup('onAccelerationEffect');
-	this.doStimuli(onAccelerationEffect, onAcceleration, helpers.map(flt, args), k);
-    };
-
-
-    // Shakes
-    // args: []
-    StimuliHandler.prototype.onShake = function(args, k) {
-	var onShake = this.lookup('onShake');
-	var onShakeEffect = this.lookup('onShakeEffect');
-	this.doStimuli(onShakeEffect, onShake, [], k);
-    };
-
-
-    // Sms receiving
-    // args: [sender, message]
-    StimuliHandler.prototype.onSmsReceive = function(args, k) {
-	var onSmsReceive = this.lookup('onSmsReceive');
-	var onSmsReceiveEffect = this.lookup('onSmsReceiveEffect');
-	// IMPORTANT: must coerse to string by using x+"".  Do not use
-	// toString(): it's not safe.
-	this.doStimuli(onSmsReceiveEffect, onSmsReceive, [args[0]+"", args[1]+""], k);
-    };
-
-
-    // Locations
-    // args: [lat, lng]
-    StimuliHandler.prototype.onLocation = function(args, k) {
-	var onLocationChange = this.lookup('onLocationChange');
-	var onLocationChangeEffect = this.lookup('onLocationChangeEffect');
-	this.doStimuli(onLocationChangeEffect, onLocationChange, helpers.map(flt, args), k);
-    };
-
-
-
-    // Keystrokes
-    // args: [e]
-    StimuliHandler.prototype.onKey = function(args, k) {
-	// getKeyCodeName: keyEvent -> String
-	// Given an event, try to get the name of the key.
-	var getKeyCodeName = function(e) {
-	    var code = e.charCode || e.keyCode;
-	    var keyname;
-	    switch(code) {
-	    case 16: keyname = "shift"; break;
-	    case 17: keyname = "control"; break;
-	    case 19: keyname = "pause"; break;
-	    case 27: keyname = "escape"; break;
-	    case 33: keyname = "prior"; break;
-	    case 34: keyname = "next"; break;
-	    case 35: keyname = "end"; break;
-	    case 36: keyname = "home"; break;
-	    case 37: keyname = "left"; break;
-	    case 38: keyname = "up"; break;
-	    case 39: keyname = "right"; break;
-	    case 40: keyname = "down"; break;
-	    case 42: keyname = "print"; break;
-	    case 45: keyname = "insert"; break;
-	    case 46: keyname = String.fromCharCode(127); break;
-	    case 106: keyname = "*"; break;
-	    case 107: keyname = "+"; break;
-	    case 109: keyname = "-"; break;
-	    case 110: keyname = "."; break;
-	    case 111: keyname = "/"; break;
-	    case 144: keyname = "numlock"; break;
-	    case 145: keyname = "scroll"; break;
-	    case 186: keyname = ";"; break;
-	    case 187: keyname = "="; break;
-	    case 188: keyname = ","; break;
-	    case 189: keyname = "-"; break;
-	    case 190: keyname = "."; break;
-	    case 191: keyname = "/"; break;
-	    case 192: keyname = "`"; break;
-	    case 219: keyname = "["; break;
-	    case 220: keyname = "\\"; break;
-	    case 221: keyname = "]"; break;
-	    case 222: keyname = "'"; break;
-	    default: if (code >= 96 && code <= 105) {
-		keyname = (code - 96).toString();
-	    }
-		else if (code >= 112 && code <= 123) {
-		    keyname = "f" + (code - 111);
-		}
-		else {
-		    keyname = String.fromCharCode(code).toLowerCase();
-		}
-		break;
-	    }
-	    return keyname;
-	}
-	var keyname = getKeyCodeName(args[0]);
-	var onKey = this.lookup('onKey');
-	var onKeyEffect = this.lookup('onKeyEffect');
-	this.doStimuli(onKeyEffect, onKey, [keyname], k);
-    };
-
-
-
-    //    // Time ticks
-    //    // args: []
-    //    StimuliHandler.prototype.onTick = function(args, k) {
-    //	var onTick = this.lookup('onTick');
-    //	var onTickEffect = this.lookup('onTickEffect');
-    //	this.doStimuli(onTickEffect, onTick, [], k);
-    //    };
-
-
-
-    // Announcements
-    // args: [eventName, vals]
-    StimuliHandler.prototype.onAnnounce = function(args, k) {
-	var vals = args[1];
-	var valsList = plt.baselib.lists.EMPTY;
-	for (var i = 0; i < vals.length; i++) {
-	    valsList = plt.baselib.lists.makeCons(vals[vals.length - i - 1], valsList);
-	}
-
-	var onAnnounce = this.lookup('onAnnounce');
-	var onAnnounceEffect = this.lookup('onAnnounceEffect');	
-	this.doStimuli(onAnnounce, onAnnounceEffect, [args[0], valsList], k);
-    };
-
-
-
-    // The shutdown stimuli: special case that forces a world computation to quit.
-    // Also removes this instance from the list of handlers
-    StimuliHandler.prototype.onShutdown = function() {	
-	var index = handlers.indexOf(this);
-	if (index != -1) {
-	    handlers.splice(index, 1);
-	}
-
-	var shutdownWorld = this.lookup('shutdownWorld');
-	if (shutdownWorld) {
-	    shutdownWorld();
-	}
-    };
-
-
-    //////////////////////////////////////////////////////////////////////
-    // Helpers
-    var flt = plt.baselib.numbers.makeFloat;
-
-    StimuliHandler.prototype.lookup = function(s) {
-	return this.config.lookup(s);
-    };
-
-    StimuliHandler.prototype.change = function(f, k) {
-	if (this.lookup('changeWorld')) {
-	    this.lookup('changeWorld')(f, k);
-	}
-	else { k(); }
-    };
-
-    // applyEffect: compound-effect: (arrayof (world -> world))
-    var applyEffect = function(e) {
-	return world.Kernel.applyEffect(e);
-    };
-
-    var makeStimulusHandler = function(funName) {
-	return function() {
-	    var args = arguments;
-	    for (var i = 0; i < handlers.length; i++) {
-		(handlers[i])[funName](args, doNothing);
-	    }
-	    //		helpers.forEachK(handlers,
-	    //				 function(h, k) { h[funName](args, k); },
-	    //				 function(e) { throw e; },
-	    //				 doNothing);
-	}
-    };
-
-    //////////////////////////////////////////////////////////////////////
-    // Exports
-
-    world.stimuli.StimuliHandler = StimuliHandler;
-
-    world.stimuli.onTilt = makeStimulusHandler('onTilt');
-    world.stimuli.onAcceleration = makeStimulusHandler('onAcceleration');
-    world.stimuli.onShake = makeStimulusHandler('onShake');
-    world.stimuli.onSmsReceive = makeStimulusHandler('onSmsReceive');
-    world.stimuli.onLocation = makeStimulusHandler('onLocation');
-    world.stimuli.onKey = makeStimulusHandler('onKey');
-    //    world.stimuli.onTick = makeStimulusHandler('onTick');
-    world.stimuli.onAnnounce = makeStimulusHandler('onAnnounce');
-
-    world.stimuli.massShutdown = function() {
-	for (var i = 0; i < handlers.length; i++) {
-	    var shutdownWorld = handlers[i].lookup('shutdownWorld');
-	    if (shutdownWorld) {
-		shutdownWorld();
-	    }
-	}
-	handlers = [];
-    };
-
-
-})();
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-(function() {
-
-//     var make_dash_effect_colon_none =
-// 	(plt.Kernel.invokeModule("moby/runtime/effect-struct")
-// 	 .EXPORTS['make-effect:none']);
-
-    world.config = {};
-    world.Kernel.config = world.config;
-
-
-    // augment: hash hash -> hash
-    // Functionally extend a hashtable with another one.
-    var augment = function(o, a) {
-	var oo = {};
-	for (var e in o) {
-	    if (o.hasOwnProperty(e)) {
-		oo[e] = o[e];
-	    }
-	}
-	for (var e in a) {
-	    if (a.hasOwnProperty(e)) {
-		oo[e] = a[e];
-	    }
-	}
-	return oo;
-    }
-
-
-
-    var WorldConfig = function() {
-	// The following handler values are initially false until they're updated
-	// by configuration.
-      
-	// A handler is a function:
-	//     handler: world X Y ... -> Z
-
-
-	this.vals = {
-	    // changeWorld: (world -> world) -> void
-	    // When called, this will update the world based on the
-	    // updater passed to it.
-	    changeWorld: false,
-
-	    // shutdownWorld: -> void
-	    // When called, this will shut down the world computation.
-	    shutdownWorld: false,
-
-	    // initialEffect: effect
-	    // The initial effect to invoke when the world computation
-	    // begins.
-	    initialEffect: false,
-
-
-	    // onRedraw: world -> scene
-	    onRedraw: false,
-
-	    // onDraw: world -> (sexpof dom)
-	    onDraw: false,
-
-	    // onDrawCss: world -> (sexpof css-style)
-	    onDrawCss: false,
-
-
-	    // tickDelay: number
-	    tickDelay: false,
-	    // onTick: world -> world
-	    onTick: false,
-	    // onTickEffect: world -> effect
-	    onTickEffect: false,
-
-	    // onKey: world key -> world
-	    onKey: false,
-	    // onKeyEffect: world key -> effect
-	    onKeyEffect : false,
-
-	    // onTilt: world number number number -> world
-	    onTilt: false,
-	    // onTiltEffect: world number number number -> effect
-	    onTiltEffect: false,
-
-	    // onAcceleration: world number number number -> world
-	    onAcceleration: false,
-	    // onAccelerationEffect: world number number number -> effect
-	    onAccelerationEffect: false,
-
-	    // onShake: world -> world
-	    onShake: false,
-	    // onShakeEffect: world -> effect
-	    onShakeEffect: false,
-
-	    // onSmsReceive: world -> world
-	    onSmsReceive: false,
-	    // onSmsReceiveEffect: world -> effect
-	    onSmsReceiveEffect: false,
-
-	    // onLocationChange: world number number -> world
-	    onLocationChange : false,
-	    // onLocationChangeEffect: world number number -> effect
-	    onLocationChangeEffect: false,
-
-
-	    // onAnnounce: world string X ... -> world
-	    onAnnounce: false,
-	    // onAnnounce: world string X ... -> effect
-	    onAnnounceEffect: false,
-
-	    // stopWhen: world -> boolean
-	    stopWhen: false,
-	    // stopWhenEffect: world -> effect
-	    stopWhenEffect: false,
-
-
-
-	    //////////////////////////////////////////////////////////////////////
-	    // For universe game playing
-
-	    // connectToGame: string
-	    // Registers with some universe, given an identifier
-	    // which is a URL to a Universe server.
-	    connectToGame: false,
-	    onGameStart: false,
-	    onOpponentTurn: false,
-	    onMyTurn: false,
-	    afterMyTurn: false,
-	    onGameFinish: false
-	};
-    }
-
-  
-    // WorldConfig.lookup: string -> handler
-    // Looks up a value in the configuration.
-    WorldConfig.prototype.lookup = function(key) {
-//	plt.Kernel.check(key, plt.Kernel.isString, "WorldConfig.lookup", "string", 1);
-	if (key in this.vals) {
-	    return this.vals[key];
-	} else {
-	    throw Error("Can't find " + key + " in the configuration");
-	}
-    }
-  
-
-
-    // WorldConfig.updateAll: (hashof string handler) -> WorldConfig
-    WorldConfig.prototype.updateAll = function(aHash) {
-	var result = new WorldConfig();
-	result.vals = augment(this.vals, aHash);
-	return result;
-    }
-
-  
-    world.config.WorldConfig = WorldConfig;
-
-    // The following global variable CONFIG is mutated by either
-    // big-bang from the regular world or the one in jsworld.
-    world.config.CONFIG = new WorldConfig();
-
-
-    // A handler is a function that consumes a config and produces a
-    // config.
-
-
-    //////////////////////////////////////////////////////////////////////
-
-    var getNoneEffect = function() {
-	throw new Error("getNoneEffect: We should not be calling effects!");
-	//	return make_dash_effect_colon_none();
-    }
-
-
-
-    //////////////////////////////////////////////////////////////////////
-
-    world.config.Kernel = world.config.Kernel || {};
-    world.config.Kernel.getNoneEffect = getNoneEffect;
-
-
-/*
-    // makeSimplePropertyUpdater: (string (X -> boolean) string string) -> (X -> handler)
-    var makeSimplePropertyUpdater = function(propertyName,
-					     propertyPredicate,
-					     propertyTypeName,
-					     updaterName) {
-	return function(val) {
-	    plt.Kernel.check(val, propertyPredicate, updaterName, propertyTypeName, 1);
-	    return addStringMethods(
-		function(config) {
-		    return config.updateAll({propertyName: val });
-		}, updaterName);
-	}
-    };
-
-    // connects to the game
-    world.config.Kernel.connect_dash_to_dash_game = 
-	makeSimplePropertyUpdater('connectToGame',
-				  plt.Kernel.isString,
-				  "string",
-				  "connect-to-game");
-
-
-    // Registers a handler for game-start events.
-    world.config.Kernel.on_dash_game_dash_start = 
-	makeSimplePropertyUpdater('onGameStart',
-				  plt.Kernel.isFunction,
-				  "function",
-				  "on-game-start");
-
-
-    // Registers a handler for opponent-turn events.
-    world.config.Kernel.on_dash_opponent_dash_turn = 
-	makeSimplePropertyUpdater('onOpponentTurn',
-				  plt.Kernel.isFunction,
-				  "function",
-				  "on-opponent-turn");
-
-
-    // Registers a handler for my turn.
-    world.config.Kernel.on_dash_my_dash_turn = 
-	makeSimplePropertyUpdater('onMyTurn',
-				  plt.Kernel.isFunction,
-				  "function",
-				  "on-my-turn");
-
-    // Register a handler after I make a move.
-    world.config.Kernel.after_dash_my_dash_turn = 
-	makeSimplePropertyUpdater('afterMyTurn',
-				  plt.Kernel.isFunction,
-				  "function",
-				  "after-my-turn");
-
-    world.config.Kernel.on_dash_game_dash_finish = 
-	makeSimplePropertyUpdater('onGameFinish',
-				  plt.Kernel.isFunction,
-				  "function",
-				  "on-game-finish");
-*/
-
-
-
-})();

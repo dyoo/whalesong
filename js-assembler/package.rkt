@@ -130,7 +130,7 @@ MACHINE.modules[~s] =
 "
                (symbol->string name)
                (symbol->string name)
-               (assemble-modinvokes module-requires module-body-text))
+               (assemble-modinvokes+body module-requires module-body-text))
 
        (map make-ModuleSource module-requires))))]
 
@@ -141,13 +141,15 @@ MACHINE.modules[~s] =
     (error 'get-javascript-implementation)]))
 
 
-(define (assemble-modinvokes paths after)
+(define (assemble-modinvokes+body paths after)
   (cond
    [(empty? paths)
     after]
+   [(empty? (rest paths))
+    (assemble-modinvoke (first paths) after)]
    [else
     (assemble-modinvoke (first paths)
-                        (assemble-modinvokes (rest paths) after))]))
+                        (assemble-modinvokes+body (rest paths) after))]))
 
 
 (define (assemble-modinvoke path after)
@@ -155,13 +157,16 @@ MACHINE.modules[~s] =
     (format "if (! MACHINE.modules[~s].isInvoked) {
                  MACHINE.modules[~s].invoke(MACHINE,
                                             function() {
+
+                                                ///////////////////////////
                                                 ~a
+                                                ///////////////////////////
+
                                             },
                                             MACHINE.params.currentErrorHandler);
              } else {
                  ~a
-             }
-            "
+             }"
             (symbol->string name)
             (symbol->string name)
             after

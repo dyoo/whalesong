@@ -263,8 +263,8 @@ vector?
 ;;  complex?
 ;;  real?
 ;;  rational?
-;;  integer?
-  exact?
+integer?
+exact?
 ;;  inexact?
 ;;  odd?
 ;;  even?

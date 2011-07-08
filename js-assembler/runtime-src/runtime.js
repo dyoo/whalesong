@@ -1610,6 +1610,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
     installPrimitiveProcedure(
+        'integer?',
+        1,
+        function(MACHINE) {
+            return plt.baselib.numbers.isInteger(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
+
+    installPrimitiveProcedure(
         'imag-part',
         1,
         function(MACHINE) {

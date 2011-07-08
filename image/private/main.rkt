@@ -10,6 +10,56 @@
  #:javascript ("colordb.js"
                "kernel.js"
                "js-impl.js")
- #:provided-values (is-color?))
+ #:provided-values (text
+                    text/font
+                    image-url
+                    open-image-url
+                    overlay
+                    overlay/xy
+                    overlay/align
+                    underlay
+                    underlay/xy
+                    underlay/align
+                    beside
+                    beside/align
+                    above
+                    above/align
+                    place-image/align
+                    rotate
+                    scale
+                    scale/xy
+                    flip-horizontal
+                    flip-vertical
+                    frame
+                    crop
+                    line
+                    add-line
+                    scene+line
+                    circle
+                    square
+                    rectangle
+                    regular-polygon
+                    ellipse
+                    triangle
+                    right-triangle
+                    isosceles-triangle
+                    star
+                    radial-star
+                    star-polygon
+                    rhombus
+                    image->color-list
+                    color-list->image
+                    image-width
+                    image-height
+                    image-baseline
+                    image-color?
+                    mode?
+                    x-place?
+                    y-place?
+                    angle?
+                    side-count?
+                    step-count?
+                    
+                    ))
 
 

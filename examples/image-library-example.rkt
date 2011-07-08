@@ -47,7 +47,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 "simple text functionality" 
 (text "hello world" 20 'black)
-(text (string-copy "hello world") 30 'purple)
+(text "hello world" 30 'purple)
 (text "hello world" 40 'red)
 
 

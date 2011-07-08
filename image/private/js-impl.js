@@ -1,6 +1,6 @@
-EXPORTS['is-color?'] =
+EXPORTS['image-color?'] =
     plt.runtime.makePrimitiveProcedure(
-        'is-color?',
+        'image-color?',
         1,
         function(MACHINE) {
             var elt = MACHINE.env[MACHINE.env.length - 1];

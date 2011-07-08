@@ -151,20 +151,21 @@ MACHINE.modules[~s] =
 
 
 (define (assemble-modinvoke path after)
-  (format "if (! MACHINE.modules[~s].isInvoked) {
-               MACHINE.modules[~s].invoke(MACHINE,
-                                          function() {
-                                              ~a
-                                          },
-                                          MACHINE.params.currentErrorHandler);
-           } else {
-               ~a
-           }
-          "
-          path
-          path
-          after
-          after))
+  (let ([name (rewrite-path (path->string path))])
+    (format "if (! MACHINE.modules[~s].isInvoked) {
+                 MACHINE.modules[~s].invoke(MACHINE,
+                                            function() {
+                                                ~a
+                                            },
+                                            MACHINE.params.currentErrorHandler);
+             } else {
+                 ~a
+             }
+            "
+            (symbol->string name)
+            (symbol->string name)
+            after
+            after)))
 
 
 

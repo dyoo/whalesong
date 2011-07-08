@@ -1,5 +1,5 @@
 #lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/world))
+(require (planet dyoo/whalesong/image))
 
 (display "hello again")
 (newline)

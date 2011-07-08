@@ -25,7 +25,8 @@
   #:transparent)
 (define-struct: SexpSource ([sexp : Any])
   #:transparent)
-(define-struct: UninterpretedSource ([datum : String])
+(define-struct: UninterpretedSource ([datum : String]
+                                     [neighbors : (Listof Source)])
   #:transparent)
 
 

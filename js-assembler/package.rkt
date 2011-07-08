@@ -10,6 +10,7 @@
          "../parser/path-rewriter.rkt"
          "../parser/parse-bytecode.rkt"
          racket/match
+         racket/list
          (prefix-in query: "../lang/js/query.rkt")
          (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
@@ -106,32 +107,65 @@
       (log-debug "~a requires ~a"
                  (ModuleSource-path src)
                  module-requires)
+      (let ([module-body-text
+            (format "
+             if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
+             var modrec = MACHINE.modules[~s];
+             var exports = {};
+             modrec.isInvoked = true;
+             (function(MACHINE, RUNTIME, EXPORTS){~a})(MACHINE, plt.runtime, exports);
+             ~a
+             return MACHINE.control.pop().label(MACHINE);"
+                    (symbol->string name)
+                    text
+                    (get-provided-name-code bytecode))])
+
       (make-UninterpretedSource
        (format "
 MACHINE.modules[~s] =
     new plt.runtime.ModuleRecord(~s,
         function(MACHINE) {
-           if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
-           var modrec = MACHINE.modules[~s];
-           var exports = {};
-           modrec.isInvoked = true;
-           (function(MACHINE, RUNTIME, EXPORTS){~a})(MACHINE, plt.runtime, exports);
-           // FIXME: we need to inject the namespace with the values defined in exports.
-           ~a
-           return MACHINE.control.pop().label(MACHINE);
+            ~a
         });
 "
-                  (symbol->string name)
-                  (symbol->string name)
-                  (symbol->string name)
-                  text
-                  (get-provided-name-code bytecode))))]
+               (symbol->string name)
+               (symbol->string name)
+               (assemble-modinvokes module-requires module-body-text))
+
+       (map make-ModuleSource module-requires))))]
+
+
    [(SexpSource? src)
     (error 'get-javascript-implementation)]
    [(UninterpretedSource? src)
     (error 'get-javascript-implementation)]))
 
-        
+
+(define (assemble-modinvokes paths after)
+  (cond
+   [(empty? paths)
+    after]
+   [else
+    (assemble-modinvoke (first paths)
+                        (assemble-modinvokes (rest paths) after))]))
+
+
+(define (assemble-modinvoke path after)
+  (format "if (! MACHINE.modules[~s].isInvoked) {
+               MACHINE.modules[~s].invoke(MACHINE,
+                                          function() {
+                                              ~a
+                                          },
+                                          MACHINE.params.currentErrorHandler);
+           } else {
+               ~a
+           }
+          "
+          path
+          path
+          after
+          after))
+
 
 
 

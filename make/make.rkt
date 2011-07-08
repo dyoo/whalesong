@@ -132,26 +132,30 @@
             (Source (U False Expression) -> (Listof Source)))
          (define (collect-new-dependencies this-source ast)
            (cond
-            [(eq? ast #f)
-             empty]
-            [(not (should-follow-children? this-source))
-             empty]
+            [(UninterpretedSource? this-source)
+             (UninterpretedSource-neighbors this-source)]
             [else
-             (let* ([dependent-module-names (get-dependencies ast)]
-                    [paths
-                     (foldl (lambda: ([mp : ModuleLocator]
-                                      [acc : (Listof Source)])
-                                     (let ([rp [ModuleLocator-real-path mp]])
-                                       (cond [((current-kernel-module-locator?)
-                                               mp)
-                                              acc]
-                                             [(path? rp)
-                                              (cons (make-ModuleSource rp) acc)]
-                                             [else
-                                              acc])))
-                            '()
-                            dependent-module-names)])
-               paths)]))
+             (cond
+              [(eq? ast #f)
+               empty]
+              [(not (should-follow-children? this-source))
+               empty]
+              [else
+               (let* ([dependent-module-names (get-dependencies ast)]
+                      [paths
+                       (foldl (lambda: ([mp : ModuleLocator]
+                                        [acc : (Listof Source)])
+                                       (let ([rp [ModuleLocator-real-path mp]])
+                                         (cond [((current-kernel-module-locator?)
+                                                 mp)
+                                                acc]
+                                               [(path? rp)
+                                                (cons (make-ModuleSource rp) acc)]
+                                               [else
+                                                acc])))
+                              '()
+                              dependent-module-names)])
+                 paths)])]))
          
          (let: loop : Void ([sources : (Listof Source) sources])
            (cond

@@ -38,6 +38,22 @@
 	}
     };
 
+    var testArity = function(callerName, observed, minimum, maximum) {
+	if (observed < minimum || observed > maximum) {
+	    plt.baselib.exceptions.raise(
+                MACHINE, new Error(callerName + ": expected at least " + minimum
+				   + " arguments "
+				   + " but received " + observed));
+
+	}
+    };
+
+
+
+
+
+
+
 
     //var checkOutputPort = makeCheckArgumentType()
 
@@ -48,7 +64,9 @@
 
 
     exports.testArgument = testArgument;
+    exports.testArity = testArity;
     exports.makeCheckArgumentType = makeCheckArgumentType;
+
     //exports.checkOutputPort = checkOutputPort;
 
 

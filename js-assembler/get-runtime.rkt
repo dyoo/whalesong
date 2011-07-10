@@ -63,6 +63,8 @@
                 baselib-keywords.js
                 baselib-structs.js
                 baselib-ports.js
+                baselib-functions.js
+                baselib-modules.js
                 
                 baselib-arity.js
                 baselib-inspectors.js

@@ -83,6 +83,7 @@ EOF
        (quasisyntax/loc #'stx
          (begin
            (printf "running test on ~s..." original-source-file-path)
+           (flush-output (current-output-port))
            (let* ([src-path source-file-path]
                   [result (evaluate (make-MainModuleSource (make-ModuleSource src-path)))]
                   [output (evaluated-stdout result)])

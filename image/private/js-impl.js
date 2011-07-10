@@ -1,21 +1,21 @@
-var checkString = plt.runtime.makeCheckArgumentType(
-    plt.runtime.strings.isString,
+var checkString = plt.baselib.check.makeCheckArgumentType(
+    plt.baselib.strings.isString,
     'string');
 
-var checkByte = plt.runtime.makeCheckArgumentType(
-    plt.runtime.numbers.isByte,
+var checkByte = plt.baselib.check.makeCheckArgumentType(
+    plt.baselib.numbers.isByte,
     'byte');
 
-var checkColor = plt.runtime.makeCheckArgumentType(
+var checkColor = plt.baselib.check.makeCheckArgumentType(
     isColorOrColorString,
     'color');
 
-var checkImage = plt.runtime.makeCheckArgumentType(
+var checkImage = plt.baselib.check.makeCheckArgumentType(
     isImage,
     'image');
 
-var checkReal = plt.runtime.makeCheckArgumentType(
-    plt.runtime.numbers.isReal,
+var checkReal = plt.baselib.check.makeCheckArgumentType(
+    plt.baselib.numbers.isReal,
     'real');
 
 
@@ -24,7 +24,7 @@ var checkReal = plt.runtime.makeCheckArgumentType(
 
 
 EXPORTS['image-color?'] =
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'image-color?',
         1,
         function(MACHINE) {
@@ -36,7 +36,7 @@ EXPORTS['image-color?'] =
 
 
 EXPORTS['text'] =
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'text',
         3,
         function(MACHINE) {
@@ -53,7 +53,7 @@ EXPORTS['text'] =
 
 // FIXME
 // EXPORTS['text/font'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'text/font',
 //             ???,
 //         function(MACHINE) {
@@ -62,7 +62,7 @@ EXPORTS['text'] =
 
 // FIXME
 // EXPORTS['image-url'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'image-url',
 //             ???,
 //         function(MACHINE) {
@@ -71,7 +71,7 @@ EXPORTS['text'] =
 
 // FIXME
 // EXPORTS['open-image-url'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'open-image-url',
 //             ???,
 //         function(MACHINE) {
@@ -79,7 +79,7 @@ EXPORTS['text'] =
 //         });
 
 EXPORTS['overlay'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'overlay',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
@@ -99,7 +99,7 @@ EXPORTS['overlay'] =
         });
 
 EXPORTS['overlay/xy'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'overlay/xy',
         4,
         function(MACHINE) {
@@ -115,7 +115,7 @@ EXPORTS['overlay/xy'] =
 
 // FIXME
 // EXPORTS['overlay/align'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'overlay/align',
 //             ???,
 //         function(MACHINE) {
@@ -123,7 +123,7 @@ EXPORTS['overlay/xy'] =
 //         });
 
 EXPORTS['underlay'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'underlay',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
@@ -142,7 +142,7 @@ EXPORTS['underlay'] =
         });
 
 EXPORTS['underlay/xy'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'underlay/xy',
         4,
         function(MACHINE) {
@@ -157,7 +157,7 @@ EXPORTS['underlay/xy'] =
         });
 
 // EXPORTS['underlay/align'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'underlay/align',
 //             ???,
 //         function(MACHINE) {
@@ -165,7 +165,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['beside'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'beside',
 //             ???,
 //         function(MACHINE) {
@@ -173,7 +173,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['beside/align'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'beside/align',
 //             ???,
 //         function(MACHINE) {
@@ -181,7 +181,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['above'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'above',
 //             ???,
 //         function(MACHINE) {
@@ -189,7 +189,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['above/align'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'above/align',
 //             ???,
 //         function(MACHINE) {
@@ -197,7 +197,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['place-image/align'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'place-image/align',
 //             ???,
 //         function(MACHINE) {
@@ -205,7 +205,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 EXPORTS['rotate'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'rotate',
         2,
         function(MACHINE) {
@@ -215,7 +215,7 @@ EXPORTS['rotate'] =
         });
 
 EXPORTS['scale'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'scale',
         2,
         function(MACHINE) {
@@ -227,7 +227,7 @@ EXPORTS['scale'] =
         });
 
 EXPORTS['scale/xy'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'scale/xy',
         3,
         function(MACHINE) {
@@ -241,7 +241,7 @@ EXPORTS['scale/xy'] =
         });
 
 // EXPORTS['flip-horizontal'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'flip-horizontal',
 //             ???,
 //         function(MACHINE) {
@@ -249,7 +249,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 // EXPORTS['flip-vertical'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'flip-vertical',
 //             ???,
 //         function(MACHINE) {
@@ -257,7 +257,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 // EXPORTS['frame'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'frame',
 //             ???,
 //         function(MACHINE) {
@@ -265,7 +265,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 // EXPORTS['crop'] = 
-//     plt.runtime.makePrimitiveProcedure(
+//     plt.baselib.functions.makePrimitiveProcedure(
 //         'crop',
 //             ???,
 //         function(MACHINE) {
@@ -273,7 +273,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 EXPORTS['line'] = 
-    plt.runtime.makePrimitiveProcedure(
+    plt.baselib.functions.makePrimitiveProcedure(
         'line',
         3,
         function(MACHINE) {
@@ -289,233 +289,266 @@ EXPORTS['line'] =
 	    return line;
         });
 
-EXPORTS['add-line'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'add-line',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['scene+line'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'scene+line',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['circle'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'circle',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['square'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'square',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['rectangle'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'rectangle',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['regular-polygon'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'regular-polygon',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['ellipse'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'ellipse',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['triangle'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'triangle',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['right-triangle'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'right-triangle',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['isosceles-triangle'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'isosceles-triangle',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['star'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'star',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['radial-star'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'radial-star',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['star-polygon'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'star-polygon',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['rhombus'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'rhombus',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['image->color-list'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'image->color-list',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['color-list->image'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'color-list->image',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['image-width'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'image-width',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['image-height'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'image-height',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['image-baseline'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'image-baseline',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['image-color?'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'image-color?',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['mode?'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'mode?',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['x-place?'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'x-place?',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['y-place?'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'y-place?',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['angle?'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'angle?',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['side-count?'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'side-count?',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-
-EXPORTS['image-url'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'image-url',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-EXPORTS['open-image-url'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'open-image-url',
-            ???,
-        function(MACHINE) {
-            ...
-        });
-EXPORTS['color-list->image'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'color-list->image',
-            ???,
-        function(MACHINE) {
-            ...
-        });
 
 
-EXPORTS['step-count?'] = 
-    plt.runtime.makePrimitiveProcedure(
-        'step-count?',
-            ???,
-        function(MACHINE) {
-            ...
-        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// EXPORTS['add-line'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'add-line',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['scene+line'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'scene+line',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['circle'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'circle',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['square'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'square',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['rectangle'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'rectangle',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['regular-polygon'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'regular-polygon',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['ellipse'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'ellipse',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['triangle'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'triangle',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['right-triangle'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'right-triangle',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['isosceles-triangle'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'isosceles-triangle',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['star'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'star',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['radial-star'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'radial-star',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['star-polygon'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'star-polygon',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['rhombus'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'rhombus',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['image->color-list'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'image->color-list',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['color-list->image'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'color-list->image',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['image-width'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'image-width',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['image-height'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'image-height',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['image-baseline'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'image-baseline',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['image-color?'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'image-color?',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['mode?'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'mode?',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['x-place?'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'x-place?',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['y-place?'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'y-place?',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['angle?'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'angle?',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['side-count?'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'side-count?',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+// EXPORTS['image-url'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'image-url',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+// EXPORTS['open-image-url'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'open-image-url',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+// EXPORTS['color-list->image'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'color-list->image',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });
+
+
+// EXPORTS['step-count?'] = 
+//     plt.baselib.functions.makePrimitiveProcedure(
+//         'step-count?',
+//             ???,
+//         function(MACHINE) {
+//             ...
+//         });

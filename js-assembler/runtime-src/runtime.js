@@ -9,11 +9,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var runtime = {};
     scope['runtime'] = runtime;
 
-    var types = plt.types;
-
-
-    var makeClassPredicate = plt.baselib.makeClassPredicate;
-
 
 
     //////////////////////////////////////////////////////////////////////
@@ -28,6 +23,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var isList = plt.baselib.lists.isList;
     var isVector = plt.baselib.vectors.isVector;
     var isString = plt.baselib.strings.isString;
+    var isNonNegativeReal = plt.baselib.numbers.isNonNegativeReal;
     var equals = plt.baselib.equality.equals;
 
     var NULL = plt.baselib.lists.EMPTY;
@@ -44,25 +40,37 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var makeBignum = plt.baselib.numbers.makeBignum;
     var makeComplex = plt.baselib.numbers.makeComplex;
 
+    var makeBox = plt.baselib.boxes.makeBox;
+    var isBox = plt.baselib.boxes.isBox;
 
     var makeVector = plt.baselib.vectors.makeVector;
     var makeList = plt.baselib.lists.makeList;
     var makePair = plt.baselib.lists.makePair;
 
+
+    var Closure = plt.baselib.functions.Closure;
+    var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
+    var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
+
+
+    // Other helpers
+    var withArguments = plt.baselib.withArguments;
     var heir = plt.baselib.heir;
+    var makeClassPredicate = plt.baselib.makeClassPredicate;
     var toDomNode = plt.baselib.format.toDomNode;
     var toWrittenString = plt.baselib.format.toWrittenString;
     var toDisplayedString = plt.baselib.format.toDisplayedString;
 
-
-    var makeBox = plt.baselib.boxes.makeBox;
-    var isBox = plt.baselib.boxes.isBox;
 
 
     // Frame structures.
     var Frame = plt.baselib.frames.Frame;
     var CallFrame = plt.baselib.frames.CallFrame;
     var PromptFrame = plt.baselib.frames.PromptFrame;
+
+    // Module structure
+    var ModuleRecord = plt.baselib.modules.ModuleRecord;
+
 
 
     // Ports
@@ -76,12 +84,27 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
+    // Exceptions and error handling.
+    var raise = plt.baselib.exceptions.raise;
+    var raiseUnboundToplevelError = plt.baselib.exceptions.raiseUnboundToplevelError;
+    var raiseArgumentTypeError = plt.baselib.exceptions.raiseArgumentTypeError;
+    var raiseContextExpectedValuesError = plt.baselib.exceptions.raiseContextExpectedValuesError;
+    var raiseArityMismatchError = plt.baselib.exceptions.raiseArityMismatchError;
+    var raiseOperatorApplicationError = plt.baselib.exceptions.raiseOperatorApplicationError;
+    var raiseOperatorIsNotPrimitiveProcedure = plt.baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
+    var raiseOperatorIsNotClosure = plt.baselib.exceptions.raiseOperatorIsNotClosure;
+    var raiseUnimplementedPrimitiveError = plt.baselib.exceptions.raiseUnimplementedPrimitiveError;
+
+    var testArgument = plt.baselib.check.testArgument;
+    var testArity = plt.baselib.check.testArity;
+    var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
+
+
+
+
 
 
     //////////////////////////////////////////////////////////////////////]
-
-
-    var isNonNegativeReal = plt.baselib.numbers.isNonNegativeReal;
 
 
 
@@ -145,21 +168,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    'numBouncesBeforeYield': 2000,   // self-adjusting
 	    'maxNumBouncesBeforeYield': 2000, // self-adjusting
 
-	    'currentPrint': new Closure(
-		function(MACHINE) {
-                    if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
-		    var elt = MACHINE.env[MACHINE.env.length - 1];
-		    var outputPort = 
-			MACHINE.params.currentOutputPort;
-		    if (elt !== VOID) {
-			outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
-			outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
-		    }
-                    return finalizeClosureCall(MACHINE, VOID);
-		},
-		1,
-		[],
-		"printer")
+	    'currentPrint': defaultCurrentPrint
 
 
 	};
@@ -168,192 +177,55 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // Finalize the return from a closure.  This is a helper function
-    // for those who implement Closures by hand.
-    //
-    // If used in the body of a Closure, it must be in tail
-    // position.  This finishes the closure call, and does the following:
-    //
-    //     * Clears out the existing arguments off the stack frame
-    //     * Sets up the return value
-    //     * Jumps either to the single-value return point, or the multiple-value
-    //       return point.
-    //
-    // I'd personally love for this to be a macro and avoid the
-    // extra function call here.
-    var finalizeClosureCall = function(MACHINE) {
-        MACHINE.callsBeforeTrampoline--;
-        var frame, i, returnArgs = [].slice.call(arguments, 1);
 
-        // clear out stack space
-        // TODO: replace with a splice.
-        for(i = 0; i < MACHINE.argcount; i++) {
-            MACHINE.env.pop();
-        }
-
-        if (returnArgs.length === 1) {
-            MACHINE.val = returnArgs[0];
-	    frame = MACHINE.control.pop();
-	    return frame.label(MACHINE);
-        } else if (returnArgs.length === 0) {
-            MACHINE.argcount = 0;
-	    frame = MACHINE.control.pop();
-	    return frame.label.multipleValueReturn(MACHINE);
-        } else {
-            MACHINE.argcount = returnArgs.length;
-            MACHINE.val = returnArgs.shift();
-            // TODO: replace with a splice.
-            for(i = 0; i < MACHINE.argcount - 1; i++) {
-                MACHINE.env.push(returnArgs.pop());
-            }
-	    frame = MACHINE.control.pop();
-	    return frame.label.multipleValueReturn(MACHINE);
-        }
-    };
-
-
-
-
-    var ModuleRecord = function(name, label) {
-	this.name = name;
-	this.label = label;
-	this.isInvoked = false;
-        this.prefix = false;
-	this.namespace = {};
-    };
-
-    // Returns access to the names defined in the module.
-    ModuleRecord.prototype.getNamespace = function() {
-	return this.namespace;
-    };
-
-    ModuleRecord.prototype.finalizeModuleInvokation = function() {
-	var i, len = this.prefix.names.length;
-	for (i=0; i < len; i++) {
-	    this.namespace[this.prefix.names[i]] = this.prefix[i];
+    // Approximately find the stack limit.
+    // This function assumes, on average, five variables or
+    // temporaries per stack frame.
+    // This will never report a number greater than MAXIMUM_CAP.
+    var findStackLimit = function(after) {
+	var MAXIMUM_CAP = 100000;
+	var n = 1;
+	var limitDiscovered = false;
+	setTimeout(
+	    function() {
+		if(! limitDiscovered) {
+		    limitDiscovered = true;
+		    after(n);
+		}
+	    },
+	    0);
+	var loop1 = function(x, y, z, w, k) {
+	    // Ensure termination, just in case JavaScript ever
+	    // does eliminate stack limits.
+	    if (n >= MAXIMUM_CAP) { return; }
+	    n++;
+	    return 1 + loop2(y, z, w, k, x);
+	};
+	var loop2 = function(x, y, z, w, k) {
+	    n++;
+	    return 1 + loop1(y, z, w, k, x);
+	};
+	try {
+	    var dontCare = 1 + loop1(2, "seven", [1], {number: 8}, 2);
+	} catch (e) {
+	    // ignore exceptions.
 	}
-    };
-    
-
-    // External invokation of a module.
-    ModuleRecord.prototype.invoke = function(MACHINE, succ, fail) {
-        MACHINE = MACHINE || plt.runtime.currentMachine;
-        succ = succ || function(){};
-        fail = fail || function(){};
-
-        var oldErrorHandler = MACHINE.params['currentErrorHandler'];
-        var afterGoodInvoke = function(MACHINE) { 
-            MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-            setTimeout(succ, 0);
-        };
-
-        if (this.isInvoked) {
-            setTimeout(succ, 0);
-        } else {
-            MACHINE.params['currentErrorHandler'] = function(MACHINE, anError) {
-                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                setTimeout(
-		    function() { 
-			fail(MACHINE, anError)
-		    },
-		    0);
-            };
-            MACHINE.control.push(new CallFrame(afterGoodInvoke, null));
-            trampoline(MACHINE, this.label);
-        }
-    };
-
-
-
-
-
-
-
-
-
-
-
-    // Function types: a function is either a Primitive or a Closure.
-
-    // A Primitive is a function that's expected to return.  It is not
-    // allowed to call into Closures.  Its caller is expected to pop off
-    // its argument stack space.
-    //
-    //
-
-
-    // A Closure is a function that takes on more responsibilities: it is
-    // responsible for popping off stack space before it finishes, and it
-    // is also explicitly responsible for continuing the computation by 
-    // popping off the control stack and doing the jump.  Because of this,
-    // closures can do pretty much anything to the machine.
-
-    // A closure consists of its free variables as well as a label
-    // into its text segment.
-    var Closure = function(label, arity, closedVals, displayName) {
-	this.label = label;              // (MACHINE -> void)
-	this.arity = arity;              // number
-	this.closedVals = closedVals;    // arrayof number
-	this.displayName = displayName;  // string
-    };
-
-
-
-    var VariableReference = function(prefix, pos) {
-        this.prefix = prefix;
-        this.pos = pos;
-    };
-
-
-
-
-
-
-    // A continuation prompt tag labels a prompt frame.
-    var ContinuationPromptTag = function(name) {
-	this.name = name;
-    };
-
-
-
-    // There is a single, distinguished default continuation prompt tag
-    // that's used to wrap around toplevel prompts.
-    var DEFAULT_CONTINUATION_PROMPT_TAG = 
-	new ContinuationPromptTag("default-continuation-prompt-tag");
-
-
-
-    var raise = plt.baselib.exceptions.raise;
-
-    var raiseUnboundToplevelError = plt.baselib.exceptions.raiseUnboundToplevelError;
-    var raiseArgumentTypeError = plt.baselib.exceptions.raiseArgumentTypeError;
-    var raiseContextExpectedValuesError = plt.baselib.exceptions.raiseContextExpectedValuesError;
-    var raiseArityMismatchError = plt.baselib.exceptions.raiseArityMismatchError;
-    var raiseOperatorApplicationError = plt.baselib.exceptions.raiseOperatorApplicationError;
-    var raiseOperatorIsNotPrimitiveProcedure = plt.baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
-    var raiseOperatorIsNotClosure = plt.baselib.exceptions.raiseOperatorIsNotClosure;
-    var raiseUnimplementedPrimitiveError = plt.baselib.exceptions.raiseUnimplementedPrimitiveError;
-
-
-    var testArgument = plt.baselib.check.testArgument;
-    var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
-
-
-
-
-
-    var testArity = function(callerName, observed, minimum, maximum) {
-	if (observed < minimum || observed > maximum) {
-	    raise(MACHINE, new Error(callerName + ": expected at least " + minimum
-				     + " arguments "
-				     + " but received " + observed));
-
+	if (! limitDiscovered) { 
+	    limitDiscovered = true;
+	    after(n);
 	}
     };
 
 
-
-
+    // Schedule a stack limit estimation.  If it fails, no harm, no
+    // foul (hopefully!)
+    setTimeout(function() {
+	findStackLimit(function(v) {
+	    // Trying to be a little conservative.
+	    STACK_LIMIT_ESTIMATE = Math.floor(v / 10);
+	});
+    },
+	       0);
 
 
     // captureControl implements the continuation-capturing part of
@@ -407,6 +279,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
 
 
+    // Unsplices a list from the MACHINE stack.
     var unspliceRestFromStack = function(MACHINE, depth, length) {
 	var lst = NULL;
 	var i;
@@ -426,30 +299,57 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // Helper to deal with the argument-passing of primitives.  Call f
-    // with arguments bound from MACHINE.env, assuming
-    // MACHINE.argcount has been initialized with the number of
-    // arguments on the stack.  vs provides optional values for the
-    // arguments that go beyond those of the mandatoryArgCount.
-    var withArguments = function(MACHINE,
-                                 mandatoryArgCount,
-                                 vs,
-                                 f) {
-        var args = [];
-        for (var i = 0; i < MACHINE.argcount; i++) {
-            if (i < mandatoryArgCount) {
-                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
-            } else {
-                if (i < MACHINE.argcount) {
-                    args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
-                } else {
-                    args.push(vs[mandatoryArgCount - i]);
-                }
+
+    var defaultCurrentPrint = new Closure(
+	function(MACHINE) {
+            if(--MACHINE.callsBeforeTrampoline < 0) { 
+                throw arguments.callee; 
             }
-        }
-        return f.apply(null, args);
+	    var elt = MACHINE.env[MACHINE.env.length - 1];
+	    var outputPort = 
+		MACHINE.params.currentOutputPort;
+	    if (elt !== VOID) {
+		outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
+		outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+	    }
+            return finalizeClosureCall(MACHINE, VOID);
+	},
+	1,
+	[],
+	"printer");
+
+
+
+
+
+
+
+
+
+
+
+
+    var VariableReference = function(prefix, pos) {
+        this.prefix = prefix;
+        this.pos = pos;
     };
-    
+
+
+
+    // A continuation prompt tag labels a prompt frame.
+    var ContinuationPromptTag = function(name) {
+	this.name = name;
+    };
+
+
+
+    // There is a single, distinguished default continuation prompt tag
+    // that's used to wrap around toplevel prompts.
+    var DEFAULT_CONTINUATION_PROMPT_TAG = 
+	new ContinuationPromptTag("default-continuation-prompt-tag");
+
+
+
 
 
 
@@ -472,12 +372,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             new Closure(f, arity, [], name);
     };
 
-
-    var makePrimitiveProcedure = function(name, arity, f) {
-        f.arity = arity;
-        f.displayName = name;
-        return f;
-    };
 
     var installPrimitiveConstant = function(name, v) {
         Primitives[name] = v;
@@ -2324,61 +2218,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // Approximately find the stack limit.
-    // This function assumes, on average, five variables or
-    // temporaries per stack frame.
-    // This will never report a number greater than MAXIMUM_CAP.
-    var findStackLimit = function(after) {
-	var MAXIMUM_CAP = 100000;
-	var n = 1;
-	var limitDiscovered = false;
-	setTimeout(
-	    function() {
-		if(! limitDiscovered) {
-		    limitDiscovered = true;
-		    after(n);
-		}
-	    },
-	    0);
-	var loop1 = function(x, y, z, w, k) {
-	    // Ensure termination, just in case JavaScript ever
-	    // does eliminate stack limits.
-	    if (n >= MAXIMUM_CAP) { return; }
-	    n++;
-	    return 1 + loop2(y, z, w, k, x);
-	};
-	var loop2 = function(x, y, z, w, k) {
-	    n++;
-	    return 1 + loop1(y, z, w, k, x);
-	};
-	try {
-	    var dontCare = 1 + loop1(2, "seven", [1], {number: 8}, 2);
-	} catch (e) {
-	    // ignore exceptions.
-	}
-	if (! limitDiscovered) { 
-	    limitDiscovered = true;
-	    after(n);
-	}
-    };
-
-
-    // Schedule a stack limit estimation.  If it fails, no harm, no
-    // foul (hopefully!)
-    setTimeout(function() {
-	findStackLimit(function(v) {
-	    // Trying to be a little conservative.
-	    STACK_LIMIT_ESTIMATE = Math.floor(v / 10);
-	});
-    },
-	       0);
-
-
 
 
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
+
+    // Implementation of the ready function.  This will fire off when
+    // setReadyTrue is called.
 
     (function(scope) {
         scope.ready = function(f) {
@@ -2403,6 +2250,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             setTimeout(w, 0);
         };
     })(this);
+
 
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////

@@ -33,10 +33,15 @@ if (! this['plt']) { this['plt'] = {}; }
     };
 
 
+    // Consumes a class and creates a predicate that recognizes subclasses.
+    var makeClassPredicate = function(aClass) {
+	return function(x) { return x instanceof aClass; };
+    };
 
 
     baselib.heir = heir;
     baselib.clone = clone;
+    baselib.makeClassPredicate = makeClassPredicate;
 
 
 })(this['plt']);

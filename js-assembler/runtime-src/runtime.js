@@ -12,11 +12,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var types = plt.types;
 
 
+    var makeClassPredicate = plt.baselib.makeClassPredicate;
 
-    // Consumes a class and creates a predicate that recognizes subclasses.
-    var makeClassPredicate = function(aClass) {
-	return function(x) { return x instanceof aClass; };
-    };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -66,6 +63,20 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var Frame = plt.baselib.frames.Frame;
     var CallFrame = plt.baselib.frames.CallFrame;
     var PromptFrame = plt.baselib.frames.PromptFrame;
+
+
+    // Ports
+    var OutputPort = plt.baselib.ports.OutputPort;
+    var isOutputPort = plt.baselib.ports.isOutputPort;
+    var StandardOutputPort = plt.baselib.ports.StandardOutputPort;
+    var StandardErrorPort = plt.baselib.ports.StandardErrorPort;
+    var OutputStringPort = plt.baselib.ports.OutputStringPort;
+    var isOutputStringPort = plt.baselib.ports.isOutputStringPort;
+
+
+
+
+
 
     //////////////////////////////////////////////////////////////////////]
 
@@ -259,45 +270,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // Output Ports
-
-    var OutputPort = function() {};
-    var isOutputPort = makeClassPredicate(OutputPort);
-
-
-    var StandardOutputPort = function() {
-        OutputPort.call(this);
-    };
-    StandardOutputPort.prototype = heir(OutputPort.prototype);
-    StandardOutputPort.prototype.writeDomNode = function(MACHINE, domNode) {
-	MACHINE.params['currentDisplayer'](MACHINE, domNode);
-    };
-
-    var StandardErrorPort = function() {
-        OutputPort.call(this);
-    };
-    StandardErrorPort.prototype = heir(OutputPort.prototype);
-    StandardErrorPort.prototype.writeDomNode = function(MACHINE, domNode) {
-	MACHINE.params['currentErrorDisplayer'](MACHINE, domNode);
-    };
-
-
-
-
-
-
-    var OutputStringPort = function() {
-	this.buf = [];
-    };
-    OutputStringPort.prototype = heir(OutputPort.prototype);
-    OutputStringPort.prototype.writeDomNode = function(MACHINE, v) {
-	this.buf.push($(v).text());
-    };
-    OutputStringPort.prototype.getOutputString = function() {
-	return this.buf.join('');
-    };
-    var isOutputStringPort = makeClassPredicate(OutputStringPort);
-
 
 
 
@@ -363,40 +335,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var raiseUnimplementedPrimitiveError = plt.baselib.exceptions.raiseUnimplementedPrimitiveError;
 
 
-
-
-    // testArgument: (X -> boolean) X number string string -> boolean
-    // Produces true if val is true, and otherwise raises an error.
-    var testArgument = function(MACHINE,
-				expectedTypeName,
-				predicate, 			    
-				val, 
-				index, 
-				callerName) {
-	if (predicate(val)) {
-	    return true;
-	} else {
-	    raiseArgumentTypeError(MACHINE, 
-                                   callerName,
-                                   expectedTypeName,
-				   index,
-				   val);
-	}
-    };
-
-    // Helper function for argument checking.
-    var makeCheckArgumentType = function(predicate, predicateName) {
-	return function(MACHINE, callerName, position) {
-	    testArgument(
-		MACHINE,
-		predicateName,
-		predicate,
-		MACHINE.env[MACHINE.env.length - 1 - position],
-		position,
-		callerName);
-	    return MACHINE.env[MACHINE.env.length - 1 - position];
-	}
-    };
+    var testArgument = plt.baselib.check.testArgument;
+    var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
 
 
 

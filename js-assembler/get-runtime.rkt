@@ -62,11 +62,14 @@
                 baselib-placeholders.js
                 baselib-keywords.js
                 baselib-structs.js
-
+                baselib-ports.js
+                
                 baselib-arity.js
                 baselib-inspectors.js
                 baselib-exceptions.js
                 baselib-readergraph.js
+
+                baselib-check.js
                 
                 runtime.js))
 

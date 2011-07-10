@@ -21,6 +21,11 @@
 	return isReal(x) && jsnums.greaterThanOrEqual(x, 0);
     };
 
+    var isByte = function(x) {
+	return (isNatural(x) && 
+		jsnums.lessThan(x, 256));
+    };
+
 
 
 
@@ -42,6 +47,7 @@
     exports.isComplex = isComplex;
     exports.isInteger = isInteger;
     exports.isNatural = isNatural;
+    exports.isByte = isByte;
     exports.isNonNegativeReal = isNonNegativeReal;
 
 

@@ -384,6 +384,24 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	}
     };
 
+    // Helper function for argument checking.
+    var makeCheckArgumentType = function(predicate, predicateName) {
+	return function(MACHINE, callerName, position) {
+	    testArgument(
+		MACHINE,
+		predicateName,
+		predicate,
+		MACHINE.env[MACHINE.env.length - 1 - position],
+		position,
+		callerName);
+	    return MACHINE.env[MACHINE.env.length - 1 - position];
+	}
+    };
+
+
+
+
+
     var testArity = function(callerName, observed, minimum, maximum) {
 	if (observed < minimum || observed > maximum) {
 	    raise(MACHINE, new Error(callerName + ": expected at least " + minimum
@@ -2518,6 +2536,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     exports['testArgument'] = testArgument;
     exports['testArity'] = testArity;
+    exports['makeCheckArgumentType'] = makeCheckArgumentType;
 
 
     exports['raise'] = raise;

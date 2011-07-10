@@ -925,6 +925,44 @@ LineImage.prototype.isEqual = function(other, aUnionFind) {
 
 
 
+var makeSceneImage = function(width, height, children, withBorder) {
+    return new SceneImage(width, height, children, withBorder);
+};
+var makeCircleImage = function(radius, style, color) {
+    return new CircleImage(radius, style, color);
+};
+var makeStarImage = function(points, outer, inner, style, color) {
+    return new StarImage(points, outer, inner, style, color);
+};
+var makeRectangleImage = function(width, height, style, color) {
+    return new RectangleImage(width, height, style, color);
+};
+var makeTriangleImage = function(side, style, color) {
+    return new TriangleImage(side, style, color);
+};
+var makeEllipseImage = function(width, height, style, color) {
+    return new EllipseImage(width, height, style, color);
+};
+var makeLineImage = function(x, y, color) {
+    return new LineImage(x, y, color);
+};
+var makeOverlayImage = function(img1, img2, shiftX, shiftY) {
+    return new OverlayImage(img1, img2, shiftX, shiftY);
+};
+var makeRotateImage = function(angle, img) {
+    return new RotateImage(angle, img);
+};
+var makeScaleImage = function(xFactor, yFactor, img) {
+    return new ScaleImage(xFactor, yFactor, img);
+};
+var makeTextImage = function(msg, size, color) {
+    return new TextImage(msg, size, color);
+};
+var makeFileImage = function(path, rawImage) {
+    return FileImage.makeInstance(path, rawImage);
+};
+
+
 
 
 
@@ -951,56 +989,26 @@ EXPORTS.ScaleImage = ScaleImage;
 EXPORTS.TextImage = TextImage;
 EXPORTS.FileImage = FileImage;
 
-
 EXPORTS.colorDb = colorDb;
+
+EXPORTS.makeSceneImage = makeSceneImage;
+EXPORTS.makeCircleImage = makeCircleImage;
+EXPORTS.makeStarImage = makeStarImage;
+EXPORTS.makeRectangleImage = makeRectangleImage;
+EXPORTS.makeTriangleImage = makeTriangleImage;
+EXPORTS.makeEllipseImage = makeEllipseImage;
+EXPORTS.makeLineImage = makeLineImage;
+EXPORTS.makeOverlayImage = makeOverlayImage;
+EXPORTS.makeRotateImage = makeRotateImage;
+EXPORTS.makeScaleImage = makeScaleImage;
+EXPORTS.makeTextImage = makeTextImage;
+EXPORTS.makeFileImage = makeFileImage;
+
 
 
 EXPORTS.isImage = isImage;
-
 EXPORTS.isScene = isScene;
-
 EXPORTS.isColorOrColorString = isColorOrColorString;
-
-
-
-EXPORTS.makeSceneImage = function(width, height, children, withBorder) {
-    return new SceneImage(width, height, children, withBorder);
-};
-EXPORTS.makeCircleImage = function(radius, style, color) {
-    return new CircleImage(radius, style, color);
-};
-EXPORTS.makeStarImage = function(points, outer, inner, style, color) {
-    return new StarImage(points, outer, inner, style, color);
-};
-EXPORTS.makeRectangleImage = function(width, height, style, color) {
-    return new RectangleImage(width, height, style, color);
-};
-EXPORTS.makeTriangleImage = function(side, style, color) {
-    return new TriangleImage(side, style, color);
-};
-EXPORTS.makeEllipseImage = function(width, height, style, color) {
-    return new EllipseImage(width, height, style, color);
-};
-EXPORTS.makeLineImage = function(x, y, color) {
-    return new LineImage(x, y, color);
-};
-EXPORTS.makeOverlayImage = function(img1, img2, shiftX, shiftY) {
-    return new OverlayImage(img1, img2, shiftX, shiftY);
-};
-EXPORTS.makeRotateImage = function(angle, img) {
-    return new RotateImage(angle, img);
-};
-EXPORTS.makeScaleImage = function(xFactor, yFactor, img) {
-    return new ScaleImage(xFactor, yFactor, img);
-};
-EXPORTS.makeTextImage = function(msg, size, color) {
-    return new TextImage(msg, size, color);
-};
-EXPORTS.makeFileImage = function(path, rawImage) {
-    return FileImage.makeInstance(path, rawImage);
-};
-
-
 EXPORTS.isSceneImage = function(x) { return x instanceof SceneImage; };
 EXPORTS.isCircleImage = function(x) { return x instanceof CircleImage; };
 EXPORTS.isStarImage = function(x) { return x instanceof StarImage; };

@@ -1,0 +1,28 @@
+<html>
+<head>
+
+<script src="runtime.js"></script>
+<script src="fact.js"></script>
+
+<script>
+</script>
+<script>
+
+plt.runtime.invokeMains();
+
+plt.runtime.ready(function() {
+   var myFact = plt.runtime.lookupInMains('fact');
+   myFact(function(v) {
+              alert(v.toString());
+          },
+          function(err) {
+              alert(err);
+          },
+          1000);
+});
+</script>
+</head>
+
+<body>
+</body>
+</html>

@@ -1785,25 +1785,33 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     (function(scope) {
         scope.ready = function(f) {
+            console.log('request');
             if (runtimeIsReady) {
                 notifyWaiter(f);
             } else {
                 readyWaiters.push(f);
             }
         };
+
         scope.setReadyTrue = function() {
-            var i;
+            console.log("runtime is ready");
             runtimeIsReady = true;
-            for (i = 0; i < readyWaiters.length; i++) {
-                notifyWaiter(readyWaiters[i]);
+            while(runtimeIsReady && readyWaiters.length > 0) {
+                notifyWaiter(readyWaiters.shift());
             }
-            readyWaiters = [];
         };
+
+        scope.setReadyFalse = function() {
+            console.log("disabled runtime");
+            runtimeIsReady = false;
+        };
+
 
         var runtimeIsReady = false;
         var readyWaiters = [];
         var notifyWaiter = function(w) {
-            setTimeout(w, 0);
+            console.log('notifying waiter');
+            w();
         };
     })(this);
 
@@ -1831,6 +1839,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
     };
 
+    // Looks up a name in any of the machine's main modules.
+    var lookupInMains = function(name, machine) {
+        machine = machine || runtime.currentMachine;
+        for (var i = 0; i < machine.mainModules.length; i++) {
+            var ns = machine.mainModules[i].getNamespace();
+            if(ns.hasOwnProperty(name)) {
+                return ns[name];
+            }
+        }
+    };
+
 
 
     //////////////////////////////////////////////////////////////////////
@@ -1842,6 +1861,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var exports = runtime;
     exports['currentMachine'] = new Machine();
     exports['invokeMains'] = invokeMains;
+    exports['lookupInMains'] = lookupInMains;
 
 
     // installing new primitives
@@ -1854,7 +1874,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // Private: the runtime library will set this flag to true when
     // the library has finished loading.
     exports['setReadyTrue'] = setReadyTrue;
-
+    exports['setReadyFalse'] = setReadyFalse;
 
     exports['Machine'] = Machine;
     exports['Frame'] = Frame;

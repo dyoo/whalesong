@@ -10,6 +10,9 @@
     // its argument stack space.
     //
 
+
+
+
     
     // coerseToJavaScript: racket function -> JavaScript function
     // Given a closure or primitive, produces an
@@ -195,5 +198,7 @@
     exports.isClosure = isClosure;
 
     exports.isFunction = isFunction;
+
+    exports.coerseToJavaScript = coerseToJavaScript;
 
 })(this['plt'].baselib);

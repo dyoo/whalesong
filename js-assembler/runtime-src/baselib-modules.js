@@ -26,6 +26,17 @@
 
     // External invokation of a module.
     ModuleRecord.prototype.invoke = function(MACHINE, succ, fail) {
+        this._invoke(false, MACHINE, succ, fail);
+    };
+
+    // Internal invokation of a module.
+    ModuleRecord.prototype.internalInvoke = function(MACHINE, succ, fail) {
+        this._invoke(true, MACHINE, succ, fail);
+    };
+
+    // Private: general invokation of a module
+    ModuleRecord.prototype._invoke = function(isInternal, MACHINE, succ, fail) {
+        var that = this;
         MACHINE = MACHINE || plt.runtime.currentMachine;
         succ = succ || function(){};
         fail = fail || function(){};
@@ -33,24 +44,26 @@
         var oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function(MACHINE) { 
             MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-            setTimeout(succ, 0);
+            succ();
         };
 
         if (this.isInvoked) {
-            setTimeout(succ, 0);
+            succ();
         } else {
             MACHINE.params['currentErrorHandler'] = function(MACHINE, anError) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                setTimeout(
-		    function() { 
-			fail(MACHINE, anError)
-		    },
-		    0);
+		fail(MACHINE, anError)
             };
             MACHINE.control.push(new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
-            plt.runtime.trampoline(MACHINE, this.label);
+            if (isInternal) {
+                throw that.label;
+            } else {
+                plt.runtime.trampoline(MACHINE, that.label);
+            }
         }
     };
+
+
 
 
 

@@ -12,6 +12,7 @@ var checkImage = plt.baselib.check.makeCheckArgumentType(
 
 
 var Closure = plt.baselib.functions.Closure;
+var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 var PAUSE = plt.runtime.PAUSE;
 
 
@@ -61,27 +62,29 @@ EXPORTS['image-url'] =
     new Closure(
         function(MACHINE) {
             var url = checkString(MACHINE, 'image-url', 0);
-            PAUSE(function(restart) {
+            PAUSE(
+                function(restart) {
                     var rawImage = new Image();
                     rawImage.onload = function() {
                         restart(function(MACHINE) {
-                            finalizeClosureCall(
-                                makeFileImage(
-                                    path.toString(),
-                                    rawImage));
-                    })
-                    });
-                rawImage.onerror = 
-                    (function(e) {
+                                        finalizeClosureCall(
+                                            MACHINE, 
+                                            makeFileImage(url.toString(),
+                                                          rawImage));
+                        });
+                    };
+                    rawImage.onerror = function(e) {
                         restart(function(MACHINE) {
                             plt.baselib.exceptions.raise(
                                 MACHINE, 
                                 new Error(plt.baselib.format.format(
-                                    "unable to load: ~a",
-                                    url)));
+                                    "unable to load ~a: ~a",
+                                    url,
+                                    e.message)));
                         });
-                    });
-                rawImage.src = path.toString();
+                    }
+                    rawImage.src = url.toString();
+                }
             );
         },
         1,

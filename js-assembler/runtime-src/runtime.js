@@ -339,8 +339,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
 
     var PAUSE = function(onPause) {
-        throw new Pause(onPause);
-    }
+        throw(new Pause(onPause));
+    };
     
 
 
@@ -411,23 +411,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			    function() { trampoline(MACHINE, thunk); },
 			    0);
                     };
-                    setTimeout(
-                        function() { 
-                            e.onPause(restart);
-                        },
-                        0);
+                    e.onPause(restart);
                     return;
                 } else if (e instanceof HaltError) {
 		    MACHINE.running = false;
-                    setTimeout(
-                        function() { e.onHalt(MACHINE); },
-                        0);
+                    e.onHalt(MACHINE);
                     return;
                 } else {
 		    MACHINE.running = false;
-                    setTimeout(
-                        function() { MACHINE.params.currentErrorHandler(MACHINE, e); },
-                        0);
+                    MACHINE.params.currentErrorHandler(MACHINE, e);
 	            return;
 		}
             }

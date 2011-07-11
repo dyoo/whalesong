@@ -155,7 +155,7 @@ MACHINE.modules[~s] =
 (define (assemble-modinvoke path after)
   (let ([name (rewrite-path (path->string path))])
     (format "if (! MACHINE.modules[~s].isInvoked) {
-                 MACHINE.modules[~s].invoke(MACHINE,
+                 MACHINE.modules[~s].internalInvoke(MACHINE,
                                             function() {
 
                                                 ///////////////////////////

@@ -103,9 +103,14 @@
     var checkBox = makeCheckArgumentType(
         plt.baselib.boxes.isBox,
         'box');
+
     var checkMutableBox = makeCheckArgumentType(
         plt.baselib.boxes.isMutableBox,
         'mutable box');
+
+    var checkInspector = makeCheckArgumentType(
+        plt.baselib.inspectors.isInspector,
+        'inspector');
 
 
 
@@ -132,6 +137,8 @@
     exports.checkVector = checkVector;
     exports.checkBox = checkBox;
     exports.checkMutableBox = checkMutableBox;
+    exports.checkInspector = checkInspector;
+
 
 
 })(this['plt'].baselib);

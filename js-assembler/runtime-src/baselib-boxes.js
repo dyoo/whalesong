@@ -63,11 +63,22 @@
         return x instanceof Box;
     };
 
+    var isMutableBox = function(x) { 
+        return (x instanceof Box && x.mutable); 
+    };
+
+    var isImmutableBox = function(x) { 
+        return (x instanceof Box && (!x.mutable));
+    };
+
+
 
 
     //////////////////////////////////////////////////////////////////////
     exports.Box = Box;
     exports.isBox = isBox;
+    exports.isMutableBox = isMutableBox;
+    exports.isImmutableBox = isImmutableBox;
     exports.makeBox = makeBox;
     exports.makeImmutableBox = makeImmutableBox;
 

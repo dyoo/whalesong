@@ -259,28 +259,17 @@
 
 
     var isStruct = function(x) { return x instanceof Struct; };
+    var isStructType = function(x) { return x instanceof StructType; };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //////////////////////////////////////////////////////////////////////
 
 
     exports.StructType = StructType;
     exports.Struct = Struct;
     exports.makeStructureType = makeStructureType;
     exports.isStruct = isStruct;
+    exports.isStructType = isStructType;
 
 //     exports.StructProc = StructProc;
 //     exports.StructConstructorProc = StructConstructorProc;

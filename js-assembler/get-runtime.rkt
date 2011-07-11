@@ -71,6 +71,8 @@
                 baselib-exceptions.js
                 baselib-readergraph.js
 
+                ;; baselib-check has to come after the definitions of types,
+                ;; since it uses the type predicates immediately on init time.
                 baselib-check.js
                 
                 runtime.js))

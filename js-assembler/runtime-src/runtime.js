@@ -97,21 +97,33 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
+
+    
+
     var testArgument = plt.baselib.check.testArgument;
     var testArity = plt.baselib.check.testArity;
-    var checkOutputPort = plt.baselib.check.checkOutputPort;
     var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
 
-
-
+    var checkOutputPort = plt.baselib.check.checkOutputPort;
+    var checkString = plt.baselib.check.checkString;
+    var checkFunction = plt.baselib.check.checkFunction;
+    var checkNumber = plt.baselib.check.checkNumber;
+    var checkReal = plt.baselib.check.checkReal;
+    var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
+    var checkNatural = plt.baselib.check.checkNatural;
+    var checkInteger = plt.baselib.check.checkInteger;
+    var checkRational = plt.baselib.check.checkRational;
+    var checkPair = plt.baselib.check.checkPair;
+    var checkList = plt.baselib.check.checkList;
+    var checkVector = plt.baselib.check.checkVector;
+    var checkBox = plt.baselib.check.checkBox;
+    var checkMutableBox = plt.baselib.check.checkMutableBox;
+    var checkInspector = plt.baselib.check.checkInspector;
 
 
 
     //////////////////////////////////////////////////////////////////////]
-
-
-
-
+    // The MACHINE
 
 
     // This value will be dynamically determined.
@@ -298,6 +310,114 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
+    // recomputeGas: state number -> number
+    var recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
+	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
+	// that we get MACHINE.params.desiredYieldsPerSecond bounces per
+	// second.
+	var DESIRED_DELAY_BETWEEN_BOUNCES = 
+	    (1000 / MACHINE.params.desiredYieldsPerSecond);
+	var ALPHA = 256;
+	var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
+			       observedDelay) / 
+			      DESIRED_DELAY_BETWEEN_BOUNCES));
+	MACHINE.params.maxNumBouncesBeforeYield = 
+            Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
+                     1);
+    };
+
+
+    var HaltError = function(onHalt) {
+        // onHalt: MACHINE -> void
+        this.onHalt = onHalt || function(MACHINE) {};
+    };
+
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // The toplevel trampoline.
+    //
+    //
+    // trampoline: MACHINE (MACHINE -> void) -> void
+    //
+    // All evaluation in Racketland happens in the context of this
+    // trampoline.
+    //
+    var trampoline = function(MACHINE, initialJump) {
+	var thunk = initialJump;
+	var startTime = (new Date()).valueOf();
+	MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+	MACHINE.params.numBouncesBeforeYield = 
+	    MACHINE.params.maxNumBouncesBeforeYield;
+	MACHINE.running = true;
+
+	while(true) {
+            try {
+		thunk(MACHINE);
+		break;
+            } catch (e) {
+                // There are a few kinds of things that can get thrown
+                // during racket evaluation:
+                //
+                // functions: this gets thrown if the Racket code realizes
+                // that the number of bounces has grown too large.  The thrown
+                // function represents a restarter function.
+                //
+                // HaltError: causes evaluation to immediately halt.  We schedule
+                // the onHalt function of the HaltError to call afterwards.
+                //
+                // everything else: otherwise, we send the exception value
+                // to the current error handler and exit.
+		if (typeof(e) === 'function') {
+                    thunk = e;
+                    MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+
+		    if (MACHINE.params.numBouncesBeforeYield-- < 0) {
+			recomputeMaxNumBouncesBeforeYield(
+			    MACHINE,
+			    (new Date()).valueOf() - startTime);
+			setTimeout(
+			    function() { trampoline(MACHINE, thunk); },
+			    0);
+			return;
+		    } else {
+                        continue;
+                    }
+		} else if (e instanceof HaltError) {
+		    MACHINE.running = false;
+                    setTimeout(
+                        function() { e.onHalt(MACHINE); },
+                        0);
+                    return;
+                } else {
+		    MACHINE.running = false;
+                    setTimeout(
+                        function() { MACHINE.params.currentErrorHandler(MACHINE, e); },
+                        0);
+	            return;
+		}
+            }
+	}
+	MACHINE.running = false;
+        setTimeout(
+            function() { MACHINE.params.currentSuccessHandler(MACHINE); },
+            0);
+	return;
+    };
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
 
     var defaultCurrentPrint = new Closure(
 	function(MACHINE) {
@@ -316,13 +436,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	1,
 	[],
 	"printer");
-
-
-
-
-
-
-
 
 
 
@@ -433,7 +546,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             }
             return plt.baselib.format.format(formatString, args, 'format');
         });
-
 
 
     installPrimitiveProcedure(
@@ -626,7 +738,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    for (var i = 1; i < MACHINE.argcount; i++) {
 	        result = plt.baselib.numbers.divide(
                     result,
-                    checkNumber(MACHINE, '/'i));
+                    checkNumber(MACHINE, '/', i));
 	    }
 	    return result;
         });
@@ -801,23 +913,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'vector-set!',
         3,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'vector',
-		         isVector,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'vector-set!');
-	    testArgument(MACHINE,
-		         'natural',
-		         isNatural,
-		         MACHINE.env[MACHINE.env.length - 2],
-		         1,
-		         'vector-set!');
 	    var elts = checkVector(MACHINE, 'vector-set!', 0).elts;
             // FIXME: check out-of-bounds vector
 	    var index = plt.baselib.numbers.toFixnum(
-                checkNatural(MACHINE.env[MACHINE.env.length-2]));
-	    var val = MACHINE.env[MACHINE.env.length-3];
+                checkNatural(MACHINE, 'vector-set!', 1));
+	    var val = MACHINE.env[MACHINE.env.length - 1 - 2];
 	    elts[index] = val;
 	    return VOID;
         });
@@ -827,8 +927,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'vector-length',
         1,
         function(MACHINE) {
-	    var firstArg = checkVector(MACHINE, 'vector-length', 0);
-	    return firstArg.length;
+	    return checkVector(MACHINE, 'vector-length', 0).elts.length;
         });
 
 
@@ -1340,38 +1439,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
-    // rawSgn: number -> number
-    var rawSgn = function(x) {
-        if (plt.baselib.numbers.isInexact(x)) {
-	    if ( plt.baselib.numbers.greaterThan(x, 0) ) {
-		return plt.baselib.numbers.makeFloat(1);
-	    } else if ( plt.baselib.numbers.lessThan(x, 0) ) {
-		return plt.baselib.numbers.makeFloat(-1);
-	    } else {
-		return plt.baselib.numbers.makeFloat(0);
-	    }
-	} else {
-	    if ( plt.baselib.numbers.greaterThan(x, 0) ) {
-		return 1;
-	    } else if ( plt.baselib.numbers.lessThan(x, 0) ) {
-		return -1;
-	    } else {
-		return 0;
-	    }
-	}
-    };
 
     installPrimitiveProcedure(
         'sgn',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'sgn');
-            return rawSgn(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sign(
+                checkInteger(MACHINE, 'sgn', 0));
         });
 
 
@@ -1379,53 +1453,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'number->string',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'integer',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'number->string');
-            return MACHINE.env[MACHINE.env.length-1].toString();
+            return checkNumber(MACHINE, 'number->string', 0).toString();
         });
+
 
     installPrimitiveProcedure(
         'string->number',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'string',
-                         isString,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'string->number');
-            return plt.baselib.numbers.fromString(MACHINE.env[MACHINE.env.length-1].toString());
+            return plt.baselib.numbers.fromString(
+                checkString(MACHINE, 'string->number', 0));
         });
-
-
-
-    
-
-
-    installPrimitiveProcedure(
-        'format',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
-            var args = [], i, formatString;
-            testArgument(MACHINE,
-                         'string',
-                         isString,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'format');
-            for(i = 0; i < MACHINE.argcount; i++) {
-                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
-            }
-            formatString = args.shift();
-            return plt.baselib.format.format(formatString, args, 'format');
-        });
-
-
-
 
     
 
@@ -1525,12 +1563,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 });
         });
         
+
      installPrimitiveProcedure(
          'current-inspector',
          makeList(0, 1),
          function(MACHINE) {
             if (MACHINE.argcount === 1) {
-                MACHINE.params['currentInspector'] = MACHINE.env[MACHINE.env.length - 1];
+                MACHINE.params['currentInspector'] = 
+                    checkInspector(MACHINE, 'current-inspector', 0);
                 return VOID;
             } else {
 	        return MACHINE.params['currentInspector'];
@@ -1703,104 +1743,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // recomputeGas: state number -> number
-    var recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
-	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
-	// that we get MACHINE.params.desiredYieldsPerSecond bounces per
-	// second.
-	var DESIRED_DELAY_BETWEEN_BOUNCES = 
-	    (1000 / MACHINE.params.desiredYieldsPerSecond);
-	var ALPHA = 256;
-	var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
-			       observedDelay) / 
-			      DESIRED_DELAY_BETWEEN_BOUNCES));
-	MACHINE.params.maxNumBouncesBeforeYield = 
-            Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
-                     1);
-    };
-
-
-    var HaltError = function(onHalt) {
-        // onHalt: MACHINE -> void
-        this.onHalt = onHalt || function(MACHINE) {};
-    };
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    // The toplevel trampoline.
-    //
-    //
-    // trampoline: MACHINE (MACHINE -> void) -> void
-    //
-    // All evaluation in Racketland happens in the context of this
-    // trampoline.
-    //
-    var trampoline = function(MACHINE, initialJump) {
-	var thunk = initialJump;
-	var startTime = (new Date()).valueOf();
-	MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
-	MACHINE.params.numBouncesBeforeYield = 
-	    MACHINE.params.maxNumBouncesBeforeYield;
-	MACHINE.running = true;
-
-	while(true) {
-            try {
-		thunk(MACHINE);
-		break;
-            } catch (e) {
-                // There are a few kinds of things that can get thrown
-                // during racket evaluation:
-                //
-                // functions: this gets thrown if the Racket code realizes
-                // that the number of bounces has grown too large.  The thrown
-                // function represents a restarter function.
-                //
-                // HaltError: causes evaluation to immediately halt.  We schedule
-                // the onHalt function of the HaltError to call afterwards.
-                //
-                // everything else: otherwise, we send the exception value
-                // to the current error handler and exit.
-		if (typeof(e) === 'function') {
-                    thunk = e;
-                    MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
-
-		    if (MACHINE.params.numBouncesBeforeYield-- < 0) {
-			recomputeMaxNumBouncesBeforeYield(
-			    MACHINE,
-			    (new Date()).valueOf() - startTime);
-			setTimeout(
-			    function() { trampoline(MACHINE, thunk); },
-			    0);
-			return;
-		    } else {
-                        continue;
-                    }
-		} else if (e instanceof HaltError) {
-		    MACHINE.running = false;
-                    setTimeout(
-                        function() { e.onHalt(MACHINE); },
-                        0);
-                    return;
-                } else {
-		    MACHINE.running = false;
-                    setTimeout(
-                        function() { MACHINE.params.currentErrorHandler(MACHINE, e); },
-                        0);
-	            return;
-		}
-            }
-	}
-	MACHINE.running = false;
-        setTimeout(
-            function() { MACHINE.params.currentSuccessHandler(MACHINE); },
-            0);
-	return;
-    };
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////

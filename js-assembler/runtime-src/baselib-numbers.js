@@ -27,6 +27,27 @@
     };
 
 
+    // sign: number -> number
+    var sign = function(x) {
+        if (jsnums.isInexact(x)) {
+	    if (jsnums.greaterThan(x, 0) ) {
+		return jsnums.makeFloat(1);
+	    } else if (jsnums.lessThan(x, 0) ) {
+		return jsnums.makeFloat(-1);
+	    } else {
+		return jsnums.makeFloat(0);
+	    }
+	} else {
+	    if (jsnums.greaterThan(x, 0)) {
+		return 1;
+	    } else if (jsnums.lessThan(x, 0)) {
+		return -1;
+	    } else {
+		return 0;
+	    }
+	}
+    };
+
 
 
 
@@ -49,6 +70,8 @@
     exports.isNatural = isNatural;
     exports.isByte = isByte;
     exports.isNonNegativeReal = isNonNegativeReal;
+
+    exports.sign = sign;
 
 
 })(this['plt'].baselib);

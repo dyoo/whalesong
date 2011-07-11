@@ -13,10 +13,14 @@
         return "#<inspector>";
     };
 
+    var isInspector = baselib.makeClassPredicate(Inspector);
+
 
 
     exports.Inspector = Inspector;
     exports.DEFAULT_INSPECTOR = DEFAULT_INSPECTOR;
+
+    exports.isInspector = isInspector;
 
 
 })(this['plt'].baselib);

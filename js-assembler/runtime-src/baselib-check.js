@@ -19,6 +19,7 @@
     };
 
 
+
     // testArgument: (X -> boolean) X number string string -> boolean
     // Produces true if val is true, and otherwise raises an error.
     var testArgument = function(MACHINE,
@@ -51,11 +52,61 @@
 
 
 
+    var checkOutputPort = makeCheckArgumentType(
+        plt.baselib.ports.isOutputPort,
+        'output port');
 
+    var checkString = makeCheckArgumentType(
+        plt.baselib.strings.isString,
+        'string');
+    
+    var checkFunction = makeCheckArgumentType(
+        plt.baselib.functions.isFunction,
+        'function');
 
+    var checkNumber = makeCheckArgumentType(
+        plt.baselib.numbers.isNumber,
+        'number');
 
+    var checkReal = makeCheckArgumentType(
+        plt.baselib.numbers.isReal,
+        'real');
 
-    //var checkOutputPort = makeCheckArgumentType()
+    var checkNatural = makeCheckArgumentType(
+        plt.baselib.numbers.isNatural,
+        'natural');
+
+    var checkInteger = makeCheckArgumentType(
+        plt.baselib.numbers.isInteger,
+        'integer');
+
+    var checkRational = makeCheckArgumentType(
+        plt.baselib.numbers.isRational,
+        'rational');
+
+    var checkNonNegativeReal = makeCheckArgumentType(
+        plt.baselib.numbers.isNonNegativeReal,
+        'non-negative real');
+
+    var checkPair = makeCheckArgumentType(
+        plt.baselib.lists.isPair,
+        'pair');
+
+    var checkList = makeCheckArgumentType(
+        plt.baselib.lists.isList,
+        'list');
+
+    var checkVector = makeCheckArgumentType(
+        plt.baselib.vectors.isVector,
+        'vector');
+
+    var checkBox = makeCheckArgumentType(
+        plt.baselib.boxes.isBox,
+        'box');
+    var checkMutableBox = makeCheckArgumentType(
+        plt.baselib.boxes.isMutableBox,
+        'mutable box');
+
 
 
 
@@ -67,8 +118,20 @@
     exports.testArity = testArity;
     exports.makeCheckArgumentType = makeCheckArgumentType;
 
-    //exports.checkOutputPort = checkOutputPort;
-
+    exports.checkOutputPort = checkOutputPort;
+    exports.checkString = checkString;
+    exports.checkFunction = checkFunction;
+    exports.checkNumber = checkNumber;
+    exports.checkReal = checkReal;
+    exports.checkNonNegativeReal = checkNonNegativeReal;
+    exports.checkNatural = checkNatural;
+    exports.checkInteger = checkInteger;
+    exports.checkRational = checkRational;
+    exports.checkPair = checkPair;
+    exports.checkList = checkList;
+    exports.checkVector = checkVector;
+    exports.checkBox = checkBox;
+    exports.checkMutableBox = checkMutableBox;
 
 
 })(this['plt'].baselib);

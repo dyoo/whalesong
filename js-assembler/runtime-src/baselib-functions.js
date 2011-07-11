@@ -84,6 +84,20 @@
     };
 
 
+    var isPrimitiveProcedure = function(x) {
+        return typeof(x) === 'function';
+    };
+
+    var isClosure = function(x) {
+        return x instanceof Closure;
+    };
+
+
+    var isFunction = function(x) {
+        return (typeof(x) === 'function' ||
+                x instanceof Closure);
+    };
+
 
 
 
@@ -91,5 +105,9 @@
     exports.Closure = Closure;
     exports.finalizeClosureCall = finalizeClosureCall;
     exports.makePrimitiveProcedure = makePrimitiveProcedure;
+    exports.isPrimitiveProcedure = isPrimitiveProcedure;
+    exports.isClosure = isClosure;
+
+    exports.isFunction = isFunction;
 
 })(this['plt'].baselib);

@@ -10,6 +10,8 @@
     Empty = function() {
     };
     Empty.EMPTY = new Empty();
+    var EMPTY = Empty.EMPTY;
+
 
 
     Empty.prototype.equals = function(other, aUnionFind) {
@@ -44,8 +46,8 @@
 
     Cons.prototype.reverse = function() {
         var lst = this;
-        var ret = Empty.EMPTY;
-        while (!isEmpty(lst)){
+        var ret = EMPTY;
+        while (lst !== EMPTY) {
 	    ret = Cons.makeInstance(lst.first, ret);
 	    lst = lst.rest;
         }
@@ -70,11 +72,11 @@
 
     // Cons.append: (listof X) -> (listof X)
     Cons.prototype.append = function(b){
-        if (b === Empty.EMPTY)
+        if (b === EMPTY)
 	    return this;
         var ret = b;
         var lst = this.reverse();
-        while ( !isEmpty(lst) ) {
+        while (lst !== EMPTY) {
 	    ret = Cons.makeInstance(lst.first, ret);
 	    lst = lst.rest;
         }
@@ -94,7 +96,7 @@
 	        break;
 	    }
         }
-        if ( p !== Empty.EMPTY ) {
+        if ( p !== EMPTY ) {
 	    texts.push('.');
 	    texts.push(plt.baselib.format.toWrittenString(p, cache));
         }
@@ -179,12 +181,19 @@
 
 
 
-
+    var reverse = function(lst) {
+	var rev = EMPTY;
+	while(lst !== EMPTY) {
+	    rev = makePair(lst.first, rev);
+	    lst = lst.rest;
+	}
+	return rev;
+    };
 
 
     //////////////////////////////////////////////////////////////////////
 
-    exports.EMPTY = Empty.EMPTY;
+    exports.EMPTY = EMPTY;
     exports.Empty = Empty;
     exports.Cons = Cons;
     exports.isPair = isPair;
@@ -192,6 +201,7 @@
     exports.isEmpty = isEmpty;
     exports.makePair = makePair;
     exports.makeList = makeList;
+    exports.reverse = reverse;
 
 
 })(this['plt'].baselib);

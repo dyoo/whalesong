@@ -95,8 +95,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var raiseOperatorIsNotClosure = plt.baselib.exceptions.raiseOperatorIsNotClosure;
     var raiseUnimplementedPrimitiveError = plt.baselib.exceptions.raiseUnimplementedPrimitiveError;
 
+
+
     var testArgument = plt.baselib.check.testArgument;
     var testArity = plt.baselib.check.testArity;
+    var checkOutputPort = plt.baselib.check.checkOutputPort;
     var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
 
 
@@ -296,10 +299,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-
-
-
-
     var defaultCurrentPrint = new Closure(
 	function(MACHINE) {
             if(--MACHINE.callsBeforeTrampoline < 0) { 
@@ -390,13 +389,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var outputPort = MACHINE.params.currentOutputPort;
 	    if (MACHINE.argcount === 2) {
-	        testArgument(MACHINE,
-			     'output-port', 
-			     isOutputPort, 
-			     MACHINE.env.length-2,
-			     1,
-			     'display');
-	        outputPort = MACHINE.env[MACHINE.env.length-2];
+	        outputPort = checkOutputPort(MACHINE, 'display', 1);
 	    }
 	    outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
             return VOID;
@@ -407,13 +400,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
 	    var outputPort = MACHINE.params.currentOutputPort;
 	    if (MACHINE.argcount === 1) { 
-	        testArgument(MACHINE,
-			     'output-port', 
-			     isOutputPort, 
-			     MACHINE.env.length-1,
-			     1,
-			     'newline');
-	        outputPort = MACHINE.env[MACHINE.env.length-1];
+	        outputPort = checkOutputPort(MACHINE, 'newline', 1);
 	    }
 	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
             return VOID;
@@ -426,13 +413,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var outputPort = MACHINE.params.currentOutputPort;
 	    if (MACHINE.argcount === 2) {
-	        testArgument(MACHINE,
-			     'output-port', 
-			     isOutputPort, 
-			     MACHINE.env.length-2,
-			     1,
-			     'displayln'); 
-	        outputPort = MACHINE.env[MACHINE.env.length-2];
+                outputPort = checkOutputPort(MACHINE, 'displayln', 1);
 	    }
 	    outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
 	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
@@ -446,16 +427,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
-            testArgument(MACHINE,
-                         'string',
-                         isString,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'format');
-            for(i = 0; i < MACHINE.argcount; i++) {
+            formatString = checkString(MACHINE, 'format', 0);
+            for(i = 1; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
-            formatString = args.shift();
             return plt.baselib.format.format(formatString, args, 'format');
         });
 
@@ -465,19 +440,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'printf',
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
-            var args = [], i, formatString;
-            testArgument(MACHINE,
-                         'string',
-                         isString,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'printf');
-            for(i = 0; i < MACHINE.argcount; i++) {
+            var args = [], i, formatString, result, outputPort;
+            formatString = checkString(MACHINE, 'printf', 0);
+            for(i = 1; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
-            formatString = args.shift();
-            var result = plt.baselib.format.format(formatString, args, 'format');
-            var outputPort = MACHINE.params.currentOutputPort;            
+            result = plt.baselib.format.format(formatString, args, 'format');
+            outputPort = MACHINE.params.currentOutputPort;            
 	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
             return VOID;
         });
@@ -487,25 +456,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'fprintf',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
-            var args = [], i, formatString;
-            testArgument(MACHINE,
-                         'output-port',
-                         isOutputPort,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'fprintf');
-            testArgument(MACHINE,
-                         'string',
-                         isString,
-                         MACHINE.env[MACHINE.env.length-2],
-                         1,
-                         'fprintf');
-            for(i = 1; i < MACHINE.argcount; i++) {
+            var args = [], i, formatString, outputPort, result;
+            outputPort = checkOutputPort(MACHINE, 'fprintf', 0);
+            formatString = checkString(MACHINE, 'fprintf', 1);
+            for(i = 2; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
-            formatString = args.shift();
-            var result = plt.baselib.format.format(formatString, args, 'format');
-            var outputPort = MACHINE.env[MACHINE.env.length-1];
+            result = plt.baselib.format.format(formatString, args, 'format');
 	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
             return VOID;
         });
@@ -520,7 +477,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         makeList(0, 1),
         function(MACHINE) {
             if (MACHINE.argcount === 1) {
-                MACHINE.params['currentPrint'] = MACHINE.env[MACHINE.env.length - 1];
+                MACHINE.params['currentPrint'] =                 
+                    checkFunction(MACHINE, 'current-print', 0);
                 return VOID;
             } else {
 	        return MACHINE.params['currentPrint'];
@@ -533,7 +491,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         makeList(0, 1),
         function(MACHINE) {
             if (MACHINE.argcount === 1) {
-                MACHINE.params['currentOutputPort'] = MACHINE.env[MACHINE.env.length - 1];
+                MACHINE.params['currentOutputPort'] = 
+                    checkOutputPort(MACHINE, 'current-output-port', 0);
                 return VOID;
             } else {
 	        return MACHINE.params['currentOutputPort'];
@@ -548,18 +507,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         '=',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    testArgument(MACHINE, 'number', isNumber, firstArg, 0, '=');
-	    for (var i = 0; i < MACHINE.argcount - 1; i++) {
-	        testArgument(MACHINE, 
-			     'number',
-			     isNumber, 
-			     MACHINE.env[MACHINE.env.length - 1 - i],
-			     i,
-			     '=');
-	        if (! (plt.baselib.numbers.equals(
-                    MACHINE.env[MACHINE.env.length - 1 - i],
-		    MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
+	    var firstArg = checkNumber(MACHINE, '=', 0), secondArg;
+	    for (var i = 1; i < MACHINE.argcount; i++) {
+                var secondArg = checkNumber(MACHINE, '=', i);
+	        if (! (plt.baselib.numbers.equals(firstArg, secondArg))) {
 		    return false; 
 	        }
 	    }
@@ -572,122 +523,52 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         '=~',
         3,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'real',
-		         isReal,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         '=~');
-            testArgument(MACHINE,
-		         'real',
-		         isReal,
-		         MACHINE.env[MACHINE.env.length - 2],
-		         1,
-		         '=~');
-            testArgument(MACHINE,
-		         'nonnegative real',
-		         isNonNegativeReal,
-		         MACHINE.env[MACHINE.env.length - 3],
-		         2,
-		         '=~');
-	    var x = MACHINE.env[MACHINE.env.length-1];
-	    var y = MACHINE.env[MACHINE.env.length-2];
-	    var range = MACHINE.env[MACHINE.env.length-3];
-            return plt.baselib.numbers.lessThanOrEqual(plt.baselib.numbers.abs(plt.baselib.numbers.subtract(x, y)), range);
+	    var x = checkReal(MACHINE, '=~', 0);
+	    var y = checkReal(MACHINE, '=~', 1);
+	    var range = checkNonNegativeReal(MACHINE, '=~', 2);
+            return plt.baselib.numbers.lessThanOrEqual(
+                plt.baselib.numbers.abs(plt.baselib.numbers.subtract(x, y)), 
+                range);
         });
 
 
 
+    var makeChainingBinop = function(predicate, name) {
+        return function(MACHINE) {
+	    var firstArg = checkNumber(MACHINE, name, 0), secondArg;
+	    for (var i = 1; i < MACHINE.argcount; i++) {
+	        secondArg = checkNumber(MACHINE, name, i);
+	        if (! (predicate(firstArg, secondArg))) {
+		    return false; 
+	        }
+                firstArg = secondArg;
+	    }
+	    return true;
+        };
+    };
 
     installPrimitiveProcedure(
         '<',
         plt.baselib.arity.makeArityAtLeast(2),
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    testArgument(MACHINE,
-		         'number', isNumber, firstArg, 0, '<');
-	    for (var i = 0; i < MACHINE.argcount - 1; i++) {
-	        testArgument(MACHINE, 
-			     'number',
-			     isNumber, 
-			     MACHINE.env[MACHINE.env.length - 1 - i],
-			     i,
-			     '<');
-	        if (! (plt.baselib.numbers.lessThan(MACHINE.env[MACHINE.env.length - 1 - i],
-		                       MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
-		    return false; 
-	        }
-	    }
-	    return true;
-        });
+        makeChainingBinop(plt.baselib.numbers.lessThan, '<'));
 
 
     installPrimitiveProcedure(
         '>',
         plt.baselib.arity.makeArityAtLeast(2),
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    testArgument(MACHINE,
-		         'number', isNumber, firstArg, 0, '>');
-	    for (var i = 0; i < MACHINE.argcount - 1; i++) {
-	        testArgument(MACHINE,
-			     'number',
-			     isNumber, 
-			     MACHINE.env[MACHINE.env.length - 1 - i],
-			     i,
-			     '>');
-	        if (! (plt.baselib.numbers.greaterThan(MACHINE.env[MACHINE.env.length - 1 - i],
-		                          MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
-		    return false; 
-	        }
-	    }
-	    return true;
-        });
+        makeChainingBinop(plt.baselib.numbers.greaterThan, '>'));
+
 
     installPrimitiveProcedure(
         '<=',
         plt.baselib.arity.makeArityAtLeast(2),
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    testArgument(MACHINE,
-		         'number', isNumber, firstArg, 0, '<=');
-	    for (var i = 0; i < MACHINE.argcount - 1; i++) {
-	        testArgument(MACHINE,
-			     'number',
-			     isNumber, 
-			     MACHINE.env[MACHINE.env.length - 1 - i],
-			     i,
-			     '<=');
-	        if (! (plt.baselib.numbers.lessThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
-		                              MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
-		    return false; 
-	        }
-	    }
-	    return true;
-        });
+        makeChainingBinop(plt.baselib.numbers.lessThanOrEqual, '<='));
 
 
     installPrimitiveProcedure(
         '>=',
         plt.baselib.arity.makeArityAtLeast(2),
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    testArgument(MACHINE,
-		         'number', isNumber, firstArg, 0, '>=');
-	    for (var i = 0; i < MACHINE.argcount - 1; i++) {
-	        testArgument(MACHINE, 
-			     'number',
-			     isNumber, 
-			     MACHINE.env[MACHINE.env.length - 1 - i],
-			     i,
-			     '>=');
-	        if (! (plt.baselib.numbers.greaterThanOrEqual(MACHINE.env[MACHINE.env.length - 1 - i],
-		                                 MACHINE.env[MACHINE.env.length - 1 - i - 1]))) {
-		    return false; 
-	        }
-	    }
-	    return true;
-        });
+        makeChainingBinop(plt.baselib.numbers.greaterThanOrEqual, '>='));
     
 
     installPrimitiveProcedure(
@@ -696,14 +577,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
 	    var result = 0;
 	    var i = 0;
-	    for (i=0; i < MACHINE.argcount; i++) {
-	        testArgument(MACHINE,
-			     'number',
-			     isNumber, 
-			     MACHINE.env[MACHINE.env.length - 1 - i],
-			     i,
-			     '+');
-	        result = plt.baselib.numbers.add(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	    for (i = 0; i < MACHINE.argcount; i++) {
+	        result = plt.baselib.numbers.add(
+                    result, 
+                    checkNumber(MACHINE, '+', i));
 	    };
 	    return result;
         });
@@ -716,13 +593,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var result = 1;
 	    var i = 0;
 	    for (i=0; i < MACHINE.argcount; i++) {
-	        testArgument(MACHINE,
-			     'number',
-			     isNumber, 
-			     MACHINE.env[MACHINE.env.length - 1 - i],
-			     i,
-			     '*');
-	        result = plt.baselib.numbers.multiply(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	        result = plt.baselib.numbers.multiply(
+                    result, 
+                    checkNumber(MACHINE, '*', i));
 	    }
 	    return result;
         });
@@ -732,23 +605,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
 	    if (MACHINE.argcount === 1) { 
-	        testArgument(MACHINE,
-			     'number',
-			     isNumber,
-			     MACHINE.env[MACHINE.env.length-1],
-			     0,
-			     '-');
-	        return plt.baselib.numbers.subtract(0, MACHINE.env[MACHINE.env.length-1]);
+	        return plt.baselib.numbers.subtract(
+                    0, 
+                    checkNumber(MACHINE, '-', 0));
 	    }
-	    var result = MACHINE.env[MACHINE.env.length - 1];
+	    var result = checkNumber(MACHINE, '-', 0);
 	    for (var i = 1; i < MACHINE.argcount; i++) {
-	        testArgument(MACHINE,
-			     'number',
-			     isNumber,
-			     MACHINE.env[MACHINE.env.length-1-i],
-			     i,
-			     '-');
-	        result = plt.baselib.numbers.subtract(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	        result = plt.baselib.numbers.subtract(
+                    result, 
+                    checkNumber(MACHINE, '-', i));
 	    }
 	    return result;
         });
@@ -757,21 +622,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         '/',
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'number',
-		         isNumber,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         '/');
-	    var result = MACHINE.env[MACHINE.env.length - 1];
+	    var result = checkNumber(MACHINE, '/', 0);
 	    for (var i = 1; i < MACHINE.argcount; i++) {
-	        testArgument(MACHINE,
-			     'number',
-			     isNumber,
-			     MACHINE.env[MACHINE.env.length-1-i],
-			     i,
-			     '/');
-	        result = plt.baselib.numbers.divide(result, MACHINE.env[MACHINE.env.length - 1 - i]);
+	        result = plt.baselib.numbers.divide(
+                    result,
+                    checkNumber(MACHINE, '/'i));
 	    }
 	    return result;
         });
@@ -781,13 +636,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'add1',
         1,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'number',
-		         isNumber,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'add1');
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkNumber(MACHINE, 'add1', 0);
 	    return plt.baselib.numbers.add(firstArg, 1);
         });
 
@@ -796,13 +645,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'sub1',
         1,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'number',
-		         isNumber,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'sub1');
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkNumber(MACHINE, 'sub1', 0);
 	    return plt.baselib.numbers.subtract(firstArg, 1);
         });
 
@@ -842,13 +685,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'car',
         1,
         function(MACHINE) {
-	    testArgument(MACHINE, 
-		         'pair',
-		         isPair,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'car');
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkPair(MACHINE, 'car', 0);
 	    return firstArg.first;
         });
 
@@ -856,13 +693,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'cdr',
         1,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'pair',
-		         isPair,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'cdr');
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkPair(MACHINE, 'cdr', 0);
 	    return firstArg.rest;
         });
 
@@ -878,13 +709,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'set-car!',
         2,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'pair',
-		         isPair,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'set-car!');
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkPair(MACHINE, 'set-car!', 0);
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    firstArg.first = secondArg;
             return VOID;
@@ -895,13 +720,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'set-cdr!',
         2,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'pair',
-		         isPair,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'set-cdr!');
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkPair(MACHINE, 'set-car!', 0);
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    firstArg.rest = secondArg;
             return VOID;
@@ -944,13 +763,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'vector->list',
         1,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'vector',
-		         isVector,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'vector->list');
-	    var elts = MACHINE.env[MACHINE.env.length-1].elts;
+	    var elts = checkVector(MACHINE, 'vector->list', 0).elts;
 	    var i;
 	    var result = NULL;
 	    for (i = 0; i < elts.length; i++) {
@@ -964,7 +777,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'list->vector',
         1,
         function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkList(MACHINE, 'list->vector', 0);
 	    var result = [];
 	    while (firstArg !== NULL) {
 	        result.push(firstArg.first);
@@ -978,13 +791,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'vector-ref',
         2,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'vector',
-		         isVector,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'vector-ref');
-	    var elts = MACHINE.env[MACHINE.env.length-1].elts;
+	    var elts = checkVector(MACHINE, 'vector-ref', 0).elts;
 	    var index = MACHINE.env[MACHINE.env.length-2];
 	    return elts[index];
         });
@@ -1006,24 +813,21 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		         MACHINE.env[MACHINE.env.length - 2],
 		         1,
 		         'vector-set!');
-	    var elts = MACHINE.env[MACHINE.env.length-1].elts;
-	    var index = plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length-2]);
+	    var elts = checkVector(MACHINE, 'vector-set!', 0).elts;
+            // FIXME: check out-of-bounds vector
+	    var index = plt.baselib.numbers.toFixnum(
+                checkNatural(MACHINE.env[MACHINE.env.length-2]));
 	    var val = MACHINE.env[MACHINE.env.length-3];
 	    elts[index] = val;
 	    return VOID;
         });
 
+
     installPrimitiveProcedure(
         'vector-length',
         1,
         function(MACHINE) {
-	    testArgument(MACHINE,
-		         'vector',
-		         isVector,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'vector-length');
-	    var firstArg = MACHINE.env[MACHINE.env.length-1].elts;
+	    var firstArg = checkVector(MACHINE, 'vector-length', 0);
 	    return firstArg.length;
         });
 
@@ -1033,16 +837,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         makeList(1, 2),
         function(MACHINE) {
 	    var value = 0;
-	    testArgument(MACHINE,
-		         'natural',
-		         isNatural,
-		         MACHINE.env[MACHINE.env.length - 1],
-		         0,
-		         'make-vector');
+	    var length = plt.baselib.numbers.toFixnum(
+                checkNatural(MACHINE, 'make-vector', 0));
 	    if (MACHINE.argcount == 2) {
 	        value = MACHINE.env[MACHINE.env.length - 2];
 	    }
-	    var length = plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length-1]);
 	    var arr = [];
 	    for(var i = 0; i < length; i++) {
 	        arr[i] = value;
@@ -1057,15 +856,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         1,
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return typeof(firstArg) === 'string';
+	    return plt.baselib.symbols.isSymbol(firstArg);
         });
 
     installPrimitiveProcedure(
         'symbol->string',
         1,
         function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return firstArg;
+	    var firstArg = checkSymbol(MACHINE, 'symbol->string', 0);
+	    return firstArg.toString();
         });
 
     installPrimitiveProcedure(
@@ -1075,7 +874,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var buffer = [];
 	    var i;
 	    for (i = 0; i < MACHINE.argcount; i++) {
-	        buffer.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+	        buffer.push(checkString(MACHINE, 'string-append', i));
 	    }
 	    return buffer.join('');
         });
@@ -1084,7 +883,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'string-length',
         1,
         function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkString(MACHINE, 'string-length', 0);
 	    return firstArg.length;
         });
     
@@ -1100,8 +899,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'unbox',
         1,
         function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-            // FIXME: typecheck for box
+	    var firstArg = checkBox(MACHINE, 'unbox', 0);
             return firstArg.ref();
         });
 
@@ -1109,9 +907,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'set-box!',
         2,
         function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var firstArg = checkMutableBox(MACHINE, 'set-box!', 0);
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-            // FIXME: typecheck for box
             firstArg.set(secondArg);
 	    return VOID;
         });
@@ -1151,13 +948,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var lst = MACHINE.env[MACHINE.env.length-2];
 	    var originalLst = lst;
 	    while (true) {
-	        if (! isList(lst)) {
-		    raise(MACHINE, new Error("member: expected list" 
-					     + " as argument #2"
-					     + " but received " + originalLst + " instead"));
-	        }
 	        if (lst === NULL) {
 		    return false;
+	        }
+	        if (! isPair(lst)) {
+		    raiseArgumentTypeError(MACHINE,
+                                           'member',
+                                           'list',
+                                           1,
+                                           MACHINE.env[MACHINE.env.length - 1 - 1]);
 	        }
 	        if (equals(x, (lst.first))) {
 		    return lst;
@@ -1190,26 +989,16 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'abs',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'abs');
-            return plt.baselib.numbers.abs(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.abs(
+                checkNumber(MACHINE, 'abs', 0));
         });
 
     installPrimitiveProcedure(
         'acos',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'acos');
-            return plt.baselib.numbers.acos(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.acos(
+                checkNumber(MACHINE, 'acos', 0));
         });
 
 
@@ -1217,26 +1006,16 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'asin',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'asin');
-            return plt.baselib.numbers.asin(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.asin(
+                checkNumber(MACHINE, 'asin', 0));
         });
 
     installPrimitiveProcedure(
         'sin',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'sin');
-            return plt.baselib.numbers.sin(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sin(
+                checkNumber(MACHINE, 'sin', 0));
         });
 
 
@@ -1245,13 +1024,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'sinh',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'sinh');
-            return plt.baselib.numbers.sinh(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sinh(
+                checkNumber(MACHINE, 'sinh', 0));
         });
 
 
@@ -1259,13 +1033,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'tan',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'tan');
-            return plt.baselib.numbers.tan(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.tan(
+                checkNumber(MACHINE, 'tan', 0));
         });
 
     
@@ -1275,13 +1044,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         makeList(1, 2),
         function(MACHINE) {
             if (MACHINE.argcount === 1) {
-                testArgument(MACHINE,
-                             'number',
-                             isNumber,
-                             MACHINE.env[MACHINE.env.length - 1],
-                             0,
-                             'atan');
-		return plt.baselib.numbers.atan(MACHINE.env[MACHINE.env.length - 1]);
+		return plt.baselib.numbers.atan(
+                    checkNumber(MACHINE, 'atan', 0));
             } else {
                 testArgument(MACHINE,
                              'number',
@@ -1296,8 +1060,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                              1,
                              'atan');
                 return plt.baselib.numbers.makeFloat(
-		    Math.atan2(plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 1]),
-			       plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2])));
+		    Math.atan2(
+                        plt.baselib.numbers.toFixnum(checkNumber(MACHINE, 'atan', 0)),
+                        plt.baselib.numbers.toFixnum(checkNumber(MACHINE, 'atan', 1))));
             }
         });
 
@@ -1306,39 +1071,24 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'angle',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'angle');
-            return plt.baselib.numbers.angle(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.angle(
+                checkNumber(MACHINE, 'angle', 0));
         });
 
     installPrimitiveProcedure(
         'magnitude',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'magnitude');
-            return plt.baselib.numbers.magnitude(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.magnitude(
+                checkNumber(MACHINE, 'magnitude', 0));
         });
 
     installPrimitiveProcedure(
         'conjugate',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'conjugate');
-            return plt.baselib.numbers.conjugate(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.conjugate(
+                checkNumber(MACHINE, 'conjugate', 0));
         });
 
 
@@ -1348,13 +1098,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'cos',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'cos');
-            return plt.baselib.numbers.cos(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.cos(
+                checkNumber(MACHINE, 'cos', 0));
         });
 
 
@@ -1362,13 +1107,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'cosh',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'cosh');
-            return plt.baselib.numbers.cosh(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.cosh(
+                checkNumber(MACHINE, 'cosh', 0));
         });
 
     installPrimitiveProcedure(
@@ -1377,14 +1117,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
-                testArgument(MACHINE,
-                             'integer',
-                             plt.baselib.numbers.isInteger,
-                             MACHINE.env[MACHINE.env.length - 1 - i],
-                             i,
-                             'gcd');
-                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
-
+                args.push(checkNumber(MACHINE, 'gcd', i));
             }
             x = args.shift();
 	    return plt.baselib.numbers.gcd(x, args);
@@ -1396,14 +1129,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
-                testArgument(MACHINE,
-                             'integer',
-                             plt.baselib.numbers.isInteger,
-                             MACHINE.env[MACHINE.env.length - 1 - i],
-                             i,
-                             'lcm');
-                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
-
+                args.push(checkNumber(MACHINE, 'lcm', i));
             }
             x = args.shift();
 	    return plt.baselib.numbers.lcm(x, args);
@@ -1416,13 +1142,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'exp',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'exp');
-            return plt.baselib.numbers.exp(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.exp(
+                checkNumber(MACHINE, 'exp', 0));
         });
 
 
@@ -1430,20 +1151,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'expt',
         2,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'expt');
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length - 2],
-                         1,
-                         'expt');
-            return plt.baselib.numbers.expt(MACHINE.env[MACHINE.env.length - 1],
-                               MACHINE.env[MACHINE.env.length - 2]);
+            return plt.baselib.numbers.expt(
+                checkNumber(MACHINE, 'expt', 0),
+                checkNumber(MACHINE, 'expt', 1));
         });
 
 
@@ -1451,13 +1161,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'exact?',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'exact?');
-            return plt.baselib.numbers.isExact(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.isExact(
+                checkNumber(MACHINE, 'exact?', 0));
         });
 
 
@@ -1474,48 +1179,27 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'imag-part',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'imag-part');
-            return plt.baselib.numbers.imaginaryPart(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.imaginaryPart(
+                checkNumber(MACHINE, 'imag-part', 0));
         });
+
 
     installPrimitiveProcedure(
         'real-part',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'real-part');
-            return plt.baselib.numbers.realPart(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.realPart(
+                checkNumber(MACHINE, 'real-part', 0));
         });
-
 
 
     installPrimitiveProcedure(
         'make-polar',
         2,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'make-polar');
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 2],
-                         1,
-                         'make-polar');
-            return plt.baselib.numbers.makeComplexPolar(MACHINE.env[MACHINE.env.length - 1],
-                                           MACHINE.env[MACHINE.env.length - 2]);
+            return plt.baselib.numbers.makeComplexPolar(
+                checkReal(MACHINE, 'make-polar', 0),
+                checkReal(MACHINE, 'make-polar', 1));
         });
 
 
@@ -1523,40 +1207,18 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'make-rectangular',
         2,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'make-rectangular');
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 2],
-                         1,
-                         'make-rectangular');
-            return plt.baselib.numbers.makeComplex(MACHINE.env[MACHINE.env.length - 1],
-                                      MACHINE.env[MACHINE.env.length - 2]);
+            return plt.baselib.numbers.makeComplex(
+                checkReal(MACHINE, 'make-rectangular', 0),
+                checkReal(MACHINE, 'make-rectangular', 1));
         });
 
     installPrimitiveProcedure(
         'modulo',
         2,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'modulo');
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length - 2],
-                         1,
-                         'modulo');
-            return plt.baselib.numbers.modulo(MACHINE.env[MACHINE.env.length - 1],
-                                 MACHINE.env[MACHINE.env.length - 2]);
+            return plt.baselib.numbers.modulo(
+                checkInteger(MACHINE, 'modulo', 0),
+                checkInteger(MACHINE, 'modulo', 1));
         });
 
 
@@ -1564,20 +1226,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'remainder',
         2,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'remainder');
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length - 2],
-                         1,
-                         'remainder');
-            return plt.baselib.numbers.remainder(MACHINE.env[MACHINE.env.length - 1],
-                                    MACHINE.env[MACHINE.env.length - 2]);
+            return plt.baselib.numbers.remainder(
+                checkInteger(MACHINE, 'remainder', 0),
+                checkInteger(MACHINE, 'remainder', 1));
         });
 
 
@@ -1585,20 +1236,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'quotient',
         2,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'quotient');
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length - 2],
-                         1,
-                         'quotient');
-            return plt.baselib.numbers.quotient(MACHINE.env[MACHINE.env.length - 1],
-                                   MACHINE.env[MACHINE.env.length - 2]);
+            return plt.baselib.numbers.quotient(
+                checkInteger(MACHINE, 'quotient', 0),
+                checkInteger(MACHINE, 'quotient', 1));
         });
 
 
@@ -1607,13 +1247,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'floor',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'floor');
-            return plt.baselib.numbers.floor(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.floor(
+                checkReal(MACHINE, 'floor', 0));
         });
     
 
@@ -1621,13 +1256,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'ceiling',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'ceiling');
-            return plt.baselib.numbers.ceiling(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.ceiling(
+                checkReal(MACHINE, 'ceiling', 0));
         });
    
 
@@ -1635,13 +1265,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'round',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'round');
-            return plt.baselib.numbers.round(MACHINE.env[MACHINE.env.length - 1]);
+            return plt.baselib.numbers.round(
+                checkReal(MACHINE, 'round', 0));
         });
     
 
@@ -1649,16 +1274,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'truncate',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'real',
-                         isReal,
-                         MACHINE.env[MACHINE.env.length - 1],
-                         0,
-                         'truncate');
-	    if (plt.baselib.numbers.lessThan(MACHINE.env[MACHINE.env.length - 1], 0)) {
-		return plt.baselib.numbers.ceiling(MACHINE.env[MACHINE.env.length - 1]);
+            var n = checkReal(MACHINE, 'truncate', 0);
+	    if (plt.baselib.numbers.lessThan(n, 0)) {
+		return plt.baselib.numbers.ceiling(n);
 	    } else {
-		return plt.baselib.numbers.floor(MACHINE.env[MACHINE.env.length - 1]);
+		return plt.baselib.numbers.floor(n);
 	    }
         });
     
@@ -1667,26 +1287,17 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'numerator',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'rational',
-                         plt.baselib.numbers.isRational,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'numerator');
-            return plt.baselib.numbers.numerator(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.numerator(
+                checkRational(MACHINE, 'numerator', 0));
         });
+
 
     installPrimitiveProcedure(
         'denominator',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'rational',
-                         plt.baselib.numbers.isRational,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'denominator');
-            return plt.baselib.numbers.denominator(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.denominator(
+                checkRational(MACHINE, 'denominator', 0));
         });
 
 
@@ -1694,13 +1305,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'log',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'log');
-            return plt.baselib.numbers.log(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.log(
+                checkNumber(MACHINE, 'log', 0));
         });
 
 
@@ -1708,13 +1314,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'sqr',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'sqr');
-            return plt.baselib.numbers.sqr(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sqr(
+                checkNumber(MACHINE, 'sqr', 0));
         });
 
 
@@ -1724,15 +1325,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'sqrt',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'number',
-                         isNumber,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'sqrt');
-            return plt.baselib.numbers.sqrt(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.sqrt(
+                checkNumber(MACHINE, 'sqrt', 0));
         });
-
 
 
 
@@ -1740,13 +1335,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'integer-sqrt',
         1,
         function(MACHINE) {
-            testArgument(MACHINE,
-                         'integer',
-                         plt.baselib.numbers.isInteger,
-                         MACHINE.env[MACHINE.env.length-1],
-                         0,
-                         'integer-sqrt');
-            return plt.baselib.numbers.integerSqrt(MACHINE.env[MACHINE.env.length-1]);
+            return plt.baselib.numbers.integerSqrt(
+                checkInteger(MACHINE, 'integer-sqrt', 0));
         });
 
 

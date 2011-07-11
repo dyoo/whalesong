@@ -113,6 +113,11 @@
         'inspector');
 
 
+    var checkByte = makeCheckArgumentType(
+        plt.baselib.numbers.isByte,
+        'byte');
+
+
 
 
 
@@ -138,7 +143,7 @@
     exports.checkBox = checkBox;
     exports.checkMutableBox = checkMutableBox;
     exports.checkInspector = checkInspector;
-
+    exports.checkByte = checkByte;
 
 
 })(this['plt'].baselib);

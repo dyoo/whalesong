@@ -1,10 +1,6 @@
-var checkString = plt.baselib.check.makeCheckArgumentType(
-    plt.baselib.strings.isString,
-    'string');
-
-var checkByte = plt.baselib.check.makeCheckArgumentType(
-    plt.baselib.numbers.isByte,
-    'byte');
+var checkString = plt.baselib.check.checkString;
+var checkByte = plt.baselib.check.checkByte;
+var checkReal = plt.baselib.check.checkReal;
 
 var checkColor = plt.baselib.check.makeCheckArgumentType(
     isColorOrColorString,
@@ -14,9 +10,9 @@ var checkImage = plt.baselib.check.makeCheckArgumentType(
     isImage,
     'image');
 
-var checkReal = plt.baselib.check.makeCheckArgumentType(
-    plt.baselib.numbers.isReal,
-    'real');
+
+var Closure = plt.baselib.functions.Closure;
+var PAUSE = plt.runtime.PAUSE;
 
 
 
@@ -31,7 +27,6 @@ EXPORTS['image-color?'] =
             var elt = MACHINE.env[MACHINE.env.length - 1];
             return (isColorOrColorString(elt));
         });
-
 
 
 
@@ -60,20 +55,44 @@ EXPORTS['text'] =
 //             ...
 //         });
 
-// FIXME
-// EXPORTS['image-url'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
-//         'image-url',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
 // FIXME
+EXPORTS['image-url'] = 
+    new Closure(
+        function(MACHINE) {
+            var url = checkString(MACHINE, 'image-url', 0);
+            PAUSE(function(restart) {
+                    var rawImage = new Image();
+                    rawImage.onload = function() {
+                        restart(function(MACHINE) {
+                            finalizeClosureCall(
+                                makeFileImage(
+                                    path.toString(),
+                                    rawImage));
+                    })
+                    });
+                rawImage.onerror = 
+                    (function(e) {
+                        restart(function(MACHINE) {
+                            plt.baselib.exceptions.raise(
+                                MACHINE, 
+                                new Error(plt.baselib.format.format(
+                                    "unable to load: ~a",
+                                    url)));
+                        });
+                    });
+                rawImage.src = path.toString();
+            );
+        },
+        1,
+        [],
+        'image-url');
+
+// // FIXME
 // EXPORTS['open-image-url'] = 
 //     plt.baselib.functions.makePrimitiveProcedure(
 //         'open-image-url',
-//             ???,
+//         1,
 //         function(MACHINE) {
 //             ...
 //         });

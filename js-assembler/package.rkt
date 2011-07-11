@@ -210,7 +210,7 @@ MACHINE.modules[~s] =
   (define (on-visit-src src ast stmts)
     (cond
      [(UninterpretedSource? src)
-      (fprintf op (UninterpretedSource-datum src))]
+      (fprintf op "~a" (UninterpretedSource-datum src))]
      [else
       (assemble/write-invoke stmts op)
       (fprintf op "(MACHINE, function() { ")]))

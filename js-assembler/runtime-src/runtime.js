@@ -333,6 +333,18 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
 
 
+    var Pause = function(onPause) {
+        // onPause: MACHINE -> void
+        this.onPause = onPause || function(MACHINE) {};
+    };
+
+    var PAUSE = function(onPause) {
+        throw new Pause(onPause);
+    }
+    
+
+
+
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
@@ -361,15 +373,23 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 // There are a few kinds of things that can get thrown
                 // during racket evaluation:
                 //
-                // functions: this gets thrown if the Racket code realizes
-                // that the number of bounces has grown too large.  The thrown
-                // function represents a restarter function.
+                // functions: this gets thrown if the Racket code
+                // realizes that the number of bounces has grown too
+                // large.  The thrown function represents a restarter
+                // function.  The running flag remains true.
                 //
-                // HaltError: causes evaluation to immediately halt.  We schedule
-                // the onHalt function of the HaltError to call afterwards.
+                // Pause: causes the machine evaluation to pause, with
+                // the expectation that it will restart momentarily.
+                // The running flag on the machine will remain true.
                 //
-                // everything else: otherwise, we send the exception value
+                // HaltError: causes evaluation to immediately halt.
+                // We schedule the onHalt function of the HaltError to
+                // call afterwards.  The running flag on the machine
+                // is set to false.
+                //
+                // Everything else: otherwise, we send the exception value
                 // to the current error handler and exit.
+                // The running flag is set to false.
 		if (typeof(e) === 'function') {
                     thunk = e;
                     MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
@@ -385,7 +405,19 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		    } else {
                         continue;
                     }
-		} else if (e instanceof HaltError) {
+		} else if (e instanceof Pause) {
+                    var restart = function(thunk) {
+		        setTimeout(
+			    function() { trampoline(MACHINE, thunk); },
+			    0);
+                    };
+                    setTimeout(
+                        function() { 
+                            e.onPause(restart);
+                        },
+                        0);
+                    return;
+                } else if (e instanceof HaltError) {
 		    MACHINE.running = false;
                     setTimeout(
                         function() { e.onHalt(MACHINE); },
@@ -1922,6 +1954,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;
 
+    exports['PAUSE'] = PAUSE;
     exports['HaltError'] = HaltError;
 
 

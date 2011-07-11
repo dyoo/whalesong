@@ -156,44 +156,45 @@
 
 
     exceptions.IncompleteExn = IncompleteExn;
-    exceptions.incompleteExn = function(constructor, msg, args) { return new IncompleteExn(constructor, msg, args); };
+    exceptions.makeIncompleteExn = function(constructor, msg, args) { return new IncompleteExn(constructor, msg, args); };
     exceptions.isIncompleteExn = function(x) { return x instanceof IncompleteExn; };
 
 
     exceptions.Exn = Exn;
-    exceptions.exn = Exn.constructor;
+    exceptions.makeExn = Exn.constructor;
     exceptions.isExn = Exn.predicate;
     exceptions.exnMessage = function(exn) { return Exn.accessor(exn, 0); };
     exceptions.exnContMarks = function(exn) { return Exn.accessor(exn, 1); };
     exceptions.exnSetContMarks = function(exn, v) { Exn.mutator(exn, 1, v); };
 
     exceptions.ExnBreak = ExnBreak;
-    exceptions.exnBreak = ExnBreak.constructor;
+    exceptions.makeExnBreak = ExnBreak.constructor;
     exceptions.isExnBreak = ExnBreak.predicate;
     exceptions.exnBreakContinuation = 
         function(exn) { return ExnBreak.accessor(exn, 0); };
 
     exceptions.ExnFail = ExnFail;
-    exceptions.exnFail = ExnFail.constructor;
+    exceptions.makeExnFail = ExnFail.constructor;
     exceptions.isExnFail = ExnFail.predicate;
 
     exceptions.ExnFailContract = ExnFailContract;
-    exceptions.exnFailContract = ExnFailContract.constructor;
+    exceptions.makeExnFailContract = ExnFailContract.constructor;
     exceptions.isExnFailContract = ExnFailContract.predicate;
 
     exceptions.ExnFailContractArity = ExnFailContractArity;
-    exceptions.exnFailContractArity = ExnFailContractArity.constructor;
+    exceptions.makeExnFailContractArity = ExnFailContractArity.constructor;
     exceptions.isExnFailContractArity = ExnFailContractArity.predicate;
 
     exceptions.ExnFailContractVariable = ExnFailContractVariable;
-    exceptions.exnFailContractVariable = ExnFailContractVariable.constructor;
+    exceptions.makeExnFailContractVariable = ExnFailContractVariable.constructor;
     exceptions.isExnFailContractVariable = ExnFailContractVariable.predicate;
     exceptions.exnFailContractVariableId = 
         function(exn) { return ExnFailContractVariable.accessor(exn, 0); };
 
 
     exceptions.ExnFailContractDivisionByZero = ExnFailContractDivisionByZero;
-    exceptions.exnFailContractDivisionByZero = ExnFailContractDivisionByZero.constructor;
+    exceptions.makeExnFailContractDivisionByZero = 
+        ExnFailContractDivisionByZero.constructor;
     exceptions.isExnFailContractDivisionByZero = ExnFailContractDivisionByZero.predicate;
 
 

@@ -10,7 +10,93 @@
     // its argument stack space.
     //
 
+    
+    // coerseToJavaScript: racket function -> JavaScript function
+    // Given a closure or primitive, produces an
+    // asynchronous JavaScript function.
+    // The function will run on the provided MACHINE.
+    //
+    // It assumes that it must begin its own trampoline.
+    var coerseToJavaScript = function(v, MACHINE) {
+        MACHINE = MACHINE || plt.runtime.currentMachine;
+        if (isPrimitiveProcedure(v)) {
+            return coersePrimitiveToJavaScript(v, MACHINE);
+        } else if (isClosure(v)) {
+            return coerseClosureToJavaScript(v, MACHINE);
+        } else {
+            plt.baselib.exceptions.raise(MACHINE,
+                                         plt.baselib.exceptions.makeExnFail(
+                                             plt.baselib.format.format(
+                                                 "Not a procedure: ~e",
+                                                 v)));
+        }
+    };
 
+    var coersePrimitiveToJavaScript = function(v, MACHINE) {
+        return function(succ, fail) {
+            try {
+                succ = succ || function(){};
+                fail = fail || function(){};
+                var args = [];
+                for (var i = 2; i < arguments.length; i++) {
+                    args.push(arguments[i]);
+                }
+                var result = v.apply(null, args);
+                succ(result);
+            } catch (e) {
+                fail(e);
+            }
+        }
+    };
+
+
+    var coerseClosureToJavaScript = function(v, MACHINE) {
+        var f = function(succ, fail) {
+            succ = succ || function(){};
+            fail = fail || function(){};
+
+            var args = [], i;
+            for (i = 2; i < arguments.length; i++) {
+                args.push(arguments[i]);
+            }
+
+            var oldVal = MACHINE.val;
+            var oldArgcount = MACHINE.argcount;
+
+            var oldErrorHandler = MACHINE.params['currentErrorHandler'];
+            var afterGoodInvoke = function(MACHINE) { 
+                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                var returnValue = MACHINE.val;
+                MACHINE.val = oldVal;
+                MACHINE.argcount = oldArgcount;
+                succ(MACHINE.val);
+            };
+            afterGoodInvoke.multipleValueReturn = function(MACHINE) {
+                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                var returnValues = [MACHINE.val];
+                for (var i = 0; i < MACHINE.argcount - 1; i++) {
+                    returnValues.push(MACHINE.env.pop());
+                }
+                MACHINE.val = oldVal;
+                MACHINE.argcount = oldArgcount;
+                succ.apply(null, returnValues);
+            };
+
+            setTimeout(
+                function() {
+                    MACHINE.control.push(
+                        new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
+                    MACHINE.argcount = args.length;
+                    for (var i = 0; i < args.length; i++) {
+                        MACHINE.env.push(args[i]);
+                    }
+                    plt.runtime.trampoline(MACHINE,
+                                           entryPoint);
+                },
+                0);
+        };
+        return f;
+    };
 
 
 

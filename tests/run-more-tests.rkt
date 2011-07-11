@@ -14,3 +14,4 @@
 (test "more-tests/man-vs-boy.rkt")
 (test "more-tests/colors.rkt")
 (test "more-tests/images.rkt")
+(test "more-tests/lists.rkt")

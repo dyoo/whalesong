@@ -131,19 +131,19 @@
         node.appendChild(document.createTextNode("("));
         var p = this;
         while ( p instanceof Cons ) {
-	    appendChild(node, plt.baselib.format.toDomNode(p.first, cache));
+	    node.appendChild(plt.baselib.format.toDomNode(p.first, cache));
 	    p = p.rest;
 	    if ( p !== Empty.EMPTY ) {
-	        appendChild(node, document.createTextNode(" "));
+	        node.appendChild(document.createTextNode(" "));
 	    }
 	    if (typeof(p) === 'object' && cache.containsKey(p)) {
 	        break;
 	    }
         }
         if ( p !== Empty.EMPTY ) {
-	    appendChild(node, document.createTextNode("."));
-	    appendChild(node, document.createTextNode(" "));
-	    appendChild(node, plt.baselib.format.toDomNode(p, cache));
+	    node.appendChild(document.createTextNode("."));
+	    node.appendChild(document.createTextNode(" "));
+	    node.appendChild(plt.baselib.format.toDomNode(p, cache));
         }
 
         node.appendChild(document.createTextNode(")"));

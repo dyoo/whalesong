@@ -3,20 +3,23 @@
 
 <script src="runtime.js"></script>
 <script src="fact.js"></script>
-
 <script>
-</script>
-<script>
-
 plt.runtime.invokeMains();
+</script>
 
+<script>
 plt.runtime.ready(function() {
-   var myFact = plt.runtime.lookupInMains('fact');
+   var myFactClosure = plt.runtime.lookupInMains('fact');
+   var myFact = plt.baselib.functions.asJavaScriptFunction(
+        myFactClosure);
+
+
+   $(document.body).append("The factorial of 1000 is: ");
    myFact(function(v) {
-              alert(v.toString());
+              $(document.body).append(v.toString());
           },
           function(err) {
-              alert(err);
+              $(document.body).append(err);
           },
           1000);
 });

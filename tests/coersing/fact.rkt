@@ -8,4 +8,4 @@
     (* x (fact (sub1 x)))]))
 
 
-(printf "fact invoked\n")
+(printf "test: ~s\n" (fact 4))

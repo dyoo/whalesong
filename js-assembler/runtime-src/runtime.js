@@ -1785,7 +1785,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     (function(scope) {
         scope.ready = function(f) {
-            console.log('request');
             if (runtimeIsReady) {
                 notifyWaiter(f);
             } else {
@@ -1794,7 +1793,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         };
 
         scope.setReadyTrue = function() {
-            console.log("runtime is ready");
             runtimeIsReady = true;
             while(runtimeIsReady && readyWaiters.length > 0) {
                 notifyWaiter(readyWaiters.shift());
@@ -1802,7 +1800,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         };
 
         scope.setReadyFalse = function() {
-            console.log("disabled runtime");
             runtimeIsReady = false;
         };
 
@@ -1810,7 +1807,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         var runtimeIsReady = false;
         var readyWaiters = [];
         var notifyWaiter = function(w) {
-            console.log('notifying waiter');
             w();
         };
     })(this);
@@ -1823,6 +1819,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // Executes all programs that have been labeled as a main module
     var invokeMains = function(machine, succ, fail) {
         runtime.ready(function() {
+            setReadyFalse();
             machine = machine || runtime.currentMachine;
             succ = succ || function() {};
             fail = fail || function() {};
@@ -1832,6 +1829,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                     var nextModule = mainModules.shift();
                     nextModule.invoke(machine, loop, fail);
                 } else {
+                    setReadyTrue();
                     succ();
                 }
             };

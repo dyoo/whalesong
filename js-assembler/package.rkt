@@ -225,7 +225,7 @@ MACHINE.modules[~s] =
 
 
   (define (on-last-src)
-    (fprintf op "console.log('module loaded'); plt.runtime.setReadyTrue();")
+    (fprintf op "plt.runtime.setReadyTrue();")
     (fprintf op "SUCCESS();"))
   
 
@@ -247,7 +247,7 @@ MACHINE.modules[~s] =
   
     (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
     (fprintf op "    plt.runtime.ready(function() {")
-    (fprintf op "console.log('loading module'); plt.runtime.setReadyFalse();")
+    (fprintf op "plt.runtime.setReadyFalse();")
     (make (list (make-MainModuleSource source-code))
           packaging-configuration)
     (fprintf op "    });");

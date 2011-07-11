@@ -20,7 +20,7 @@
     // The function will run on the provided MACHINE.
     //
     // It assumes that it must begin its own trampoline.
-    var coerseToJavaScript = function(v, MACHINE) {
+    var asJavaScriptFunction = function(v, MACHINE) {
         MACHINE = MACHINE || plt.runtime.currentMachine;
         if (isPrimitiveProcedure(v)) {
             return coersePrimitiveToJavaScript(v, MACHINE);
@@ -65,6 +65,7 @@
 
             var oldVal = MACHINE.val;
             var oldArgcount = MACHINE.argcount;
+            var oldProc = MACHINE.proc;
 
             var oldErrorHandler = MACHINE.params['currentErrorHandler'];
             var afterGoodInvoke = function(MACHINE) { 
@@ -72,7 +73,8 @@
                 var returnValue = MACHINE.val;
                 MACHINE.val = oldVal;
                 MACHINE.argcount = oldArgcount;
-                succ(MACHINE.val);
+                MACHINE.proc = oldProc;
+                succ(returnValue);
             };
             afterGoodInvoke.multipleValueReturn = function(MACHINE) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
@@ -82,6 +84,7 @@
                 }
                 MACHINE.val = oldVal;
                 MACHINE.argcount = oldArgcount;
+                MACHINE.proc = oldProc;
                 succ.apply(null, returnValues);
             };
 
@@ -93,8 +96,15 @@
                     for (var i = 0; i < args.length; i++) {
                         MACHINE.env.push(args[i]);
                     }
-                    plt.runtime.trampoline(MACHINE,
-                                           entryPoint);
+                    MACHINE.proc = v;
+                    MACHINE.params['currentErrorHandler'] = function(MACHINE, e) {
+                        MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                        MACHINE.val = oldVal;
+                        MACHINE.argcount = oldArgcount;
+                        MACHINE.proc = oldProc;
+                        fail(e);
+                    };
+                    plt.runtime.trampoline(MACHINE, v.label);
                 },
                 0);
         };
@@ -199,6 +209,6 @@
 
     exports.isFunction = isFunction;
 
-    exports.coerseToJavaScript = coerseToJavaScript;
+    exports.asJavaScriptFunction = asJavaScriptFunction;
 
 })(this['plt'].baselib);

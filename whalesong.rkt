@@ -8,6 +8,7 @@
          "js-assembler/package.rkt"
          "private/command.rkt"
          "logger.rkt"
+         "parameters.rkt"
          raco/command-name)
 
 
@@ -43,6 +44,10 @@
             [("-v" "--verbose")
              ("Display verbose messages.")
              (current-verbose? #t)]
+            [("--compress-javascript")
+             ("Compress JavaScript with Google Closure (requires Java)")
+             (current-compress-javascript? #t)]
+            
             #:args (path)
             (do-the-build path)]
    ["get-runtime" "print the runtime library to standard output"
@@ -51,6 +56,10 @@
                   [("-v" "--verbose")
                    ("Display verbose messages.")
                    (current-verbose? #t)]
+                  [("--compress-javascript")
+                   ("Compress JavaScript with Google Closure (requires Java)")
+                   (current-compress-javascript? #t)]
+
                   #:args ()
                   (print-the-runtime)]
    ["get-javascript" "Gets just the JavaScript code and prints it to standard output"
@@ -59,6 +68,11 @@
                      [("-v" "--verbose")
                       ("Display verbose messages.")
                       (current-verbose? #t)]
+
+                     [("--compress-javascript")
+                      ("Compress JavaScript with Google Closure (requires Java)")
+                      (current-compress-javascript? #t)]
+
             
                      #:args (file)
                      (get-javascript-code file)]))
@@ -77,7 +91,8 @@
                       (let ([msg (sync receiver)])
                         (match msg
                           [(vector level msg data)
-                           (printf "~a: ~a\n" level msg)]))
+                           (fprintf (current-error-port)"~a: ~a\n" level msg)
+                           (flush-output (current-error-port))]))
                       (loop)))))))
                     
 
@@ -109,15 +124,16 @@
 
 (define (print-the-runtime)
   (turn-on-logger!)
-  (write-runtime (current-output-port)))
+  (display (get-runtime) (current-output-port)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (get-javascript-code filename)
   (turn-on-logger!)
-  (write-standalone-code
-   (make-ModuleSource (build-path filename))
-   (current-output-port)))
+  (display (get-standalone-code
+            (make-ModuleSource (build-path filename)))
+           (current-output-port)))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

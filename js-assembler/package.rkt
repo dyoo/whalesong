@@ -11,6 +11,7 @@
          "../parser/parse-bytecode.rkt"
          racket/match
          racket/list
+         racket/promise
          (prefix-in query: "../lang/js/query.rkt")
          (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
@@ -301,22 +302,25 @@ MACHINE.modules[~s] =
 
 
 (define (compress x)
-  (if (current-compress-javascript?)
-      (closure-compile x)
-      x))
+  (cond [(current-compress-javascript?)
+         (log-debug "compressing javascript...")
+         (closure-compile x)]
+        [else
+         (log-debug "not compressing javascript...")
+         x]))
 
 
 
 (define *the-runtime*
-  (let ([buffer (open-output-string)])
-    (write-runtime buffer)
-    (compress
-     (get-output-string buffer))))
+  (delay (let ([buffer (open-output-string)])
+           (write-runtime buffer)
+           (compress
+            (get-output-string buffer)))))
 
   
 ;; get-runtime: -> string
 (define (get-runtime)
-  *the-runtime*)
+  (force *the-runtime*))
 
 
 

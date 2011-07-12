@@ -3,29 +3,29 @@
 
 <script src="runtime.js"></script>
 <script src="fact.js"></script>
-<script>
-plt.runtime.invokeMains();
-</script>
 
 <script>
+plt.runtime.invokeMains();
+
 plt.runtime.ready(function() {
    var myFactClosure = plt.runtime.lookupInMains('fact');
    var myFact = plt.baselib.functions.asJavaScriptFunction(
         myFactClosure);
 
-
-   $(document.body).append("The factorial of 1000 is: ");
    myFact(function(v) {
-              $(document.body).append(v.toString());
+              $('#answer').text(v.toString());
           },
           function(err) {
-              $(document.body).append(err);
+              $('#answer').text(err.message).css("color", "red");
           },
-          1000);
+          10000
+          // "one-billion-dollars"
+          );
 });
 </script>
 </head>
 
 <body>
+The factorial of 10000 is <span id="answer">being computed</span>.
 </body>
 </html>

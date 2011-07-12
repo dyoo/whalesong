@@ -103,6 +103,13 @@ var checkFontWeight = plt.baselib.check.makeCheckArgumentType(
     isFontWeight,
     'font weight');
 
+var checkPlaceX = plt.baselib.check.makeCheckArgumentType(
+    isPlaceX,
+    'x-place');
+
+var checkPlaceY = plt.baselib.check.makeCheckArgumentType(
+    isPlaceX,
+    'y-place');
 
 
 
@@ -203,58 +210,77 @@ EXPORTS['image-url'] =
         });
 
 
-// // FIXME
-// EXPORTS['open-image-url'] = 
-//     makePrimitiveProcedure(
-//         'open-image-url',
-//         1,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['open-image-url'] = 
+    plt.baselib.functions.renameProcedure(EXPORTS['image-url'],
+                                          'open-image-url');
+
 
 EXPORTS['overlay'] = 
     makePrimitiveProcedure(
         'overlay',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
-
 	    var img1 = checkImage(MACHINE, "overlay", 0);
-	    var img2 = checkImage(MACHINE, "overlay", 1);
-	    var restImages;
+	    var img2 = checkImage(MACHINE, "overlay" 1);
+            var restImages = [];
 	    for (var i = 2; i < MACHINE.argcount; i++) {
 		restImages.push(checkImage(MACHINE, "overlay", i));
 	    }
-
-	    var img = makeOverlayImage(img1, img2, 0, 0);
+            
+	    var img = makeOverlayImage(img1, img2, "middle", "middle");
 	    for (var i = 0; i < restImages.length; i++) {
-		img = makeOverlayImage(img, restImages[i], 0, 0);
+		img = makeOverlayImage(img, restImages[i], "middle", "middle");
 	    }
 	    return img;
         });
+
+
 
 EXPORTS['overlay/xy'] = 
     makePrimitiveProcedure(
         'overlay/xy',
         4,
         function(MACHINE) {
-	    var img1 = checkImage("overlay/xy", 0);
-	    var deltaX = checkReal("overlay/xy", 1);
-	    var deltaY = checkReal("overlay/xy", 2);
-	    var img2 = checkImage("overlay/xy", 2);
+	    var img1 = checkImage(MACHINE, "overlay/xy", 0);
+	    var deltaX = checkReal(MACHINE, "overlay/xy", 1);
+	    var deltaY = checkReal(MACHINE, "overlay/xy", 2);
+	    var img2 = checkImage(MACHINE, "overlay/xy", 3);
 	    return makeOverlayImage(img1.updatePinhole(0, 0),
-				img2.updatePinhole(0, 0),
-				jsnums.toFixnum(deltaX),
-				jsnums.toFixnum(deltaY));
+				    img2.updatePinhole(0, 0),
+				    jsnums.toFixnum(deltaX),
+				    jsnums.toFixnum(deltaY));
         });
 
-// FIXME
-// EXPORTS['overlay/align'] = 
-//     makePrimitiveProcedure(
-//         'overlay/align',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+
+
+ EXPORTS['overlay/align'] = 
+     makePrimitiveProcedure(
+         'overlay/align',
+         plt.baselib.arity.makeArityAtLeast(4),
+         function(MACHINE) {
+	     var placeX = checkPlaceX(MACHINE, "overlay/align", 0);
+	     var placeY = checkPlaceY(MACHINE, "overlay/align", 1);
+	     var img1 = checkImage(MACHINE, "overlay/align", 2);
+	     var img2 = checkImage(MACHINE, "overlay/align", 3);
+             var restImages = [];
+	     for (var i = 4; i < MACHINE.argcount; i++) {
+                 restImages.push(checkImage(MACHINE, "overlay/align", i));
+             }
+	     var img = makeOverlayImage(img1,
+					img2,
+					placeX.toString(),
+					placeY.toString());
+	     for (var i = 0; i < restImages.length; i++)
+		 img = makeOverlayImage(img,
+					restImages[i], 
+					placeX.toString(), 
+					placeY.toString());
+	     return img;
+         });
+
+
+
+
 
 EXPORTS['underlay'] = 
     makePrimitiveProcedure(
@@ -275,6 +301,7 @@ EXPORTS['underlay'] =
 	    return img;
         });
 
+
 EXPORTS['underlay/xy'] = 
     makePrimitiveProcedure(
         'underlay/xy',
@@ -285,18 +312,39 @@ EXPORTS['underlay/xy'] =
 	    var deltaY = checkReal(MACHINE, "underlay/xy", 2);
 	    var img2 = checkImage(MACHINE, "underlay/xy", 3);
 	    return makeOverlayImage(img2.updatePinhole(0, 0), 
-				img1.updatePinhole(0, 0),
-				-(jsnums.toFixnum(deltaX)),
-				-(jsnums.toFixnum(deltaY)));
+				    img1.updatePinhole(0, 0),
+				    -(jsnums.toFixnum(deltaX)),
+				    -(jsnums.toFixnum(deltaY)));
         });
 
-// EXPORTS['underlay/align'] = 
-//     makePrimitiveProcedure(
-//         'underlay/align',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['underlay/align'] = 
+    makePrimitiveProcedure(
+        'underlay/align',
+        plt.baselib.arity.makeArityAtLeast(4),
+        function(MACHINE) {
+	    var placeX = checkPlaceX(MACHINE, "underlay/align", 0);
+	    var placeY = checkPlaceY(MACHINE, "underlay/align", 1);
+	    var img1 = checkImage(MACHINE, "underlay/align", 2);
+	    var img2 = checkImage(MACHINE, "underlay/align", 3);
+            var restImages = [];
+            for (var i = 4; i < MACHINE.argcount; i++) {
+                restImages.push(checkImage(MACHINE, "underlay/align", i));
+            }
+	    
+	    var img = makeOverlayImage(img2,
+				       img1,
+				       placeX.toString(),
+				       placeY.toString());
+	    
+	    for (var i = 0; i < restImages.length; i++)
+		img = makeOverlayImage(restImages[i], 
+				       img,
+				       placeX.toString(), 
+				       placeY.toString());
+	    return img;
+        });
+
+
 
 // EXPORTS['beside'] = 
 //     makePrimitiveProcedure(

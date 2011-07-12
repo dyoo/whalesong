@@ -16,9 +16,11 @@ plt.runtime.ready(function() {
               $('#answer').text(v.toString());
           },
           function(err) {
-              $('#answer').text(err.message);
+              $('#answer').text(err.message).css("color", "red");
           },
-          10000);
+          10000
+          // "one-billion-dollars"
+          );
 });
 </script>
 </head>

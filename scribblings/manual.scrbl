@@ -153,7 +153,7 @@ and if this does appear, then Whalesong should be installed successfully.
 
 
 
-@subsection{Running Whalesong}
+@subsection{Making Standalone @tt{.xhtml} files with Whalesong}
 
 Let's try making a simple, standalone executable.  At the moment, the
 program must be written in the base language of @racket[(planet
@@ -234,19 +234,90 @@ web browser, we should see a pale, green page with some output.
 
 
 
-
-
-
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-@section{Extended example}
+@subsection{Using Whalesong functions from JavaScript}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(This example needs to use modules.  It should also show how we can use the
-other command-line options to compress the javascript, and how to
-use @tt{get-javascript} and @tt{get-runtime}, to allow the user to 
-build a customized html file.)
+Whalesong also allows functions defined from Racket to be used from
+JavaScript.  As an example, we can take the boring @tt{factorial}
+function and define it in a module called @filepath{factorial.rkt}:
 
+@filebox["factorial.rkt"]{
+@verbatim|{
+#lang planet dyoo/whalesong
+(provide fact)
+(define (fact x)
+  (cond
+   [(= x 0)
+    1]
+   [else
+    (* x (fact (sub1 x)))]))
+}|}
 
+Instead of creating a standalone @tt{.xhtml}, we can use @tt{whalesong} to
+get us the module's code.  From the command-line:
+@verbatim|{
+    $ whalesong get-javascript factorial.rkt > factorial.js
+    $ ls -l factorial.js
+    -rw-r--r-- 1 dyoo dyoo 27421 2011-07-11 22:02 factorial.js
+}|
+
+This file does require some runtime support not included in
+@filepath{factorial.js}; let's generate the @tt{runtime.js} and save
+it as well.  At the command-line:
+@verbatim|{
+    $ whalesong get-runtime > runtime.js
+    $ ls -l runtime.js
+    -rw-r--r-- 1 dyoo dyoo 544322 2011-07-11 22:12 runtime.js
+}|
+Now that we have these, let's write an @filepath{index.html} that uses
+the @racket[fact] function that we @racket[provide]ed from
+@filepath{factorial.rkt}.
+@filebox["index.html"]{
+@verbatim|{
+<!DOCTYPE html>
+<html>
+<head>
+<script src="runtime.js"></script>
+<script src="fact.js"></script>
+
+<script>
+// Each module compiled with 'whalesong get-runtime' is treated as a
+// main module.  invokeMains() will invoke them.
+plt.runtime.invokeMains();  
+
+plt.runtime.ready(function() {
+
+   // Grab the definition of 'fact'...
+   var myFactClosure = plt.runtime.lookupInMains('fact');
+
+   // Make it available as a JavaScript function...
+   var myFact = plt.baselib.functions.asJavaScriptFunction(
+        myFactClosure);
+
+   // And call it!
+   myFact(function(v) {
+              $('#answer').text(v.toString());
+          },
+          function(err) {
+              $('#answer').text(err.message).css("color", "red");
+          },
+          10000
+          // "one-billion-dollars"
+          );
+});
+</script>
+</head>
+
+<body>
+The factorial of 10000 is <span id="answer">being computed</span>.
+</body>
+</html>
+}|
+}
+
+Replacing the @racket[10000] with @racket["one-billion-dollars"] should
+reliably produce a proper error message.
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

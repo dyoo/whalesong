@@ -1,19 +1,115 @@
+
+var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
+var makeClosure = plt.baselib.functions.makeClosure;
+var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
+var PAUSE = plt.runtime.PAUSE;
+
+
+var isString = plt.baselib.strings.isString;
+var isSymbol = plt.baselib.symbols.isSymbol;
+
+
+var isFontFamily = function(x){
+    return ((isString(x) || isSymbol(x)) &&
+	    (x.toString().toLowerCase() == "default" ||
+	     x.toString().toLowerCase() == "decorative" ||
+	     x.toString().toLowerCase() == "roman" ||
+	     x.toString().toLowerCase() == "script" ||
+	     x.toString().toLowerCase() == "swiss" ||
+	     x.toString().toLowerCase() == "modern" ||
+	     x.toString().toLowerCase() == "symbol" ||
+	     x.toString().toLowerCase() == "system"))
+	|| (x === false);		// false is also acceptable
+};
+var isFontStyle = function(x){
+    return ((isString(x) || isSymbol(x)) &&
+	    (x.toString().toLowerCase() == "normal" ||
+	     x.toString().toLowerCase() == "italic" ||
+	     x.toString().toLowerCase() == "slant"))
+	|| (x === false);		// false is also acceptable
+};
+var isFontWeight = function(x){
+    return ((isString(x) || isSymbol(x)) &&
+	    (x.toString().toLowerCase() == "normal" ||
+	     x.toString().toLowerCase() == "bold" ||
+	     x.toString().toLowerCase() == "light"))
+	|| (x === false);		// false is also acceptable
+};
+var isMode = function(x) {
+    return ((isString(x) || isSymbol(x)) &&
+	    (x.toString().toLowerCase() == "solid" ||
+	     x.toString().toLowerCase() == "outline"));
+};
+
+var isPlaceX = function(x) {
+    return ((isString(x) || isSymbol(x)) &&
+	    (x.toString().toLowerCase() == "left"  ||
+	     x.toString().toLowerCase() == "right" ||
+	     x.toString().toLowerCase() == "center" ||
+	     x.toString().toLowerCase() == "middle"));
+};
+
+var isPlaceY = function(x) {
+    return ((isString(x) || isSymbol(x)) &&
+	    (x.toString().toLowerCase() == "top"	  ||
+	     x.toString().toLowerCase() == "bottom"   ||
+	     x.toString().toLowerCase() == "baseline" ||
+	     x.toString().toLowerCase() == "center"   ||
+	     x.toString().toLowerCase() == "middle"));
+};
+
+var isStyle = function(x) {
+    return ((isString(x) || isSymbol(x)) &&
+	    (x.toString().toLowerCase() == "solid" ||
+	     x.toString().toLowerCase() == "outline"));
+};
+
+
+
+
+
+
 var checkString = plt.baselib.check.checkString;
 var checkByte = plt.baselib.check.checkByte;
 var checkReal = plt.baselib.check.checkReal;
+var checkBoolean = plt.baselib.check.checkBoolean;
 
-var checkColor = plt.baselib.check.makeCheckArgumentType(
+var _checkColor = plt.baselib.check.makeCheckArgumentType(
     isColorOrColorString,
     'color');
+
+var checkColor = function(MACHINE, functionName, position) {
+    var aColor = _checkColor(MACHINE, functionName, position);
+    if (colorDb.get(aColor)) {
+	aColor = colorDb.get(aColor);
+    }
+    return aColor;
+};
 
 var checkImage = plt.baselib.check.makeCheckArgumentType(
     isImage,
     'image');
 
 
-var Closure = plt.baselib.functions.Closure;
-var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
-var PAUSE = plt.runtime.PAUSE;
+var checkFontFamily = plt.baselib.check.makeCheckArgumentType(
+    isFontFamily,
+    'font family');
+
+var checkFontStyle = plt.baselib.check.makeCheckArgumentType(
+    isFontStyle,
+    'font style');
+
+var checkFontWeight = plt.baselib.check.makeCheckArgumentType(
+    isFontWeight,
+    'font weight');
+
+
+
+
+
+
+
+
 
 
 
@@ -21,7 +117,7 @@ var PAUSE = plt.runtime.PAUSE;
 
 
 EXPORTS['image-color?'] =
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'image-color?',
         1,
         function(MACHINE) {
@@ -32,34 +128,52 @@ EXPORTS['image-color?'] =
 
 
 EXPORTS['text'] =
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'text',
         3,
         function(MACHINE) {
 	    var aString = checkString(MACHINE,'text', 0);
 	    var aSize = checkByte(MACHINE, 'text', 1); 
 	    var aColor = checkColor(MACHINE, 'text', 2);
-	    if (colorDb.get(aColor)) {
-		aColor = colorDb.get(aColor);
-	    }
 	    return makeTextImage(aString.toString(), 
-				 jsnums.toFixnum(aSize),
-				 aColor);
+                                 jsnums.toFixnum(aSize),
+                                 aColor,
+				 "normal",
+                                 "Optimer",
+                                 "",
+                                 "",
+                                 false);
         });
 
-// FIXME
-// EXPORTS['text/font'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
-//         'text/font',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+
+EXPORTS['text/font'] = 
+    makePrimitiveProcedure(
+        'text/font',
+        8,
+        function(MACHINE) {
+            var aString = checkString(MACHINE, "text/font", 0);
+	    var aSize = checkByte(MACHINE, "text/font", 1);
+	    var aColor = checkColor(MACHINE, "text/font", 2);
+	    var aFace = checkStringOrFalse(MACHINE, "text/font", 3);
+	    var aFamily = checkFontFamily(MACHINE, "text/font", 4);
+	    var aStyle = checkFontStyle(MACHINE, "text/font", 5);
+	    var aWeight = checkFontWeight(MACHINE, "text/font", 6);
+	    var aUnderline = checkBoolean(MACHINE, "text/font", 7);
+	    return makeTextImage(aString.toString(),
+                                 jsnums.toFixnum(aSize),
+                                 aColor,
+				 aFace.toString(),
+                                 aFamily.toString(),
+                                 aStyle.toString(),
+				 aWeight.toString(),
+                                 aUnderline);
+        });
 
 
-// FIXME
 EXPORTS['image-url'] = 
-    new Closure(
+    makeClosure(
+        'image-url',
+        1,
         function(MACHINE) {
             var url = checkString(MACHINE, 'image-url', 0);
             PAUSE(
@@ -86,14 +200,12 @@ EXPORTS['image-url'] =
                     rawImage.src = url.toString();
                 }
             );
-        },
-        1,
-        [],
-        'image-url');
+        });
+
 
 // // FIXME
 // EXPORTS['open-image-url'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'open-image-url',
 //         1,
 //         function(MACHINE) {
@@ -101,7 +213,7 @@ EXPORTS['image-url'] =
 //         });
 
 EXPORTS['overlay'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'overlay',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
@@ -121,7 +233,7 @@ EXPORTS['overlay'] =
         });
 
 EXPORTS['overlay/xy'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'overlay/xy',
         4,
         function(MACHINE) {
@@ -137,7 +249,7 @@ EXPORTS['overlay/xy'] =
 
 // FIXME
 // EXPORTS['overlay/align'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'overlay/align',
 //             ???,
 //         function(MACHINE) {
@@ -145,7 +257,7 @@ EXPORTS['overlay/xy'] =
 //         });
 
 EXPORTS['underlay'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'underlay',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
@@ -164,7 +276,7 @@ EXPORTS['underlay'] =
         });
 
 EXPORTS['underlay/xy'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'underlay/xy',
         4,
         function(MACHINE) {
@@ -179,7 +291,7 @@ EXPORTS['underlay/xy'] =
         });
 
 // EXPORTS['underlay/align'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'underlay/align',
 //             ???,
 //         function(MACHINE) {
@@ -187,7 +299,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['beside'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'beside',
 //             ???,
 //         function(MACHINE) {
@@ -195,7 +307,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['beside/align'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'beside/align',
 //             ???,
 //         function(MACHINE) {
@@ -203,7 +315,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['above'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'above',
 //             ???,
 //         function(MACHINE) {
@@ -211,7 +323,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['above/align'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'above/align',
 //             ???,
 //         function(MACHINE) {
@@ -219,7 +331,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 // EXPORTS['place-image/align'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'place-image/align',
 //             ???,
 //         function(MACHINE) {
@@ -227,7 +339,7 @@ EXPORTS['underlay/xy'] =
 //         });
 
 EXPORTS['rotate'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'rotate',
         2,
         function(MACHINE) {
@@ -237,7 +349,7 @@ EXPORTS['rotate'] =
         });
 
 EXPORTS['scale'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'scale',
         2,
         function(MACHINE) {
@@ -249,7 +361,7 @@ EXPORTS['scale'] =
         });
 
 EXPORTS['scale/xy'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'scale/xy',
         3,
         function(MACHINE) {
@@ -263,7 +375,7 @@ EXPORTS['scale/xy'] =
         });
 
 // EXPORTS['flip-horizontal'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'flip-horizontal',
 //             ???,
 //         function(MACHINE) {
@@ -271,7 +383,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 // EXPORTS['flip-vertical'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'flip-vertical',
 //             ???,
 //         function(MACHINE) {
@@ -279,7 +391,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 // EXPORTS['frame'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'frame',
 //             ???,
 //         function(MACHINE) {
@@ -287,7 +399,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 // EXPORTS['crop'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'crop',
 //             ???,
 //         function(MACHINE) {
@@ -295,7 +407,7 @@ EXPORTS['scale/xy'] =
 //         });
 
 EXPORTS['line'] = 
-    plt.baselib.functions.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'line',
         3,
         function(MACHINE) {
@@ -315,7 +427,7 @@ EXPORTS['line'] =
 
 
 // EXPORTS['add-line'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'add-line',
 //             ???,
 //         function(MACHINE) {
@@ -323,7 +435,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['scene+line'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'scene+line',
 //             ???,
 //         function(MACHINE) {
@@ -331,7 +443,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['circle'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'circle',
 //             ???,
 //         function(MACHINE) {
@@ -339,7 +451,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['square'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'square',
 //             ???,
 //         function(MACHINE) {
@@ -347,7 +459,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['rectangle'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'rectangle',
 //             ???,
 //         function(MACHINE) {
@@ -355,7 +467,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['regular-polygon'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'regular-polygon',
 //             ???,
 //         function(MACHINE) {
@@ -363,7 +475,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['ellipse'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'ellipse',
 //             ???,
 //         function(MACHINE) {
@@ -371,7 +483,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['triangle'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'triangle',
 //             ???,
 //         function(MACHINE) {
@@ -379,7 +491,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['right-triangle'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'right-triangle',
 //             ???,
 //         function(MACHINE) {
@@ -387,7 +499,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['isosceles-triangle'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'isosceles-triangle',
 //             ???,
 //         function(MACHINE) {
@@ -395,7 +507,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['star'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'star',
 //             ???,
 //         function(MACHINE) {
@@ -403,7 +515,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['radial-star'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'radial-star',
 //             ???,
 //         function(MACHINE) {
@@ -411,7 +523,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['star-polygon'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'star-polygon',
 //             ???,
 //         function(MACHINE) {
@@ -419,7 +531,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['rhombus'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'rhombus',
 //             ???,
 //         function(MACHINE) {
@@ -427,7 +539,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['image->color-list'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'image->color-list',
 //             ???,
 //         function(MACHINE) {
@@ -435,7 +547,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['color-list->image'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'color-list->image',
 //             ???,
 //         function(MACHINE) {
@@ -443,7 +555,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['image-width'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'image-width',
 //             ???,
 //         function(MACHINE) {
@@ -451,7 +563,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['image-height'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'image-height',
 //             ???,
 //         function(MACHINE) {
@@ -459,7 +571,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['image-baseline'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'image-baseline',
 //             ???,
 //         function(MACHINE) {
@@ -467,7 +579,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['image-color?'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'image-color?',
 //             ???,
 //         function(MACHINE) {
@@ -475,7 +587,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['mode?'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'mode?',
 //             ???,
 //         function(MACHINE) {
@@ -483,7 +595,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['x-place?'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'x-place?',
 //             ???,
 //         function(MACHINE) {
@@ -491,7 +603,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['y-place?'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'y-place?',
 //             ???,
 //         function(MACHINE) {
@@ -499,7 +611,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['angle?'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'angle?',
 //             ???,
 //         function(MACHINE) {
@@ -507,7 +619,7 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['side-count?'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'side-count?',
 //             ???,
 //         function(MACHINE) {
@@ -515,21 +627,21 @@ EXPORTS['line'] =
 //         });
 
 // EXPORTS['image-url'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'image-url',
 //             ???,
 //         function(MACHINE) {
 //             ...
 //         });
 // EXPORTS['open-image-url'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'open-image-url',
 //             ???,
 //         function(MACHINE) {
 //             ...
 //         });
 // EXPORTS['color-list->image'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'color-list->image',
 //             ???,
 //         function(MACHINE) {
@@ -538,7 +650,7 @@ EXPORTS['line'] =
 
 
 // EXPORTS['step-count?'] = 
-//     plt.baselib.functions.makePrimitiveProcedure(
+//     makePrimitiveProcedure(
 //         'step-count?',
 //             ???,
 //         function(MACHINE) {

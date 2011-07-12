@@ -106,7 +106,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var checkOutputPort = plt.baselib.check.checkOutputPort;
     var checkString = plt.baselib.check.checkString;
-    var checkFunction = plt.baselib.check.checkFunction;
+    var checkProcedure = plt.baselib.check.checkProcedure;
     var checkNumber = plt.baselib.check.checkNumber;
     var checkReal = plt.baselib.check.checkReal;
     var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
@@ -614,7 +614,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             if (MACHINE.argcount === 1) {
                 MACHINE.params['currentPrint'] =                 
-                    checkFunction(MACHINE, 'current-print', 0);
+                    checkProcedure(MACHINE, 'current-print', 0);
                 return VOID;
             } else {
 	        return MACHINE.params['currentPrint'];

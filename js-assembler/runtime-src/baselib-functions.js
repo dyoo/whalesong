@@ -1,9 +1,13 @@
-// Functions
+// Procedures
+
+// For historical reasons, this module is called 'functions' instead of 'procedures'.
+// This may change soon.
+
 (function(baselib) {
     var exports = {};
     baselib.functions = exports;
     
-    // Function types: a function is either a Primitive or a Closure.
+    // Procedure types: a procedure is either a Primitive or a Closure.
 
     // A Primitive is a function that's expected to return.  It is not
     // allowed to call into Closures.  Its caller is expected to pop off
@@ -182,6 +186,16 @@
         return f;
     };
 
+    var makeClosure = function(name, arity, f, closureArgs) {
+        if (! closureArgs) { closureArgs = []; }
+        return new Closure(f,
+                           arity,
+                           closureArgs,
+                           name);
+    };
+
+
+
 
     var isPrimitiveProcedure = function(x) {
         return typeof(x) === 'function';
@@ -192,10 +206,30 @@
     };
 
 
-    var isFunction = function(x) {
+    var isProcedure = function(x) {
         return (typeof(x) === 'function' ||
                 x instanceof Closure);
     };
+
+
+
+    var renameProcedure = function(f, name) {
+        if (isPrimitiveProcedure(f)) {
+            return makePrimitiveProcedure(
+                name,
+                f.arity,
+                function() {
+                    return f.apply(null, arguments);
+                });
+        } else {
+            return new Closure(
+                f.label,
+                f.arity,
+                f.closedVals,
+                name);
+        }
+    };
+
 
 
 
@@ -203,11 +237,18 @@
     //////////////////////////////////////////////////////////////////////
     exports.Closure = Closure;
     exports.finalizeClosureCall = finalizeClosureCall;
+
     exports.makePrimitiveProcedure = makePrimitiveProcedure;
+    exports.makeClosure = makeClosure;
+
     exports.isPrimitiveProcedure = isPrimitiveProcedure;
     exports.isClosure = isClosure;
 
-    exports.isFunction = isFunction;
+    exports.isProcedure = isProcedure;
+
+
+    exports.renameProcedure = renameProcedure;
+
 
     exports.asJavaScriptFunction = asJavaScriptFunction;
 

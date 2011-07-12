@@ -60,9 +60,9 @@
         plt.baselib.strings.isString,
         'string');
     
-    var checkFunction = makeCheckArgumentType(
-        plt.baselib.functions.isFunction,
-        'function');
+    var checkProcedure = makeCheckArgumentType(
+        plt.baselib.functions.isProcedure,
+        'procedure');
 
     var checkNumber = makeCheckArgumentType(
         plt.baselib.numbers.isNumber,
@@ -100,6 +100,10 @@
         plt.baselib.vectors.isVector,
         'vector');
 
+    var checkBoolean = makeCheckArgumentType(
+        function(x) { return x === true || x === false; },
+        'boolean');
+
     var checkBox = makeCheckArgumentType(
         plt.baselib.boxes.isBox,
         'box');
@@ -130,7 +134,7 @@
 
     exports.checkOutputPort = checkOutputPort;
     exports.checkString = checkString;
-    exports.checkFunction = checkFunction;
+    exports.checkProcedure = checkProcedure;
     exports.checkNumber = checkNumber;
     exports.checkReal = checkReal;
     exports.checkNonNegativeReal = checkNonNegativeReal;
@@ -144,6 +148,8 @@
     exports.checkMutableBox = checkMutableBox;
     exports.checkInspector = checkInspector;
     exports.checkByte = checkByte;
+    exports.checkBoolean = checkBoolean;
+
 
 
 })(this['plt'].baselib);

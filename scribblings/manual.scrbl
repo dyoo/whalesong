@@ -239,10 +239,22 @@ web browser, we should see a pale, green page with some output.
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 Whalesong also allows functions defined from Racket to be used from
-JavaScript.  As an example, we can take the boring @tt{factorial}
-function and define it in a module called @filepath{factorial.rkt}:
+JavaScript.  As an example, we can take the boring @emph{factorial}
+function and define it in a module called @filepath{fact.rkt}:
 
-@filebox["factorial.rkt"]{
+@margin-note{
+The files can also be downloaded here: 
+@itemlist[@item{@link["http://hashcollision.org/whalesong/fact-example/fact.rkt"]{fact.rkt}} 
+@item{@link["http://hashcollision.org/whalesong/fact-example/index.html"]{index.html}}]
+with generated JavaScript binaries here:
+@itemlist[
+@item{@link["http://hashcollision.org/whalesong/fact-example/fact.js"]{fact.js}}
+@item{@link["http://hashcollision.org/whalesong/fact-example/runtime.js"]{runtime.js}}
+]
+}
+
+
+@filebox["fact.rkt"]{
 @verbatim|{
 #lang planet dyoo/whalesong
 (provide fact)
@@ -257,13 +269,13 @@ function and define it in a module called @filepath{factorial.rkt}:
 Instead of creating a standalone @tt{.xhtml}, we can use @tt{whalesong} to
 get us the module's code.  From the command-line:
 @verbatim|{
-    $ whalesong get-javascript factorial.rkt > factorial.js
-    $ ls -l factorial.js
-    -rw-r--r-- 1 dyoo dyoo 27421 2011-07-11 22:02 factorial.js
+    $ whalesong get-javascript fact.rkt > fact.js
+    $ ls -l fact.js
+    -rw-r--r-- 1 dyoo dyoo 27421 2011-07-11 22:02 fact.js
 }|
 
 This file does require some runtime support not included in
-@filepath{factorial.js}; let's generate the @tt{runtime.js} and save
+@filepath{fact.js}; let's generate the @tt{runtime.js} and save
 it as well.  At the command-line:
 @verbatim|{
     $ whalesong get-runtime > runtime.js
@@ -272,7 +284,7 @@ it as well.  At the command-line:
 }|
 Now that we have these, let's write an @filepath{index.html} that uses
 the @racket[fact] function that we @racket[provide]ed from
-@filepath{factorial.rkt}.
+@filepath{fact.rkt}.
 @filebox["index.html"]{
 @verbatim|{
 <!DOCTYPE html>

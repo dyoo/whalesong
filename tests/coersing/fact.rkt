@@ -8,4 +8,4 @@
     (* x (fact (sub1 x)))]))
 
 
-(printf "test: ~s\n" (fact 4))
+;;(printf "test: ~s\n" (fact 4))

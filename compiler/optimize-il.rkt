@@ -2,6 +2,7 @@
 (require "expression-structs.rkt"
          "il-structs.rkt"
          "lexical-structs.rkt"
+         (prefix-in ufind: "../union-find.rkt")
          racket/list)
 
 (provide optimize-il)
@@ -117,7 +118,7 @@
    [(empty? stmts)
     stmts]
    [else
-    (let ([ht ((inst make-hasheq Symbol Symbol))])
+    (let ([forest (ufind:new-forest)])
       
       ;; First scan identifies the adjacent labels
       (let: loop : Void ([last-labeled-stmt : (U False Symbol) #f]
@@ -126,10 +127,16 @@
          [(empty? stmts)
           (void)]
          [else
-          (loop (if (symbol? (first stmts))
-                    (first stmts)
-                    #f)
-                (rest stmts))]))
+          (let ([next-stmt (first stmts)])
+            (cond [(symbol? next-stmt)
+                   (ufind:make-set forest next-stmt)
+                   (when (and (symbol? last-labeled-stmt)
+                              (eq? last-labeled-stmt next-stmt))
+                     (ufind:union-set forest last-labeled-stmt next-stmt))
+                   (loop next-stmt
+                         (rest stmts))]
+                  [else
+                   (loop #f (rest stmts))]))]))
 
 
       ;; We then run through all the statements and replace with
@@ -139,8 +146,9 @@
          [(empty? stmts)
           empty]
          [else
-          (cons (first stmts)
-                (loop (rest stmts)))])))]))
+          (let ([next-stmt (first stmts)])
+            (cons next-stmt
+                  (loop (rest stmts))))])))]))
 
 
 

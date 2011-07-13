@@ -1388,13 +1388,13 @@ LineImage.prototype.equals = function(other, aUnionFind) {
 
 var imageToColorList = function(img) {
     var width = img.getWidth(),
-        height = img.getHeight(),
-        canvas = makeCanvas(width, height),
-        ctx = canvas.getContext("2d"),
-        imageData,
-        data,
-        i,
-        r, g, b, a;
+    height = img.getHeight(),
+    canvas = makeCanvas(width, height),
+    ctx = canvas.getContext("2d"),
+    imageData,
+    data,
+    i,
+    r, g, b, a;
     img.render(ctx, 0, 0);
     imageData = ctx.getImageData(0, 0, width, height);
     data = imageData.data;
@@ -1488,16 +1488,16 @@ var makeRotateImage = function(angle, img) {
     return new RotateImage(angle, img);
 };
 var makeScaleImage = function(xFactor, yFactor, img) {
-	return new ScaleImage(xFactor, yFactor, img);
+    return new ScaleImage(xFactor, yFactor, img);
 };
 var makeCropImage = function(x, y, width, height, img) {
-	return new CropImage(x, y, width, height, img);
+    return new CropImage(x, y, width, height, img);
 };
 var makeFrameImage = function(img) {
-	return new FrameImage(img);
+    return new FrameImage(img);
 };
 var makeFlipImage = function(img, direction) {
-	return new FlipImage(img, direction);
+    return new FlipImage(img, direction);
 };
 var makeTextImage = function(msg, size, color, face, family, style, weight, underline) {
     return new TextImage(msg, size, color, face, family, style, weight, underline);

@@ -78,6 +78,7 @@ var checkByte = plt.baselib.check.checkByte;
 var checkReal = plt.baselib.check.checkReal;
 var checkBoolean = plt.baselib.check.checkBoolean;
 
+var checkNatural = plt.baselib.check.checkNatural;
 var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
 
 
@@ -453,6 +454,8 @@ EXPORTS['beside'] =
 	    for (var i = 0; i < restImages.length; i++) {
 		img = makeOverlayImage(img, restImages[i], "beside", "middle");
             }
+
+            return img;
 	});
 
 
@@ -462,7 +465,7 @@ EXPORTS['beside/align'] =
         plt.baselib.arity.makeArityAtLeast(3),
         function(MACHINE) {
 	    var placeY = checkPlaceY(MACHINE, "beside/align", 0);
-	    var img1 = checkImage(MACHINE, "beside/align", "image", 1);
+	    var img1 = checkImage(MACHINE, "beside/align", 1);
 	    var img2 = checkImage(MACHINE, "beside/align", 2);
             var restImages = [];
             for (var i = 3; i < MACHINE.argcount; i++) {
@@ -870,7 +873,7 @@ EXPORTS['isosceles-triangle'] =
         4,
         function(MACHINE) {
 	    var side = checkNonNegativeReal(MACHINE, "isosceles-triangle", 0);
-	    var angle = checkAngle(MACHINE, "isosceles-triangle", 0);
+	    var angle = checkAngle(MACHINE, "isosceles-triangle", 1);
 	    var s = checkMode(MACHINE, "isosceles-triangle", 2);
 	    var c = checkColor(MACHINE, "isosceles-triangle", 3);
 	    return makeTriangleImage(jsnums.toFixnum(side), 
@@ -978,7 +981,7 @@ EXPORTS['color-list->image'] =
         'color-list->image',
         5,
         function(MACHINE) {
-            var listOfColors = checkListOfColor(MACHINE, 'color-list->image', 0);
+            var listOfColors = checkListofColor(MACHINE, 'color-list->image', 0);
 	    var width = checkNatural(MACHINE, 'color-list->image', 1);
 	    var height = checkNatural(MACHINE, 'color-list->image', 2);
 	    var pinholeX = checkNatural(MACHINE, 'color-list->image', 3);

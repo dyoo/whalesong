@@ -118,7 +118,7 @@ var checkPlaceX = plt.baselib.check.makeCheckArgumentType(
     'x-place');
 
 var checkPlaceY = plt.baselib.check.makeCheckArgumentType(
-    isPlaceX,
+    isPlaceY,
     'y-place');
 
 

@@ -19,6 +19,14 @@ var clone = plt.baselib.clone;
 
 
 
+var isAngle = function(x) {
+    return plt.baselib.numbers.isReal(x) &&
+        jsnums.greaterThanOrEqual(x, 0) &&
+        jsnums.lessThan(x, 360);
+};
+
+
+
 
 // Produces true if the value is a color or a color string.
 // On the Racket side of things, this is exposed as image-color?.
@@ -1522,6 +1530,8 @@ EXPORTS.makeVideoImage = makeVideoImage;
 EXPORTS.isImage = isImage;
 EXPORTS.isScene = isScene;
 EXPORTS.isColorOrColorString = isColorOrColorString;
+EXPORTS.isAngle = isAngle;
+
 
 EXPORTS.isSceneImage = isSceneImage;
 EXPORTS.isCircleImage = isCircleImage;

@@ -24,6 +24,7 @@
                     beside/align
                     above
                     above/align
+                    place-image
                     place-image/align
                     rotate
                     scale

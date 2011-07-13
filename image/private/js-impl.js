@@ -74,6 +74,9 @@ var checkByte = plt.baselib.check.checkByte;
 var checkReal = plt.baselib.check.checkReal;
 var checkBoolean = plt.baselib.check.checkBoolean;
 
+var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
+
+
 var _checkColor = plt.baselib.check.makeCheckArgumentType(
     isColorOrColorString,
     'color');
@@ -90,6 +93,9 @@ var checkImage = plt.baselib.check.makeCheckArgumentType(
     isImage,
     'image');
 
+var checkImageOrScene = plt.baselib.check.makeCheckArgumentType(
+    function(x) { return isImage(x) || isScene(x); },
+    'image or scene');
 
 var checkFontFamily = plt.baselib.check.makeCheckArgumentType(
     isFontFamily,
@@ -110,6 +116,11 @@ var checkPlaceX = plt.baselib.check.makeCheckArgumentType(
 var checkPlaceY = plt.baselib.check.makeCheckArgumentType(
     isPlaceX,
     'y-place');
+
+
+var checkAngle = plt.baselib.check.makeCheckArgumentType(
+    isAngle,
+    'angle');
 
 
 
@@ -221,7 +232,7 @@ EXPORTS['overlay'] =
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
 	    var img1 = checkImage(MACHINE, "overlay", 0);
-	    var img2 = checkImage(MACHINE, "overlay" 1);
+	    var img2 = checkImage(MACHINE, "overlay", 1);
             var restImages = [];
 	    for (var i = 2; i < MACHINE.argcount; i++) {
 		restImages.push(checkImage(MACHINE, "overlay", i));
@@ -336,65 +347,200 @@ EXPORTS['underlay/align'] =
 				       placeX.toString(),
 				       placeY.toString());
 	    
-	    for (var i = 0; i < restImages.length; i++)
+	    for (var i = 0; i < restImages.length; i++) {
 		img = makeOverlayImage(restImages[i], 
 				       img,
 				       placeX.toString(), 
 				       placeY.toString());
+            }
 	    return img;
         });
 
 
 
-// EXPORTS['beside'] = 
-//     makePrimitiveProcedure(
-//         'beside',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['beside'] = 
+    makePrimitiveProcedure(
+        'beside',
+        plt.baselib.arity.makeArityAtLeast(2),
+        function(MACHINE) {
+	    var img1 = checkImage(MACHINE, "beside", 0);
+	    var img2 = checkImage(MACHINE, "beside", 1);
+            var restImages = [];
+	    for (var i = 2; i < MACHINE.argcount; i++) {
+                restImages.push(checkImage(MACHINE, "beside", i));
+            }
+	    
+	    var img = makeOverlayImage(img1,
+				       img2,
+				       "beside",
+				       "middle");
+	    
+	    for (var i = 0; i < restImages.length; i++) {
+		img = makeOverlayImage(img, restImages[i], "beside", "middle");
+            }
+	});
 
-// EXPORTS['beside/align'] = 
-//     makePrimitiveProcedure(
-//         'beside/align',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['above'] = 
-//     makePrimitiveProcedure(
-//         'above',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['beside/align'] = 
+    makePrimitiveProcedure(
+        'beside/align',
+        plt.baselib.arity.makeArityAtLeast(3),
+        function(MACHINE) {
+	    var placeY = checkPlaceY(MACHINE, "beside/align", 0);
+	    var img1 = checkImage(MACHINE, "beside/align", "image", 1);
+	    var img2 = checkImage(MACHINE, "beside/align", 2);
+            var restImages = [];
+            for (var i = 3; i < MACHINE.argcount; i++) {
+                restImages.push(checkImage(MACHINE, "beside/align", i));
+            }
 
-// EXPORTS['above/align'] = 
-//     makePrimitiveProcedure(
-//         'above/align',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+	    var img = makeOverlayImage(img1,
+				       img2,
+				       "beside",
+				       placeY.toString());
+	    
+	    for (var i = 0; i < restImages.length; i++) {
+		img = makeOverlayImage(img,
+				       restImages[i], 
+				       "beside",
+				       placeY.toString());
+            }
+	    
+	    return img;
 
-// EXPORTS['place-image/align'] = 
-//     makePrimitiveProcedure(
-//         'place-image/align',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+        });
+
+EXPORTS['above'] = 
+    makePrimitiveProcedure(
+        'above',
+        plt.baselib.arity.makeArityAtLeast(2),
+        function(MACHINE) {
+	    var img1 = checkImage(MACHINE, "above", 0);
+	    var img2 = checkImage(MACHINE, "above", 1);
+	    var restImages = [];
+            for (var i = 2; i < MACHINE.argcount; i++) {
+                restImages.push(checkImage(MACHINE, "above", i));
+            }
+	    
+	    var img = makeOverlayImage(img1,
+				       img2,
+				       "middle",
+				       "above");
+	    
+	    for (var i = 0; i < restImages.length; i++)
+		img = makeOverlayImage(img,
+				       restImages[i], 
+				       "middle",
+				       "above");
+            return img;
+	    
+        });
+
+EXPORTS['above/align'] = 
+    makePrimitiveProcedure(
+        'above/align',
+        plt.baselib.arity.makeArityAtLeast(3),
+        function(MACHINE) {
+	    var placeX = checkPlaceX(MACHINE, "above/align", 0);
+	    var img1 = checkImage(MACHINE, "above/align", 1);
+	    var img2 = checkImage(MACHINE, "above/align", 2);
+            var restImages = [];
+            for (var i = 3; i < MACHINE.argcount; i++) {
+	        restImages.push(checkImage(MACHINE, "above/align", i));
+            }
+
+	    
+	    var img = makeOverlayImage(img1,
+				       img2,
+				       placeX.toString(),
+				       "above");
+	    
+	    for (var i = 0; i < restImages.length; i++)
+		img = makeOverlayImage(img,
+				       restImages[i], 
+				       placeX.toString(),
+				       "above");
+	    
+	    return img;
+        });
+
+
+
+
+
+EXPORTS['place-image'] = 
+    makePrimitiveProcedure(
+        'place-image',
+        4,
+        function(MACHINE) {
+	    var picture = checkImage(MACHINE, "place-image", 0);
+	    var x = checkReal(MACHINE, "place-image", 1);
+	    var y = checkReal(MACHINE, "place-image", 2);
+            var background = checkImageOrScene(MACHINE, "place-image", 3);
+	    if (isScene(background)) {
+		return background.add(picture, jsnums.toFixnum(x), jsnums.toFixnum(y));
+	    } else {
+		var newScene = makeSceneImage(background.getWidth(),
+					      background.getHeight(),
+					      [], 
+					      false);
+		newScene = newScene.add(background.updatePinhole(0, 0), 0, 0);
+		newScene = newScene.add(picture, jsnums.toFixnum(x), jsnums.toFixnum(y));
+		return newScene;
+	    }
+
+        });
+
+
+
+EXPORTS['place-image/align'] = 
+    makePrimitiveProcedure(
+        'place-image/align',
+        6,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, "place-image/align", 0);
+	    var x = checkReal(MACHINE, "place-image/align", 1);
+	    var y = checkReal(MACHINE, "place-image/align", 2);
+	    var placeX = checkPlaceX(MACHINE, "place-image/align", 3);
+	    var placeY = checkPlaceY(MACHINE, "place-image/align", 4);
+	    var background = checkImageOrScene(MACHINE, "place-image/align", 5);
+	    
+	    // calculate x and y based on placeX and placeY
+	    if (placeX == "left") x = x + img.pinholeX;
+	    else if (placeX == "right") x = x - img.pinholeX;
+	    if (placeY == "top") y = y + img.pinholeY;
+	    else if (placeY == "bottom") y = y - img.pinholeY;
+
+	    if (isScene(background)) {
+		return background.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
+	    } else {
+		var newScene = makeSceneImage(background.getWidth(),
+					      background.getHeight(),
+					      [], 
+					      false);
+		newScene = newScene.add(background.updatePinhole(0, 0), 0, 0);
+		newScene = newScene.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
+		return newScene;
+            }
+        });
+
+
+
+
+
+
 
 EXPORTS['rotate'] = 
     makePrimitiveProcedure(
         'rotate',
         2,
         function(MACHINE) {
-	    var angle = checkReal(MACHINE, "rotate",  0);
+	    var angle = checkAngle(MACHINE, "rotate", 0);
 	    var img = checkImage(MACHINE, "rotate", 1);
-	    return makeRotateImage(jsnums.toFixnum(angle), img);
+	    return makeRotateImage(jsnums.toFixnum(-angle), img);
         });
+
+
 
 EXPORTS['scale'] = 
     makePrimitiveProcedure(
@@ -402,11 +548,13 @@ EXPORTS['scale'] =
         2,
         function(MACHINE) {
 	    var factor = checkReal(MACHINE, "scale", 0);
-	    var img = checkImage(MACHINE, "scale", 1);
+	    var img = checkImage(MACHINE, "image", 1);
+	    
 	    return makeScaleImage(jsnums.toFixnum(factor),
 				  jsnums.toFixnum(factor),
 				  img);
         });
+
 
 EXPORTS['scale/xy'] = 
     makePrimitiveProcedure(
@@ -417,70 +565,97 @@ EXPORTS['scale/xy'] =
 	    var yFactor = checkReal(MACHINE, "scale/xy", 1);
 	    var img = checkImage(MACHINE, "scale/xy", 2);
 	    return makeScaleImage(jsnums.toFixnum(xFactor), 
-					   jsnums.toFixnum(yFactor),
-					   img);
+				  jsnums.toFixnum(yFactor),
+				  img);
 	    
         });
 
-// EXPORTS['flip-horizontal'] = 
-//     makePrimitiveProcedure(
-//         'flip-horizontal',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['flip-vertical'] = 
-//     makePrimitiveProcedure(
-//         'flip-vertical',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['flip-horizontal'] = 
+    makePrimitiveProcedure(
+        'flip-horizontal',
+        1,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, "flip-horizontal", 0);
+	    return makeFlipImage(img, "horizontal");
+        });
 
-// EXPORTS['frame'] = 
-//     makePrimitiveProcedure(
-//         'frame',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['crop'] = 
-//     makePrimitiveProcedure(
-//         'crop',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['flip-vertical'] = 
+    makePrimitiveProcedure(
+        'flip-vertical',
+        1,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, "flip-vertical", 0);
+	    return makeFlipImage(img, "vertical");
+        });
+
+
+EXPORTS['frame'] = 
+    makePrimitiveProcedure(
+        'frame',
+        1,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, "frame", 0);
+	    return makeFrameImage(img);            
+        });
+
+
+EXPORTS['crop'] = 
+    makePrimitiveProcedure(
+        'crop',
+        5,
+        function(MACHINE) {
+            var x = checkReal(MACHINE, "crop", 0);
+	    var y = checkReal(MACHINE, "crop", 1);
+	    var width = checkNonNegativeReal(MACHINE, "crop", 2);
+	    var height = checkNonNegativeReal(MACHINE, "crop", 3);
+	    var img = checkImage(MACHINE, "crop", 4);
+	    return makeCropImage(jsnums.toFixnum(x),
+				 jsnums.toFixnum(y),
+				 jsnums.toFixnum(width),
+				 jsnums.toFixnum(height),
+				 img);
+        });
+
+
 
 EXPORTS['line'] = 
     makePrimitiveProcedure(
         'line',
         3,
         function(MACHINE) {
-	    var x = checkReal(MACHINE, "line", 0);
-	    var y = checkReal(MACHINE,  "line", 1);
-	    var c = checkColor(MACHINE, "line", 2);
-	    if (colorDb.get(c)) {
-		c = colorDb.get(c);
-	    }
-	    var line = makeLineImage(jsnums.toFixnum(x),
-				     jsnums.toFixnum(y),
-				     c);
-	    return line;
+	    var x = checkReal(MACHINE, 'line', 0);
+	    var y = checkReal(MACHINE, 'line', 1);
+	    var c = checkColor(MACHINE, 'line', 2);
+	    return makeLineImage(jsnums.toFixnum(x),
+				 jsnums.toFixnum(y),
+				 c,
+				 true);
         });
 
 
 
 
-// EXPORTS['add-line'] = 
-//     makePrimitiveProcedure(
-//         'add-line',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['add-line'] = 
+    makePrimitiveProcedure(
+        'add-line',
+        6,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, "add-line", 0);
+	    var x1 = checkReal(MACHINE, "add-line", 1);
+	    var y1 = checkReal(MACHINE, "add-line", 2);
+	    var x2 = checkReal(MACHINE, "add-line", 3);
+	    var y2 = checkReal(MACHINE, "add-line", 4);
+	    var c = checkColor(MACHINE, "add-line", 5);
+	    var line = makeLineImage(jsnums.toFixnum(x2-x1),
+				     jsnums.toFixnum(y2-y1),
+				     c,
+				     true);
+	    return makeOverlayImage(line, img, "middle", "middle");
+        });
+
+
 
 // EXPORTS['scene+line'] = 
 //     makePrimitiveProcedure(

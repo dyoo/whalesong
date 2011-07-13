@@ -120,7 +120,7 @@ var checkPlaceY = plt.baselib.check.makeCheckArgumentType(
 
 var checkAngle = plt.baselib.check.makeCheckArgumentType(
     isAngle,
-    'angle');
+    "finite real number between 0 and 360");
 
 
 var checkMode = plt.baselib.check.makeCheckArgumentType(
@@ -136,6 +136,11 @@ var checkSideCount = plt.baselib.check.makeCheckArgumentType(
 var checkStepCount = plt.baselib.check.makeCheckArgumentType(
     isStepCount,
     "positive integer greater than or equal to 1");
+
+
+var checkPointsCount = plt.baselib.check.makeCheckArgumentType(
+    isPointsCount,
+    "positive integer greater than or equal to 2");
 
 
 
@@ -773,68 +778,141 @@ EXPORTS['ellipse'] =
 EXPORTS['triangle'] = 
     makePrimitiveProcedure(
         'triangle',
-            ???,
+        3,
         function(MACHINE) {
-            ...
+	    var s = checkNonNegativeReal(MACHINE, "triangle", 0);
+	    var m = checkMode(MACHINE, "triangle", 1);
+	    var c = checkColor(MACHINE, "triangle", 2);
+	    return makeTriangleImage(jsnums.toFixnum(s), 
+				     60, 
+				     m.toString(),
+				     c);
+        });
+
+
+EXPORTS['right-triangle'] = 
+    makePrimitiveProcedure(
+        'right-triangle',
+        4,
+        function(MACHINE) {
+	    var side1 = checkNonNegativeReal(MACHINE, "right-triangle", 0);
+	    var side2 = checkNonNegativeReal(MACHINE, "right-triangle", 1);
+	    var s = checkMode(MACHINE, "right-triangle", 2);
+	    var c = checkColor(MACHINE, "right-triangle", 3);
+	    return makeRightTriangleImage(jsnums.toFixnum(side1), 
+                                          jsnums.toFixnum(side2),
+                                          s.toString(),
+                                          c);
+        });
+
+
+EXPORTS['isosceles-triangle'] = 
+    makePrimitiveProcedure(
+        'isosceles-triangle',
+        4,
+        function(MACHINE) {
+	    var side = checkNonNegativeReal(MACHINE, "isosceles-triangle", 0);
+	    var angle = checkAngle(MACHINE, "isosceles-triangle", 0);
+	    var s = checkMode(MACHINE, "isosceles-triangle", 2);
+	    var c = checkColor(MACHINE, "isosceles-triangle", 3);
+	    return makeTriangleImage(jsnums.toFixnum(side), 
+                                     jsnums.toFixnum(angle), 
+                                     s.toString(),
+                                     c);
+        });
+
+
+EXPORTS['star'] = 
+    makePrimitiveProcedure(
+        'star',
+        plt.baselib.lists.makeList(3, 5),
+        function(MACHINE) {
+            if (MACHINE.argcount === 3) {
+                var sideLength = checkNonNegativeReal(MACHINE, "star", 0);
+		var mode = checkMode(MACHINE, "star", 1);
+		var color = checkColor(MACHINE, "star", 2);
+		return makePolygonImage(jsnums.toFixnum(sideLength), 
+					jsnums.toFixnum(5), 
+					jsnums.toFixnum(2), 
+					mode.toString(), 
+					color);
+            } else if (MACHINE.argcount === 5) {
+		var n = checkSideCount(MACHINE, "star", 0);
+		var outer = checkNonNegativeReal(MACHINE, "star", 1);
+		var inner = checkNonNegativeReal(MACHINE, "star", 2);
+		var m = checkMode(MACHINE, "star", 3);
+		var c = checkColor(MACHINE, "star", 4);
+		return makeStarImage(jsnums.toFixnum(n),
+				     jsnums.toFixnum(outer),
+				     jsnums.toFixnum(inner),
+				     m.toString(),
+				     c);
+            }
+        });
+
+EXPORTS['radial-star'] = 
+    makePrimitiveProcedure(
+        'radial-star',
+        5,
+        function(MACHINE) {
+            var aPoints = checkPointsCount(MACHINE, 'radial-star', 0);
+	    var anOuter = checkNonNegativeReal(MACHINE, 'radial-star', 1);
+	    var anInner = checkNonNegativeReal(MACHINE, 'radial-star', 2);
+	    var aStyle = checkMode(MACHINE, "radial-star", 3);
+	    var aColor = checkColor(MACHINE, "radial-star", 4);
+	    return makeStarImage(jsnums.toFixnum(aPoints),
+				 jsnums.toFixnum(anOuter),
+				 jsnums.toFixnum(anInner),
+				 aStyle.toString(),
+				 aColor);
         });
 
 
 
-// EXPORTS['right-triangle'] = 
-//     makePrimitiveProcedure(
-//         'right-triangle',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['star-polygon'] = 
+    makePrimitiveProcedure(
+        'star-polygon',
+        5,
+        function(MACHINE) {
+            var length = checkNonNegativeReal(MACHINE, "star-polygon", 0);
+	    var count = checkNonNegativeReal(MACHINE, "star-polygon", 1);
+	    var step = checkStepCount(MACHINE, "star-polygon", 2);
+	    var s = checkMode(MACHINE, "star-polygon", 3);
+	    var c = checkColor(MACHINE, "star-polygon", 4);
+	    return makePolygonImage(jsnums.toFixnum(length), 
+				    jsnums.toFixnum(count), 
+				    jsnums.toFixnum(step), 
+				    s.toString(), 
+				    c);
+        });
 
-// EXPORTS['isosceles-triangle'] = 
-//     makePrimitiveProcedure(
-//         'isosceles-triangle',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['star'] = 
-//     makePrimitiveProcedure(
-//         'star',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['rhombus'] = 
+    makePrimitiveProcedure(
+        'rhombus',
+        4,
+        function(MACHINE) {
+            var l = checkNonNegativeReal(MACHINE, "rhombus", 0);
+	    var a = checkNonNegativeReal(MACHINE, "rhombus", 1);
+	    var s = checkMode(MACHINE, "rhombus", 2);
+	    var c = checkColor(MACHINE, "rhombus", 3);
+	    return makeRhombusImage(jsnums.toFixnum(l),
+                                    jsnums.toFixnum(a),
+                                    s.toString(),
+                                    c);
+	    
+        });
 
-// EXPORTS['radial-star'] = 
-//     makePrimitiveProcedure(
-//         'radial-star',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['star-polygon'] = 
-//     makePrimitiveProcedure(
-//         'star-polygon',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['image->color-list'] = 
+    makePrimitiveProcedure(
+        'image->color-list',
+        1,
+        function(MACHINE) {
+            var img = checkImage(MACHINE, 'image->color-list', 0);
+            return imageToColorList(img);
+        });
 
-// EXPORTS['rhombus'] = 
-//     makePrimitiveProcedure(
-//         'rhombus',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['image->color-list'] = 
-//     makePrimitiveProcedure(
-//         'image->color-list',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
 // EXPORTS['color-list->image'] = 
 //     makePrimitiveProcedure(

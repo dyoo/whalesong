@@ -67,6 +67,10 @@ var isStepCount = function(x) {
 };
 
 
+var isPointsCount = function(x) {
+    return plt.baselib.numbers.isNatural(x) && jsnums.greaterThanOrEqual(x, 2); 
+};
+
 
 
 
@@ -1379,6 +1383,36 @@ LineImage.prototype.equals = function(other, aUnionFind) {
 
 
 
+var imageToColorList = function(img) {
+    var width = img.getWidth(),
+        height = img.getHeight(),
+        canvas = makeCanvas(width, height),
+        ctx = canvas.getContext("2d"),
+        imageData,
+        data,
+        i,
+        r, g, b, a;
+    img.render(ctx, 0, 0);
+    imageData = ctx.getImageData(0, 0, width, height);
+    data = imageData.data;
+    var colors = [];
+    for (i = 0 ; i < data.length; i += 4) {
+	r = data[i];
+	g = data[i+1];
+	b = data[i+2];
+	a = data[i+3];
+	// FIXME: what to do about the alpha component?
+	colors.push(types.color(r, g, b));
+    }
+    return plt.baselib.lists.makeList.apply(null, colors);
+}
+
+
+
+
+
+
+
 
 
 
@@ -1535,6 +1569,9 @@ EXPORTS.makeImageDataImage = makeImageDataImage;
 EXPORTS.makeFileImage = makeFileImage;
 EXPORTS.makeVideoImage = makeVideoImage;
 
+EXPORTS.imageToColorList = imageToColorList;
+
+
 
 EXPORTS.isImage = isImage;
 EXPORTS.isScene = isScene;
@@ -1542,6 +1579,7 @@ EXPORTS.isColorOrColorString = isColorOrColorString;
 EXPORTS.isAngle = isAngle;
 EXPORTS.isSideCount = isSideCount;
 EXPORTS.isStepCount = isStepCount;
+EXPORTS.isPointsCount = isPointsCount;
 
 
 EXPORTS.isSceneImage = isSceneImage;

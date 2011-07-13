@@ -4,6 +4,12 @@
     var exports = {};
     baselib.check = exports;
 
+    var EMPTY = plt.baselib.lists.EMPTY;
+    var isPair = plt.baselib.lists.isPair;
+    var makeLowLevelEqHash = plt.baselib.hash.makeLowLevelEqHash;
+
+
+    //////////////////////////////////////////////////////////////////////
 
     var makeCheckArgumentType = function(predicate, predicateName) {
 	return function(MACHINE, callerName, position) {
@@ -17,6 +23,47 @@
 	    return MACHINE.env[MACHINE.env.length - 1 - position];
 	}
     };
+
+
+    var makeCheckListofArgumentType = function(predicate, predicateName) {
+        var listPredicate = function(x) {
+            var seen = makeLowLevelEqHash();
+            while (true) {
+                if (x === EMPTY){
+                    return true;
+                }
+
+                if (!isPair(x)) {
+                    return false;
+                }
+
+                if(seen.containsKey(x)) {
+                    // raise an error? we've got a cycle!
+                    return false
+                }
+
+                if (! predicate(x.first)) {
+                    return false;
+                }
+                
+                seen.put(x, true);
+                x = x.rest;
+            }
+        };
+	return function(MACHINE, callerName, position) {
+	    testArgument(
+		MACHINE,
+		'list of ' + predicateName,
+		listPredicate,
+		MACHINE.env[MACHINE.env.length - 1 - position],
+		position,
+		callerName);
+	    return MACHINE.env[MACHINE.env.length - 1 - position];
+	}
+    };
+
+
+
 
 
 
@@ -131,6 +178,7 @@
     exports.testArgument = testArgument;
     exports.testArity = testArity;
     exports.makeCheckArgumentType = makeCheckArgumentType;
+    exports.makeCheckListofArgumentType = makeCheckListofArgumentType;
 
     exports.checkOutputPort = checkOutputPort;
     exports.checkString = checkString;

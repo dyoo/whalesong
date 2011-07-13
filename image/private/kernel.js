@@ -11,6 +11,7 @@ var isColor = colorStruct.predicate;
 var colorRed = function(c) { return colorStruct.accessor(c, 0); };
 var colorGreen = function(c) { return colorStruct.accessor(c, 1); };
 var colorBlue = function(c) { return colorStruct.accessor(c, 2); };
+var colorAlpha = function(c) { return colorStruct.accessor(c, 3); };
 //////////////////////////////////////////////////////////////////////
 
 var heir = plt.baselib.heir;
@@ -44,9 +45,9 @@ var isColorOrColorString = function(thing) {
 
 var colorString = function(aColor) {
     return ("rgb(" + 
-	    types.colorRed(aColor) + "," +
-	    types.colorGreen(aColor) + ", " + 
-	    types.colorBlue(aColor) + ")");
+	    colorRed(aColor) + "," +
+	    colorGreen(aColor) + ", " + 
+	    colorBlue(aColor) + ")");
 };
 
 
@@ -975,7 +976,7 @@ PolygonImage.prototype.equals = function(other, aUnionFind) {
 	    this.step == other.step &&
 	    this.count == other.count &&
 	    this.style == other.style &&
-	    types.equals(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -1087,7 +1088,7 @@ TextImage.prototype.equals = function(other, aUnionFind) {
 	    this.style	== other.style &&
 	    this.weight == other.weight &&
 	    this.underline == other.underline &&
-	    types.equals(this.color, other.color, aUnionFind) &&
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind) &&
 	    this.font == other.font);
 };
 
@@ -1144,7 +1145,7 @@ StarImage.prototype.equals = function(other, aUnionFind) {
 	    this.outer == other.outer &&
 	    this.inner == other.inner &&
 	    this.style == other.style &&
-	    types.equals(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -1201,7 +1202,7 @@ TriangleImage.prototype.equals = function(other, aUnionFind) {
 	    this.side == other.side &&
 	    this.angle == other.angle &&
 	    this.style == other.style &&
-	    types.equals(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -1247,7 +1248,7 @@ RightTriangleImage.prototype.equals = function(other, aUnionFind) {
 	    this.side1 == other.side1 &&
 	    this.side2 == other.side2 &&
 	    this.style == other.style &&
-	    types.equals(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -1301,7 +1302,7 @@ EllipseImage.prototype.equals = function(other, aUnionFind) {
 	    this.width == other.width &&
 	    this.height == other.height &&
 	    this.style == other.style &&
-	    types.equals(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -1373,7 +1374,7 @@ LineImage.prototype.equals = function(other, aUnionFind) {
 	    this.pinholeY == other.pinholeY &&
 	    this.x == other.x &&
 	    this.y == other.y &&
-	    types.equals(this.color, other.color, aUnionFind));
+	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
 };
 
 
@@ -1401,12 +1402,37 @@ var imageToColorList = function(img) {
 	g = data[i+1];
 	b = data[i+2];
 	a = data[i+3];
-	// FIXME: what to do about the alpha component?
-	colors.push(types.color(r, g, b));
+	colors.push(makeColor(r, g, b, a));
     }
     return plt.baselib.lists.makeList.apply(null, colors);
 }
 
+
+var colorListToImage = function(listOfColors,
+                                width,
+                                height,
+                                pinholeX,
+                                pinholeY) {
+    var canvas = makeCanvas(jsnums.toFixnum(width),
+			    jsnums.toFixnum(height)),
+    ctx = canvas.getContext("2d"),
+    imageData = ctx.createImageData(jsnums.toFixnum(width),
+				    jsnums.toFixnum(height)),
+    data = imageData.data,
+    aColor, i = 0;
+    while (listOfColors !== plt.baselib.lists.EMPTY) {
+	aColor = listOfColors.first;
+	data[i] = jsnums.toFixnum(colorRed(aColor));
+	data[i+1] = jsnums.toFixnum(colorGreen(aColor));
+	data[i+2] = jsnums.toFixnum(colorBlue(aColor));
+	data[i+3] = jsnums.toFixnum(colorAlpha(aColor));
+
+	i += 4;
+	listOfColors = listOfColors.rest;
+    };
+
+    return makeImageDataImage(imageData);
+};
 
 
 
@@ -1513,6 +1539,9 @@ var isFileVideo	= function(x) { return x instanceof FileVideo; };
 ///////////////////////////////////////////////////////////////
 // Exports
 
+// These functions are available for direct access without the typechecks
+// of the Racket-exposed functions.
+
 
 EXPORTS.makeCanvas = makeCanvas;
 
@@ -1542,9 +1571,6 @@ EXPORTS.StarImage = StarImage;
 
 
 
-
-
-
 EXPORTS.colorDb = colorDb;
 
 EXPORTS.makeSceneImage = makeSceneImage;
@@ -1570,7 +1596,7 @@ EXPORTS.makeFileImage = makeFileImage;
 EXPORTS.makeVideoImage = makeVideoImage;
 
 EXPORTS.imageToColorList = imageToColorList;
-
+EXPORTS.colorListToImage = colorListToImage;
 
 
 EXPORTS.isImage = isImage;
@@ -1602,3 +1628,12 @@ EXPORTS.isFlipImage = isFlipImage;
 EXPORTS.isTextImage = isTextImage;
 EXPORTS.isFileImage = isFileImage;
 EXPORTS.isFileVideo = isFileVideo;
+
+
+
+EXPORTS.makeColor = makeColor;
+EXPORTS.isColor = isColor;
+EXPORTS.colorRed = colorRed;
+EXPORTS.colorGreen = colorGreen;
+EXPORTS.colorBlue = colorBlue;
+EXPORTS.colorAlpha = colorAlpha;

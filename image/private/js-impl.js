@@ -143,6 +143,9 @@ var checkPointsCount = plt.baselib.check.makeCheckArgumentType(
     "positive integer greater than or equal to 2");
 
 
+var checkListofColor = plt.baselib.check.makeCheckListofArgumenType(
+    isColor,
+    'color');
 
 
 
@@ -158,6 +161,57 @@ EXPORTS['image-color?'] =
         function(MACHINE) {
             var elt = MACHINE.env[MACHINE.env.length - 1];
             return (isColorOrColorString(elt));
+        });
+
+
+
+EXPORTS['mode?'] = 
+    makePrimitiveProcedure(
+        'mode?',
+        1,
+        function(MACHINE) {
+            return isMode(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+EXPORTS['x-place?'] = 
+    makePrimitiveProcedure(
+        'x-place?',
+        1,
+        function(MACHINE) {
+            return isPlaceX(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+EXPORTS['y-place?'] = 
+    makePrimitiveProcedure(
+        'y-place?',
+        1,
+        function(MACHINE) {
+            return isPlaceY(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+EXPORTS['angle?'] = 
+    makePrimitiveProcedure(
+        'angle?',
+        1,
+        function(MACHINE) {
+            return isAngle(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+EXPORTS['side-count?'] = 
+    makePrimitiveProcedure(
+        'side-count?',
+        1,
+        function(MACHINE) {
+            return isSideCount(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
+EXPORTS['step-count?'] = 
+    makePrimitiveProcedure(
+        'step-count?',
+            1,
+        function(MACHINE) {
+            return isStepCount(MACHINE.env[MACHINE.env.length - 1]);
         });
 
 
@@ -914,113 +968,56 @@ EXPORTS['image->color-list'] =
         });
 
 
-// EXPORTS['color-list->image'] = 
-//     makePrimitiveProcedure(
-//         'color-list->image',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['image-width'] = 
-//     makePrimitiveProcedure(
-//         'image-width',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['color-list->image'] = 
+    makePrimitiveProcedure(
+        'color-list->image',
+        5,
+        function(MACHINE) {
+            var listOfColors = checkListOfColor(MACHINE, 'color-list->image', 0);
+	    var width = checkNatural(MACHINE, 'color-list->image', 1);
+	    var height = checkNatural(MACHINE, 'color-list->image', 2);
+	    var pinholeX = checkNatural(MACHINE, 'color-list->image', 3);
+	    var pinholeY = checkNatural(MACHINE, 'color-list->image', 4);
 
-// EXPORTS['image-height'] = 
-//     makePrimitiveProcedure(
-//         'image-height',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['image-baseline'] = 
-//     makePrimitiveProcedure(
-//         'image-baseline',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['image-color?'] = 
-//     makePrimitiveProcedure(
-//         'image-color?',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['mode?'] = 
-//     makePrimitiveProcedure(
-//         'mode?',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['x-place?'] = 
-//     makePrimitiveProcedure(
-//         'x-place?',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['y-place?'] = 
-//     makePrimitiveProcedure(
-//         'y-place?',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['angle?'] = 
-//     makePrimitiveProcedure(
-//         'angle?',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['side-count?'] = 
-//     makePrimitiveProcedure(
-//         'side-count?',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-
-// EXPORTS['image-url'] = 
-//     makePrimitiveProcedure(
-//         'image-url',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-// EXPORTS['open-image-url'] = 
-//     makePrimitiveProcedure(
-//         'open-image-url',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
-// EXPORTS['color-list->image'] = 
-//     makePrimitiveProcedure(
-//         'color-list->image',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+            return colorListToImage(listOfColors,
+                                    width,
+                                    height,
+                                    pinholeX,
+                                    pinholeY);
+        });
 
 
-// EXPORTS['step-count?'] = 
-//     makePrimitiveProcedure(
-//         'step-count?',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+
+EXPORTS['image-width'] = 
+    makePrimitiveProcedure(
+        'image-width',
+        1,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, 'image-width', 0);
+	    return img.getWidth();
+        });
+
+EXPORTS['image-height'] = 
+    makePrimitiveProcedure(
+        'image-height',
+        1,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, 'image-height', 0);
+	    return img.getHeight();
+        });
+
+EXPORTS['image-baseline'] = 
+    makePrimitiveProcedure(
+        'image-baseline',
+        1,
+        function(MACHINE) {
+	    var img = checkImage(MACHINE, 'image-baseline', 0);
+	    return img.getBaseline();
+        });
+
+
+
+
+
+

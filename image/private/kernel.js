@@ -58,6 +58,15 @@ var isImage = function(thing) {
     return (thing instanceof BaseImage);
 };
 
+var isSideCount = function(x) {
+    return plt.baselib.numbers.isInteger(x) && jsnums.greaterThanOrEqual(x, 3);
+};
+
+var isStepCount = function(x) {
+    return plt.baselib.numbers.isInteger(x) && jsnums.greaterThanOrEqual(x, 1);
+};
+
+
 
 
 
@@ -1531,6 +1540,8 @@ EXPORTS.isImage = isImage;
 EXPORTS.isScene = isScene;
 EXPORTS.isColorOrColorString = isColorOrColorString;
 EXPORTS.isAngle = isAngle;
+EXPORTS.isSideCount = isSideCount;
+EXPORTS.isStepCount = isStepCount;
 
 
 EXPORTS.isSceneImage = isSceneImage;

@@ -123,7 +123,19 @@ var checkAngle = plt.baselib.check.makeCheckArgumentType(
     'angle');
 
 
+var checkMode = plt.baselib.check.makeCheckArgumentType(
+    isMode,
+    'solid or outline');
 
+
+var checkSideCount = plt.baselib.check.makeCheckArgumentType(
+    isSideCount,
+    "positive integer greater than or equal to 3");
+
+
+var checkStepCount = plt.baselib.check.makeCheckArgumentType(
+    isStepCount,
+    "positive integer greater than or equal to 1");
 
 
 
@@ -657,61 +669,116 @@ EXPORTS['add-line'] =
 
 
 
-// EXPORTS['scene+line'] = 
-//     makePrimitiveProcedure(
-//         'scene+line',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['scene+line'] = 
+    makePrimitiveProcedure(
+        'scene+line',
+        6,
+        function(MACHINE) {
+            var img = checkImage(MACHINE, "scene+line", 0);
+	    var x1 = checkReal(MACHINE, "scene+line", 1);
+	    var y1 = checkReal(MACHINE, "scene+line", 2);
+	    var x2 = checkReal(MACHINE, "scene+line", 3);
+	    var y2 = checkReal(MACHINE,	"scene+line", 4);
+	    var c = checkColor(MACHINE, "scene+line", 5);
+	    // make a scene containing the image
+	    var newScene = makeSceneImage(jsnums.toFixnum(img.getWidth()), 
+					  jsnums.toFixnum(img.getHeight()), 
+					  [],
+					  true);
+	    newScene = newScene.add(img.updatePinhole(0, 0), 0, 0);
+	    // make an image containing the line
+	    var line = makeLineImage(jsnums.toFixnum(x2-x1),
+				     jsnums.toFixnum(y2-y1),
+				     c,
+				     false);
+	    // add the line to scene, offset by the original amount
+	    return newScene.add(line, jsnums.toFixnum(x1), jsnums.toFixnum(y1));
+        });
 
-// EXPORTS['circle'] = 
-//     makePrimitiveProcedure(
-//         'circle',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['square'] = 
-//     makePrimitiveProcedure(
-//         'square',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['circle'] = 
+    makePrimitiveProcedure(
+        'circle',
+        3,
+        function(MACHINE) {
+            var aRadius = checkNonNegativeReal(MACHINE, "circle", 0);
+	    var aMode = checkMode(MACHINE, "circle", 1);
+	    var aColor = checkColor(MACHINE, "circle", 2);
+	    return makeCircleImage(jsnums.toFixnum(aRadius), aMode.toString(), aColor);
+        });
 
-// EXPORTS['rectangle'] = 
-//     makePrimitiveProcedure(
-//         'rectangle',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['regular-polygon'] = 
-//     makePrimitiveProcedure(
-//         'regular-polygon',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['square'] = 
+    makePrimitiveProcedure(
+        'square',
+        3,
+        function(MACHINE) {
+	    var l = checkNonNegativeReal(MACHINE, "square", 0);
+	    var s = checkMode(MACHINE, "square", 1);
+	    var c = checkColor(MACHINE, "square", 2);
+	    return makeSquareImage(jsnums.toFixnum(l), s.toString(), c);
+        });
 
-// EXPORTS['ellipse'] = 
-//     makePrimitiveProcedure(
-//         'ellipse',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
 
-// EXPORTS['triangle'] = 
-//     makePrimitiveProcedure(
-//         'triangle',
-//             ???,
-//         function(MACHINE) {
-//             ...
-//         });
+EXPORTS['rectangle'] = 
+    makePrimitiveProcedure(
+        'rectangle',
+        4,
+        function(MACHINE) {
+	    var w = checkNonNegativeReal(MACHINE, "rectangle", 0);
+	    var h = checkNonNegativeReal(MACHINE, "rectangle", 1);
+	    var s = checkNonNegativeReal(MACHINE, "rectangle", 2);
+	    var c = checkColor(MACHINE, "rectangle", 3);
+	    return makeRectangleImage(jsnums.toFixnum(w),
+				      jsnums.toFixnum(h),
+				      s.toString(), 
+                                      c);
+        });
+
+
+EXPORTS['regular-polygon'] = 
+    makePrimitiveProcedure(
+        'regular-polygon',
+        4,
+        function(MACHINE) {
+	    var length = checkNonNegativeReal(MACHINE, "regular-polygon", 0);
+	    var count = checkSideCount(MACHINE, "regular-polygon", 1);
+	    var s = checkMode(MACHINE, "regular-polygon", 2);
+	    var c = checkColor(MACHINE, "regular-polygon", 3);
+	    return makePolygonImage(jsnums.toFixnum(length), 
+				    jsnums.toFixnum(count), 
+				    jsnums.toFixnum(1), 
+				    s.toString(), 
+				    c);            
+        });
+
+
+EXPORTS['ellipse'] = 
+    makePrimitiveProcedure(
+        'ellipse',
+        4,
+        function(MACHINE) {
+            var w = checkNonNegativeReal(MACHINE, "ellipse", 0);
+	    var h = checkNonNegativeReal(MACHINE, "ellipse", 1);
+	    var s = checkMode(MACHINE, "ellipse", 2);
+	    var c = checkColor(MACHINE, MACHINE, 3);
+	    return makeEllipseImage(jsnums.toFixnum(w),
+				    jsnums.toFixnum(h),
+				    s.toString(),
+				    c);
+        });
+
+
+
+EXPORTS['triangle'] = 
+    makePrimitiveProcedure(
+        'triangle',
+            ???,
+        function(MACHINE) {
+            ...
+        });
+
+
 
 // EXPORTS['right-triangle'] = 
 //     makePrimitiveProcedure(

@@ -143,7 +143,7 @@ var checkPointsCount = plt.baselib.check.makeCheckArgumentType(
     "positive integer greater than or equal to 2");
 
 
-var checkListofColor = plt.baselib.check.makeCheckListofArgumenType(
+var checkListofColor = plt.baselib.check.makeCheckListofArgumentType(
     isColor,
     'color');
 

@@ -6,7 +6,7 @@
 
     var EMPTY = plt.baselib.lists.EMPTY;
     var isPair = plt.baselib.lists.isPair;
-    var makeLowLevelEqHash = plt.baselib.hash.makeLowLevelEqHash;
+    var makeLowLevelEqHash = plt.baselib.hashes.makeLowLevelEqHash;
 
 
     //////////////////////////////////////////////////////////////////////

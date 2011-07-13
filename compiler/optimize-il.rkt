@@ -13,41 +13,41 @@
 
 (: optimize-il ((Listof Statement) -> (Listof Statement)))
 (define (optimize-il statements)
-
-  #;statements
   ;; For now, replace pairs of PushEnvironment / AssignImmediate(0, ...)
   ;; We should do some more optimizations here, like peephole...
-  (let loop ([statements (filter not-no-op? statements)])
-    (cond
-      [(empty? statements)
-       empty]
-      [else
-       (let ([first-stmt (first statements)])
-         (: default (-> (Listof Statement)))
-         (define (default)
-           (cons first-stmt
-                 (loop (rest statements))))
-         (cond
+  (let* ([statements (filter not-no-op? statements)]
+         [statements (flatten-labels statements)])
+    (let loop ([statements statements])
+      (cond
+       [(empty? statements)
+        empty]
+       [else
+        (let ([first-stmt (first statements)])
+          (: default (-> (Listof Statement)))
+          (define (default)
+            (cons first-stmt
+                  (loop (rest statements))))
+          (cond
            [(empty? (rest statements))
             (default)]
            [else
             (let ([second-stmt (second statements)])
               (cond
-                [(and (PushEnvironment? first-stmt)
-                      (equal? first-stmt (make-PushEnvironment 1 #f))
-                      (AssignImmediateStatement? second-stmt))
-                 (let ([target (AssignImmediateStatement-target second-stmt)])
-                   (cond
-                     [(equal? target (make-EnvLexicalReference 0 #f))
-                      (cons (make-PushImmediateOntoEnvironment 
-                             (adjust-oparg-depth 
-                              (AssignImmediateStatement-value second-stmt) -1)
-                             #f)
-                            (loop (rest (rest statements))))]
-                     [else
-                      (default)]))]
-                [else
-                 (default)]))]))])))
+               [(and (PushEnvironment? first-stmt)
+                     (equal? first-stmt (make-PushEnvironment 1 #f))
+                     (AssignImmediateStatement? second-stmt))
+                (let ([target (AssignImmediateStatement-target second-stmt)])
+                  (cond
+                   [(equal? target (make-EnvLexicalReference 0 #f))
+                    (cons (make-PushImmediateOntoEnvironment 
+                           (adjust-oparg-depth 
+                            (AssignImmediateStatement-value second-stmt) -1)
+                           #f)
+                          (loop (rest (rest statements))))]
+                   [else
+                    (default)]))]
+               [else
+                (default)]))]))]))))
        
 
 (: not-no-op? (Statement -> Boolean))
@@ -107,6 +107,40 @@
      #f]
     [(Comment? stmt)
      #f]))
+
+
+
+;; detect adjacent labels, and flatten them into a single jump target.
+(: flatten-labels ((Listof Statement) -> (Listof Statement)))
+(define (flatten-labels stmts)
+  (cond
+   [(empty? stmts)
+    stmts]
+   [else
+    (let ([ht ((inst make-hasheq Symbol Symbol))])
+      
+      ;; First scan identifies the adjacent labels
+      (let: loop : Void ([last-labeled-stmt : (U False Symbol) #f]
+                         [stmts : (Listof Statement) stmts])
+        (cond
+         [(empty? stmts)
+          (void)]
+         [else
+          (loop (if (symbol? (first stmts))
+                    (first stmts)
+                    #f)
+                (rest stmts))]))
+
+
+      ;; We then run through all the statements and replace with
+      ;; canonical ones.
+      (let: loop : (Listof Statement) ([stmts : (Listof Statement) stmts])
+        (cond
+         [(empty? stmts)
+          empty]
+         [else
+          (cons (first stmts)
+                (loop (rest stmts)))])))]))
 
 
 

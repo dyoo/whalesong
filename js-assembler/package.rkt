@@ -155,27 +155,22 @@ MACHINE.modules[~s] =
 
 
 (define (assemble-modinvoke path after)
-  (let ([name (rewrite-path (path->string path))])
-    (format "if (! MACHINE.modules[~s].isInvoked) {
+  (let ([name (rewrite-path (path->string path))]
+        [afterName (gensym 'afterName)])
+    (format "var ~a = function() { ~a };
+             if (! MACHINE.modules[~s].isInvoked) {
                  MACHINE.modules[~s].internalInvoke(MACHINE,
-                                            function() {
-
-                                                ///////////////////////////
-                                                ~a
-                                                ///////////////////////////
-
-                                            },
+                                            ~a,
                                             MACHINE.params.currentErrorHandler);
              } else {
-                 ~a
+                 ~a();
              }"
-            (symbol->string name)
-            (symbol->string name)
+            afterName
             after
-            after)))
-
-
-
+            (symbol->string name)
+            (symbol->string name)
+            afterName
+            afterName)))
 
 
 

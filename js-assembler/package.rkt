@@ -116,6 +116,7 @@
              modrec.isInvoked = true;
              (function(MACHINE, RUNTIME, EXPORTS){~a})(MACHINE, plt.runtime, exports);
              ~a
+             modrec.privateExports = exports;
              return MACHINE.control.pop().label(MACHINE);"
                     (symbol->string name)
                     text

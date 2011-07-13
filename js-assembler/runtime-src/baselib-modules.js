@@ -9,6 +9,10 @@
 	this.isInvoked = false;
         this.prefix = false;
 	this.namespace = {};
+
+        // JavaScript-implemented code will assign privateExports
+        // with all of the exported identifiers.
+        this.privateExports = {};
     };
 
     // Returns access to the names defined in the module.

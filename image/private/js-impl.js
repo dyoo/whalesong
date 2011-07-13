@@ -70,6 +70,10 @@ var isStyle = function(x) {
 
 
 var checkString = plt.baselib.check.checkString;
+var checkStringOrFalse = plt.baselib.check.makeCheckArgumentType(
+    function(x) { return plt.baselib.strings.isString(x) || x === false; },
+    "string or false");
+
 var checkByte = plt.baselib.check.checkByte;
 var checkReal = plt.baselib.check.checkReal;
 var checkBoolean = plt.baselib.check.checkBoolean;
@@ -786,7 +790,7 @@ EXPORTS['rectangle'] =
         function(MACHINE) {
 	    var w = checkNonNegativeReal(MACHINE, "rectangle", 0);
 	    var h = checkNonNegativeReal(MACHINE, "rectangle", 1);
-	    var s = checkNonNegativeReal(MACHINE, "rectangle", 2);
+	    var s = checkMode(MACHINE, "rectangle", 2);
 	    var c = checkColor(MACHINE, "rectangle", 3);
 	    return makeRectangleImage(jsnums.toFixnum(w),
 				      jsnums.toFixnum(h),

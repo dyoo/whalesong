@@ -404,7 +404,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			    (new Date()).valueOf() - startTime);
 			setTimeout(
 			    function() { trampoline(MACHINE, thunk); },
-			    0);
+			    10);
 			return;
 		    } else {
                         continue;

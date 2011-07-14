@@ -48,6 +48,12 @@
                 for (var i = 2; i < arguments.length; i++) {
                     args.push(arguments[i]);
                 }
+
+		// Check arity usage.
+		if (! plt.baselib.arity.isArityMatching(v.arity, args.length)) {
+		    throw new Error("arity mismatch");
+		}
+
                 var result = v.apply(null, args);
                 succ(result);
             } catch (e) {
@@ -79,23 +85,29 @@
 
             var oldErrorHandler = MACHINE.params['currentErrorHandler'];
             var afterGoodInvoke = function(MACHINE) { 
-                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                var returnValue = MACHINE.val;
-                MACHINE.val = oldVal;
-                MACHINE.argcount = oldArgcount;
-                MACHINE.proc = oldProc;
-                succ(returnValue);
+		plt.runtime.PAUSE(
+		    function(restart) {
+			MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+			var returnValue = MACHINE.val;
+			MACHINE.val = oldVal;
+			MACHINE.argcount = oldArgcount;
+			MACHINE.proc = oldProc;
+			succ(returnValue);
+		    });
             };
             afterGoodInvoke.multipleValueReturn = function(MACHINE) {
-                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                var returnValues = [MACHINE.val];
-                for (var i = 0; i < MACHINE.argcount - 1; i++) {
-                    returnValues.push(MACHINE.env.pop());
-                }
-                MACHINE.val = oldVal;
-                MACHINE.argcount = oldArgcount;
-                MACHINE.proc = oldProc;
-                succ.apply(null, returnValues);
+		plt.runtime.PAUSE(
+		    function(restart) {
+			MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+			var returnValues = [MACHINE.val];
+			for (var i = 0; i < MACHINE.argcount - 1; i++) {
+			    returnValues.push(MACHINE.env.pop());
+			}
+			MACHINE.val = oldVal;
+			MACHINE.argcount = oldArgcount;
+			MACHINE.proc = oldProc;
+			succ.apply(null, returnValues);
+		    });
             };
 
             setTimeout(
@@ -123,10 +135,13 @@
 
 
 
-    // internallCall: call a Racket procedure and get its results.
-    // The use MUST be in the context of a closure call.  This assumes that
-    // it is still in the context of the trampoline
-    var internalCall = function(MACHINE, proc, success, fail) {
+    // internallCallDuringPause: call a Racket procedure and get its results.
+    // The use assumes the machine is in a running-but-paused state.
+    var internalCallDuringPause = function(MACHINE, proc, success, fail) {
+	if (! plt.baselib.arity.isArityMatching(proc.arity, args.length)) {
+	    return fail(plt.baselib.exceptions.makeExnFailContractArity("arity mismatch"));
+	}
+
         if (isPrimitiveProcedure(proc)) {
 	    var args = [];
             for (var i = 4; i < arguments.length; i++) {
@@ -135,13 +150,56 @@
             var result = v.apply(null, args);
             succ(result);
         } else if (isClosure(v)) {
-	    // FIXME
+
+            var oldVal = MACHINE.val;
+            var oldArgcount = MACHINE.argcount;
+            var oldProc = MACHINE.proc;
+
+            var oldErrorHandler = MACHINE.params['currentErrorHandler'];
+            var afterGoodInvoke = function(MACHINE) { 
+		plt.runtime.PAUSE(function(restart) {
+                    MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                    var returnValue = MACHINE.val;
+                    MACHINE.val = oldVal;
+                    MACHINE.argcount = oldArgcount;
+                    MACHINE.proc = oldProc;
+                    succ(returnValue);
+		});
+            };
+            afterGoodInvoke.multipleValueReturn = function(MACHINE) {
+		plt.runtime.PAUSE(function(restart) {
+		    MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                    var returnValues = [MACHINE.val];
+                    for (var i = 0; i < MACHINE.argcount - 1; i++) {
+			returnValues.push(MACHINE.env.pop());
+                    }
+                    MACHINE.val = oldVal;
+                    MACHINE.argcount = oldArgcount;
+                    MACHINE.proc = oldProc;
+                    succ.apply(null, returnValues);
+		});
+            };
+
+            MACHINE.control.push(
+                new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
+            MACHINE.argcount = args.length;
+            for (var i = 0; i < args.length; i++) {
+                MACHINE.env.push(args[i]);
+            }
+            MACHINE.proc = v;
+            MACHINE.params['currentErrorHandler'] = function(MACHINE, e) {
+                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                MACHINE.val = oldVal;
+                MACHINE.argcount = oldArgcount;
+                MACHINE.proc = oldProc;
+                fail(e);
+            };
+            plt.runtime.trampoline(MACHINE, v.label);
         } else {
-            plt.baselib.exceptions.raise(MACHINE,
-                                         plt.baselib.exceptions.makeExnFail(
-                                             plt.baselib.format.format(
-                                                 "Not a procedure: ~e",
-                                                 v)));
+            fail(plt.baselib.exceptions.makeExnFail(
+                plt.baselib.format.format(
+                    "Not a procedure: ~e",
+                    v)));
         }
     };
 
@@ -272,7 +330,7 @@
 
     //////////////////////////////////////////////////////////////////////
     exports.Closure = Closure;
-    exports.internalCall = internalCall;
+    exports.internalCallDuringPause = internalCallDuringPause;
     exports.finalizeClosureCall = finalizeClosureCall;
 
     exports.makePrimitiveProcedure = makePrimitiveProcedure;

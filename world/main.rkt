@@ -2,7 +2,14 @@
 
 (declare-implementation
  #:racket "racket-impl.rkt"
- #:javascript ("colordb.js"
-               "kernel.js"
-               "js-impl.js")
- #:provided-values (is-color?))
+ #:javascript (
+               ;; the raw implementation doesn't know anything about
+               ;; Whalesong.
+               "private/raw-jsworld.js"  
+
+               ;; We add Whalesong-specific things here.
+               ;;"kernel.js"
+               ;;"js-impl.js"
+               )
+ #:provided-values (big-bang
+                    on-tick))

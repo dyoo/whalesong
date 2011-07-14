@@ -1,6 +1,14 @@
 #lang s-exp "../lang/base.rkt"
 
-(provide is-color?)
+(provide big-bang
+         on-tick)
 
-(define (is-color? x)
-  true)
+
+(define (big-bang initial-world . args)
+  (error 'big-bang "not done yet"))
+
+(define on-tick
+  (case-lambda [(handler)
+                (error 'on-tick "not done yet")]
+               [(handler interval)
+                (error 'on-tick "not done yet")]))

@@ -786,7 +786,11 @@ var rawJsworld = {};
 
     // Notes: bigBang maintains a stack of activation records; it should be possible
     // to call bigBang re-entrantly.
-    function bigBang(top, init_world, handlerCreators, attribs, k) {
+    // top: dom
+    // init_world: any
+    // handlerCreators: (Arrayof (-> handler))
+    // k: any -> void
+    function bigBang(top, init_world, handlerCreators, attribs, succ) {
 	// clear_running_state();
 
 	// Construct a fresh set of the handlers.
@@ -822,7 +826,7 @@ var rawJsworld = {};
 		function(stop) {
 		    if (stop) {
 			Jsworld.shutdown();
-		        k(w);
+		        succ(w);
 	/*
 			stopWhen.receiver(world,
 			    function() {		    

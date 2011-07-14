@@ -145,4 +145,3 @@ OnTick.prototype.configure = function(config) {
 	}
     );
 };
-

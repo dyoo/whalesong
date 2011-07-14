@@ -101,7 +101,7 @@
 	raise(MACHINE,
               new Error(
 		  plt.baselib.format.format(
-		      "~a: expected ~e as argument ~e but received ~e",
+		      "~a: expected ~a as argument ~e but received ~e",
 		      [callerName,
 		       expectedTypeName,
 		       (argumentOffset + 1),

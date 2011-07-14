@@ -85,7 +85,11 @@
 
 
     var raiseUnboundToplevelError = function(MACHINE, name) {
-        raise(MACHINE, new Error("Not bound: " + name)); 
+        raise(MACHINE, 
+	      new Error(
+		  plt.baselib.format.foramt(
+		      "Not bound: ~a",
+		      [name]))); 
     };
 
 
@@ -95,37 +99,54 @@
                                           argumentOffset,
                                           actualValue) {
 	raise(MACHINE,
-              new Error(callerName + ": expected " + expectedTypeName
-			+ " as argument " + (argumentOffset + 1)
-			+ " but received " + plt.baselib.format.toWrittenString(actualValue)));
+              new Error(
+		  plt.baselib.format.format(
+		      "~a: expected ~e as argument ~e but received ~e",
+		      [callerName,
+		       expectedTypeName,
+		       (argumentOffset + 1),
+		       actualValue])));
     };
 
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
 	raise(MACHINE, 
-	      new Error("expected " + expected +
-			" values, received " + 
-			MACHINE.argcount + " values"));
+	      new Error(plt.baselib.format.format(
+		  "expected ~e values, received ~e values"
+		  [expected,
+		   MACHINE.argcount])));
     };
 
     var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
 	raise(MACHINE, 
-	      new Error(proc.displayName + ": " + "expected " + expected 
-                        + " value(s), received " + received + " value(s)"));
+	      new Error(plt.baselib.format.format(
+		  "~a: expected ~e value(s), received ~e value(s)",
+		  [proc.displayName,
+		   expected ,
+		   received])))
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
 	raise(MACHINE, 
-	      new Error("not a procedure: " + plt.baselib.format.toWrittenString(operator)));
+	      new Error(
+		  plt.baselib.format.format(
+		      "not a procedure: ~e",
+		      [operator])));
     };
 
     var raiseOperatorIsNotClosure = function(MACHINE, operator) {
         raise(MACHINE,
-              new Error("not a closure: " + plt.baselib.format.toWrittenString(operator)));
+              new Error(
+		  plt.baselib.format.format(
+		      "not a closure: ~e",
+		      [operator])));
     };
 
     var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
         raise(MACHINE,
-              new Error("not a primitive procedure: " + plt.baselib.format.toWrittenString(operator)));
+              new Error(
+		  plt.baselib.format.format(
+		      "not a primitive procedure: ~e",
+		      [operator])));
     };
 
 

@@ -4,4 +4,6 @@
 
 
 (circle 20 'solid 'blue)
-;(big-bang 0 (on-tick add1 1))
+(big-bang 0 (on-tick add1 1))
+
+"all done"

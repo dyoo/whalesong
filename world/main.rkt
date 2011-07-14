@@ -8,8 +8,8 @@
                "private/raw-jsworld.js"  
 
                ;; We add Whalesong-specific things here.
-               ;;"kernel.js"
-               ;;"js-impl.js"
+               "kernel.js"
+               "js-impl.js"
                )
  #:provided-values (big-bang
                     on-tick))

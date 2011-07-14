@@ -23,6 +23,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var isList = plt.baselib.lists.isList;
     var isVector = plt.baselib.vectors.isVector;
     var isString = plt.baselib.strings.isString;
+    var isSymbol = plt.baselib.symbols.isSymbol;
     var isNonNegativeReal = plt.baselib.numbers.isNonNegativeReal;
     var equals = plt.baselib.equality.equals;
 
@@ -39,6 +40,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var makeRational = plt.baselib.numbers.makeRational;
     var makeBignum = plt.baselib.numbers.makeBignum;
     var makeComplex = plt.baselib.numbers.makeComplex;
+
+    var makeSymbol = plt.baselib.symbols.makeSymbol;
 
     var makeBox = plt.baselib.boxes.makeBox;
     var isBox = plt.baselib.boxes.isBox;
@@ -106,6 +109,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var checkOutputPort = plt.baselib.check.checkOutputPort;
     var checkString = plt.baselib.check.checkString;
+    var checkSymbol = plt.baselib.check.checkSymbol;
     var checkProcedure = plt.baselib.check.checkProcedure;
     var checkNumber = plt.baselib.check.checkNumber;
     var checkReal = plt.baselib.check.checkReal;
@@ -979,7 +983,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         1,
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return plt.baselib.symbols.isSymbol(firstArg);
+	    return isSymbol(firstArg);
         });
 
     installPrimitiveProcedure(
@@ -1660,86 +1664,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-//     installPrimitiveProcedure(
-//         'make-struct-field-accessor',
-//         makeList(2, 3),
-//         function(MACHINE) {
-
-//             var accessor, fieldPos, fieldName;
-//             accessor = MACHINE.env[MACHINE.env.length-1];
-//             fieldPos = MACHINE.env[MACHINE.env.length-2];
-//             if (MACHINE.argcount === 2) {
-//                 fieldName = 'field' + fieldPos;
-//             } else {
-//                 fieldName = MACHINE.env[MACHINE.env.length-3];
-//             }
-
-// 	    testArgument(MACHINE,
-//                          'accessor procedure that requires a field index',
-//                          function(x) {
-//                              return (x instanceof types.StructAccessorProc &&
-//                                      x.numParams > 1);
-//                          },
-//                          accessor,
-//                          0,
-// 		         'make-struct-field-accessor');
-
-// 	    testArgument(MACHINE,
-//                          'exact non-negative integer', 
-//                          isNatural,
-//                          fieldPos,
-//                          'make-struct-field-accessor', 
-//                          1)
-
-// 	    testArgument(MACHINE,
-//                          'symbol or #f',
-//                          function(x) { 
-//                              return x === false || isSymbol(x);
-//                          },
-// 		         'make-struct-field-accessor', 
-//                          fieldName,
-//                          2);
-
-
-// 	    var procName = accessor.type.name + '-' fieldName;           
-// 	    return new types.StructAccessorProc(
-//                 accessor.type,
-//                 procName,
-//                 1, 
-//                 false,
-//                 false,
-// 		function(MACHINE) {
-// 		    testArgument(MACHINE, 
-//                                  'struct:' + accessor.type.name, 
-//                                  accessor.type.predicate,
-//                                  MACHINE.env[MACHINE.env.length - 1],
-//                                  procName, 
-//                                  0);
-// 		    return accessor.impl(x, fieldPos);
-// 		});
-
-//         });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Javascript-specific extensions.  A small experiment.
     installPrimitiveProcedure(
@@ -1937,7 +1861,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['makeRational'] = makeRational;
     exports['makeBignum'] = makeBignum;
     exports['makeComplex'] = makeComplex;
-
+    exports['makeSymbol'] = makeSymbol;
 
 
     // Type predicates
@@ -1948,6 +1872,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['isOutputStringPort'] = isOutputStringPort;
     exports['isBox'] = isBox;
     exports['isString'] = isString;
+    exports['isSymbol'] = isSymbol;
     exports['isNumber'] = isNumber;
     exports['isNatural'] = isNatural;
     exports['isReal'] = isReal;

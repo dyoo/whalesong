@@ -48,11 +48,14 @@
 
     var isSymbol = function(x) { return x instanceof Symbol; };
 
+    var makeSymbol = function(s) { return Symbol.makeInstance(s); };
+
 
 
     //////////////////////////////////////////////////////////////////////
 
     exports.Symbol = Symbol;
+    exports.makeSymbol = makeSymbol;
     exports.isSymbol = isSymbol;
 
 })(this['plt'].baselib);

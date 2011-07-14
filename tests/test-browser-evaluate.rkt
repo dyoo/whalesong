@@ -41,6 +41,7 @@ EOF
        (syntax/loc #'stx
          (begin
            (printf "running test... ~s" (syntax->datum #'stx))
+           (flush-output)
            (let ([result (evaluate s)])
              (let ([output (evaluated-stdout result)])
                (unless (string=? output exp)
@@ -55,7 +56,8 @@ EOF
      (with-syntax ([stx stx])
        (syntax/loc #'stx
          (begin
-           (printf "running test...")
+           (printf "running test... ~s" (syntax->datum #'stx))
+           (flush-output)
            (let ([an-error-happened 
                   (with-handlers ([error-happened?
                                    (lambda (exn)
@@ -106,14 +108,14 @@ EOF
       "25")
 ;; fixme: symbols need to be represented separately from strings.
 (test/exn (evaluate '(/ 3 'four))
-          "Error: /: expected number as argument 2 but received \"four\"")
+          "Error: /: expected number as argument 2 but received four")
 
 
 (test '(display (- 1))
       "-1")
 
 (test/exn '(- 'one)
-          "Error: -: expected number as argument 1 but received \"one\"")
+          "Error: -: expected number as argument 1 but received one")
 
 (test '(display (- 5 4))
       "1")

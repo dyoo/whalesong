@@ -103,6 +103,10 @@
         plt.baselib.ports.isOutputPort,
         'output port');
 
+    var checkSymbol = makeCheckArgumentType(
+	plt.baselib.symbols.isSymbol,
+	'symbol');
+
     var checkString = makeCheckArgumentType(
         plt.baselib.strings.isString,
         'string');
@@ -182,6 +186,7 @@
 
     exports.checkOutputPort = checkOutputPort;
     exports.checkString = checkString;
+    exports.checkSymbol = checkSymbol;
     exports.checkProcedure = checkProcedure;
     exports.checkNumber = checkNumber;
     exports.checkReal = checkReal;

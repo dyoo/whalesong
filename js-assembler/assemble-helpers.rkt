@@ -99,7 +99,7 @@
 (define (assemble-const stmt)
   (let: loop : String ([val : Any (Const-const stmt)])
         (cond [(symbol? val)
-               (format "~s" (symbol->string val))]
+               (format "RUNTIME.makeSymbol(~s)" (symbol->string val))]
               [(pair? val)
                (format "RUNTIME.makePair(~a, ~a)" 
                        (loop (car val))

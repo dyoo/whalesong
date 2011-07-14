@@ -422,6 +422,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                     e.onHalt(MACHINE);
                     return;
                 } else {
+		    // General error condition: just exit out
+		    // of the trampoline and call the current error handler.
 		    MACHINE.running = false;
                     MACHINE.params.currentErrorHandler(MACHINE, e);
 	            return;

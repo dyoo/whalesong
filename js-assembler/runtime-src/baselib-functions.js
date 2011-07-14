@@ -67,6 +67,12 @@
                 args.push(arguments[i]);
             }
 
+	    // Check arity usage.
+	    if (! plt.baselib.arity.isArityMatching(v.arity, args.length)) {
+		throw new Error("arity mismatch");
+	    }
+
+
             var oldVal = MACHINE.val;
             var oldArgcount = MACHINE.argcount;
             var oldProc = MACHINE.proc;
@@ -114,6 +120,34 @@
         };
         return f;
     };
+
+
+
+    // internallCall: call a Racket procedure and get its results.
+    // The use MUST be in the context of a closure call.  This assumes that
+    // it is still in the context of the trampoline
+    var internalCall = function(MACHINE, proc, success, fail) {
+        if (isPrimitiveProcedure(proc)) {
+	    var args = [];
+            for (var i = 4; i < arguments.length; i++) {
+                args.push(arguments[i]);
+            }
+            var result = v.apply(null, args);
+            succ(result);
+        } else if (isClosure(v)) {
+	    // FIXME
+        } else {
+            plt.baselib.exceptions.raise(MACHINE,
+                                         plt.baselib.exceptions.makeExnFail(
+                                             plt.baselib.format.format(
+                                                 "Not a procedure: ~e",
+                                                 v)));
+        }
+    };
+
+
+
+
 
 
 
@@ -180,6 +214,8 @@
 
 
 
+
+
     var makePrimitiveProcedure = function(name, arity, f) {
         f.arity = arity;
         f.displayName = name;
@@ -236,6 +272,7 @@
 
     //////////////////////////////////////////////////////////////////////
     exports.Closure = Closure;
+    exports.internalCall = internalCall;
     exports.finalizeClosureCall = finalizeClosureCall;
 
     exports.makePrimitiveProcedure = makePrimitiveProcedure;

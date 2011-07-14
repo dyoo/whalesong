@@ -203,7 +203,7 @@ var rawJsworld = {};
     Jsworld.gensym = gensym;
 
 
-    function map(a1, f) {
+    var map = function(a1, f) {
 	var b = new Array(a1.length);
 	for (var i = 0; i < a1.length; i++) {
 		b[i] = f(a1[i]);
@@ -214,7 +214,7 @@ var rawJsworld = {};
 
 
 
-    function concat_map(a, f) {
+    var concat_map = function(a, f) {
 	var b = [];
 	for (var i = 0; i < a.length; i++) {
 		b = b.concat(f(a[i]));
@@ -223,7 +223,7 @@ var rawJsworld = {};
     }
 
 
-    function mapi(a, f) {
+    var mapi = function(a, f) {
 	var b = new Array(a.length);
 	for (var i = 0; i < a.length; i++) {
 		b[i] = f(a[i], i);
@@ -233,7 +233,7 @@ var rawJsworld = {};
     Jsworld.mapi = mapi;
 
 
-    function fold(a, x, f) {
+    var fold = function(a, x, f) {
 	for (var i = 0; i < a.length; i++) {
 		x = f(a[i], x);
 	}
@@ -768,7 +768,7 @@ var rawJsworld = {};
     }
 
     BigBangRecord.prototype.restart = function() {
-	big_bang(this.top, this.world, this.handlerCreators, this.attribs);
+	bigBang(this.top, this.world, this.handlerCreators, this.attribs);
     }
     
     BigBangRecord.prototype.pause = function() {
@@ -782,9 +782,11 @@ var rawJsworld = {};
     };
     //////////////////////////////////////////////////////////////////////
 
-    // Notes: big_bang maintains a stack of activation records; it should be possible
-    // to call big_bang re-entrantly.
-    function big_bang(top, init_world, handlerCreators, attribs, k) {
+
+
+    // Notes: bigBang maintains a stack of activation records; it should be possible
+    // to call bigBang re-entrantly.
+    function bigBang(top, init_world, handlerCreators, attribs, k) {
 	// clear_running_state();
 
 	// Construct a fresh set of the handlers.
@@ -846,7 +848,7 @@ var rawJsworld = {};
 
 
     }
-    Jsworld.big_bang = big_bang;
+    Jsworld.bigBang = bigBang;
 
 
 

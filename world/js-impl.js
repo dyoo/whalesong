@@ -26,7 +26,7 @@ EXPORTS['big-bang'] =
 		// FIXME: typecheck for configuration options
 		handlers.push(MACHINE.env[MACHINE.env.length - 1 - i]);
 	    }
-	    bigBang(initialWorldValue, handlers);
+	    bigBang(MACHINE, initialWorldValue, handlers);
         });
 
 

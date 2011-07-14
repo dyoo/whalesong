@@ -21,33 +21,35 @@ var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 
 var bigBang = function(MACHINE, initW, handlers) {
     PAUSE(function(restart) {
-	
-	var finalWorldValue = "not done yet";
-	// Once we finally get a value back, we can call
-	// restart at this point and finish the call to
-	// big-bang.
-        restart(function(MACHINE) {
-            finalizeClosureCall(
-                MACHINE, 
-                finalWorldValue);
-        });
-	
 
 
 	// var onBreak = function() {
 	//     bigBangController.breaker();
 	// }
 	// state.addBreakRequestedListener(onBreak);
-	// var bigBangController = rawJsworld.bigBang(
-	//     initW, 
-	//     state.getToplevelNodeHook()(),
-	//     unwrappedConfigs,
-	//     caller,
-	//     function(v) {
-	// 	state.removeBreakRequestedListener(onBreak);
-	// 	restarter(v);
-	//     },
- 	//     onFail);
+
+	var toplevelNode = $('<div/>').css('border', '2').appendTo(document.body);
+	
+
+	var bigBangController = rawJsworld.bigBang(
+	    toplevelNode.get(0),
+	    initW,
+	    handlers,
+	    {},
+	    function(finalWorldValue) {
+		// state.removeBreakRequestedListener(onBreak);
+
+
+		restart(function(MACHINE) {
+		    finalizeClosureCall(
+			MACHINE, 
+			finalWorldValue);
+		});
+
+	    });
+
+
+
 
     });
 };

@@ -271,7 +271,12 @@ EOF
               (displayln (fib 5))
               (displayln (fib 6)))
       "2\n3\n5\n8\n")
-      
+
+
+(test '(displayln (eq? (string->symbol "hello")
+                       'hello))
+      "true\n")
+
 
 (test '(begin (define (tak x y z)
                (if (>= y x)

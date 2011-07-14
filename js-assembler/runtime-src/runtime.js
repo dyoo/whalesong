@@ -568,7 +568,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString;
-            formatString = checkString(MACHINE, 'format', 0);
+            formatString = checkString(MACHINE, 'format', 0).toString();
             for(i = 1; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
@@ -581,7 +581,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
             var args = [], i, formatString, result, outputPort;
-            formatString = checkString(MACHINE, 'printf', 0);
+            formatString = checkString(MACHINE, 'printf', 0).toString();
             for(i = 1; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
@@ -598,7 +598,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             var args = [], i, formatString, outputPort, result;
             outputPort = checkOutputPort(MACHINE, 'fprintf', 0);
-            formatString = checkString(MACHINE, 'fprintf', 1);
+            formatString = checkString(MACHINE, 'fprintf', 1).toString();
             for(i = 2; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
@@ -1001,7 +1001,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var buffer = [];
 	    var i;
 	    for (i = 0; i < MACHINE.argcount; i++) {
-	        buffer.push(checkString(MACHINE, 'string-append', i));
+	        buffer.push(checkString(MACHINE, 'string-append', i).toString());
 	    }
 	    return buffer.join('');
         });
@@ -1010,7 +1010,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         'string-length',
         1,
         function(MACHINE) {
-	    var firstArg = checkString(MACHINE, 'string-length', 0);
+	    var firstArg = checkString(MACHINE, 'string-length', 0).toString();
 	    return firstArg.length;
         });
     
@@ -1486,11 +1486,19 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
     installPrimitiveProcedure(
+	'string->symbol',
+	1,
+	function(MACHINE) {
+	    return makeSymbol(checkString(MACHINE, 'string->symbol', 0).toString());
+	});
+
+
+    installPrimitiveProcedure(
         'string->number',
         1,
         function(MACHINE) {
             return plt.baselib.numbers.fromString(
-                checkString(MACHINE, 'string->number', 0));
+                checkString(MACHINE, 'string->number', 0).toString());
         });
 
     
@@ -1659,34 +1667,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
-
-
-
-
-
-
-    // Javascript-specific extensions.  A small experiment.
-    installPrimitiveProcedure(
-        'viewport-width',
-        0,
-        function(MACHINE) {
-            return $(window).width();
-        });
-
-    installPrimitiveProcedure(
-        'viewport-height',
-        0,
-        function(MACHINE) {
-            return $(window).height();
-        });
-
-
-    installPrimitiveProcedure(
-        'in-javascript-context?',
-        0,
-        function(MACHINE) {
-            return true;
-        });
 
 
 

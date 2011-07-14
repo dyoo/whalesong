@@ -23,7 +23,7 @@ EXPORTS['$'] =
 EXPORTS['call-method'] = 
     RUNTIME.makePrimitiveProcedure(
         'call-method',
-        new RUNTIME.ArityAtLeast(2),
+        plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
             var obj = MACHINE.env[MACHINE.env.length - 1];
             var methodName = MACHINE.env[MACHINE.env.length - 2];
@@ -33,4 +33,33 @@ EXPORTS['call-method'] =
             }
             var result = obj[methodName].apply(obj, args);
             return result;
+        });
+
+
+
+
+// Javascript-specific extensions.  A small experiment.
+EXPORTS['viewport-width'] = 
+    RUNTIME.makePrimitiveProcedure(
+        'viewport-width',
+        0,
+        function(MACHINE) {
+            return $(window).width();
+        });
+
+EXPORTS['viewport-height'] = 
+    RUNTIME.makePrimitiveProcedure(
+        'viewport-height',
+        0,
+        function(MACHINE) {
+            return $(window).height();
+        });
+
+
+EXPORTS['in-javascript-context?'] =
+    RUNTIME.makePrimitiveProcedure(
+        'in-javascript-context?',
+        0,
+        function(MACHINE) {
+            return true;
         });

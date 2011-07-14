@@ -6,4 +6,9 @@
  #:provided-values (alert
                     body
                     call-method
-                    $))
+                    $
+
+                    viewport-width
+                    viewport-height
+                    in-javascript-context?
+                    ))

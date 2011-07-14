@@ -6,7 +6,7 @@ launcher:
 	raco make -v --disable-inline whalesong.rkt
 	racket make-launcher.rkt
 
-whalesong:
+whalesong: 
 	raco make -v --disable-inline whalesong.rkt
 
 test-all:
@@ -35,6 +35,7 @@ test-earley:
 test-conform:
 	raco make -v --disable-inline tests/test-conform.rkt
 	racket tests/test-conform.rkt
+
 
 
 

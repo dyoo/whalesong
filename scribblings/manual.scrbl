@@ -12,6 +12,7 @@
 
           racket/runtime-path
           "scribble-helpers.rkt"
+	  "../last-commit-name.rkt"
           "../js-assembler/get-js-vm-implemented-primitives.rkt")
 
 
@@ -50,6 +51,10 @@
 @url{https://github.com/dyoo/whalesong}.  The latest version of this
 document lives in @url{http://hashcollision.org/whalesong}.}}
 
+@centered{@smaller{Current commit head is @tt{@git-head}.}}
+
+
+
 
 
 
@@ -71,10 +76,10 @@ document lives in @url{http://hashcollision.org/whalesong}.}}
 Whalesong is a compiler from Racket to JavaScript; it takes Racket
 programs and translates them so that they can run stand-alone on a
 user's web browser.  It should allow Racket programs to run with
-(hopefully!) little modification, and provide access through the foreign-function
-interface to native JavaScript APIs.  The included runtime library
-also includes a framework to programming the web in functional
-event-driven style.
+(hopefully!) little modification, and provide access through the
+foreign-function interface to native JavaScript APIs.  The included
+runtime library supports the numeric tower, an image library, and a
+framework to program the web in functional event-driven style.
 
 
 The GitHub source repository to Whalesong can be found at
@@ -103,10 +108,14 @@ Prerequisites: at least @link["http://racket-lang.org/"]{Racket
 @subsection{Installing Whalesong}
 
 At the time of this writing, although Whalesong has been deployed to
-@link["http://planet.racket-lang.org"]{PLaneT}, what's up there is probably
-already out of date!  You may want to get the latest sources instead
-of using the version on PLaneT.  Doing so
-requires doing a little bit of manual work.  The steps are:
+@link["http://planet.racket-lang.org"]{PLaneT}, the version on PLaneT
+is out of date.  I'll be updating the PLaneT package as soon as
+Whalesong starts to stabilize, but the system as a whole is still in
+some flux.
+
+You may want to get the latest sources instead of using the version on
+PLaneT.  Doing so requires doing a little bit of manual work.  The
+steps are:
 
 @itemlist[
 @item{Check Whalesong out of Github.}
@@ -190,6 +199,10 @@ you should see a triumphant message show on screen.
 
 We can do something slightly more interesting.  Let's write a Whalesong program
 that accesses the JavaScript DOM.  Call this file @filepath{dom-play.rkt}.
+@margin-note{
+The generated program can be downloaded here: @link["http://hashcollision.org/whalesong/examples/dom-play.xhtml"]{dom-play.xhtml}
+}
+
 @filebox["dom-play.rkt"]{
 @codeblock|{
 #lang planet dyoo/whalesong
@@ -255,7 +268,7 @@ with generated JavaScript binaries here:
 
 
 @filebox["fact.rkt"]{
-@verbatim|{
+@codeblock|{
 #lang planet dyoo/whalesong
 (provide fact)
 (define (fact x)
@@ -476,28 +489,6 @@ language.
 
 
 
-@subsection{Misc}
-
-The bindings here might relocate!
-
-@defproc[(in-javascript-context?) boolean]{Returns true if the running context
-supports JavaScript-specific functions.}
-
-@defform[(viewport-width)]{
-Can only be called in a JavaScript context.
-
-Returns wthe width of the viewport.
-}
-
-@defform[(viewport-height)]{
-Can only be called in a JavaScript context.
-
-Returns the height of the viewport.
-}
-
-
-
-
 
 
 @section{The JavaScript API}
@@ -558,6 +549,24 @@ the document body.
 
 }
 
+
+
+
+
+@defproc[(in-javascript-context?) boolean]{Returns true if the running context
+supports JavaScript-specific functions.}
+
+@defproc[(viewport-width) number?]{
+Can only be called in a JavaScript context.
+
+Returns the width of the viewport.
+}
+
+@defproc[(viewport-height) number?]{
+Can only be called in a JavaScript context.
+
+Returns the height of the viewport.
+}
 
 
 
@@ -904,7 +913,6 @@ We need to bring around the following types previously defined in @tt{js-vm}:
 @item{regexp}
 @item{byteRegexp}
 @item{character}
-@item{box}
 @item{placeholder}
 @item{path}
 @item{bytes}
@@ -912,8 +920,6 @@ We need to bring around the following types previously defined in @tt{js-vm}:
 @item{keywords}
 @item{hash}
 @item{hasheq}
-@item{color}
-@item{structs}
 @item{struct types}
 @item{exceptions}
 @item{thread cells}

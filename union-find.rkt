@@ -31,7 +31,11 @@
 ;; Returns the node that's associated with this element.
 (: lookup-node (forest Symbol -> node))
 (define (lookup-node a-forest an-elt)
-  (hash-ref (forest-ht a-forest) an-elt))
+  (unless (hash-has-key? (forest-ht a-forest) an-elt)
+    (make-set a-forest an-elt))
+  (hash-ref (forest-ht a-forest)
+            an-elt))
+
 
 
 ;; make-set: forest X -> void

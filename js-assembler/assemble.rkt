@@ -9,12 +9,12 @@
          "../compiler/lexical-structs.rkt"
          "../compiler/expression-structs.rkt"
          "../helpers.rkt"
+         "optimize-basic-blocks.rkt"
+         "fracture.rkt"
          racket/string
          racket/list)
 
 (provide assemble/write-invoke
-         fracture
-         assemble-basic-block
          assemble-statement)
 
 
@@ -32,7 +32,8 @@
   (fprintf op "(function(MACHINE, success, fail, params) {\n")
   (fprintf op "var param;\n")
   (fprintf op "var RUNTIME = plt.runtime;\n")
-  (let: ([basic-blocks : (Listof BasicBlock) (fracture stmts)])
+  (let: ([basic-blocks : (Listof BasicBlock)
+                       (optimize-basic-blocks (fracture stmts))])
         (for-each
          (lambda: ([basic-block : BasicBlock])
                   (displayln (assemble-basic-block basic-block) op)
@@ -56,63 +57,6 @@ EOF
 
 
 
-;; fracture: (listof stmt) -> (listof basic-block)
-(: fracture ((Listof Statement) -> (Listof BasicBlock)))
-(define (fracture stmts)
-  (let*: ([first-block-label : Symbol (if (and (not (empty? stmts))
-                                               (symbol? (first stmts)))
-                                          (first stmts)
-                                          (make-label 'start))]
-          [stmts : (Listof Statement) (if (and (not (empty? stmts))
-                                               (symbol? (first stmts)))
-                                          (rest stmts)
-                                          stmts)]
-          [jump-targets : (Listof Symbol)
-                        (cons first-block-label (collect-general-jump-targets stmts))])
-         (let: loop : (Listof BasicBlock)
-               ([name : Symbol first-block-label]
-                [acc : (Listof UnlabeledStatement) '()]
-                [basic-blocks  : (Listof BasicBlock) '()]
-                [stmts : (Listof Statement) stmts]
-                [last-stmt-goto? : Boolean #f])
-               (cond
-                 [(null? stmts)
-                  (reverse (cons (make-BasicBlock name (reverse acc))
-                                 basic-blocks))]
-                 [else
-                  (let: ([first-stmt : Statement (car stmts)])
-                        (: do-on-label (Symbol -> (Listof BasicBlock)))
-                        (define (do-on-label label-name)
-                          (cond
-                            [(member label-name jump-targets)
-                             (loop label-name
-                                   '()
-                                   (cons (make-BasicBlock 
-                                          name  
-                                          (if last-stmt-goto? 
-                                              (reverse acc)
-                                              (reverse (append `(,(make-GotoStatement (make-Label label-name)))
-                                                               acc))))
-                                         basic-blocks)
-                                   (cdr stmts)
-                                   last-stmt-goto?)]
-                            [else
-                             (loop name
-                                   acc
-                                   basic-blocks
-                                   (cdr stmts)
-                                   last-stmt-goto?)]))
-                        (cond
-                          [(symbol? first-stmt)
-                           (do-on-label first-stmt)]
-                          [(LinkedLabel? first-stmt)
-                           (do-on-label (LinkedLabel-label first-stmt))]
-                          [else
-                           (loop name
-                                 (cons first-stmt acc)
-                                 basic-blocks
-                                 (cdr stmts)
-                                 (GotoStatement? (car stmts)))]))]))))
 
 
 (: write-linked-label-attributes ((Listof Statement) Output-Port -> 'ok))
@@ -165,10 +109,16 @@ EOF
 
 
 
+
 ;; assemble-basic-block: basic-block -> string
 (: assemble-basic-block (BasicBlock -> String))
 (define (assemble-basic-block a-basic-block)
-  (format "var ~a=function(MACHINE){\nif(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n~a};"
+  (format "var ~a = function(MACHINE){
+    if(--MACHINE.callsBeforeTrampoline < 0) {
+        throw ~a;
+    }
+    ~a
+};"
           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
           (string-join (map assemble-statement (BasicBlock-stmts a-basic-block))

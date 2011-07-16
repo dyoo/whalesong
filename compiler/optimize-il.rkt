@@ -16,8 +16,7 @@
 (define (optimize-il statements)
   ;; For now, replace pairs of PushEnvironment / AssignImmediate(0, ...)
   ;; We should do some more optimizations here, like peephole...
-  (let* ([statements (filter not-no-op? statements)]
-         [statements (flatten-labels statements)])
+  (let* ([statements (filter not-no-op? statements)])
     (let loop ([statements statements])
       (cond
        [(empty? statements)
@@ -109,46 +108,6 @@
     [(Comment? stmt)
      #f]))
 
-
-
-;; detect adjacent labels, and flatten them into a single jump target.
-(: flatten-labels ((Listof Statement) -> (Listof Statement)))
-(define (flatten-labels stmts)
-  (cond
-   [(empty? stmts)
-    stmts]
-   [else
-    (let ([forest (ufind:new-forest)])
-      
-      ;; First scan identifies the adjacent labels
-      (let: loop : Void ([last-labeled-stmt : (U False Symbol) #f]
-                         [stmts : (Listof Statement) stmts])
-        (cond
-         [(empty? stmts)
-          (void)]
-         [else
-          (let ([next-stmt (first stmts)])
-            (cond [(symbol? next-stmt)
-                   (ufind:make-set forest next-stmt)
-                   (when (and (symbol? last-labeled-stmt)
-                              (eq? last-labeled-stmt next-stmt))
-                     (ufind:union-set forest last-labeled-stmt next-stmt))
-                   (loop next-stmt
-                         (rest stmts))]
-                  [else
-                   (loop #f (rest stmts))]))]))
-
-
-      ;; We then run through all the statements and replace with
-      ;; canonical ones.
-      (let: loop : (Listof Statement) ([stmts : (Listof Statement) stmts])
-        (cond
-         [(empty? stmts)
-          empty]
-         [else
-          (let ([next-stmt (first stmts)])
-            (cons next-stmt
-                  (loop (rest stmts))))])))]))
 
 
 

@@ -125,7 +125,7 @@
                                  PerformStatement
                                  
                                  GotoStatement
-                                 TestAndBranchStatement
+                                 TestAndJumpStatement
                                  
                                  PopEnvironment
                                  PushEnvironment
@@ -221,8 +221,8 @@
 
 
 
-(define-struct: TestAndBranchStatement ([op : PrimitiveTest]
-                                        [label : Symbol])
+(define-struct: TestAndJumpStatement ([op : PrimitiveTest]
+                                      [label : Symbol])
   #:transparent)
 
 

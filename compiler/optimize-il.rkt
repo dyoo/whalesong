@@ -80,7 +80,7 @@
     [(GotoStatement? stmt)
      #f]
     
-    [(TestAndBranchStatement? stmt)
+    [(TestAndJumpStatement? stmt)
      #f]
     
     [(PopEnvironment? stmt)

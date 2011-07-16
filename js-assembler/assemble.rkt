@@ -85,7 +85,7 @@ EOF
               (next)]
              [(PerformStatement? stmt)
               (next)]
-             [(TestAndBranchStatement? stmt)
+             [(TestAndJumpStatement? stmt)
               (next)]
              [(GotoStatement? stmt)
               (next)]
@@ -150,10 +150,10 @@ EOF
      [(PerformStatement? stmt)
       (assemble-op-statement (PerformStatement-op stmt))]
      
-     [(TestAndBranchStatement? stmt)
-      (let*: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)]
+     [(TestAndJumpStatement? stmt)
+      (let*: ([test : PrimitiveTest (TestAndJumpStatement-op stmt)]
               [jump : String (assemble-jump 
-                       (make-Label (TestAndBranchStatement-label stmt)))])
+                       (make-Label (TestAndJumpStatement-label stmt)))])
              ;; to help localize type checks, we add a type annotation here.
              (ann (cond
                     [(TestFalse? test)

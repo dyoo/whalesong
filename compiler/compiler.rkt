@@ -388,7 +388,7 @@
            [on-return (make-LinkedLabel (make-label 'onReturn)
                                         on-return-multiple)])
       (make-instruction-sequence
-       `(,(make-TestAndBranchStatement (make-TestTrue
+       `(,(make-TestAndJumpStatement (make-TestTrue
                                         (make-IsModuleLinked a-module-name))
                                        linked)
          ;; TODO: raise an exception here that says that the module hasn't been
@@ -398,7 +398,7 @@
                                     (ModuleLocator-name a-module-name))))
          ,(make-GotoStatement (make-Label already-loaded))
          ,linked
-         ,(make-TestAndBranchStatement (make-TestTrue 
+         ,(make-TestAndJumpStatement (make-TestTrue 
                                         (make-IsModuleInvoked a-module-name))
                                        already-loaded)
          ,(make-PushControlFrame/Call on-return)
@@ -559,7 +559,7 @@
              p-code
              (append-instruction-sequences
               (make-instruction-sequence
-               `(,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val))
+               `(,(make-TestAndJumpStatement (make-TestFalse (make-Reg 'val))
                                                f-branch)))
               t-branch 
               c-code
@@ -643,7 +643,7 @@
                ;; Evaluate the first expression in a multiple-value context, and get the values on the stack.
                (compile (first seq) cenv 'val next-linkage/keep-multiple-on-stack)
                (make-instruction-sequence
-                `(,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) after-first-seq)
+                `(,(make-TestAndJumpStatement (make-TestZero (make-Reg 'argcount)) after-first-seq)
                   ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))
                after-first-seq
                ;; At this time, the argcount values are on the stack.
@@ -665,7 +665,7 @@
                 ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 0)))
                 ,(make-AssignImmediateStatement 'argcount (make-ControlFrameTemporary 'pendingBegin0Count))
                 ,(make-PopControlFrame)
-                ,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) after-values-reinstated)
+                ,(make-TestAndJumpStatement (make-TestZero (make-Reg 'argcount)) after-values-reinstated)
                 ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
                 ,(make-PopEnvironment (make-Const 1) (make-Const 0))
                 ,after-values-reinstated)))])
@@ -913,7 +913,7 @@
                          [i : Natural])
                         (let ([not-match (make-label 'notMatch)])
                           (make-instruction-sequence
-                           `(,(make-TestAndBranchStatement 
+                           `(,(make-TestAndJumpStatement 
                                (make-TestClosureArityMismatch
                                 (make-CompiledProcedureClosureReference 
                                  (make-Reg 'proc) 
@@ -1430,7 +1430,7 @@
                                   (make-NextLinkage (linkage-context linkage))])
               (append-instruction-sequences
                (make-instruction-sequence 
-                `(,(make-TestAndBranchStatement (make-TestPrimitiveProcedure
+                `(,(make-TestAndJumpStatement (make-TestPrimitiveProcedure
                                                  (make-Reg 'proc))
                                                 primitive-branch)))
                
@@ -1645,7 +1645,7 @@
            (make-instruction-sequence
             `(
               ;; if the wrong number of arguments come in, die
-              ,(make-TestAndBranchStatement
+              ,(make-TestAndJumpStatement
                 (make-TestZero (make-SubtractArg (make-Reg 'argcount)
                                                  (make-Const context)))
                 after-value-check)))
@@ -2017,7 +2017,7 @@
               next-linkage/keep-multiple-on-stack)
      
      (make-instruction-sequence
-      `(,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) after-args-evaluated)
+      `(,(make-TestAndJumpStatement (make-TestZero (make-Reg 'argcount)) after-args-evaluated)
         ;; In the common case where we do get values back, we push val onto the stack too,
         ;; so that we have n values on the stack before we jump to the procedure call.
         ,(make-PushImmediateOntoEnvironment (make-Reg 'val) #f)))

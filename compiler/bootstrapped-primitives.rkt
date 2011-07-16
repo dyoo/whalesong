@@ -194,8 +194,8 @@
          [on-single-value (make-label 'onSingleValue)])
      `(,(make-GotoStatement (make-Label after-values-body-defn))
        ,values-entry
-       ,(make-TestAndBranchStatement (make-TestOne (make-Reg 'argcount)) on-single-value)
-       ,(make-TestAndBranchStatement (make-TestZero (make-Reg 'argcount)) on-zero-values)
+       ,(make-TestAndJumpStatement (make-TestOne (make-Reg 'argcount)) on-single-value)
+       ,(make-TestAndJumpStatement (make-TestZero (make-Reg 'argcount)) on-zero-values)
 
        ;; Common case: we're running multiple values.  Put the first in the val register
        ;; and go to the multiple value return.

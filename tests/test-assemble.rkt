@@ -286,7 +286,7 @@
 
 
 (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const 42))
-                ,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val)) 'onFalse)
+                ,(make-TestAndJumpStatement (make-TestFalse (make-Reg 'val)) 'onFalse)
                 ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onFalse
@@ -296,7 +296,7 @@
 
 ;; TestAndBranch: try the false branch
 (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const #f))
-                ,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val)) 'onFalse)
+                ,(make-TestAndJumpStatement (make-TestFalse (make-Reg 'val)) 'onFalse)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onFalse
@@ -306,7 +306,7 @@
 
 ;; Test for primitive procedure
 (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const '+))
-                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue
@@ -317,7 +317,7 @@
 ;; Give a primitive procedure in val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                 ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))
-                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue
@@ -328,7 +328,7 @@
 ;; Give a primitive procedure in proc, but test val
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                 ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue
@@ -339,7 +339,7 @@
 ;; Give a primitive procedure in proc and test proc
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
                 ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'onTrue)
+                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'onTrue)
                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                 ,(make-GotoStatement (make-Label 'end))
                 onTrue
@@ -438,7 +438,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry 0 (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 0))
                           'bad)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
@@ -455,7 +455,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry 0 (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 1))
                           'ok)
                         ,(make-AssignImmediateStatement 'val (make-Const 'bad))
@@ -471,7 +471,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 0))
                           'ok)
                         ,(make-AssignImmediateStatement 'val (make-Const 'bad))
@@ -487,7 +487,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 2))
                           'bad)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))

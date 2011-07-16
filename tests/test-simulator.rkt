@@ -209,7 +209,7 @@
 
 ;; TestAndBranch: try the true branch
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const 42))
-                        ,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val)) 'on-false)
+                        ,(make-TestAndJumpStatement (make-TestFalse (make-Reg 'val)) 'on-false)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-false
@@ -219,7 +219,7 @@
         'ok))
 ;; TestAndBranch: try the false branch
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const #f))
-                        ,(make-TestAndBranchStatement (make-TestFalse (make-Reg 'val)) 'on-false)
+                        ,(make-TestAndJumpStatement (make-TestFalse (make-Reg 'val)) 'on-false)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-false
@@ -229,7 +229,7 @@
         'ok))
 ;; Test for primitive procedure
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const '+))
-                        ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
+                        ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true
@@ -239,7 +239,7 @@
         'ok))
 ;; Give a primitive procedure in val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
+                        ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true
@@ -249,7 +249,7 @@
         'ok))
 ;; Give a primitive procedure in proc, but test val
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
+                        ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true
@@ -259,7 +259,7 @@
         'not-a-procedure))
 ;; Give a primitive procedure in proc and test proc
 (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndBranchStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'on-true)
+                        ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'on-true)
                         ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
                         ,(make-GotoStatement (make-Label 'end))
                         on-true
@@ -675,7 +675,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry 0 (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 0))
                           'bad)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
@@ -691,7 +691,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry 0 (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 1))
                           'ok)
                         ,(make-AssignImmediateStatement 'val (make-Const 'bad))
@@ -707,7 +707,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 0))
                           'ok)
                         ,(make-AssignImmediateStatement 'val (make-Const 'bad))
@@ -723,7 +723,7 @@
                         ,(make-AssignPrimOpStatement 
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list) 'procedure-entry))
-                        ,(make-TestAndBranchStatement
+                        ,(make-TestAndJumpStatement
                           (make-TestClosureArityMismatch (make-Reg 'proc) (make-Const 2))
                           'bad)
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))

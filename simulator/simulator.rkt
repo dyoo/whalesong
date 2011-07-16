@@ -135,7 +135,7 @@
                      (step-perform! m i)]
                     [(GotoStatement? i)
                      (step-goto! m i)]
-                    [(TestAndBranchStatement? i)
+                    [(TestAndJumpStatement? i)
                      (step-test-and-branch! m i)]
                     [(PopEnvironment? i)
                      (step-pop-environment! m i)]
@@ -233,9 +233,9 @@
   (let: ([l : Symbol (control-pop! m)])
         'ok))
 
-(: step-test-and-branch! (machine TestAndBranchStatement -> 'ok))
+(: step-test-and-branch! (machine TestAndJumpStatement -> 'ok))
 (define (step-test-and-branch! m stmt)
-  (let: ([test : PrimitiveTest (TestAndBranchStatement-op stmt)])
+  (let: ([test : PrimitiveTest (TestAndJumpStatement-op stmt)])
         (if (ann (cond
 		  [(TestFalse? test)
 		   (not (evaluate-oparg m (TestFalse-operand test)))]
@@ -256,7 +256,7 @@
 			     (evaluate-oparg m (TestClosureArityMismatch-n test)))])
 		     (not (arity-match? (closure-arity proc) n)))])
 		 Boolean)
-            (jump! m (TestAndBranchStatement-label stmt))
+            (jump! m (TestAndJumpStatement-label stmt))
             'ok)))
 
 

@@ -43,8 +43,8 @@
     (collect-primitive-operator (AssignPrimOpStatement-op stmt))]
    [(PerformStatement? stmt)
     (collect-primitive-command (PerformStatement-op stmt))]
-   [(TestAndBranchStatement? stmt)
-    (list (TestAndBranchStatement-label stmt))]
+   [(TestAndJumpStatement? stmt)
+    (list (TestAndJumpStatement-label stmt))]
    [(GotoStatement? stmt)
     (collect-input (GotoStatement-target stmt))]
    [(PushEnvironment? stmt)

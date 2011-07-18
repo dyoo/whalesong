@@ -158,7 +158,6 @@ OnTick.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
 OnTick.prototype.toRawHandler = function(MACHINE) {
     var worldFunction = function(world, k) {
-        console.log('about to call the on-tick');
         k(world + 1);
 //         plt.baselib.functions.internalCallDuringPause(
 //             MACHINE,
@@ -183,7 +182,7 @@ OnTick.prototype.toRawHandler = function(MACHINE) {
 // // OnDraw
 
 var OnDraw = function(handler) {
-    WorldConfigOption.call(this, 'on-tick');
+    WorldConfigOption.call(this, 'on-draw');
     this.handler = handler;
 };
 
@@ -204,7 +203,7 @@ var isOnDraw = plt.baselib.makeClassPredicate(OnDraw);
 
 
 var DefaultOnDraw = function(toplevelNode) {
-    WorldConfigOption.call(this, 'on-tick');
+    WorldConfigOption.call(this, 'on-draw');
     this.toplevelNode = toplevelNode;
 };
 

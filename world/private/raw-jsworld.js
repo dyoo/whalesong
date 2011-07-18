@@ -668,39 +668,35 @@ var rawJsworld = {};
  			}
 		    */
 
-		    // We try to avoid updating the dom if the value
-		    // hasn't changed.
-		    redraw_func(oldWorld,
-			function(oldRedraw) {
-			    redraw_func(world,
-				function(newRedraw) {
-				    redraw_css_func(oldWorld,
-					function(oldRedrawCss) {
-					    redraw_css_func(world,
-						function(newRedrawCss) {
-						    var t = sexp2tree(newRedraw);
-						    var ns = nodes(t);
 
-						    // Try to save the current selection and preserve it across
-						    // dom updates.
+ 		    redraw_func(
+                        world,
+			function(newRedraw) {
 
- 						    if(oldRedraw !== newRedraw) {
-							// Kludge: update the CSS styles first.
-							// This is a workaround an issue with excanvas: any style change
-							// clears the content of the canvas, so we do this first before
-							// attaching the dom element.
-							update_css(ns, sexp2css(newRedrawCss));
-							update_dom(toplevelNode, ns, relations(t));
-						    } else {
-							if (oldRedrawCss !== newRedrawCss) {
-							    update_css(ns, sexp2css(newRedrawCss));
-							}
-						    }
-						    k2();
-						})
-					})
+			    redraw_css_func(
+                                world,
+				function(newRedrawCss) {
+				    var t = sexp2tree(newRedraw);
+				    var ns = nodes(t);
+                                    
+				    // Try to save the current selection and preserve it across
+				    // dom updates.
+
+				    // Kludge: update the CSS styles first.
+				    // This is a workaround an issue with excanvas: any style change
+				    // clears the content of the canvas, so we do this first before
+				    // attaching the dom element.
+				    update_css(ns, sexp2css(newRedrawCss));
+				    update_dom(toplevelNode, ns, relations(t));
+
+				    k2();
 				})
-			});
+			})
+
+
+
+
+
 		}, k);
 	}
     }

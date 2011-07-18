@@ -24,6 +24,8 @@ var bigBang = function(MACHINE, initW, handlers) {
     var toplevelNode = $('<div/>').css('border', '2').appendTo(document.body);
 
     var configs = [];
+    var isOnDrawSeen = false;
+
     for (var i = 0 ; i < handlers.length; i++) {
         if (isWorldConfigOption(handlers[i])) {
             configs.push(handlers[i].toRawHandler(MACHINE));
@@ -31,7 +33,14 @@ var bigBang = function(MACHINE, initW, handlers) {
         else {
             configs.push(handlers[i]);
         }
+        if (isOnDraw(handlers[i])) { isOnDrawSeen = true; }
     }
+    
+    // If we haven't seen an onDraw function, use the default one.
+    if (! isOnDrawSeen) { 
+        configs.push(new DefaultOnDraw().toDrawHandler(MACHINE));
+    }
+
 
     PAUSE(function(restart) {
 
@@ -149,19 +158,66 @@ OnTick.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
 OnTick.prototype.toRawHandler = function(MACHINE) {
     var worldFunction = function(world, k) {
-        plt.baselib.functions.internalCallDuringPause(
-            MACHINE,
-            this.handler,
-            function(v) {
-                k(v);
-            },
+        console.log('about to call the on-tick');
+        k(world + 1);
+//         plt.baselib.functions.internalCallDuringPause(
+//             MACHINE,
+//             this.handler,
+//             function(v) {
+//                 k(v);
+//             },
             
-            function(err) {
-                console.log(err);
-            });
+//             function(err) {
+//                 console.log(err);
+//             });
     };
-    return rawJsworld.on_tick(worldFunction, this.delay);
+    return rawJsworld.on_tick(this.delay, worldFunction);
 };
+
+
+
+
+
+
+
+// OnDraw
+
+var OnDraw = function(handler) {
+    WorldConfigOption.call(this, 'on-tick');
+    this.handler = handler;
+};
+
+OnDraw.prototype = plt.baselib.heir(WorldConfigOption.prototype);
+ 
+OnDraw.prototype.toRawHandler = function(MACHINE) {
+    var worldFunction = function(world, k) {
+        console.log('about to call the on-draw');
+        // FIXME: call the handler instead!
+        k(plt.baselib.format.toDomNode(world));
+    };
+    var cssFunction = function(w, k) { k([]); }
+    return rawJsworld.on_draw(worldFunction, cssFunction);
+};
+
+var isOnDraw = plt.baselib.makeClassPredicate(OnDraw);
+
+
+
+var DefaultOnDraw = function() {
+    WorldConfigOption.call(this, 'on-tick');
+};
+
+DefaultOnDraw.prototype = plt.baselib.heir(WorldConfigOption.prototype);
+ 
+DefaultOnDraw.prototype.toRawHandler = function(MACHINE) {
+    var worldFunction = function(world, k) {
+        console.log('about to call the on-draw');
+        k(plt.baselib.format.toDomNode(world));
+    };
+    var cssFunction = function(w, k) { k([]); }
+    return rawJsworld.on_draw(worldFunction, cssFunction);
+};
+
 
 
 

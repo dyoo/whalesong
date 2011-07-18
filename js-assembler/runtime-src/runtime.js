@@ -456,6 +456,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             if(--MACHINE.callsBeforeTrampoline < 0) { 
                 throw arguments.callee; 
             }
+            var oldArgcount = MACHINE.argcount;
+
 	    var elt = MACHINE.env[MACHINE.env.length - 1];
 	    var outputPort = 
 		MACHINE.params.currentOutputPort;
@@ -463,6 +465,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
 		outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
 	    }
+            MACHINE.argcount = oldArgcount;
             return finalizeClosureCall(MACHINE, VOID);
 	},
 	1,

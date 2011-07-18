@@ -21,6 +21,8 @@ var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 
 var bigBang = function(MACHINE, initW, handlers) {
 
+    var oldArgcount = MACHINE.argcount;
+
     var toplevelNode = $('<div/>').css('border', '2').appendTo(document.body);
 
     var configs = [];
@@ -59,6 +61,7 @@ var bigBang = function(MACHINE, initW, handlers) {
 
 
 		restart(function(MACHINE) {
+                    MACHINE.argcount = oldArgcount;
 		    finalizeClosureCall(
 			MACHINE, 
 			finalWorldValue);
@@ -222,9 +225,30 @@ DefaultOnDraw.prototype.toRawHandler = function(MACHINE) {
 
 
 
+var StopWhen = function(handler) {
+    WorldConfigOption.call(this, 'stop-when');
+    this.handler = handler;
+};
 
+StopWhen.prototype = plt.baselib.heir(WorldConfigOption.prototype);
 
-
+StopWhen.prototype.toRawHandler = function(MACHINE) {
+    var that = this;
+    var worldFunction = function(world, k) { 
+        plt.baselib.functions.internalCallDuringPause(
+            MACHINE,
+            that.handler,
+            function(v) {
+                k(v);
+            },
+            
+            function(err) {
+                console.log(err);
+            },
+            world);
+    }
+    return rawJsworld.stop_when(worldFunction);
+};
 
 
 

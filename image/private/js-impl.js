@@ -270,15 +270,17 @@ EXPORTS['image-url'] =
         1,
         function(MACHINE) {
             var url = checkString(MACHINE, 'image-url', 0);
+            var oldArgcount = MACHINE.argcount;
             PAUSE(
                 function(restart) {
                     var rawImage = new Image();
                     rawImage.onload = function() {
                         restart(function(MACHINE) {
-                                        finalizeClosureCall(
-                                            MACHINE, 
-                                            makeFileImage(url.toString(),
-                                                          rawImage));
+                            MACHINE.argcount = oldArgcount;
+                            finalizeClosureCall(
+                                MACHINE, 
+                                makeFileImage(url.toString(),
+                                              rawImage));
                         });
                     };
                     rawImage.onerror = function(e) {

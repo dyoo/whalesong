@@ -1,7 +1,6 @@
 var PAUSE = plt.runtime.PAUSE;
 var makeClosure = plt.baselib.functions.makeClosure;
 var makeRational = plt.baselib.numbers.makeRational;
-var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
 
 
@@ -42,7 +41,6 @@ EXPORTS['big-bang'] =
             var initialWorldValue = MACHINE.env[MACHINE.env.length - 1];
 	    var handlers = [];
 	    for (var i = 1; i < MACHINE.argcount; i++) {
-		// FIXME: typecheck for configuration options
 		handlers.push(checkHandler(MACHINE, 'big-bang', i));
 	    }
 	    bigBang(MACHINE, initialWorldValue, handlers);
@@ -74,9 +72,7 @@ EXPORTS['to-draw'] =
         function(MACHINE) {
             var f = checkProcedure1(MACHINE, "on-tick", 0);
             return new OnDraw(f);
-            // FILL ME IN
         });
-
 
 
 
@@ -87,7 +83,7 @@ EXPORTS['stop-when'] =
         1,
         function(MACHINE) {
             var f = checkProcedure1(MACHINE, "on-tick", 0);
-            // FILL ME IN
+            return new StopWhen(f);
         });
 
 

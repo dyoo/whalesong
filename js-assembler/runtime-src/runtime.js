@@ -202,7 +202,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // temporaries per stack frame.
     // This will never report a number greater than MAXIMUM_CAP.
     var findStackLimit = function(after) {
-	var MAXIMUM_CAP = 100000;
+	var MAXIMUM_CAP = 32768;
 	var n = 1;
 	var limitDiscovered = false;
 	setTimeout(
@@ -321,7 +321,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	// second.
 	var DESIRED_DELAY_BETWEEN_BOUNCES = 
 	    (1000 / MACHINE.params.desiredYieldsPerSecond);
-	var ALPHA = 256;
+	var ALPHA = 50;
 	var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
 			       observedDelay) / 
 			      DESIRED_DELAY_BETWEEN_BOUNCES));
@@ -403,8 +403,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			    MACHINE,
 			    (new Date()).valueOf() - startTime);
 			setTimeout(
-			    function() { trampoline(MACHINE, thunk); },
-			    10);
+			    function() { 
+                                trampoline(MACHINE, thunk); 
+                            },
+			    0);
 			return;
 		    } else {
                         continue;

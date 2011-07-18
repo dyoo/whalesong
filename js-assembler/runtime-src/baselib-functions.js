@@ -44,9 +44,11 @@
             try {
                 succ = succ || function(){};
                 fail = fail || function(){};
-                var args = [];
-                for (var i = 2; i < arguments.length; i++) {
-                    args.push(arguments[i]);
+
+                var oldArgcount = MACHINE.argcount;
+                MACHINE.argcount = arguments.length - 2;
+                for (var i = 0; i < arguments.length - 2; i++) {
+                    MACHINE.env.push(arguments[arguments.length - 1 - i]);
                 }
 
 		// Check arity usage.
@@ -55,6 +57,10 @@
 		}
 
                 var result = v.apply(null, args);
+                MACHINE.argcount = oldArgcount;
+                for (var i = 0; i < arguments.length - 2; i++) { 
+                    MACHINE.env.pop();
+                }
                 succ(result);
             } catch (e) {
                 fail(e);
@@ -68,13 +74,8 @@
             succ = succ || function(){};
             fail = fail || function(){};
 
-            var args = [], i;
-            for (i = 2; i < arguments.length; i++) {
-                args.push(arguments[i]);
-            }
-
 	    // Check arity usage.
-	    if (! plt.baselib.arity.isArityMatching(v.arity, args.length)) {
+	    if (! plt.baselib.arity.isArityMatching(v.arity, arguments.length - 2)) {
 		throw new Error("arity mismatch");
 	    }
 
@@ -110,25 +111,21 @@
 		    });
             };
 
-            setTimeout(
-                function() {
-                    MACHINE.control.push(
-                        new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
-                    MACHINE.argcount = args.length;
-                    for (var i = 0; i < args.length; i++) {
-                        MACHINE.env.push(args[i]);
-                    }
-                    MACHINE.proc = v;
-                    MACHINE.params['currentErrorHandler'] = function(MACHINE, e) {
-                        MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                        MACHINE.val = oldVal;
-                        MACHINE.argcount = oldArgcount;
-                        MACHINE.proc = oldProc;
-                        fail(e);
-                    };
-                    plt.runtime.trampoline(MACHINE, v.label);
-                },
-                0);
+            MACHINE.control.push(
+                new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
+            MACHINE.argcount = arguments.length - 2;
+            for (var i = 0; i < arguments.length - 2; i++) {
+                MACHINE.env.push(arguments[arguments.length - 1 - i]);
+            }
+            MACHINE.proc = v;
+            MACHINE.params['currentErrorHandler'] = function(MACHINE, e) {
+                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                MACHINE.val = oldVal;
+                MACHINE.argcount = oldArgcount;
+                MACHINE.proc = oldProc;
+                fail(e);
+            };
+            plt.runtime.trampoline(MACHINE, v.label);
         };
         return f;
     };

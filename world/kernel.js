@@ -191,7 +191,6 @@ OnDraw.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
 OnDraw.prototype.toRawHandler = function(MACHINE) {
     var worldFunction = function(world, k) {
-        console.log('about to call the on-draw');
         // FIXME: call the handler instead!
         k(plt.baselib.format.toDomNode(world));
     };
@@ -213,7 +212,6 @@ DefaultOnDraw.prototype = plt.baselib.heir(WorldConfigOption.prototype);
 DefaultOnDraw.prototype.toRawHandler = function(MACHINE) {
     var that = this;
     var worldFunction = function(world, k) {
-        console.log(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world)));
         k([that.toplevelNode,
            rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world))]);
     };

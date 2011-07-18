@@ -13,7 +13,8 @@ plt.runtime.ready(function() {
         myFactClosure);
 
    myFact(function(v) {
-              $('#answer').text(v.toString());
+              $('#answer').text('computed.  Printing...');
+              setTimeout(function() { $('#answer').text(v.toString()); }, 0);
           },
           function(err) {
               $('#answer').text(err.message).css("color", "red");

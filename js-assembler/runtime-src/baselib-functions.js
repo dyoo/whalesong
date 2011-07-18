@@ -138,19 +138,22 @@
     // internallCallDuringPause: call a Racket procedure and get its results.
     // The use assumes the machine is in a running-but-paused state.
     var internalCallDuringPause = function(MACHINE, proc, success, fail) {
-	if (! plt.baselib.arity.isArityMatching(proc.arity, args.length)) {
+	if (! plt.baselib.arity.isArityMatching(proc.arity, arguments.length - 4)) {
 	    return fail(plt.baselib.exceptions.makeExnFailContractArity("arity mismatch"));
 	}
 
         if (isPrimitiveProcedure(proc)) {
-	    var args = [];
-            for (var i = 4; i < arguments.length; i++) {
-                args.push(arguments[i]);
+            var oldArgcount = MACHINE.argcount;
+            MACHINE.argcount = arguments.length - 4;
+            for (var i = 0; i < arguments.length - 4; i++) {
+                MACHINE.env.push(arguments[arguments.length - 1 - i]);
             }
-            var result = v.apply(null, args);
-            succ(result);
-        } else if (isClosure(v)) {
-
+            var result = proc.call(null, MACHINE);
+            for (var i = 0; i < arguments.length - 4; i++) {
+                MACHINE.env.pop();
+            }
+            success(result);
+        } else if (isClosure(proc)) {
             var oldVal = MACHINE.val;
             var oldArgcount = MACHINE.argcount;
             var oldProc = MACHINE.proc;
@@ -163,7 +166,7 @@
                     MACHINE.val = oldVal;
                     MACHINE.argcount = oldArgcount;
                     MACHINE.proc = oldProc;
-                    succ(returnValue);
+                    success(returnValue);
 		});
             };
             afterGoodInvoke.multipleValueReturn = function(MACHINE) {
@@ -176,17 +179,17 @@
                     MACHINE.val = oldVal;
                     MACHINE.argcount = oldArgcount;
                     MACHINE.proc = oldProc;
-                    succ.apply(null, returnValues);
+                    success.apply(null, returnValues);
 		});
             };
 
             MACHINE.control.push(
                 new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
-            MACHINE.argcount = args.length;
-            for (var i = 0; i < args.length; i++) {
-                MACHINE.env.push(args[i]);
+            MACHINE.argcount = arguments.length - 4;
+            for (var i = 0; i < arguments.length - 4; i++) {
+                MACHINE.env.push(arguments[arguments.length - 1 - i]);
             }
-            MACHINE.proc = v;
+            MACHINE.proc = proc;
             MACHINE.params['currentErrorHandler'] = function(MACHINE, e) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                 MACHINE.val = oldVal;
@@ -194,12 +197,12 @@
                 MACHINE.proc = oldProc;
                 fail(e);
             };
-            plt.runtime.trampoline(MACHINE, v.label);
+            plt.runtime.trampoline(MACHINE, proc.label);
         } else {
             fail(plt.baselib.exceptions.makeExnFail(
                 plt.baselib.format.format(
                     "Not a procedure: ~e",
-                    v)));
+                    proc)));
         }
     };
 

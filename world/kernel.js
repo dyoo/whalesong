@@ -157,18 +157,19 @@ var OnTick = function(handler, aDelay) {
 OnTick.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
 OnTick.prototype.toRawHandler = function(MACHINE) {
+    var that = this;
     var worldFunction = function(world, k) {
-        k(world + 1);
-//         plt.baselib.functions.internalCallDuringPause(
-//             MACHINE,
-//             this.handler,
-//             function(v) {
-//                 k(v);
-//             },
+        plt.baselib.functions.internalCallDuringPause(
+            MACHINE,
+            that.handler,
+            function(v) {
+                 k(v);
+            },
             
-//             function(err) {
-//                 console.log(err);
-//             });
+            function(err) {
+                console.log(err);
+            },
+            world);
     };
     return rawJsworld.on_tick(this.delay, worldFunction);
 };

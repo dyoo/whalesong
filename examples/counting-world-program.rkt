@@ -8,8 +8,9 @@ handler
 
 "big bang should follow:"
 
-(big-bang 0
-          (on-tick add1 1)
+(big-bang 1
+          ;;(on-tick add1 1)
+          (on-tick (lambda (w) (* w 2)) 1)
           ;;(stop-when (lambda (w) (> w 10)))
           )
 

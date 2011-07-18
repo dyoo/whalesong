@@ -12,4 +12,6 @@
                "js-impl.js"
                )
  #:provided-values (big-bang
-                    on-tick))
+                    on-tick
+                    to-draw
+                    stop-when))

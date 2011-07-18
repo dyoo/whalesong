@@ -3,7 +3,15 @@
 (require (planet dyoo/whalesong/world))
 
 
-(circle 20 'solid 'blue)
-(big-bang 0 (on-tick add1 1))
+(define handler (on-tick add1 1))
+handler
+
+"big bang should follow:"
+
+(big-bang 0
+          (on-tick add1 1)
+          ;;(stop-when (lambda (w) (> w 10)))
+          )
+
 
 "all done"

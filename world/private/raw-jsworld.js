@@ -859,7 +859,7 @@ var rawJsworld = {};
 
 
     // on_tick: number CPS(world -> world) -> handler
-    function on_tick(delay, tick) {
+    var on_tick = function(delay, tick) {
 	return function() {
 	    var scheduleTick, ticker;
 

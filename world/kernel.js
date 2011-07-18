@@ -108,74 +108,51 @@ var isWorldConfigOption = plt.baselib.makeClassPredicate(WorldConfigOption);
 //////////////////////////////////////////////////////////////////////
 
 
-var convertAttribList = function(attribList) {
-    var nextElt;
-    var key, val;
-    var hash = {};
-    while (attribList !== EMPTY) {
-	nextElt = attribList.first;
 
-	key = nextElt.first;
-	val = nextElt.rest.first;
 
-	key = String(key);
-
-	if (isString(val)) {
-	    val = String(val);
-	} else if (isBoolean(val)) {
-	    // do nothing: the representation is the same.
-	} else if (isSymbol(val)) {
-	    if (String(val) === 'true') {
-		val = true;
-	    } else if (String(val) === 'false') {
-		val = false;
-	    } else {
-		val = String(val);
-	    }
-	} else {
-	    // raise error: neither string nor boolean
-	    throw new Error(
-		plt.baselib.format.format(
-		    "attribute value ~s neither a string nor a boolean",
-		    [val]));
-	}
-	hash[key] = val;
-	attribList = attribList.rest;
+// adaptWorldFunction: Racket-function -> World-CPS
+// Takes a racket function and converts it to the CPS-style function
+// that our world implementation expects.
+var adaptWorldFunction = function(worldFunction) {
+    return function() {
+        // Consumes any number of arguments.
+        var success = arguments[arguments.length - 1];
+        plt.baselib.functions.internalCallDuringPause.apply(
+            null,
+            [MACHINE,
+             worldFunction,
+             function(v) {
+                 success(v);
+             },
+             function(err) {
+                 // FIXME: do error trapping
+                 console.log(err);
+             }].concat([].slice.call(arguments, 0, arguments.length - 1)));
     }
-    return hash;
-}
+};
+
+
 
 
 
 
 //////////////////////////////////////////////////////////////////////
 
-
+// OnTick: racket-function javascript-float -> handler
 var OnTick = function(handler, aDelay) {
     WorldConfigOption.call(this, 'on-tick');
     this.handler = handler;
-    this.delay = jsnums.toFixnum(jsnums.multiply(1000, aDelay));
+    this.delay = aDelay;
 };
 
 OnTick.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
 OnTick.prototype.toRawHandler = function(MACHINE) {
     var that = this;
-    var worldFunction = function(world, k) {
-        plt.baselib.functions.internalCallDuringPause(
-            MACHINE,
-            that.handler,
-            function(v) {
-                 k(v);
-            },
-            
-            function(err) {
-                console.log(err);
-            },
-            world);
-    };
+    var worldFunction = adaptWorldFunction(that.handler);
     return rawJsworld.on_tick(this.delay, worldFunction);
 };
+
 
 
 
@@ -234,19 +211,7 @@ StopWhen.prototype = plt.baselib.heir(WorldConfigOption.prototype);
 
 StopWhen.prototype.toRawHandler = function(MACHINE) {
     var that = this;
-    var worldFunction = function(world, k) { 
-        plt.baselib.functions.internalCallDuringPause(
-            MACHINE,
-            that.handler,
-            function(v) {
-                k(v);
-            },
-            
-            function(err) {
-                console.log(err);
-            },
-            world);
-    }
+    var worldFunction = adaptWorldFunction(that.handler);
     return rawJsworld.stop_when(worldFunction);
 };
 
@@ -1064,3 +1029,49 @@ StopWhen.prototype.toRawHandler = function(MACHINE) {
 // 	elt = types.toDomNode(newElt);});
 //     return _js.placeOnPage(elt, left, top, page);
 // };
+
+
+
+// var convertAttribList = function(attribList) {
+//     var nextElt;
+//     var key, val;
+//     var hash = {};
+//     while (attribList !== EMPTY) {
+// 	nextElt = attribList.first;
+
+// 	key = nextElt.first;
+// 	val = nextElt.rest.first;
+
+// 	key = String(key);
+
+// 	if (isString(val)) {
+// 	    val = String(val);
+// 	} else if (isBoolean(val)) {
+// 	    // do nothing: the representation is the same.
+// 	} else if (isSymbol(val)) {
+// 	    if (String(val) === 'true') {
+// 		val = true;
+// 	    } else if (String(val) === 'false') {
+// 		val = false;
+// 	    } else {
+// 		val = String(val);
+// 	    }
+// 	} else {
+// 	    // raise error: neither string nor boolean
+// 	    throw new Error(
+// 		plt.baselib.format.format(
+// 		    "attribute value ~s neither a string nor a boolean",
+// 		    [val]));
+// 	}
+// 	hash[key] = val;
+// 	attribList = attribList.rest;
+//     }
+//     return hash;
+// }
+
+
+
+
+
+
+

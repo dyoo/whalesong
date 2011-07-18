@@ -29,7 +29,7 @@ var checkHandler = plt.baselib.check.makeCheckArgumentType(
 
 
 // The default tick delay is 28 times a second.
-var DEFAULT_TICK_DELAY = makeRational(1, 28);
+var DEFAULT_TICK_DELAY = 1/28;
 
 
 
@@ -55,11 +55,11 @@ EXPORTS['on-tick'] =
         function(MACHINE) {
 	    if (MACHINE.argcount === 1) {
 		var f = checkProcedure1(MACHINE, "on-tick", 0);
-		return new OnTick(f, DEFAULT_TICK_DELAY);
+		return new OnTick(f, Math.floor(DEFAULT_TICK_DELAY * 1000));
 	    } else if (MACHINE.argcount === 2) {
 		var f = checkProcedure1(MACHINE, "on-tick", 0);
 		var delay = checkNonNegativeReal(MACHINE, "on-tick", 1);
-		return new OnTick(f, delay);
+		return new OnTick(f, Math.floor(jsnums.toFixnum(delay) * 1000));
 	    }
         });
 

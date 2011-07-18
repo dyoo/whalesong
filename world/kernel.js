@@ -38,7 +38,7 @@ var bigBang = function(MACHINE, initW, handlers) {
     
     // If we haven't seen an onDraw function, use the default one.
     if (! isOnDrawSeen) { 
-        configs.push(new DefaultOnDraw().toDrawHandler(MACHINE));
+        configs.push(new DefaultOnDraw(toplevelNode.get(0)).toRawHandler(MACHINE));
     }
 
 
@@ -180,7 +180,7 @@ OnTick.prototype.toRawHandler = function(MACHINE) {
 
 
 
-// OnDraw
+// // OnDraw
 
 var OnDraw = function(handler) {
     WorldConfigOption.call(this, 'on-tick');
@@ -203,16 +203,19 @@ var isOnDraw = plt.baselib.makeClassPredicate(OnDraw);
 
 
 
-var DefaultOnDraw = function() {
+var DefaultOnDraw = function(toplevelNode) {
     WorldConfigOption.call(this, 'on-tick');
+    this.toplevelNode = toplevelNode;
 };
 
 DefaultOnDraw.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
 DefaultOnDraw.prototype.toRawHandler = function(MACHINE) {
+    var that = this;
     var worldFunction = function(world, k) {
-        console.log('about to call the on-draw');
-        k(plt.baselib.format.toDomNode(world));
+        console.log(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world)));
+        k([that.toplevelNode,
+           rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world))]);
     };
     var cssFunction = function(w, k) { k([]); }
     return rawJsworld.on_draw(worldFunction, cssFunction);

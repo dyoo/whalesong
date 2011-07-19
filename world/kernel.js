@@ -27,14 +27,14 @@ var bigBang = function(MACHINE, initW, handlers) {
 
     var oldArgcount = MACHINE.argcount;
 
-    var toplevelNode = $('<div/>').css('border', '2').appendTo(document.body);
+    var toplevelNode = $('<div/>').css('border', '1px solid black').appendTo(document.body).get(0);
 
     var configs = [];
     var isOutputConfigSeen = false;
 
     for (var i = 0 ; i < handlers.length; i++) {
         if (isWorldConfigOption(handlers[i])) {
-            configs.push(handlers[i].toRawHandler(MACHINE));
+            configs.push(handlers[i].toRawHandler(MACHINE, toplevelNode));
         }
         else {
             configs.push(handlers[i]);
@@ -44,7 +44,7 @@ var bigBang = function(MACHINE, initW, handlers) {
     
     // If we haven't seen an onDraw function, use the default one.
     if (! isOutputConfigSeen) { 
-        configs.push(new DefaultDrawingOutput(toplevelNode.get(0)).toRawHandler(MACHINE));
+        configs.push(new DefaultDrawingOutput().toRawHandler(MACHINE, toplevelNode));
     }
 
 
@@ -56,7 +56,7 @@ var bigBang = function(MACHINE, initW, handlers) {
 	// state.addBreakRequestedListener(onBreak);
 
 	var bigBangController = rawJsworld.bigBang(
-	    toplevelNode.get(0),
+	    toplevelNode,
 	    initW,
 	    configs,
 	    {},
@@ -151,7 +151,7 @@ var OnTick = function(handler, aDelay) {
 
 OnTick.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
-OnTick.prototype.toRawHandler = function(MACHINE) {
+OnTick.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
     var worldFunction = adaptWorldFunction(that.handler);
     return rawJsworld.on_tick(this.delay, worldFunction);
@@ -181,11 +181,10 @@ var ToDraw = function(handler) {
 
 ToDraw.prototype = plt.baselib.heir(OutputConfig.prototype);
  
-ToDraw.prototype.toRawHandler = function(MACHINE) {
+ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
     var reusableCanvas;
     var reusableCanvasNode;
-    var toplevelNode = this.toplevelNode;
     var adaptedWorldFunction = adaptWorldFunction(this.handler);
 
     var worldFunction = function(world, success) {
@@ -214,9 +213,9 @@ ToDraw.prototype.toRawHandler = function(MACHINE) {
 		    reusableCanvas.height = height;			
 		    var ctx = reusableCanvas.getContext("2d");
 		    v.render(ctx, 0, 0);
-		    success(rawJsworld.node_to_tree(reusableCanvasNode));
+		    success([toplevelNode, rawJsworld.node_to_tree(reusableCanvasNode)]);
 		} else {
-		    success(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(v)));
+		    success([toplevelNode, rawJsworld.node_to_tree(plt.baselib.format.toDomNode(v))]);
 		}
             });
     };
@@ -240,21 +239,20 @@ ToDraw.prototype.toRawHandler = function(MACHINE) {
 
 
 
-var DefaultDrawingOutput = function(toplevelNode) {
+var DefaultDrawingOutput = function() {
     WorldConfigOption.call(this, 'to-draw');
-//    this.toplevelNode = toplevelNode;
 };
 
 DefaultDrawingOutput.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
-DefaultDrawingOutput.prototype.toRawHandler = function(MACHINE) {
+DefaultDrawingOutput.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
-    var worldFunction = function(world, k) {
-//         k([that.toplevelNode,
-//            rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world))]);
-        k(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world)));
+    var worldFunction = function(world, success) {
+        success([toplevelNode,
+                 rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world))]);
+        //k(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world)));
     };
-    var cssFunction = function(w, k) { k([]); }
+    var cssFunction = function(w, success) { success([]); }
     return rawJsworld.on_draw(worldFunction, cssFunction);
 };
 
@@ -272,7 +270,7 @@ var StopWhen = function(handler) {
 
 StopWhen.prototype = plt.baselib.heir(WorldConfigOption.prototype);
 
-StopWhen.prototype.toRawHandler = function(MACHINE) {
+StopWhen.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
     var worldFunction = adaptWorldFunction(that.handler);
     return rawJsworld.stop_when(worldFunction);

@@ -1071,12 +1071,12 @@ var rawJsworld = {};
 
     function isTextNode(n) {
 	return (n.nodeType == Node.TEXT_NODE);
-    }
+    };
 
 
     function isElementNode(n) {
 	return (n.nodeType == Node.ELEMENT_NODE);
-    }
+    };
 
 
     var throwDomError = function(thing, topThing) {
@@ -1098,6 +1098,7 @@ var rawJsworld = {};
 	    throwDomError(thing, topThing);
 	}
 
+
 	// Check that the first element is a Text or an element.
 	if (isTextNode(thing[0])) {
 	    if (thing.length > 1) {
@@ -1110,6 +1111,8 @@ var rawJsworld = {};
 		checkDomSexp(thing[i], thing);
 	    }
 	} else {
+            console.log(thing[0]);
+
 	    throw new JsworldDomError(
 		plt.baselib.format.format(
 		    "expected a Text or an Element, received ~s within ~s",
@@ -1123,7 +1126,7 @@ var rawJsworld = {};
 	this.elt = elt;
     }
     JsworldDomError.prototype.toString = function() {
-	return "on-draw: " + this.msg;
+	return "JsworldDomError: " + this.msg;
     }
 
 

@@ -213,7 +213,7 @@ ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
 		    reusableCanvas.height = height;			
 		    var ctx = reusableCanvas.getContext("2d");
 		    v.render(ctx, 0, 0);
-		    success([toplevelNode, rawJsworld.node_to_tree(reusableCanvasNode)]);
+		    success([toplevelNode, reusableCanvasNode]);
 		} else {
 		    success([toplevelNode, rawJsworld.node_to_tree(plt.baselib.format.toDomNode(v))]);
 		}

@@ -27,7 +27,7 @@ var bigBang = function(MACHINE, initW, handlers) {
 
     var oldArgcount = MACHINE.argcount;
 
-    var toplevelNode = $('<div/>').css('border', '1px solid black').appendTo(document.body).get(0);
+    var toplevelNode = $('<span/>').css('border', '0px').appendTo(document.body).get(0);
 
     var configs = [];
     var isOutputConfigSeen = false;
@@ -209,8 +209,12 @@ ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
 			reusableCanvas.jsworldOpaque = true;
 			reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
 		    }
-		    reusableCanvas.width = width;
-		    reusableCanvas.height = height;			
+		    if (reusableCanvas.width !== width) { 
+                        reusableCanvas.width = width; 
+                    }
+		    if (reusableCanvas.height !== height) { 
+                        reusableCanvas.height = height;
+                    }
 		    var ctx = reusableCanvas.getContext("2d");
 		    v.render(ctx, 0, 0);
 		    success([toplevelNode, reusableCanvasNode]);

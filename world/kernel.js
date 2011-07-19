@@ -1,3 +1,7 @@
+var imageLibrary = MACHINE.modules['whalesong/image/private/main.rkt'].privateExports;
+var isImage = imageLibrary.isImage;
+
+
 
 
 var PAUSE = plt.runtime.PAUSE;
@@ -26,7 +30,7 @@ var bigBang = function(MACHINE, initW, handlers) {
     var toplevelNode = $('<div/>').css('border', '2').appendTo(document.body);
 
     var configs = [];
-    var isOnDrawSeen = false;
+    var isOutputConfigSeen = false;
 
     for (var i = 0 ; i < handlers.length; i++) {
         if (isWorldConfigOption(handlers[i])) {
@@ -35,12 +39,12 @@ var bigBang = function(MACHINE, initW, handlers) {
         else {
             configs.push(handlers[i]);
         }
-        if (isOnDraw(handlers[i])) { isOnDrawSeen = true; }
+        if (isOutputConfig(handlers[i])) { isOutputConfigSeen = true; }
     }
     
     // If we haven't seen an onDraw function, use the default one.
-    if (! isOnDrawSeen) { 
-        configs.push(new DefaultOnDraw(toplevelNode.get(0)).toRawHandler(MACHINE));
+    if (! isOutputConfigSeen) { 
+        configs.push(new DefaultDrawingOutput(toplevelNode.get(0)).toRawHandler(MACHINE));
     }
 
 
@@ -160,45 +164,104 @@ OnTick.prototype.toRawHandler = function(MACHINE) {
 
 
 
-// // OnDraw
+var OutputConfig = function() {}
+OutputConfig.prototype = plt.baselib.heir(WorldConfigOption.prototype);
+var isOutputConfig = plt.baselib.makeClassPredicate(OutputConfig);
 
-var OnDraw = function(handler) {
-    WorldConfigOption.call(this, 'on-draw');
+
+
+
+
+// // ToDraw
+
+var ToDraw = function(handler) {
+    WorldConfigOption.call(this, 'to-draw');
     this.handler = handler;
 };
 
-OnDraw.prototype = plt.baselib.heir(WorldConfigOption.prototype);
+ToDraw.prototype = plt.baselib.heir(OutputConfig.prototype);
  
-OnDraw.prototype.toRawHandler = function(MACHINE) {
-    var worldFunction = function(world, k) {
-        // FIXME: call the handler instead!
-        k(plt.baselib.format.toDomNode(world));
+ToDraw.prototype.toRawHandler = function(MACHINE) {
+    var that = this;
+    var reusableCanvas;
+    var reusableCanvasNode;
+    var toplevelNode = this.toplevelNode;
+    var adaptedWorldFunction = adaptWorldFunction(this.handler);
+
+    var worldFunction = function(world, success) {
+
+        adaptedWorldFunction(
+            world,
+            function(v) {
+                // fixme: once jsworld supports fail continuations, use them
+                // to check the status of the scene object and make sure it's an
+                // image.
+
+                
+                if (isImage(v) ) {
+		    var width = v.getWidth();
+		    var height = v.getHeight();
+
+		    if (! reusableCanvas) {
+			reusableCanvas = imageLibrary.makeCanvas(width, height);
+			// Note: the canvas object may itself manage objects,
+			// as in the case of an excanvas.  In that case, we must make
+			// sure jsworld doesn't try to disrupt its contents!
+			reusableCanvas.jsworldOpaque = true;
+			reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+		    }
+		    reusableCanvas.width = width;
+		    reusableCanvas.height = height;			
+		    var ctx = reusableCanvas.getContext("2d");
+		    v.render(ctx, 0, 0);
+		    success(rawJsworld.node_to_tree(reusableCanvasNode));
+		} else {
+		    success(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(v)));
+		}
+            });
     };
-    var cssFunction = function(w, k) { k([]); }
+
+    var cssFunction = function(w, k) { 
+        if (reusableCanvas) {
+ 	    k([[reusableCanvas, 
+ 		["width", reusableCanvas.width + "px"],
+ 		["height", reusableCanvas.height + "px"]]]);
+        } else {
+            k([]); 
+        }
+    }
+
     return rawJsworld.on_draw(worldFunction, cssFunction);
 };
 
-var isOnDraw = plt.baselib.makeClassPredicate(OnDraw);
 
 
 
-var DefaultOnDraw = function(toplevelNode) {
-    WorldConfigOption.call(this, 'on-draw');
-    this.toplevelNode = toplevelNode;
+
+
+
+var DefaultDrawingOutput = function(toplevelNode) {
+    WorldConfigOption.call(this, 'to-draw');
+//    this.toplevelNode = toplevelNode;
 };
 
-DefaultOnDraw.prototype = plt.baselib.heir(WorldConfigOption.prototype);
+DefaultDrawingOutput.prototype = plt.baselib.heir(WorldConfigOption.prototype);
  
-DefaultOnDraw.prototype.toRawHandler = function(MACHINE) {
+DefaultDrawingOutput.prototype.toRawHandler = function(MACHINE) {
     var that = this;
     var worldFunction = function(world, k) {
-        k([that.toplevelNode,
-           rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world))]);
+//         k([that.toplevelNode,
+//            rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world))]);
+        k(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world)));
     };
     var cssFunction = function(w, k) { k([]); }
     return rawJsworld.on_draw(worldFunction, cssFunction);
 };
 
+
+
+
+//////////////////////////////////////////////////////////////////////
 
 
 

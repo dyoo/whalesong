@@ -71,7 +71,7 @@ EXPORTS['to-draw'] =
         1,
         function(MACHINE) {
             var f = checkProcedure1(MACHINE, "on-tick", 0);
-            return new OnDraw(f);
+            return new ToDraw(f);
         });
 
 

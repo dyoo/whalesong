@@ -4,8 +4,8 @@
 
 
 ;; Rain falls down the screen.
-(define WIDTH 200)
-(define HEIGHT 500)
+(define WIDTH 640)
+(define HEIGHT 480)
 
 (define GRAVITY-FACTOR 1)
 (define BACKGROUND (empty-scene WIDTH HEIGHT))
@@ -23,12 +23,13 @@
 ;; Generates a random particle.
 (define (random-drop)
   (make-drop (make-posn (random WIDTH) 0)
-             (+ 5 (random 10)) ;; Get it falling
+             (+ 5 (random 10)) ;; Get it falling at some random velocity
              (random-choice (list "gray" "darkgray"
                                   "white" "blue" 
                                   "lightblue"
                                   "darkblue"))
-             (random 10)))
+             (random 10) ;; with some random size
+             ))
 
 ;; random-choice: (listof X) -> X
 ;; Picks a random element of elts.
@@ -58,7 +59,9 @@
 (define (tick w)
   (make-world 
    (my-filter not-on-floor?
-           (map drop-descend (cons (random-drop) (world-sky w))))))
+           (map drop-descend (cons (random-drop)
+                                   (cons (random-drop)
+                                         (world-sky w)))))))
 
 
 ;; drop-descend: drop -> drop

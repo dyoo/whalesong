@@ -170,7 +170,7 @@
     // Returns true if x is a list (a chain of pairs terminated by EMPTY).
     var isList = function(x) { 
 	while (x !== Empty.EMPTY) {
-	    if (x instanceof Cons){
+	    if (x instanceof Cons) {
 		x = x.rest;
 	    } else {
 		return false;
@@ -191,6 +191,17 @@
     };
 
 
+    var length = function(lst) {
+        var len = 0;
+        while (lst !== EMPTY) {
+            len++;
+            lst = lst.rest;
+        }
+        return len;
+    };
+
+
+
     //////////////////////////////////////////////////////////////////////
 
     exports.EMPTY = EMPTY;
@@ -202,6 +213,7 @@
     exports.makePair = makePair;
     exports.makeList = makeList;
     exports.reverse = reverse;
+    exports.length = length;
 
 
 })(this['plt'].baselib);

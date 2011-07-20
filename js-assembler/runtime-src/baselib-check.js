@@ -24,6 +24,29 @@
 	}
     };
 
+    var makeCheckParameterizedArgumentType = function(parameterizedPredicate, 
+                                                      parameterizedPredicateName) {
+	return function(MACHINE, callerName, position) {
+            var args = [];
+            for (var i = 3; i < arguments.length; i++) {
+                args.push(arguments[i]);
+            }
+	    testArgument(
+		MACHINE,
+		parameterizedPredicateName.apply(null, args),
+		function(x) {
+                    return parameterizedPredicate.apply(null, [x].concat(args));
+                },
+		MACHINE.env[MACHINE.env.length - 1 - position],
+		position,
+		callerName);
+	    return MACHINE.env[MACHINE.env.length - 1 - position];
+	}
+    };
+
+
+
+
 
     var makeCheckListofArgumentType = function(predicate, predicateName) {
         var listPredicate = function(x) {
@@ -127,6 +150,14 @@
         plt.baselib.numbers.isNatural,
         'natural');
 
+    var checkNaturalInRange = makeCheckParameterizedArgumentType(
+        function(x, a, b) {
+            return plt.baselib.numbers.isNatural(x) &&
+        }
+        function(a, b) {
+            return plt.baselib.format('natural between ~a and ~a', [a, b])
+        });
+
     var checkInteger = makeCheckArgumentType(
         plt.baselib.numbers.isInteger,
         'integer');
@@ -182,6 +213,7 @@
     exports.testArgument = testArgument;
     exports.testArity = testArity;
     exports.makeCheckArgumentType = makeCheckArgumentType;
+    exports.makeCheckParameterizedArgumentType = makeCheckParameterizedArgumentType;
     exports.makeCheckListofArgumentType = makeCheckListofArgumentType;
 
     exports.checkOutputPort = checkOutputPort;
@@ -192,6 +224,7 @@
     exports.checkReal = checkReal;
     exports.checkNonNegativeReal = checkNonNegativeReal;
     exports.checkNatural = checkNatural;
+    exports.checkNaturalInRange = checkNaturalInRange;
     exports.checkInteger = checkInteger;
     exports.checkRational = checkRational;
     exports.checkPair = checkPair;

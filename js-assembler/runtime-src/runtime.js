@@ -115,6 +115,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var checkReal = plt.baselib.check.checkReal;
     var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
     var checkNatural = plt.baselib.check.checkNatural;
+    var checkNaturalInRange = plt.baselib.check.checkNaturalInRange;
     var checkInteger = plt.baselib.check.checkInteger;
     var checkRational = plt.baselib.check.checkRational;
     var checkPair = plt.baselib.check.checkPair;
@@ -829,6 +830,19 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
     installPrimitiveProcedure(
+        'list-ref',
+        2,
+        function(MACHINE) {
+            var lst = checkList(MACHINE, 'list-ref', 0);
+            var index = checkNaturalInRange(MACHINE, 'list-ref', 1,
+                                            0, plt.baselib.lists.length(lst));
+
+        });
+
+
+
+
+    installPrimitiveProcedure(
         'car',
         1,
         function(MACHINE) {
@@ -951,7 +965,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var elts = checkVector(MACHINE, 'vector-set!', 0).elts;
             // FIXME: check out-of-bounds vector
 	    var index = plt.baselib.numbers.toFixnum(
-                checkNatural(MACHINE, 'vector-set!', 1));
+                checkNaturalInRange(MACHINE, 'vector-set!', 1,
+                                    0, elts.length));
 	    var val = MACHINE.env[MACHINE.env.length - 1 - 2];
 	    elts[index] = val;
 	    return VOID;

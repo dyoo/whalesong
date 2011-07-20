@@ -291,7 +291,7 @@ exact?
   length
 ;;  list?
 ;;  list*
-;;  list-ref
+  list-ref
 ;;  list-tail
   append
   reverse

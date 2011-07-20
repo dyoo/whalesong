@@ -41,10 +41,23 @@
 (define-struct world (sky ;; listof drop 
                           ))
 
+
+
+(define (my-filter f l)
+  (cond
+   [(null? l)
+    '()]
+   [(f (car l))
+    (cons (car l)
+          (my-filter f (cdr l)))]
+   [else
+    (my-filter f (cdr l))]))
+
+
 ;; tick: world -> world
 (define (tick w)
   (make-world 
-   (filter not-on-floor?
+   (my-filter not-on-floor?
            (map drop-descend (cons (random-drop) (world-sky w))))))
 
 
@@ -90,9 +103,20 @@
                a-scene))
 
 
+
+(define (my-foldl f acc lst)
+  (cond
+   [(null? lst)
+    acc]
+   [else
+    (my-foldl f
+              (f (car (car lst)) acc)
+              (cdr lst))]))
+                   
+
 ;; draw: world -> scene
 (define (draw w)
-  (foldl place-drop BACKGROUND (world-sky w)))
+  (my-foldl place-drop BACKGROUND (world-sky w)))
 
 
 

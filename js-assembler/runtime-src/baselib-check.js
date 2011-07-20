@@ -152,10 +152,12 @@
 
     var checkNaturalInRange = makeCheckParameterizedArgumentType(
         function(x, a, b) {
-            return plt.baselib.numbers.isNatural(x) &&
-        }
+            if (! plt.baselib.numbers.isNatural(x)) { return false; }
+            return (plt.baselib.numbers.lessThanOrEqual(a, x) &&
+                    plt.baselib.numbers.lessThan(x, b));
+        },
         function(a, b) {
-            return plt.baselib.format('natural between ~a and ~a', [a, b])
+            return plt.baselib.format('natural between ~a and ~a', [a, b]);
         });
 
     var checkInteger = makeCheckArgumentType(

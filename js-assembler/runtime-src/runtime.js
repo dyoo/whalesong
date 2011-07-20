@@ -1054,6 +1054,20 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    return VOID;
         });
 
+
+    installPrimitiveProcedure(
+        'random',
+        plt.baselib.lists.makeList(0, 1),
+        function(MACHINE) {
+            if (MACHINE.argcount === 0) {
+                return plt.baselib.numbers.makeFloat(Math.random());
+            } else {
+                var n = checkNatural(MACHINE, 'random', 0);
+		return Math.floor(Math.random() * plt.baselib.numbers..toFixnum(n));
+            }
+        });
+
+
     installPrimitiveProcedure(
         'eq?',
         2,

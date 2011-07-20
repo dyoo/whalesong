@@ -17,6 +17,7 @@
          beside/align
          above
          above/align
+         empty-scene
          place-image
          place-image/align
          rotate

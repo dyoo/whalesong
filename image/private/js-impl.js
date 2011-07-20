@@ -547,6 +547,20 @@ EXPORTS['above/align'] =
 
 
 
+EXPORTS['empty-scene'] =
+    make-PrimitiveProcedure(
+        'empty-scene',
+	2,
+	function(MACHINE) {
+	    var width = checkNonNegativeReal(MACHINE, 'empty-scene', 0);
+	    var height = checkNonNegativeReal(MACHINE, 'empty-scene', 1);
+	    return makeSceneImage(jsnums.toFixnum(width), 
+                                  jsnums.toFixnum(height),
+                                  [],
+                                  true);
+	});
+
+
 
 EXPORTS['place-image'] = 
     makePrimitiveProcedure(

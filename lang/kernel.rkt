@@ -183,7 +183,7 @@
 ;;  current-inexact-milliseconds
 ;;  current-seconds
   void
-;;  random
+  random
 ;;  sleep
 ;;  (identity -identity)
 ;;  raise

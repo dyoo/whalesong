@@ -8,7 +8,7 @@
 (define HEIGHT 500)
 
 (define GRAVITY-FACTOR 1)
-(define BACKGROUND (empty-scene WIDTH HEIGHT "solid" "black"))
+(define BACKGROUND (empty-scene WIDTH HEIGHT))
 
 
 
@@ -110,7 +110,7 @@
     acc]
    [else
     (my-foldl f
-              (f (car (car lst)) acc)
+              (f (car lst) acc)
               (cdr lst))]))
                    
 

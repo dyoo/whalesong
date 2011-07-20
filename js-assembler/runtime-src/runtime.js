@@ -836,7 +836,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             var lst = checkList(MACHINE, 'list-ref', 0);
             var index = checkNaturalInRange(MACHINE, 'list-ref', 1,
                                             0, plt.baselib.lists.length(lst));
-
+            return plt.baselib.lists.listRef(lst, plt.baselib.numbers.toFixnum(index));
         });
 
 
@@ -1078,7 +1078,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 return plt.baselib.numbers.makeFloat(Math.random());
             } else {
                 var n = checkNatural(MACHINE, 'random', 0);
-		return Math.floor(Math.random() * plt.baselib.numbers..toFixnum(n));
+		return Math.floor(Math.random() * plt.baselib.numbers.toFixnum(n));
             }
         });
 

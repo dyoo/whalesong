@@ -157,7 +157,7 @@
                     plt.baselib.numbers.lessThan(x, b));
         },
         function(a, b) {
-            return plt.baselib.format('natural between ~a and ~a', [a, b]);
+            return plt.baselib.format.format('natural between ~a and ~a', [a, b]);
         });
 
     var checkInteger = makeCheckArgumentType(

@@ -201,6 +201,14 @@
     };
 
 
+    var listRef = function(lst, n) {
+        for (var i = 0; i < n; i++) {
+            lst = lst.rest;
+        }
+        return lst.first;
+    }
+
+
 
     //////////////////////////////////////////////////////////////////////
 
@@ -214,6 +222,7 @@
     exports.makeList = makeList;
     exports.reverse = reverse;
     exports.length = length;
+    exports.listRef = listRef;
 
 
 })(this['plt'].baselib);

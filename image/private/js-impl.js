@@ -548,7 +548,7 @@ EXPORTS['above/align'] =
 
 
 EXPORTS['empty-scene'] =
-    make-PrimitiveProcedure(
+    makePrimitiveProcedure(
         'empty-scene',
 	2,
 	function(MACHINE) {

@@ -150,6 +150,10 @@
         plt.baselib.numbers.isNatural,
         'natural');
 
+    var checkByte = makeCheckArgumentType(
+        function(x) { return (typeof(x) === 'number' && 0 <= x && x < 256) },
+        'byte');
+
     var checkNaturalInRange = makeCheckParameterizedArgumentType(
         function(x, a, b) {
             if (! plt.baselib.numbers.isNatural(x)) { return false; }
@@ -227,6 +231,7 @@
     exports.checkNonNegativeReal = checkNonNegativeReal;
     exports.checkNatural = checkNatural;
     exports.checkNaturalInRange = checkNaturalInRange;
+    exports.checkByte = checkByte;
     exports.checkInteger = checkInteger;
     exports.checkRational = checkRational;
     exports.checkPair = checkPair;

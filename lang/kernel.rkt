@@ -60,6 +60,7 @@
          pi
          e
          null
+         #%plain-module-begin
 	 #%module-begin
 	 #%datum
 	 #%app
@@ -106,6 +107,7 @@
 	 except-out
 	 rename-out
 	 struct-out
+         define-syntax-rule
 	 define-syntax
 	 define-syntaxes
 
@@ -135,7 +137,8 @@
          list
          null?
          not
-         eq?)
+         eq?
+         values)
 
 
 (define (-identity x) x)
@@ -153,6 +156,7 @@
  current-output-port
  current-print 
  write
+ write-byte
  display
  newline
  displayln
@@ -177,7 +181,7 @@
 ;;  arity-at-least?
 ;;  arity-at-least-value
 ;;  apply
-;;  values
+
 ;;  call-with-values
 ;;  compose
 ;;  current-inexact-milliseconds

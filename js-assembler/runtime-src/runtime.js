@@ -110,6 +110,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var checkOutputPort = plt.baselib.check.checkOutputPort;
     var checkString = plt.baselib.check.checkString;
     var checkSymbol = plt.baselib.check.checkSymbol;
+    var checkByte = plt.baselib.check.checkByte;
     var checkProcedure = plt.baselib.check.checkProcedure;
     var checkNumber = plt.baselib.check.checkNumber;
     var checkReal = plt.baselib.check.checkReal;
@@ -545,6 +546,20 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
             return VOID;
         });
+
+
+    installPrimitiveProcedure(
+        'write-byte', makeList(1, 2),
+        function(MACHINE) {
+	    var firstArg = checkByte(MACHINE, 'write-byte', 0);
+	    var outputPort = MACHINE.params.currentOutputPort;
+	    if (MACHINE.argcount === 2) {
+	        outputPort = checkOutputPort(MACHINE, 'display', 1);
+	    }
+	    outputPort.writeDomNode(MACHINE, toDomNode(String.fromCharCode(firstArg), 'display'));
+            return VOID;
+        });
+
 
     installPrimitiveProcedure(
         'newline', makeList(0, 1),

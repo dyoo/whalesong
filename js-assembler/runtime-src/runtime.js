@@ -530,6 +530,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     installPrimitiveConstant('pi', plt.baselib.numbers.pi);
     installPrimitiveConstant('e', plt.baselib.numbers.e);
     installPrimitiveConstant('null', NULL);
+    installPrimitiveConstant('true', true);
+    installPrimitiveConstant('false', false);
 
 
     installPrimitiveProcedure(

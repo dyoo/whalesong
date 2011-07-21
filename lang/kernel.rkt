@@ -8,10 +8,10 @@
 
 
 ;; constants
-(define constant:true #t)
-(define constant:false #f)
-(define constant:pi racket:pi)
-(define constant:e (racket:exp 1))
+(define true #t)
+(define false #f)
+(define pi racket:pi)
+(define e (racket:exp 1))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -55,10 +55,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Provides
-(provide (rename-out (constant:true true)
-                     (constant:false false)
-                     (constant:pi pi)
-                     (constant:e e))
+(provide true
+         false
+         pi
+         e
          null
 	 #%module-begin
 	 #%datum

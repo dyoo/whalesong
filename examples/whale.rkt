@@ -28,7 +28,9 @@
    [(key=? a-key "left")
     (make-world (world-x w) (sub1 (world-direction w)))]
    [(key=? a-key "right")
-    (make-world (world-x w) (add1 (world-direction w)))]))
+    (make-world (world-x w) (add1 (world-direction w)))]
+   [else
+    w]))
 
 
 (big-bang (make-world 0 5)

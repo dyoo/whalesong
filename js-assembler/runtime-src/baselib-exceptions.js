@@ -87,7 +87,7 @@
     var raiseUnboundToplevelError = function(MACHINE, name) {
         raise(MACHINE, 
 	      new Error(
-		  plt.baselib.format.foramt(
+		  plt.baselib.format.format(
 		      "Not bound: ~a",
 		      [name]))); 
     };

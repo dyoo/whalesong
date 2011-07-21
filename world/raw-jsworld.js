@@ -897,13 +897,20 @@ var rawJsworld = {};
     function on_key(press) {
 	return function() {
 	    var wrappedPress = function(e) {
-		    preventDefault(e);
-		    stopPropagation(e);
-		    change_world(function(w, k) { press(w, e, k); }, doNothing);
+		preventDefault(e);
+		stopPropagation(e);
+		change_world(function(w, k) { press(w, e, k); }, doNothing);
 	    };
 	    return {
-		onRegister: function(top) { attachEvent(top, 'keydown', wrappedPress); },
-		onUnregister: function(top) { detachEvent(top, 'keydown', wrappedPress); }
+		onRegister: function(top) { 
+                    //http://www.w3.org/TR/html5/editing.html#sequential-focus-navigation-and-the-tabindex-attribue
+                    $(top).attr('tabindex', 1);
+                    $(top).focus();
+                    attachEvent(top, 'keydown', wrappedPress); 
+                },
+		onUnregister: function(top) { 
+                    detachEvent(top, 'keydown', wrappedPress); 
+                }
 	    };
 	}
     }

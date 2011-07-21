@@ -570,11 +570,26 @@ Can only be called in a JavaScript context.
 Returns the height of the viewport.
 }
 
-
-
-
-
 }
+
+
+
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@section{World programming}
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Whalesong provides a library to support writing functional I/O
+programs
+(@link["http://www.ccs.neu.edu/scheme/pubs/icfp09-fffk.pdf"]{A
+Functional I/O System}).  Here's an example of such a world program:
+
+@inject-empty-span-with-id{simple-world-program}
+[FIXME: embed a world program here.]
+
+
+
+
+
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @section{Internals}

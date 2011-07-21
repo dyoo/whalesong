@@ -15,6 +15,8 @@
                )
  #:provided-values (big-bang
                     on-tick
+                    on-key
+                    key=?
                     to-draw
                     stop-when))
 

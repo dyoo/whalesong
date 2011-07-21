@@ -5,6 +5,7 @@ var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
 
 
 var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
+var checkString = plt.baselib.check.checkString;
 
 var checkProcedure = plt.baselib.check.checkProcedure;
 
@@ -87,7 +88,24 @@ EXPORTS['stop-when'] =
         });
 
 
+EXPORTS['on-key'] =
+    makePrimitiveProcedure(
+        'on-key',
+        1,
+        function(MACHINE) {
+            var f = checkProcedureWithKey(MACHINE, "on-key", 0);
+            return new OnKey(f);
+        });
 
+EXPORTS['key=?'] =
+    makePrimitiveProcedure(
+        'on-key',
+        2,
+        function(MACHINE) {
+            var k1 = checkString(MACHINE, "key=?", 0);
+            var k2 = checkString(MACHINE, "key=?", 1);
+            return k1.toString().toLowerCase() === k2.toString().toLowerCase();
+        });
 
 
 

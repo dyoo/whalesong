@@ -1,6 +1,8 @@
 #lang racket/base
 
-(provide inject-javascript-inline inject-javascript-src)
+(provide inject-javascript-inline
+         inject-javascript-src
+         inject-empty-span-with-id)
 
 (require scribble/core
          scribble/html-properties
@@ -31,6 +33,23 @@
      '())]
 
    [text ""]))
+
+
+(define (inject-empty-span-with-id id)
+  (cond-element
+   [latex ""]
+   [html 
+    (make-element
+     (make-style #f
+                 (list 
+                  (make-alt-tag "span")
+                  (make-attributes
+                   `((id . , id)))))
+     '())]
+
+   [text ""]))
+
+
 
 
 

@@ -5,18 +5,17 @@
           scribble/eval
           racket/sandbox
           (only-in racket/contract any/c)
-          ;          (for-label racket/base)
-          (for-label (this-package-in lang/base))
-          (for-label (this-package-in js))
-
-
           racket/runtime-path
           "scribble-helpers.rkt"
 	  "../last-commit-name.rkt"
           "../js-assembler/get-js-vm-implemented-primitives.rkt")
 
+@(require (for-label (this-package-in js))
+          (for-label (this-package-in lang/base)))
 
-@inject-javascript|{
+
+
+@inject-javascript-inline|{
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-24146890-1']);
   _gaq.push(['_trackPageview']);
@@ -27,6 +26,9 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();      
 }|
+
+
+@inject-javascript-src{http://hashcollision.org/whalesong/examples/runtime.js}
 
 
 @(define-runtime-path whalesong-path "..")

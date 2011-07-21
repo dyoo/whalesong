@@ -1,19 +1,39 @@
 #lang racket/base
 
-(provide inject-javascript)
+(provide inject-javascript-inline inject-javascript-src)
 
 (require scribble/core
          scribble/html-properties
          scriblib/render-cond)
 
+
 ;; Adds JavaScript if we're rendering in HTML.
-(define (inject-javascript . body)
+(define (inject-javascript-inline . body)
   (cond-element 
    [latex ""]
    [html (make-element (make-style #f (list (make-script-property "text/javascript"
                                                            body)))
                 '())]
    [text ""]))
+
+
+(define (inject-javascript-src src)
+  (cond-element
+   [latex ""]
+   [html 
+    (make-element
+     (make-style #f
+                 (list 
+                  (make-alt-tag "script")
+                  (make-attributes
+                   `((type . "text/javascript")
+                     (src  . ,src)))))
+     '())]
+
+   [text ""]))
+
+
+
 
 
 ;;(define (google-analytics)

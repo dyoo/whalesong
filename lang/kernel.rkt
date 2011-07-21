@@ -327,7 +327,7 @@ memq
 ;;  string
   string-length
 ;;  string-ref
-;;  string=?
+  string=?
 ;;  string-ci=?
 ;;  string<?
 ;;  string>?

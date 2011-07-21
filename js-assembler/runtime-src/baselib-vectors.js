@@ -82,10 +82,9 @@
         var node = document.createElement("span");
         node.appendChild(document.createTextNode("#("));
         for (var i = 0; i < this.length(); i++) {
-	    appendChild(node,
-		        plt.baselib.format.toDomNode(this.ref(i), cache));
+	    node.appendChild(plt.baselib.format.toDomNode(this.ref(i), cache));
 	    if (i !== this.length()-1) {
-	        appendChild(node, document.createTextNode(" "));
+	        node.appendChild(document.createTextNode(" "));
 	    }
         }
         node.appendChild(document.createTextNode(")"));

@@ -1018,6 +1018,21 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    return firstArg.toString();
         });
 
+
+    installPrimitiveProcedure(
+        'string=?',
+        plt.baselib.arity.makeArityAtLeast(1),
+        function(MACHINE) {
+            var s = checkString(MACHINE, 'string=?', 0).toString();
+            for (var i = 1; i < MACHINE.argcount; i++) {
+                if (checkString(MACHINE, 'string=?', i).toString() !== s) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+
     installPrimitiveProcedure(
         'string-append',
         plt.baselib.arity.makeArityAtLeast(0),

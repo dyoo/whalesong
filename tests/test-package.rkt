@@ -20,13 +20,14 @@
                1
                (* (factorial (- n 1))
                   n))))
-(test '(begin
+(test '(let ()
          (define (factorial n)
            (fact-iter n 1))
          (define (fact-iter n acc)
            (if (= n 0)
                acc
-               (fact-iter (- n 1) (* acc n))))))
+               (fact-iter (- n 1) (* acc n))))
+         'ok))
 
 (test '(define (gauss n)
          (if (= n 0)

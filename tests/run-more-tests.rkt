@@ -16,3 +16,4 @@
 (test "more-tests/images.rkt")
 (test "more-tests/lists.rkt")
 (test "more-tests/earley.rkt")
+(test "more-tests/hello-bf.rkt")

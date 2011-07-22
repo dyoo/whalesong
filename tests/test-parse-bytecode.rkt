@@ -65,16 +65,16 @@
 ;; global variables
 (check-equal? (run-my-parse #'x)
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
-                        (make-ToplevelRef 0 0)))
+                        (make-ToplevelRef 0 0 #t)))
  
 
 
 (check-equal? (run-my-parse #'(begin (define x 3)
                                      x))
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
-                        (make-Splice (list (make-DefValues (list (make-ToplevelRef 0 0))
+                        (make-Splice (list (make-DefValues (list (make-ToplevelRef 0 0 #t))
                                                            (make-Constant 3))
-                                           (make-ToplevelRef 0 0)))))
+                                           (make-ToplevelRef 0 0 #t)))))
 
 
 ;; Lambdas
@@ -119,15 +119,15 @@
 (check-equal? (run-my-parse #'(let ([y (f)])
                                 'ok))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f)))
-                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0 #t) (list))
                                    (make-Constant 'ok))))
 
 (check-equal? (run-my-parse #'(let ([y (f)]
                                     [z (g)])
                                 'ok))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f) (make-GlobalBucket 'g)))
-                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
-                                   (make-Let1 (make-App (make-ToplevelRef 2 1) (list))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0 #t) (list))
+                                   (make-Let1 (make-App (make-ToplevelRef 2 1 #t) (list))
                                               (make-Constant 'ok)))))
 
 (check-equal? (run-my-parse #'(let* ([y (f)]
@@ -135,8 +135,8 @@
                                 y
                                 z))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f) (make-GlobalBucket 'g)))
-                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
-                                   (make-Let1 (make-App (make-ToplevelRef 2 1) (list))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0 #t) (list))
+                                   (make-Let1 (make-App (make-ToplevelRef 2 1 #t) (list))
                                               ;; racket's compiler optimizes away the sequence and lookup to y.
                                               #;(make-Seq (list (make-LocalRef 1 #f) 
                                                                 (make-LocalRef 0 #f)))
@@ -149,8 +149,8 @@
                                 y
                                 z))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f) (make-GlobalBucket 'g)))
-                        (make-Let1 (make-App (make-ToplevelRef 1 0) (list))
-                                   (make-Let1 (make-App (make-ToplevelRef 2 1) (list))
+                        (make-Let1 (make-App (make-ToplevelRef 1 0 #t) (list))
+                                   (make-Let1 (make-App (make-ToplevelRef 2 1 #t) (list))
                                               (make-LocalRef 0 #f)))))
 
 
@@ -161,15 +161,15 @@
               (make-Top (make-Prefix (list (make-GlobalBucket 'f)
                                            (make-GlobalBucket 'g)
                                            (make-GlobalBucket 'h)))
-                        (make-Branch (make-App (make-ToplevelRef 0 0) '())
-                                     (make-App (make-ToplevelRef 0 1) '())
-                                     (make-App (make-ToplevelRef 0 2) '()))))
+                        (make-Branch (make-App (make-ToplevelRef 0 0 #t) '())
+                                     (make-App (make-ToplevelRef 0 1 #t) '())
+                                     (make-App (make-ToplevelRef 0 2 #t) '()))))
 
 
 ;; Another example where Racket's compiler is helping: constant propagation, dead code removal.
 (check-equal? (run-my-parse #'(if 3 (g) (h)))
               (make-Top (make-Prefix (list (make-GlobalBucket 'g)))
-                        (make-App (make-ToplevelRef 0 0) '())))
+                        (make-App (make-ToplevelRef 0 0 #t) '())))
 
 
 
@@ -178,9 +178,9 @@
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)
                                            (make-GlobalBucket 'y)
                                            (make-GlobalBucket 'z)))
-                        (make-Branch (make-ToplevelRef 0 0)
-                                     (make-Branch (make-ToplevelRef 0 1)
-                                                  (make-ToplevelRef 0 2)
+                        (make-Branch (make-ToplevelRef 0 0 #t)
+                                     (make-Branch (make-ToplevelRef 0 1 #t)
+                                                  (make-ToplevelRef 0 2 #t)
                                                   (make-Constant 1))
                                      (make-Constant #t))))
 
@@ -188,8 +188,8 @@
 (check-equal? (run-my-parse #'(cond [x y]))
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)
                                            (make-GlobalBucket 'y)))
-                        (make-Branch (make-ToplevelRef 0 0)
-                                     (make-ToplevelRef 0 1)
+                        (make-Branch (make-ToplevelRef 0 0 #t)
+                                     (make-ToplevelRef 0 1 #t)
                                      (make-Constant (void)))))
 
 
@@ -204,9 +204,9 @@
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
                         (make-App (make-PrimitiveKernelValue '+)
                                   (list (make-App (make-PrimitiveKernelValue '*)
-                                                  (list (make-ToplevelRef 4 0) 
-                                                        (make-ToplevelRef 4 0)))
-                                        (make-ToplevelRef 2 0)))))
+                                                  (list (make-ToplevelRef 4 0 #t) 
+                                                        (make-ToplevelRef 4 0 #t)))
+                                        (make-ToplevelRef 2 0 #t)))))
 
 (check-equal? (run-my-parse #'list)
               (make-Top (make-Prefix (list))
@@ -219,7 +219,7 @@
 
 (check-equal? (run-my-parse #'(let () x))
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
-                        (make-ToplevelRef 0 0)))
+                        (make-ToplevelRef 0 0 #t)))
 
 
 
@@ -276,8 +276,8 @@
 (check-equal? (run-my-parse #'(call-with-values (lambda () (f)) g))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f)
                                            (make-GlobalBucket 'g)))
-                        (make-ApplyValues (make-ToplevelRef 0 1)
-                                          (make-App (make-ToplevelRef 0 0) '()))))
+                        (make-ApplyValues (make-ToplevelRef 0 1 #t)
+                                          (make-App (make-ToplevelRef 0 0 #t) '()))))
 
 
 
@@ -325,18 +325,18 @@
 
 (check-equal? (run-my-parse #'(begin0 (f)))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f)))
-                        (make-App (make-ToplevelRef 0 0) '())))
+                        (make-App (make-ToplevelRef 0 0 #t) '())))
               
 (check-equal? (run-my-parse #'(begin0 (f) (g)))
               (make-Top (make-Prefix (list (make-GlobalBucket 'f)
                                            (make-GlobalBucket 'g)))
-                        (make-Begin0 (list (make-App (make-ToplevelRef 0 0) '())
-                                           (make-App (make-ToplevelRef 0 1) '())))))
+                        (make-Begin0 (list (make-App (make-ToplevelRef 0 0 #t) '())
+                                           (make-App (make-ToplevelRef 0 1 #t) '())))))
 
 
 ;; Compiling modules
 (check-true
- (match (run-my-parse #'(module foo racket/base
+ (match (run-my-parse #'(module foo1 racket/base
                           42))
    [(struct Top ((struct Prefix (list))
                  (struct Module ((? symbol?)
@@ -345,12 +345,12 @@
                                  _  ;; requires
                                  _  ;; provides
                                  (struct Splice ((list (struct ApplyValues 
-                                                         ((struct ToplevelRef ('0 '0)) (struct Constant ('42)))))))))))
+                                                         ((struct ToplevelRef ('0 '0 _)) (struct Constant ('42)))))))))))
     #t]))
 
 
 (check-true
- (match (run-my-parse #'(module foo racket/base
+ (match (run-my-parse #'(module foo2 racket/base
                           (provide x)
                           (define x "x")))
    [(struct Top ((struct Prefix ((? list?)))
@@ -360,7 +360,7 @@
                                  _  ;; requires
                                  _  ;; provides
                                  (struct Splice ((list (struct DefValues 
-                                                         ((list (struct ToplevelRef ('0 '0)))
+                                                         ((list (struct ToplevelRef ('0 '0 _)))
                                                           (struct Constant ("x")))))))))))
     #t]))
 
@@ -370,7 +370,7 @@
 ;; Variable reference
 (check-equal? (run-my-parse #'(#%variable-reference x))
               (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
-                       (make-VariableReference (make-ToplevelRef 0 0))))
+                       (make-VariableReference (make-ToplevelRef 0 0 #t))))
 
 ;; todo: see what it would take to run a typed/racket/base language.
 (void 
@@ -441,7 +441,7 @@
                                  (struct Prefix ((list 'f)))
                                  (list (struct ModuleLocator ('#%kernel '#%kernel)))
                                  _
-                                 (struct Splice ((list (struct DefValues ((list (struct ToplevelRef (0 0)))
+                                 (struct Splice ((list (struct DefValues ((list (struct ToplevelRef (0 0 #t)))
                                                                           (struct Constant ('ok)))))))))))
     '#t]))
  
@@ -451,6 +451,8 @@
     (run-my-parse/file "/home/dyoo/local/racket-5.1.1/lib/racket/collects/racket/private/for.rkt"))
 
 
+
+;(run-my-parse/file "/home/dyoo/work/whalesong/tests/earley/earley.sch")
 
 
 ;(run-zo-parse #'(lambda (x) (* x x)))

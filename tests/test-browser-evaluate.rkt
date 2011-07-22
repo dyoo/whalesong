@@ -229,7 +229,7 @@ EOF
 
 
 
-(test '(begin (define (f x) 
+(test '(let () (define (f x) 
                 (if (= x 0)
                     0
                     (+ x (f (- x 1)))))
@@ -240,7 +240,7 @@ EOF
               (display (f 10000)))
       "6\n10\n50005000")
 
-(test '(begin (define (length l)
+(test '(let () (define (length l)
                 (if (null? l)
                     0
                     (+ 1 (length (cdr l)))))
@@ -251,7 +251,7 @@ EOF
               
       "6\n2\n")
 
-(test '(begin (define (tak x y z)
+(test '(let () (define (tak x y z)
                 (if (< y x)
                     (tak (tak (- x 1) y z)
                          (tak (- y 1) z x)
@@ -261,7 +261,7 @@ EOF
       "7")
 
 
-(test '(begin (define (fib x)
+(test '(let () (define (fib x)
                 (if (< x 2)
                     x
                     (+ (fib (- x 1))
@@ -278,7 +278,7 @@ EOF
       "true\n")
 
 
-(test '(begin (define (tak x y z)
+(test '(let () (define (tak x y z)
                (if (>= y x)
                    z
                    (tak (tak (- x 1) y z)
@@ -289,18 +289,18 @@ EOF
 
 
 
-(test '(begin (displayln (+ 42 (call/cc (lambda (k) 3)))) )
+(test '(let () (displayln (+ 42 (call/cc (lambda (k) 3)))) )
       "45\n")
 
 
-(test '(begin (displayln (+ 42 (call/cc (lambda (k) (k 100) 3)))) )
+(test '(let () (displayln (+ 42 (call/cc (lambda (k) (k 100) 3)))) )
       "142\n")
 
-(test '(begin (displayln (+ 42 (call/cc (lambda (k) 100 (k 3))))) )
+(test '(let () (displayln (+ 42 (call/cc (lambda (k) 100 (k 3))))) )
       "45\n")
 
 
-(test '(begin (define program (lambda ()
+(test '(let () (define program (lambda ()
                                 (let ((y (call/cc (lambda (c) c))))
                                   (display 1)
                                   (call/cc (lambda (c) (y c)))
@@ -311,7 +311,7 @@ EOF
       "11213")
 
 
-(test '(begin (define (f return)
+(test '(let () (define (f return)
                 (return 2)
                 3)
               (display (f (lambda (x) x))) ; displays 3
@@ -319,7 +319,7 @@ EOF
               )
       "32")
 
-(test  '(begin
+(test  '(let ()
           (define (ctak x y z)
             (call-with-current-continuation
              (lambda (k)
@@ -371,12 +371,12 @@ EOF
 
 
 
-(test '(begin (define counter 0)
+(test '(let () (define counter 0)
               (set! counter (add1 counter))
               (displayln counter))
       "1\n")
 
-(test '(begin (define x 16)
+(test '(let () (define x 16)
               (define (f x)
                 (set! x (add1 x))
                 x)
@@ -420,34 +420,34 @@ EOF
       "x\n")
 
 
-(test '(begin (displayln (vector-length (vector))))
+(test '(let ()  (displayln (vector-length (vector))))
       "0\n")
 
-(test '(begin (displayln (vector-length (vector 3 1 4))))
+(test '(let () (displayln (vector-length (vector 3 1 4))))
       "3\n")
 
-(test '(begin (displayln (vector-ref (vector 3 1 4) 0)))
+(test '(let () (displayln (vector-ref (vector 3 1 4) 0)))
       "3\n")
 
-(test '(begin (displayln (vector-ref (vector 3 1 4) 1)))
+(test '(let () (displayln (vector-ref (vector 3 1 4) 1)))
       "1\n")
 
-(test '(begin (displayln (vector-ref (vector 3 1 4) 2)))
+(test '(let () (displayln (vector-ref (vector 3 1 4) 2)))
       "4\n")
 
-(test '(begin (define v (vector "hello" "world"))
+(test '(let ()(define v (vector "hello" "world"))
 	      (vector-set! v 0 'hola)
 	      (displayln (vector-ref v 0)))
       "hola\n")
 
-(test '(begin (define v (vector "hello" "world"))
+(test '(let () (define v (vector "hello" "world"))
 	      (vector-set! v 0 'hola)
 	      (displayln (vector-ref v 1)))
       "world\n")
 
 
 
-(test '(begin (define l (vector->list (vector "hello" "world")))
+(test '(let () (define l (vector->list (vector "hello" "world")))
 	      (displayln (length l))
 	      (displayln (car l))
 	      (displayln (car (cdr l))))
@@ -648,7 +648,7 @@ EOF
 
 ;; Knuth's Man-or-boy-test.
 ;; http://rosettacode.org/wiki/Man_or_boy_test
-(test '(begin (define (A k x1 x2 x3 x4 x5)
+(test '(let () (define (A k x1 x2 x3 x4 x5)
 		(letrec ([B (lambda ()
 			   (set! k (- k 1))
 			   (A k B x1 x2 x3 x4))])

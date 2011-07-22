@@ -4,12 +4,14 @@
          (for-syntax racket/base))
 
 
+
 (version-case
-  [(and (version<= "5.1.1" (version))
-        (version< (version) "5.1.1.900"))
+  [(version<= "5.1.1.900" (version))
 
 
-   ;; Parsing Racket 5.1.1 bytecode structures into our own structures.
+
+
+   ;; Parsing Racket 5.1.2 bytecode structures into our own structures.
    (require "typed-module-path.rkt"
             "lam-entry-gensym.rkt"
             "path-rewriter.rkt"
@@ -441,7 +443,7 @@
              (for/list ([v provided-values])
                        (match v
                          [(struct provided (name src src-name nom-mod
-                                                 src-phase protected? insp))
+                                                 src-phase protected?))
                           (make-ModuleProvide src-name name (subresolver src))])))]
           [else
            (loop (rest provides))]))))
@@ -509,7 +511,7 @@
 
    (define (parse-lam expr entry-point-label)
      (match expr
-       [(struct lam (name flags num-params param-types rest? closure-map closure-types max-let-depth body))
+       [(struct lam (name flags num-params param-types rest? closure-map closure-types toplevel-map max-let-depth body))
         (let ([lam-name (extract-lam-name name)])
           (make-Lam lam-name 
                     num-params 
@@ -530,7 +532,7 @@
           (cond
            [(hash-has-key? seen gen-id)
             (match code
-              [(struct lam (name flags num-params param-types rest? closure-map closure-types max-let-depth body))
+              [(struct lam (name flags num-params param-types rest? closure-map closure-types toplevel-map max-let-depth body))
                (let ([lam-name (extract-lam-name name)])
                  (make-EmptyClosureReference lam-name 
                                              num-params 
@@ -721,7 +723,7 @@
 
    (define (parse-varref expr)
      (match expr
-       [(struct varref (toplevel))
+       [(struct varref (toplevel dummy))
         (make-VariableReference (parse-toplevel toplevel))]))
 
    (define (parse-assign expr)
@@ -742,6 +744,8 @@
        [(struct primval (id))
         (let ([name (hash-ref primitive-table id)])
           (make-PrimitiveKernelValue name))]))]
+
+
 
   [else
    (void)])

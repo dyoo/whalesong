@@ -15,3 +15,4 @@
 (test "more-tests/colors.rkt")
 (test "more-tests/images.rkt")
 (test "more-tests/lists.rkt")
+(test "more-tests/earley.rkt")

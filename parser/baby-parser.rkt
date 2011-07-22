@@ -87,7 +87,8 @@
                          (EnvLexicalReference-unbox? address))]
          [(EnvPrefixReference? address)
           (make-ToplevelRef (EnvPrefixReference-depth address)
-                            (EnvPrefixReference-pos address))]))]
+                            (EnvPrefixReference-pos address)
+                            #t)]))]
 
     [(define-values? exp)
      (make-DefValues (map (lambda (id) 

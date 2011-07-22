@@ -359,7 +359,7 @@
   (local [(define score-text
             (text (string-append "Score: " (number->string score)) SCORE-TEXT-SIZE "black"))]
     (place-image score-text
-                 (- (/ BOARD-WIDTH 2) (/ (image-width score-text) 2))
+                 (/ BOARD-WIDTH 2)
                  BOARD-HEIGHT
                  img)))
 

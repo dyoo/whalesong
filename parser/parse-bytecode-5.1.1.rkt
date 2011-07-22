@@ -6,7 +6,7 @@
 
 (version-case
   [(and (version<= "5.1.1" (version))
-        (version< (version) "5.1.2"))
+        (version< (version) "5.1.1.900"))
 
 
    ;; Parsing Racket 5.1.1 bytecode structures into our own structures.

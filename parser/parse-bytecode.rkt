@@ -7,17 +7,17 @@
 
 (version-case
   [(and (version<= "5.1.1" (version))
-        (version< (version) "5.1.2"))
+        (version< (version) "5.1.1.900"))
    (begin
      (log-debug "Using 5.1.1 bytecode parser")
      (require "parse-bytecode-5.1.1.rkt")
      (provide (except-out (all-from-out "parse-bytecode-5.1.1.rkt")
                           parse-bytecode)))]
-  [(version<= "5.1.2" (version))
+  [(version<= "5.1.1.900" (version))
    (begin
      (log-debug "Using 5.1.2 bytecode parser")
      (require "parse-bytecode-5.1.2.rkt")
-     (provide (except-out (all-from-out "parse-bytecode-5.1.1.rkt")
+     (provide (except-out (all-from-out "parse-bytecode-5.1.2.rkt")
                           parse-bytecode)))]
   [else
    (error 'parse-bytecode "Whalesong doesn't have a compatible parser for Racket ~a" (version))])

@@ -55,7 +55,8 @@
 (define-struct: Constant ([v : Any]) #:transparent)
 
 (define-struct: ToplevelRef ([depth : Natural]
-                             [pos : Natural]) #:transparent)
+                             [pos : Natural]
+                             [check-defined? : Boolean]) #:transparent)
 
 (define-struct: LocalRef ([depth : Natural]
                           [unbox? : Boolean]) #:transparent)

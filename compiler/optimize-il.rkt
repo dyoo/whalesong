@@ -154,7 +154,8 @@
      (let ([t (VariableReference-toplevel oparg)])
        (make-VariableReference 
         (make-ToplevelRef (ensure-natural (+ n (ToplevelRef-depth t)))
-                          (ToplevelRef-pos t))))]))
+                          (ToplevelRef-pos t)
+                          (ToplevelRef-check-defined? t))))]))
 
 
 (define-predicate natural? Natural)

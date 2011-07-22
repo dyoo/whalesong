@@ -505,16 +505,17 @@
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
-                       (make-instruction-sequence
-                        `(,(make-Comment (format "Checking the prefix of length ~s" 
-                                                 (length (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp)))))))
-                          ,(make-PerformStatement (make-CheckToplevelBound!
+
+                       (if (ToplevelRef-check-defined? exp)
+                           (make-PerformStatement (make-CheckToplevelBound!
                                                    (ToplevelRef-depth exp)
                                                    (ToplevelRef-pos exp)))
-                          ,(make-AssignImmediateStatement 
-                            target
-                            (make-EnvPrefixReference (ToplevelRef-depth exp)
-                                                     (ToplevelRef-pos exp)))))
+                           empty-instruction-sequence)
+
+                       (make-AssignImmediateStatement 
+                        target
+                        (make-EnvPrefixReference (ToplevelRef-depth exp)
+                                                 (ToplevelRef-pos exp)))
                        singular-context-check))))
 
 
@@ -2200,7 +2201,8 @@
      (if (< (ToplevelRef-depth exp) skip)
          exp
          (make-ToplevelRef (ensure-natural (- (ToplevelRef-depth exp) n))
-                           (ToplevelRef-pos exp)))]
+                           (ToplevelRef-pos exp)
+                           (ToplevelRef-check-defined? exp)))]
     
     [(LocalRef? exp)
      (if (< (LocalRef-depth exp) skip)

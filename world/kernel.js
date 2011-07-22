@@ -27,8 +27,9 @@ var bigBang = function(MACHINE, initW, handlers) {
 
     var oldArgcount = MACHINE.argcount;
 
-    var toplevelNode = $('<span/>').get(0);
-    MACHINE.params.currentOutputPort.writeDomNode(MACHINE, toplevelNode);
+    var outerToplevelNode = $('<span/>').get(0);
+    MACHINE.params.currentOutputPort.writeDomNode(MACHINE, outerToplevelNode);
+    var toplevelNode = $('<span/>').appendTo(outerToplevelNode).get(0);
 
     var configs = [];
     var isOutputConfigSeen = false;

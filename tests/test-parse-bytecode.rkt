@@ -452,6 +452,8 @@
 
 
 
+;(run-my-parse/file "/home/dyoo/work/whalesong/tests/earley/earley.sch")
+
 
 ;(run-zo-parse #'(lambda (x) (* x x)))
 ;(run-my-parse #'(lambda (x) (* x x)))

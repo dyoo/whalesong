@@ -44,7 +44,7 @@
     [(_ code exp options ...)
      (with-syntax ([stx stx])
        (syntax/loc #'stx
-         (begin
+         (let ()
            (printf "Running ~s ...\n" code)
            (let*-values([(a-machine num-steps) 
                          (run code options ...)]
@@ -67,7 +67,7 @@
     [(_ code options ...)
      (with-syntax ([stx stx])
        (syntax/loc #'stx
-         (begin
+         (let ()
            (printf "Running/exn ~s ...\n" code)
            (let/ec return
              (with-handlers ([exn:fail? (lambda (exn)

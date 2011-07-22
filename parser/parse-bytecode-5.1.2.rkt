@@ -4,12 +4,14 @@
          (for-syntax racket/base))
 
 
+
 (version-case
-  [(and (version<= "5.1.1" (version))
-        (version< (version) "5.1.2"))
+  [(version<= "5.1.2" (version))
 
 
-   ;; Parsing Racket 5.1.1 bytecode structures into our own structures.
+
+
+   ;; Parsing Racket 5.1.2 bytecode structures into our own structures.
    (require "typed-module-path.rkt"
             "lam-entry-gensym.rkt"
             "path-rewriter.rkt"
@@ -739,6 +741,8 @@
        [(struct primval (id))
         (let ([name (hash-ref primitive-table id)])
           (make-PrimitiveKernelValue name))]))]
+
+
 
   [else
    (void)])

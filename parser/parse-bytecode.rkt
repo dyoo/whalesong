@@ -5,9 +5,15 @@
          (for-syntax racket/base))
 
 (version-case
-  [(version>= (version) "5.1.1")
+  [(and (version<= "5.1.1" (version))
+        (version< (version) "5.1.2"))
    (begin      
      (require "parse-bytecode-5.1.1.rkt")
+     (provide (except-out (all-from-out "parse-bytecode-5.1.1.rkt")
+                          parse-bytecode)))]
+  [(version<= "5.1.2" (version))
+   (begin
+     (require "parse-bytecode-5.1.2.rkt")
      (provide (except-out (all-from-out "parse-bytecode-5.1.1.rkt")
                           parse-bytecode)))]
   [else

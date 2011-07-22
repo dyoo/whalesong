@@ -336,7 +336,7 @@
 
 ;; Compiling modules
 (check-true
- (match (run-my-parse #'(module foo racket/base
+ (match (run-my-parse #'(module foo1 racket/base
                           42))
    [(struct Top ((struct Prefix (list))
                  (struct Module ((? symbol?)
@@ -345,12 +345,12 @@
                                  _  ;; requires
                                  _  ;; provides
                                  (struct Splice ((list (struct ApplyValues 
-                                                         ((struct ToplevelRef ('0 '0 '#t)) (struct Constant ('42)))))))))))
+                                                         ((struct ToplevelRef ('0 '0 _)) (struct Constant ('42)))))))))))
     #t]))
 
 
 (check-true
- (match (run-my-parse #'(module foo racket/base
+ (match (run-my-parse #'(module foo2 racket/base
                           (provide x)
                           (define x "x")))
    [(struct Top ((struct Prefix ((? list?)))
@@ -360,7 +360,7 @@
                                  _  ;; requires
                                  _  ;; provides
                                  (struct Splice ((list (struct DefValues 
-                                                         ((list (struct ToplevelRef ('0 '0 '#t)))
+                                                         ((list (struct ToplevelRef ('0 '0 _)))
                                                           (struct Constant ("x")))))))))))
     #t]))
 
@@ -405,7 +405,7 @@
                    (#%provide f))))
               
 
-#;(parameterize ([current-root-path this-test-path]
+(parameterize ([current-root-path this-test-path]
                [current-module-path (build-path this-test-path "foo.rkt")])
   (check-true
    (match (run-my-parse #'(module foo racket/base))

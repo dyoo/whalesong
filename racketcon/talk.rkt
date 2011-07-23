@@ -3,6 +3,8 @@
 (require (planet dyoo/whalesong/js))
 (require (planet dyoo/whalesong/world))
 
+(define scaling-factor .75)
+
 ;; A slide is either a simple string or an image.
 
 (define font-size 50)
@@ -19,14 +21,16 @@
          (scale 2 (image-url "file:///home/dyoo/work/whalesong/racketcon/plt-logo.png"))
          (square 20 "solid" "white")
          (text "Danny Yoo (dyoo@hashcollision.org)" 50 "darkblue"))
-        "Why Whalesong?"
+        (above (text "Why Whalesong?" font-size "black")
+               (square 20 "solid" "white")
+               (scale 2 (image-url "file:///home/dyoo/work/whalesong/racketcon/bootstrap.gif")))
         "World programs on the web"
         (above (text "Reusing Racket's compiler..." font-size "black")
                (square 20 "solid" "white")
                (text "Hello world?" (floor (* font-size 2/3)) "black"))
-        "Web programs can use Racket"
-        "What's missing?"
-        "http://hashcollision.org/whalesong"))
+        "Web programs can use Racket too!"
+        "What's next?"
+        (text "http://hashcollision.org/whalesong" 80 "black")))
 
 
 
@@ -51,6 +55,7 @@
 
 
 (define (draw w)
+  (scale scaling-factor
   (let ([a-slide (list-ref slides w)]
         [bg (BACKGROUND)])
     (cond
@@ -64,7 +69,7 @@
       (place-image a-slide
                    (quotient (image-width bg) 2)
                    (quotient (image-height bg) 2)
-                   bg)])))
+                   bg)]))))
 
 (define (tick w)
   w)

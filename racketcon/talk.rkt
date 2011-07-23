@@ -5,9 +5,17 @@
 
 ;; A slide is either a simple string or an image.
 
+(define font-size 50)
+
+
+(define-struct label (id slide))
 
 (define slides
-  (list "Whalesong: a Racket to JavaScript Compiler"
+  (list 
+        (above
+         (text "Whalesong:" 100 "black")
+         (text "a Racket to JavaScript Compiler" 80 "black")
+         (image-url "file:///home/dyoo/work/whalesong/racketcon/plt-logo.png"))
         "Why Whalesong?"
         "World programs on the web"
         "Reusing Racket..."
@@ -33,7 +41,7 @@
    [(key=? a-key "left")
     (my-max (sub1 w) 0)]
    [(key=? a-key "right")
-    (my-min (sub1 w) (length slides))]
+    (my-min (add1 w) (sub1 (length slides)))]
    [else w]))
 
 
@@ -42,7 +50,7 @@
         [bg (BACKGROUND)])
     (cond
      [(string? a-slide)
-      (place-image (text a-slide 300 "black")
+      (place-image (text a-slide font-size "black")
                    (quotient (image-width bg) 2)
                    (quotient (image-height bg) 2)
                    bg)]

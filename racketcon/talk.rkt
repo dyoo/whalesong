@@ -68,4 +68,4 @@
 
 (big-bang 0
           (on-key key)
-          (on-draw draw))
+          (to-draw draw))

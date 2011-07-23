@@ -15,11 +15,15 @@
         (above
          (text "Whalesong:" 100 "black")
          (text "a Racket to JavaScript Compiler" 80 "black")
-         (image-url "file:///home/dyoo/work/whalesong/racketcon/plt-logo.png"))
+         (scale 2 (image-url "file:///home/dyoo/work/whalesong/racketcon/plt-logo.png"))
+         (square 20 "solid" "white")
+         (text "Danny Yoo (dyoo@hashcollision.org)" 50 "darkblue"))
         "Why Whalesong?"
         "World programs on the web"
-        "Reusing Racket..."
-        "Hello world!"
+        (above (text "Reusing Racket's compiler..." font-size "black")
+               (square 20 "solid" "white")
+               (text "Hello world?" (floor (* font-size 2/3)) "black"))
+        "Web programs can use Racket"
         "What's missing?"
         "http://hashcollision.org/whalesong"))
 
@@ -60,7 +64,10 @@
                    (quotient (image-width bg) 2)
                    (quotient (image-height bg) 2)
                    bg)])))
-                   
+
+(define (tick w)
+  w)
+
 
 (define (my-max x y)
   (if (> x y)
@@ -76,4 +83,5 @@
 
 (big-bang 0
           (on-key key)
+          (on-tick tick)
           (to-draw draw))

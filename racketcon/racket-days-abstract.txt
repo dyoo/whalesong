@@ -1,0 +1,58 @@
+What's Whalesong?  It's a Racket to JavaScript compiler.  Whalesong
+will be used to support World programming for the web.  It will be the
+evaluator for the upcoming versions of Moby Scheme, as well as
+WeScheme.
+
+
+We can support simple animations, as you'd expect:
+
+(Show a world program: the falling rain drops program.)
+
+
+We can do programs that have interactivity, such as:
+
+(Show another world program: pacman.)
+
+
+A core idea behind Whalesong is to reuse Racket's infrastructure as
+much as possible.  I'm not a compiler person, so I cheat, by
+piggibacking on Matthew's work.  Whalesong reuses the bytecode
+compiler, and translates the bytecode to JavaScript.
+
+I really am reusing the linguistic features of Racket.  For example,
+let's look at the less-than-impressive program output below.
+
+(Show the hello world program)
+
+
+This is trivial, right?  Let's look at the source code.
+
+(Reveal that the program was written in BF)
+
+
+Yes, this is unholy, but it works.  We really are using Racket's
+underlying language features to handle reading, macro expansion, and
+optimization.
+
+
+
+Because we're on the web, we may even want to use functions that we've
+written in Racket as a part of regular web pages.  Whalesong lets us
+do this.
+
+(Show the factorial example, and how it can be used by external
+JavaScript on a web page.)
+
+
+
+There's quite a bit that's missing: we don't yet have all of the
+primitives necessary to compile racket/base, so all Whalesong programs
+currently have to be in a language that ultimately bottoms to (planet
+dyoo/whalesong/lang/base).
+
+I'm going to get a release out in the following month, and the new
+versions of Moby Scheme for Smartphones, as well as the WeScheme
+environment, will be using the underlying evaluator of Whalesong.
+
+
+If you're interested, please talk to me during the break.  Thanks!

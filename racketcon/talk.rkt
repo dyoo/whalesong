@@ -15,6 +15,7 @@
         (above
          (text "Whalesong:" 100 "black")
          (text "a Racket to JavaScript Compiler" 80 "black")
+         (square 20 "solid" "white")
          (scale 2 (image-url "file:///home/dyoo/work/whalesong/racketcon/plt-logo.png"))
          (square 20 "solid" "white")
          (text "Danny Yoo (dyoo@hashcollision.org)" 50 "darkblue"))

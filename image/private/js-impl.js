@@ -220,6 +220,15 @@ EXPORTS['step-count?'] =
         });
 
 
+EXPORTS['image?'] = 
+    makePrimitiveProcedure(
+        'image?',
+            1,
+        function(MACHINE) {
+            return isImage(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
 
 EXPORTS['text'] =
     makePrimitiveProcedure(

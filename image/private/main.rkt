@@ -61,6 +61,8 @@
                     angle?
                     side-count?
                     step-count?
+
+                    image?
                     
                     ))
 

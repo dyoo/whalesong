@@ -55,6 +55,9 @@
          side-count?
          image-color?
 
+
+         image?
+
          ;; Something funky is happening on the Racket side of things with regards
          ;; to step-count?  See:  http://bugs.racket-lang.org/query/?cmd=view&pr=12031
          ;; step-count?

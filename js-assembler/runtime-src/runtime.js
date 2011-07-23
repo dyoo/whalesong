@@ -1353,6 +1353,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
     installPrimitiveProcedure(
+	'string?',
+	1,
+	function(MACHINE) {
+	    return isString(MACHINE.env[MACHINE.env.length - 1]);
+	});
+
+    installPrimitiveProcedure(
         'exact?',
         1,
         function(MACHINE) {

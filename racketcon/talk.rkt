@@ -3,14 +3,14 @@
 (require (planet dyoo/whalesong/js))
 (require (planet dyoo/whalesong/world))
 
-(define scaling-factor .75)
+
+(define-struct world (index scaling rotate))
 
 ;; A slide is either a simple string or an image.
 
 (define font-size 50)
 
 
-(define-struct label (id slide))
 
 (define slides
   (list 
@@ -48,28 +48,58 @@
 (define (key w a-key)
   (cond
    [(key=? a-key "left")
-    (my-max (sub1 w) 0)]
-   [(key=? a-key "right")
-    (my-min (add1 w) (sub1 (length slides)))]
+    (make-world (my-max (sub1 (world-index w)) 0)
+                (world-scaling w)
+                (world-rotate w))]
+   [(or (key=? a-key "right") (key=? a-key " ") (key=? a-key "enter"))
+    (make-world (my-min (add1 (world-index w))
+                        (sub1 (length slides)))
+                (world-scaling w)
+                (world-rotate w))]
+
+   [(key=? a-key "up")
+    (make-world (world-index w)
+                (+ (world-scaling w) .1)
+                (world-rotate w))]
+
+   [(key=? a-key "down")
+    (make-world (world-index w)
+                (- (world-scaling w) .1)
+                (world-rotate w))]
+
+   [(key=? a-key "r")
+    (make-world 0 1 0)]
+
+   [(key=? a-key "q")
+    (make-world (world-index w)
+                (world-scaling w)
+                (modulo (- (world-rotate w) 1) 360))]
+
+   [(key=? a-key "w")
+    (make-world (world-index w)
+                (world-scaling w)
+                (modulo (+ (world-rotate w) 1) 360))]
+   
    [else w]))
 
 
 (define (draw w)
-  (scale scaling-factor
-  (let ([a-slide (list-ref slides w)]
-        [bg (BACKGROUND)])
-    (cond
-     [(string? a-slide)
-      (place-image (text a-slide font-size "black")
-                   (quotient (image-width bg) 2)
-                   (quotient (image-height bg) 2)
-                   bg)]
+  (rotate (world-rotate w)
+          (scale (world-scaling w)
+                 (let ([a-slide (list-ref slides (world-index w))]
+                       [bg (BACKGROUND)])
+                   (cond
+                    [(string? a-slide)
+                     (place-image (text a-slide font-size "black")
+                                  (quotient (image-width bg) 2)
+                                  (quotient (image-height bg) 2)
+                                  bg)]
 
-     [(image? a-slide)
-      (place-image a-slide
-                   (quotient (image-width bg) 2)
-                   (quotient (image-height bg) 2)
-                   bg)]))))
+                    [(image? a-slide)
+                     (place-image a-slide
+                                  (quotient (image-width bg) 2)
+                                  (quotient (image-height bg) 2)
+                                  bg)])))))
 
 (define (tick w)
   w)
@@ -87,7 +117,7 @@
 
 
 
-(big-bang 0
+(big-bang (make-world 0 1 0)
           (on-key key)
           (on-tick tick)
           (to-draw draw))

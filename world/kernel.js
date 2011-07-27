@@ -27,9 +27,9 @@ var bigBang = function(MACHINE, initW, handlers) {
 
     var oldArgcount = MACHINE.argcount;
 
-    var outerToplevelNode = $('<span/>').get(0);
+    var outerToplevelNode = $('<span/>').css('padding', '0px').get(0);
     MACHINE.params.currentOutputPort.writeDomNode(MACHINE, outerToplevelNode);
-    var toplevelNode = $('<span/>').appendTo(outerToplevelNode).get(0);
+    var toplevelNode = $('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
 
     var configs = [];
     var isOutputConfigSeen = false;
@@ -298,6 +298,7 @@ ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var cssFunction = function(w, k) { 
         if (reusableCanvas) {
  	    k([[reusableCanvas, 
+                ["padding", "0px"],
  		["width", reusableCanvas.width + "px"],
  		["height", reusableCanvas.height + "px"]]]);
         } else {

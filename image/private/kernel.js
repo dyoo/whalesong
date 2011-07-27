@@ -119,9 +119,10 @@ var makeCanvas = function(width, height) {
     canvas.width = width;
     canvas.height = height;
 
-    canvas.style.width = canvas.width + "px";
-    canvas.style.height = canvas.height + "px";
-    
+    $(canvas).css('width', canvas.width + "px");
+    $(canvas).css('height', canvas.height + "px");
+    $(canvas).css('padding', '0px');
+
     // KLUDGE: IE compatibility uses /js/excanvas.js, and dynamic
     // elements must be marked this way.
     if (window && typeof window.G_vmlCanvasManager != 'undefined') {

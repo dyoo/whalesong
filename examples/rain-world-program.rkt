@@ -1,14 +1,16 @@
 #lang planet dyoo/whalesong
 
-(require (planet dyoo/whalesong/world))
+(require (planet dyoo/whalesong/world)
+         (planet dyoo/whalesong/js))
+
+;; Occupy the whole screen.
+(void (call-method body "css" "margin" 0))
+(void (call-method body "css" "padding" 0))
+(void (call-method body "css" "overflow" "hidden"))
 
 
 ;; Rain falls down the screen.
-(define WIDTH 640)
-(define HEIGHT 480)
-
 (define GRAVITY-FACTOR 1)
-(define BACKGROUND (empty-scene WIDTH HEIGHT))
 
 
 
@@ -22,7 +24,7 @@
 ;; random-drop-particle: drop
 ;; Generates a random particle.
 (define (random-drop)
-  (make-drop (make-posn (random WIDTH) 0)
+  (make-drop (make-posn (random (viewport-width)) 0)
              (+ 5 (random 10)) ;; Get it falling at some random velocity
              (random-choice (list "gray" "darkgray"
                                   "white" "blue" 
@@ -68,7 +70,7 @@
 ;; Makes the drops descend.
 (define (drop-descend a-drop)
   (cond
-    [(> (posn-y (drop-posn a-drop)) HEIGHT)
+    [(> (posn-y (drop-posn a-drop)) (viewport-height))
      a-drop]
     [else
      (make-drop (posn-descend (drop-posn a-drop) (drop-velocity a-drop))
@@ -87,7 +89,7 @@
 ;; Produces true if the drop has fallen to the floor.
 (define (on-floor? a-drop)
   (> (posn-y (drop-posn a-drop))
-     HEIGHT))
+     (viewport-height)))
 
 (define (not-on-floor? a-drop) (not (on-floor? a-drop)))
 
@@ -119,7 +121,7 @@
 
 ;; draw: world -> scene
 (define (draw w)
-  (my-foldl place-drop BACKGROUND (world-sky w)))
+  (my-foldl place-drop (empty-scene (viewport-width) (viewport-height)) (world-sky w)))
 
 
 

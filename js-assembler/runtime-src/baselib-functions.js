@@ -51,12 +51,14 @@
                     MACHINE.env.push(arguments[arguments.length - 1 - i]);
                 }
 
-		// Check arity usage.
-		if (! plt.baselib.arity.isArityMatching(v.arity, args.length)) {
-		    throw new Error("arity mismatch");
+		if (! plt.baselib.arity.isArityMatching(v.arity, MACHINE.argcount)) {
+		    fail(new Error(plt.baselib.format.format(
+                        "arity mismatch: expected ~s arguments, but received ~s",
+                        [v.arity, MACHINE.argcount])));
+                    return;
 		}
 
-                var result = v.apply(null, args);
+                var result = v.call(null, MACHINE);
                 MACHINE.argcount = oldArgcount;
                 for (var i = 0; i < arguments.length - 2; i++) { 
                     MACHINE.env.pop();
@@ -74,11 +76,13 @@
             succ = succ || function(){};
             fail = fail || function(){};
 
-	    // Check arity usage.
 	    if (! plt.baselib.arity.isArityMatching(v.arity, arguments.length - 2)) {
-		throw new Error("arity mismatch");
+                fail(new Error(
+                    plt.baselib.format.format(
+                        "arity mismatch: expected ~s argument(s) but received ~s",
+                        [v.arity, arguments.length - 2])));
+                return;
 	    }
-
 
             var oldVal = MACHINE.val;
             var oldArgcount = MACHINE.argcount;

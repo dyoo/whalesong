@@ -114,33 +114,29 @@
 
 
 
+;; A straight-line statement includes non-branching stuff.
+(define-type StraightLineStatement (U
+                                    DebugPrint
+                                    Comment
+                                    
+                                    AssignImmediateStatement
+                                    AssignPrimOpStatement
+                                    PerformStatement
+                                    
+                                    PopEnvironment
+                                    PushEnvironment
+                                    PushImmediateOntoEnvironment
+                                    
+                                    PushControlFrame/Generic
+                                    PushControlFrame/Call
+                                    PushControlFrame/Prompt
+                                    PopControlFrame))
 
+(define-type BranchingStatement (U GotoStatement TestAndJumpStatement))
+                                 
 
 ;; instruction sequences
-(define-type UnlabeledStatement (U 
-                                 
-                                 AssignImmediateStatement
-                                 AssignPrimOpStatement
-                                 
-                                 PerformStatement
-                                 
-                                 GotoStatement
-                                 TestAndJumpStatement
-                                 
-                                 PopEnvironment
-                                 PushEnvironment
-                                 
-                                 PushImmediateOntoEnvironment
-                                 
-                                 PushControlFrame/Generic
-                                 PushControlFrame/Call
-                                 PushControlFrame/Prompt
-
-                                 PopControlFrame
-                                 
-                                 DebugPrint
-                                 Comment
-                                 ))
+(define-type UnlabeledStatement (U StraightLineStatement BranchingStatement))
 
 
 ;; Debug print statement.

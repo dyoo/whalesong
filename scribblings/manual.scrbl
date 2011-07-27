@@ -402,6 +402,7 @@ language.
 @defform[(current-output-port ...)]{}
 @defform[(current-print ...)]{}
 @defform[(write ...)]{}
+@defform[(write-byte ...)]{}
 @defform[(display ...)]{}
 @defform[(newline ...)]{}
 @defform[(format ...)]{}
@@ -458,14 +459,28 @@ language.
 @defform[(angle ...)]{}
 @defform[(magnitude ...)]{}
 @defform[(conjugate ...)]{}
-@defform[(number->string ...)]{}
 @defform[(string->number ...)]{}
-@defform[(pair? ...)]{}
+@defform[(number->string ...)]{}
+@defform[(random ...)]{}
 @defform[(exact? ...)]{}
+@defform[(integer? ...)]{}
+@defform[(zero? ...)]{}
+
+@subsection{String operations}
+@defform[(string=? ...)]{}
+@defform[(string->symbol ...)]{}
+@defform[(string-length ...)] {}
+@defform[(string-append ...)] {}
+
+
+@subsection{Symbol operations}
+@defform[(symbol? ...)]{}
+@defform[(symbol->string? ...)]{}
 
 
 
 @subsection{List operations}
+@defform[(pair? ...)]{}
 @defform[(cons ...)]{}
 @defform[(car ...)]{}
 @defform[(cdr ...)]{}
@@ -474,12 +489,16 @@ language.
 @defform[(append ...)]{}
 @defform[(reverse ...)]{}
 @defform[(map ...)]{}
+@defform[(for-each ...)]{}
 @defform[(member ...)]{}
+@defform[(list-ref ...)]{}
+@defform[(memq ...)]{}
+@defform[(assq ...)]{}
 
 
 
 @subsection{Vector operations}
-
+@defform[(vector? ...)]{}
 @defform[(make-vector ...)]{}
 @defform[(vector ...)]{}
 @defform[(vector-length ...)]{}

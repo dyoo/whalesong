@@ -36,6 +36,11 @@ test-conform:
 	raco make -v --disable-inline tests/test-conform.rkt
 	racket tests/test-conform.rkt
 
+test-more:
+	raco make -v --disable-inline tests/run-more-tests.rkt
+	racket tests/run-more-tests.rkt
+
+
 
 
 

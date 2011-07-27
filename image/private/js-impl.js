@@ -79,6 +79,12 @@ var checkReal = plt.baselib.check.checkReal;
 var checkBoolean = plt.baselib.check.checkBoolean;
 
 var checkNatural = plt.baselib.check.checkNatural;
+
+var checkPositiveInteger = plt.baselib.check.makeCheckArgumentType(
+    function(x) { return plt.baselib.numbers.isInteger(x) &&
+		  plt.baselib.numbers.greaterThan(x, 0);},
+    "positive integer");
+
 var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
 
 
@@ -220,6 +226,15 @@ EXPORTS['step-count?'] =
         });
 
 
+EXPORTS['image?'] = 
+    makePrimitiveProcedure(
+        'image?',
+            1,
+        function(MACHINE) {
+            return isImage(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
 
 EXPORTS['text'] =
     makePrimitiveProcedure(
@@ -227,7 +242,8 @@ EXPORTS['text'] =
         3,
         function(MACHINE) {
 	    var aString = checkString(MACHINE,'text', 0);
-	    var aSize = checkByte(MACHINE, 'text', 1); 
+	    // Unlike 2htdp, we'll allow this to be a positive integer
+	    var aSize = checkPositiveInteger(MACHINE, 'text', 1); 
 	    var aColor = checkColor(MACHINE, 'text', 2);
 	    return makeTextImage(aString.toString(), 
                                  jsnums.toFixnum(aSize),

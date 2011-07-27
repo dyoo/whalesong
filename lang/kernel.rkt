@@ -255,7 +255,7 @@ error
 ;;  immutable?
 ;;  void?
 symbol?
-;;  string?
+string?
 ;;  char?
 ;;  boolean?
 vector?

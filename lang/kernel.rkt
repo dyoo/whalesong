@@ -192,6 +192,7 @@
 ;;  (identity -identity)
 ;;  raise
 error
+raise-type-error
 
 ;;  make-exn
 ;;  make-exn:fail
@@ -251,7 +252,8 @@ error
   string->number
 ;;  procedure?
   pair?
-;;  (undefined? -undefined?)
+  list?
+  ;;  (undefined? -undefined?)
 ;;  immutable?
 ;;  void?
 symbol?
@@ -293,7 +295,6 @@ exact?
 ;;  cdddr
 ;;  cadddr
   length
-;;  list?
 ;;  list*
   list-ref
 ;;  list-tail

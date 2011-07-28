@@ -98,14 +98,24 @@
                                           expectedTypeName,
                                           argumentOffset,
                                           actualValue) {
-	raise(MACHINE,
-              new Error(
-		  plt.baselib.format.format(
-		      "~a: expected ~a as argument ~e but received ~e",
-		      [callerName,
-		       expectedTypeName,
-		       (argumentOffset + 1),
-		       actualValue])));
+        if (argumentOffset !== undefined) {
+	    raise(MACHINE,
+                  new Error(
+		      plt.baselib.format.format(
+		          "~a: expected ~a as argument ~e but received ~e",
+		          [callerName,
+		           expectedTypeName,
+		           (argumentOffset + 1),
+		           actualValue])));
+        } else {
+	    raise(MACHINE,
+                  new Error(
+		      plt.baselib.format.format(
+		          "~a: expected ~a but received ~e",
+		          [callerName,
+		           expectedTypeName,
+		           actualValue])));
+        }
     };
 
     var raiseContextExpectedValuesError = function(MACHINE, expected) {

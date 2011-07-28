@@ -883,6 +883,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    return isPair(firstArg);
         });
 
+
+    installPrimitiveProcedure(
+        'list?',
+        1,
+        function(MACHINE) {
+            return isList(MACHINE.env[MACHINE.env.length -1]);
+        });
+
+
     installPrimitiveProcedure(
         'set-car!',
         2,
@@ -1581,7 +1590,68 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
+
+    installPrimitiveProcedure(
+        'error',
+        plt.baselib.arity.makeArityAtLeast(1),
+        function(MACHINE) {
+            if (MACHINE.argcount === 1) {
+                var sym = checkSymbol(MACHINE, 'error', 1);
+                // FIXME: we should collect the current continuation marks here...
+                raise(MACHINE, plt.baselib.exceptions.makeExnFail(String(sym), undefined));
+            } 
+            
+            if (isString(MACHINE.env[MACHINE.env.length - 1])) {
+                var vs = [];
+                for (var i = 1; i < MACHINE.argcount; i++) {
+                    vs.push(plt.baselib.format.format("~e", [MACHINE.env[MACHINE.env.length - 1 - i]]));
+                }
+                raise(MACHINE, plt.baselib.exceptions.makeExnFail(String(MACHINE.env[MACHINE.env.length - 1]) +
+                                           ": " +
+                                           vs.join(' '),
+                                          undefined));
+            }
+
+            if (isSymbol(MACHINE.env[MACHINE.env.length - 1])) {
+                var fmtString = checkString(MACHINE, 'error', 1);
+                var args = [MACHINE.env[MACHINE.env.length - 1]];
+                for (i = 2; i < MACHINE.argcount; i++) {
+                    args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+                }
+                raise(MACHINE, plt.baselib.exceptions.makeExnFail(
+                    plt.baselib.format.format('~s: ' + String(fmtString),
+                                              args),
+                                           undefined));
+            }
+
+            // Fall-through
+            raiseArgumentTypeError(MACHINE, 'error', 'symbol or string', 0, MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'raise-type-error',
+        plt.baselib.arity.makeArityAtLeast(3),
+        function(MACHINE) {
+            var name = checkSymbol(MACHINE, 'raise-type-error', 0);
+            var expected = checkString(MACHINE, 'raise-type-error', 1);
+            if (MACHINE.argcount === 3) {
+                raiseArgumentTypeError(MACHINE, 
+                                       name,
+                                       expected,
+                                       undefined,
+                                       MACHINE.env[MACHINE.env.length - 1 - 2]);
+            } else {
+                raiseArgumentTypeError(MACHINE, 
+                                       name,
+                                       expected,
+                                       checkNatural(MACHINE, 'raise-type-error', 2),
+                                       MACHINE.env[MACHINE.env.length - 1 - 2]);
+            }
+        });
     
+
+
 
     installPrimitiveClosure(
         'make-struct-type',

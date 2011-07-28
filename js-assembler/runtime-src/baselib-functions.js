@@ -58,7 +58,7 @@
                     return;
 		}
 
-                var result = v.call(null, MACHINE);
+                var result = v(MACHINE);
                 MACHINE.argcount = oldArgcount;
                 for (var i = 0; i < arguments.length - 2; i++) { 
                     MACHINE.env.pop();
@@ -149,7 +149,7 @@
             for (var i = 0; i < arguments.length - 4; i++) {
                 MACHINE.env.push(arguments[arguments.length - 1 - i]);
             }
-            var result = proc.call(null, MACHINE);
+            var result = proc(MACHINE);
             for (var i = 0; i < arguments.length - 4; i++) {
                 MACHINE.env.pop();
             }

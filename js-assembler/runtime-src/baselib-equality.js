@@ -4,6 +4,22 @@
     baselib.equality = exports;
 
 
+
+    var eqv = function(x, y) {
+        if (x === y) { return true; }
+
+        if (plt.baselib.numbers.isNumber(x) && plt.baselib.numbers.isNumber(y)) {
+	    return jsnums.eqv(x, y);
+	} else if (plt.baselib.chars.isChar(x) && plt.baselib.chars.isChar(y)) {
+	    return x.val === y.val;
+	} else {
+	    return false;
+        }
+    };
+
+
+
+
     // equals: X Y -> boolean
     // Returns true if the objects are equivalent; otherwise, returns false.
     var equals = function(x, y, aUnionFind) {

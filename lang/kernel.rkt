@@ -180,7 +180,7 @@
 ;;  make-arity-at-least
 ;;  arity-at-least?
 ;;  arity-at-least-value
-;;  apply
+apply
 
 ;;  call-with-values
 ;;  compose
@@ -191,8 +191,10 @@
 ;;  sleep
 ;;  (identity -identity)
 ;;  raise
+  
 error
 raise-type-error
+raise-mismatch-error
 
 ;;  make-exn
 ;;  make-exn:fail
@@ -250,7 +252,8 @@ raise-type-error
 ;;  exact->inexact
   number->string
   string->number
-;;  procedure?
+  procedure?
+  procedure-arity-includes?
   pair?
   list?
   ;;  (undefined? -undefined?)
@@ -279,8 +282,10 @@ exact?
 ;;  negative?
 ;;  box?
 ;;  hash?
-;;  eqv?
+
   equal?
+  eqv?
+
   caar
 ;;  cadr
 ;;  cdar

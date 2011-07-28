@@ -71,5 +71,8 @@
 
 
     exports.Char = Char;
+    exports.makeChar = Char.makeInstance;
+    exports.isChar = plt.baselib.makeClassPredicate(Char);
+
 
 })(this['plt'].baselib);

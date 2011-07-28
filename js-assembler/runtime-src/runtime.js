@@ -1171,12 +1171,65 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
     installPrimitiveProcedure(
+        'eqv?',
+        2,
+        function(MACHINE) {
+	    var firstArg = MACHINE.env[MACHINE.env.length-1];
+	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+	    return plt.baselib.equality.eqv(firstArg, secondArg);
+        });
+
+
+
+    installPrimitiveProcedure(
         'equal?',
         2,
         function(MACHINE) {
 	    var firstArg = MACHINE.env[MACHINE.env.length-1];
 	    var secondArg = MACHINE.env[MACHINE.env.length-2];
 	    return equals(firstArg, secondArg);
+        });
+
+
+    installPrimitiveClosure(
+        'apply',
+        plt.baselib.arity.makeArityAtLeast(2),
+        function(MACHINE) {
+            if(--MACHINE.callsBeforeTrampoline < 0) { 
+                throw arguments.callee; 
+            }
+            var proc = checkProcedure(MACHINE, 'apply', 0);
+            MACHINE.env.pop();
+            MACHINE.argcount--;
+            checkList(MACHINE, 'apply', MACHINE.argcount - 1);
+            spliceListIntoStack(MACHINE, MACHINE.argcount - 1);
+            if (plt.baselib.arity.isArityMatching(proc.arity, MACHINE.argcount)) {
+                MACHINE.proc = proc;
+                if (plt.baselib.functions.isPrimitiveProcedure(proc)) {
+                    return finalizeClosureCall(MACHINE, proc(MACHINE));
+                } else {
+                    return proc.label(MACHINE);
+                }
+            } else {
+                raiseArityMismatchError(MACHINE, proc, proc.arity, MACHINE.argcount);
+            }
+        });
+
+
+    installPrimitiveProcedure(
+        'procedure?',
+        1,
+        function(MACHINE) {
+            return plt.baselib.functions.isProcedure(MACHINE.env[MACHINE.env.length - 1]);
+        });
+    
+    installPrimitiveProcedure(
+        'procedure-arity-includes?',
+        2,
+        function(MACHINE) {
+            var proc = checkProcedure(MACHINE, 'procedure-arity-includes?', 0);
+            var argcount = checkNatural(MACHINE, 'procedure-arity-includes?', 1);
+            return plt.baselib.arity.isArityMatching(proc.arity, argcount);
         });
 
 
@@ -1626,6 +1679,22 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
             // Fall-through
             raiseArgumentTypeError(MACHINE, 'error', 'symbol or string', 0, MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'raise-mismatch-error',
+        3,
+        function(MACHINE) {
+            var name = checkSymbol(MACHINE, 'raise-mismatch-error', 0);
+            var message = checkString(MACHINE, 'raise-mismatch-error', 0);
+            var val = MACHINE.env[MACHINE.env.length - 1 - 2];
+            raise(MACHINE, plt.baselib.exceptions.makeExnFail
+                  (plt.baselib.format.format("~a: ~a~e",
+                                             [name,
+                                              message,
+                                              val]),
+                   undefined));
         });
 
 

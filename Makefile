@@ -46,4 +46,4 @@ test-more:
 
 doc:
 	racket make-last-commit-name.rkt
-	scribble ++xref-in setup/xref load-collections-xref --redirect-main http://docs.racket-lang.org/ --dest generated-docs --dest-name index.html scribblings/manual.scrbl
+	scribble  ++xref-in setup/xref load-collections-xref --redirect-main http://docs.racket-lang.org/ --dest generated-docs  --dest-name index.html scribblings/manual.scrbl

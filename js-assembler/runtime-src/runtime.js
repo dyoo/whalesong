@@ -1067,6 +1067,43 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	    var firstArg = checkString(MACHINE, 'string-length', 0).toString();
 	    return firstArg.length;
         });
+
+
+    installPrimitiveProcedure(
+	'string?',
+	1,
+	function(MACHINE) {
+	    return isString(MACHINE.env[MACHINE.env.length - 1]);
+	});
+
+
+    installPrimitiveProcedure(
+        'number->string',
+        1,
+        function(MACHINE) {
+            return checkNumber(MACHINE, 'number->string', 0).toString();
+        });
+
+
+    installPrimitiveProcedure(
+	'string->symbol',
+	1,
+	function(MACHINE) {
+	    return makeSymbol(checkString(MACHINE, 'string->symbol', 0).toString());
+	});
+
+
+    installPrimitiveProcedure(
+        'string->number',
+        1,
+        function(MACHINE) {
+            return plt.baselib.numbers.fromString(
+                checkString(MACHINE, 'string->number', 0).toString());
+        });
+
+
+
+
     
     installPrimitiveProcedure(
         'box',
@@ -1351,14 +1388,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 checkNumber(MACHINE, 'expt', 1));
         });
 
-
-    installPrimitiveProcedure(
-	'string?',
-	1,
-	function(MACHINE) {
-	    return isString(MACHINE.env[MACHINE.env.length - 1]);
-	});
-
     installPrimitiveProcedure(
         'exact?',
         1,
@@ -1551,30 +1580,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 checkInteger(MACHINE, 'sgn', 0));
         });
 
-
-    installPrimitiveProcedure(
-        'number->string',
-        1,
-        function(MACHINE) {
-            return checkNumber(MACHINE, 'number->string', 0).toString();
-        });
-
-
-    installPrimitiveProcedure(
-	'string->symbol',
-	1,
-	function(MACHINE) {
-	    return makeSymbol(checkString(MACHINE, 'string->symbol', 0).toString());
-	});
-
-
-    installPrimitiveProcedure(
-        'string->number',
-        1,
-        function(MACHINE) {
-            return plt.baselib.numbers.fromString(
-                checkString(MACHINE, 'string->number', 0).toString());
-        });
 
     
 

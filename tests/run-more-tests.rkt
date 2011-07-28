@@ -17,4 +17,4 @@
 (test "more-tests/lists.rkt")
 (test "more-tests/earley.rkt")
 (test "more-tests/hello-bf.rkt")
-#;(test "more-tests/simple-apply.rkt")
+(test "more-tests/simple-apply.rkt")

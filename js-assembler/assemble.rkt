@@ -138,14 +138,13 @@ EOF
      [(DebugPrint? stmt)
       (format "MACHINE.params.currentOutputPort.writeDomNode(MACHINE, $('<span/>').text(~a));" (assemble-oparg (DebugPrint-value stmt)))]
      [(AssignImmediateStatement? stmt)
-      (let: ([t : String (assemble-target (AssignImmediateStatement-target stmt))]
+      (let: ([t : (String -> String) (assemble-target (AssignImmediateStatement-target stmt))]
              [v : OpArg (AssignImmediateStatement-value stmt)])
-            (format "~a = ~a;" t (assemble-oparg v)))]
+            (t (assemble-oparg v)))]
      
      [(AssignPrimOpStatement? stmt)
-      (format "~a=~a;" 
-              (assemble-target (AssignPrimOpStatement-target stmt))
-              (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
+      ((assemble-target (AssignPrimOpStatement-target stmt))
+       (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
      
      [(PerformStatement? stmt)
       (assemble-op-statement (PerformStatement-op stmt))]

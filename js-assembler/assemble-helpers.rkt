@@ -67,26 +67,36 @@
 
 
 
-(: assemble-target (Target -> String))
+(: assemble-target (Target -> (String -> String)))
 (define (assemble-target target)
   (cond
-    [(eq? target 'proc)
-     "MACHINE.proc"]
-    [(eq? target 'val)
-     "MACHINE.val"]
-    [(eq? target 'argcount)
-     "MACHINE.argcount"]
-    [(EnvLexicalReference? target)
-     (assemble-lexical-reference target)]
-    [(EnvPrefixReference? target)
-     (assemble-prefix-reference target)]
-    [(PrimitivesReference? target)
-     (format "RUNTIME.Primitives[~s]" (symbol->string (PrimitivesReference-name target)))]
-    [(ControlFrameTemporary? target)
-     (assemble-control-frame-temporary target)]
-    [(ModulePrefixTarget? target)
-     (format "MACHINE.modules[~s].prefix"
-             (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))]))
+   [(PrimitivesReference? target)
+    (lambda: ([rhs : String])
+             (format "RUNTIME.Primitives[~s] = RUNTIME.Primitives[~s] || ~a;"
+                     (symbol->string (PrimitivesReference-name target))
+                     (symbol->string (PrimitivesReference-name target))
+                     rhs))]
+   [else
+    (lambda: ([rhs : String])
+             (format "~a = ~a;"
+                     (cond
+                      [(eq? target 'proc)
+                       "MACHINE.proc"]
+                      [(eq? target 'val)
+                       "MACHINE.val"]
+                      [(eq? target 'argcount)
+                       "MACHINE.argcount"]
+                      [(EnvLexicalReference? target)
+                       (assemble-lexical-reference target)]
+                      [(EnvPrefixReference? target)
+                       (assemble-prefix-reference target)]
+                      [(ControlFrameTemporary? target)
+                       (assemble-control-frame-temporary target)]
+                      [(ModulePrefixTarget? target)
+                       (format "MACHINE.modules[~s].prefix"
+                               (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))])
+                     rhs))]))
+
 
 
 (: assemble-control-frame-temporary (ControlFrameTemporary -> String))

@@ -1,7 +1,12 @@
 #lang s-exp "../kernel.rkt"
 
-;; This is taken from collects/racket/private/list.rkt.  The hope is that, eventually,
+;; dyoo: This is taken from collects/racket/private/list.rkt.  The hope is that, eventually,
 ;; once I can support #%kernel, I won't need to do this fork to get at these...
+;;
+;; The major changes I made were: comment out sort and the compose/compose1 functions.
+;; We don't have have support for keywords, and I will need to look at the implementation of
+;; raw-sort in a moment to see if it's fine.
+
 
 (provide foldl
          foldr
@@ -29,9 +34,12 @@
          build-string
          build-list
 
-         compose
-         compose1)
+         #;compose
+         #;compose1
+         )
 
+(require (only-in "../unsafe/ops.rkt" unsafe-car unsafe-cdr))
+         
 ;;(#%require (rename "sort.rkt" raw-sort sort)
 ;;           (for-syntax "stxcase-scheme.rkt")
 ;;           (only '#%unsafe unsafe-car unsafe-cdr))
@@ -305,7 +313,7 @@
           [else (cons (fcn j)
                       (recr (add1 j) (sub1 i)))])))
 
-(define-values [compose1 compose]
+#;(define-values [compose1 compose]
   (let ()
     (define-syntax-rule (app1 E1 E2) (E1 E2))
     (define-syntax-rule (app* E1 E2) (call-with-values (lambda () E2) E1))

@@ -17,10 +17,9 @@
     };
 
 
-
-
-
-    // Now using mutable strings
+    // chars: arrayof string
+    // Precondition: each string must only be 1 character long or bad things
+    // happen.
     var Str = function(chars) {
 	this.chars = chars;
 	this.length = chars.length;
@@ -130,43 +129,15 @@
     };
 
 
-    /*
-// Strings
-// For the moment, we just reuse Javascript strings.
-String = String;
-String.makeInstance = function(s) {
-    return s.valueOf();
-};
-    
-    
-// WARNING
-// WARNING: we are extending the built-in Javascript string class here!
-// WARNING
-String.prototype.equals = function(other, aUnionFind){
-    return this == other;
-};
-    
-var _quoteReplacingRegexp = new RegExp("[\"\\\\]", "g");
-String.prototype.toWrittenString = function(cache) {
-    return '"' + this.replace(_quoteReplacingRegexp,
-			      function(match, submatch, index) {
-				  return "\\" + match;
-			      }) + '"';
-};
 
-String.prototype.toDisplayedString = function(cache) {
-    return this;
-};
-*/
-
-
-    //////////////////////////////////////////////////////////////////////
+    var isMutableString = baselib.makeClassPredicate(Str);
 
 
 
     exports.Str = Str;
     exports.escapeString = escapeString;
     exports.isString = isString;
-
+    exports.isMutableString = isMutableString;
+    exports.makeMutableString = Str.makeInstance;
 
 })(this['plt'].baselib);

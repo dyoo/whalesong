@@ -175,14 +175,14 @@
 ;;  struct-predicate-procedure?
 ;;  struct-accessor-procedure?
 ;;  struct-mutator-procedure?
-;;  procedure-arity
-;;  procedure-arity-includes?
+
 ;;  make-arity-at-least
 ;;  arity-at-least?
 ;;  arity-at-least-value
-apply
 
-;;  call-with-values
+ apply
+ call-with-values
+
 ;;  compose
 ;;  current-inexact-milliseconds
 ;;  current-seconds
@@ -253,6 +253,7 @@ raise-mismatch-error
   number->string
   string->number
   procedure?
+  procedure-arity
   procedure-arity-includes?
   pair?
   list?
@@ -274,6 +275,7 @@ vector?
 ;;  rational?
 integer?
 exact?
+exact-nonnegative-integer?
 ;;  inexact?
 ;;  odd?
 ;;  even?
@@ -333,7 +335,7 @@ memq
 ;;  hash-remove!
 ;;  hash-map
 ;;  hash-for-each
-;;  make-string
+  make-string
 ;;  string
   string-length
 ;;  string-ref
@@ -359,7 +361,7 @@ symbol->string
   fprintf
 ;;  build-string
 ;;  string->immutable-string
-;;  string-set!
+  string-set!
 ;;  string-fill!
 ;;  make-bytes
 ;;  bytes

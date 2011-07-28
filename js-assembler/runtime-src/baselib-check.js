@@ -133,7 +133,15 @@
     var checkString = makeCheckArgumentType(
         plt.baselib.strings.isString,
         'string');
-    
+
+    var checkMutableString = makeCheckArgumentType(
+        plt.baselib.strings.isMutableString,
+        'mutable string');
+
+    var checkChar = makeCheckArgumentType(
+        plt.baselib.chars.isChar,
+        'character');
+
     var checkProcedure = makeCheckArgumentType(
         plt.baselib.functions.isProcedure,
         'procedure');
@@ -224,6 +232,8 @@
 
     exports.checkOutputPort = checkOutputPort;
     exports.checkString = checkString;
+    exports.checkMutableString = checkMutableString;
+    exports.checkChar = checkChar;
     exports.checkSymbol = checkSymbol;
     exports.checkProcedure = checkProcedure;
     exports.checkNumber = checkNumber;

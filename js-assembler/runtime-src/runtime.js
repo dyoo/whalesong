@@ -109,8 +109,10 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var checkOutputPort = plt.baselib.check.checkOutputPort;
     var checkString = plt.baselib.check.checkString;
+    var checkMutableString = plt.baselib.check.checkMutableString;
     var checkSymbol = plt.baselib.check.checkSymbol;
     var checkByte = plt.baselib.check.checkByte;
+    var checkChar = plt.baselib.check.checkChar;
     var checkProcedure = plt.baselib.check.checkProcedure;
     var checkNumber = plt.baselib.check.checkNumber;
     var checkReal = plt.baselib.check.checkReal;
@@ -1020,6 +1022,37 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
+
+    installPrimitiveProcedure(
+        'make-string',
+        makeList(1, 2),
+        function(MACHINE) {
+	    var value = "\0";
+	    var length = plt.baselib.numbers.toFixnum(
+                checkNatural(MACHINE, 'make-string', 0));
+	    if (MACHINE.argcount == 2) {
+	        value = checkChar(MACHINE, 'make-string', 1).val;
+	    }
+	    var arr = [];
+	    for(var i = 0; i < length; i++) {
+	        arr[i] = value;
+	    }
+            return plt.baselib.strings.makeMutableString(arr);
+        });
+
+
+    installPrimitiveProcedure(
+        'string-set!',
+        3,
+        function(MACHINE) {
+            var str = checkMutableString(MACHINE, 'string-set!', 0);
+            var k = checkNatural(MACHINE, 'string-set!', 1);
+            var ch = checkChar(MACHINE, 'string-set!', 2);
+            
+        });
+
+
+
     installPrimitiveProcedure(
         'make-vector',
         makeList(1, 2),
@@ -1204,6 +1237,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
+    // This definition of apply will take precedence over the
+    // implementation of apply in the boostrapped-primitives.rkt,
+    // since it provides nicer error handling.
     installPrimitiveClosure(
         'apply',
         plt.baselib.arity.makeArityAtLeast(2),
@@ -1229,6 +1265,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
 
+    // FIXME: The definition of call-with-values is in
+    // bootstrapped-primitives.rkt.  We may want to replace it with an
+    // explicitly defined one here.
+
+
+
+
+
     installPrimitiveProcedure(
         'procedure?',
         1,
@@ -1245,6 +1289,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             return plt.baselib.arity.isArityMatching(proc.arity, argcount);
         });
 
+    installPrimitiveProcedure(
+        'procedure-arity',
+        1,
+        function(MACHINE) {
+            var proc = checkProcedure(MACHINE, 'procedure-arity-includes?', 0);
+            return proc.arity;
+        });
 
 
     installPrimitiveProcedure(
@@ -1477,6 +1528,14 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         1,
         function(MACHINE) {
             return plt.baselib.numbers.isInteger(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
+    installPrimitiveProcedure(
+        'exact-nonnegative-integer?',
+        1,
+        function(MACHINE) {
+            return plt.baselib.numbers.isNatural(MACHINE.env[MACHINE.env.length - 1]);
         });
 
 

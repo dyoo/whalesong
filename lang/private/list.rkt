@@ -152,20 +152,20 @@
       (let loop ([l orig-l][t orig-l])
         (cond
          [(pair? l)
-          (let ([a (car #;unsafe-car l)])
+          (let ([a (unsafe-car l)])
             (if (pair? a)
-                (if (is-equal? x (car #;unsafe-car a))
+                (if (is-equal? x (unsafe-car a))
                     a
-                    (let ([l (cdr #;unsafe-cdr l)])
+                    (let ([l (unsafe-cdr l)])
                       (cond
                        ;; [(eq? l t) (bad-list who orig-l)]
                        [(pair? l)
-                        (let ([a (car #;unsafe-car l)])
+                        (let ([a (unsafe-car l)])
                           (if (pair? a)
-                              (if (is-equal? x (car #;unsafe-car a))
+                              (if (is-equal? x (unsafe-car a))
                                   a
-                                  (let ([t (cdr #;unsafe-cdr t)]
-                                        [l (cdr #;unsafe-cdr l)])
+                                  (let ([t (unsafe-cdr t)]
+                                        [l (unsafe-cdr l)])
                                     (if (eq? l t) 
                                         (bad-list who orig-l)
                                         (loop l t))))

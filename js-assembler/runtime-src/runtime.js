@@ -847,6 +847,19 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         });
 
     installPrimitiveProcedure(
+        'list*',
+        plt.baselib.arity.makeArityAtLeast(1),
+        function(MACHINE) {
+	    var result = checkList(MACHINE, 'list*', MACHINE.argcount - 1);
+	    for (var i = MACHINE.argcount - 2; i >= 0; i--) {
+	        result = makePair(MACHINE.env[MACHINE.env.length - 1 - i],
+		                  result);
+	    }
+	    return result;
+        });
+
+
+    installPrimitiveProcedure(
         'list-ref',
         2,
         function(MACHINE) {

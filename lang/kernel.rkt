@@ -300,7 +300,7 @@ exact?
 ;;  cdddr
 ;;  cadddr
   length
-;;  list*
+  list*
   list-ref
 ;;  list-tail
   append

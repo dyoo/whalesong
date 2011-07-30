@@ -17,9 +17,10 @@
 (define (optimize-il statements)
   ;; For now, replace pairs of PushEnvironment / AssignImmediate(0, ...)
   ;; We should do some more optimizations here, like peephole...
-  (let* ([statements (filter not-no-op? statements)])
-    (flatten-adjacent-labels
-     (eliminate-no-ops statements))))
+  (let* ([statements (filter not-no-op? statements)]
+         [statements (eliminate-no-ops statements)]
+         [statements (flatten-adjacent-labels statements)])
+    statements))
 
 
 
@@ -57,27 +58,138 @@
     
     (: rewrite-target (Target -> Target))
     (define (rewrite-target target)
-      ;; fixme
       target)
 
     (: rewrite-oparg (OpArg -> OpArg))
     (define (rewrite-oparg oparg)
-      ;; fixme
-      oparg)
+      (cond
+       [(Const? oparg)
+        oparg]
+       [(Label? oparg)
+        (make-Label (ref (Label-name oparg)))]
+       [(Reg? oparg)
+        oparg]
+       [(EnvLexicalReference? oparg)
+        oparg]
+       [(EnvPrefixReference? oparg)
+        oparg]
+       [(EnvWholePrefixReference? oparg)
+        oparg]
+       [(SubtractArg? oparg)
+        oparg]
+       [(ControlStackLabel? oparg)
+        oparg]
+       [(ControlStackLabel/MultipleValueReturn? oparg)
+        oparg]
+       [(ControlFrameTemporary? oparg)
+        oparg]
+       [(CompiledProcedureEntry? oparg)
+        oparg]
+       [(CompiledProcedureClosureReference? oparg)
+        oparg]
+       [(ModuleEntry? oparg)
+        oparg]
+       [(IsModuleInvoked? oparg)
+        oparg]
+       [(IsModuleLinked? oparg)
+        oparg]
+       [(PrimitiveKernelValue? oparg)
+        oparg]
+       [(VariableReference? oparg)
+        oparg]))
+
 
     (: rewrite-primop (PrimitiveOperator -> PrimitiveOperator))
     (define (rewrite-primop op)
-      ;; fixme
-      op)
+      (cond
+       [(GetCompiledProcedureEntry? op)
+        op]
+       [(MakeCompiledProcedure? op)
+        (make-MakeCompiledProcedure (ref (MakeCompiledProcedure-label op))
+                                    (MakeCompiledProcedure-arity op)
+                                    (MakeCompiledProcedure-closed-vals op)
+                                    (MakeCompiledProcedure-display-name op))]
+       
+       [(MakeCompiledProcedureShell? op)
+        (make-MakeCompiledProcedureShell (ref (MakeCompiledProcedureShell-label op))
+                                         (MakeCompiledProcedureShell-arity op)
+                                         (MakeCompiledProcedureShell-display-name op))]
+       
+       [(ApplyPrimitiveProcedure? op)
+        op]
+       
+       [(MakeBoxedEnvironmentValue? op)
+        op]
+       
+       [(CaptureEnvironment? op)
+        op]
+       
+       [(CaptureControl? op)
+        op]
+       
+       [(CallKernelPrimitiveProcedure? op)
+        op]))
+
 
     (: rewrite-primcmd (PrimitiveCommand -> PrimitiveCommand))
     (define (rewrite-primcmd cmd)
-      ;; fixme
-      cmd)
+      (cond
+       [(InstallModuleEntry!? cmd)
+        (make-InstallModuleEntry! (InstallModuleEntry!-name cmd)
+                                  (InstallModuleEntry!-path cmd)
+                                  (ref (InstallModuleEntry!-entry-point cmd)))]
+       [else
+        cmd]
+       ;; [(CheckToplevelBound!? cmd)
+       ;;  cmd]
+       ;; [(CheckClosureArity!? cmd)
+       ;;  cmd]
+       ;; [(CheckPrimitiveArity!? cmd)
+       ;;  cmd]
+       
+       ;; [(ExtendEnvironment/Prefix!? cmd)
+       ;;  cmd]
+       ;; [(InstallClosureValues!? cmd)
+       ;;  cmd]
+       ;; [(FixClosureShellMap!? cmd)
+       ;;  cmd]
+       
+       ;; [(InstallContinuationMarkEntry!? cmd)
+       ;;  cmd]
+       
+       ;; [(SetFrameCallee!? cmd)
+       ;;  cmd]
+       ;; [(SpliceListIntoStack!? cmd)
+       ;;  cmd]
+       ;; [(UnspliceRestFromStack!? cmd)
+       ;;  cmd]
+       
+       ;; [(RaiseContextExpectedValuesError!? cmd)
+       ;;  cmd]
+       ;; [(RaiseArityMismatchError!? cmd)
+       ;;  cmd]
+       ;; [(RaiseOperatorApplicationError!? cmd)
+       ;;  cmd]
+       ;; [(RaiseUnimplementedPrimitiveError!? cmd)
+       ;;  cmd]
+       
+       ;; [(RestoreEnvironment!? cmd)
+       ;;  cmd]
+       ;; [(RestoreControl!? cmd)
+       ;;  cmd]
+       
+       ;; [(MarkModuleInvoked!? cmd)
+       ;;  cmd]
+       ;; [(AliasModuleAsMain!? cmd)
+       ;;  cmd]
+       ;; [(FinalizeModuleInvokation!? cmd)
+       ;;  cmd]
+
+       ))
+    
 
     (: rewrite-primtest (PrimitiveTest -> PrimitiveTest))
     (define (rewrite-primtest test)
-      ;; fixme
       test)
 
 

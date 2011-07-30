@@ -4,7 +4,8 @@
          "lexical-structs.rkt"
          (prefix-in ufind: "../union-find.rkt")
          racket/list)
-
+(require/typed "../logger.rkt"
+               [log-debug (String -> Void)])
 (provide optimize-il)
 
 ;; perform optimizations on the intermediate language.
@@ -17,7 +18,168 @@
   ;; For now, replace pairs of PushEnvironment / AssignImmediate(0, ...)
   ;; We should do some more optimizations here, like peephole...
   (let* ([statements (filter not-no-op? statements)])
-    (let loop ([statements statements])
+    (flatten-adjacent-labels
+     (eliminate-no-ops statements))))
+
+
+
+
+(: flatten-adjacent-labels ((Listof Statement) -> (Listof Statement)))
+;; Squash adjacent labels together.
+(define (flatten-adjacent-labels statements)
+  (cond
+   [(empty? statements)
+    empty]
+   [else
+
+    ;; The first pass through will collect adjacent labels and equate them.
+    (define a-forest (ufind:new-forest))
+    (let: loop : 'ok ([stmts : (Listof Statement) (rest statements)]
+                      [last-stmt : Statement (first statements)])
+      (cond
+       [(empty? stmts)
+        'ok]
+       [else
+        (define next-stmt (first stmts))
+        (cond
+         [(and (symbol? last-stmt) (symbol? next-stmt))
+          (log-debug (format "merging label ~a and ~a" last-stmt next-stmt))
+          (ufind:union-set a-forest last-stmt next-stmt)
+          (loop (rest stmts) next-stmt)]
+         [else
+          (loop (rest stmts) next-stmt)])]))
+
+    
+    (: ref (Symbol -> Symbol))
+    (define (ref a-label)
+      (ufind:find-set a-forest a-label))
+
+    
+    (: rewrite-target (Target -> Target))
+    (define (rewrite-target target)
+      ;; fixme
+      target)
+
+    (: rewrite-oparg (OpArg -> OpArg))
+    (define (rewrite-oparg oparg)
+      ;; fixme
+      oparg)
+
+    (: rewrite-primop (PrimitiveOperator -> PrimitiveOperator))
+    (define (rewrite-primop op)
+      ;; fixme
+      op)
+
+    (: rewrite-primcmd (PrimitiveCommand -> PrimitiveCommand))
+    (define (rewrite-primcmd cmd)
+      ;; fixme
+      cmd)
+
+    (: rewrite-primtest (PrimitiveTest -> PrimitiveTest))
+    (define (rewrite-primtest test)
+      ;; fixme
+      test)
+
+
+    
+    ;; The second pass will then rewrite references of labels.
+    (let: loop : (Listof Statement) ([stmts : (Listof Statement) statements])
+      (cond
+       [(empty? stmts)
+        empty]
+       [else
+        (define a-stmt (first stmts))
+        (cond
+         [(symbol? a-stmt)
+          (cond
+           [(eq? (ref a-stmt) a-stmt)
+            (cons (ref a-stmt) (loop (rest stmts)))]
+           [else
+            (loop (rest stmts))])]
+
+         [(LinkedLabel? a-stmt)
+          (cons (make-LinkedLabel (LinkedLabel-label a-stmt)
+                                  (ref (LinkedLabel-linked-to a-stmt)))
+                (loop (rest stmts)))]
+         
+         [(DebugPrint? a-stmt)
+          (cons a-stmt (loop (rest stmts)))]
+
+         [(Comment? a-stmt)
+          (cons a-stmt (loop (rest stmts)))]
+         
+         [(AssignImmediateStatement? a-stmt)
+          (cons (make-AssignImmediateStatement (rewrite-target (AssignImmediateStatement-target a-stmt))
+                                               (rewrite-oparg (AssignImmediateStatement-value a-stmt)))
+                (loop (rest stmts)))]
+
+         [(AssignPrimOpStatement? a-stmt)
+          (cons (make-AssignPrimOpStatement (rewrite-target (AssignPrimOpStatement-target a-stmt))
+                                            (rewrite-primop (AssignPrimOpStatement-op a-stmt)))
+                (loop (rest stmts)))]
+
+         [(PerformStatement? a-stmt)
+          (cons (make-PerformStatement (rewrite-primcmd (PerformStatement-op a-stmt)))
+                (loop (rest stmts)))]
+         
+         [(PopEnvironment? a-stmt)
+          (cons (make-PopEnvironment (rewrite-oparg (PopEnvironment-n a-stmt))
+                                     (rewrite-oparg (PopEnvironment-skip a-stmt)))
+                (loop (rest stmts)))]
+
+         [(PushEnvironment? a-stmt)
+          (cons a-stmt (loop (rest stmts)))]
+         
+         [(PushImmediateOntoEnvironment? a-stmt)
+          (cons (make-PushImmediateOntoEnvironment (rewrite-oparg (PushImmediateOntoEnvironment-value a-stmt))
+                                                   (PushImmediateOntoEnvironment-box? a-stmt))
+                (loop (rest stmts)))]
+         
+         [(PushControlFrame/Generic? a-stmt)
+          (cons a-stmt (loop (rest stmts)))]
+
+         [(PushControlFrame/Call? a-stmt)
+          (define a-label (PushControlFrame/Call-label a-stmt))
+          (cons (make-PushControlFrame/Call
+                 (make-LinkedLabel (LinkedLabel-label a-label)
+                                   (ref (LinkedLabel-linked-to a-label))))
+                (loop (rest stmts)))]
+         
+         [(PushControlFrame/Prompt? a-stmt)
+          (define a-label (PushControlFrame/Prompt-label a-stmt))
+          (cons (make-PushControlFrame/Prompt (let ([tag (PushControlFrame/Prompt-tag a-stmt)])
+                                                (if (DefaultContinuationPromptTag? tag)
+                                                    tag
+                                                    (rewrite-oparg tag)))
+                                              (make-LinkedLabel (LinkedLabel-label a-label)
+                                                                (ref (LinkedLabel-linked-to a-label))))
+                (loop (rest stmts)))]
+         
+         [(PopControlFrame? a-stmt)
+          (cons a-stmt (loop (rest stmts)))]
+
+         [(GotoStatement? a-stmt)
+          (define target (GotoStatement-target a-stmt))
+          (cond
+           [(Label? target)
+            (cons (make-GotoStatement (make-Label (ref (Label-name target))))
+                  (loop (rest stmts)))]
+           [else
+            (cons a-stmt (loop (rest stmts)))])]
+
+
+         [(TestAndJumpStatement? a-stmt)
+          (cons (make-TestAndJumpStatement (rewrite-primtest (TestAndJumpStatement-op a-stmt))
+                                           (ref (TestAndJumpStatement-label a-stmt)))
+                (loop (rest stmts)))])]))]))
+    
+
+    
+
+
+(: eliminate-no-ops ((Listof Statement) -> (Listof Statement)))
+(define (eliminate-no-ops statements)
+  (let loop ([statements statements])
       (cond
        [(empty? statements)
         empty]
@@ -25,8 +187,7 @@
         (let ([first-stmt (first statements)])
           (: default (-> (Listof Statement)))
           (define (default)
-            (cons first-stmt
-                  (loop (rest statements))))
+            (cons first-stmt (loop (rest statements))))
           (cond
            [(empty? (rest statements))
             (default)]
@@ -47,8 +208,8 @@
                    [else
                     (default)]))]
                [else
-                (default)]))]))]))))
-       
+                (default)]))]))])))
+
 
 (: not-no-op? (Statement -> Boolean))
 (define (not-no-op? stmt) (not (no-op? stmt)))
@@ -106,7 +267,7 @@
     [(PopControlFrame? stmt)
      #f]
     [(Comment? stmt)
-     #f]))
+     #t]))
 
 
 

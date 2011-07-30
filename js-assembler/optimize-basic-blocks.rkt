@@ -15,7 +15,9 @@
 
 
 (define-type Blockht (HashTable Symbol BasicBlock))
-(define-type Bodyht (HashTable (Listof UnlabeledStatement) Symbol))
+
+;; We want maps from unlabeled statements to their respective blocks.
+(define-type Bodyht (HashTable (Listof UnlabeledStatement) (Listof Symbol)))
 
 
 (: optimize-basic-blocks ((Listof BasicBlock) -> (Listof BasicBlock)))
@@ -24,20 +26,25 @@
   (: blockht : Blockht)
   (define blockht (make-hasheq))
 
-  (: bodyht : Blockht)
+  (: bodyht : Bodyht)
   (define bodyht (make-hasheq))
 
+  ;; First, scan through the blocks, and pick up their names and bodies.
   (for ([b blocks])
-       (hash-set! blockht (BasicBlock-name b) b))
+     (hash-set! blockht (BasicBlock-name b) b)
 
-  
-  
-  (define inlined-blocks
+     (when (hash-has-key? bodyht (BasicBlock-stmts b))
+       (log-debug (format "block ~a has the same content as another block" (BasicBlock-name b))))
+     (hash-set! bodyht (BasicBlock-stmts b)
+                (cons (BasicBlock-name b)
+                      (hash-ref bodyht (BasicBlock-stmts b) (lambda () '())))))
+
+  blocks
+  #;(define inlined-blocks
     (map (lambda: ([b : BasicBlock])
                   (optimize-block b blockht))
          blocks))
-  
-  inlined-blocks)
+  #;inlined-blocks)
 
 
 

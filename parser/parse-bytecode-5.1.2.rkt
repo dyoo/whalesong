@@ -663,10 +663,12 @@
        ;; FIXME: we should also keep track of const? and ready? to produce better code, and to
        ;; do the required runtime checks when necessary (const?=#f, ready?=#f)
        [(struct toplevel (depth pos const? ready?))
-        (make-ToplevelRef depth pos (if (and (not const?)
-                                             (not ready?))
-                                        #t
-                                        #f))]))
+        (make-ToplevelRef depth
+                          pos
+                          const?
+                          (if (and (not const?) (not ready?))
+                              #t
+                              #f))]))
 
 
    (define (parse-topsyntax expr)

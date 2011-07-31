@@ -88,6 +88,7 @@
          [(EnvPrefixReference? address)
           (make-ToplevelRef (EnvPrefixReference-depth address)
                             (EnvPrefixReference-pos address)
+                            #f
                             #t)]))]
 
     [(define-values? exp)

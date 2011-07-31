@@ -428,6 +428,7 @@
        (make-VariableReference 
         (make-ToplevelRef (ensure-natural (+ n (ToplevelRef-depth t)))
                           (ToplevelRef-pos t)
+                          (ToplevelRef-constant? t)
                           (ToplevelRef-check-defined? t))))]))
 
 

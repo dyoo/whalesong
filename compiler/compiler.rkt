@@ -13,7 +13,9 @@
          racket/match
          racket/bool
          racket/list)
-
+(require/typed "../logger.rkt"
+               [log-debug (String -> Void)])
+         
 (provide (rename-out [-compile compile])
          compile-general-procedure-call
          append-instruction-sequences)
@@ -1678,6 +1680,8 @@
        entry)]
     
     [(ToplevelRef? exp)
+     (when (ToplevelRef-constant? exp)
+       (log-debug (format "toplevel reference ~a should be known constant" exp)))
      (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
                   (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
                             (ToplevelRef-pos exp))])
@@ -2202,6 +2206,7 @@
          exp
          (make-ToplevelRef (ensure-natural (- (ToplevelRef-depth exp) n))
                            (ToplevelRef-pos exp)
+                           (ToplevelRef-constant? exp)
                            (ToplevelRef-check-defined? exp)))]
     
     [(LocalRef? exp)

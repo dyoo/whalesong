@@ -56,6 +56,7 @@
 
 (define-struct: ToplevelRef ([depth : Natural]
                              [pos : Natural]
+                             [constant? : Boolean]
                              [check-defined? : Boolean]) #:transparent)
 
 (define-struct: LocalRef ([depth : Natural]

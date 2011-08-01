@@ -1,5 +1,6 @@
 #lang racket/base
-(require racket/match)
+(require racket/match
+         racket/list)
 
 ;; A small module to provide logging for Whalesong.
 
@@ -12,20 +13,20 @@
 (define (log-debug message . args)
   (log-message whalesong-logger
                'debug
-               (apply format message args)
+               (if (empty? args) message (apply format message args))
                #f))
 
 
 (define (log-warning message . args)
   (log-message whalesong-logger
                'warning
-               (apply format message args)
+               (if (empty? args) message (apply format message args))
                #f))
 
 (define (log-error message . args)
   (log-message whalesong-logger
                'error
-               (apply format message args)
+               (if (empty? args) message (apply format message args))
                #f))
 
 

@@ -1667,8 +1667,10 @@
 ;; We should do more here eventually, including things like type inference or flow analysis, so that
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
+  (log-debug (format "Trying to discover information about ~s" exp))
   (cond
     [(Lam? exp)
+     (log-debug "known to be a lambda")
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
                               (if (Lam-rest? exp)
@@ -1677,9 +1679,11 @@
     [(and (LocalRef? exp) 
           (not (LocalRef-unbox? exp)))
      (let ([entry (list-ref cenv (LocalRef-depth exp))])
+       (log-debug (format "known to be ~s" entry))
        entry)]
     
     [(ToplevelRef? exp)
+     (log-debug (format "toplevel reference of ~a" exp))
      (when (ToplevelRef-constant? exp)
        (log-debug (format "toplevel reference ~a should be known constant" exp)))
      (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
@@ -1687,10 +1691,12 @@
                             (ToplevelRef-pos exp))])
            (cond
              [(ModuleVariable? name)
+              (log-debug (format "toplevel reference is to ~s" name))
               name]
              [(GlobalBucket? name)
               '?]
              [else
+              (log-debug (format "nothing statically known about ~s" exp))
               '?]))]
     
     [(Constant? exp)
@@ -1700,6 +1706,7 @@
      exp]
     
     [else
+     (log-debug (format "nothing statically known about ~s" exp))
      '?]))
 
 
@@ -2002,8 +2009,11 @@
 
 (: compile-apply-values (ApplyValues CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-apply-values exp cenv target linkage)
+  (log-debug (format "apply values ~a" exp))
   (let ([on-zero (make-label 'onZero)]
-        [after-args-evaluated (make-label 'afterArgsEvaluated)])
+        [after-args-evaluated (make-label 'afterArgsEvaluated)]
+        [consumer-info
+         (extract-static-knowledge (ApplyValues-proc exp) cenv)])
     (append-instruction-sequences
      
      ;; Save the procedure value temporarily in a control stack frame
@@ -2038,7 +2048,10 @@
      (make-instruction-sequence 
       `(,(make-PopControlFrame)))
      
-     ;; Finally, do the generic call into the function.
+
+     ;; Finally, do the generic call into the consumer function.
+     ;; FIXME: we have more static knowledge here of what the operator is.
+     ;; We can make this faster.
      (compile-general-procedure-call cenv (make-Reg 'argcount) target linkage))))
 
 

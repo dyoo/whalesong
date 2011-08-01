@@ -1,4 +1,7 @@
 #lang planet dyoo/whalesong
+
+(provide (all-defined-out))
+
 (define (f x)
   (* x x))
 

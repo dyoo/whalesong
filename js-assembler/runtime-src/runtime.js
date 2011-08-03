@@ -1252,7 +1252,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             MACHINE.argcount--;
             checkList(MACHINE, 'apply', MACHINE.argcount - 1);
             spliceListIntoStack(MACHINE, MACHINE.argcount - 1);
-            if (plt.baselib.arity.isArityMatching(proc.arity, MACHINE.argcount)) {
+            if (plt.baselib.arity.isArityMatching(proc.racketArity, MACHINE.argcount)) {
                 MACHINE.proc = proc;
                 if (plt.baselib.functions.isPrimitiveProcedure(proc)) {
                     return finalizeClosureCall(MACHINE, proc(MACHINE));
@@ -1260,7 +1260,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                     return proc.label(MACHINE);
                 }
             } else {
-                raiseArityMismatchError(MACHINE, proc, proc.arity, MACHINE.argcount);
+                raiseArityMismatchError(MACHINE, proc, proc.racketArity, MACHINE.argcount);
             }
         });
 
@@ -1286,7 +1286,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         function(MACHINE) {
             var proc = checkProcedure(MACHINE, 'procedure-arity-includes?', 0);
             var argcount = checkNatural(MACHINE, 'procedure-arity-includes?', 1);
-            return plt.baselib.arity.isArityMatching(proc.arity, argcount);
+            return plt.baselib.arity.isArityMatching(proc.racketArity, argcount);
         });
 
     installPrimitiveProcedure(
@@ -1294,7 +1294,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
         1,
         function(MACHINE) {
             var proc = checkProcedure(MACHINE, 'procedure-arity-includes?', 0);
-            return proc.arity;
+            return proc.racketArity;
         });
 
 

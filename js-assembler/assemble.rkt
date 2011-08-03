@@ -176,7 +176,7 @@ EOF
                              (assemble-oparg (TestPrimitiveProcedure-operand test))
                              jump)]
                     [(TestClosureArityMismatch? test)
-                     (format "if (! RUNTIME.isArityMatching((~a).arity, ~a)) { ~a }"
+                     (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a)) { ~a }"
                              (assemble-oparg (TestClosureArityMismatch-closure test))
                              (assemble-oparg (TestClosureArityMismatch-n test))
                              jump)])

@@ -514,7 +514,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     var installPrimitiveProcedure = function(name, arity, f) {
         Primitives[name] = f;
-        Primitives[name].arity = arity;
+        Primitives[name].racketArity = arity;
         Primitives[name].displayName = name;
     };
 

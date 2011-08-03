@@ -12,13 +12,13 @@ var checkProcedure = plt.baselib.check.checkProcedure;
 // More specific function checkers, based on arity.
 var checkProcedure1 = plt.baselib.check.makeCheckArgumentType(
     function(x) { return (plt.baselib.functions.isProcedure(x) &&
-                          plt.baselib.arity.isArityMatching(x.arity, 1)); },
+                          plt.baselib.arity.isArityMatching(x.racketArity, 1)); },
     'procedure that consumes a world argument');
 
 
 var checkProcedureWithKey = plt.baselib.check.makeCheckArgumentType(
     function(x) { return (plt.baselib.functions.isProcedure(x) &&
-                          plt.baselib.arity.isArityMatching(x.arity, 2)); },
+                          plt.baselib.arity.isArityMatching(x.racketArity, 2)); },
     'procedure that consumes a world argument and a key');
 
 
@@ -107,58 +107,3 @@ EXPORTS['key=?'] =
             return k1.toString().toLowerCase() === k2.toString().toLowerCase();
         });
 
-
-
-
-
-
-
-
-
-
-// EXPORTS['on-tick'] =
-// 	new CasePrimitive(
-// 	    'on-tick',
-// 	    [new PrimProc('on-tick',
-// 			  1,
-// 			  false, false,
-// 			  function(f) {
-// 			      check(f, isFunction, "on-tick", "procedure", 1);
-// 			      return new OnTickBang(f,
-// 						    new PrimProc('', 1, false, false,
-// 								 function(w) { return types.effectDoNothing(); }),
-// 						    DEFAULT_TICK_DELAY);
-// 			  }),
-// 	     new PrimProc('on-tick',
-// 			  2,
-// 			  false, false,
-// 			  function(f, aDelay) {
-// 			      check(f, isFunction, "on-tick", "procedure", 1, arguments);
-// 			      check(aDelay, isNumber, "on-tick", "number", 2, arguments);
-// 			      return new OnTickBang(f,
-// 						    new PrimProc('', 1, false, false,
-// 								 function(w) { return types.effectDoNothing(); }),
-// 						    aDelay);
-// 			  }) ]);
-
-
-
-// EXPORTS['on-tick!'] =
-//     new CasePrimitive('on-tick!',
-// 	[new PrimProc('on-tick!',
-// 		      2,
-// 		      false, false,
-// 		      function(handler, effectHandler) {
-// 			  check(handler, isFunction, "on-tick!", "procedure", 1, arguments);
-// 			  check(effectHandler, isFunction, "on-tick!","procedure", 2, arguments);
-// 			  return new OnTickBang(handler, effectHandler, DEFAULT_TICK_DELAY);
-// 		      }),
-// 	 new PrimProc('on-tick!',
-// 		      3,
-// 		      false, false,
-// 		      function(handler, effectHandler, aDelay)  {
-// 			  check(handler, isFunction, "on-tick!", "procedure", 1, arguments);
-// 			  check(effectHandler, isFunction, "on-tick!","procedure", 2, arguments);
-// 			  check(aDelay, isNumber, "on-tick!", "number", 3, arguments);
-// 			  return new OnTickBang(handler, effectHandler, aDelay);
-// 		      }) ]);

@@ -26,10 +26,10 @@
               if (! (MACHINE.proc instanceof RUNTIME.Closure)) {
                   RUNTIME.raiseOperatorIsNotClosure(MACHINE, MACHINE.proc);
               }
-              if (! RUNTIME.isArityMatching(MACHINE.proc.arity, ~a)) {
+              if (! RUNTIME.isArityMatching(MACHINE.proc.racketArity, ~a)) {
                   RUNTIME.raiseArityMismatchError(MACHINE,
                                                   MACHINE.proc,
-                                                  MACHINE.proc.arity,
+                                                  MACHINE.proc.racketArity,
                                                   ~a);
               }
 EOF
@@ -42,10 +42,10 @@ EOF
               if (! (typeof(MACHINE.proc) === 'function')) {
                   RUNTIME.raiseOperatorIsNotPrimitiveProcedure(MACHINE, MACHINE.proc);
               }
-              if (! RUNTIME.isArityMatching(MACHINE.proc.arity, ~a)) {
+              if (! RUNTIME.isArityMatching(MACHINE.proc.racketArity, ~a)) {
                   RUNTIME.raiseArityMismatchError(MACHINE,
                                                   MACHINE.proc,
-                                                  MACHINE.proc.arity,
+                                                  MACHINE.proc.racketArity,
                                                   ~a);
               }
 EOF

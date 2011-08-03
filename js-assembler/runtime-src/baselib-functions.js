@@ -51,10 +51,10 @@
                     MACHINE.env.push(arguments[arguments.length - 1 - i]);
                 }
 
-		if (! plt.baselib.arity.isArityMatching(v.arity, MACHINE.argcount)) {
+		if (! plt.baselib.arity.isArityMatching(v.racketArity, MACHINE.argcount)) {
 		    fail(new Error(plt.baselib.format.format(
                         "arity mismatch: expected ~s arguments, but received ~s",
-                        [v.arity, MACHINE.argcount])));
+                        [v.racketArity, MACHINE.argcount])));
                     return;
 		}
 
@@ -76,11 +76,11 @@
             succ = succ || function(){};
             fail = fail || function(){};
 
-	    if (! plt.baselib.arity.isArityMatching(v.arity, arguments.length - 2)) {
+	    if (! plt.baselib.arity.isArityMatching(v.racketArity, arguments.length - 2)) {
                 fail(new Error(
                     plt.baselib.format.format(
                         "arity mismatch: expected ~s argument(s) but received ~s",
-                        [v.arity, arguments.length - 2])));
+                        [v.racketArity, arguments.length - 2])));
                 return;
 	    }
 
@@ -139,7 +139,7 @@
     // internallCallDuringPause: call a Racket procedure and get its results.
     // The use assumes the machine is in a running-but-paused state.
     var internalCallDuringPause = function(MACHINE, proc, success, fail) {
-	if (! plt.baselib.arity.isArityMatching(proc.arity, arguments.length - 4)) {
+	if (! plt.baselib.arity.isArityMatching(proc.racketArity, arguments.length - 4)) {
 	    return fail(plt.baselib.exceptions.makeExnFailContractArity("arity mismatch"));
 	}
 
@@ -223,7 +223,7 @@
     // into its text segment.
     var Closure = function(label, arity, closedVals, displayName) {
 	this.label = label;              // (MACHINE -> void)
-	this.arity = arity;              // number
+	this.racketArity = arity;              // number
 	this.closedVals = closedVals;    // arrayof number
 	this.displayName = displayName;  // string
     };
@@ -279,7 +279,7 @@
 
 
     var makePrimitiveProcedure = function(name, arity, f) {
-        f.arity = arity;
+        f.racketArity = arity;
         f.displayName = name;
         return f;
     };
@@ -315,14 +315,14 @@
         if (isPrimitiveProcedure(f)) {
             return makePrimitiveProcedure(
                 name,
-                f.arity,
+                f.racketArity,
                 function() {
                     return f.apply(null, arguments);
                 });
         } else {
             return new Closure(
                 f.label,
-                f.arity,
+                f.racketArity,
                 f.closedVals,
                 name);
         }

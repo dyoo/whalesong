@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Talk</title>
+<script src="runtime.js"></script>
+<script src="talk.js"></script>
+<script>
+
+plt.runtime.invokeMains(plt.runtime.currentMachine,
+                        function() { alert('done');},
+                        function(MACHINE, err) { alert(plt.baselib.format.format("~a", [err])); });
+</script>
+</head>
+<body></body>
+</html>
+

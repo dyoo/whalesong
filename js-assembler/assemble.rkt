@@ -1,21 +1,19 @@
 #lang typed/racket/base
 (require "assemble-structs.rkt"
          "assemble-helpers.rkt"
-         "assemble-open-coded.rkt"
          "assemble-expression.rkt"
          "assemble-perform-statement.rkt"
-         "collect-jump-targets.rkt"
          "../compiler/il-structs.rkt"
-         "../compiler/lexical-structs.rkt"
-         "../compiler/expression-structs.rkt"
-         "../helpers.rkt"
          "optimize-basic-blocks.rkt"
          "fracture.rkt"
          racket/string
          racket/list)
+(require/typed "../logger.rkt"
+               [log-debug (String -> Void)])
 
 (provide assemble/write-invoke
          assemble-statement)
+
 
 
 ;; Parameter that controls the generation of a trace.
@@ -32,27 +30,36 @@
   (fprintf op "(function(MACHINE, success, fail, params) {\n")
   (fprintf op "var param;\n")
   (fprintf op "var RUNTIME = plt.runtime;\n")
-  (let: ([basic-blocks : (Listof BasicBlock)
-                       (optimize-basic-blocks (fracture stmts))])
-        (for-each
-         (lambda: ([basic-block : BasicBlock])
-                  (displayln (assemble-basic-block basic-block) op)
-                  (newline op))
-         basic-blocks)
-        (write-linked-label-attributes stmts op)
-        
-        (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
-        (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
-        (fprintf op #<<EOF
+  
+  (define-values (basic-blocks entry-points) (fracture stmts))
+  (define optimized-basic-blocks (optimize-basic-blocks basic-blocks))
+  
+  (write-blocks optimized-basic-blocks op)
+  
+  (write-linked-label-attributes stmts op)
+  
+  (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
+  (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
+  (fprintf op #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {
         MACHINE.params[param] = params[param];
     }
 }
 EOF
-                 )
-        (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
-                 (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))))
+           )
+  (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
+           (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))))
+
+
+
+(: write-blocks ((Listof BasicBlock) Output-Port -> Void))
+;; Write out all the basic blocks.
+(define (write-blocks blocks op)
+  (for ([b blocks])
+    (log-debug (format "Emitting code for basic block ~s" (BasicBlock-name b)))
+    (displayln (assemble-basic-block b) op)
+    (newline op)))
 
 
 
@@ -152,7 +159,7 @@ EOF
      [(TestAndJumpStatement? stmt)
       (let*: ([test : PrimitiveTest (TestAndJumpStatement-op stmt)]
               [jump : String (assemble-jump 
-                       (make-Label (TestAndJumpStatement-label stmt)))])
+                              (make-Label (TestAndJumpStatement-label stmt)))])
              ;; to help localize type checks, we add a type annotation here.
              (ann (cond
                     [(TestFalse? test)

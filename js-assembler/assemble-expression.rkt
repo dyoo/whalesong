@@ -4,9 +4,7 @@
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
          "../compiler/il-structs.rkt"
-         "../compiler/lexical-structs.rkt"
-         racket/string
-         racket/list)
+         racket/string)
 
 (provide assemble-op-expression)
 

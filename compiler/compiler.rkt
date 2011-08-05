@@ -7,12 +7,11 @@
          "kernel-primitives.rkt"
          "optimize-il.rkt"
 	 "analyzer-structs.rkt"
-         #;"analyzer.rkt"
          "../parameters.rkt"
          "../sets.rkt"
-         racket/match
          racket/bool
-         racket/list)
+         racket/list
+         racket/match)
 (require/typed "../logger.rkt"
                [log-debug (String -> Void)])
          
@@ -21,9 +20,6 @@
          append-instruction-sequences)
 
 
-
-#;(: current-analysis (Parameterof Analysis))
-#;(define current-analysis (make-parameter (empty-analysis)))
 
 
 
@@ -543,8 +539,7 @@
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a conditional branch.
 (define (compile-branch exp cenv target linkage)
-  (let: ([t-branch : Symbol (make-label 'trueBranch)]
-         [f-branch : Symbol (make-label 'falseBranch)]
+  (let: ([f-branch : Symbol (make-label 'falseBranch)]
          [after-if : Symbol (make-label 'afterIf)])
         (let ([consequent-linkage
                (cond
@@ -564,7 +559,6 @@
               (make-instruction-sequence
                `(,(make-TestAndJumpStatement (make-TestFalse (make-Reg 'val))
                                                f-branch)))
-              t-branch 
               c-code
               f-branch
               a-code

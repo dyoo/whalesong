@@ -62,7 +62,7 @@ EOF
 
 
 (: write-blocks ((Listof BasicBlock) (Listof Symbol) Output-Port -> Void))
-;; Write out all the basic blocks.
+;; Write out all the basic blocks associated to an entry point.
 (define (write-blocks blocks entry-points op)  
   (: blockht : Blockht)
   (define blockht (make-hash))
@@ -70,9 +70,12 @@ EOF
   (for ([b blocks])
     (hash-set! blockht (BasicBlock-name b) b))
   
-  (for ([b blocks])
-    (log-debug (format "Emitting code for basic block ~s" (BasicBlock-name b)))
-    (displayln (assemble-basic-block b blockht) op)
+  (for ([s entry-points])
+    (log-debug (format "Emitting code for basic block ~s" s))
+    (displayln (assemble-basic-block (hash-ref blockht s) 
+                                     blockht
+                                     entry-points)
+               op)
     (newline op)))
 
 
@@ -132,8 +135,8 @@ EOF
 
 
 ;; assemble-basic-block: basic-block -> string
-(: assemble-basic-block (BasicBlock Blockht -> String))
-(define (assemble-basic-block a-basic-block blockht)
+(: assemble-basic-block (BasicBlock Blockht (Listof Symbol) -> String))
+(define (assemble-basic-block a-basic-block blockht entry-points)
   (format "var ~a = function(MACHINE){
     if(--MACHINE.callsBeforeTrampoline < 0) {
         throw ~a;
@@ -143,17 +146,20 @@ EOF
           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
           (string-join (assemble-block-statements (BasicBlock-stmts a-basic-block)
-                                                  blockht)
+                                                  blockht
+                                                  entry-points)
                        "\n")))
 
 
-(: assemble-block-statements ((Listof UnlabeledStatement) Blockht -> (Listof String)))
-(define (assemble-block-statements stmts blockht)
+(: assemble-block-statements ((Listof UnlabeledStatement) Blockht (Listof Symbol) -> (Listof String)))
+(define (assemble-block-statements stmts blockht entry-points)
   
   (: default (UnlabeledStatement -> (Listof String)))
   (define (default stmt)
     (cons (assemble-statement stmt)
-          (assemble-block-statements (rest stmts) blockht)))
+          (assemble-block-statements (rest stmts) 
+                                     blockht
+                                     entry-points)))
 
   (cond [(empty? stmts)
          empty]
@@ -202,13 +208,31 @@ EOF
               "{"
               ,@(assemble-block-statements (BasicBlock-stmts 
                                             (hash-ref blockht (TestAndJumpStatement-label stmt)))
-                                           blockht)
+                                           blockht
+                                           entry-points)
               "} else {"
-              ,@(assemble-block-statements (rest stmts) blockht)
+              ,@(assemble-block-statements (rest stmts) blockht entry-points)
               "}")]
 
            [(GotoStatement? stmt)
-            (default stmt)]
+            (define target (GotoStatement-target stmt))
+            (cond
+              [(Label? target)
+               (cond
+                 [(member (Label-name target) entry-points)
+                  (default stmt)]
+                  [else
+                   (assemble-block-statements (BasicBlock-stmts
+                                               (hash-ref blockht (Label-name target)))
+                                              blockht
+                                              entry-points)])]
+              [(Reg? target)
+               (default stmt)]
+              [(ModuleEntry? target)
+               (default stmt)]
+              [(CompiledProcedureEntry? target)
+               (default stmt)])]
+
      
            [(PushControlFrame/Generic? stmt)
             (default stmt)]

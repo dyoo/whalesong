@@ -369,8 +369,8 @@
 
 ;; Variable reference
 (check-equal? (run-my-parse #'(#%variable-reference x))
-              (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
-                       (make-VariableReference (make-ToplevelRef 0 0 #f #t))))
+              (make-Top (make-Prefix (list #f (make-GlobalBucket 'x)))
+                        (make-VariableReference (make-ToplevelRef 0 0 #f #t))))
 
 ;; todo: see what it would take to run a typed/racket/base language.
 (void 

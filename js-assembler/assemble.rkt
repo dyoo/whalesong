@@ -173,39 +173,40 @@ EOF
             (default stmt)]
            
            [(TestAndJumpStatement? stmt)
-            (default stmt)
-            #;(let*: ([test : PrimitiveTest (TestAndJumpStatement-op stmt)]
-                    [jump : String (assemble-jump 
-                                    (make-Label (TestAndJumpStatement-label stmt)))])
-              ;; to help localize type checks, we add a type annotation here.
-              (ann (cond
-                     [(TestFalse? test)
-                      (format "if (~a === false) { ~a }"
-                              (assemble-oparg (TestFalse-operand test))
-                              jump)]
-                     [(TestTrue? test)
-                      (format "if (~a !== false) { ~a }"
-                              (assemble-oparg (TestTrue-operand test))
-                              jump)]
-                     [(TestOne? test)
-                      (format "if (~a === 1) { ~a }"
-                              (assemble-oparg (TestOne-operand test))
-                              jump)]
-                     [(TestZero? test)
-                      (format "if (~a === 0) { ~a }"
-                              (assemble-oparg (TestZero-operand test))
-                              jump)]
-                     [(TestPrimitiveProcedure? test)
-                      (format "if (typeof(~a) === 'function') { ~a }"
-                              (assemble-oparg (TestPrimitiveProcedure-operand test))
-                              jump)]
-                     [(TestClosureArityMismatch? test)
-                      (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a)) { ~a }"
-                              (assemble-oparg (TestClosureArityMismatch-closure test))
-                              (assemble-oparg (TestClosureArityMismatch-n test))
-                              jump)])
-                   String))]
-           
+            (define test (TestAndJumpStatement-op stmt))
+
+            (: test-code String)
+            (define test-code (cond
+                                 [(TestFalse? test)
+                                  (format "if (~a === false)"
+                                          (assemble-oparg (TestFalse-operand test)))]
+                                 [(TestTrue? test)
+                                  (format "if (~a !== false)"
+                                          (assemble-oparg (TestTrue-operand test)))]
+                                 [(TestOne? test)
+                                  (format "if (~a === 1)"
+                                          (assemble-oparg (TestOne-operand test)))]
+                                 [(TestZero? test)
+                                  (format "if (~a === 0)"
+                                          (assemble-oparg (TestZero-operand test)))]
+                                          
+                                 [(TestPrimitiveProcedure? test)
+                                  (format "if (typeof(~a) === 'function')"
+                                          (assemble-oparg (TestPrimitiveProcedure-operand test)))]
+                                          
+                                 [(TestClosureArityMismatch? test)
+                                  (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a))"
+                                          (assemble-oparg (TestClosureArityMismatch-closure test))
+                                          (assemble-oparg (TestClosureArityMismatch-n test)))]))
+            `(,test-code
+              "{"
+              ,@(assemble-block-statements (BasicBlock-stmts 
+                                            (hash-ref blockht (TestAndJumpStatement-label stmt)))
+                                           blockht)
+              "} else {"
+              ,@(assemble-block-statements (rest stmts) blockht)
+              "}")]
+
            [(GotoStatement? stmt)
             (default stmt)]
      

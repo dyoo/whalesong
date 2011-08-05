@@ -234,7 +234,8 @@
                                                                                  (list 0 1)
                                                                                  'closureStart))
                     (make-PopEnvironment (make-Const 2) (make-Const 0))
-                    (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry)))
+                    (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
+                    'thEnd)
               "typeof(MACHINE.val) + ',' + (MACHINE.val === MACHINE.proc.label)")
       "function,true")
 
@@ -256,7 +257,8 @@
                                                                                   (list 0 1)
                                                                                   'closureStart))
                     (make-PopEnvironment (make-Const 2) (make-Const 0))
-                    (make-PerformStatement (make-CheckClosureArity! (make-Const 5))))))
+                    (make-PerformStatement (make-CheckClosureArity! (make-Const 5)))
+                    'theEnd)))
 
 ;; this should fail, since the check is for 1, but the closure expects 5.
 (let/ec return
@@ -278,7 +280,8 @@
                                                                                 (list 0 1)
                                                                                 'closureStart))
                   (make-PopEnvironment (make-Const 2) (make-Const 0))
-                  (make-PerformStatement (make-CheckClosureArity! (make-Const 1))))))
+                  (make-PerformStatement (make-CheckClosureArity! (make-Const 1)))
+                  'theEnd)))
   (error 'expected-failure))
 
 

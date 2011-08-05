@@ -8,9 +8,11 @@
          "assemble-helpers.rkt"
          "assemble-expression.rkt"
          "assemble-perform-statement.rkt"
-         "../compiler/il-structs.rkt"
          "optimize-basic-blocks.rkt"
          "fracture.rkt"
+         "../compiler/il-structs.rkt"
+         "../sets.rkt"
+         "../helpers.rkt"
          racket/string
          racket/list)
 (require/typed "../logger.rkt"
@@ -18,6 +20,8 @@
 
 (provide assemble/write-invoke
          assemble-statement)
+
+
 
 
 
@@ -42,7 +46,7 @@
   (define-values (basic-blocks entry-points) (fracture stmts))
   (define optimized-basic-blocks (optimize-basic-blocks basic-blocks))
   
-  (write-blocks optimized-basic-blocks entry-points op)
+  (write-blocks optimized-basic-blocks (list->set entry-points) op)
   
   (write-linked-label-attributes stmts op)
   
@@ -61,7 +65,7 @@ EOF
 
 
 
-(: write-blocks ((Listof BasicBlock) (Listof Symbol) Output-Port -> Void))
+(: write-blocks ((Listof BasicBlock) (Setof Symbol) Output-Port -> Void))
 ;; Write out all the basic blocks associated to an entry point.
 (define (write-blocks blocks entry-points op)  
   (: blockht : Blockht)
@@ -70,13 +74,46 @@ EOF
   (for ([b blocks])
     (hash-set! blockht (BasicBlock-name b) b))
   
-  (for ([s entry-points])
-    (log-debug (format "Emitting code for basic block ~s" s))
-    (displayln (assemble-basic-block (hash-ref blockht s) 
-                                     blockht
-                                     entry-points)
-               op)
-    (newline op)))
+  ;; Since there may be cycles between the blocks, we cut the cycles by
+  ;; making them entry points as well.
+  (insert-cycles-as-entry-points! entry-points blockht)
+   
+  (set-for-each (lambda: ([s : Symbol])
+                  (log-debug (format "Emitting code for basic block ~s" s))
+                  (displayln (assemble-basic-block (hash-ref blockht s) 
+                                                   blockht
+                                                   entry-points)
+                             op)
+                  (newline op))
+                entry-points))
+
+
+
+(: insert-cycles-as-entry-points! ((Setof Symbol) Blockht -> 'ok))
+(define (insert-cycles-as-entry-points! entry-points blockht)
+  (define visited ((inst new-seteq Symbol)))
+  
+  (: loop ((Listof Symbol) -> 'ok))
+  (define (loop queue)
+    (cond
+      [(empty? queue)
+       'ok]
+      [else
+       ;; Visit the next one.
+       (define next-to-visit (first queue))
+       (cond
+         [(set-contains? visited next-to-visit)
+          (unless (set-contains? entry-points next-to-visit)
+            (log-debug (format "Promoting ~a to an entry point" next-to-visit))
+            (set-insert! entry-points next-to-visit))
+          (loop (rest queue))]
+         [else
+          (set-insert! visited next-to-visit)
+          (loop (list-union (basic-block-out-edges (hash-ref blockht next-to-visit))
+                            (rest queue)))])]))
+
+  (loop (set->list entry-points)))
+
 
 
 
@@ -135,7 +172,7 @@ EOF
 
 
 ;; assemble-basic-block: basic-block -> string
-(: assemble-basic-block (BasicBlock Blockht (Listof Symbol) -> String))
+(: assemble-basic-block (BasicBlock Blockht (Setof Symbol) -> String))
 (define (assemble-basic-block a-basic-block blockht entry-points)
   (format "var ~a = function(MACHINE){
     if(--MACHINE.callsBeforeTrampoline < 0) {
@@ -151,7 +188,7 @@ EOF
                        "\n")))
 
 
-(: assemble-block-statements ((Listof UnlabeledStatement) Blockht (Listof Symbol) -> (Listof String)))
+(: assemble-block-statements ((Listof UnlabeledStatement) Blockht (Setof Symbol) -> (Listof String)))
 (define (assemble-block-statements stmts blockht entry-points)
   
   (: default (UnlabeledStatement -> (Listof String)))
@@ -160,7 +197,7 @@ EOF
           (assemble-block-statements (rest stmts) 
                                      blockht
                                      entry-points)))
-
+  
   (cond [(empty? stmts)
          empty]
         [else
@@ -168,7 +205,7 @@ EOF
          (cond
            [(DebugPrint? stmt)
             (default stmt)]
-
+           
            [(AssignImmediateStatement? stmt)
             (default stmt)]
            
@@ -180,30 +217,30 @@ EOF
            
            [(TestAndJumpStatement? stmt)
             (define test (TestAndJumpStatement-op stmt))
-
+            
             (: test-code String)
             (define test-code (cond
-                                 [(TestFalse? test)
-                                  (format "if (~a === false)"
-                                          (assemble-oparg (TestFalse-operand test)))]
-                                 [(TestTrue? test)
-                                  (format "if (~a !== false)"
-                                          (assemble-oparg (TestTrue-operand test)))]
-                                 [(TestOne? test)
-                                  (format "if (~a === 1)"
-                                          (assemble-oparg (TestOne-operand test)))]
-                                 [(TestZero? test)
-                                  (format "if (~a === 0)"
-                                          (assemble-oparg (TestZero-operand test)))]
-                                          
-                                 [(TestPrimitiveProcedure? test)
-                                  (format "if (typeof(~a) === 'function')"
-                                          (assemble-oparg (TestPrimitiveProcedure-operand test)))]
-                                          
-                                 [(TestClosureArityMismatch? test)
-                                  (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a))"
-                                          (assemble-oparg (TestClosureArityMismatch-closure test))
-                                          (assemble-oparg (TestClosureArityMismatch-n test)))]))
+                                [(TestFalse? test)
+                                 (format "if (~a === false)"
+                                         (assemble-oparg (TestFalse-operand test)))]
+                                [(TestTrue? test)
+                                 (format "if (~a !== false)"
+                                         (assemble-oparg (TestTrue-operand test)))]
+                                [(TestOne? test)
+                                 (format "if (~a === 1)"
+                                         (assemble-oparg (TestOne-operand test)))]
+                                [(TestZero? test)
+                                 (format "if (~a === 0)"
+                                         (assemble-oparg (TestZero-operand test)))]
+                                
+                                [(TestPrimitiveProcedure? test)
+                                 (format "if (typeof(~a) === 'function')"
+                                         (assemble-oparg (TestPrimitiveProcedure-operand test)))]
+                                
+                                [(TestClosureArityMismatch? test)
+                                 (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a))"
+                                         (assemble-oparg (TestClosureArityMismatch-closure test))
+                                         (assemble-oparg (TestClosureArityMismatch-n test)))]))
             `(,test-code
               "{"
               ,@(assemble-block-statements (BasicBlock-stmts 
@@ -213,51 +250,128 @@ EOF
               "} else {"
               ,@(assemble-block-statements (rest stmts) blockht entry-points)
               "}")]
-
+           
            [(GotoStatement? stmt)
             (define target (GotoStatement-target stmt))
             (cond
               [(Label? target)
                (cond
-                 [(member (Label-name target) entry-points)
-                  (default stmt)]
-                  [else
-                   (assemble-block-statements (BasicBlock-stmts
-                                               (hash-ref blockht (Label-name target)))
-                                              blockht
-                                              entry-points)])]
+                   [(set-contains? entry-points (Label-name target))
+                    (default stmt)]
+                   [else
+                    (log-debug (format "Assembling inlined jump into ~a" (Label-name target)) )
+                    (assemble-block-statements (BasicBlock-stmts
+                                                (hash-ref blockht (Label-name target)))
+                                               blockht
+                                               entry-points)])]
               [(Reg? target)
                (default stmt)]
               [(ModuleEntry? target)
                (default stmt)]
               [(CompiledProcedureEntry? target)
                (default stmt)])]
-
-     
+           
+           
            [(PushControlFrame/Generic? stmt)
             (default stmt)]
-     
+           
            [(PushControlFrame/Call? stmt)
             (default stmt)]
-     
+           
            [(PushControlFrame/Prompt? stmt)
             (default stmt)]
-     
+           
            [(PopControlFrame? stmt)
             (default stmt)]
-     
+           
            [(PushEnvironment? stmt)
             (default stmt)]
-
+           
            [(PopEnvironment? stmt)
             (default stmt)]
-     
+           
            [(PushImmediateOntoEnvironment? stmt)
             (default stmt)]
            [(Comment? stmt)
             (default stmt)])]))
 
-           
+
+
+
+(: basic-block-out-edges (BasicBlock -> (Listof Symbol)))
+;; Returns the neighboring blocks of this block.
+(define (basic-block-out-edges a-block)
+  
+  (: loop ((Listof UnlabeledStatement) -> (Listof Symbol)))
+  (define (loop stmts)
+    
+    (: default (-> (Listof Symbol)))
+    (define (default)
+      (loop (rest stmts)))
+    
+    (cond [(empty? stmts)
+           empty]
+          [else
+           (define stmt (first stmts))
+           (cond
+             [(DebugPrint? stmt)
+              (default)]
+             
+             [(AssignImmediateStatement? stmt)
+              (default)]
+             
+             [(AssignPrimOpStatement? stmt)
+              (default)]
+             
+             [(PerformStatement? stmt)
+              (default)]
+             
+             [(TestAndJumpStatement? stmt)
+              (cons (TestAndJumpStatement-label stmt)
+                    (loop (rest stmts)))]
+             
+             [(GotoStatement? stmt)
+              (define target (GotoStatement-target stmt))
+              (cond
+                [(Label? target)
+                 (cons (Label-name target)
+                       (loop (rest stmts)))]
+                [(Reg? target)
+                 (default)]
+                [(ModuleEntry? target)
+                 (default)]
+                [(CompiledProcedureEntry? target)
+                 (default)])]
+             
+             [(PushControlFrame/Generic? stmt)
+              (default)]
+             
+             [(PushControlFrame/Call? stmt)
+              (default)]
+             
+             [(PushControlFrame/Prompt? stmt)
+              (default)]
+             
+             [(PopControlFrame? stmt)
+              (default)]
+             
+             [(PushEnvironment? stmt)
+              (default)]
+             
+             [(PopEnvironment? stmt)
+              (default)]
+             
+             [(PushImmediateOntoEnvironment? stmt)
+              (default)]
+             [(Comment? stmt)
+              (default)])]))
+  
+  (loop (BasicBlock-stmts a-block)))
+
+
+
+
+
 
 
 

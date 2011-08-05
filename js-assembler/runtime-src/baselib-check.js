@@ -33,7 +33,7 @@
             }
 	    testArgument(
 		MACHINE,
-		parameterizedPredicateName.apply(null, args),
+		function() { parameterizedPredicateName.apply(null, args) },
 		function(x) {
                     return parameterizedPredicate.apply(null, [x].concat(args));
                 },
@@ -101,6 +101,9 @@
 	if (predicate(val)) {
 	    return true;
 	} else {
+            if (typeof(expectedTypeName) === 'function') { 
+                expectedTypeName = expectedTypeName(); 
+            }
 	    plt.baselib.exceptions.raiseArgumentTypeError(MACHINE, 
                                                           callerName,
                                                           expectedTypeName,

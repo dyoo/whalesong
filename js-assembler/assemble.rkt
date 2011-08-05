@@ -44,9 +44,8 @@
   (fprintf op "var RUNTIME = plt.runtime;\n")
   
   (define-values (basic-blocks entry-points) (fracture stmts))
-  (define optimized-basic-blocks (optimize-basic-blocks basic-blocks))
   
-  (write-blocks optimized-basic-blocks (list->set entry-points) op)
+  (write-blocks basic-blocks (list->set entry-points) op)
   
   (write-linked-label-attributes stmts op)
   

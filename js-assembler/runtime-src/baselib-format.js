@@ -5,7 +5,9 @@
     var exports = {};
     baselib.format = exports;
 
-
+    
+    var formatRegexp1 = new RegExp('~[sSaA]', 'g');
+    var formatRegexp2 = new RegExp("~[sSaAnevE%~]", "g");
     
     // format: string [X ...] string -> string
     // String formatting.  If an exception occurs, throws
@@ -13,7 +15,7 @@
     var format = function(formatStr, args, functionName) {
 	var throwFormatError = function() {
 	    functionName = functionName || 'format';
-	    var matches = formatStr.match(new RegExp('~[sSaA]', 'g'));
+	    var matches = formatStr.match(formatRegexp1);
 	    var expectedNumberOfArgs = (matches === null ? 0 : matches.length);
 	    var errorStrBuffer = [functionName + ': format string requires ' + expectedNumberOfArgs
 				  + ' arguments, given ' + args.length + '; arguments were:',
@@ -25,7 +27,7 @@
 	    throw new Error(errorStrBuffer.join(' '));
 	}
 
-	var pattern = new RegExp("~[sSaAnevE%~]", "g");
+
 	var buffer = args.slice(0);
 	var onTemplate = function(s) {
 	    if (s === "~~") {
@@ -62,7 +64,7 @@
                                 ': string.replace matched invalid regexp');
 	    }
 	}
-	var result = formatStr.replace(pattern, onTemplate);
+	var result = formatStr.replace(formatRegexp2, onTemplate);
 	if (buffer.length > 0) {
 	    throwFormatError();
 	}

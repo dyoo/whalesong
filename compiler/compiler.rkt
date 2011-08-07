@@ -521,8 +521,7 @@
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a conditional branch.
 (define (compile-branch exp cenv target linkage)
-  (let: ([t-branch : Symbol (make-label 'trueBranch)]
-         [f-branch : Symbol (make-label 'falseBranch)]
+  (let: ([f-branch : Symbol (make-label 'falseBranch)]
          [after-if : Symbol (make-label 'afterIf)])
     (let ([consequent-linkage
            (cond
@@ -540,7 +539,6 @@
          p-code
          (make-TestAndJumpStatement (make-TestFalse (make-Reg 'val))
                                     f-branch)
-         t-branch 
          c-code
          f-branch
          a-code
@@ -1373,7 +1371,6 @@
 ;; extended-cenv is the compile-time environment after arguments have been shifted in.
 (define (compile-general-procedure-call cenv number-of-arguments target linkage)
   (let: ([primitive-branch : Symbol (make-label 'primitiveBranch)]
-         [compiled-branch : Symbol (make-label 'compiledBranch)]
          [after-call : Symbol (make-label 'afterCall)])
     (let: ([compiled-linkage : Linkage (if (and (ReturnLinkage? linkage)
                                                 (ReturnLinkage-tail? linkage))
@@ -1382,31 +1379,28 @@
                                                               (linkage-context linkage)))]
            [primitive-linkage : Linkage
                               (make-NextLinkage (linkage-context linkage))])
-      (append-instruction-sequences
-       (make-TestAndJumpStatement (make-TestPrimitiveProcedure
-                                   (make-Reg 'proc))
-                                  primitive-branch)
-       
-       
-       ;; Compiled branch
-       compiled-branch
-       (make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))
-       (compile-compiled-procedure-application cenv
-                                               number-of-arguments
-                                               'dynamic
-                                               target
-                                               compiled-linkage)
-       
-       ;; Primitive branch
-       primitive-branch
-       (end-with-linkage
-        linkage
-        cenv
-        (append-instruction-sequences
-         (make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
-         (compile-primitive-application cenv target primitive-linkage)
-         
-         after-call))))))
+      (end-with-linkage
+       linkage
+       cenv
+       (append-instruction-sequences
+        (make-TestAndJumpStatement (make-TestPrimitiveProcedure
+                                    (make-Reg 'proc))
+                                   primitive-branch)
+        
+        
+        ;; Compiled branch
+        (make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))
+        (compile-compiled-procedure-application cenv
+                                                number-of-arguments
+                                                'dynamic
+                                                target
+                                                compiled-linkage)
+        
+        ;; Primitive branch
+        primitive-branch
+        (make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
+        (compile-primitive-application cenv target primitive-linkage)
+        after-call)))))
 
 
 

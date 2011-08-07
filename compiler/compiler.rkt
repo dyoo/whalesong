@@ -371,7 +371,6 @@
      empty-instruction-sequence]
     [else
      (let* ([linked (make-label 'linked)]
-            [already-loaded (make-label 'alreadyLoaded)]
             [on-return-multiple (make-label 'onReturnMultiple)]
             [on-return (make-LinkedLabel (make-label 'onReturn)
                                          on-return-multiple)])
@@ -384,19 +383,18 @@
         (make-DebugPrint (make-Const 
                           (format "DEBUG: the module ~a hasn't been linked in!!!"
                                   (ModuleLocator-name a-module-name))))
-        (make-GotoStatement (make-Label already-loaded))
+        (make-GotoStatement (make-Label (LinkedLabel-label on-return)))
         linked
         (make-TestAndJumpStatement (make-TestTrue 
                                     (make-IsModuleInvoked a-module-name))
-                                   already-loaded)
+                                   (LinkedLabel-label on-return))
         (make-PushControlFrame/Call on-return)
         (make-GotoStatement (ModuleEntry a-module-name))
         on-return-multiple
         (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
                                                (make-Const 1))
                              (make-Const 0))
-        on-return
-        already-loaded))]))
+        on-return))]))
 
 
 (: kernel-module-name? (ModuleLocator -> Boolean))
@@ -599,7 +597,6 @@
 
 
 (: compile-begin0 ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
-;; FIXME: this is broken at the moment.
 (define (compile-begin0 seq cenv target linkage)
   (cond
     [(empty? seq)
@@ -1645,7 +1642,6 @@
                              (cons '? cenv)
                              (make-EnvLexicalReference 0 #f)
                              next-linkage/expects-single)]
-          [after-let1 : Symbol (make-label 'afterLetOne)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
           [extended-cenv : CompileTimeEnvironment (cons (extract-static-knowledge (Let1-rhs exp)
                                                                                   (cons '? cenv))
@@ -1673,8 +1669,7 @@
       rhs-code
       body-code
       after-body-code
-      (make-PopEnvironment (make-Const 1) (make-Const 0))
-      after-let1))))
+      (make-PopEnvironment (make-Const 1) (make-Const 0))))))
 
 
 

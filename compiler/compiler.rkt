@@ -43,24 +43,20 @@
         (append-instruction-sequences 
          
          ;; Layout the lambda bodies...
-         (make-instruction-sequence 
-          `(,(make-GotoStatement (make-Label after-lam-bodies))))
+         (make-GotoStatement (make-Label after-lam-bodies))
          (compile-lambda-bodies (collect-all-lambdas-with-bodies exp))
          after-lam-bodies
          
          ;; Begin a prompted evaluation:
-         (make-instruction-sequence
-          `(,(make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                           before-pop-prompt)))
+         (make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                           before-pop-prompt)
          (compile exp '() 'val return-linkage/nontail)
          before-pop-prompt-multiple
-         (make-instruction-sequence
-          `(,(make-PopEnvironment (make-Reg 'argcount) (make-Const 0))))
+         (make-PopEnvironment (make-Reg 'argcount) (make-Const 0))
          before-pop-prompt
          (if (eq? target 'val)
              empty-instruction-sequence
-             (make-instruction-sequence
-              `(,(make-AssignImmediateStatement target (make-Reg 'val)))))))))))
+             (make-AssignImmediateStatement target (make-Reg 'val)))))))))
 
 
 (define-struct: lam+cenv ([lam : (U Lam CaseLam)]
@@ -199,25 +195,24 @@
        [(ReturnLinkage-tail? linkage)
         ;; Under tail calls, clear the environment of the current stack frame (represented by cenv)
         ;; and do the jump.
-        (make-instruction-sequence 
-         `(,(make-PopEnvironment (make-Const (length cenv)) 
-                                 (make-Const 0))
-           ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-           ,(make-PopControlFrame)
-           ,(make-GotoStatement (make-Reg 'proc))))]
+        (append-instruction-sequences
+         (make-PopEnvironment (make-Const (length cenv)) 
+                              (make-Const 0))
+         (make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+         (make-PopControlFrame)
+         (make-GotoStatement (make-Reg 'proc)))]
        [else
         ;; Under non-tail calls, leave the stack as is and just do the jump.
-        (make-instruction-sequence
-         `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-           ,(make-PopControlFrame)
-           ,(make-GotoStatement (make-Reg 'proc))))])]
+        (append-instruction-sequences
+         (make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+         (make-PopControlFrame)
+         (make-GotoStatement (make-Reg 'proc)))])]
     
     [(NextLinkage? linkage)
      empty-instruction-sequence]
  
     [(LabelLinkage? linkage)
-     (make-instruction-sequence 
-      `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))]))
+     (make-GotoStatement (make-Label (LabelLinkage-label linkage)))]))
 
 
 
@@ -300,16 +295,14 @@
          (end-with-linkage 
           linkage cenv
           (append-instruction-sequences
-           (make-instruction-sequence 
-            `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! names))))
+           (make-PerformStatement (make-ExtendEnvironment/Prefix! names))
            (compile (Top-code top) 
                     (cons (Top-prefix top) cenv)
                     'val
                     next-linkage/drop-multiple)
-           (make-instruction-sequence
-            `(,(make-AssignImmediateStatement target (make-Reg 'val))
-	      ,(make-PopEnvironment (make-Const 1) 
-                                    (make-Const 0))))))))
+           (make-AssignImmediateStatement target (make-Reg 'val))
+           (make-PopEnvironment (make-Const 1) 
+                                    (make-Const 0))))))
 
 
 
@@ -371,8 +364,7 @@
   (end-with-linkage linkage cenv
    (append-instruction-sequences
     (compile-module-invoke (Require-path exp))
-    (make-instruction-sequence
-     `(,(make-AssignImmediateStatement target (make-Const (void))))))))
+    (make-AssignImmediateStatement target (make-Const (void))))))
 
 
 (: compile-module-invoke (ModuleLocator -> InstructionSequence))
@@ -381,36 +373,36 @@
 ;; if the module hasn't been linked yet.
 (define (compile-module-invoke a-module-name)
   (cond
-   [(kernel-module-name? a-module-name)
-    empty-instruction-sequence]
-   [else
-    (let* ([linked (make-label 'linked)]
-           [already-loaded (make-label 'alreadyLoaded)]
-           [on-return-multiple (make-label 'onReturnMultiple)]
-           [on-return (make-LinkedLabel (make-label 'onReturn)
-                                        on-return-multiple)])
-      (make-instruction-sequence
-       `(,(make-TestAndJumpStatement (make-TestTrue
-                                        (make-IsModuleLinked a-module-name))
-                                       linked)
-         ;; TODO: raise an exception here that says that the module hasn't been
-         ;; linked yet.
-         ,(make-DebugPrint (make-Const 
-                            (format "DEBUG: the module ~a hasn't been linked in!!!"
-                                    (ModuleLocator-name a-module-name))))
-         ,(make-GotoStatement (make-Label already-loaded))
-         ,linked
-         ,(make-TestAndJumpStatement (make-TestTrue 
-                                        (make-IsModuleInvoked a-module-name))
-                                       already-loaded)
-         ,(make-PushControlFrame/Call on-return)
-         ,(make-GotoStatement (ModuleEntry a-module-name))
-         ,on-return-multiple
-         ,(make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
-                                                 (make-Const 1))
-                               (make-Const 0))
-         ,on-return
-         ,already-loaded)))]))
+    [(kernel-module-name? a-module-name)
+     empty-instruction-sequence]
+    [else
+     (let* ([linked (make-label 'linked)]
+            [already-loaded (make-label 'alreadyLoaded)]
+            [on-return-multiple (make-label 'onReturnMultiple)]
+            [on-return (make-LinkedLabel (make-label 'onReturn)
+                                         on-return-multiple)])
+       (append-instruction-sequences
+        (make-TestAndJumpStatement (make-TestTrue
+                                    (make-IsModuleLinked a-module-name))
+                                   linked)
+        ;; TODO: raise an exception here that says that the module hasn't been
+        ;; linked yet.
+        (make-DebugPrint (make-Const 
+                          (format "DEBUG: the module ~a hasn't been linked in!!!"
+                                  (ModuleLocator-name a-module-name))))
+        (make-GotoStatement (make-Label already-loaded))
+        linked
+        (make-TestAndJumpStatement (make-TestTrue 
+                                    (make-IsModuleInvoked a-module-name))
+                                   already-loaded)
+        (make-PushControlFrame/Call on-return)
+        (make-GotoStatement (ModuleEntry a-module-name))
+        on-return-multiple
+        (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
+                                               (make-Const 1))
+                             (make-Const 0))
+        on-return
+        already-loaded))]))
 
 
 (: kernel-module-name? (ModuleLocator -> Boolean))
@@ -445,18 +437,15 @@
               empty-instruction-sequence]
              
              [(eq? context 'keep-multiple)
-              (make-instruction-sequence
-               `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))]
-
+              (make-AssignImmediateStatement 'argcount (make-Const 1))]
+             
              [(natural? context)
               (if (= context 1)
                   empty-instruction-sequence
-                  (make-instruction-sequence
-                   `(,(make-AssignImmediateStatement 'argcount
-                                                     (make-Const 1))
-                     ,(make-PerformStatement
-                       (make-RaiseContextExpectedValuesError!
-                        context)))))]))]))
+                  (append-instruction-sequences
+                   (make-AssignImmediateStatement 'argcount (make-Const 1))
+                   (make-PerformStatement (make-RaiseContextExpectedValuesError!
+                                           context))))]))]))
 
 
 
@@ -468,8 +457,7 @@
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
-                       (make-instruction-sequence
-                        `(,(make-AssignImmediateStatement target (make-Const (Constant-v exp)))))
+                       (make-AssignImmediateStatement target (make-Const (Constant-v exp)))
                        singular-context-check))))
 
 
@@ -480,8 +468,7 @@
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
-                       (make-instruction-sequence
-                        `(,(make-AssignImmediateStatement target exp)))
+                       (make-AssignImmediateStatement target exp)
                        singular-context-check))))
 
 
@@ -492,11 +479,9 @@
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
-                       (make-instruction-sequence
-                        `(,(make-AssignImmediateStatement 
-                            target
-                            (make-EnvLexicalReference (LocalRef-depth exp)
-                                                      (LocalRef-unbox? exp)))))
+                       (make-AssignImmediateStatement target
+                                                      (make-EnvLexicalReference (LocalRef-depth exp)
+                                                                                (LocalRef-unbox? exp)))
                        singular-context-check))))
 
 
@@ -677,25 +662,24 @@
           [(ReturnLinkage? linkage)
            (cond
              [(ReturnLinkage-tail? linkage)
-              (make-instruction-sequence 
-               `(,(make-PopEnvironment (make-Const (length cenv)) 
+              (append-instruction-sequences 
+               (make-PopEnvironment (make-Const (length cenv)) 
                                        (make-SubtractArg (make-Reg 'argcount)
                                                          (make-Const 1)))
-                 ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
-                 ,(make-PopControlFrame)
-                 ,(make-GotoStatement (make-Reg 'proc))))]
+               (make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
+               (make-PopControlFrame)
+               (make-GotoStatement (make-Reg 'proc)))]
              [else
-              (make-instruction-sequence
-               `(,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
-                 ,(make-PopControlFrame)
-                 ,(make-GotoStatement (make-Reg 'proc))))])]
+              (append-instruction-sequences
+               (make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
+               (make-PopControlFrame)
+               (make-GotoStatement (make-Reg 'proc)))])]
           
           [(NextLinkage? linkage)
            empty-instruction-sequence]
           
           [(LabelLinkage? linkage)
-           (make-instruction-sequence 
-            `(,(make-GotoStatement (make-Label (LabelLinkage-label linkage)))))])))]))
+           (make-GotoStatement (make-Label (LabelLinkage-label linkage)))])))]))
               
        
 
@@ -757,8 +741,7 @@
       (apply append-instruction-sequences
              (map (lambda: ([lam : (U Lam EmptyClosureReference)]
                             [target : Target]) 
-                           (make-instruction-sequence
-                            `(,(make-AssignPrimOpStatement
+                           (make-AssignPrimOpStatement
                                 target
                                 (cond
                                   [(Lam? lam)
@@ -770,7 +753,7 @@
                                    (make-MakeCompiledProcedure (EmptyClosureReference-entry-label lam)
                                                                (EmptyClosureReference-arity lam)
                                                                '()
-                                                               (EmptyClosureReference-name lam))])))))
+                                                               (EmptyClosureReference-name lam))])))
                   (CaseLam-clauses exp)
                   (build-list (length (CaseLam-clauses exp))
                               (lambda: ([i : Natural])
@@ -863,18 +846,17 @@
 (define (compile-lambda-body exp cenv)
   (let: ([maybe-unsplice-rest-argument : InstructionSequence
                                        (if (Lam-rest? exp)
-                                           (make-instruction-sequence 
-                                            `(,(make-PerformStatement 
+                                           (make-PerformStatement 
                                                 (make-UnspliceRestFromStack! 
                                                  (make-Const (Lam-num-parameters exp))
                                                  (make-SubtractArg (make-Reg 'argcount)
-                                                                   (make-Const (Lam-num-parameters exp)))))))
+                                                                   (make-Const (Lam-num-parameters exp)))))
                                            empty-instruction-sequence)]
          [maybe-install-closure-values : InstructionSequence
                                        (if (not (empty? (Lam-closure-map exp)))
-                                           (make-instruction-sequence 
-                                            `(,(make-Comment (format "installing closure for ~s" (Lam-name exp)))
-                                              ,(make-PerformStatement (make-InstallClosureValues!))))
+                                           (append-instruction-sequences
+                                            (make-Comment (format "installing closure for ~s" (Lam-name exp)))
+                                            (make-PerformStatement (make-InstallClosureValues!)))
                                            empty-instruction-sequence)]
          [lam-body-code : InstructionSequence
                         (compile (Lam-body exp)
@@ -1000,10 +982,10 @@
             [(Prefix? op-knowledge)
              (error 'impossible)]
             [(Const? op-knowledge)
-             (make-instruction-sequence 
-              `(,(make-AssignImmediateStatement 'proc op-knowledge)
-                ,(make-PerformStatement
-                  (make-RaiseOperatorApplicationError! (make-Reg 'proc)))))]))))
+             (append-instruction-sequences
+              (make-AssignImmediateStatement 'proc op-knowledge)
+              (make-PerformStatement
+               (make-RaiseOperatorApplicationError! (make-Reg 'proc))))]))))
 
 
 (: compile-general-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -1832,11 +1814,10 @@
            (apply append-instruction-sequences
                   (map (lambda: ([lam : Lam]
                                  [i : Natural])
-                                (make-instruction-sequence 
-                                 `(,(make-Comment (format "Installing shell for ~s\n" (Lam-name lam)))
-                                   ,(make-PerformStatement 
-                                     (make-FixClosureShellMap! i (Lam-closure-map lam))))))
-                       
+                                (append-instruction-sequences
+                                 (make-Comment (format "Installing shell for ~s\n" (Lam-name lam)))
+                                 (make-PerformStatement (make-FixClosureShellMap! i 
+                                                                                  (Lam-closure-map lam)))))
                        (LetRec-procs exp)
                        (build-list n (lambda: ([i : Natural]) i))))
            
@@ -1884,9 +1865,9 @@
 	      (apply append-instruction-sequences
 		     (map (lambda: ([to : EnvLexicalReference]
 				    [from : OpArg])
-				   (make-instruction-sequence
-				    `(,(make-Comment "install-value: installing value")
-				      ,(make-AssignImmediateStatement to from))))
+				   (append-instruction-sequences
+				    (make-Comment "install-value: installing value")
+                                    (make-AssignImmediateStatement to from)))
 			  (build-list count (lambda: ([i : Natural])
 						     (make-EnvLexicalReference (+ i 
 										  (InstallValue-depth exp)
@@ -2014,15 +1995,14 @@
           (apply append-instruction-sequences
              (map (lambda: ([id : ToplevelRef]
                             [from : OpArg])
-                           (make-instruction-sequence
-                            `(,(make-AssignImmediateStatement
+                           (make-AssignImmediateStatement
                                 ;; Slightly subtle: the toplevelrefs were with respect to the
                                 ;; stack at the beginning of def-values, but at the moment,
                                 ;; there may be additional values that are currently there.
                                 (make-EnvPrefixReference (+ (ensure-natural (sub1 n))
                                                             (ToplevelRef-depth id))
                                                          (ToplevelRef-pos id))
-                                from))))
+                                from))
                   ids
                   (if (> n 0) 
                       (cons (make-Reg 'val)

@@ -513,9 +513,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var Primitives = {};
 
     var installPrimitiveProcedure = function(name, arity, f) {
-        Primitives[name] = f;
-        Primitives[name].racketArity = arity;
-        Primitives[name].displayName = name;
+        Primitives[name] = makePrimitiveProcedure(name, arity, f);
     };
 
     var installPrimitiveClosure = function(name, arity, f) {

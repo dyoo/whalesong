@@ -284,9 +284,6 @@
 			       return MACHINE.control.pop().label(MACHINE);
 			   },
 			   []);
-        // f.racketArity = arity;
-        // f.displayName = name;
-        // return f;
     };
 
     var makeClosure = function(name, arity, f, closureArgs) {

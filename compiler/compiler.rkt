@@ -1380,9 +1380,9 @@
        linkage
        cenv
        (append-instruction-sequences
-        (make-TestAndJumpStatement (make-TestPrimitiveProcedure
-                                    (make-Reg 'proc))
-                                   primitive-branch)
+        ;; (make-TestAndJumpStatement (make-TestPrimitiveProcedure
+        ;;                             (make-Reg 'proc))
+        ;;                            primitive-branch)
         
         
         ;; Compiled branch
@@ -1394,9 +1394,9 @@
                                                 compiled-linkage)
         
         ;; Primitive branch
-        primitive-branch
-        (make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
-        (compile-primitive-application cenv target primitive-linkage)
+        ;; primitive-branch
+        ;; (make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
+        ;; (compile-primitive-application cenv target primitive-linkage)
         after-call)))))
 
 

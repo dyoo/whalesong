@@ -245,22 +245,18 @@
     // extra function call here.
     var finalizeClosureCall = function(MACHINE) {
         MACHINE.callsBeforeTrampoline--;
-        var frame, i, returnArgs = [].slice.call(arguments, 1);
+        var i, returnArgs = [].slice.call(arguments, 1);
 
         // clear out stack space
         // TODO: replace with a splice.
-        for(i = 0; i < MACHINE.argcount; i++) {
-            MACHINE.env.pop();
-        }
+	MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
 
         if (returnArgs.length === 1) {
             MACHINE.val = returnArgs[0];
-	    frame = MACHINE.control.pop();
-	    return frame.label(MACHINE);
+	    return MACHINE.control.pop().label(MACHINE);
         } else if (returnArgs.length === 0) {
             MACHINE.argcount = 0;
-	    frame = MACHINE.control.pop();
-	    return frame.label.multipleValueReturn(MACHINE);
+	    return MACHINE.control.pop().label.multipleValueReturn(MACHINE);
         } else {
             MACHINE.argcount = returnArgs.length;
             MACHINE.val = returnArgs.shift();
@@ -268,8 +264,7 @@
             for(i = 0; i < MACHINE.argcount - 1; i++) {
                 MACHINE.env.push(returnArgs.pop());
             }
-	    frame = MACHINE.control.pop();
-	    return frame.label.multipleValueReturn(MACHINE);
+	    return MACHINE.control.pop().label.multipleValueReturn(MACHINE);
         }
     };
 

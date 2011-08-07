@@ -69,13 +69,16 @@
  
 
 
-(check-equal? (run-my-parse #'(begin (define x 3)
+(check-true (match (run-my-parse #'(begin (define x 3)
                                      x))
-              (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
-                        (make-Splice (list (make-DefValues (list (make-ToplevelRef 0 0 #f #t))
-                                                           (make-Constant 3))
-                                           (make-ToplevelRef 0 0 #f #t)))))
-
+              [(struct Top ((struct Prefix (_))
+                            (struct Splice ((list (struct DefValues ((list (struct ToplevelRef ('0 '0 '#f '#t)))
+                                                                     (struct Constant ('3))))
+                                                  (struct ToplevelRef ('0 '0 '#f '#t)))))))
+               #t]
+              [else
+               #f]))
+                 
 
 ;; Lambdas
 (let ([parsed (run-my-parse #'(lambda (x) x))])
@@ -368,9 +371,16 @@
 
 
 ;; Variable reference
-(check-equal? (run-my-parse #'(#%variable-reference x))
-              (make-Top (make-Prefix (list (make-GlobalBucket 'x)))
-                       (make-VariableReference (make-ToplevelRef 0 0 #f #t))))
+(check-true (match (run-my-parse #'(#%variable-reference x))
+              [(struct Top ((struct Prefix 
+                              ((list #f (struct GlobalBucket ('x)))))
+                            (struct VariableReference ((struct ToplevelRef ('0 '1 '#f '#t))))))
+               #t]
+              [else
+               #f]))
+              
+;(make-Top (make-Prefix (list (make-GlobalBucket 'x)))
+;                       (make-VariableReference (make-ToplevelRef 0 0 #f #t))))
 
 ;; todo: see what it would take to run a typed/racket/base language.
 (void 

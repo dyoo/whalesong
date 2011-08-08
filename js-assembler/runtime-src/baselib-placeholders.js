@@ -1,49 +1,50 @@
 // Placeholders
-
-(function(baselib) {
+/*jslint browser: true, unparam: true, vars: true, maxerr: 50, indent: 4 */
+(function (baselib) {
+    'use strict';
     var exports = {};
     baselib.placeholders = exports;
 
 
     // Placeholders: same thing as boxes.  Distinct type just to support make-reader-graph.
 
-    var Placeholder = function(x, mutable) {
+    var Placeholder = function (x, mutable) {
         this.val = x;
     };
 
-    Placeholder.prototype.ref = function() {
+    Placeholder.prototype.ref = function () {
         return this.val;
     };
 
-    Placeholder.prototype.set = function(newVal) {
-	this.val = newVal;
+    Placeholder.prototype.set = function (newVal) {
+        this.val = newVal;
     };
 
-    Placeholder.prototype.toString = function(cache) {
+    Placeholder.prototype.toString = function (cache) {
         return "#<placeholder>";
     };
 
-    Placeholder.prototype.toWrittenString = function(cache) {
+    Placeholder.prototype.toWrittenString = function (cache) {
         return "#<placeholder>";
     };
 
-    Placeholder.prototype.toDisplayedString = function(cache) {
+    Placeholder.prototype.toDisplayedString = function (cache) {
         return "#<placeholder>";
     };
 
-    Placeholder.prototype.toDomNode = function(cache) {
+    Placeholder.prototype.toDomNode = function (cache) {
         var parent = document.createElement("span");
         parent.appendChild(document.createTextNode('#<placeholder>'));
         return parent;
     };
 
-    Placeholder.prototype.equals = function(other, aUnionFind) {
+    Placeholder.prototype.equals = function (other, aUnionFind) {
         return ((other instanceof Placeholder) &&
-	        plt.baselib.equality.equals(this.val, other.val, aUnionFind));
+                baselib.equality.equals(this.val, other.val, aUnionFind));
     };
 
 
-    var isPlaceholder = function(x) { 
+    var isPlaceholder = function (x) { 
         return x instanceof Placeholder; 
     };
     
@@ -55,4 +56,4 @@
 
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

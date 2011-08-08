@@ -1,30 +1,33 @@
 // Arity structure
-(function(baselib) {
+/*jslint unparam: true, sub: true, vars: true, maxerr: 50, indent: 4 */
+/*globals jQuery*/
+(function (baselib) {
+    'use strict';
     var exports = {};
     baselib.ports = exports;
 
 
     // Output Ports
 
-    var OutputPort = function() {};
+    var OutputPort = function () {};
     var isOutputPort = baselib.makeClassPredicate(OutputPort);
 
 
-    var StandardOutputPort = function() {
+    var StandardOutputPort = function () {
         OutputPort.call(this);
     };
     StandardOutputPort.prototype = baselib.heir(OutputPort.prototype);
-    StandardOutputPort.prototype.writeDomNode = function(MACHINE, domNode) {
-	MACHINE.params['currentDisplayer'](MACHINE, domNode);
+    StandardOutputPort.prototype.writeDomNode = function (MACHINE, domNode) {
+        MACHINE.params['currentDisplayer'](MACHINE, domNode);
         jQuery('*', domNode).trigger({type : 'afterAttach'});
     };
 
-    var StandardErrorPort = function() {
+    var StandardErrorPort = function () {
         OutputPort.call(this);
     };
     StandardErrorPort.prototype = baselib.heir(OutputPort.prototype);
-    StandardErrorPort.prototype.writeDomNode = function(MACHINE, domNode) {
-	MACHINE.params['currentErrorDisplayer'](MACHINE, domNode);
+    StandardErrorPort.prototype.writeDomNode = function (MACHINE, domNode) {
+        MACHINE.params['currentErrorDisplayer'](MACHINE, domNode);
         jQuery('*', domNode).trigger({type : 'afterAttach'});
     };
 
@@ -33,15 +36,15 @@
 
 
 
-    var OutputStringPort = function() {
-	this.buf = [];
+    var OutputStringPort = function () {
+        this.buf = [];
     };
     OutputStringPort.prototype = baselib.heir(OutputPort.prototype);
-    OutputStringPort.prototype.writeDomNode = function(MACHINE, v) {
-	this.buf.push($(v).text());
+    OutputStringPort.prototype.writeDomNode = function (MACHINE, v) {
+        this.buf.push(jQuery(v).text());
     };
-    OutputStringPort.prototype.getOutputString = function() {
-	return this.buf.join('');
+    OutputStringPort.prototype.getOutputString = function () {
+        return this.buf.join('');
     };
     var isOutputStringPort = baselib.makeClassPredicate(OutputStringPort);
 
@@ -56,4 +59,4 @@
     exports.isOutputStringPort = isOutputStringPort;
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

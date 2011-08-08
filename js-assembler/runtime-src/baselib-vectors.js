@@ -5,7 +5,7 @@
 
 
 
-    Vector = function(n, initialElements) {
+    var Vector = function(n, initialElements) {
         this.elts = new Array(n);
         if (initialElements) {
 	    for (var i = 0; i < n; i++) {

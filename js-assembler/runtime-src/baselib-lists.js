@@ -7,7 +7,7 @@
 
 
     
-    Empty = function() {
+    var Empty = function() {
     };
     Empty.EMPTY = new Empty();
     var EMPTY = Empty.EMPTY;

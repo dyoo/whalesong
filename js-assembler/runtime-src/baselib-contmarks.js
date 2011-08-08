@@ -29,7 +29,20 @@
         return [];
     };
 
-    exports.ContinuationMarkSet = ContinuationMarkSet;
 
+
+
+    // A continuation prompt tag labels a prompt frame.
+    var ContinuationPromptTag = function(name) {
+	this.name = name;
+    };
+
+
+
+
+
+
+    exports.ContinuationMarkSet = ContinuationMarkSet;
+    exports.ContinuationPromptTag = ContinuationPromptTag;
 
 })(this['plt'].baselib);

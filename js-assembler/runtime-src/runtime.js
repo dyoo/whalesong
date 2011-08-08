@@ -56,6 +56,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
     var makeClosure = plt.baselib.functions.makeClosure;
 
+    var ContinuationPromptTag = plt.baselib.contmarks.ContinuationPromptTag;
+
 
     // Other helpers
     var withArguments = plt.baselib.withArguments;
@@ -330,38 +332,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
 
 
-
-    // recomputeGas: state number -> number
-    var recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
-	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
-	// that we get MACHINE.params.desiredYieldsPerSecond bounces per
-	// second.
-	var DESIRED_DELAY_BETWEEN_BOUNCES = 
-	    (1000 / MACHINE.params.desiredYieldsPerSecond);
-	var ALPHA = 50;
-	var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
-			       observedDelay) / 
-			      DESIRED_DELAY_BETWEEN_BOUNCES));
-	MACHINE.params.maxNumBouncesBeforeYield = 
-            Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
-                     1);
-    };
-
-
-    var HaltError = function(onHalt) {
-        // onHalt: MACHINE -> void
-        this.onHalt = onHalt || function(MACHINE) {};
-    };
-
-
-    var Pause = function(onPause) {
-        // onPause: MACHINE -> void
-        this.onPause = onPause || function(MACHINE) {};
-    };
-
-    var PAUSE = function(onPause) {
-        throw(new Pause(onPause));
-    };
     
 
 
@@ -457,6 +427,44 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	return;
     };
 
+    // recomputeGas: state number -> number
+    var recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
+	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
+	// that we get MACHINE.params.desiredYieldsPerSecond bounces per
+	// second.
+	var DESIRED_DELAY_BETWEEN_BOUNCES = 
+	    (1000 / MACHINE.params.desiredYieldsPerSecond);
+	var ALPHA = 50;
+	var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
+			       observedDelay) / 
+			      DESIRED_DELAY_BETWEEN_BOUNCES));
+	MACHINE.params.maxNumBouncesBeforeYield = 
+            Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
+                     1);
+    };
+
+
+
+    // These are exception values that are treated specially in the context
+    // of the trampoline.
+
+    var HaltError = function(onHalt) {
+        // onHalt: MACHINE -> void
+        this.onHalt = onHalt || function(MACHINE) {};
+    };
+
+
+    var Pause = function(onPause) {
+        // onPause: MACHINE -> void
+        this.onPause = onPause || function(MACHINE) {};
+    };
+
+    var PAUSE = function(onPause) {
+        throw(new Pause(onPause));
+    };
+
+
+
 
 
     //////////////////////////////////////////////////////////////////////
@@ -491,22 +499,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-
-
-    var VariableReference = function(prefix, pos) {
-        this.prefix = prefix;
-        this.pos = pos;
-    };
-
-
-
-    // A continuation prompt tag labels a prompt frame.
-    var ContinuationPromptTag = function(name) {
-	this.name = name;
-    };
-
-
-
     // There is a single, distinguished default continuation prompt tag
     // that's used to wrap around toplevel prompts.
     var DEFAULT_CONTINUATION_PROMPT_TAG = 
@@ -522,6 +514,13 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
+
+    var VariableReference = function(prefix, pos) {
+        this.prefix = prefix;
+        this.pos = pos;
+    };
+
+
 
 
 

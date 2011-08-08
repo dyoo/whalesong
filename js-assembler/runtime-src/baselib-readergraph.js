@@ -1,3 +1,4 @@
+/*jslint vars: true, nomen: true, plusplus: true, maxerr: 50, indent: 4 */
 // Arity structure
 (function (baselib) {
     'use strict';

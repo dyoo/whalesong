@@ -1,5 +1,8 @@
+/*jslint unparam: true, sub: true, vars: true, white: true, nomen: true, plusplus: true, maxerr: 50, indent: 4 */
+
 // Arity structure
-(function(baselib) {
+(function (baselib) {
+    'use strict';
     var exports = {};
     baselib.primitives = exports;
 
@@ -9,114 +12,67 @@
     // We try to isolate the effect of external modules: all the identifiers we
     // pull from external modules should be listed here, and should otherwise not
     // show up outside this section!
-    var isNumber = plt.baselib.numbers.isNumber;
-    var isNatural = plt.baselib.numbers.isNatural;
-    var isReal = plt.baselib.numbers.isReal;
-    var isPair = plt.baselib.lists.isPair;
-    var isList = plt.baselib.lists.isList;
-    var isVector = plt.baselib.vectors.isVector;
-    var isString = plt.baselib.strings.isString;
-    var isSymbol = plt.baselib.symbols.isSymbol;
-    var isNonNegativeReal = plt.baselib.numbers.isNonNegativeReal;
-    var equals = plt.baselib.equality.equals;
+    var isNumber = baselib.numbers.isNumber;
+    var isNatural = baselib.numbers.isNatural;
+    var isPair = baselib.lists.isPair;
+    var isList = baselib.lists.isList;
+    var isString = baselib.strings.isString;
+    var isSymbol = baselib.symbols.isSymbol;
+    var equals = baselib.equality.equals;
 
-    var NULL = plt.baselib.lists.EMPTY;
-    var VOID = plt.baselib.constants.VOID_VALUE;
-    var EOF = plt.baselib.constants.EOF_VALUE;
+    var NULL = baselib.lists.EMPTY;
+    var VOID = baselib.constants.VOID_VALUE;
 
-    var NEGATIVE_ZERO = plt.baselib.numbers.negative_zero;
-    var INF = plt.baselib.numbers.inf;
-    var NEGATIVE_INF = plt.baselib.numbers.negative_inf;
-    var NAN = plt.baselib.numbers.nan;
+    var makeFloat = baselib.numbers.makeFloat;
+    var makeComplex = baselib.numbers.makeComplex;
+    var makeComplexPolar = baselib.numbers.makeComplexPolar;
 
-    var makeFloat = plt.baselib.numbers.makeFloat;
-    var makeRational = plt.baselib.numbers.makeRational;
-    var makeBignum = plt.baselib.numbers.makeBignum;
-    var makeComplex = plt.baselib.numbers.makeComplex;
+    var makeSymbol = baselib.symbols.makeSymbol;
 
-    var makeSymbol = plt.baselib.symbols.makeSymbol;
+    var makeBox = baselib.boxes.makeBox;
 
-    var makeBox = plt.baselib.boxes.makeBox;
-    var isBox = plt.baselib.boxes.isBox;
+    var makeVector = baselib.vectors.makeVector;
+    var makeList = baselib.lists.makeList;
+    var makePair = baselib.lists.makePair;
 
-    var makeVector = plt.baselib.vectors.makeVector;
-    var makeList = plt.baselib.lists.makeList;
-    var makePair = plt.baselib.lists.makePair;
-
-
-    var Closure = plt.baselib.functions.Closure;
-    var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
-    var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
-    var makeClosure = plt.baselib.functions.makeClosure;
+    var finalizeClosureCall = baselib.functions.finalizeClosureCall;
+    var makePrimitiveProcedure = baselib.functions.makePrimitiveProcedure;
+    var makeClosure = baselib.functions.makeClosure;
 
 
     // Other helpers
-    var withArguments = plt.baselib.withArguments;
-    var heir = plt.baselib.heir;
-    var makeClassPredicate = plt.baselib.makeClassPredicate;
-    var toDomNode = plt.baselib.format.toDomNode;
-    var toWrittenString = plt.baselib.format.toWrittenString;
-    var toDisplayedString = plt.baselib.format.toDisplayedString;
-
-
-
-    // Frame structures.
-    var Frame = plt.baselib.frames.Frame;
-    var CallFrame = plt.baselib.frames.CallFrame;
-    var PromptFrame = plt.baselib.frames.PromptFrame;
-
-    // Module structure
-    var ModuleRecord = plt.baselib.modules.ModuleRecord;
-
-
-
-    // Ports
-    var OutputPort = plt.baselib.ports.OutputPort;
-    var isOutputPort = plt.baselib.ports.isOutputPort;
-    var StandardOutputPort = plt.baselib.ports.StandardOutputPort;
-    var StandardErrorPort = plt.baselib.ports.StandardErrorPort;
-    var OutputStringPort = plt.baselib.ports.OutputStringPort;
-    var isOutputStringPort = plt.baselib.ports.isOutputStringPort;
-
+    var withArguments = baselib.withArguments;
+    var toDomNode = baselib.format.toDomNode;
 
 
 
     // Exceptions and error handling.
-    var raise = plt.baselib.exceptions.raise;
-    var raiseUnboundToplevelError = plt.baselib.exceptions.raiseUnboundToplevelError;
-    var raiseArgumentTypeError = plt.baselib.exceptions.raiseArgumentTypeError;
-    var raiseContextExpectedValuesError = plt.baselib.exceptions.raiseContextExpectedValuesError;
-    var raiseArityMismatchError = plt.baselib.exceptions.raiseArityMismatchError;
-    var raiseOperatorApplicationError = plt.baselib.exceptions.raiseOperatorApplicationError;
-    var raiseOperatorIsNotPrimitiveProcedure = plt.baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
-    var raiseOperatorIsNotClosure = plt.baselib.exceptions.raiseOperatorIsNotClosure;
-    var raiseUnimplementedPrimitiveError = plt.baselib.exceptions.raiseUnimplementedPrimitiveError;
-    
+    var raise = baselib.exceptions.raise;
+    var raiseArgumentTypeError = baselib.exceptions.raiseArgumentTypeError;
+    var raiseArityMismatchError = baselib.exceptions.raiseArityMismatchError;
 
-    var testArgument = plt.baselib.check.testArgument;
-    var testArity = plt.baselib.check.testArity;
-    var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
+    var testArgument = baselib.check.testArgument;
 
-    var checkOutputPort = plt.baselib.check.checkOutputPort;
-    var checkString = plt.baselib.check.checkString;
-    var checkMutableString = plt.baselib.check.checkMutableString;
-    var checkSymbol = plt.baselib.check.checkSymbol;
-    var checkByte = plt.baselib.check.checkByte;
-    var checkChar = plt.baselib.check.checkChar;
-    var checkProcedure = plt.baselib.check.checkProcedure;
-    var checkNumber = plt.baselib.check.checkNumber;
-    var checkReal = plt.baselib.check.checkReal;
-    var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
-    var checkNatural = plt.baselib.check.checkNatural;
-    var checkNaturalInRange = plt.baselib.check.checkNaturalInRange;
-    var checkInteger = plt.baselib.check.checkInteger;
-    var checkRational = plt.baselib.check.checkRational;
-    var checkPair = plt.baselib.check.checkPair;
-    var checkList = plt.baselib.check.checkList;
-    var checkVector = plt.baselib.check.checkVector;
-    var checkBox = plt.baselib.check.checkBox;
-    var checkMutableBox = plt.baselib.check.checkMutableBox;
-    var checkInspector = plt.baselib.check.checkInspector;
+    var checkOutputPort = baselib.check.checkOutputPort;
+    var checkString = baselib.check.checkString;
+    var checkMutableString = baselib.check.checkMutableString;
+    var checkSymbol = baselib.check.checkSymbol;
+    var checkByte = baselib.check.checkByte;
+    var checkChar = baselib.check.checkChar;
+    var checkProcedure = baselib.check.checkProcedure;
+    var checkNumber = baselib.check.checkNumber;
+    var checkReal = baselib.check.checkReal;
+    var checkNonNegativeReal = baselib.check.checkNonNegativeReal;
+    var checkNatural = baselib.check.checkNatural;
+    var checkNaturalInRange = baselib.check.checkNaturalInRange;
+    var checkInteger = baselib.check.checkInteger;
+    var checkRational = baselib.check.checkRational;
+    var checkPair = baselib.check.checkPair;
+    var checkList = baselib.check.checkList;
+    var checkVector = baselib.check.checkVector;
+    var checkBox = baselib.check.checkBox;
+    var checkMutableBox = baselib.check.checkMutableBox;
+    var checkInspector = baselib.check.checkInspector;
     //////////////////////////////////////////////////////////////////////
 
 
@@ -134,76 +90,78 @@
     // the bootstrapping code in compiler/boostrapped-primitives.rkt
     var Primitives = {};
 
-    var installPrimitiveProcedure = function(name, arity, f) {
+    var installPrimitiveProcedure = function (name, arity, f) {
         Primitives[name] = makePrimitiveProcedure(name, arity, f);
     };
 
-    var installPrimitiveClosure = function(name, arity, f) {
+    var installPrimitiveClosure = function (name, arity, f) {
         Primitives[name] = makeClosure(name, arity, f, []);
     };
 
 
-    var installPrimitiveConstant = function(name, v) {
+    var installPrimitiveConstant = function (name, v) {
         Primitives[name] = v;
     };
 
 
 
-    installPrimitiveConstant('pi', plt.baselib.numbers.pi);
-    installPrimitiveConstant('e', plt.baselib.numbers.e);
+    installPrimitiveConstant('pi', baselib.numbers.pi);
+    installPrimitiveConstant('e', baselib.numbers.e);
     installPrimitiveConstant('null', NULL);
     installPrimitiveConstant('true', true);
     installPrimitiveConstant('false', false);
 
 
     installPrimitiveProcedure(
-        'display', makeList(1, 2),
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var outputPort = MACHINE.params.currentOutputPort;
-	    if (MACHINE.argcount === 2) {
-	        outputPort = checkOutputPort(MACHINE, 'display', 1);
-	    }
-	    outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
+        'display',
+        makeList(1, 2),
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length - 1];
+            var outputPort = MACHINE.params.currentOutputPort;
+            if (MACHINE.argcount === 2) {
+                outputPort = checkOutputPort(MACHINE, 'display', 1);
+            }
+            outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
             return VOID;
         });
 
 
     installPrimitiveProcedure(
-        'write-byte', makeList(1, 2),
-        function(MACHINE) {
-	    var firstArg = checkByte(MACHINE, 'write-byte', 0);
-	    var outputPort = MACHINE.params.currentOutputPort;
-	    if (MACHINE.argcount === 2) {
-	        outputPort = checkOutputPort(MACHINE, 'display', 1);
-	    }
-	    outputPort.writeDomNode(MACHINE, toDomNode(String.fromCharCode(firstArg), 'display'));
+        'write-byte', 
+        makeList(1, 2),
+        function (MACHINE) {
+            var firstArg = checkByte(MACHINE, 'write-byte', 0);
+            var outputPort = MACHINE.params.currentOutputPort;
+            if (MACHINE.argcount === 2) {
+                outputPort = checkOutputPort(MACHINE, 'display', 1);
+            }
+            outputPort.writeDomNode(MACHINE, toDomNode(String.fromCharCode(firstArg), 'display'));
             return VOID;
         });
 
 
     installPrimitiveProcedure(
         'newline', makeList(0, 1),
-        function(MACHINE) {
-	    var outputPort = MACHINE.params.currentOutputPort;
-	    if (MACHINE.argcount === 1) { 
-	        outputPort = checkOutputPort(MACHINE, 'newline', 1);
-	    }
-	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+        function (MACHINE) {
+            var outputPort = MACHINE.params.currentOutputPort;
+            if (MACHINE.argcount === 1) { 
+                outputPort = checkOutputPort(MACHINE, 'newline', 1);
+            }
+            outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
             return VOID;
         });
 
     installPrimitiveProcedure(
         'displayln',
         makeList(1, 2),
-        function(MACHINE){
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var outputPort = MACHINE.params.currentOutputPort;
-	    if (MACHINE.argcount === 2) {
+        function (MACHINE){
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            var outputPort = MACHINE.params.currentOutputPort;
+            if (MACHINE.argcount === 2) {
                 outputPort = checkOutputPort(MACHINE, 'displayln', 1);
-	    }
-	    outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
-	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+            }
+            outputPort.writeDomNode(MACHINE, toDomNode(firstArg, 'display'));
+            outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
             return VOID;
         });
 
@@ -211,45 +169,45 @@
 
     installPrimitiveProcedure(
         'format',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
             var args = [], i, formatString;
             formatString = checkString(MACHINE, 'format', 0).toString();
             for(i = 1; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
-            return plt.baselib.format.format(formatString, args, 'format');
+            return baselib.format.format(formatString, args, 'format');
         });
 
 
     installPrimitiveProcedure(
         'printf',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
             var args = [], i, formatString, result, outputPort;
             formatString = checkString(MACHINE, 'printf', 0).toString();
             for(i = 1; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
-            result = plt.baselib.format.format(formatString, args, 'format');
+            result = baselib.format.format(formatString, args, 'format');
             outputPort = MACHINE.params.currentOutputPort;            
-	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
+            outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
             return VOID;
         });
 
 
     installPrimitiveProcedure(
         'fprintf',
-        plt.baselib.arity.makeArityAtLeast(2),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(2),
+        function (MACHINE) {
             var args = [], i, formatString, outputPort, result;
             outputPort = checkOutputPort(MACHINE, 'fprintf', 0);
             formatString = checkString(MACHINE, 'fprintf', 1).toString();
             for(i = 2; i < MACHINE.argcount; i++) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             }
-            result = plt.baselib.format.format(formatString, args, 'format');
-	    outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
+            result = baselib.format.format(formatString, args, 'format');
+            outputPort.writeDomNode(MACHINE, toDomNode(result, 'display'));
             return VOID;
         });
 
@@ -261,13 +219,13 @@
     installPrimitiveProcedure(
         'current-print',
         makeList(0, 1),
-        function(MACHINE) {
+        function (MACHINE) {
             if (MACHINE.argcount === 1) {
                 MACHINE.params['currentPrint'] =                 
                     checkProcedure(MACHINE, 'current-print', 0);
                 return VOID;
             } else {
-	        return MACHINE.params['currentPrint'];
+                return MACHINE.params['currentPrint'];
             }
         });
 
@@ -275,13 +233,13 @@
     installPrimitiveProcedure(
         'current-output-port',
         makeList(0, 1),
-        function(MACHINE) {
+        function (MACHINE) {
             if (MACHINE.argcount === 1) {
                 MACHINE.params['currentOutputPort'] = 
                     checkOutputPort(MACHINE, 'current-output-port', 0);
                 return VOID;
             } else {
-	        return MACHINE.params['currentOutputPort'];
+                return MACHINE.params['currentOutputPort'];
             }
         });
 
@@ -291,16 +249,17 @@
 
     installPrimitiveProcedure(
         '=',
-        plt.baselib.arity.makeArityAtLeast(2),
-        function(MACHINE) {
-	    var firstArg = checkNumber(MACHINE, '=', 0), secondArg;
-	    for (var i = 1; i < MACHINE.argcount; i++) {
-                var secondArg = checkNumber(MACHINE, '=', i);
-	        if (! (plt.baselib.numbers.equals(firstArg, secondArg))) {
-		    return false; 
-	        }
-	    }
-	    return true;
+        baselib.arity.makeArityAtLeast(2),
+        function (MACHINE) {
+	    var i;
+            var firstArg = checkNumber(MACHINE, '=', 0), secondArg;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                secondArg = checkNumber(MACHINE, '=', i);
+                if (! (baselib.numbers.equals(firstArg, secondArg))) {
+                    return false; 
+                }
+            }
+            return true;
         });
 
 
@@ -308,186 +267,186 @@
     installPrimitiveProcedure(
         '=~',
         3,
-        function(MACHINE) {
-	    var x = checkReal(MACHINE, '=~', 0);
-	    var y = checkReal(MACHINE, '=~', 1);
-	    var range = checkNonNegativeReal(MACHINE, '=~', 2);
-            return plt.baselib.numbers.lessThanOrEqual(
-                plt.baselib.numbers.abs(plt.baselib.numbers.subtract(x, y)), 
+        function (MACHINE) {
+            var x = checkReal(MACHINE, '=~', 0);
+            var y = checkReal(MACHINE, '=~', 1);
+            var range = checkNonNegativeReal(MACHINE, '=~', 2);
+            return baselib.numbers.lessThanOrEqual(
+                baselib.numbers.abs(baselib.numbers.subtract(x, y)), 
                 range);
         });
 
 
 
-    var makeChainingBinop = function(predicate, name) {
-        return function(MACHINE) {
-	    var firstArg = checkNumber(MACHINE, name, 0), secondArg;
-	    for (var i = 1; i < MACHINE.argcount; i++) {
-	        secondArg = checkNumber(MACHINE, name, i);
-	        if (! (predicate(firstArg, secondArg))) {
-		    return false; 
-	        }
+    var makeChainingBinop = function (predicate, name) {
+        return function (MACHINE) {
+            var firstArg = checkNumber(MACHINE, name, 0), secondArg, i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                secondArg = checkNumber(MACHINE, name, i);
+                if (! (predicate(firstArg, secondArg))) {
+                    return false; 
+                }
                 firstArg = secondArg;
-	    }
-	    return true;
+            }
+            return true;
         };
     };
 
     installPrimitiveProcedure(
         '<',
-        plt.baselib.arity.makeArityAtLeast(2),
-        makeChainingBinop(plt.baselib.numbers.lessThan, '<'));
+        baselib.arity.makeArityAtLeast(2),
+        makeChainingBinop(baselib.numbers.lessThan, '<'));
 
 
     installPrimitiveProcedure(
         '>',
-        plt.baselib.arity.makeArityAtLeast(2),
-        makeChainingBinop(plt.baselib.numbers.greaterThan, '>'));
+        baselib.arity.makeArityAtLeast(2),
+        makeChainingBinop(baselib.numbers.greaterThan, '>'));
 
 
     installPrimitiveProcedure(
         '<=',
-        plt.baselib.arity.makeArityAtLeast(2),
-        makeChainingBinop(plt.baselib.numbers.lessThanOrEqual, '<='));
+        baselib.arity.makeArityAtLeast(2),
+        makeChainingBinop(baselib.numbers.lessThanOrEqual, '<='));
 
 
     installPrimitiveProcedure(
         '>=',
-        plt.baselib.arity.makeArityAtLeast(2),
-        makeChainingBinop(plt.baselib.numbers.greaterThanOrEqual, '>='));
+        baselib.arity.makeArityAtLeast(2),
+        makeChainingBinop(baselib.numbers.greaterThanOrEqual, '>='));
     
 
     installPrimitiveProcedure(
         '+',
-        plt.baselib.arity.makeArityAtLeast(0),
-        function(MACHINE) {
-	    var result = 0;
-	    var i = 0;
-	    for (i = 0; i < MACHINE.argcount; i++) {
-	        result = plt.baselib.numbers.add(
+        baselib.arity.makeArityAtLeast(0),
+        function (MACHINE) {
+            var result = 0;
+            var i = 0;
+            for (i = 0; i < MACHINE.argcount; i++) {
+                result = baselib.numbers.add(
                     result, 
                     checkNumber(MACHINE, '+', i));
-	    };
-	    return result;
+            }
+            return result;
         });
     
 
     installPrimitiveProcedure(
         '*',
-        plt.baselib.arity.makeArityAtLeast(0),
-        function(MACHINE) {
-	    var result = 1;
-	    var i = 0;
-	    for (i=0; i < MACHINE.argcount; i++) {
-	        result = plt.baselib.numbers.multiply(
+        baselib.arity.makeArityAtLeast(0),
+        function (MACHINE) {
+            var result = 1;
+            var i = 0;
+            for (i=0; i < MACHINE.argcount; i++) {
+                result = baselib.numbers.multiply(
                     result, 
                     checkNumber(MACHINE, '*', i));
-	    }
-	    return result;
+            }
+            return result;
         });
 
     installPrimitiveProcedure(
         '-',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
-	    if (MACHINE.argcount === 1) { 
-	        return plt.baselib.numbers.subtract(
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            if (MACHINE.argcount === 1) { 
+                return baselib.numbers.subtract(
                     0, 
                     checkNumber(MACHINE, '-', 0));
-	    }
-	    var result = checkNumber(MACHINE, '-', 0);
-	    for (var i = 1; i < MACHINE.argcount; i++) {
-	        result = plt.baselib.numbers.subtract(
+            }
+            var result = checkNumber(MACHINE, '-', 0), i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                result = baselib.numbers.subtract(
                     result, 
                     checkNumber(MACHINE, '-', i));
-	    }
-	    return result;
+            }
+            return result;
         });
     
     installPrimitiveProcedure(
         '/',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
-	    var result = checkNumber(MACHINE, '/', 0);
-	    for (var i = 1; i < MACHINE.argcount; i++) {
-	        result = plt.baselib.numbers.divide(
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var result = checkNumber(MACHINE, '/', 0), i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                result = baselib.numbers.divide(
                     result,
                     checkNumber(MACHINE, '/', i));
-	    }
-	    return result;
+            }
+            return result;
         });
     
 
     installPrimitiveProcedure(
         'add1',
         1,
-        function(MACHINE) {
-	    var firstArg = checkNumber(MACHINE, 'add1', 0);
-	    return plt.baselib.numbers.add(firstArg, 1);
+        function (MACHINE) {
+            var firstArg = checkNumber(MACHINE, 'add1', 0);
+            return baselib.numbers.add(firstArg, 1);
         });
 
 
     installPrimitiveProcedure(
         'sub1',
         1,
-        function(MACHINE) {
-	    var firstArg = checkNumber(MACHINE, 'sub1', 0);
-	    return plt.baselib.numbers.subtract(firstArg, 1);
+        function (MACHINE) {
+            var firstArg = checkNumber(MACHINE, 'sub1', 0);
+            return baselib.numbers.subtract(firstArg, 1);
         });
 
 
     installPrimitiveProcedure(
         'zero?',
         1,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return plt.baselib.numbers.equals(firstArg, 0);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            return baselib.numbers.equals(firstArg, 0);
         });
 
 
     installPrimitiveProcedure(
         'cons',
         2,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    return makePair(firstArg, secondArg);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            var secondArg = MACHINE.env[MACHINE.env.length-2];
+            return makePair(firstArg, secondArg);
         });
 
 
     installPrimitiveProcedure(
         'list',
-        plt.baselib.arity.makeArityAtLeast(0),
-        function(MACHINE) {
-	    var result = NULL;
-	    for (var i = 0; i < MACHINE.argcount; i++) {
-	        result = makePair(MACHINE.env[MACHINE.env.length - (MACHINE.argcount - i)],
-		                  result);
-	    }
-	    return result;
+        baselib.arity.makeArityAtLeast(0),
+        function (MACHINE) {
+            var result = NULL, i;
+            for (i = 0; i < MACHINE.argcount; i++) {
+                result = makePair(MACHINE.env[MACHINE.env.length - (MACHINE.argcount - i)],
+                                  result);
+            }
+            return result;
         });
 
     installPrimitiveProcedure(
         'list*',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
-	    var result = checkList(MACHINE, 'list*', MACHINE.argcount - 1);
-	    for (var i = MACHINE.argcount - 2; i >= 0; i--) {
-	        result = makePair(MACHINE.env[MACHINE.env.length - 1 - i],
-		                  result);
-	    }
-	    return result;
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var result = checkList(MACHINE, 'list*', MACHINE.argcount - 1), i;
+            for (i = MACHINE.argcount - 2; i >= 0; i--) {
+                result = makePair(MACHINE.env[MACHINE.env.length - 1 - i],
+                                  result);
+            }
+            return result;
         });
 
 
     installPrimitiveProcedure(
         'list-ref',
         2,
-        function(MACHINE) {
+        function (MACHINE) {
             var lst = checkList(MACHINE, 'list-ref', 0);
             var index = checkNaturalInRange(MACHINE, 'list-ref', 1,
-                                            0, plt.baselib.lists.length(lst));
-            return plt.baselib.lists.listRef(lst, plt.baselib.numbers.toFixnum(index));
+                                            0, baselib.lists.length(lst));
+            return baselib.lists.listRef(lst, baselib.numbers.toFixnum(index));
         });
 
 
@@ -496,32 +455,32 @@
     installPrimitiveProcedure(
         'car',
         1,
-        function(MACHINE) {
-	    var firstArg = checkPair(MACHINE, 'car', 0);
-	    return firstArg.first;
+        function (MACHINE) {
+            var firstArg = checkPair(MACHINE, 'car', 0);
+            return firstArg.first;
         });
 
     installPrimitiveProcedure(
         'cdr',
         1,
-        function(MACHINE) {
-	    var firstArg = checkPair(MACHINE, 'cdr', 0);
-	    return firstArg.rest;
+        function (MACHINE) {
+            var firstArg = checkPair(MACHINE, 'cdr', 0);
+            return firstArg.rest;
         });
 
     installPrimitiveProcedure(
         'pair?',
         1,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return isPair(firstArg);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            return isPair(firstArg);
         });
 
 
     installPrimitiveProcedure(
         'list?',
         1,
-        function(MACHINE) {
+        function (MACHINE) {
             return isList(MACHINE.env[MACHINE.env.length -1]);
         });
 
@@ -529,10 +488,10 @@
     installPrimitiveProcedure(
         'set-car!',
         2,
-        function(MACHINE) {
-	    var firstArg = checkPair(MACHINE, 'set-car!', 0);
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    firstArg.first = secondArg;
+        function (MACHINE) {
+            var firstArg = checkPair(MACHINE, 'set-car!', 0);
+            var secondArg = MACHINE.env[MACHINE.env.length-2];
+            firstArg.first = secondArg;
             return VOID;
         });
 
@@ -540,10 +499,10 @@
     installPrimitiveProcedure(
         'set-cdr!',
         2,
-        function(MACHINE) {
-	    var firstArg = checkPair(MACHINE, 'set-car!', 0);
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    firstArg.rest = secondArg;
+        function (MACHINE) {
+            var firstArg = checkPair(MACHINE, 'set-car!', 0);
+            var secondArg = MACHINE.env[MACHINE.env.length-2];
+            firstArg.rest = secondArg;
             return VOID;
         });
 
@@ -551,31 +510,31 @@
     installPrimitiveProcedure(
         'not',
         1,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return (firstArg === false);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            return (firstArg === false);
         });
 
 
     installPrimitiveProcedure(
         'null?',
         1,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return firstArg === NULL;
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            return firstArg === NULL;
         });
 
 
     installPrimitiveProcedure(
         'vector',
-        plt.baselib.arity.makeArityAtLeast(0),
-        function(MACHINE) {
-	    var i;
-	    var result = [];
-	    for (i = 0; i < MACHINE.argcount; i++) {
-	        result.push(MACHINE.env[MACHINE.env.length-1-i]);
-	    }
-	    var newVector = makeVector.apply(null, result);
+        baselib.arity.makeArityAtLeast(0),
+        function (MACHINE) {
+            var i;
+            var result = [];
+            for (i = 0; i < MACHINE.argcount; i++) {
+                result.push(MACHINE.env[MACHINE.env.length-1-i]);
+            }
+            var newVector = makeVector.apply(null, result);
             return newVector;
         });
 
@@ -583,27 +542,27 @@
     installPrimitiveProcedure(
         'vector->list',
         1,
-        function(MACHINE) {
-	    var elts = checkVector(MACHINE, 'vector->list', 0).elts;
-	    var i;
-	    var result = NULL;
-	    for (i = 0; i < elts.length; i++) {
-	        result = makePair(elts[elts.length - 1 - i], result);
-	    }
-	    return result;
+        function (MACHINE) {
+            var elts = checkVector(MACHINE, 'vector->list', 0).elts;
+            var i;
+            var result = NULL;
+            for (i = 0; i < elts.length; i++) {
+                result = makePair(elts[elts.length - 1 - i], result);
+            }
+            return result;
         });
 
     
     installPrimitiveProcedure(
         'list->vector',
         1,
-        function(MACHINE) {
-	    var firstArg = checkList(MACHINE, 'list->vector', 0);
-	    var result = [];
-	    while (firstArg !== NULL) {
-	        result.push(firstArg.first);
-	        firstArg = firstArg.rest;
-	    }
+        function (MACHINE) {
+            var firstArg = checkList(MACHINE, 'list->vector', 0);
+            var result = [];
+            while (firstArg !== NULL) {
+                result.push(firstArg.first);
+                firstArg = firstArg.rest;
+            }
             return makeVector.apply(null, result);
         });
 
@@ -611,33 +570,33 @@
     installPrimitiveProcedure(
         'vector-ref',
         2,
-        function(MACHINE) {
-	    var elts = checkVector(MACHINE, 'vector-ref', 0).elts;
-	    var index = MACHINE.env[MACHINE.env.length-2];
-	    return elts[index];
+        function (MACHINE) {
+            var elts = checkVector(MACHINE, 'vector-ref', 0).elts;
+            var index = MACHINE.env[MACHINE.env.length-2];
+            return elts[index];
         });
 
 
     installPrimitiveProcedure(
         'vector-set!',
         3,
-        function(MACHINE) {
-	    var elts = checkVector(MACHINE, 'vector-set!', 0).elts;
+        function (MACHINE) {
+            var elts = checkVector(MACHINE, 'vector-set!', 0).elts;
             // FIXME: check out-of-bounds vector
-	    var index = plt.baselib.numbers.toFixnum(
+            var index = baselib.numbers.toFixnum(
                 checkNaturalInRange(MACHINE, 'vector-set!', 1,
                                     0, elts.length));
-	    var val = MACHINE.env[MACHINE.env.length - 1 - 2];
-	    elts[index] = val;
-	    return VOID;
+            var val = MACHINE.env[MACHINE.env.length - 1 - 2];
+            elts[index] = val;
+            return VOID;
         });
 
 
     installPrimitiveProcedure(
         'vector-length',
         1,
-        function(MACHINE) {
-	    return checkVector(MACHINE, 'vector-length', 0).elts.length;
+        function (MACHINE) {
+            return checkVector(MACHINE, 'vector-length', 0).elts.length;
         });
 
 
@@ -645,29 +604,31 @@
     installPrimitiveProcedure(
         'make-string',
         makeList(1, 2),
-        function(MACHINE) {
-	    var value = "\0";
-	    var length = plt.baselib.numbers.toFixnum(
+        function (MACHINE) {
+            var value = String.fromCharCode(0);
+            var length = baselib.numbers.toFixnum(
                 checkNatural(MACHINE, 'make-string', 0));
-	    if (MACHINE.argcount == 2) {
-	        value = checkChar(MACHINE, 'make-string', 1).val;
-	    }
-	    var arr = [];
-	    for(var i = 0; i < length; i++) {
-	        arr[i] = value;
-	    }
-            return plt.baselib.strings.makeMutableString(arr);
+            if (MACHINE.argcount === 2) {
+                value = checkChar(MACHINE, 'make-string', 1).val;
+            }
+            var arr = [];
+	    var i;
+            for(i = 0; i < length; i++) {
+                arr[i] = value;
+            }
+            return baselib.strings.makeMutableString(arr);
         });
 
 
     installPrimitiveProcedure(
         'string-set!',
         3,
-        function(MACHINE) {
+        function (MACHINE) {
             var str = checkMutableString(MACHINE, 'string-set!', 0);
             var k = checkNatural(MACHINE, 'string-set!', 1);
             var ch = checkChar(MACHINE, 'string-set!', 2);
-            
+	    str.set(baselib.numbers.toFixnum(k), ch.val);
+            return VOID;
         });
 
 
@@ -675,17 +636,18 @@
     installPrimitiveProcedure(
         'make-vector',
         makeList(1, 2),
-        function(MACHINE) {
-	    var value = 0;
-	    var length = plt.baselib.numbers.toFixnum(
+        function (MACHINE) {
+            var value = 0;
+            var length = baselib.numbers.toFixnum(
                 checkNatural(MACHINE, 'make-vector', 0));
-	    if (MACHINE.argcount == 2) {
-	        value = MACHINE.env[MACHINE.env.length - 2];
-	    }
-	    var arr = [];
-	    for(var i = 0; i < length; i++) {
-	        arr[i] = value;
-	    }
+            if (MACHINE.argcount === 2) {
+                value = MACHINE.env[MACHINE.env.length - 2];
+            }
+            var arr = [];
+	    var i;
+            for(i = 0; i < length; i++) {
+                arr[i] = value;
+            }
             return makeVector.apply(null, arr);
         });
     
@@ -694,26 +656,27 @@
     installPrimitiveProcedure(
         'symbol?',
         1,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return isSymbol(firstArg);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            return isSymbol(firstArg);
         });
 
     installPrimitiveProcedure(
         'symbol->string',
         1,
-        function(MACHINE) {
-	    var firstArg = checkSymbol(MACHINE, 'symbol->string', 0);
-	    return firstArg.toString();
+        function (MACHINE) {
+            var firstArg = checkSymbol(MACHINE, 'symbol->string', 0);
+            return firstArg.toString();
         });
 
 
     installPrimitiveProcedure(
         'string=?',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
             var s = checkString(MACHINE, 'string=?', 0).toString();
-            for (var i = 1; i < MACHINE.argcount; i++) {
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
                 if (checkString(MACHINE, 'string=?', i).toString() !== s) {
                     return false;
                 }
@@ -724,54 +687,54 @@
 
     installPrimitiveProcedure(
         'string-append',
-        plt.baselib.arity.makeArityAtLeast(0),
-        function(MACHINE) {
-	    var buffer = [];
-	    var i;
-	    for (i = 0; i < MACHINE.argcount; i++) {
-	        buffer.push(checkString(MACHINE, 'string-append', i).toString());
-	    }
-	    return buffer.join('');
+        baselib.arity.makeArityAtLeast(0),
+        function (MACHINE) {
+            var buffer = [];
+            var i;
+            for (i = 0; i < MACHINE.argcount; i++) {
+                buffer.push(checkString(MACHINE, 'string-append', i).toString());
+            }
+            return buffer.join('');
         });
 
     installPrimitiveProcedure(
         'string-length',
         1,
-        function(MACHINE) {
-	    var firstArg = checkString(MACHINE, 'string-length', 0).toString();
-	    return firstArg.length;
+        function (MACHINE) {
+            var firstArg = checkString(MACHINE, 'string-length', 0).toString();
+            return firstArg.length;
         });
 
 
     installPrimitiveProcedure(
-	'string?',
-	1,
-	function(MACHINE) {
-	    return isString(MACHINE.env[MACHINE.env.length - 1]);
-	});
+        'string?',
+        1,
+        function (MACHINE) {
+            return isString(MACHINE.env[MACHINE.env.length - 1]);
+        });
 
 
     installPrimitiveProcedure(
         'number->string',
         1,
-        function(MACHINE) {
+        function (MACHINE) {
             return checkNumber(MACHINE, 'number->string', 0).toString();
         });
 
 
     installPrimitiveProcedure(
-	'string->symbol',
-	1,
-	function(MACHINE) {
-	    return makeSymbol(checkString(MACHINE, 'string->symbol', 0).toString());
-	});
+        'string->symbol',
+        1,
+        function (MACHINE) {
+            return makeSymbol(checkString(MACHINE, 'string->symbol', 0).toString());
+        });
 
 
     installPrimitiveProcedure(
         'string->number',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.fromString(
+        function (MACHINE) {
+            return baselib.numbers.fromString(
                 checkString(MACHINE, 'string->number', 0).toString());
         });
 
@@ -782,46 +745,46 @@
     installPrimitiveProcedure(
         'box',
         1,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    return makeBox(firstArg);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            return makeBox(firstArg);
         });
 
     installPrimitiveProcedure(
         'unbox',
         1,
-        function(MACHINE) {
-	    var firstArg = checkBox(MACHINE, 'unbox', 0);
+        function (MACHINE) {
+            var firstArg = checkBox(MACHINE, 'unbox', 0);
             return firstArg.ref();
         });
 
     installPrimitiveProcedure(
         'set-box!',
         2,
-        function(MACHINE) {
-	    var firstArg = checkMutableBox(MACHINE, 'set-box!', 0);
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
+        function (MACHINE) {
+            var firstArg = checkMutableBox(MACHINE, 'set-box!', 0);
+            var secondArg = MACHINE.env[MACHINE.env.length-2];
             firstArg.set(secondArg);
-	    return VOID;
+            return VOID;
         });
 
     installPrimitiveProcedure(
         'void',
-        plt.baselib.arity.makeArityAtLeast(0),
-        function(MACHINE) {
-	    return VOID;
+        baselib.arity.makeArityAtLeast(0),
+        function (MACHINE) {
+            return VOID;
         });
 
 
     installPrimitiveProcedure(
         'random',
-        plt.baselib.lists.makeList(0, 1),
-        function(MACHINE) {
+        baselib.lists.makeList(0, 1),
+        function (MACHINE) {
             if (MACHINE.argcount === 0) {
-                return plt.baselib.numbers.makeFloat(Math.random());
+                return makeFloat(Math.random());
             } else {
                 var n = checkNatural(MACHINE, 'random', 0);
-		return Math.floor(Math.random() * plt.baselib.numbers.toFixnum(n));
+                return Math.floor(Math.random() * baselib.numbers.toFixnum(n));
             }
         });
 
@@ -829,19 +792,19 @@
     installPrimitiveProcedure(
         'eq?',
         2,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    return firstArg === secondArg;
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            var secondArg = MACHINE.env[MACHINE.env.length-2];
+            return firstArg === secondArg;
         });
 
     installPrimitiveProcedure(
         'eqv?',
         2,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    return plt.baselib.equality.eqv(firstArg, secondArg);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            var secondArg = MACHINE.env[MACHINE.env.length-2];
+            return baselib.equality.eqv(firstArg, secondArg);
         });
 
 
@@ -849,39 +812,40 @@
     installPrimitiveProcedure(
         'equal?',
         2,
-        function(MACHINE) {
-	    var firstArg = MACHINE.env[MACHINE.env.length-1];
-	    var secondArg = MACHINE.env[MACHINE.env.length-2];
-	    return equals(firstArg, secondArg);
+        function (MACHINE) {
+            var firstArg = MACHINE.env[MACHINE.env.length-1];
+            var secondArg = MACHINE.env[MACHINE.env.length-2];
+            return equals(firstArg, secondArg);
         });
 
 
     // This definition of apply will take precedence over the
     // implementation of apply in the boostrapped-primitives.rkt,
     // since it provides nicer error handling.
+    var applyImplementation = function (MACHINE) {
+        if(--MACHINE.callsBeforeTrampoline < 0) { 
+            throw applyImplementation;
+        }
+        var proc = checkProcedure(MACHINE, 'apply', 0);
+        MACHINE.env.pop();
+        MACHINE.argcount--;
+        checkList(MACHINE, 'apply', MACHINE.argcount - 1);
+        MACHINE.spliceListIntoStack(MACHINE.argcount - 1);
+        if (baselib.arity.isArityMatching(proc.racketArity, MACHINE.argcount)) {
+            MACHINE.proc = proc;
+            if (baselib.functions.isPrimitiveProcedure(proc)) {
+                return finalizeClosureCall(MACHINE, proc(MACHINE));
+            } else {
+                return proc.label(MACHINE);
+            }
+        } else {
+            raiseArityMismatchError(MACHINE, proc, proc.racketArity, MACHINE.argcount);
+        }
+    };
     installPrimitiveClosure(
         'apply',
-        plt.baselib.arity.makeArityAtLeast(2),
-        function(MACHINE) {
-            if(--MACHINE.callsBeforeTrampoline < 0) { 
-                throw arguments.callee; 
-            }
-            var proc = checkProcedure(MACHINE, 'apply', 0);
-            MACHINE.env.pop();
-            MACHINE.argcount--;
-            checkList(MACHINE, 'apply', MACHINE.argcount - 1);
-            MACHINE.spliceListIntoStack(MACHINE.argcount - 1);
-            if (plt.baselib.arity.isArityMatching(proc.racketArity, MACHINE.argcount)) {
-                MACHINE.proc = proc;
-                if (plt.baselib.functions.isPrimitiveProcedure(proc)) {
-                    return finalizeClosureCall(MACHINE, proc(MACHINE));
-                } else {
-                    return proc.label(MACHINE);
-                }
-            } else {
-                raiseArityMismatchError(MACHINE, proc, proc.racketArity, MACHINE.argcount);
-            }
-        });
+        baselib.arity.makeArityAtLeast(2),
+        applyImplementation);
 
 
     // FIXME: The definition of call-with-values is in
@@ -895,23 +859,23 @@
     installPrimitiveProcedure(
         'procedure?',
         1,
-        function(MACHINE) {
-            return plt.baselib.functions.isProcedure(MACHINE.env[MACHINE.env.length - 1]);
+        function (MACHINE) {
+            return baselib.functions.isProcedure(MACHINE.env[MACHINE.env.length - 1]);
         });
     
     installPrimitiveProcedure(
         'procedure-arity-includes?',
         2,
-        function(MACHINE) {
+        function (MACHINE) {
             var proc = checkProcedure(MACHINE, 'procedure-arity-includes?', 0);
             var argcount = checkNatural(MACHINE, 'procedure-arity-includes?', 1);
-            return plt.baselib.arity.isArityMatching(proc.racketArity, argcount);
+            return baselib.arity.isArityMatching(proc.racketArity, argcount);
         });
 
     installPrimitiveProcedure(
         'procedure-arity',
         1,
-        function(MACHINE) {
+        function (MACHINE) {
             var proc = checkProcedure(MACHINE, 'procedure-arity-includes?', 0);
             return proc.racketArity;
         });
@@ -920,26 +884,25 @@
     installPrimitiveProcedure(
         'member',
         2,
-        function(MACHINE) {
-	    var x = MACHINE.env[MACHINE.env.length-1];
-	    var lst = MACHINE.env[MACHINE.env.length-2];
-	    var originalLst = lst;
-	    while (true) {
-	        if (lst === NULL) {
-		    return false;
-	        }
-	        if (! isPair(lst)) {
-		    raiseArgumentTypeError(MACHINE,
+        function (MACHINE) {
+            var x = MACHINE.env[MACHINE.env.length-1];
+            var lst = MACHINE.env[MACHINE.env.length-2];
+            while (true) {
+                if (lst === NULL) {
+                    return false;
+                }
+                if (! isPair(lst)) {
+                    raiseArgumentTypeError(MACHINE,
                                            'member',
                                            'list',
                                            1,
                                            MACHINE.env[MACHINE.env.length - 1 - 1]);
-	        }
-	        if (equals(x, (lst.first))) {
-		    return lst;
-	        }
-	        lst = lst.rest;
-	    }	
+                }
+                if (equals(x, (lst.first))) {
+                    return lst;
+                }
+                lst = lst.rest;
+            }   
         });
     
 
@@ -947,16 +910,16 @@
     installPrimitiveProcedure(
         'reverse',
         1,
-        function(MACHINE) {
-	    var rev = NULL;
-	    var lst = MACHINE.env[MACHINE.env.length-1];
-	    while(lst !== NULL) {
-	        testArgument(MACHINE,
-			     'pair', isPair, lst, 0, 'reverse');
-	        rev = makePair(lst.first, rev);
-	        lst = lst.rest;
-	    }
-	    return rev;
+        function (MACHINE) {
+            var rev = NULL;
+            var lst = MACHINE.env[MACHINE.env.length-1];
+            while(lst !== NULL) {
+                testArgument(MACHINE,
+                             'pair', isPair, lst, 0, 'reverse');
+                rev = makePair(lst.first, rev);
+                lst = lst.rest;
+            }
+            return rev;
         });
 
 
@@ -965,16 +928,16 @@
     installPrimitiveProcedure(
         'abs',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.abs(
+        function (MACHINE) {
+            return baselib.numbers.abs(
                 checkNumber(MACHINE, 'abs', 0));
         });
 
     installPrimitiveProcedure(
         'acos',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.acos(
+        function (MACHINE) {
+            return baselib.numbers.acos(
                 checkNumber(MACHINE, 'acos', 0));
         });
 
@@ -982,16 +945,16 @@
     installPrimitiveProcedure(
         'asin',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.asin(
+        function (MACHINE) {
+            return baselib.numbers.asin(
                 checkNumber(MACHINE, 'asin', 0));
         });
 
     installPrimitiveProcedure(
         'sin',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.sin(
+        function (MACHINE) {
+            return baselib.numbers.sin(
                 checkNumber(MACHINE, 'sin', 0));
         });
 
@@ -1000,8 +963,8 @@
     installPrimitiveProcedure(
         'sinh',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.sinh(
+        function (MACHINE) {
+            return baselib.numbers.sinh(
                 checkNumber(MACHINE, 'sinh', 0));
         });
 
@@ -1009,8 +972,8 @@
     installPrimitiveProcedure(
         'tan',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.tan(
+        function (MACHINE) {
+            return baselib.numbers.tan(
                 checkNumber(MACHINE, 'tan', 0));
         });
 
@@ -1019,9 +982,9 @@
     installPrimitiveProcedure(
         'atan',
         makeList(1, 2),
-        function(MACHINE) {
+        function (MACHINE) {
             if (MACHINE.argcount === 1) {
-		return plt.baselib.numbers.atan(
+                return baselib.numbers.atan(
                     checkNumber(MACHINE, 'atan', 0));
             } else {
                 testArgument(MACHINE,
@@ -1036,10 +999,10 @@
                              MACHINE.env[MACHINE.env.length - 2],
                              1,
                              'atan');
-                return plt.baselib.numbers.makeFloat(
-		    Math.atan2(
-                        plt.baselib.numbers.toFixnum(checkNumber(MACHINE, 'atan', 0)),
-                        plt.baselib.numbers.toFixnum(checkNumber(MACHINE, 'atan', 1))));
+                return makeFloat(
+                    Math.atan2(
+                        baselib.numbers.toFixnum(checkNumber(MACHINE, 'atan', 0)),
+                        baselib.numbers.toFixnum(checkNumber(MACHINE, 'atan', 1))));
             }
         });
 
@@ -1047,24 +1010,24 @@
     installPrimitiveProcedure(
         'angle',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.angle(
+        function (MACHINE) {
+            return baselib.numbers.angle(
                 checkNumber(MACHINE, 'angle', 0));
         });
 
     installPrimitiveProcedure(
         'magnitude',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.magnitude(
+        function (MACHINE) {
+            return baselib.numbers.magnitude(
                 checkNumber(MACHINE, 'magnitude', 0));
         });
 
     installPrimitiveProcedure(
         'conjugate',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.conjugate(
+        function (MACHINE) {
+            return baselib.numbers.conjugate(
                 checkNumber(MACHINE, 'conjugate', 0));
         });
 
@@ -1074,8 +1037,8 @@
     installPrimitiveProcedure(
         'cos',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.cos(
+        function (MACHINE) {
+            return baselib.numbers.cos(
                 checkNumber(MACHINE, 'cos', 0));
         });
 
@@ -1083,33 +1046,33 @@
     installPrimitiveProcedure(
         'cosh',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.cosh(
+        function (MACHINE) {
+            return baselib.numbers.cosh(
                 checkNumber(MACHINE, 'cosh', 0));
         });
 
     installPrimitiveProcedure(
         'gcd',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
                 args.push(checkNumber(MACHINE, 'gcd', i));
             }
             x = args.shift();
-	    return plt.baselib.numbers.gcd(x, args);
+            return baselib.numbers.gcd(x, args);
         });
 
     installPrimitiveProcedure(
         'lcm',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
             var args = [], i, x;
             for (i = 0; i < MACHINE.argcount; i++) {
                 args.push(checkNumber(MACHINE, 'lcm', i));
             }
             x = args.shift();
-	    return plt.baselib.numbers.lcm(x, args);
+            return baselib.numbers.lcm(x, args);
         });
 
 
@@ -1118,8 +1081,8 @@
     installPrimitiveProcedure(
         'exp',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.exp(
+        function (MACHINE) {
+            return baselib.numbers.exp(
                 checkNumber(MACHINE, 'exp', 0));
         });
 
@@ -1127,8 +1090,8 @@
     installPrimitiveProcedure(
         'expt',
         2,
-        function(MACHINE) {
-            return plt.baselib.numbers.expt(
+        function (MACHINE) {
+            return baselib.numbers.expt(
                 checkNumber(MACHINE, 'expt', 0),
                 checkNumber(MACHINE, 'expt', 1));
         });
@@ -1136,8 +1099,8 @@
     installPrimitiveProcedure(
         'exact?',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.isExact(
+        function (MACHINE) {
+            return baselib.numbers.isExact(
                 checkNumber(MACHINE, 'exact?', 0));
         });
 
@@ -1145,16 +1108,16 @@
     installPrimitiveProcedure(
         'integer?',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.isInteger(MACHINE.env[MACHINE.env.length - 1]);
+        function (MACHINE) {
+            return baselib.numbers.isInteger(MACHINE.env[MACHINE.env.length - 1]);
         });
 
 
     installPrimitiveProcedure(
         'exact-nonnegative-integer?',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.isNatural(MACHINE.env[MACHINE.env.length - 1]);
+        function (MACHINE) {
+            return isNatural(MACHINE.env[MACHINE.env.length - 1]);
         });
 
 
@@ -1162,8 +1125,8 @@
     installPrimitiveProcedure(
         'imag-part',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.imaginaryPart(
+        function (MACHINE) {
+            return baselib.numbers.imaginaryPart(
                 checkNumber(MACHINE, 'imag-part', 0));
         });
 
@@ -1171,8 +1134,8 @@
     installPrimitiveProcedure(
         'real-part',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.realPart(
+        function (MACHINE) {
+            return baselib.numbers.realPart(
                 checkNumber(MACHINE, 'real-part', 0));
         });
 
@@ -1180,8 +1143,8 @@
     installPrimitiveProcedure(
         'make-polar',
         2,
-        function(MACHINE) {
-            return plt.baselib.numbers.makeComplexPolar(
+        function (MACHINE) {
+            return makeComplexPolar(
                 checkReal(MACHINE, 'make-polar', 0),
                 checkReal(MACHINE, 'make-polar', 1));
         });
@@ -1190,8 +1153,8 @@
     installPrimitiveProcedure(
         'make-rectangular',
         2,
-        function(MACHINE) {
-            return plt.baselib.numbers.makeComplex(
+        function (MACHINE) {
+            return makeComplex(
                 checkReal(MACHINE, 'make-rectangular', 0),
                 checkReal(MACHINE, 'make-rectangular', 1));
         });
@@ -1199,8 +1162,8 @@
     installPrimitiveProcedure(
         'modulo',
         2,
-        function(MACHINE) {
-            return plt.baselib.numbers.modulo(
+        function (MACHINE) {
+            return baselib.numbers.modulo(
                 checkInteger(MACHINE, 'modulo', 0),
                 checkInteger(MACHINE, 'modulo', 1));
         });
@@ -1209,8 +1172,8 @@
     installPrimitiveProcedure(
         'remainder',
         2,
-        function(MACHINE) {
-            return plt.baselib.numbers.remainder(
+        function (MACHINE) {
+            return baselib.numbers.remainder(
                 checkInteger(MACHINE, 'remainder', 0),
                 checkInteger(MACHINE, 'remainder', 1));
         });
@@ -1219,8 +1182,8 @@
     installPrimitiveProcedure(
         'quotient',
         2,
-        function(MACHINE) {
-            return plt.baselib.numbers.quotient(
+        function (MACHINE) {
+            return baselib.numbers.quotient(
                 checkInteger(MACHINE, 'quotient', 0),
                 checkInteger(MACHINE, 'quotient', 1));
         });
@@ -1230,8 +1193,8 @@
     installPrimitiveProcedure(
         'floor',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.floor(
+        function (MACHINE) {
+            return baselib.numbers.floor(
                 checkReal(MACHINE, 'floor', 0));
         });
     
@@ -1239,17 +1202,17 @@
     installPrimitiveProcedure(
         'ceiling',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.ceiling(
+        function (MACHINE) {
+            return baselib.numbers.ceiling(
                 checkReal(MACHINE, 'ceiling', 0));
         });
-   
+    
 
     installPrimitiveProcedure(
         'round',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.round(
+        function (MACHINE) {
+            return baselib.numbers.round(
                 checkReal(MACHINE, 'round', 0));
         });
     
@@ -1257,21 +1220,21 @@
     installPrimitiveProcedure(
         'truncate',
         1,
-        function(MACHINE) {
+        function (MACHINE) {
             var n = checkReal(MACHINE, 'truncate', 0);
-	    if (plt.baselib.numbers.lessThan(n, 0)) {
-		return plt.baselib.numbers.ceiling(n);
-	    } else {
-		return plt.baselib.numbers.floor(n);
-	    }
+            if (baselib.numbers.lessThan(n, 0)) {
+                return baselib.numbers.ceiling(n);
+            } else {
+                return baselib.numbers.floor(n);
+            }
         });
     
 
     installPrimitiveProcedure(
         'numerator',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.numerator(
+        function (MACHINE) {
+            return baselib.numbers.numerator(
                 checkRational(MACHINE, 'numerator', 0));
         });
 
@@ -1279,8 +1242,8 @@
     installPrimitiveProcedure(
         'denominator',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.denominator(
+        function (MACHINE) {
+            return baselib.numbers.denominator(
                 checkRational(MACHINE, 'denominator', 0));
         });
 
@@ -1288,8 +1251,8 @@
     installPrimitiveProcedure(
         'log',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.log(
+        function (MACHINE) {
+            return baselib.numbers.log(
                 checkNumber(MACHINE, 'log', 0));
         });
 
@@ -1297,8 +1260,8 @@
     installPrimitiveProcedure(
         'sqr',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.sqr(
+        function (MACHINE) {
+            return baselib.numbers.sqr(
                 checkNumber(MACHINE, 'sqr', 0));
         });
 
@@ -1308,8 +1271,8 @@
     installPrimitiveProcedure(
         'sqrt',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.sqrt(
+        function (MACHINE) {
+            return baselib.numbers.sqrt(
                 checkNumber(MACHINE, 'sqrt', 0));
         });
 
@@ -1318,8 +1281,8 @@
     installPrimitiveProcedure(
         'integer-sqrt',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.integerSqrt(
+        function (MACHINE) {
+            return baselib.numbers.integerSqrt(
                 checkInteger(MACHINE, 'integer-sqrt', 0));
         });
 
@@ -1328,8 +1291,8 @@
     installPrimitiveProcedure(
         'sgn',
         1,
-        function(MACHINE) {
-            return plt.baselib.numbers.sign(
+        function (MACHINE) {
+            return baselib.numbers.sign(
                 checkInteger(MACHINE, 'sgn', 0));
         });
 
@@ -1337,23 +1300,24 @@
 
     installPrimitiveProcedure(
         'error',
-        plt.baselib.arity.makeArityAtLeast(1),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+	    var i;
             if (MACHINE.argcount === 1) {
                 var sym = checkSymbol(MACHINE, 'error', 1);
                 // FIXME: we should collect the current continuation marks here...
-                raise(MACHINE, plt.baselib.exceptions.makeExnFail(String(sym), undefined));
+                raise(MACHINE, baselib.exceptions.makeExnFail(String(sym), undefined));
             } 
             
             if (isString(MACHINE.env[MACHINE.env.length - 1])) {
                 var vs = [];
-                for (var i = 1; i < MACHINE.argcount; i++) {
-                    vs.push(plt.baselib.format.format("~e", [MACHINE.env[MACHINE.env.length - 1 - i]]));
+                for (i = 1; i < MACHINE.argcount; i++) {
+                    vs.push(baselib.format.format("~e", [MACHINE.env[MACHINE.env.length - 1 - i]]));
                 }
-                raise(MACHINE, plt.baselib.exceptions.makeExnFail(String(MACHINE.env[MACHINE.env.length - 1]) +
-                                           ": " +
-                                           vs.join(' '),
-                                          undefined));
+                raise(MACHINE, baselib.exceptions.makeExnFail(String(MACHINE.env[MACHINE.env.length - 1]) +
+                                                              ": " +
+                                                              vs.join(' '),
+                                                              undefined));
             }
 
             if (isSymbol(MACHINE.env[MACHINE.env.length - 1])) {
@@ -1362,10 +1326,10 @@
                 for (i = 2; i < MACHINE.argcount; i++) {
                     args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
                 }
-                raise(MACHINE, plt.baselib.exceptions.makeExnFail(
-                    plt.baselib.format.format('~s: ' + String(fmtString),
-                                              args),
-                                           undefined));
+                raise(MACHINE, baselib.exceptions.makeExnFail(
+                    baselib.format.format('~s: ' + String(fmtString),
+                                          args),
+                    undefined));
             }
 
             // Fall-through
@@ -1376,23 +1340,23 @@
     installPrimitiveProcedure(
         'raise-mismatch-error',
         3,
-        function(MACHINE) {
+        function (MACHINE) {
             var name = checkSymbol(MACHINE, 'raise-mismatch-error', 0);
             var message = checkString(MACHINE, 'raise-mismatch-error', 0);
             var val = MACHINE.env[MACHINE.env.length - 1 - 2];
-            raise(MACHINE, plt.baselib.exceptions.makeExnFail
-                  (plt.baselib.format.format("~a: ~a~e",
-                                             [name,
-                                              message,
-                                              val]),
-                   undefined));
+            raise(MACHINE, baselib.exceptions.makeExnFail(
+		baselib.format.format("~a: ~a~e",
+                                      [name,
+                                       message,
+                                       val]),
+                undefined));
         });
 
 
     installPrimitiveProcedure(
         'raise-type-error',
-        plt.baselib.arity.makeArityAtLeast(3),
-        function(MACHINE) {
+        baselib.arity.makeArityAtLeast(3),
+        function (MACHINE) {
             var name = checkSymbol(MACHINE, 'raise-type-error', 0);
             var expected = checkString(MACHINE, 'raise-type-error', 1);
             if (MACHINE.argcount === 3) {
@@ -1416,33 +1380,33 @@
     installPrimitiveClosure(
         'make-struct-type',
         makeList(4, 5, 6, 7, 8, 9, 10, 11),
-        function(MACHINE) {
+        function (MACHINE) {
             withArguments(
                 MACHINE,
                 4,
                 [false, 
-	         NULL,
-	         false,
-	         false,
-	         NULL,
-	         false,
-	         false],
-                function(name, 
-                         superType,
-	                 initFieldCount,
-	                 autoFieldCount,
-	                 autoV,
-	                 props,	 // FIXME: currently ignored
-	                 inspector,  // FIXME: currently ignored
-	                 procSpec,	 // FIXME: currently ignored
-	                 immutables, // FIXME: currently ignored
-	                 guard,      // FIXME: currently ignored
-                         constructorName
-                        ) {
+                 NULL,
+                 false,
+                 false,
+                 NULL,
+                 false,
+                 false],
+                function (name, 
+                          superType,
+                          initFieldCount,
+                          autoFieldCount,
+                          autoV,
+                          props,  // FIXME: currently ignored
+                          inspector,  // FIXME: currently ignored
+                          procSpec,       // FIXME: currently ignored
+                          immutables, // FIXME: currently ignored
+                          guard,      // FIXME: currently ignored
+                          constructorName
+                         ) {
 
                     // FIXME: typechecks.
 
-                    var structType = plt.baselib.structs.makeStructureType(
+                    var structType = baselib.structs.makeStructureType(
                         name,
                         superType,
                         initFieldCount,
@@ -1457,10 +1421,11 @@
                     var constructorValue = 
                         makePrimitiveProcedure(
                             constructorName,
-                            plt.baselib.numbers.toFixnum(initFieldCount),
-                            function(MACHINE) {
+                            baselib.numbers.toFixnum(initFieldCount),
+                            function (MACHINE) {
                                 var args = [];
-                                for(var i = 0; i < initFieldCount; i++) {
+				var i;
+                                for(i = 0; i < initFieldCount; i++) {
                                     args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
                                 }
                                 return structType.constructor.apply(null, args);
@@ -1470,7 +1435,7 @@
                         makePrimitiveProcedure(
                             String(name) + "?",
                             1,
-                            function(MACHINE) {
+                            function (MACHINE) {
                                 return structType.predicate(MACHINE.env[MACHINE.env.length - 1]);
                             });
 
@@ -1478,11 +1443,11 @@
                         makePrimitiveProcedure(
                             String(name) + "-accessor",
                             2,
-                            function(MACHINE) {
+                            function (MACHINE) {
                                 // FIXME: typechecks
                                 return structType.accessor(
                                     MACHINE.env[MACHINE.env.length - 1],
-                                    plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]));
+                                    baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]));
                             });
                     accessorValue.structType = structType;
 
@@ -1490,11 +1455,11 @@
                         makePrimitiveProcedure(
                             String(name) + "-mutator",
                             3,
-                            function(MACHINE) {
+                            function (MACHINE) {
                                 // FIXME: typechecks
                                 return structType.mutator(
                                     MACHINE.env[MACHINE.env.length - 1],
-                                    plt.baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]),
+                                    baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]),
                                     MACHINE.env[MACHINE.env.length - 3]);
                             });
                     mutatorValue.structType = structType;
@@ -1508,27 +1473,27 @@
                                         mutatorValue);
                 });
         });
-        
+    
 
-     installPrimitiveProcedure(
-         'current-inspector',
-         makeList(0, 1),
-         function(MACHINE) {
+    installPrimitiveProcedure(
+        'current-inspector',
+        makeList(0, 1),
+        function (MACHINE) {
             if (MACHINE.argcount === 1) {
                 MACHINE.params['currentInspector'] = 
                     checkInspector(MACHINE, 'current-inspector', 0);
                 return VOID;
             } else {
-	        return MACHINE.params['currentInspector'];
+                return MACHINE.params['currentInspector'];
             }
-         }
-     ); 
+        }
+    ); 
 
 
     installPrimitiveProcedure(
         'make-struct-field-accessor',
         makeList(2, 3),
-        function(MACHINE){
+        function (MACHINE){
             // FIXME: typechecks
             // We must guarantee that the ref argument is good.
             var structType = MACHINE.env[MACHINE.env.length - 1].structType;
@@ -1542,10 +1507,10 @@
             return makePrimitiveProcedure(
                 name,
                 1,
-                function(MACHINE) {
+                function (MACHINE) {
                     return structType.accessor(
                         MACHINE.env[MACHINE.env.length - 1],
-                        plt.baselib.numbers.toFixnum(index));
+                        baselib.numbers.toFixnum(index));
                 });
             
         });
@@ -1554,7 +1519,7 @@
     installPrimitiveProcedure(
         'make-struct-field-mutator',
         makeList(2, 3),
-        function(MACHINE){
+        function (MACHINE){
             // FIXME: typechecks
             // We must guarantee that the set! argument is good.
             var structType = MACHINE.env[MACHINE.env.length - 1].structType;
@@ -1568,10 +1533,10 @@
             return makePrimitiveProcedure(
                 name,
                 2,
-                function(MACHINE) {
+                function (MACHINE) {
                     return structType.mutator(
                         MACHINE.env[MACHINE.env.length - 1],
-                        plt.baselib.numbers.toFixnum(index),
+                        baselib.numbers.toFixnum(index),
                         MACHINE.env[MACHINE.env.length - 2]);
                 });            
         });
@@ -1583,4 +1548,4 @@
     exports['installPrimitiveClosure'] = installPrimitiveClosure; 
     exports['installPrimitiveConstant'] = installPrimitiveConstant; 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

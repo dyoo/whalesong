@@ -59,7 +59,7 @@ for (param in params) {
 }
 EOF
            )
-  (fprintf op "RUNTIME.trampoline(MACHINE, ~a); })"
+  (fprintf op "MACHINE.trampoline(~a); })"
            (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))))
 
 

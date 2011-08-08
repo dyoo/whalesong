@@ -54,6 +54,7 @@
           (define goto-target (GotoStatement-target next-stmt))
           (cond
             [(Label? goto-target)
+             (log-debug (format "merging label ~a and ~a" last-stmt (Label-name goto-target)))
              (ufind:union-set a-forest last-stmt (Label-name goto-target))
              (loop (rest stmts) next-stmt)]
             [else

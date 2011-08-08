@@ -562,7 +562,7 @@
 
     // Executes all programs that have been labeled as a main module
     var invokeMains = function(machine, succ, fail) {
-        runtime.ready(function() {
+        runtime.ready(function invokeMain() {
             setReadyFalse();
             machine = machine || runtime.currentMachine;
             succ = succ || function() {};

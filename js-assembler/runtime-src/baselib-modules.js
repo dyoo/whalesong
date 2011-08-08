@@ -53,7 +53,10 @@
         var oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function (MACHINE) { 
             MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-            succ();
+            if (isInternal) { succ(); }
+            else {
+                throw new plt.runtime.HaltError(succ)
+            }
         };
 
         if (this.isInvoked) {

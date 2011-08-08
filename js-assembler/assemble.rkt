@@ -179,19 +179,25 @@ EOF
 };"
           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-          (string-join (assemble-block-statements (BasicBlock-stmts a-basic-block)
+          (string-join (assemble-block-statements (BasicBlock-name a-basic-block)
+                                                  (BasicBlock-stmts a-basic-block)
                                                   blockht
                                                   entry-points)
                        "\n")))
 
 
-(: assemble-block-statements ((Listof UnlabeledStatement) Blockht (Setof Symbol) -> (Listof String)))
-(define (assemble-block-statements stmts blockht entry-points)
+(: assemble-block-statements (Symbol (Listof UnlabeledStatement) Blockht (Setof Symbol) -> (Listof String)))
+(define (assemble-block-statements name stmts blockht entry-points)
   
   (: default (UnlabeledStatement -> (Listof String)))
   (define (default stmt)
+    (when (and (empty? (rest stmts))
+               (not (GotoStatement? stmt)))
+      (log-debug (format "Last statement of the block ~a is not a goto" name)))
+
     (cons (assemble-statement stmt)
-          (assemble-block-statements (rest stmts) 
+          (assemble-block-statements name
+                                     (rest stmts) 
                                      blockht
                                      entry-points)))
   
@@ -244,12 +250,14 @@ EOF
                      [(set-contains? entry-points (TestAndJumpStatement-label stmt))
                       (list (assemble-jump (make-Label (TestAndJumpStatement-label stmt))))]
                      [else
-                      (assemble-block-statements (BasicBlock-stmts 
+                      (assemble-block-statements (BasicBlock-name
+                                                  (hash-ref blockht (TestAndJumpStatement-label stmt)))
+                                                 (BasicBlock-stmts 
                                                   (hash-ref blockht (TestAndJumpStatement-label stmt)))
                                                  blockht
                                                  entry-points)])
                  "} else {"
-                 ,@(assemble-block-statements (rest stmts) blockht entry-points)
+                 ,@(assemble-block-statements name (rest stmts) blockht entry-points)
                  "}")]
            
            [(GotoStatement? stmt)
@@ -261,7 +269,9 @@ EOF
                     (default stmt)]
                    [else
                     (log-debug (format "Assembling inlined jump into ~a" (Label-name target)) )
-                    (assemble-block-statements (BasicBlock-stmts
+                    (assemble-block-statements (BasicBlock-name
+                                                (hash-ref blockht (Label-name target)))
+                                               (BasicBlock-stmts
                                                 (hash-ref blockht (Label-name target)))
                                                blockht
                                                entry-points)])]

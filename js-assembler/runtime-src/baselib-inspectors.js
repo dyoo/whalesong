@@ -1,15 +1,18 @@
+/*jslint vars: true, maxerr: 50, indent: 4 */
+
 // Structure types
 
-(function(baselib) {
+(function (baselib) {
+    'use strict';
     var exports = {};
     baselib.inspectors = exports;
 
 
-    var Inspector = function() {
+    var Inspector = function () {
     };
     var DEFAULT_INSPECTOR = new Inspector();
 
-    Inspector.prototype.toString = function() {
+    Inspector.prototype.toString = function () {
         return "#<inspector>";
     };
 
@@ -23,4 +26,4 @@
     exports.isInspector = isInspector;
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

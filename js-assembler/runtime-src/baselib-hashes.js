@@ -1,5 +1,10 @@
+/*jslint unparam: true, vars: true, white: true, newcap: true, nomen: true, plusplus: true, maxerr: 50, indent: 4 */
 
-(function(baselib) {
+/*global Hashtable*/
+
+
+(function (baselib) {
+    'use strict';
     var exports = {};
 
     baselib.hashes = exports;
@@ -7,28 +12,28 @@
 
     
     var _eqHashCodeCounter = 0;
-    var makeEqHashCode = function() {
-	_eqHashCodeCounter++;
-	return _eqHashCodeCounter;
+    var makeEqHashCode = function () {
+        _eqHashCodeCounter++;
+        return _eqHashCodeCounter;
     };
 
 
     // getHashCode: any -> (or fixnum string)
     // Given a value, produces a hashcode appropriate for eq.
-    var getEqHashCode = function(x) {
-	if (typeof(x) === 'string') {
-	    return x;
-	}
-	if (typeof(x) === 'number') {
-	    return String(x);
-	}
-	if (x && !x._eqHashCode) {
-	    x._eqHashCode = makeEqHashCode();
-	}
-	if (x && x._eqHashCode) {
-	    return x._eqHashCode;
-	}
-	return 0;
+    var getEqHashCode = function (x) {
+        if (typeof (x) === 'string') {
+            return x;
+        }
+        if (typeof (x) === 'number') {
+            return String(x);
+        }
+        if (x && !x._eqHashCode) {
+            x._eqHashCode = makeEqHashCode();
+        }
+        if (x && x._eqHashCode) {
+            return x._eqHashCode;
+        }
+        return 0;
     };
 
 
@@ -36,9 +41,9 @@
     // http://www.timdown.co.uk/jshashtable/
     //
     // Defined to use the getEqHashCode defined in baselib_hash.js.
-    var makeLowLevelEqHash = function() {
-	return new Hashtable(function(x) { return getEqHashCode(x); },
-			     function(x, y) { return x === y; });
+    var makeLowLevelEqHash = function () {
+        return new Hashtable(function (x) { return getEqHashCode(x); },
+                             function (x, y) { return x === y; });
     };
 
 
@@ -52,51 +57,51 @@
 
     //////////////////////////////////////////////////////////////////////
     // Eq Hashtables
-    var EqHashTable = function(inputHash) {
+    var EqHashTable = function (inputHash) {
         this.hash = makeLowLevelEqHash();
         this.mutable = true;
 
     };
 
-    EqHashTable.prototype.toWrittenString = function(cache) {
+    EqHashTable.prototype.toWrittenString = function (cache) {
         var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = toWrittenString(keys[i], cache);
-	    var valStr = toWrittenString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
+        var ret = [], i;
+        for (i = 0; i < keys.length; i++) {
+            var keyStr = baselib.format.toWrittenString(keys[i], cache);
+            var valStr = baselib.format.toWrittenString(this.hash.get(keys[i]), cache);
+            ret.push('(' + keyStr + ' . ' + valStr + ')');
         }
         return ('#hasheq(' + ret.join(' ') + ')');
     };
     
-    EqHashTable.prototype.toDisplayedString = function(cache) {
+    EqHashTable.prototype.toDisplayedString = function (cache) {
         var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = toDisplayedString(keys[i], cache);
-	    var valStr = toDisplayedString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
+        var ret = [], i;
+        for (i = 0; i < keys.length; i++) {
+            var keyStr = baselib.format.toDisplayedString(keys[i], cache);
+            var valStr = baselib.format.toDisplayedString(this.hash.get(keys[i]), cache);
+            ret.push('(' + keyStr + ' . ' + valStr + ')');
         }
         return ('#hasheq(' + ret.join(' ') + ')');
     };
 
-    EqHashTable.prototype.equals = function(other, aUnionFind) {
-        if ( !(other instanceof EqHashTable) ) {
-	    return false; 
+    EqHashTable.prototype.equals = function (other, aUnionFind) {
+        if (!(other instanceof EqHashTable)) {
+            return false; 
         }
 
-        if (this.hash.keys().length != other.hash.keys().length) { 
-	    return false;
+        if (this.hash.keys().length !== other.hash.keys().length) { 
+            return false;
         }
 
-        var keys = this.hash.keys();
-        for (var i = 0; i < keys.length; i++){
-	    if ( !(other.hash.containsKey(keys[i]) &&
-	           plt.baselib.equality.equals(this.hash.get(keys[i]),
-		                               other.hash.get(keys[i]),
-		                               aUnionFind)) ) {
-		return false;
-	    }
+        var keys = this.hash.keys(), i;
+        for (i = 0; i < keys.length; i++) {
+            if (!(other.hash.containsKey(keys[i]) &&
+                  baselib.equality.equals(this.hash.get(keys[i]),
+                                          other.hash.get(keys[i]),
+                                          aUnionFind))) {
+                return false;
+            }
         }
         return true;
     };
@@ -105,55 +110,55 @@
 
     //////////////////////////////////////////////////////////////////////
     // Equal hash tables
-    var EqualHashTable = function(inputHash) {
-	this.hash = new _Hashtable(
-            function(x) {
-	        return plt.baselib.format.toWrittenString(x); 
-	    },
-	    function(x, y) {
-		return plt.baselib.equality.equals(x, y, new plt.baselib.UnionFind()); 
-	    });
-	this.mutable = true;
+    var EqualHashTable = function (inputHash) {
+        this.hash = new Hashtable(
+            function (x) {
+                return baselib.format.toWrittenString(x); 
+            },
+            function (x, y) {
+                return baselib.equality.equals(x, y, new baselib.UnionFind()); 
+            });
+        this.mutable = true;
     };
 
-    EqualHashTable.prototype.toWrittenString = function(cache) {
+    EqualHashTable.prototype.toWrittenString = function (cache) {
         var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = plt.baselib.format.toWrittenString(keys[i], cache);
-	    var valStr = plt.baselib.format.toWrittenString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
+        var ret = [], i;
+        for (i = 0; i < keys.length; i++) {
+            var keyStr = baselib.format.toWrittenString(keys[i], cache);
+            var valStr = baselib.format.toWrittenString(this.hash.get(keys[i]), cache);
+            ret.push('(' + keyStr + ' . ' + valStr + ')');
         }
         return ('#hash(' + ret.join(' ') + ')');
     };
-    EqualHashTable.prototype.toDisplayedString = function(cache) {
+    EqualHashTable.prototype.toDisplayedString = function (cache) {
         var keys = this.hash.keys();
-        var ret = [];
-        for (var i = 0; i < keys.length; i++) {
-	    var keyStr = plt.baselib.format.toDisplayedString(keys[i], cache);
-	    var valStr = plt.baselib.format.toDisplayedString(this.hash.get(keys[i]), cache);
-	    ret.push('(' + keyStr + ' . ' + valStr + ')');
+        var ret = [], i;
+        for (i = 0; i < keys.length; i++) {
+            var keyStr = baselib.format.toDisplayedString(keys[i], cache);
+            var valStr = baselib.format.toDisplayedString(this.hash.get(keys[i]), cache);
+            ret.push('(' + keyStr + ' . ' + valStr + ')');
         }
         return ('#hash(' + ret.join(' ') + ')');
     };
 
-    EqualHashTable.prototype.equals = function(other, aUnionFind) {
+    EqualHashTable.prototype.equals = function (other, aUnionFind) {
         if ( !(other instanceof EqualHashTable) ) {
-	    return false; 
+            return false; 
         }
 
-        if (this.hash.keys().length != other.hash.keys().length) { 
-	    return false;
+        if (this.hash.keys().length !== other.hash.keys().length) { 
+            return false;
         }
 
-        var keys = this.hash.keys();
-        for (var i = 0; i < keys.length; i++){
-	    if (! (other.hash.containsKey(keys[i]) &&
-	           plt.baselib.equality.equals(this.hash.get(keys[i]),
-		                               other.hash.get(keys[i]),
-		                               aUnionFind))) {
-	        return false;
-	    }
+        var keys = this.hash.keys(), i;
+        for (i = 0; i < keys.length; i++){
+            if (! (other.hash.containsKey(keys[i]) &&
+                   baselib.equality.equals(this.hash.get(keys[i]),
+                                               other.hash.get(keys[i]),
+                                               aUnionFind))) {
+                return false;
+            }
         }
         return true;
     };
@@ -161,25 +166,10 @@
 
 
 
-    var isHash = function(x) { 
+    var isHash = function (x) { 
         return (x instanceof EqHashTable ||
-		x instanceof EqualHashTable); 
+                x instanceof EqualHashTable); 
     };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     //////////////////////////////////////////////////////////////////////
@@ -194,4 +184,4 @@
     exports.isHash = isHash;
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

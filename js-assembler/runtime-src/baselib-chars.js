@@ -6,7 +6,7 @@
 
     // Chars
     // Char: string -> Char
-    Char = function(val){
+    var Char = function(val){
         this.val = val;
     };
     // The characters less than 256 must be eq?, according to the

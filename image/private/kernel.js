@@ -391,7 +391,7 @@ var VideoImage = function(src, rawVideo) {
 VideoImage.prototype = heir(BaseImage.prototype);
 
 
-videos = {};
+var videos = {};
 VideoImage.makeInstance = function(path, rawVideo) {
     if (! (path in VideoImage)) {
 	videos[path] = new VideoImage(path, rawVideo);

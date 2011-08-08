@@ -1,5 +1,9 @@
-// Arity structure
+/*jslint unparam: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
+
+
+
 (function(baselib) {
+    'use strict';
     var exports = {};
     baselib.bytes = exports;
 
@@ -30,7 +34,7 @@
     };
 
     Bytes.prototype.subbytes = function(start, end) {
-	if (end == null || end == undefined) {
+	if (end === null || end === undefined) {
 	    end = this.bytes.length;
 	}
 	
@@ -42,23 +46,25 @@
         if (! (other instanceof Bytes)) {
 	    return false;
         }
-        if (this.bytes.length != other.bytes.length) {
+        if (this.bytes.length !== other.bytes.length) {
 	    return false;
         }
         var A = this.bytes;
         var B = other.bytes;
         var n = this.bytes.length;
-        for (var i = 0; i < n; i++) {
-	    if (A[i] !== B[i])
+        var i;
+        for (i = 0; i < n; i++) {
+	    if (A[i] !== B[i]) {
 	        return false;
+            }
         }
         return true;
     };
 
 
     Bytes.prototype.toString = function(cache) {
-	var ret = '';
-	for (var i = 0; i < this.bytes.length; i++) {
+	var ret = '', i;
+	for (i = 0; i < this.bytes.length; i++) {
 	    ret += String.fromCharCode(this.bytes[i]);
 	}
 
@@ -66,15 +72,6 @@
     };
 
     Bytes.prototype.toDisplayedString = Bytes.prototype.toString;
-
-    Bytes.prototype.toWrittenString = function() {
-	var ret = ['#"'];
-	for (var i = 0; i < this.bytes.length; i++) {
-	    ret.push( escapeByte(this.bytes[i]) );
-	}
-	ret.push('"');
-	return ret.join('');
-    };
 
     var escapeByte = function(aByte) {
 	var ret = [];
@@ -100,8 +97,18 @@
 	return returnVal;
     };
 
+    Bytes.prototype.toWrittenString = function() {
+	var ret = ['#"'], i;
+	for (i = 0; i < this.bytes.length; i++) {
+	    ret.push(escapeByte(this.bytes[i]));
+	}
+	ret.push('"');
+	return ret.join('');
+    };
+
+
 
 
     exports.Bytes = Bytes;
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

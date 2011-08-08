@@ -30,6 +30,8 @@
 ;; the other modules below have some circular dependencies that are resolved
 ;; by link.
 (define files '(
+                top.js
+                
                 ;; jquery is special: we need to make sure it's resilient against
                 ;; multiple invokation and inclusion.
                 jquery-protect-header.js
@@ -65,6 +67,7 @@
                 baselib-ports.js
                 baselib-functions.js
                 baselib-modules.js
+                baselib-contmarks.js
                 
                 baselib-arity.js
                 baselib-inspectors.js
@@ -74,7 +77,8 @@
                 ;; baselib-check has to come after the definitions of types,
                 ;; since it uses the type predicates immediately on init time.
                 baselib-check.js
-                
+
+                baselib-primitives.js
                 runtime.js))
 
 

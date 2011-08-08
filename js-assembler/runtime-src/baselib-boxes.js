@@ -1,6 +1,10 @@
+/*jslint browser: true, unparam: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
+
+
 // Exceptions
 
 (function(baselib) {
+    'use strict';
     var exports = {};
     baselib.boxes = exports;
 
@@ -25,30 +29,30 @@
 
     Box.prototype.toString = function(cache) {
         cache.put(this, true);
-        return "#&" + plt.baselib.format.toWrittenString(this.val, cache);
+        return "#&" + baselib.format.toWrittenString(this.val, cache);
     };
 
     Box.prototype.toWrittenString = function(cache) {
         cache.put(this, true);
-        return "#&" + plt.baselib.format.toWrittenString(this.val, cache);
+        return "#&" + baselib.format.toWrittenString(this.val, cache);
     };
 
     Box.prototype.toDisplayedString = function(cache) {
         cache.put(this, true);
-        return "#&" + plt.baselib.format.toDisplayedString(this.val, cache);
+        return "#&" + baselib.format.toDisplayedString(this.val, cache);
     };
 
     Box.prototype.toDomNode = function(cache) {
         cache.put(this, true);
         var parent = document.createElement("span");
         parent.appendChild(document.createTextNode('#&'));
-        parent.appendChild(plt.baselib.format.toDomNode(this.val, cache));
+        parent.appendChild(baselib.format.toDomNode(this.val, cache));
         return parent;
     };
 
     Box.prototype.equals = function(other, aUnionFind) {
         return ((other instanceof Box) &&
-	        plt.baselib.equality.equals(this.val, other.val, aUnionFind));
+	        baselib.equality.equals(this.val, other.val, aUnionFind));
     };
     
     var makeBox = function(x) { 
@@ -83,4 +87,4 @@
     exports.makeImmutableBox = makeImmutableBox;
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

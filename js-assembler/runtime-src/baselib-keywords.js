@@ -1,44 +1,47 @@
+/*jslint unparam: true, vars: true, maxerr: 50, indent: 4 */
+
 // Keywords
-(function(baselib) {
+
+(function (baselib) {
+    'use strict';
     var exports = {};
     baselib.keywords = exports;
 
 
-    var Keyword = function(val) {
+    var Keyword = function (val) {
         this.val = val;
     };
 
     var keywordCache = {};
     
     // makeInstance: string -> Keyword.
-    Keyword.makeInstance = function(val) {
+    Keyword.makeInstance = function (val) {
         // To ensure that we can eq? symbols with equal values.
-        if (!(val in keywordCache)) {
-	    keywordCache[val] = new Keyword(val);
-        } else {
+        if (!(keywordCache.hasOwnProperty(val))) {
+            keywordCache[val] = new Keyword(val);
         }
         return keywordCache[val];
     };
     
-    Keyword.prototype.equals = function(other, aUnionFind) {
+    Keyword.prototype.equals = function (other, aUnionFind) {
         return other instanceof Keyword &&
-            this.val == other.val;
+            this.val === other.val;
     };
     
 
-    Keyword.prototype.toString = function(cache) {
+    Keyword.prototype.toString = function (cache) {
         return this.val;
     };
 
-    Keyword.prototype.toWrittenString = function(cache) {
+    Keyword.prototype.toWrittenString = function (cache) {
         return this.val;
     };
 
-    Keyword.prototype.toDisplayedString = function(cache) {
+    Keyword.prototype.toDisplayedString = function (cache) {
         return this.val;
     };
 
 
     exports.Keyword = Keyword;
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

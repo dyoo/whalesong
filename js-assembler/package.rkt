@@ -333,7 +333,7 @@ MACHINE.modules[~s] =
     <title>Example</title>
   </head>
   <script>
-
+"use strict";
 EOF
 )
 
@@ -375,10 +375,15 @@ var invokeMainModule = function() {
     var MACHINE = plt.runtime.currentMachine;
     invoke(MACHINE,
            function() {
+                var startTime = new Date().valueOf();
                 plt.runtime.invokeMains(
                     MACHINE,
                     function() {
-                        // On main module invokation success
+                        // On main module invokation success:
+                        var stopTime = new Date().valueOf();                                
+                        if (console && console.log) {
+                            console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
+                        }
                     },
                     function(MACHINE, e) {
                         // On main module invokation failure

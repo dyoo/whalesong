@@ -117,8 +117,6 @@ EOF
 
 
 
-
-
 (: write-linked-label-attributes ((Listof Statement) Output-Port -> 'ok))
 (define (write-linked-label-attributes stmts op)
   (cond

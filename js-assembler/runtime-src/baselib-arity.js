@@ -1,11 +1,14 @@
+/*jslint browser: false, unparam: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
+
 // Arity structure
 (function(baselib) {
+    'use strict';
     var exports = {};
     baselib.arity = exports;
 
 
 
-    var ArityAtLeast = plt.baselib.structs.makeStructureType(
+    var ArityAtLeast = baselib.structs.makeStructureType(
         'arity-at-least', false, 1, 0, false, false);
 
 
@@ -18,7 +21,7 @@
     var arityAtLeastValue = function(x) { 
         var val = ArityAtLeast.accessor(x, 0);
         return val;
-    }
+    };
 
 
     ArityAtLeast.type.prototype.toString = function() {
@@ -35,7 +38,7 @@
 	} else if (isArityAtLeast(arity)) {
 	    return n >= arityAtLeastValue(arity);
 	} else {
-	    while (arity !== plt.baselib.lists.EMPTY) {
+	    while (arity !== baselib.lists.EMPTY) {
 		if (typeof(arity.first) === 'number') {
 		    if (arity.first === n) { return true; }
 		} else if (isArityAtLeast(arity)) {
@@ -45,7 +48,7 @@
 	    }
 	    return false;
 	}
-    }
+    };
 
 
 
@@ -59,4 +62,4 @@
     exports.isArityMatching = isArityMatching;
     exports.arityAtLeastValue = arityAtLeastValue;
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

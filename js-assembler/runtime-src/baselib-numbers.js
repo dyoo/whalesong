@@ -1,5 +1,9 @@
+/*jslint vars: true, maxerr: 50, indent: 4 */
+
 // Numbers.
-(function(baselib) {
+/*global jsnums*/
+(function (baselib, jsnums) {
+    'use strict';
     var exports = {};
     baselib.numbers = exports;
 
@@ -12,40 +16,40 @@
     var isInteger = jsnums.isInteger;
 
 
-    var isNatural = function(x) {
+    var isNatural = function (x) {
         return (jsnums.isExact(x) && isInteger(x) 
-	        && jsnums.greaterThanOrEqual(x, 0));
+                && jsnums.greaterThanOrEqual(x, 0));
     };
 
-    var isNonNegativeReal = function(x) {
-	return isReal(x) && jsnums.greaterThanOrEqual(x, 0);
+    var isNonNegativeReal = function (x) {
+        return isReal(x) && jsnums.greaterThanOrEqual(x, 0);
     };
 
-    var isByte = function(x) {
-	return (isNatural(x) && 
-		jsnums.lessThan(x, 256));
+    var isByte = function (x) {
+        return (isNatural(x) && 
+                jsnums.lessThan(x, 256));
     };
 
 
     // sign: number -> number
-    var sign = function(x) {
+    var sign = function (x) {
         if (jsnums.isInexact(x)) {
-	    if (jsnums.greaterThan(x, 0) ) {
-		return jsnums.makeFloat(1);
-	    } else if (jsnums.lessThan(x, 0) ) {
-		return jsnums.makeFloat(-1);
-	    } else {
-		return jsnums.makeFloat(0);
-	    }
-	} else {
-	    if (jsnums.greaterThan(x, 0)) {
-		return 1;
-	    } else if (jsnums.lessThan(x, 0)) {
-		return -1;
-	    } else {
-		return 0;
-	    }
-	}
+            if (jsnums.greaterThan(x, 0)) {
+                return jsnums.makeFloat(1);
+            } else if (jsnums.lessThan(x, 0)) {
+                return jsnums.makeFloat(-1);
+            } else {
+                return jsnums.makeFloat(0);
+            }
+        } else {
+            if (jsnums.greaterThan(x, 0)) {
+                return 1;
+            } else if (jsnums.lessThan(x, 0)) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
     };
 
 
@@ -56,7 +60,8 @@
 
 
     // We first re-export everything in jsnums.
-    for (var prop in jsnums) {
+    var prop;
+    for (prop in jsnums) {
         if (jsnums.hasOwnProperty(prop)) {
             exports[prop] = jsnums[prop];
         }
@@ -74,4 +79,4 @@
     exports.sign = sign;
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib, jsnums));

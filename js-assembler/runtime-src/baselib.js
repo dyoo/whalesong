@@ -1,18 +1,21 @@
+/*jslint vars: true, plusplus: true, maxerr: 50, indent: 4 */
+
 // Basic library functions.  This will include a few simple functions,
 // but be augmented with several namespaces for the other libraries in
 // the base library.
-if (! this['plt']) { this['plt'] = {}; }
+if (!(this.plt)) { this.plt = {}; }
 (function (plt) {
+    'use strict';
     var baselib = {};
-    plt['baselib'] = baselib;
+    plt.baselib = baselib;
 
 
 
     // Simple object inheritance.
-    var heir = function(parentPrototype) {
-	var f = function() {}
-	f.prototype = parentPrototype;
-	return new f();
+    var heir = function (parentPrototype) {
+        var F = function () {};
+        F.prototype = parentPrototype;
+        return new F();
     };
 
 
@@ -20,22 +23,23 @@ if (! this['plt']) { this['plt'] = {}; }
     // clone: object -> object
     // Copies an object.  The new object should respond like the old
     // object, including to things like instanceof.
-    var clone = function(obj) {
-        var C = function() {}
+    var clone = function (obj) {
+        var property;
+        var C = function () {};
         C.prototype = obj;
         var c = new C();
         for (property in obj) {
-	    if (obj.hasOwnProperty(property)) {
-	        c[property] = obj[property];
-	    }
+            if (obj.hasOwnProperty(property)) {
+                c[property] = obj[property];
+            }
         }
         return c;
     };
 
 
     // Consumes a class and creates a predicate that recognizes subclasses.
-    var makeClassPredicate = function(aClass) {
-	return function(x) { return x instanceof aClass; };
+    var makeClassPredicate = function (aClass) {
+        return function (x) { return x instanceof aClass; };
     };
 
 
@@ -45,12 +49,9 @@ if (! this['plt']) { this['plt'] = {}; }
     // MACHINE.argcount has been initialized with the number of
     // arguments on the stack.  vs provides optional values for the
     // arguments that go beyond those of the mandatoryArgCount.
-    var withArguments = function(MACHINE,
-                                 mandatoryArgCount,
-                                 vs,
-                                 f) {
-        var args = [];
-        for (var i = 0; i < MACHINE.argcount; i++) {
+    var withArguments = function (MACHINE, mandatoryArgCount, vs, f) {
+        var args = [], i;
+        for (i = 0; i < MACHINE.argcount; i++) {
             if (i < mandatoryArgCount) {
                 args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
             } else {
@@ -72,4 +73,4 @@ if (! this['plt']) { this['plt'] = {}; }
     baselib.withArguments = withArguments;
 
 
-})(this['plt']);
+}(this.plt));

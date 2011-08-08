@@ -1,5 +1,8 @@
+/*jslint unparam: true, sub: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
+
 // Frame structures.
 (function(baselib) {
+    'use strict';
     var exports = {};
     baselib.frames = exports;
 
@@ -66,4 +69,4 @@
 
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

@@ -76,7 +76,7 @@ EOF
   ;; Since there may be cycles between the blocks, we cut the cycles by
   ;; making them entry points as well.
   (insert-cycles-as-entry-points! entry-points blockht)
-   
+
   (set-for-each (lambda: ([s : Symbol])
                   (log-debug (format "Emitting code for basic block ~s" s))
                   (displayln (assemble-basic-block (hash-ref blockht s) 
@@ -238,15 +238,19 @@ EOF
                                  (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a))"
                                          (assemble-oparg (TestClosureArityMismatch-closure test))
                                          (assemble-oparg (TestClosureArityMismatch-n test)))]))
-            `(,test-code
-              "{"
-              ,@(assemble-block-statements (BasicBlock-stmts 
-                                            (hash-ref blockht (TestAndJumpStatement-label stmt)))
-                                           blockht
-                                           entry-points)
-              "} else {"
-              ,@(assemble-block-statements (rest stmts) blockht entry-points)
-              "}")]
+               `(, test-code
+                 "{"
+                 ,@(cond
+                     [(set-contains? entry-points (TestAndJumpStatement-label stmt))
+                      (list (assemble-jump (make-Label (TestAndJumpStatement-label stmt))))]
+                     [else
+                      (assemble-block-statements (BasicBlock-stmts 
+                                                  (hash-ref blockht (TestAndJumpStatement-label stmt)))
+                                                 blockht
+                                                 entry-points)])
+                 "} else {"
+                 ,@(assemble-block-statements (rest stmts) blockht entry-points)
+                 "}")]
            
            [(GotoStatement? stmt)
             (define target (GotoStatement-target stmt))

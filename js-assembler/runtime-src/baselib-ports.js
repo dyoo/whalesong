@@ -1,7 +1,7 @@
 // Arity structure
 /*jslint unparam: true, sub: true, vars: true, maxerr: 50, indent: 4 */
-/*globals jQuery*/
-(function (baselib) {
+/*globals $*/
+(function (baselib, $) {
     'use strict';
     var exports = {};
     baselib.ports = exports;
@@ -19,7 +19,7 @@
     StandardOutputPort.prototype = baselib.heir(OutputPort.prototype);
     StandardOutputPort.prototype.writeDomNode = function (MACHINE, domNode) {
         MACHINE.params['currentDisplayer'](MACHINE, domNode);
-        jQuery('*', domNode).trigger({type : 'afterAttach'});
+        $('*', domNode).trigger({type : 'afterAttach'});
     };
 
     var StandardErrorPort = function () {
@@ -28,7 +28,7 @@
     StandardErrorPort.prototype = baselib.heir(OutputPort.prototype);
     StandardErrorPort.prototype.writeDomNode = function (MACHINE, domNode) {
         MACHINE.params['currentErrorDisplayer'](MACHINE, domNode);
-        jQuery('*', domNode).trigger({type : 'afterAttach'});
+        $('*', domNode).trigger({type : 'afterAttach'});
     };
 
 
@@ -41,7 +41,7 @@
     };
     OutputStringPort.prototype = baselib.heir(OutputPort.prototype);
     OutputStringPort.prototype.writeDomNode = function (MACHINE, v) {
-        this.buf.push(jQuery(v).text());
+        this.buf.push($(v).text());
     };
     OutputStringPort.prototype.getOutputString = function () {
         return this.buf.join('');
@@ -59,4 +59,4 @@
     exports.isOutputStringPort = isOutputStringPort;
 
 
-}(this.plt.baselib));
+}(this.plt.baselib, $));

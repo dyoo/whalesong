@@ -2,7 +2,7 @@
 
 // Numbers.
 /*global jsnums*/
-(function (baselib) {
+(function (baselib, jsnums) {
     'use strict';
     var exports = {};
     baselib.numbers = exports;
@@ -79,4 +79,4 @@
     exports.sign = sign;
 
 
-}(this.plt.baselib));
+}(this.plt.baselib, jsnums));

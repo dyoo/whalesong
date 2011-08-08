@@ -3,7 +3,7 @@
 
 // Equality function
 /*global jsnums*/
-(function (baselib) {
+(function (baselib, jsnums) {
     'use strict';
     var exports = {};
     baselib.equality = exports;
@@ -62,4 +62,4 @@
     exports.eqv = eqv;
     exports.equals = equals;
 
-}(this.plt.baselib));
+}(this.plt.baselib, jsnums));

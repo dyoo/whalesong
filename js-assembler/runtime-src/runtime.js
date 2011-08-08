@@ -1,13 +1,15 @@
+/*jslint browser: true, undef: true, unparam: true, sub: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
+
+
 // runtime.js: the main runtime library for whalesong.
 //
 
-if(this['plt'] === undefined) { this['plt'] = {}; }
-
-
 // All of the values here are namespaced under "plt.runtime".
-(function(scope) {
+/*global $*/
+(function(plt, baselib) {
+    'use strict';
     var runtime = {};
-    scope['runtime'] = runtime;
+    plt.runtime = runtime;
 
 
 
@@ -16,129 +18,105 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // We try to isolate the effect of external modules: all the identifiers we
     // pull from external modules should be listed here, and should otherwise not
     // show up outside this section!
-    var isNumber = plt.baselib.numbers.isNumber;
-    var isNatural = plt.baselib.numbers.isNatural;
-    var isReal = plt.baselib.numbers.isReal;
-    var isPair = plt.baselib.lists.isPair;
-    var isList = plt.baselib.lists.isList;
-    var isVector = plt.baselib.vectors.isVector;
-    var isString = plt.baselib.strings.isString;
-    var isSymbol = plt.baselib.symbols.isSymbol;
-    var isNonNegativeReal = plt.baselib.numbers.isNonNegativeReal;
-    var equals = plt.baselib.equality.equals;
+    var isNumber = baselib.numbers.isNumber;
+    var isNatural = baselib.numbers.isNatural;
+    var isReal = baselib.numbers.isReal;
+    var isPair = baselib.lists.isPair;
+    var isList = baselib.lists.isList;
+    var isVector = baselib.vectors.isVector;
+    var isString = baselib.strings.isString;
+    var isSymbol = baselib.symbols.isSymbol;
 
-    var NULL = plt.baselib.lists.EMPTY;
-    var VOID = plt.baselib.constants.VOID_VALUE;
-    var EOF = plt.baselib.constants.EOF_VALUE;
+    var equals = baselib.equality.equals;
 
-    var NEGATIVE_ZERO = plt.baselib.numbers.negative_zero;
-    var INF = plt.baselib.numbers.inf;
-    var NEGATIVE_INF = plt.baselib.numbers.negative_inf;
-    var NAN = plt.baselib.numbers.nan;
+    var NULL = baselib.lists.EMPTY;
+    var VOID = baselib.constants.VOID_VALUE;
 
-    var makeFloat = plt.baselib.numbers.makeFloat;
-    var makeRational = plt.baselib.numbers.makeRational;
-    var makeBignum = plt.baselib.numbers.makeBignum;
-    var makeComplex = plt.baselib.numbers.makeComplex;
+    var NEGATIVE_ZERO = baselib.numbers.negative_zero;
+    var INF = baselib.numbers.inf;
+    var NEGATIVE_INF = baselib.numbers.negative_inf;
+    var NAN = baselib.numbers.nan;
 
-    var makeSymbol = plt.baselib.symbols.makeSymbol;
+    var makeFloat = baselib.numbers.makeFloat;
+    var makeRational = baselib.numbers.makeRational;
+    var makeBignum = baselib.numbers.makeBignum;
+    var makeComplex = baselib.numbers.makeComplex;
 
-    var makeBox = plt.baselib.boxes.makeBox;
-    var isBox = plt.baselib.boxes.isBox;
+    var makeSymbol = baselib.symbols.makeSymbol;
 
-    var makeVector = plt.baselib.vectors.makeVector;
-    var makeList = plt.baselib.lists.makeList;
-    var makePair = plt.baselib.lists.makePair;
+    var makeBox = baselib.boxes.makeBox;
+    var isBox = baselib.boxes.isBox;
+
+    var makeVector = baselib.vectors.makeVector;
+    var makeList = baselib.lists.makeList;
+    var makePair = baselib.lists.makePair;
+
+    var makeStructureType = baselib.structs.makeStructureType;
 
 
-    var Closure = plt.baselib.functions.Closure;
-    var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
-    var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
-    var makeClosure = plt.baselib.functions.makeClosure;
+    var Struct = baselib.structs.Struct;
+    var StructType = baselib.structs.StructType;
 
-    var ContinuationPromptTag = plt.baselib.contmarks.ContinuationPromptTag;
+    var Closure = baselib.functions.Closure;
+    var finalizeClosureCall = baselib.functions.finalizeClosureCall;
+    var makePrimitiveProcedure = baselib.functions.makePrimitiveProcedure;
+    var makeClosure = baselib.functions.makeClosure;
+
+    var ContinuationPromptTag = baselib.contmarks.ContinuationPromptTag;
 
 
     // Other helpers
-    var withArguments = plt.baselib.withArguments;
-    var heir = plt.baselib.heir;
-    var makeClassPredicate = plt.baselib.makeClassPredicate;
-    var toDomNode = plt.baselib.format.toDomNode;
-    var toWrittenString = plt.baselib.format.toWrittenString;
-    var toDisplayedString = plt.baselib.format.toDisplayedString;
+    var heir = baselib.heir;
+    var makeClassPredicate = baselib.makeClassPredicate;
+    var toDomNode = baselib.format.toDomNode;
+    var toWrittenString = baselib.format.toWrittenString;
+    var toDisplayedString = baselib.format.toDisplayedString;
 
 
 
     // Frame structures.
-    var Frame = plt.baselib.frames.Frame;
-    var CallFrame = plt.baselib.frames.CallFrame;
-    var PromptFrame = plt.baselib.frames.PromptFrame;
+    var Frame = baselib.frames.Frame;
+    var CallFrame = baselib.frames.CallFrame;
+    var PromptFrame = baselib.frames.PromptFrame;
 
     // Module structure
-    var ModuleRecord = plt.baselib.modules.ModuleRecord;
+    var ModuleRecord = baselib.modules.ModuleRecord;
 
 
 
     // Ports
-    var OutputPort = plt.baselib.ports.OutputPort;
-    var isOutputPort = plt.baselib.ports.isOutputPort;
-    var StandardOutputPort = plt.baselib.ports.StandardOutputPort;
-    var StandardErrorPort = plt.baselib.ports.StandardErrorPort;
-    var OutputStringPort = plt.baselib.ports.OutputStringPort;
-    var isOutputStringPort = plt.baselib.ports.isOutputStringPort;
+    var isOutputPort = baselib.ports.isOutputPort;
+    var StandardOutputPort = baselib.ports.StandardOutputPort;
+    var StandardErrorPort = baselib.ports.StandardErrorPort;
+    var isOutputStringPort = baselib.ports.isOutputStringPort;
 
 
 
 
     // Exceptions and error handling.
-    var raise = plt.baselib.exceptions.raise;
-    var raiseUnboundToplevelError = plt.baselib.exceptions.raiseUnboundToplevelError;
-    var raiseArgumentTypeError = plt.baselib.exceptions.raiseArgumentTypeError;
-    var raiseContextExpectedValuesError = plt.baselib.exceptions.raiseContextExpectedValuesError;
-    var raiseArityMismatchError = plt.baselib.exceptions.raiseArityMismatchError;
-    var raiseOperatorApplicationError = plt.baselib.exceptions.raiseOperatorApplicationError;
-    var raiseOperatorIsNotPrimitiveProcedure = plt.baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
-    var raiseOperatorIsNotClosure = plt.baselib.exceptions.raiseOperatorIsNotClosure;
-    var raiseUnimplementedPrimitiveError = plt.baselib.exceptions.raiseUnimplementedPrimitiveError;
+    var raise = baselib.exceptions.raise;
+    var raiseUnboundToplevelError = baselib.exceptions.raiseUnboundToplevelError;
+    var raiseArgumentTypeError = baselib.exceptions.raiseArgumentTypeError;
+    var raiseContextExpectedValuesError = baselib.exceptions.raiseContextExpectedValuesError;
+    var raiseArityMismatchError = baselib.exceptions.raiseArityMismatchError;
+    var raiseOperatorApplicationError = baselib.exceptions.raiseOperatorApplicationError;
+    var raiseOperatorIsNotPrimitiveProcedure = baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
+    var raiseOperatorIsNotClosure = baselib.exceptions.raiseOperatorIsNotClosure;
+    var raiseUnimplementedPrimitiveError = baselib.exceptions.raiseUnimplementedPrimitiveError;
 
 
-
-
+    var ArityAtLeast = baselib.arity.ArityAtLeast;
+    var makeArityAtLeast = baselib.arity.makeArityAtLeast;
+    var isArityMatching = baselib.arity.isArityMatching;
     
 
-    var testArgument = plt.baselib.check.testArgument;
-    var testArity = plt.baselib.check.testArity;
-    var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
-
-    var checkOutputPort = plt.baselib.check.checkOutputPort;
-    var checkString = plt.baselib.check.checkString;
-    var checkMutableString = plt.baselib.check.checkMutableString;
-    var checkSymbol = plt.baselib.check.checkSymbol;
-    var checkByte = plt.baselib.check.checkByte;
-    var checkChar = plt.baselib.check.checkChar;
-    var checkProcedure = plt.baselib.check.checkProcedure;
-    var checkNumber = plt.baselib.check.checkNumber;
-    var checkReal = plt.baselib.check.checkReal;
-    var checkNonNegativeReal = plt.baselib.check.checkNonNegativeReal;
-    var checkNatural = plt.baselib.check.checkNatural;
-    var checkNaturalInRange = plt.baselib.check.checkNaturalInRange;
-    var checkInteger = plt.baselib.check.checkInteger;
-    var checkRational = plt.baselib.check.checkRational;
-    var checkPair = plt.baselib.check.checkPair;
-    var checkList = plt.baselib.check.checkList;
-    var checkVector = plt.baselib.check.checkVector;
-    var checkBox = plt.baselib.check.checkBox;
-    var checkMutableBox = plt.baselib.check.checkMutableBox;
-    var checkInspector = plt.baselib.check.checkInspector;
+    var testArgument = baselib.check.testArgument;
+    var testArity = baselib.check.testArity;
+    var makeCheckArgumentType = baselib.check.makeCheckArgumentType;
 
 
-
-    var Primitives = plt.baselib.primitives.Primitives;
-    var installPrimitiveProcedure = plt.baselib.primitives.installPrimitiveProcedure;
-    var installPrimitiveConstant = plt.baselib.primitives.installPrimitiveConstant;
-    var installPrimitiveClosure = plt.baselib.primitives.installPrimitiveClosure;
-
-
+    var Primitives = baselib.primitives.Primitives;
+    var installPrimitiveProcedure = baselib.primitives.installPrimitiveProcedure;
 
 
 
@@ -162,19 +140,20 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 		}
 	    },
 	    0);
-	var loop1 = function(x, y, z, w, k) {
+        var loop1, loop2;
+	loop1 = function loop1(x, y, z, w, k) {
 	    // Ensure termination, just in case JavaScript ever
 	    // does eliminate stack limits.
 	    if (n >= MAXIMUM_CAP) { return; }
 	    n++;
 	    return 1 + loop2(y, z, w, k, x);
 	};
-	var loop2 = function(x, y, z, w, k) {
+	loop2 = function loop2(x, y, z, w, k) {
 	    n++;
 	    return 1 + loop1(y, z, w, k, x);
 	};
 	try {
-	    var dontCare = 1 + loop1(2, "seven", [1], {number: 8}, 2);
+	    findStackLimit.dontCare = 1 + loop1(2, "seven", [1], {number: 8}, 2);
 	} catch (e) {
 	    // ignore exceptions.
 	}
@@ -196,6 +175,31 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 	       0);
 
 
+
+    //////////////////////////////////////////////////////////////////////
+
+
+
+    var defaultCurrentPrintImplementation = function defaultCurrentPrintImplementation(MACHINE) {
+        if(--MACHINE.callsBeforeTrampoline < 0) { 
+            throw defaultCurrentPrintImplementation; 
+        }
+        var oldArgcount = MACHINE.argcount;
+
+	var elt = MACHINE.env[MACHINE.env.length - 1];
+	var outputPort = 
+	    MACHINE.params.currentOutputPort;
+	if (elt !== VOID) {
+	    outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
+	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
+	}
+        MACHINE.argcount = oldArgcount;
+        return finalizeClosureCall(MACHINE, VOID);
+    };
+    var defaultCurrentPrint = makeClosure(
+	"default-printer",
+	1,
+	defaultCurrentPrintImplementation);
 
 
     //////////////////////////////////////////////////////////////////////]
@@ -225,7 +229,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
                 $(domNode).appendTo(document.body);
 	    },
 
-            'currentInspector': plt.baselib.inspectors.DEFAULT_INSPECTOR,
+            'currentInspector': baselib.inspectors.DEFAULT_INSPECTOR,
 	    
 	    'currentOutputPort': new StandardOutputPort(),
 	    'currentErrorPort': new StandardErrorPort(),
@@ -336,6 +340,8 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
+
+
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
@@ -348,6 +354,41 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     // All evaluation in Racketland happens in the context of this
     // trampoline.
     //
+    var recomputeMaxNumBouncesBeforeYield;
+
+    var scheduleTrampoline = function(MACHINE, f) {
+        setTimeout(
+	    function() { 
+                return MACHINE.trampoline(f); 
+            },
+	    0);
+    };
+    var makeRestartFunction = function(MACHINE) {
+        return function(f) { 
+            return scheduleTrampoline(MACHINE, f);
+        };
+    };
+
+
+    // These are exception values that are treated specially in the context
+    // of the trampoline.
+
+    var HaltError = function(onHalt) {
+        // onHalt: MACHINE -> void
+        this.onHalt = onHalt || function(MACHINE) {};
+    };
+
+
+    var Pause = function(onPause) {
+        // onPause: MACHINE -> void
+        this.onPause = onPause || function(MACHINE) {};
+    };
+
+    var PAUSE = function(onPause) {
+        throw(new Pause(onPause));
+    };
+
+
     Machine.prototype.trampoline = function(initialJump) {
 	var MACHINE = this;
 	var thunk = initialJump;
@@ -390,21 +431,11 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 			recomputeMaxNumBouncesBeforeYield(
 			    MACHINE,
 			    (new Date()).valueOf() - startTime);
-			setTimeout(
-			    function() { 
-                                MACHINE.trampoline(thunk); 
-                            },
-			    0);
+			scheduleTrampoline(MACHINE, thunk);
 			return;
-		    } else {
-                        continue;
-                    }
+		    }
 		} else if (e instanceof Pause) {
-                    var restart = function(thunk) {
-		        setTimeout(
-			    function() { MACHINE.trampoline(thunk); },
-			    0);
-                    };
+                    var restart = makeRestartFunction(MACHINE);
                     e.onPause(restart);
                     return;
                 } else if (e instanceof HaltError) {
@@ -428,7 +459,7 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     };
 
     // recomputeGas: state number -> number
-    var recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
+    recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
 	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
 	// that we get MACHINE.params.desiredYieldsPerSecond bounces per
 	// second.
@@ -445,24 +476,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    // These are exception values that are treated specially in the context
-    // of the trampoline.
-
-    var HaltError = function(onHalt) {
-        // onHalt: MACHINE -> void
-        this.onHalt = onHalt || function(MACHINE) {};
-    };
-
-
-    var Pause = function(onPause) {
-        // onPause: MACHINE -> void
-        this.onPause = onPause || function(MACHINE) {};
-    };
-
-    var PAUSE = function(onPause) {
-        throw(new Pause(onPause));
-    };
-
 
 
 
@@ -476,26 +489,6 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-
-    var defaultCurrentPrint = makeClosure(
-	"default-printer",
-	1,
-	function(MACHINE) {
-            if(--MACHINE.callsBeforeTrampoline < 0) { 
-                throw arguments.callee; 
-            }
-            var oldArgcount = MACHINE.argcount;
-
-	    var elt = MACHINE.env[MACHINE.env.length - 1];
-	    var outputPort = 
-		MACHINE.params.currentOutputPort;
-	    if (elt !== VOID) {
-		outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
-		outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
-	    }
-            MACHINE.argcount = oldArgcount;
-            return finalizeClosureCall(MACHINE, VOID);
-	});
 
 
 
@@ -533,9 +526,15 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     // Implementation of the ready function.  This will fire off when
     // setReadyTrue is called.
+    var ready, setReadyTrue, setReadyFalse;
+    (function() {
+        var runtimeIsReady = false;
+        var readyWaiters = [];
+        var notifyWaiter = function(w) {
+            w();
+        };
 
-    (function(scope) {
-        scope.ready = function(f) {
+        ready = function(f) {
             if (runtimeIsReady) {
                 notifyWaiter(f);
             } else {
@@ -543,24 +542,18 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
             }
         };
 
-        scope.setReadyTrue = function() {
+        setReadyTrue = function() {
             runtimeIsReady = true;
             while(runtimeIsReady && readyWaiters.length > 0) {
                 notifyWaiter(readyWaiters.shift());
             }
         };
 
-        scope.setReadyFalse = function() {
+        setReadyFalse = function() {
             runtimeIsReady = false;
         };
 
-
-        var runtimeIsReady = false;
-        var readyWaiters = [];
-        var notifyWaiter = function(w) {
-            w();
-        };
-    })(this);
+    }());
 
 
     //////////////////////////////////////////////////////////////////////
@@ -590,8 +583,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
     // Looks up a name in any of the machine's main modules.
     var lookupInMains = function(name, machine) {
+        var i;
         machine = machine || runtime.currentMachine;
-        for (var i = 0; i < machine.mainModules.length; i++) {
+        for (i = 0; i < machine.mainModules.length; i++) {
             var ns = machine.mainModules[i].getNamespace();
             if(ns.hasOwnProperty(name)) {
                 return ns[name];
@@ -700,9 +694,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
     exports['toWrittenString'] = toWrittenString;
     exports['toDisplayedString'] = toDisplayedString;
 
-    exports['ArityAtLeast'] = plt.baselib.arity.ArityAtLeast;
-    exports['makeArityAtLeast'] = plt.baselib.arity.makeArityAtLeast;
-    exports['isArityMatching'] = plt.baselib.arity.isArityMatching;
+    exports['ArityAtLeast'] = ArityAtLeast;
+    exports['makeArityAtLeast'] = makeArityAtLeast;
+    exports['isArityMatching'] = isArityMatching;
 
     exports['heir'] = heir;
     exports['makeClassPredicate'] = makeClassPredicate;
@@ -712,9 +706,9 @@ if(this['plt'] === undefined) { this['plt'] = {}; }
 
 
 
-    exports['makeStructureType'] = plt.baselib.structs.makeStructureType;
-    exports['Struct'] = plt.baselib.structs.Struct;
-    exports['StructType'] = plt.baselib.structs.StructType;
+    exports['makeStructureType'] = makeStructureType;
+    exports['Struct'] = Struct;
+    exports['StructType'] = StructType;
 
 
-})(this['plt']);
+}(this.plt, this.plt.baselib));

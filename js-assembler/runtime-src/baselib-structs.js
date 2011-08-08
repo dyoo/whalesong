@@ -1,6 +1,6 @@
 /*jslint browser: true, unparam: true, vars: true, white: true, nomen: true, plusplus: true, maxerr: 50, indent: 4 */
 /*globals $*/
-(function (baselib) {
+(function (baselib, $) {
     "use strict";
     var exports = {};
     baselib.structs = exports;
@@ -227,4 +227,4 @@
     exports.isStruct = isStruct;
     exports.isStructType = isStructType;
 
-}(this.plt.baselib));
+}(this.plt.baselib, $));

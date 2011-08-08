@@ -3,7 +3,7 @@
 /*global Hashtable*/
 
 
-(function (baselib) {
+(function (baselib, Hashtable) {
     'use strict';
     var exports = {};
 
@@ -184,4 +184,4 @@
     exports.isHash = isHash;
 
 
-}(this.plt.baselib));
+}(this.plt.baselib, Hashtable));

@@ -4,7 +4,7 @@
 // Produces string and DOM representations of values.
 //
 /*global $*/
-(function(baselib) {
+(function(baselib, $) {
     'use strict';
     var exports = {};
     baselib.format = exports;
@@ -417,4 +417,4 @@
     exports.toDomNode = toDomNode;
 
     exports.escapeString = escapeString;
-}(this.plt.baselib));
+}(this.plt.baselib, $));

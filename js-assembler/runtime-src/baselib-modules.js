@@ -2,7 +2,7 @@
 /*global plt*/
 
 // Modules
-(function (baselib) {
+(function (baselib, plt) {
     'use strict';
     var exports = {};
     baselib.modules = exports;
@@ -77,4 +77,4 @@
     exports.ModuleRecord = ModuleRecord;
 
 
-}(this.plt.baselib));
+}(this.plt.baselib, this.plt));

@@ -7,7 +7,7 @@
 
 /*global plt*/
 
-(function (baselib) {
+(function (baselib, plt) {
     'use strict';
     var exports = {};
     baselib.functions = exports;
@@ -364,4 +364,4 @@
 
     exports.asJavaScriptFunction = asJavaScriptFunction;
 
-}(this.plt.baselib));
+}(this.plt.baselib, this.plt));

@@ -20,7 +20,7 @@
     // makeInstance: string -> Symbol.
     Symbol.makeInstance = function (val) {
         // To ensure that we can eq? symbols with equal values.
-        if (!(val.hasOwnProperty(symbolCache))) {
+        if (!(symbolCache.hasOwnProperty(val))) {
             symbolCache[val] = new Symbol(val);
         }
         return symbolCache[val];

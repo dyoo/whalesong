@@ -2,11 +2,13 @@
 (require racket/path
          racket/runtime-path
          syntax/modcode
-         racket/contract
          "language-namespace.rkt"
          "logger.rkt"
          syntax/kerncase
-         (for-template "resource.rkt"))
+         (for-template (planet dyoo/whalesong/lang/kernel)
+                       "resource.rkt")
+         
+         "resource.rkt")
 
 (provide get-module-bytecode)
 
@@ -74,6 +76,7 @@
                [(module id name-id (#%plain-module-begin module-level-form ...))
                 
                 #`(module id name-id (#%plain-module-begin 
+                                      (require (planet dyoo/whalesong/resource))
                                       #,@(map convert-images-to-resources
                                               (syntax->list #'(module-level-form ...)))))]))))
 
@@ -142,21 +145,21 @@
        (set! id #,(on-expr #'subexpr)))]
     
     [(quote datum)
-     (quasisyntax/loc expr
-       (quote #,(on-datum #'datum)))]
+     (on-datum #'datum (lambda (v)
+                         (quasisyntax/loc expr
+                           (quote #,v))))]
 
     [(quote-syntax datum)
-     (quasisyntax/loc expr
-       (quote-syntax #,(on-datum #'datum)))]
+     (on-datum #'datum (lambda (v)
+                         (quasisyntax/loc expr
+                           (quote-syntax #,v))))]
 
     [(with-continuation-mark key value body)
      (quasisyntax/loc expr
        (with-continuation-mark #,(on-expr #'key) #,(on-expr #'value) #,(on-expr #'body)))]
     
     [(#%plain-app subexpr ...)
-     expr
-     #;(displayln expr)
-     #;(quasisyntax/loc expr
+     (quasisyntax/loc expr
        (#%plain-app #,@(map on-expr (syntax->list #'(subexpr ...)))))]
 
     [(#%top . id)
@@ -167,21 +170,28 @@
     [(#%variable-reference id)
      expr]
     [(#%variable-reference)
+     expr]
+    [else 
      expr]))
 
-        
 
-(define (on-datum datum-stx)
-  (printf "looking at datum: ~s\n" datum-stx)
-  datum-stx)
+(define (on-datum datum-stx k)
+  (define-values (image? convert) (parameterize ([current-namespace base-namespace])
+                                    (values
+                                     (dynamic-require '2htdp/image 'image?)
+                                     (dynamic-require 'file/convertible 'convert))))
+  (cond
+    [(image? (syntax-e datum-stx))
+     (with-syntax ([image-bytes (convert (syntax-e datum-stx) 'png-bytes)])
+       (quasisyntax/loc datum-stx
+         (make-bytes-resource #f #f image-bytes)))]
+
+    [else
+     (k datum-stx)]))
 
 
 
 (define (convert-images-to-resources stx)
-  
-  
-  
-  
   (kernel-syntax-case (syntax-disarm stx code-insp) #f
     [(#%provide raw-provide-spec ...)
      stx]

@@ -333,7 +333,7 @@ MACHINE.modules[~s] =
     <title>Example</title>
   </head>
   <script>
-
+"use strict";
 EOF
 )
 

@@ -10,6 +10,7 @@
     var Vector = function (n, initialElements) {
         var i;
         this.elts = [];
+        this.elts.length = n;
         if (initialElements) {
             for (i = 0; i < n; i++) {
                 this.elts[i] = initialElements[i];

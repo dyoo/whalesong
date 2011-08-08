@@ -235,7 +235,7 @@
                                                                                  'closureStart))
                     (make-PopEnvironment (make-Const 2) (make-Const 0))
                     (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
-                    'thEnd)
+                    'theEnd)
               "typeof(MACHINE.val) + ',' + (MACHINE.val === MACHINE.proc.label)")
       "function,true")
 

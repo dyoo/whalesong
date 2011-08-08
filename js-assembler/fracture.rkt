@@ -38,7 +38,6 @@
                         (cons first-block-label (collect-general-jump-targets stmts))]
           [entry-points : (Listof Symbol)
                         (cons first-block-label (collect-entry-points stmts))])
-    
     (let: loop : (values (Listof BasicBlock) (Listof Symbol))
       ([name : Symbol first-block-label]
        [acc : (Listof UnlabeledStatement) '()]

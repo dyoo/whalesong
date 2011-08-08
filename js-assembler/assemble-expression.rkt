@@ -46,7 +46,7 @@
              (CaptureEnvironment-skip op))]
     
     [(CaptureControl? op)
-     (format "RUNTIME.captureControl(MACHINE, ~a, ~a)"
+     (format "MACHINE.captureControl(~a, ~a)"
              (CaptureControl-skip op)
              (let: ([tag : (U DefaultContinuationPromptTag OpArg)
 			 (CaptureControl-tag op)])

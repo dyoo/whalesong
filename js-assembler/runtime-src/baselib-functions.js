@@ -129,7 +129,7 @@
                 MACHINE.proc = oldProc;
                 fail(e);
             };
-            plt.runtime.trampoline(MACHINE, v.label);
+            MACHINE.trampoline(v.label);
         };
         return f;
     };
@@ -198,7 +198,7 @@
                 MACHINE.proc = oldProc;
                 fail(e);
             };
-            plt.runtime.trampoline(MACHINE, proc.label);
+            MACHINE.trampoline(proc.label);
         } else {
             fail(plt.baselib.exceptions.makeExnFail(
                 plt.baselib.format.format(

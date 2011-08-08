@@ -62,7 +62,7 @@
             if (isInternal) {
                 throw that.label;
             } else {
-                plt.runtime.trampoline(MACHINE, that.label);
+                MACHINE.trampoline(that.label);
             }
         }
     };

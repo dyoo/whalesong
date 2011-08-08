@@ -105,7 +105,7 @@ EOF
      "MACHINE.env = MACHINE.env[MACHINE.env.length - 2].slice(0);"]
     
     [(RestoreControl!? op)
-     (format "RUNTIME.restoreControl(MACHINE, ~a);"
+     (format "MACHINE.restoreControl(~a);"
              (let: ([tag : (U DefaultContinuationPromptTag OpArg)
 			 (RestoreControl!-tag op)])
                (cond
@@ -131,11 +131,11 @@ EOF
              (assemble-oparg (SetFrameCallee!-proc op)))]
     
     [(SpliceListIntoStack!? op)
-     (format "RUNTIME.spliceListIntoStack(MACHINE, ~a);"
+     (format "MACHINE.spliceListIntoStack(~a);"
              (assemble-oparg (SpliceListIntoStack!-depth op)))]
 
     [(UnspliceRestFromStack!? op)
-     (format "RUNTIME.unspliceRestFromStack(MACHINE, ~a, ~a);"
+     (format "MACHINE.unspliceRestFromStack(~a, ~a);"
              (assemble-oparg (UnspliceRestFromStack!-depth op))
              (assemble-oparg (UnspliceRestFromStack!-length op)))]
 

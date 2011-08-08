@@ -74,7 +74,8 @@
                 ;; baselib-check has to come after the definitions of types,
                 ;; since it uses the type predicates immediately on init time.
                 baselib-check.js
-                
+
+                baselib-primitives.js
                 runtime.js))
 
 

@@ -1,6 +1,9 @@
+/*jslint browser: true, undef: false, unparam: true, sub: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
+
 // Exceptions
 
 (function(baselib) {
+    'use strict';
     var exceptions = {};
     baselib.exceptions = exceptions;
 
@@ -8,53 +11,53 @@
 
     // Error type exports
     var InternalError = function(val, contMarks) {
-	this.val = val;
-	this.contMarks = (contMarks ? contMarks : false);
-    }
+        this.val = val;
+        this.contMarks = contMarks || false;
+    };
 
 
     var SchemeError = function(val) {
-	this.val = val;
-    }
+        this.val = val;
+    };
 
 
     var IncompleteExn = function(constructor, msg, otherArgs) {
-	this.constructor = constructor;
-	this.msg = msg;
-	this.otherArgs = otherArgs;
+        this.constructor = constructor;
+        this.msg = msg;
+        this.otherArgs = otherArgs;
     };
 
 
     // (define-struct exn (message continuation-mark-set))
-    var Exn = plt.baselib.structs.makeStructureType(
+    var Exn = baselib.structs.makeStructureType(
         'exn', false, 2, 0, false, false);
 
 
     // (define-struct (exn:break exn) (continuation))
-    var ExnBreak = plt.baselib.structs.makeStructureType(
+    var ExnBreak = baselib.structs.makeStructureType(
         'exn:break', Exn, 1, 0, false, false);
 
 
-    var ExnFail = plt.baselib.structs.makeStructureType(
+    var ExnFail = baselib.structs.makeStructureType(
         'exn:fail', Exn, 0, 0, false, false);
 
-    var ExnFailContract = plt.baselib.structs.makeStructureType(
+    var ExnFailContract = baselib.structs.makeStructureType(
         'exn:fail:contract', ExnFail, 0, 0, false, false);
 
-    var ExnFailContractArity = plt.baselib.structs.makeStructureType(
+    var ExnFailContractArity = baselib.structs.makeStructureType(
         'exn:fail:contract:arity', ExnFailContract, 0, 0, false, false);
 
-    var ExnFailContractVariable = plt.baselib.structs.makeStructureType(
+    var ExnFailContractVariable = baselib.structs.makeStructureType(
         'exn:fail:contract:variable', ExnFailContract, 1, 0, false, false);
 
-    var ExnFailContractDivisionByZero = plt.baselib.structs.makeStructureType(
+    var ExnFailContractDivisionByZero = baselib.structs.makeStructureType(
         'exn:fail:contract:divide-by-zero', ExnFailContract, 0, 0, false, false);
 
 
 
 
 
-    var exceptionHandlerKey = new plt.baselib.symbols.Symbol("exnh");
+    var exceptionHandlerKey = new baselib.symbols.Symbol("exnh");
 
 
 
@@ -72,13 +75,13 @@
             e.message = Exn.accessor(e, 0);
         }
 
-	if (typeof(window['console']) !== 'undefined' &&
-	    typeof(console['log']) === 'function') {
-	    console.log(MACHINE);
-	    if (e['stack']) { console.log(e['stack']); }
-	    else { console.log(e); }
-	} 
-	throw e; 
+        if (typeof(window.console) !== 'undefined' &&
+            typeof(window.console['log']) === 'function') {
+            window.console.log(MACHINE);
+            if (e['stack']) { window.console.log(e['stack']); }
+            else { window.console.log(e); }
+        } 
+        throw e; 
     };
 
 
@@ -86,10 +89,10 @@
 
     var raiseUnboundToplevelError = function(MACHINE, name) {
         raise(MACHINE, 
-	      new Error(
-		  plt.baselib.format.format(
-		      "Not bound: ~a",
-		      [name]))); 
+              new Error(
+                  baselib.format.format(
+                      "Not bound: ~a",
+                      [name]))); 
     };
 
 
@@ -99,70 +102,69 @@
                                           argumentOffset,
                                           actualValue) {
         if (argumentOffset !== undefined) {
-	    raise(MACHINE,
+            raise(MACHINE,
                   new Error(
-		      plt.baselib.format.format(
-		          "~a: expected ~a as argument ~e but received ~e",
-		          [callerName,
-		           expectedTypeName,
-		           (argumentOffset + 1),
-		           actualValue])));
+                      baselib.format.format(
+                          "~a: expected ~a as argument ~e but received ~e",
+                          [callerName,
+                           expectedTypeName,
+                           (argumentOffset + 1),
+                           actualValue])));
         } else {
-	    raise(MACHINE,
+            raise(MACHINE,
                   new Error(
-		      plt.baselib.format.format(
-		          "~a: expected ~a but received ~e",
-		          [callerName,
-		           expectedTypeName,
-		           actualValue])));
+                      baselib.format.format(
+                          "~a: expected ~a but received ~e",
+                          [callerName,
+                           expectedTypeName,
+                           actualValue])));
         }
     };
 
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
-	raise(MACHINE, 
-	      new Error(plt.baselib.format.format(
-		  "expected ~e values, received ~e values"
-		  [expected,
-		   MACHINE.argcount])));
+        raise(MACHINE, 
+              new Error(baselib.format.format(
+                  "expected ~e values, received ~e values",
+                  [expected, MACHINE.argcount])));
     };
 
     var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
-	raise(MACHINE, 
-	      new Error(plt.baselib.format.format(
-		  "~a: expected ~e value(s), received ~e value(s)",
-		  [proc.displayName,
-		   expected ,
-		   received])))
+        raise(MACHINE, 
+              new Error(baselib.format.format(
+                  "~a: expected ~e value(s), received ~e value(s)",
+                  [proc.displayName,
+                   expected,
+                   received])));
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
-	raise(MACHINE, 
-	      new Error(
-		  plt.baselib.format.format(
-		      "not a procedure: ~e",
-		      [operator])));
+        raise(MACHINE, 
+              new Error(
+                  baselib.format.format(
+                      "not a procedure: ~e",
+                      [operator])));
     };
 
     var raiseOperatorIsNotClosure = function(MACHINE, operator) {
         raise(MACHINE,
               new Error(
-		  plt.baselib.format.format(
-		      "not a closure: ~e",
-		      [operator])));
+                  baselib.format.format(
+                      "not a closure: ~e",
+                      [operator])));
     };
 
     var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
         raise(MACHINE,
               new Error(
-		  plt.baselib.format.format(
-		      "not a primitive procedure: ~e",
-		      [operator])));
+                  baselib.format.format(
+                      "not a primitive procedure: ~e",
+                      [operator])));
     };
 
 
     var raiseUnimplementedPrimitiveError = function(MACHINE, name) {
-	raise(MACHINE, 
-	      new Error("unimplemented kernel procedure: " + name))
+        raise(MACHINE, 
+              new Error("unimplemented kernel procedure: " + name));
     };
 
 
@@ -245,4 +247,4 @@
     exceptions.raiseUnimplementedPrimitiveError = raiseUnimplementedPrimitiveError;
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

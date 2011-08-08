@@ -1,6 +1,7 @@
 // Helper functions for argument checking.
 
 (function(baselib) {
+    'use strict';
     var exports = {};
     baselib.check = exports;
 
@@ -258,4 +259,4 @@
 
 
 
-})(this['plt'].baselib);
+}(this.plt.baselib));

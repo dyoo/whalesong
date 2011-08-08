@@ -47,6 +47,18 @@
           (log-debug (format "merging label ~a and ~a" last-stmt next-stmt))
           (ufind:union-set a-forest last-stmt next-stmt)
           (loop (rest stmts) next-stmt)]
+         
+         ;; If there's a label, immediately followed by a direct Goto jump,
+         ;; just equate the label and the jump.
+         [(and (symbol? last-stmt) (GotoStatement? next-stmt))
+          (define goto-target (GotoStatement-target next-stmt))
+          (cond
+            [(Label? goto-target)
+             (ufind:union-set a-forest last-stmt (Label-name goto-target))
+             (loop (rest stmts) next-stmt)]
+            [else
+             (loop (rest stmts) next-stmt)])]
+               
          [else
           (loop (rest stmts) next-stmt)])]))
 

@@ -256,10 +256,10 @@ MACHINE.modules[~s] =
 ;; package-standalone-xhtml: X output-port -> void
 (define (package-standalone-xhtml source-code op)
   (display *header* op)
-  (log-debug "writing the runtime")
-  (display (quote-cdata (get-runtime)) op)
-  (log-debug "writing the source code")
-  (display (quote-cdata (get-code source-code)) op)
+  (display (quote-cdata
+            (string-append (get-runtime)
+                           (get-code source-code)
+                           invoke-main-module-code)) op)
   (display *footer* op))
 
 
@@ -330,10 +330,10 @@ MACHINE.modules[~s] =
   <head>
     <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta charset="utf-8"/>
-    <title>Example</title>
+    <title></title>
   </head>
   <script>
-"use strict";
+
 EOF
 )
 
@@ -367,10 +367,9 @@ EOF
 
 
 
-(define *footer*
-  #<<EOF
 
-<![CDATA[
+(define invoke-main-module-code
+  #<<EOF
 var invokeMainModule = function() {
     var MACHINE = plt.runtime.currentMachine;
     invoke(MACHINE,
@@ -403,7 +402,11 @@ var invokeMainModule = function() {
 };
   
   $(document).ready(invokeMainModule);
-]]>
+EOF
+)
+
+(define *footer*
+  #<<EOF
   </script>
   <body></body>
 </html>

@@ -149,7 +149,7 @@
      expr]))
 
 
-(define (on-datum datum-stx k)
+(define (on-datum datum-stx on-regular-datum)
   (define-values (image? convert) 
     (values
      (dynamic-require '2htdp/image 'image?)
@@ -173,7 +173,7 @@
          (#,(my-image-url) image-uri)))]
     
     [else
-     (k datum-stx)]))
+     (on-regular-datum datum-stx)]))
 
 
 

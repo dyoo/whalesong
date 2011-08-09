@@ -49,9 +49,10 @@
 	    case 13: ret.push('\\r'); break;
 	    case 34: ret.push('\\"'); break;
 	    case 92: ret.push('\\\\'); break;
-	    default: if (val >= 32 && val <= 126) {
-		ret.push( s.charAt(i) );
-	    }
+	    default: 
+                if (val >= 32 && val <= 126) {
+		    ret.push( s.charAt(i) );
+	        }
 		else {
 		    var numStr = val.toString(16).toUpperCase();
 		    while (numStr.length < 4) {

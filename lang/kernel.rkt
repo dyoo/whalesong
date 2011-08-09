@@ -255,6 +255,7 @@ raise-mismatch-error
   procedure?
   procedure-arity
   procedure-arity-includes?
+  procedure-rename
   pair?
   list?
   ;;  (undefined? -undefined?)

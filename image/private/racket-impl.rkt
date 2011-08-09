@@ -5,8 +5,6 @@
 
 (provide text
          text/font
-         image-url
-         open-image-url
          overlay
          overlay/xy
          overlay/align
@@ -57,11 +55,11 @@
 
 
          image?
-
          ;; Something funky is happening on the Racket side of things with regards
          ;; to step-count?  See:  http://bugs.racket-lang.org/query/?cmd=view&pr=12031
          ;; step-count?
 
+         bitmap/url
          )
 
 
@@ -75,13 +73,10 @@
 
 
 
-(define-stubs
-  image-url
-  open-image-url
-  color-list->image
-           )
+(define-stubs color-list->image)
 
 
+  
 
 (define (my-step-count? x)
   (and (integer? x)
@@ -92,5 +87,10 @@
   (error 'png-bytes->image "not implemented yet"))
 
 
+(define image-url (procedure-rename bitmap/url 'image-url))
+(define open-image-url (procedure-rename bitmap/url 'open-image-url))
 
-(provide (rename-out [my-step-count? step-count?]))
+
+(provide (rename-out [my-step-count? step-count?]
+                     [bitmap/url image-url]
+                     [bitmap/url open-image-url]))

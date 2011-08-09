@@ -882,6 +882,17 @@
 
 
     installPrimitiveProcedure(
+        'procedure-rename',
+        2,
+        function (MACHINE) {
+            var proc = checkProcedure(MACHINE, 'procedure-rename', 0);
+            var name = checkSymbol(MACHINE, 'procedure-rename', 1);
+            return baselib.functions.renameProcedure(proc, name);
+        });
+
+
+
+    installPrimitiveProcedure(
         'member',
         2,
         function (MACHINE) {

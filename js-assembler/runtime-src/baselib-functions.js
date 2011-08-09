@@ -329,15 +329,11 @@
             return makePrimitiveProcedure(
                 name,
                 f.racketArity,
-                function () {
-                    return f.apply(null, arguments);
+                function (MACHINE) {
+                    return f(MACHINE);
                 });
         } else {
-            return new Closure(
-                f.label,
-                f.racketArity,
-                f.closedVals,
-                name);
+            return makeClosure(name, f.racketArity, f.label, f.closedVals);
         }
     };
 

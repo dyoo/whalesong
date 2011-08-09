@@ -280,12 +280,12 @@ EXPORTS['text/font'] =
         });
 
 
-EXPORTS['image-url'] = 
+EXPORTS['bitmap/url'] = 
     makeClosure(
-        'image-url',
+        'bitmap/url',
         1,
         function(MACHINE) {
-            var url = checkString(MACHINE, 'image-url', 0);
+            var url = checkString(MACHINE, 'bitmap/url', 0);
             var oldArgcount = MACHINE.argcount;
             PAUSE(
                 function(restart) {
@@ -315,8 +315,13 @@ EXPORTS['image-url'] =
         });
 
 EXPORTS['open-image-url'] = 
-    plt.baselib.functions.renameProcedure(EXPORTS['image-url'],
+    plt.baselib.functions.renameProcedure(EXPORTS['bitmap/url'],
                                           'open-image-url');
+
+EXPORTS['image-url'] = 
+    plt.baselib.functions.renameProcedure(EXPORTS['bitmap/url'],
+                                          'image-url');
+
 
 
 

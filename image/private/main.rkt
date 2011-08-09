@@ -12,8 +12,11 @@
                "js-impl.js")
  #:provided-values (text
                     text/font
-                    image-url
-                    open-image-url
+
+                    bitmap/url
+                    image-url      ;; older name for bitmap/url
+                    open-image-url ;; older name for bitmap/url
+
                     overlay
                     overlay/xy
                     overlay/align

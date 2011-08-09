@@ -61,6 +61,7 @@
          ;; Something funky is happening on the Racket side of things with regards
          ;; to step-count?  See:  http://bugs.racket-lang.org/query/?cmd=view&pr=12031
          ;; step-count?
+
          )
 
 
@@ -85,5 +86,11 @@
 (define (my-step-count? x)
   (and (integer? x)
        (>= x 1)))
+
+
+(define (png-bytes->image bytes)
+  (error 'png-bytes->image "not implemented yet"))
+
+
 
 (provide (rename-out [my-step-count? step-count?]))

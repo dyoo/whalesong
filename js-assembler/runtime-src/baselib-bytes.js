@@ -37,7 +37,6 @@
 	if (end === null || end === undefined) {
 	    end = this.bytes.length;
 	}
-	
 	return new Bytes( this.bytes.slice(start, end), true );
     };
 
@@ -63,12 +62,12 @@
 
 
     Bytes.prototype.toString = function(cache) {
-	var ret = '', i;
+	var ret = [], i;
 	for (i = 0; i < this.bytes.length; i++) {
-	    ret += String.fromCharCode(this.bytes[i]);
+	    ret.push(String.fromCharCode(this.bytes[i]));
 	}
 
-	return ret;
+	return ret.join('');
     };
 
     Bytes.prototype.toDisplayedString = Bytes.prototype.toString;
@@ -106,9 +105,16 @@
 	return ret.join('');
     };
 
+    var makeBytes = function(bytes) {
+        return new Bytes(bytes);
+    };
 
+    var isBytes = baselib.makeClassPredicate(Bytes);
 
 
     exports.Bytes = Bytes;
+    exports.makeBytes = makeBytes;
+    exports.isBytes = isBytes;
+
 
 }(this.plt.baselib));

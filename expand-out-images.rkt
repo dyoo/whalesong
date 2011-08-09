@@ -1,9 +1,10 @@
 #lang racket/base
 
-(require syntax/kerncase
-         (for-template (planet dyoo/whalesong/lang/kernel)
-                       "resource.rkt")
-         "resource.rkt")
+(require planet/version
+         syntax/kerncase
+         net/base64
+         (for-template (this-package-in lang/kernel))
+         (this-package-in image/main))
 
 (provide expand-out-images)
 
@@ -136,9 +137,13 @@
      (dynamic-require 'file/convertible 'convert)))
   (cond
     [(image? (syntax-e datum-stx))
-     (with-syntax ([image-bytes (convert (syntax-e datum-stx) 'png-bytes)])
+     (with-syntax ([image-uri 
+                    (string-append "data:image/png;charset=utf-8;base64,"
+                                   (bytes->string/utf-8
+                                    (base64-encode
+                                     (convert (syntax-e datum-stx) 'png-bytes))))])
        (quasisyntax/loc datum-stx
-         (make-bytes-resource #f #f image-bytes)))]
+         (image-url image-uri)))]
     
     [else
      (k datum-stx)]))

@@ -171,6 +171,10 @@
         baselib.numbers.isByte,
         'byte');
 
+    var checkBytes = makeCheckArgumentType(
+        baselib.bytes.isBytes,
+        'bytes');
+
     var checkNaturalInRange = makeCheckParameterizedArgumentType(
         function (x, a, b) {
             if (! baselib.numbers.isNatural(x)) { return false; }
@@ -248,6 +252,7 @@
     exports.checkNatural = checkNatural;
     exports.checkNaturalInRange = checkNaturalInRange;
     exports.checkByte = checkByte;
+    exports.checkBytes = checkBytes;
     exports.checkInteger = checkInteger;
     exports.checkRational = checkRational;
     exports.checkPair = checkPair;

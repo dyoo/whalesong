@@ -314,10 +314,10 @@ EXPORTS['image-url'] =
             );
         });
 
-
 EXPORTS['open-image-url'] = 
     plt.baselib.functions.renameProcedure(EXPORTS['image-url'],
                                           'open-image-url');
+
 
 
 EXPORTS['overlay'] = 

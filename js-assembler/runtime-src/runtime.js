@@ -42,7 +42,9 @@
     var makeBignum = baselib.numbers.makeBignum;
     var makeComplex = baselib.numbers.makeComplex;
 
+
     var makeSymbol = baselib.symbols.makeSymbol;
+    var makeBytes = baselib.bytes.makeBytes;
 
     var makeBox = baselib.boxes.makeBox;
     var isBox = baselib.boxes.isBox;
@@ -674,6 +676,7 @@
     exports['makeBignum'] = makeBignum;
     exports['makeComplex'] = makeComplex;
     exports['makeSymbol'] = makeSymbol;
+    exports['makeBytes'] = makeBytes;
 
 
     // Type predicates

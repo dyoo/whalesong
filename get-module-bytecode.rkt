@@ -4,12 +4,7 @@
          syntax/modcode
          "language-namespace.rkt"
          "logger.rkt"
-         "expand-out-images.rkt"
-         syntax/kerncase
-         (for-template (planet dyoo/whalesong/lang/kernel)
-                       "resource.rkt")
-         
-         "resource.rkt")
+         "expand-out-images.rkt")
 
 (provide get-module-bytecode)
 
@@ -24,38 +19,39 @@
 
 (define (get-module-bytecode x)
   (log-debug "grabbing module bytecode for ~s" x)
-  (let ([compiled-code
-         (cond
-           ;; Assumed to be a path string
-           [(string? x)
-            (get-compiled-code-from-path (normalize-path (build-path x)))]
-           
-           [(path? x)
-            (get-compiled-code-from-path x)]
-           
-           ;; Input port is assumed to contain the text of a module.
-           [(input-port? x)
-            (get-compiled-code-from-port x)]
-           
-           [else
-            (error 'get-module-bytecode)])])
-    (let ([op (open-output-bytes)])
-      (write compiled-code op)
-      (get-output-bytes op))))
 
+  (define-values (compiled-code alternative-f)
+    (cond
+      ;; Assumed to be a path string
+      [(string? x)
+       (log-debug "assuming path string")
+       (values (get-compiled-code-from-path (normalize-path (build-path x)))
+               (lambda ()
+                 (call-with-input-file* (normalize-path (build-path x))
+                   get-compiled-code-from-port)
+                 ))]
+      
+      [(path? x)
+       (values (get-compiled-code-from-path x)
+               (lambda ()
+                 (call-with-input-file* x get-compiled-code-from-port)))]
+      
+      ;; Input port is assumed to contain the text of a module.
+      [(input-port? x)
+       (values (get-compiled-code-from-port x)
+               (lambda ()
+                 (get-compiled-code-from-port x)))]
+      
+      [else
+       (error 'get-module-bytecode)]))
 
-;; Tries to use get-module-code to grab at module bytecode.  Sometimes
-;; this fails because it appears get-module-code tries to write to
-;; compiled/.
-(define (get-compiled-code-from-path p)
-  (with-handlers ([void (lambda (exn)
-                          ;; Failsafe: try to do it from scratch
-                          (call-with-input-file* p
-                            (lambda (ip)
-                              (get-compiled-code-from-port ip))))])
-    (get-module-code p)))
-
-
+  (with-handlers ([exn? (lambda (exn)
+                          (define op (open-output-bytes))
+                          (write (alternative-f) op)
+                          (get-output-bytes op))])
+    (define op (open-output-bytes))
+    (write compiled-code op)
+    (get-output-bytes op)))
 
 
 
@@ -65,6 +61,21 @@
    #;'racket/base
    `(file ,(path->string kernel-language-path)))
   #;(make-base-namespace))
+
+
+
+;; Tries to use get-module-code to grab at module bytecode.  Sometimes
+;; this fails because it appears get-module-code tries to write to
+;; compiled/.
+(define (get-compiled-code-from-path p)
+  (log-debug "get-compiled-code-from-path")
+  (with-handlers ([exn? (lambda (exn)
+                          ;; Failsafe: try to do it from scratch
+                          (log-debug "parsing from scratch")
+                          (call-with-input-file* p
+                            (lambda (ip)
+                              (get-compiled-code-from-port ip))))])
+    (get-module-code p)))
 
 
 (define (get-compiled-code-from-port ip)

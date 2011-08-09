@@ -78,8 +78,11 @@
     (get-module-code p)))
 
 
+;; get-compiled-code-from-port: input-port -> compiled-code
+;; Compiles the source from scratch.
 (define (get-compiled-code-from-port ip)
   (parameterize ([read-accept-reader #t]
                  [current-namespace base-namespace])
     (define stx (read-syntax (object-name ip) ip))
-    (expand-out-images stx)))
+    (define expanded-stx (expand-out-images stx))
+    (compile expanded-stx)))

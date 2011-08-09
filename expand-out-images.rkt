@@ -3,37 +3,48 @@
 (require planet/version
          syntax/kerncase
          net/base64
-         (for-template (this-package-in lang/kernel))
+         (for-template (this-package-in lang/kernel)
+                       #;(this-package-in image/main))
+         
+         ;; FIXME: I don't quite understand why I should be doing a require
+         ;; of the image library at compile time, and not at template time.
          (this-package-in image/main))
+
+
 
 (provide expand-out-images)
 
 
-;; expand-out-images: syntax -> compiled-code
+;; expand-out-images: syntax -> syntax
+;; Takes programs and rips out their image snips in favor of calls to
+;; image-url.
 (define (expand-out-images stx)
   (define expanded (expand stx))
   
-  (define rewritten
-    (kernel-syntax-case (syntax-disarm expanded code-insp) #f
-             [(#%expression expr)
-              (quasisyntax/loc stx
-                (#%expression #,(on-expr #'expr)))]
-
-             [(module id name-id (#%plain-module-begin module-level-form ...))
-              #`(module id name-id (#%plain-module-begin 
-                                    (require (planet dyoo/whalesong/resource))
-                                    #,@(map convert-images-to-resources
-                                            (syntax->list #'(module-level-form ...)))))]
-             [(begin top-level-form ...)
-              (quasisyntax/loc stx
-                (begin #,@(map convert-images-to-resources 
-                               (syntax->list #'(top-level-form ...)))))]
-             [else
-              (convert-images-to-resources expanded)]))
-  
   ;; We need to translate image snips in the expanded form so we can
   ;; fruitfully use compiler/zo-parse.    
-  (compile rewritten))
+  (define rewritten
+    (kernel-syntax-case (syntax-disarm expanded code-insp) #f
+      [(#%expression expr)
+       (quasisyntax/loc stx
+         (#%expression #,(on-expr #'expr)))]
+      
+      [(module id name-id (#%plain-module-begin module-level-form ...))
+       (quasisyntax/loc stx
+         (module id name-id (#%plain-module-begin 
+                             (require (planet dyoo/whalesong/image))
+                             #,@(map convert-images-to-resources
+                                     (syntax->list #'(module-level-form ...))))))]
+      [(begin top-level-form ...)
+       (quasisyntax/loc stx
+         (begin #,@(map convert-images-to-resources 
+                        (syntax->list #'(top-level-form ...)))))]
+      [else
+       (convert-images-to-resources expanded)]))
+  
+  
+  rewritten)
+
 
 
 (define code-insp (current-code-inspector))
@@ -135,13 +146,21 @@
     (values
      (dynamic-require '2htdp/image 'image?)
      (dynamic-require 'file/convertible 'convert)))
+  
+  ;; Translates image values to embeddable uris.  See:
+  ;; http://en.wikipedia.org/wiki/Data_URI_scheme
+  ;; This code is ripped out of the tracer library written by
+  ;; Will Zimrin and Jeanette Miranda.
+  ;; returns the data-uri encoding of an image.
+  (define (image->uri img)
+    (define base64-bytes (base64-encode (convert img 'png-bytes)))
+    (string-append "data:image/png;charset=utf-8;base64,"
+                   (bytes->string/utf-8 base64-bytes)))
+  
   (cond
     [(image? (syntax-e datum-stx))
      (with-syntax ([image-uri 
-                    (string-append "data:image/png;charset=utf-8;base64,"
-                                   (bytes->string/utf-8
-                                    (base64-encode
-                                     (convert (syntax-e datum-stx) 'png-bytes))))])
+                    (image->uri (syntax-e datum-stx))])
        (quasisyntax/loc datum-stx
          (image-url image-uri)))]
     

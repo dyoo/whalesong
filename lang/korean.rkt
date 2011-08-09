@@ -1,6 +1,8 @@
 #lang s-exp "base.rkt"
 
 (require (for-syntax racket/base))
+(provide (all-defined-out)
+         (all-from-out "base.rkt"))
 
 
 (define-syntax 정의

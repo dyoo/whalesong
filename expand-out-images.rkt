@@ -14,7 +14,12 @@
 
 (provide expand-out-images)
 
+;; my-image-url: (parameterof stx)
+;;
+;; During the dynamic extent of expand-out-images, this will be defined
+;; as the unique name for the image-url function in (planet dyoo/whalesong/image).
 (define my-image-url (make-parameter #f))
+
 
 ;; expand-out-images: syntax -> syntax
 ;; Takes programs and rips out their image snips in favor of calls to
@@ -27,7 +32,7 @@
   (define rewritten
     (parameterize
         ([my-image-url (car (generate-temporaries #'(image-url)))])
-
+      
       (kernel-syntax-case (syntax-disarm expanded code-insp) #f
         [(#%expression expr)
          (quasisyntax/loc stx
@@ -42,14 +47,14 @@
                                (require (rename-in (planet dyoo/whalesong/image)
                                                    [image-url #,(my-image-url)]))
                                
-                               #,@(map convert-images-to-resources
+                               #,@(map on-toplevel
                                        (syntax->list #'(module-level-form ...))))))]
         [(begin top-level-form ...)
          (quasisyntax/loc stx
-           (begin #,@(map convert-images-to-resources 
+           (begin #,@(map on-toplevel 
                           (syntax->list #'(top-level-form ...)))))]
         [else
-         (convert-images-to-resources expanded)])))
+         (on-toplevel expanded)])))
   rewritten)
 
 
@@ -167,6 +172,8 @@
   
   (cond
     [(image? (syntax-e datum-stx))
+     ;; When we see an image, we replace it with a call to
+     ;; our image-url function.
      (with-syntax ([image-uri 
                     (image->uri (syntax-e datum-stx))])
        (quasisyntax/loc datum-stx
@@ -177,7 +184,7 @@
 
 
 
-(define (convert-images-to-resources stx)
+(define (on-toplevel stx)
   (kernel-syntax-case (syntax-disarm stx code-insp) #f
     [(#%provide raw-provide-spec ...)
      stx]

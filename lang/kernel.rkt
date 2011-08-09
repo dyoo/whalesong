@@ -72,6 +72,7 @@
 	 let-values
 	 let*-values
 	 define-struct
+         struct
          if
 	 cond
 	 else

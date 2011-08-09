@@ -14,6 +14,7 @@
 
 (provide expand-out-images)
 
+(define my-image-url (make-parameter #f))
 
 ;; expand-out-images: syntax -> syntax
 ;; Takes programs and rips out their image snips in favor of calls to
@@ -24,26 +25,33 @@
   ;; We need to translate image snips in the expanded form so we can
   ;; fruitfully use compiler/zo-parse.    
   (define rewritten
-    (kernel-syntax-case (syntax-disarm expanded code-insp) #f
-      [(#%expression expr)
-       (quasisyntax/loc stx
-         (#%expression #,(on-expr #'expr)))]
-      
-      [(module id name-id (#%plain-module-begin module-level-form ...))
-       (quasisyntax/loc stx
-         (module id name-id (#%plain-module-begin 
-                             (require (planet dyoo/whalesong/image))
-                             #,@(map convert-images-to-resources
-                                     (syntax->list #'(module-level-form ...))))))]
-      [(begin top-level-form ...)
-       (quasisyntax/loc stx
-         (begin #,@(map convert-images-to-resources 
-                        (syntax->list #'(top-level-form ...)))))]
-      [else
-       (convert-images-to-resources expanded)]))
-  
-  
+    (parameterize
+        ([my-image-url (car (generate-temporaries #'(image-url)))])
+
+      (kernel-syntax-case (syntax-disarm expanded code-insp) #f
+        [(#%expression expr)
+         (quasisyntax/loc stx
+           (#%expression #,(on-expr #'expr)))]
+        
+        [(module id name-id (#%plain-module-begin module-level-form ...))
+         (quasisyntax/loc stx
+           (module id name-id (#%plain-module-begin 
+                               ;; Kludge: I'm trying to get at the image-url
+                               ;; function, but in a way that doesn't clash with the
+                               ;; user's existing program.
+                               (require (rename-in (planet dyoo/whalesong/image)
+                                                   [image-url #,(my-image-url)]))
+                               
+                               #,@(map convert-images-to-resources
+                                       (syntax->list #'(module-level-form ...))))))]
+        [(begin top-level-form ...)
+         (quasisyntax/loc stx
+           (begin #,@(map convert-images-to-resources 
+                          (syntax->list #'(top-level-form ...)))))]
+        [else
+         (convert-images-to-resources expanded)])))
   rewritten)
+
 
 
 
@@ -162,7 +170,7 @@
      (with-syntax ([image-uri 
                     (image->uri (syntax-e datum-stx))])
        (quasisyntax/loc datum-stx
-         (image-url image-uri)))]
+         (#,(my-image-url) image-uri)))]
     
     [else
      (k datum-stx)]))

@@ -61,7 +61,7 @@
          e
          null
          #%plain-module-begin
-	 #%module-begin
+	 (rename-out [my-module-begin #%module-begin])
 	 #%datum
 	 #%app
 	 #%top-interaction
@@ -69,6 +69,7 @@
          module
          define
 	 define-values
+         let-syntax
 	 let-values
 	 let*-values
 	 define-struct
@@ -434,3 +435,20 @@ symbol->string
 
 (define (set-cdr! x v)
   (error 'set-car! "Not available outside JavaScript context."))
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-syntax (my-module-begin stx)
+  (syntax-case stx ()
+    [(_ body ...)
+     (with-syntax ([(expanded-body ...) 
+                    (local-expand #'(body ...)
+                                  'module-begin
+                                  #f)])
+       (syntax/loc stx
+         (#%module-begin expanded-body ...)))]))

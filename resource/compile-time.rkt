@@ -11,12 +11,19 @@
 
 ;; file-resource:
 ;; 
-(define-for-syntax (file-resource stx)
+(define-syntax (file-resource stx)
   (syntax-case stx ()
     [(_ path)
-     (syntax/loc stx
-       (let-syntax ([compile-time-code
-                     (lambda (stx)
-                       (displayln "at compile time")
-                       #'(void))])
-         (resource path)))]))
+     (let ([dontcare
+            (syntax-local-lift-expression #'(begin
+                                              (begin-for-syntax
+                                               (printf "Compile time code executing"))
+                                              (void)))])
+       (syntax/loc stx
+         (let-syntax ([compile-time-code
+                       (lambda (stx)
+                         (printf "compile time code executing\n")
+                         #'(void))])
+           (begin
+             ;;dontcare
+             (resource path)))))]))

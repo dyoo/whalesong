@@ -5,6 +5,6 @@
          net/url)
 
 
-
+;; resource->url: resource -> string
 (define (resource->url r)
-  (path->url (resource-path r)))
+  (url->string (path->url (resource-path r))))

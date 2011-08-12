@@ -30,7 +30,8 @@
          get-standalone-code
          write-standalone-code
          get-runtime
-         write-runtime)
+         write-runtime
+         current-on-resource)
 
 
 
@@ -39,6 +40,13 @@
 (define (notify msg . args)
   (displayln (apply format msg args)))
 
+
+
+(define current-on-resource
+  (make-parameter (lambda (r)
+                    (log-debug "Resource ~s should be written"
+                               (resource-path r))
+                    (void))))
 
 
 
@@ -57,13 +65,11 @@
 
 (define (package-anonymous source-code
                            #:should-follow-children? should-follow?
-                           #:output-port op
-                           #:on-resource (on-resource (lambda (r) (void))))
+                           #:output-port op)
   (fprintf op "(function() {\n")
   (package source-code
            #:should-follow-children? should-follow?
-           #:output-port op
-           #:on-resource on-resource)
+           #:output-port op)
   (fprintf op " return invoke; })\n"))
 
 
@@ -210,13 +216,7 @@ MACHINE.modules[~s] =
 ;; load in modules.
 (define (package source-code
                  #:should-follow-children? should-follow?
-                 #:output-port op
-                 #:on-resource (on-resource 
-                                (lambda (r)
-                                  (log-debug "Resource ~s found" 
-                                             (resource-path r))
-                                  (void))))
-  
+                 #:output-port op)
   (define resources (set))
   
   
@@ -283,7 +283,7 @@ MACHINE.modules[~s] =
   (fprintf op "});\n")
   
   (for ([r resources])
-    (on-resource r)))
+    ((current-on-resource) r)))
 
 
 

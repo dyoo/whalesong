@@ -4,8 +4,10 @@
 (require racket/list
          racket/string
          racket/match
+         racket/file
          "make/make-structs.rkt"
          "js-assembler/package.rkt"
+         "resource/structs.rkt"
          "private/command.rkt"
          "logger.rkt"
          "parameters.rkt"
@@ -31,6 +33,9 @@
 
 
 (define current-verbose? (make-parameter #f))
+(define current-resource-dir (make-parameter
+                              (build-path (current-directory) "res")))
+(define current-write-resources? (make-parameter #t))
 
 
 (define (at-toplevel)
@@ -111,12 +116,19 @@
             (regexp-replace #rx"[.](rkt|ss)$"
                             (path->string filename)
                             ".xhtml"))])
-      (call-with-output-file* output-filename
-                              (lambda (op)
-                                (package-standalone-xhtml
-                                 (make-ModuleSource (build-path f))
-                                 op))
-                              #:exists 'replace))))
+      (parameterize ([current-on-resource
+                      (lambda (r)
+                        (make-directory* (current-resource-dir))
+                        (log-info (format "Writing resource ~s" (resource-path r)))
+                        (copy-file (resource-path r) 
+                                   (build-path (current-resource-dir)
+                                               (resource-key r))))])
+        (call-with-output-file* output-filename
+                                (lambda (op)
+                                  (package-standalone-xhtml
+                                   (make-ModuleSource (build-path f))
+                                   op))
+                                #:exists 'replace)))))
 
 
 
@@ -135,7 +147,5 @@
            (current-output-port)))
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (at-toplevel)

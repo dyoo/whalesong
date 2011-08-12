@@ -3,4 +3,4 @@
 (provide (all-defined-out))
 
 
-(struct resource (path))
+(struct resource (path key))

@@ -1,15 +1,15 @@
 #lang racket/base
-(require racket/port)
-(provide record-resource)
+(require racket/port
+         "structs.rkt")
+(provide record-resource
+         get-records)
 
-
-(define-struct record (key resource-path bytes))
 (define records '())
 
+(define (get-records)
+  records)
 
 ;; record-javascript-implementation!: path a-resource-path -> void
-(define (record-resource a-key a-resource-path)
-  (set! records (cons (make-record a-key 
-                                   a-resource-path 
-                                   (call-with-input-file a-resource-path port->bytes))
+(define (record-resource a-resource-path a-key)
+  (set! records (cons (resource a-resource-path a-key)
                       records)))

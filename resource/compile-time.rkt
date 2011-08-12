@@ -28,12 +28,7 @@
            (begin 
              ;; Compile time code:
              (begin-for-syntax
-               (let* ([this-module 
-                       (variable-reference->resolved-module-path
-                        (#%variable-reference))]
-                      [key (resolved-module-path-name this-module)])
-                 ;(printf "Recording the resource ~a\n" normal-path)
-                 (record-resource munged-path normal-path)))
+               (record-resource normal-path munged-path))
              
              ;; Run time code
-             (define name (resource path munged-path))))))]))
+             (define name (resource normal-path munged-path))))))]))

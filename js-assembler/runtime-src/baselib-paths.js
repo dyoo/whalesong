@@ -18,6 +18,16 @@
 
     //////////////////////////////////////////////////////////////////////
 
+    var makePath = function (p) {
+        return new Path(p);
+    };
+
+    var isPath = baselib.makeClassPredicate(Path);
+
+
+
     exports.Path = Path;
+    exports.makePath = makePath;
+    exports.isPath = isPath;
 
 }(this.plt.baselib));

@@ -7,4 +7,4 @@
     (image-url
      (resource->url whale-resource)))
 
-#;whale-image
+whale-resource

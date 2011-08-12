@@ -2,5 +2,5 @@
 
 (provide (all-defined-out))
 
-
-(struct resource (path key))
+;; Needs to be prefabricated
+(struct resource (path key) #:prefab)

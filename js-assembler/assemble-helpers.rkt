@@ -130,6 +130,9 @@
                        (string-join (for/list ([a-byte val])
                                       (number->string a-byte))
                                     ","))]
+              [(path? val)
+               (format "RUNTIME.makePath(~s)"
+                       (path->string val))]
               [else
                (error 'assemble-const "Unsupported datum ~s" val)])))
 

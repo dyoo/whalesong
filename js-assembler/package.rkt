@@ -9,10 +9,13 @@
          "../compiler/expression-structs.rkt"
          "../parser/path-rewriter.rkt"
          "../parser/parse-bytecode.rkt"
+         "../resource/structs.rkt"
          racket/match
          racket/list
          racket/promise
+         racket/set
          (prefix-in query: "../lang/js/query.rkt")
+         (prefix-in resource-query: "../resource/query.rkt")
          (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
@@ -54,11 +57,13 @@
 
 (define (package-anonymous source-code
                            #:should-follow-children? should-follow?
-                           #:output-port op)  
+                           #:output-port op
+                           #:on-resource (on-resource (lambda (r) (void))))
   (fprintf op "(function() {\n")
   (package source-code
            #:should-follow-children? should-follow?
-           #:output-port op)
+           #:output-port op
+           #:on-resource on-resource)
   (fprintf op " return invoke; })\n"))
 
 
@@ -67,23 +72,39 @@
 ;; Returns true if the source looks like a Javascript-implemented module.
 (define (source-is-javascript-module? src)
   (cond
-   [(StatementsSource? src)
-    #f]
-   [(MainModuleSource? src)
-    (source-is-javascript-module?
-     (MainModuleSource-source src))]
-   [(ModuleSource? src)
-    (query:has-javascript-implementation?
-     `(file ,(path->string (ModuleSource-path src))))]
-   [(SexpSource? src)
-    #f]
-   [(UninterpretedSource? src)
-    #f]))
+    [(StatementsSource? src)
+     #f]
+    [(MainModuleSource? src)
+     (source-is-javascript-module?
+      (MainModuleSource-source src))]
+    [(ModuleSource? src)
+     (query:has-javascript-implementation?
+      `(file ,(path->string (ModuleSource-path src))))]
+    [(SexpSource? src)
+     #f]
+    [(UninterpretedSource? src)
+     #f]))
+
+(define (source-resources src)
+  (cond
+    [(StatementsSource? src)
+     empty]
+    [(MainModuleSource? src)
+     (source-resources
+      (MainModuleSource-source src))]
+    [(ModuleSource? src)
+     (resource-query:query
+      `(file ,(path->string (ModuleSource-path src))))]
+    [(SexpSource? src)
+     empty]
+    [(UninterpretedSource? src)
+     empty]))
+
 
 
 ;; get-javascript-implementation: source -> UninterpretedSource
 (define (get-javascript-implementation src)
-
+  
   (define (get-provided-name-code bytecode)
     (match bytecode
       [(struct Top [_ (struct Module (name path prefix requires provides code))])
@@ -96,20 +117,21 @@
       [else
        ""]))
   (cond
-   [(StatementsSource? src)
-    (error 'get-javascript-implementation src)]
-   [(MainModuleSource? src)
-    (get-javascript-implementation (MainModuleSource-source src))]
-   [(ModuleSource? src)
-    (let ([name (rewrite-path (ModuleSource-path src))]
-          [text (query:query `(file ,(path->string (ModuleSource-path src))))]
-          [module-requires (query:lookup-module-requires (ModuleSource-path src))]
-          [bytecode (parse-bytecode (ModuleSource-path src))])
-      (log-debug "~a requires ~a"
-                 (ModuleSource-path src)
-                 module-requires)
-      (let ([module-body-text
-            (format "
+    [(StatementsSource? src)
+     (error 'get-javascript-implementation src)]
+    [(MainModuleSource? src)
+     (get-javascript-implementation (MainModuleSource-source src))]
+    [(ModuleSource? src)
+     (let ([name (rewrite-path (ModuleSource-path src))]
+           [text (query:query `(file ,(path->string (ModuleSource-path src))))]
+           [module-requires (query:lookup-module-requires (ModuleSource-path src))]
+           [bytecode (parse-bytecode (ModuleSource-path src))])
+       (when (not (empty? module-requires))
+         (log-debug "~a requires ~a"
+                    (ModuleSource-path src)
+                    module-requires))
+       (let ([module-body-text
+              (format "
              if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
              var modrec = MACHINE.modules[~s];
              var exports = {};
@@ -118,40 +140,40 @@
              ~a
              modrec.privateExports = exports;
              return MACHINE.control.pop().label(MACHINE);"
-                    (symbol->string name)
-                    text
-                    (get-provided-name-code bytecode))])
-
-      (make-UninterpretedSource
-       (format "
+                      (symbol->string name)
+                      text
+                      (get-provided-name-code bytecode))])
+         
+         (make-UninterpretedSource
+          (format "
 MACHINE.modules[~s] =
     new plt.runtime.ModuleRecord(~s,
         function(MACHINE) {
             ~a
         });
 "
-               (symbol->string name)
-               (symbol->string name)
-               (assemble-modinvokes+body module-requires module-body-text))
-
-       (map make-ModuleSource module-requires))))]
-
-
-   [(SexpSource? src)
-    (error 'get-javascript-implementation)]
-   [(UninterpretedSource? src)
-    (error 'get-javascript-implementation)]))
+                  (symbol->string name)
+                  (symbol->string name)
+                  (assemble-modinvokes+body module-requires module-body-text))
+          
+          (map make-ModuleSource module-requires))))]
+    
+    
+    [(SexpSource? src)
+     (error 'get-javascript-implementation)]
+    [(UninterpretedSource? src)
+     (error 'get-javascript-implementation)]))
 
 
 (define (assemble-modinvokes+body paths after)
   (cond
-   [(empty? paths)
-    after]
-   [(empty? (rest paths))
-    (assemble-modinvoke (first paths) after)]
-   [else
-    (assemble-modinvoke (first paths)
-                        (assemble-modinvokes+body (rest paths) after))]))
+    [(empty? paths)
+     after]
+    [(empty? (rest paths))
+     (assemble-modinvoke (first paths) after)]
+    [else
+     (assemble-modinvoke (first paths)
+                         (assemble-modinvokes+body (rest paths) after))]))
 
 
 (define (assemble-modinvoke path after)
@@ -188,8 +210,15 @@ MACHINE.modules[~s] =
 ;; load in modules.
 (define (package source-code
                  #:should-follow-children? should-follow?
-                 #:output-port op)  
-
+                 #:output-port op
+                 #:on-resource (on-resource 
+                                (lambda (r)
+                                  (log-debug "Resource ~s found" 
+                                             (resource-path r))
+                                  (void))))
+  
+  (define resources (set))
+  
   
   ;; wrap-source: source -> source
   ;; Translate all JavaScript-implemented sources into uninterpreted sources;
@@ -197,58 +226,64 @@ MACHINE.modules[~s] =
   (define (wrap-source src)
     (log-debug "Checking if the source has a JavaScript implementation")
     (cond
-     [(source-is-javascript-module? src)
-      (log-debug "Replacing implementation with JavaScript one.")
-      (get-javascript-implementation src)]
-     [else
-      src]))
-
+      [(source-is-javascript-module? src)
+       (log-debug "Replacing implementation with JavaScript one.")
+       (get-javascript-implementation src)]
+      [else
+       src]))
+  
   
   (define (on-visit-src src ast stmts)
+    ;; Record the use of resources on source module visitation...
+    (set! resources (set-union resources
+                               (list->set (source-resources src))))
     (cond
-     [(UninterpretedSource? src)
-      (fprintf op "~a" (UninterpretedSource-datum src))]
-     [else
-      (assemble/write-invoke stmts op)
-      (fprintf op "(MACHINE, function() { ")]))
-
-
+      [(UninterpretedSource? src)
+       (fprintf op "~a" (UninterpretedSource-datum src))]
+      [else
+       (assemble/write-invoke stmts op)
+       (fprintf op "(MACHINE, function() { ")]))
+  
+  
   (define (after-visit-src src ast stmts)
     (cond
-     [(UninterpretedSource? src)
-      (void)]
-     [else
-      (fprintf op " }, FAIL, PARAMS);")]))
-
-
+      [(UninterpretedSource? src)
+       (void)]
+      [else
+       (fprintf op " }, FAIL, PARAMS);")]))
+  
+  
   (define (on-last-src)
     (fprintf op "plt.runtime.setReadyTrue();")
     (fprintf op "SUCCESS();"))
   
-
+  
   (define packaging-configuration
     (make-Configuration
      wrap-source
      
      should-follow?
-
+     
      ;; on
      on-visit-src
-
+     
      ;; after
      after-visit-src
      
      ;; last
      on-last-src))
-
   
-    (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
-    (fprintf op "    plt.runtime.ready(function() {")
-    (fprintf op "plt.runtime.setReadyFalse();")
-    (make (list (make-MainModuleSource source-code))
-          packaging-configuration)
-    (fprintf op "    });");
-    (fprintf op "});\n"))
+  
+  (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
+  (fprintf op "    plt.runtime.ready(function() {")
+  (fprintf op "plt.runtime.setReadyFalse();")
+  (make (list (make-MainModuleSource source-code))
+        packaging-configuration)
+  (fprintf op "    });");
+  (fprintf op "});\n")
+  
+  (for ([r resources])
+    (on-resource r)))
 
 
 
@@ -270,7 +305,7 @@ MACHINE.modules[~s] =
   (define (wrap-source src) src)
   (let ([packaging-configuration
          (make-Configuration
-
+          
           wrap-source
           
           ;; should-follow-children?
@@ -287,9 +322,9 @@ MACHINE.modules[~s] =
           ;; last
           (lambda ()
             (fprintf op "SUCCESS();")))])
-
+    
     (display (runtime:get-runtime) op)
-
+    
     (newline op)
     (fprintf op "(function(MACHINE, SUCCESS, FAIL, PARAMS) {")
     (make (list only-bootstrapped-code) packaging-configuration)
@@ -313,7 +348,7 @@ MACHINE.modules[~s] =
            (compress
             (get-output-string buffer)))))
 
-  
+
 ;; get-runtime: -> string
 (define (get-runtime)
   (force *the-runtime*))
@@ -335,7 +370,7 @@ MACHINE.modules[~s] =
   <script>
 
 EOF
-)
+  )
 
 
 ;; get-code: source -> string
@@ -403,7 +438,7 @@ var invokeMainModule = function() {
   
   $(document).ready(invokeMainModule);
 EOF
-)
+  )
 
 (define *footer*
   #<<EOF
@@ -411,4 +446,4 @@ EOF
   <body></body>
 </html>
 EOF
-)
+  )

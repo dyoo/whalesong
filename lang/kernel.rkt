@@ -61,7 +61,7 @@
          e
          null
          #%plain-module-begin
-	 (rename-out [my-module-begin #%module-begin])
+	 #%module-begin
 	 #%datum
 	 #%app
 	 #%top-interaction
@@ -98,6 +98,7 @@
 	 unless
 	 require
 	 for-syntax
+         for-template
 	 define-for-syntax
 	 begin-for-syntax
 	 prefix-in
@@ -438,17 +439,4 @@ symbol->string
 
 
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(define-syntax (my-module-begin stx)
-  (syntax-case stx ()
-    [(_ body ...)
-     (with-syntax ([(expanded-body ...) 
-                    (local-expand #'(body ...)
-                                  'module-begin
-                                  #f)])
-       (syntax/loc stx
-         (#%module-begin expanded-body ...)))]))

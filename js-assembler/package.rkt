@@ -99,7 +99,7 @@
      (source-resources
       (MainModuleSource-source src))]
     [(ModuleSource? src)
-     (resource-query:query
+     empty #;(resource-query:query
       `(file ,(path->string (ModuleSource-path src))))]
     [(SexpSource? src)
      empty]

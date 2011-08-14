@@ -2,48 +2,59 @@
 
 ;; Implements a button with alternatives.
 
-(require racket/gui/base
-         racket/class)
+(require racket/class
+         racket/list
+         mrlib/name-message
+         framework)
 
-(define (whalesong-tool-ui parent-widget
-                           #:on-browser (on-browser
-                                         (lambda ()
-                                           (void)))
-                           #:on-build-package (on-build-package 
-                                               (lambda ()
-                                                 (void))))
-  (define container (new horizontal-pane%
-                         [parent parent-widget]))
-  (define b (new button% 
-                 [label "Whalesong"]
-                 [callback (lambda (b ce)
-                             (define selection 
-                               (send ch get-selection))
-                             (cond
-                               [(= selection 0)
-                                (on-browser)]
-                               [(= selection 1)
-                                (on-build-package)]
-                               [else
-                                (void)]))]
-                 [parent container]))
-  (define ch (new choice% 
-                  [label ""]
-                  [choices (list "Run in browser"
-                                 "Build smartphone package")]
-                  [style '(horizontal-label)]
-                  [parent container]))
-  container)
+(provide button-with-alternatives%)
+
+
+
+;; Most of this is stolen from the custom controls written in
+;; drracket/private/unit.rkt.  It might be good to generalize this
+;; so it's easier to use.
+(define button-with-alternatives%
+  (class name-message%
+    (init-field parent)
+    (init-field choices-thunk)
+
+    (define currently-selected 
+      (let ([choices (choices-thunk)])
+        (cond
+          [(empty? choices)
+           #f]
+          [else
+           (first (choices-thunk))])))
+    
+    (define/public (get-selection)
+      currently-selected)
+    
+    (define/public (get-choices)
+      (choices-thunk))
+    
+    (define/override (fill-popup menu reset)
+      (for ([ch (choices-thunk)])
+        (make-menu-item menu ch)))
+
+    (define (make-menu-item menu ch)
+      (define item
+        (new (if (and currently-selected
+                      (string=? ch currently-selected))
+                 menu:can-restore-checkable-menu-item%
+                 menu:can-restore-menu-item%)
+             [label (gui-utils:quote-literal-label ch)]
+             [parent menu]
+             [callback (lambda (menu-item control-event)
+                         (set! currently-selected ch))]))
+      (when (string=? ch currently-selected)
+        (send item check #t))
+      item)
+      
+    (super-new [parent parent]
+               [label ""])))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define f (new frame% [label "test frame"]))
-(whalesong-tool-ui f
-                   #:on-browser 
-                   (lambda () 
-                     (printf "on-browser\n"))
-
-                   #:on-build-package 
-                   (lambda ()
-                     (printf "on-build-package\n")))
-(send f show #t)

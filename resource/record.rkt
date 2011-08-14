@@ -1,8 +1,13 @@
 #lang racket/base
-(require racket/port
-         "structs.rkt")
+(require racket/port)
+
 (provide record-resource
          get-records)
+
+
+;; Needs to be prefabricated
+(struct resource (path key) #:prefab)
+
 
 (define records '())
 

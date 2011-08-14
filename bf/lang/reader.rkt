@@ -1,9 +1,11 @@
 #lang s-exp syntax/module-reader
-(planet dyoo/whalesong/bf/language)   ;; switched from (planet dyoo/bf/language)
+#:language (lambda ()
+             `(planet ,(this-package-version-symbol bf/language)))
 #:read my-read
 #:read-syntax my-read-syntax
 #:info my-get-info
-(require "../parser.rkt")
+(require "../parser.rkt"
+         planet/version)
 
 (define (my-read in)
   (syntax->datum (my-read-syntax #f in)))

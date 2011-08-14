@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require planet/version
+(require racket/runtime-path
+         planet/version
          syntax/kerncase
          net/base64
          (for-template (this-package-in lang/kernel)
@@ -18,6 +19,8 @@
 ;;
 ;; During the dynamic extent of expand-out-images, this will be defined
 ;; as the unique name for the image-url function in (planet dyoo/whalesong/image).
+(define-runtime-path whalesong/image
+  "image.rkt")
 (define my-image-url (make-parameter #f))
 
 
@@ -39,16 +42,18 @@
            (#%expression #,(on-expr #'expr)))]
         
         [(module id name-id (#%plain-module-begin module-level-form ...))
-         (quasisyntax/loc stx
-           (module id name-id (#%plain-module-begin 
-                               ;; Kludge: I'm trying to get at the image-url
-                               ;; function, but in a way that doesn't clash with the
-                               ;; user's existing program.
-                               (require (rename-in (planet dyoo/whalesong/image)
-                                                   [image-url #,(my-image-url)]))
-                               
-                               #,@(map on-toplevel
-                                       (syntax->list #'(module-level-form ...))))))]
+         (with-syntax ([image-library-path
+                        (path->string whalesong/image)])
+           (quasisyntax/loc stx
+             (module id name-id (#%plain-module-begin 
+                                 ;; Kludge: I'm trying to get at the image-url
+                                 ;; function, but in a way that doesn't clash with the
+                                 ;; user's existing program.
+                                 (require (rename-in (file image-library-path)
+                                                     [image-url #,(my-image-url)]))
+                                 
+                                 #,@(map on-toplevel
+                                         (syntax->list #'(module-level-form ...)))))))]
         [(begin top-level-form ...)
          (quasisyntax/loc stx
            (begin #,@(map on-toplevel 

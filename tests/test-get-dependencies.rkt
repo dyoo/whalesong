@@ -15,6 +15,8 @@
 (define-runtime-path get-module-bytecode-path
   (build-path ".." "get-module-bytecode.rkt"))
 
+(define-runtime-path image.rkt
+  (build-path "../image.rkt"))
 
 
 (define collects-dir 
@@ -65,5 +67,7 @@
                        (make-ModuleLocator 'collects/racket/math.rkt
                                            (normalize-path (build-path collects-dir "racket" "math.rkt")))
                        (make-ModuleLocator 'whalesong/get-module-bytecode.rkt
-                                           (normalize-path get-module-bytecode-path)))
+                                           (normalize-path get-module-bytecode-path))
+                       (make-ModuleLocator 'whalesong/image.rkt
+                                           (normalize-path image.rkt)))
                  module-name<)))

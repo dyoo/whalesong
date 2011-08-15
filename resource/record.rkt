@@ -9,12 +9,14 @@
 (struct resource (path key) #:prefab)
 
 
-(define records '())
+(define records (make-hash))
 
-(define (get-records)
-  records)
+(define (get-records a-path)
+  (hash-ref records a-path '()))
 
-;; record-javascript-implementation!: path a-resource-path -> void
-(define (record-resource a-resource-path a-key)
-  (set! records (cons (resource a-resource-path a-key)
-                      records)))
+
+;; record-javascript-implementation!: path path a-resource-path -> void
+(define (record-resource a-module-path a-resource-path a-key)
+  (hash-set! records a-module-path
+             (cons (resource a-resource-path a-key)
+                   (hash-ref records a-module-path '()))))

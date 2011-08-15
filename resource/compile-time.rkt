@@ -26,9 +26,14 @@
                      [munged-path munged-path])
          (syntax/loc stx
            (begin 
+
              ;; Compile time code:
              (begin-for-syntax
-               (record-resource normal-path munged-path))
+               (let* ([this-module 
+                       (variable-reference->resolved-module-path
+                        (#%variable-reference))]
+                      [resolved-module-path (resolved-module-path-name this-module)])
+               (record-resource resolved-module-path normal-path munged-path)))
              
              ;; Run time code
              (define name (resource normal-path munged-path))))))]))

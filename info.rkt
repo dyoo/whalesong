@@ -11,3 +11,6 @@
 (define racket-launcher-names '("whalesong"))
 (define homepage "http://hashcollision.org/whalesong")
 (define scribblings '(("scribblings/manual.scrbl")))
+(define compile-omit-paths '("tests"
+                             "examples"
+                             "experiments"))

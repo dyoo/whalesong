@@ -125,6 +125,8 @@
                (assemble-numeric-constant val)]
               [(string? val)
                (format "~s" val)]
+              [(char? val)
+               (format "RUNTIME.makeChar(~s)" (string val))]
               [(bytes? val)
                (format "RUNTIME.makeBytes(~a)"
                        (string-join (for/list ([a-byte val])

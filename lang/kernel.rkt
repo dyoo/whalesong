@@ -353,10 +353,10 @@ memq
 ;;  string-ci>?
 ;;  string-ci<=?
 ;;  string-ci>=?
-;;  substring
+  substring
   string-append
 ;;  string->list
-;;  list->string
+  list->string
 ;;  string-copy
 string->symbol
 symbol->string

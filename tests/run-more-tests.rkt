@@ -6,6 +6,7 @@
 ;; content vs. a text file with the same name, but with the .rkt file
 ;; type replaced with .expected.
 
+(test "more-tests/string-tests.rkt")
 (test "more-tests/hello.rkt")
 (test "more-tests/simple-functions.rkt")
 (test "more-tests/sk-generator.rkt")

@@ -54,6 +54,7 @@
     var makeVector = baselib.vectors.makeVector;
     var makeList = baselib.lists.makeList;
     var makePair = baselib.lists.makePair;
+    var makeChar = baselib.chars.makeChar;
 
     var makeStructureType = baselib.structs.makeStructureType;
 
@@ -671,6 +672,7 @@
     // numbers
     exports['makeList'] = makeList;
     exports['makePair'] = makePair;
+    exports['makeChar'] = makeChar;
     exports['makeVector'] = makeVector;
     exports['makeBox'] = makeBox;
     exports['makeFloat'] = makeFloat;

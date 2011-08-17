@@ -1,0 +1,108 @@
+Design doc for web-world.
+
+
+We want to take advantage of web development interfaces.
+
+    * Interfaces should be designed and browsed without needing to program.
+
+    * Behavior should be injected into these interfaces.
+
+
+
+We want to take the design ideas of JQuery.
+
+    * The view is a cursor into DOM nodes.
+
+    * Operations refocus the cursor onto particular elements of the dom.
+
+    * Methods on the view apply functional update on those nodes.
+
+
+
+
+
+
+Example 1
+
+
+A student should be able to design a basic user interface in .html, such as:
+
+
+    <html>
+       <head><title>My simple program</title></head>
+       <body>
+       <p>The current counter is: <span id="counter">fill-me-in</span></p>
+       </body>
+    </html>
+
+
+and then do the following:
+
+
+
+    #lang planet dyoo/whalesong
+    (require (planet dyoo/whalesong/web-wordl))
+
+    (define-resource front-page "index.html")
+
+
+    ;; draw: world view -> view
+    (define (draw w v)
+      (view-text (view-find v "#counter")
+                 w))
+
+    (big-bang 0
+              (initial-view front-page)
+              (to-draw draw)
+              (on-tick add1))
+
+
+to get a simple clock tick application.
+
+
+
+
+
+
+Example 2
+
+
+
+We should be able to attach event handlers in the expected way to
+elements of the DOM.  For example, let's count the number of times a
+user clicks on a particular span.
+
+
+
+
+    #lang planet dyoo/whalesong
+    (require (planet dyoo/whalesong/web-wordl))
+
+    (define-resource front-page "index.html")
+
+
+    ;; draw: world view -> view
+    (define (draw w v)
+      (view-text (view-find v "#counter")
+                 w))
+
+    (big-bang 0
+              (initial-view front-page)
+              (to-draw draw)
+              (on-tick add1))
+
+
+
+
+
+
+
+
+
+
+Types
+
+
+initial-view: resource -> handler
+
+to-draw: (world view -> view)

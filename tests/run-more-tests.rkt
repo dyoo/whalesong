@@ -7,6 +7,7 @@
 ;; type replaced with .expected.
 
 (test "more-tests/string-tests.rkt")
+(test "more-tests/numbers.rkt")
 (test "more-tests/hello.rkt")
 (test "more-tests/simple-functions.rkt")
 (test "more-tests/sk-generator.rkt")

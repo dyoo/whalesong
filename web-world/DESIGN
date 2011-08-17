@@ -1,17 +1,31 @@
 Design doc for web-world.
 
 
+
 We want to take advantage of web development interfaces.
 
-    * Interfaces should be designed and viewed without needing to program.
+    * We should be able to design and prototype web interfaces without
+      touching a programming environment.
 
-    * Behavior should be injected into these interfaces.
+    * It should be easy to inject behavior separately from the static
+      representation of a view.
 
-It should be stupid-trivial to make a program that displays an HTML
-page of structural complexity, because that doesn't involve any
-programming.
+    * This demands that the primary way to get a view is to use HTML
+      files directly.
 
 
+Furthermore, we want to fix a particularly glaring issue with the
+previous attempt of jsworld:
+
+    * The DOM nodes in jsworld were treated as values with implicit
+      state, making it very difficult to write UI's that asked what
+      the value was at a particular node.
+
+    * The DOM tree represents external state!
+
+    * Therefore, each world -> world function should take in, not just
+      the internal state of the world, but the external state of the
+      DOM tree.
 
 
 
@@ -19,35 +33,67 @@ We want to take the design ideas of JQuery.
 
     * The view is a cursor into DOM nodes.
 
-    * Operations refocus the cursor onto particular elements of the dom.
+    * Operations refocus the cursor onto particular elements of the
+      dom.
 
     * Methods on the view apply functional update on those nodes.
 
 
 
 
-Furthermore, we want to fix a particularly glaring issue with the
-previous attempt of jsworld:
+----------------------------------------------------------------------
 
-    * The DOM nodes were treated as values with implicit state, making
-      it very difficult to write UI's that asked what the value was at
-      a particular node.
+Example 0  "hello world"
 
-    * The DOM tree represents external state.
+If we have an index.html as:
 
-    * Therefore, each world handler needs to take, not just the
-      internal state of its world, but the external state of the DOM
-      tree.
+    
+    <html><head><title>Hello world</title></head>
+          <body><h1>Hello world</h1></body>
+    </html>
+    
+
+then it should be trivial to make a program that just shows
+that page:
+
+
+    #lang planet dyoo/whalesong
+    (require (planet dyoo/whalesong/web-world))
+
+    (define-resource index.html)
+
+    (big-bang "don't care"
+              (initial-view index.html))
+
+
+No reactivity means no changes to the view.
+
+Comments: the initial-view can be a static resource.
+
+
+
+In these examples, the ids I'm using for the resource and the file
+name are matching.  I will allow an abbreviated use of define-resource
+to eliminate this kind of duplication.  I'm planning to allow:
+
+    (define-resource index.html)
+
+to macro-expand out to the more explicit:
+
+    (define-resource index.html "index.html")
+
+which we talked about earlier.  I will use the abbreviated forms in
+the remainder of the examples.
 
 
 
 ----------------------------------------------------------------------
 
-Example 1
+Example 1  "tick tock"
 
 
-A student should be able to design a basic user interface in .html, such as:
-
+A student should be able to prototype a basic user interface in .html,
+such as:
 
     <html>
        <head><title>My simple program</title></head>
@@ -57,15 +103,13 @@ A student should be able to design a basic user interface in .html, such as:
     </html>
 
 
-and then do the following:
 
-
+and then, in the programming language, add behavior:
 
     #lang planet dyoo/whalesong
-    (require (planet dyoo/whalesong/web-wordl))
+    (require (planet dyoo/whalesong/web-world))
 
-    (define-resource front-page "index.html")
-
+    (define-resource index.html)
 
     ;; draw: world view -> view
     (define (draw w v)
@@ -78,25 +122,42 @@ and then do the following:
 
 
     (big-bang 0
-              (initial-view front-page)
+              (initial-view index.html)
               (to-draw draw)
               (on-tick tick))
 
 
-to get a simple clock tick application.
+to get a simple clock ticking application.
 
+
+
+Comments: 
+
+view-text, when given a view and a string, is a functional update that
+replaces the text at the focus.  We're trying deliberately to match
+JQuery.  These should be functional updates, though.
+
+
+In contrast to plain vanilla world programs, the tick function of a
+web-world consumes both the world and the view.  The draw function,
+too, takes both the world and the currently-displayed view.  Event
+handlers, like on-tick, should be allowed to look at the state of the
+view, because they may want to do things like look up an element's
+value.  The draw function does not reconstruct the entire DOM tree:
+rather, it is responsible to producing functional updates of the
+currently displayed view.
 
 
 
 ----------------------------------------------------------------------
 
-Example 2
+Example 2  "the ticker"
 
 
 
 We should be able to attach event handlers in the expected way to
 elements of the DOM.  For example, let's count the number of times a
-user clicks on a particular span.
+user clicks on a particular DIV.
 
 Here, we need to adjust the view and attach a click event.
 
@@ -109,21 +170,24 @@ If index.html contains:
        </head>
 
        <body>
+
        <div id="my-button">Click me!</div>
+
        <p>The current counter is: <span id="counter">fill-me-in</span></p>
        </body>
     </html>
 
 
-then the program will be:
+with some appropriate CSS to make the DIV look good, then the program
+will be:
 
     #lang planet dyoo/whalesong
     (require (planet dyoo/whalesong/web-world))
 
-    (define-resource front-page "index.html")
+    (define-resource index.html)
 
     ;; Declare style.css as a resource so it gets bundled.
-    (define-resource style.css "style.css")
+    (define-resource style.css)
     
 
     ;; draw: world view -> view
@@ -137,7 +201,7 @@ then the program will be:
 
 
     (define my-initial-view 
-       (view-bind (view-focus (resource->view front-page)
+       (view-bind (view-focus (resource->view index.html)
                               "#my-button")
                   "click"
                   on-click))
@@ -145,7 +209,6 @@ then the program will be:
     (big-bang 0
               (initial-view my-initial-view)
               (to-draw draw))
-
 
 
 ----------------------------------------------------------------------
@@ -174,9 +237,10 @@ handler takes, not only the world, but the current view.
 
 
     #lang planet dyoo/whalesong
+    (require (planet dyoo/whalesong/web-world))
 
-    (define-resource index.html "index.html")
-    (define-resource style.css "style.css")
+    (define-resource index.html)
+    (define-resource style.css)
 
     ;; The world is a string which represents the name of the user.
 
@@ -185,7 +249,7 @@ handler takes, not only the world, but the current view.
     ;; When the user clicks on the button, grab at the text of the
     ;; text-field.
     (define (on-click w v)
-       (view-text (view-focus v "text-field")))
+      (view-text (view-focus v "text-field")))
 
 
     ;; on-draw: world view -> view
@@ -195,7 +259,8 @@ handler takes, not only the world, but the current view.
                  w)) 
        
 
-    (define my-view (view-bind (view-focus (resource->view page) "#button")
+    (define my-view (view-bind (view-focus (resource->view index.html) 
+                                           "#button")
                                "click"
                                on-click))
 
@@ -206,11 +271,70 @@ handler takes, not only the world, but the current view.
 
 ----------------------------------------------------------------------
 
+Example 4   "dwarves!"
 
 
+We need to be able to generate elements of views dynamically.  We
+should also be able to attach event handlers dynamically, too.
+
+
+The following should show an empty list, and on every clock tick, a
+new dwarf will show up in the list.  If you click on a dwarf, it will
+hide.
+
+    <html>
+    <head><title>Dwarves</title></head>
+    <body>
+    <ul></ul>
+    </body>
+    </html>
+
+
+    #lang planet dyoo/whalesong
+    (require (planet dyoo/whalesong/web-world))
+    (define-resource index.html)
+
+    ;; make-item: string -> view
+    (define (make-item name)
+       (view-bind (sexp->view `(li ,name))
+                  "click"
+                  hide-on-click))
+
+
+    ;; When a dwarf clicks, it hides!
+    (define (hide-on-click w v)
+       (view-hide v))
+
+
+    (define dwarf-names 
+      '("Doc" "Grumpy" "Happy" "Sleepy" "Bashful" "Sneezy" "Dopey"))
+
+ 
+    ;; Update the view so it shows the next dwarf on the scene,
+    ;; until we're all done.
+    (define (draw w v)
+      (cond [(< w (length dwarf-names))
+             (view-append (view-focus v "ul")
+                          (make-item (list-ref dwarf-names w)))]
+            [else
+             v]))
+
+
+    ;; tick: world view -> world
+    (define (tick w v)
+      w)
+
+
+    (big-bang 0 ;; don't care about the world value
+              (initial-view index.html)
+              (on-tick tick 1)
+              (to-draw draw))
+ 
 
 
 ----------------------------------------------------------------------
+
+
 
 
 Types
@@ -289,14 +413,25 @@ The content of a view may be functionally queried or updated:
    
 
    view-css: view string string -> view
-       Update the CSS style value of the currently focused nodes.
+       Update the CSS style value of the currently focused node.
 
    view-css: view string -> view
-       Get at the CSS style value of the currently focused nodes.
+       Get at the CSS style value of the currently focused node.
+
+
+
+
+   view-attr: view string string -> view
+       Update the attribute of the currently focused node.
+
+   view-attr: view string -> view
+       Get at the attribute value of the currently focused node.
+        
 
 
 
    view-replace: view view -> view
+   view-replace: view (listof view) -> view
 
        Replace the focused elements of the first view with the focused
        elements of the second view.
@@ -308,6 +443,7 @@ The content of a view may be functionally queried or updated:
 
 
    view-append: view view -> view
+   view-append: view (listof view) -> view
 
        Append the focused elements of the second view after the
        focused elements of the first view.
@@ -319,6 +455,19 @@ The content of a view may be functionally queried or updated:
 
 
 
+   view-clone: view -> view
+
+       Do a deep clone of the currently focused elements.  Those fresh
+       elements will focused.
+
+
+   view-hide: view -> view
+
+       Hide the selected focus.
+
+   view-show: view -> view
+
+       Show the selected focus.
 
 
 

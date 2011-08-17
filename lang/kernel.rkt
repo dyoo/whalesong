@@ -273,7 +273,7 @@ vector?
 ;;  eof-object?
 ;;  bytes?
 ;;  byte?
-;;  number?
+number?
 ;;  complex?
 ;;  real?
 ;;  rational?

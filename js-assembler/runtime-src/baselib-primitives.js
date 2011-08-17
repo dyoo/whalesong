@@ -964,6 +964,12 @@
         });
 
 
+    installPrimitiveProcedure(
+	'number?',
+	1,
+	function(MACHINE) {
+	    return isNumber(MACHINE.env[MACHINE.env.length - 1]);
+	});
 
 
     installPrimitiveProcedure(

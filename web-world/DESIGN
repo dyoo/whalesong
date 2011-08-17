@@ -3,9 +3,15 @@ Design doc for web-world.
 
 We want to take advantage of web development interfaces.
 
-    * Interfaces should be designed and browsed without needing to program.
+    * Interfaces should be designed and viewed without needing to program.
 
     * Behavior should be injected into these interfaces.
+
+It should be stupid-trivial to make a program that displays an HTML
+page of structural complexity, because that doesn't involve any
+programming.
+
+
 
 
 
@@ -20,7 +26,22 @@ We want to take the design ideas of JQuery.
 
 
 
+Furthermore, we want to fix a particularly glaring issue with the
+previous attempt of jsworld:
 
+    * The DOM nodes were treated as values with implicit state, making
+      it very difficult to write UI's that asked what the value was at
+      a particular node.
+
+    * The DOM tree represents external state.
+
+    * Therefore, each world handler needs to take, not just the
+      internal state of its world, but the external state of the DOM
+      tree.
+
+
+
+----------------------------------------------------------------------
 
 Example 1
 
@@ -48,13 +69,18 @@ and then do the following:
 
     ;; draw: world view -> view
     (define (draw w v)
-      (view-text (view-find v "#counter")
+      (view-text (view-focus v "#counter")
                  w))
+
+    ;; tick: world view -> world
+    (define (tick w v)
+      (add1 w)
+
 
     (big-bang 0
               (initial-view front-page)
               (to-draw draw)
-              (on-tick add1))
+              (on-tick tick))
 
 
 to get a simple clock tick application.
@@ -62,7 +88,7 @@ to get a simple clock tick application.
 
 
 
-
+----------------------------------------------------------------------
 
 Example 2
 
@@ -72,37 +98,256 @@ We should be able to attach event handlers in the expected way to
 elements of the DOM.  For example, let's count the number of times a
 user clicks on a particular span.
 
+Here, we need to adjust the view and attach a click event.
+
+If index.html contains:
+
+    <html>
+       <head>
+       <title>My simple program</title>
+       <link rel="stylesheet" href="style.css">
+       </head>
+
+       <body>
+       <div id="my-button">Click me!</div>
+       <p>The current counter is: <span id="counter">fill-me-in</span></p>
+       </body>
+    </html>
 
 
+then the program will be:
 
     #lang planet dyoo/whalesong
-    (require (planet dyoo/whalesong/web-wordl))
+    (require (planet dyoo/whalesong/web-world))
 
     (define-resource front-page "index.html")
 
+    ;; Declare style.css as a resource so it gets bundled.
+    (define-resource style.css "style.css")
+    
 
     ;; draw: world view -> view
     (define (draw w v)
-      (view-text (view-find v "#counter")
+      (view-text (view-focus v "#counter")
                  w))
 
+    ;; world view -> world
+    (define (on-click w v)
+      (add1 w))
+
+
+    (define my-initial-view 
+       (view-bind (view-focus (resource->view front-page)
+                              "#my-button")
+                  "click"
+                  on-click))
+
     (big-bang 0
-              (initial-view front-page)
-              (to-draw draw)
-              (on-tick add1))
+              (initial-view my-initial-view)
+              (to-draw draw))
 
 
 
 
 
 
+Example 3
 
 
+We want to make it easy to query from the view.  That's why each
+handler takes, not only the world, but the current view.
+
+
+    <html>
+       <head>
+       <title>My simple program</title>
+       <link rel="stylesheet" href="style.css">
+       </head>
+
+       <body>
+       <input type="text" id="text-field"/>
+       <input type="button" id="button"/>
+
+       <p>Hello <span id="template">fill-me-in</span>!</p>
+       </body>
+    </html>
+
+
+    #lang planet dyoo/whalesong
+
+    (define-resource index.html "index.html")
+    (define-resource style.css "style.css")
+
+    ;; The world is a string which represents the name of the user.
+
+
+    ;; on-click: world view -> world
+    ;; When the user clicks on the button, grab at the text of the
+    ;; text-field.
+    (define (on-click w v)
+       (view-text (view-focus v "text-field")))
+
+
+    ;; on-draw: world view -> view
+    ;; Take the view, and replace the template with the world value.
+    (define (on-draw w v)
+      (view-text (view-focus v "template")
+                 w)) 
+       
+
+    (define my-view (view-bind (view-focus (resource->view page) "#button")
+                               "click"
+                               on-click))
+
+
+    (big-bang "Jane Doe"
+              (initial-view my-view)
+              (to-draw draw))
+
+
+
+
+
+----------------------------------------------------------------------
 
 
 Types
 
 
-initial-view: resource -> handler
+A view represents the DOM tree and its event handlers.
 
-to-draw: (world view -> view)
+
+One way to create views is to take a resource and convert it to a view.
+
+    resource->view: resource -> view
+
+        Explicitly translate a resource into a view.
+
+
+A more programmatic way to do this is with an s-expression representation.
+
+    sexp->view: s-expression -> view
+
+        Translate an s-expression into a view.
+
+where the s-expression grammar is SXML.
+
+
+
+
+
+A view is implicitly focused on a selection of its nodes.  You can
+always refocus the view to the top:
+
+   view-focus: view string -> view
+
+       Refocus the view, using JQuery selector syntax.
+
+   view-find: view string -> view
+
+       Refocus the view, using JQuery selector syntax.  The search starts
+       from the context of the currently focused nodes.
+
+   view-top: view -> view
+
+       Refocus the view to the toplevel node.
+
+   view-up: view -> view
+
+       Move the focus of the view over to the parents of the currently focused nodes.
+
+   view-down: view -> view
+
+       Move the focus of the view over to the parents of the currently focused nodes.
+
+   view-next: view -> view
+
+       Move the focus of the view over to the next siblings of the
+       currently focused nodes.
+
+   view-prev: view -> view
+
+       Move the focus of the view over to the previous siblings of the
+       currently focused nodes.
+
+
+
+
+
+
+The content of a view may be functionally queried or updated:
+
+   view-text: view string -> view
+
+       Replace the text at the focus with the given string.
+
+   view-text: view -> view
+
+       Grab at the text of the currently focused nodes.
+   
+
+
+   view-replace: view view -> view
+
+       Replace the focused elements of the first view with the focused
+       elements of the second view.
+
+
+   view-delete: view -> view
+
+       Remove the focused elements of the view.  The focus becomes empty.
+
+
+   view-append: view view -> view
+
+       Append the focused elements of the second view after the
+       focused elements of the first view.
+
+
+
+
+We need to be able to bind events to elements of the view.
+
+   view-bind: view string (world event -> world) -> view
+   view-bind: view string (world -> world) -> view
+
+      Given the view, the name of the event type, and its world
+      handler, create a new view that binds that event to the focused
+      nodes.
+
+      The event will trigger the world-updating function, with the
+      view focused on the originating node.
+
+      If the bound function doesn't care about event-specific
+      information, allow it to ignore the value.
+
+
+
+
+Configuration of a web big-bang
+
+
+    initial-view: resource | view -> handler
+ 
+       Given a resource, assume it's a resource into a web page, and
+       translate it directly into a view.
+
+
+    into-dom: dom-node -> handler
+
+       Use the given dom node as the toplevel parent.
+
+
+
+
+Reactive handlers for a big bang:
+
+
+    to-draw: (world view -> view) -> handler
+
+        we need to be able to replace one view with another.
+
+
+    on-tick: (world -> world) -> handler
+
+             (world -> world) number -> handler

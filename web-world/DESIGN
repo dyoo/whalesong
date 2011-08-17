@@ -148,8 +148,7 @@ then the program will be:
 
 
 
-
-
+----------------------------------------------------------------------
 
 Example 3
 
@@ -171,6 +170,7 @@ handler takes, not only the world, but the current view.
        <p>Hello <span id="template">fill-me-in</span>!</p>
        </body>
     </html>
+
 
 
     #lang planet dyoo/whalesong
@@ -199,10 +199,12 @@ handler takes, not only the world, but the current view.
                                "click"
                                on-click))
 
-
     (big-bang "Jane Doe"
               (initial-view my-view)
               (to-draw draw))
+
+
+----------------------------------------------------------------------
 
 
 
@@ -286,6 +288,13 @@ The content of a view may be functionally queried or updated:
        Grab at the text of the currently focused nodes.
    
 
+   view-css: view string string -> view
+       Update the CSS style value of the currently focused nodes.
+
+   view-css: view string -> view
+       Get at the CSS style value of the currently focused nodes.
+
+
 
    view-replace: view view -> view
 
@@ -302,6 +311,13 @@ The content of a view may be functionally queried or updated:
 
        Append the focused elements of the second view after the
        focused elements of the first view.
+
+
+   view-count: view -> number
+
+       Count how many nodes are currently focused.
+
+
 
 
 

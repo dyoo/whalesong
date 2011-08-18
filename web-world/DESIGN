@@ -322,10 +322,10 @@ hide.
 
     ;; tick: world view -> world
     (define (tick w v)
-      w)
+      (add1 w))
 
 
-    (big-bang 0 ;; don't care about the world value
+    (big-bang 0
               (initial-view index.html)
               (on-tick tick 1)
               (to-draw draw))
@@ -403,7 +403,7 @@ always refocus the view to the top:
 
 The content of a view may be functionally queried or updated:
 
-   view-text: view string -> view
+   update-view-text: view string -> view
 
        Replace the text at the focus with the given string.
 
@@ -412,7 +412,7 @@ The content of a view may be functionally queried or updated:
        Grab at the text of the currently focused nodes.
    
 
-   view-css: view string string -> view
+   update-view-css: view string string -> view
        Update the CSS style value of the currently focused node.
 
    view-css: view string -> view
@@ -421,7 +421,7 @@ The content of a view may be functionally queried or updated:
 
 
 
-   view-attr: view string string -> view
+   update-view-attr: view string string -> view
        Update the attribute of the currently focused node.
 
    view-attr: view string -> view

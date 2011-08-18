@@ -1,5 +1,5 @@
 #lang racket
-(require "browser-evaluate.rkt"
+(require (planet dyoo/browser-evaluate)
          "../js-assembler/package.rkt"
          "../make/make-structs.rkt")
 

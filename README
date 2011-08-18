@@ -168,7 +168,7 @@ Tests
 The test suite in test-all.rkt runs the test suite.  You'll need to
 run this on a system with a web browser, as the suite will evaluate
 JavaScript and make sure it is producing values.  A bridge module
-browser-evaluate.rkt brings up a temporary web server that allows us
+(planet dyoo/browser-evaluate) brings up a temporary web server that allows us
 to pass values between Racket and the JavaScript evaluator on the
 browser.
 

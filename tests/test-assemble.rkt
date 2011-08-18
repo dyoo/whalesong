@@ -1,6 +1,6 @@
 #lang racket
 
-(require "browser-evaluate.rkt"
+(require (planet dyoo/browser-evaluate)
          "../js-assembler/assemble.rkt"
          "../js-assembler/package.rkt"
          "../compiler/lexical-structs.rkt"
@@ -70,9 +70,16 @@
                             (display "var myInvoke = " op)
                             (assemble/write-invoke a-statement op)
                             (display ";" op)
-                            
                             (fprintf op 
-                                     "return function(succ, fail, params) { myInvoke(MACHINE, function(v) { succ(plt.runtime.toDisplayedString(~a));}, fail, params); }"
+                                     "return function(succ, fail, params) {
+                                           var newParams = { currentDisplayer: function(MACHINE, v) {
+                                                                    params.currentDisplayer(v); } };
+
+                                           myInvoke(MACHINE,
+                                                    function(v) { succ(plt.runtime.toDisplayedString(~a));},
+                                                    function(MACHINE, exn) { fail(exn); },
+                                                    newParams);
+                                      }"
                                      inspector)
                             (display "})" op))))))
 (define (E-many stmts (inspector "MACHINE.val"))

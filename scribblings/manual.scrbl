@@ -1034,7 +1034,7 @@ language.
 
 
 @subsection{Numeric operations}
-
+@defform[(number? ...)]{}
 @defform[(+ ...)]{}
 @defform[(- ...)]{}
 @defform[(* ...)]{}

@@ -41,7 +41,6 @@ test-more: last-commit-name
 	racket tests/run-more-tests.rkt
 
 
-
 last-commit-name:
 	racket make-last-commit-name.rkt
 

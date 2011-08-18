@@ -26,7 +26,11 @@
                     
                     (fprintf op #<<EOF
 return (function(succ, fail, params) {
-            return innerInvoke(new plt.runtime.Machine(), succ, fail, params);
+            var myParams = { currentDisplayer: function(MACHINE, v) { params.currentDisplayer(v); }};
+            return innerInvoke(new plt.runtime.Machine(),
+                               succ,
+                               function(MACHINE, exn) { fail(exn); },
+                               myParams);
         });
 });
 EOF
@@ -65,9 +69,9 @@ EOF
                     (let ([r (evaluate s)])
                       (raise-syntax-error #f (format "Expected exception, but got ~s" r)
                                           #'stx)))]) 
-             (unless (regexp-match (regexp-quote exp) (error-happened-str an-error-happened))
+             (unless (regexp-match (regexp-quote exp) (exn-message an-error-happened))
                (printf " error!\n")
-               (raise-syntax-error #f (format "Expected ~s, got ~s" exp (error-happened-str an-error-happened))
+               (raise-syntax-error #f (format "Expected ~s, got ~s" exp (exn-message an-error-happened))
                                    #'stx))
              (printf " ok (~a milliseconds)\n" (error-happened-t an-error-happened))))))]))
 

@@ -427,30 +427,54 @@ var OverlayImage = function(img1, img2, placeX, placeY) {
     // keep absolute X and Y values
     // convert relative X,Y to absolute amounts
     // we also handle "beside" and "above"
-    if (placeX == "right")
-	X = (c1x>c2x)? img2.getWidth()-(c1x+c2x) : img1.getWidth()-(c1x+c2x);
-    else if (placeX == "left") 
-	X = (c1x>c2x)? img1.getWidth()-(c1x+c2x) : img2.getWidth()-(c1x+c2x);
+    if (placeX == "left")
+        X = img2.getWidth() - (c1x + c2x);
+    else if (placeX == "right")
+        X = img1.getWidth() - (c1x + c2x);
     else if (placeX == "beside")
-	X = c1x+c2x;
-    else if (placeX == "middle" || 
-	     placeX == "center")
-	X = 0;
-    else
-	X = placeX;
+        X = c1x + c2x;
+    else if (placeX == "middle" || placeX == "center")
+        X = 0;
+    else                                              
+        X = placeX;
     
-    if (placeY == "bottom")
-	Y = (c1y>c2y)? img2.getHeight()-(c1y+c2y) : img1.getHeight()-(c1y+c2y);
-    else if (placeY == "top")
-	Y = (c1y>c2y)? img1.getHeight()-(c1y+c2y) : img2.getHeight()-(c1y+c2y);
-    else if (placeY == "above")
-	Y = c1y+c2y;
-    else if (placeY == "baseline")
-	Y = img1.getBaseline()-img2.getBaseline();
-    else if (placeY == "middle" || placeY == "center")
-	Y = 0;
+    if (placeY == "top")
+        Y = img2.getHeight() - (c1y + c2y);
+    else if (placeY == "bottom")
+        Y = img1.getHeight() - (c1y + c2y);
+    else if (placeY == "above" )  
+        Y = c1y + c2y;
+    else if (placeY == "baseline") 
+        Y= img1.getBaseline() - img2.getBaseline();
+    else if (placeY == "middle" || placeY == "center") 
+        Y = 0;
     else
-	Y = placeY;
+        Y = placeY;
+
+    // if (placeX == "right")
+    //     X = (c1x>c2x)? img2.getWidth()-(c1x+c2x) : img1.getWidth()-(c1x+c2x);
+    // else if (placeX == "left") 
+    //     X = (c1x>c2x)? img1.getWidth()-(c1x+c2x) : img2.getWidth()-(c1x+c2x);
+    // else if (placeX == "beside")
+    //     X = c1x+c2x;
+    // else if (placeX == "middle" || 
+    //          placeX == "center")
+    //     X = 0;
+    // else
+    //     X = placeX;
+    
+    // if (placeY == "bottom")
+    //     Y = (c1y>c2y)? img2.getHeight()-(c1y+c2y) : img1.getHeight()-(c1y+c2y);
+    // else if (placeY == "top")
+    //     Y = (c1y>c2y)? img1.getHeight()-(c1y+c2y) : img2.getHeight()-(c1y+c2y);
+    // else if (placeY == "above")
+    //     Y = c1y+c2y;
+    // else if (placeY == "baseline")
+    //     Y = img1.getBaseline()-img2.getBaseline();
+    // else if (placeY == "middle" || placeY == "center")
+    //     Y = 0;
+    // else
+    //     Y = placeY;
     
 
     // correct offsets when dealing with Scenes instead of images

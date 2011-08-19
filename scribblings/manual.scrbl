@@ -1015,6 +1015,8 @@ language.
 @defthing[e number]{The math constant @racket[pi].}
 @defthing[null null]{The empty list value @racket[null].}
 
+@defproc[(boolean? [v any/c]) boolean?]{Returns true if v is @racket[#t] or @racket[#f]}
+
 
 
 @defform[(let/cc id body ...)]{}
@@ -1096,10 +1098,22 @@ language.
 
 @subsection{String operations}
 @defform[(string? s)]{}
+@defform[(string ...)]{}
 @defform[(string=? ...)]{}
 @defform[(string->symbol ...)]{}
 @defform[(string-length ...)] {}
+@defform[(string-ref ...)] {}
 @defform[(string-append ...)] {}
+@defform[(string->list ...)] {}
+@defform[(list->string ...)] {}
+
+
+
+@subsection{Character operations}
+@defform[(char? ch)]{}
+@defform[(char=? ...)]{}
+
+
 
 
 @subsection{Symbol operations}

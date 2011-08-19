@@ -390,7 +390,7 @@ symbol->string
   vector->list
   list->vector
 ;;  build-vector
-;;  char=?
+char=?
 ;;  char<?
 ;;  char>?
 ;;  char<=?

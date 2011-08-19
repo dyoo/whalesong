@@ -651,7 +651,7 @@
 
     installPrimitiveProcedure(
         'string',
-        baselib.arity.arityAtLeast(0),
+        baselib.arity.makeArityAtLeast(0),
         function (MACHINE) {
             var i;
             var chars = [];
@@ -666,11 +666,11 @@
         'string->list',
         1,
         function (MACHINE) {
-            var str = checkString(MACHINE, 'string->list', 0);
+            var str = checkString(MACHINE, 'string->list', 0).toString();
             var i;
             var result = NULL;
-            for (i = 0; i < str.length; i++) {
-                result = makePair(baselib.chars.makeChar(elts[elts.length - 1 - i]), result);
+            for (i = str.length - 1; i >= 0; i--) {
+                result = makePair(baselib.chars.makeChar(str[i]), result);
             }
             return result;
         });
@@ -769,7 +769,7 @@
         function (MACHINE) {
             var firstArg = checkString(MACHINE, 'string-ref', 0).toString();
             var index = baselib.numbers.toFixnum(
-                checkNaturalInRange(MACHINE, 'string-ref', 0,
+                checkNaturalInRange(MACHINE, 'string-ref', 1,
                                     0, firstArg.length));
             return baselib.chars.makeChar(firstArg[index]);
         });

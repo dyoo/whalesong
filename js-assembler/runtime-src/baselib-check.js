@@ -60,7 +60,7 @@
             }
             testArgument(
                 MACHINE,
-                function () { parameterizedPredicateName.apply(null, args); },
+                function () { return parameterizedPredicateName.apply(null, args); },
                 function (x) {
                     return parameterizedPredicate.apply(null, [x].concat(args));
                 },

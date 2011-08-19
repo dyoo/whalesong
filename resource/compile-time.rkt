@@ -15,6 +15,10 @@
 ;; 
 (define-syntax (define-resource stx)
   (syntax-parse stx 
+    [(_ name:id)
+     (with-syntax ([path (symbol->string #'name)])
+       (syntax/loc stx
+         (define-resource name path)))]
     [(_ name:id path:str)
      (let* ([normal-path 
              (normalize-path (build-path

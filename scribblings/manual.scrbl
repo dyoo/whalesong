@@ -4,11 +4,15 @@
           planet/resolver
           scribble/eval
           racket/sandbox
+          racket/port
           (only-in racket/contract any/c)
           racket/runtime-path
           "scribble-helpers.rkt"
-	  "../last-commit-name.rkt"
           "../js-assembler/get-js-vm-implemented-primitives.rkt")
+
+@(require racket/runtime-path)
+@(define-runtime-path git-head-path "../.git/refs/heads/master")
+
 
 @(require (for-label (this-package-in js))
           (for-label (this-package-in lang/base))
@@ -54,7 +58,10 @@
 @url{https://github.com/dyoo/whalesong}.  The latest version of this
 document lives in @url{http://hashcollision.org/whalesong}.}}
 
-@centered{@smaller{Current commit head is @tt{@git-head}.}}
+@(if (file-exists? git-head-path)
+     (let ([git-head (call-with-input-file git-head-path port->string)])
+       @centered{@smaller{Current commit head is @tt{@git-head}.}})
+     "")
 
 
 
@@ -442,7 +449,7 @@ get-javascript depend on.
 
 
 
-@section{Including external resources with @racketmodname/this-package[resource]}
+@section{Including external resources}
 @defmodule/this-package[resource]
 
 Programs may need to use external file resources that aren't

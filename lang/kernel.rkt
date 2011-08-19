@@ -340,9 +340,9 @@ memq
 ;;  hash-map
 ;;  hash-for-each
   make-string
-;;  string
+  string
   string-length
-;;  string-ref
+  string-ref
   string=?
 ;;  string-ci=?
 ;;  string<?
@@ -355,7 +355,7 @@ memq
 ;;  string-ci>=?
   substring
   string-append
-;;  string->list
+  string->list
   list->string
 ;;  string-copy
 string->symbol

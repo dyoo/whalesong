@@ -649,6 +649,33 @@
         });
 
 
+    installPrimitiveProcedure(
+        'string',
+        baselib.arity.arityAtLeast(0),
+        function (MACHINE) {
+            var i;
+            var chars = [];
+            for (i = 0; i < MACHINE.argcount; i++) {
+                chars.push(checkChar(MACHINE, 'string', i).val);
+            };
+            return chars.join('');
+        });
+
+
+    installPrimitiveProcedure(
+        'string->list',
+        1,
+        function (MACHINE) {
+            var str = checkString(MACHINE, 'string->list', 0);
+            var i;
+            var result = NULL;
+            for (i = 0; i < str.length; i++) {
+                result = makePair(baselib.chars.makeChar(elts[elts.length - 1 - i]), result);
+            }
+            return result;
+        });
+
+
 
     installPrimitiveProcedure(
         'string-set!',
@@ -734,6 +761,19 @@
             var firstArg = checkString(MACHINE, 'string-length', 0).toString();
             return firstArg.length;
         });
+
+
+    installPrimitiveProcedure(
+        'string-ref',
+        2,
+        function (MACHINE) {
+            var firstArg = checkString(MACHINE, 'string-ref', 0).toString();
+            var index = baselib.numbers.toFixnum(
+                checkNaturalInRange(MACHINE, 'string-ref', 0,
+                                    0, firstArg.length));
+            return baselib.chars.makeChar(firstArg[index]);
+        });
+
 
 
     installPrimitiveProcedure(

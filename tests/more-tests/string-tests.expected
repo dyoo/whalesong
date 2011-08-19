@@ -13,3 +13,12 @@
 "lo"
 ""
 "hello"
+""
+"abc"
+#\h
+#\e
+#\l
+#\o
+(list #\x #\y #\z)
+(list #\x)
+(list)

@@ -17,3 +17,16 @@
 
 (list->string '())
 (list->string '(#\h #\e #\l #\l #\o))
+
+
+(string)
+(string #\a #\b #\c)
+
+(string-ref "hello" 0)
+(string-ref "hello" 1)
+(string-ref "hello" 2)
+(string-ref "hello" 4)
+
+(string->list "xyz")
+(string->list "x")
+(string->list "")

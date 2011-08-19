@@ -2,7 +2,8 @@
 
 (provide (all-defined-out))
 
-(require "arity-structs.rkt")
+(require "arity-structs.rkt"
+         "../type-helpers.rkt")
 (define-type OperandDomain (U 'number
                               'string
                               'box
@@ -94,6 +95,8 @@
                                            'null?
                                            'not
                                            'eq?))
+
+(ensure-type-subsetof KernelPrimitiveName/Inline KernelPrimitiveName)
 
 
 (define-predicate KernelPrimitiveName/Inline? KernelPrimitiveName/Inline)

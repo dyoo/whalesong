@@ -791,6 +791,8 @@
            (list->mutable-pair-list rand-vals)]
           [(null?)
            (null? (first rand-vals))]
+          [(pair?)
+           (MutablePair? (first rand-vals))]
           [(not)
            (not (first rand-vals))]
           [(eq?)

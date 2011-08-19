@@ -237,7 +237,7 @@
                                                      symbol->string
                                                      string-append
                                                      string-length
-                                                     
+
                                                      (my-cons cons)
                                                      (my-list list)
                                                      (my-car car)
@@ -245,6 +245,7 @@
 						     (my-cadr cadr)
 						     (my-caddr caddr)
                                                      (my-pair? pair?)
+                                                     null?
                                                      (my-set-car! set-car!)
                                                      (my-set-cdr! set-cdr!)
                                                      (my-member member)

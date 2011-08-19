@@ -138,10 +138,15 @@
          car
          cdr
          list
+         list?
+         pair?
          null?
          not
          eq?
-         values)
+         values
+
+         apply
+         call-with-values)
 
 
 (define (-identity x) x)
@@ -183,8 +188,6 @@
 ;;  arity-at-least?
 ;;  arity-at-least-value
 
- apply
- call-with-values
 
 ;;  compose
 ;;  current-inexact-milliseconds
@@ -259,8 +262,6 @@ raise-mismatch-error
   procedure-arity
   procedure-arity-includes?
   procedure-rename
-  pair?
-  list?
   ;;  (undefined? -undefined?)
 ;;  immutable?
 ;;  void?

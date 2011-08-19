@@ -2,6 +2,7 @@
 (require "simulator-structs.rkt"
          "simulator-helpers.rkt"
          "../compiler/il-structs.rkt"
+         "../compiler/arity-structs.rkt"
          racket/math
          racket/list
          (for-syntax racket/base))

@@ -2,6 +2,7 @@
 
 (require "../compiler/il-structs.rkt"
          "../compiler/lexical-structs.rkt"
+         "../compiler/arity-structs.rkt"
          "../simulator/simulator-structs.rkt"
          "../simulator/simulator-primitives.rkt"
          "../simulator/simulator.rkt")

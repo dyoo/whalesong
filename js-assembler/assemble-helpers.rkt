@@ -3,6 +3,7 @@
 (require "../compiler/il-structs.rkt"
          "../compiler/expression-structs.rkt"
          "../compiler/lexical-structs.rkt"
+         "../compiler/arity-structs.rkt"
          racket/list
          racket/string)
 

@@ -2,7 +2,8 @@
 
 (provide (all-defined-out))
 
-(require "../compiler/il-structs.rkt"
+(require "../compiler/arity-structs.rkt"
+         "../compiler/il-structs.rkt"
          "../compiler/expression-structs.rkt"
          "../compiler/lexical-structs.rkt")
 

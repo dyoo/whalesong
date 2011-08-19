@@ -5,6 +5,7 @@
          "../js-assembler/package.rkt"
          "../compiler/lexical-structs.rkt"
          "../compiler/il-structs.rkt"
+         "../compiler/arity-structs.rkt"
          racket/port
          racket/promise
          racket/runtime-path)

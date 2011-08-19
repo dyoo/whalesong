@@ -1,6 +1,7 @@
 #lang typed/racket/base
 
-(require "expression-structs.rkt"
+(require "arity-structs.rkt"
+         "expression-structs.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
          "compiler-structs.rkt"
@@ -1028,135 +1029,166 @@
 ;;
 ;; We have to be sensitive to mutation.
 (define (compile-kernel-primitive-application kernel-op exp cenv target linkage)
-  (let ([singular-context-check (emit-singular-context linkage)])
+  (let ([singular-context-check (emit-singular-context linkage)]
+        [n (length (App-operands exp))])
+
+    (define expected-operand-types
+      (kernel-primitive-expected-operand-types kernel-op n))
+
+    (: make-runtime-arity-mismatch-code (Arity -> InstructionSequence))
+    (define (make-runtime-arity-mismatch-code expected-arity)
+      ;; We compile the code to generate a runtime arity error here.
+      (end-with-linkage
+       linkage cenv
+       (append-instruction-sequences
+        (make-PushEnvironment n #f)
+        (apply append-instruction-sequences
+               (map (lambda: ([operand : Expression]
+                              [target : Target])
+                      (compile operand
+                               (extend-compile-time-environment/scratch-space 
+                                cenv 
+                                (length (App-operands exp)))
+                               target
+                               next-linkage/expects-single))
+                    (App-operands exp)
+                    (build-list (length (App-operands exp))
+                                (lambda: ([i : Natural])
+                                  (make-EnvLexicalReference i #f)))))
+        (make-AssignImmediateStatement 'proc (make-PrimitiveKernelValue kernel-op))
+        (make-AssignImmediateStatement 'argcount
+                                       (make-Const (length (App-operands exp))))
+        (make-PerformStatement (make-RaiseArityMismatchError! 
+                                (make-Reg 'proc)
+                                expected-arity
+                                (make-Const n))))))
+
     (cond
-      ;; If all the arguments are primitive enough (all constants, localrefs, or toplevelrefs),
-      ;; then application requires no stack space at all, and application is especially simple.
-      [(andmap (lambda (op) 
-                 ;; TODO: as long as the operand contains no applications?
-                 (or (Constant? op)
-                     (ToplevelRef? op)
-                     (LocalRef? op)))
-               (App-operands exp))
-       (let* ([n (length (App-operands exp))]
-              
-              [operand-knowledge
-               (map (lambda: ([arg : Expression])
-                      (extract-static-knowledge 
-                       arg 
-                       (extend-compile-time-environment/scratch-space 
-                        cenv n)))
-                    (App-operands exp))]
-              
-              [typechecks?
-               (map (lambda: ([dom : OperandDomain]
-                              [known : CompileTimeEnvironmentEntry])
-                      (not (redundant-check? dom known)))
-                    (kernel-primitive-expected-operand-types kernel-op n)
-                    operand-knowledge)]
-              
-              [expected-operand-types
-               (kernel-primitive-expected-operand-types kernel-op n)]
-              [operand-poss
-               (simple-operands->opargs (map (lambda: ([op : Expression])
-                                               (adjust-expression-depth op n n))
-                                             (App-operands exp)))])
-         (end-with-linkage
-          linkage cenv
-          (append-instruction-sequences
-           (make-AssignPrimOpStatement target
-                                       (make-CallKernelPrimitiveProcedure 
-                                        kernel-op 
-                                        operand-poss
-                                        expected-operand-types
-                                        typechecks?))
-           singular-context-check)))]
+      [(IncorrectArity? expected-operand-types)
+       (make-runtime-arity-mismatch-code (IncorrectArity-expected expected-operand-types))]
+
+      [(not (= n (length expected-operand-types)))
+       (make-runtime-arity-mismatch-code (length expected-operand-types))]
       
       [else
-       ;; Otherwise, we can split the operands into two categories: constants, and the rest.
-       (let*-values ([(n) 
-                      (length (App-operands exp))]
-                     
-                     [(expected-operand-types)
-                      (kernel-primitive-expected-operand-types kernel-op n)]
-                     
-                     [(constant-operands rest-operands)
-                      (split-operands-by-constants 
+       (cond
+         ;; If all the arguments are primitive enough (all constants, localrefs, or toplevelrefs),
+         ;; then application requires no stack space at all, and application is especially simple.
+         [(andmap (lambda (op) 
+                    ;; TODO: as long as the operand contains no applications?
+                    (or (Constant? op)
+                        (ToplevelRef? op)
+                        (LocalRef? op)))
+                  (App-operands exp))
+          (let* ([operand-knowledge
+                  (map (lambda: ([arg : Expression])
+                         (extract-static-knowledge 
+                          arg 
+                          (extend-compile-time-environment/scratch-space 
+                           cenv n)))
                        (App-operands exp))]
-                     
-                     ;; here, we rewrite the stack references so they assume no scratch space
-                     ;; used by the constant operands.
-                     [(extended-cenv constant-operands rest-operands)
-                      (values (extend-compile-time-environment/scratch-space 
-                               cenv 
-                               (length rest-operands))
-                              
-                              (map (lambda: ([constant-operand : Expression])
-                                     (ensure-simple-expression
-                                      (adjust-expression-depth constant-operand
-                                                               (length constant-operands)
-                                                               n)))
-                                   constant-operands)
-                              
-                              (map (lambda: ([rest-operand : Expression])
-                                     (adjust-expression-depth rest-operand
-                                                              (length constant-operands)
-                                                              n))
-                                   rest-operands))]
-                     
-                     [(operand-knowledge)
-                      (append (map (lambda: ([arg : Expression])
-                                     (extract-static-knowledge arg extended-cenv))
-                                   constant-operands)
-                              (map (lambda: ([arg : Expression])
-                                     (extract-static-knowledge arg extended-cenv))
-                                   rest-operands))]
-                     
-                     [(typechecks?)
-                      (map (lambda: ([dom : OperandDomain]
-                                     [known : CompileTimeEnvironmentEntry])
-                             (not (redundant-check? dom known)))
-                           (kernel-primitive-expected-operand-types kernel-op n)
-                           operand-knowledge)]
-                     
-                     [(stack-pushing-code) 
-                      (make-PushEnvironment (length rest-operands)
-                                            #f)]
-                     [(stack-popping-code) 
-                      (make-PopEnvironment (make-Const (length rest-operands))
-                                           (make-Const 0))]
-                     
-                     [(constant-operand-poss)
-                      (simple-operands->opargs constant-operands)]
-                     
-                     [(rest-operand-poss)
-                      (build-list (length rest-operands)
-                                  (lambda: ([i : Natural])
-                                    (make-EnvLexicalReference i #f)))]
-                     [(rest-operand-code)
-                      (apply append-instruction-sequences
-                             (map (lambda: ([operand : Expression]
-                                            [target : Target])
-                                    (compile operand 
-                                             extended-cenv 
-                                             target 
-                                             next-linkage/expects-single))
-                                  rest-operands
-                                  rest-operand-poss))])
+                 
+                 [typechecks?
+                  (map (lambda: ([dom : OperandDomain]
+                                 [known : CompileTimeEnvironmentEntry])
+                         (not (redundant-check? dom known)))
+                       expected-operand-types
+                       operand-knowledge)]
+
+                 [operand-poss
+                  (simple-operands->opargs (map (lambda: ([op : Expression])
+                                                  (adjust-expression-depth op n n))
+                                                (App-operands exp)))])
+            (end-with-linkage
+             linkage cenv
+             (append-instruction-sequences
+              (make-AssignPrimOpStatement target
+                                          (make-CallKernelPrimitiveProcedure 
+                                           kernel-op 
+                                           operand-poss
+                                           expected-operand-types
+                                           typechecks?))
+              singular-context-check)))]
          
-         (end-with-linkage
-          linkage cenv
-          (append-instruction-sequences
-           stack-pushing-code
-           rest-operand-code
-           (make-AssignPrimOpStatement (adjust-target-depth target (length rest-operands))
-                                       (make-CallKernelPrimitiveProcedure 
-                                        kernel-op 
-                                        (append constant-operand-poss rest-operand-poss)
-                                        expected-operand-types
-                                        typechecks?))
-           stack-popping-code
-           singular-context-check)))])))
+         [else
+          ;; Otherwise, we can split the operands into two categories: constants, and the rest.
+          (let*-values ([(constant-operands rest-operands)
+                         (split-operands-by-constants 
+                          (App-operands exp))]
+                        
+                        ;; here, we rewrite the stack references so they assume no scratch space
+                        ;; used by the constant operands.
+                        [(extended-cenv constant-operands rest-operands)
+                         (values (extend-compile-time-environment/scratch-space 
+                                  cenv 
+                                  (length rest-operands))
+                                 
+                                 (map (lambda: ([constant-operand : Expression])
+                                        (ensure-simple-expression
+                                         (adjust-expression-depth constant-operand
+                                                                  (length constant-operands)
+                                                                  n)))
+                                      constant-operands)
+                                 
+                                 (map (lambda: ([rest-operand : Expression])
+                                        (adjust-expression-depth rest-operand
+                                                                 (length constant-operands)
+                                                                 n))
+                                      rest-operands))]
+                        
+                        [(operand-knowledge)
+                         (append (map (lambda: ([arg : Expression])
+                                        (extract-static-knowledge arg extended-cenv))
+                                      constant-operands)
+                                 (map (lambda: ([arg : Expression])
+                                        (extract-static-knowledge arg extended-cenv))
+                                      rest-operands))]
+                        
+                        [(typechecks?)
+                         (map (lambda: ([dom : OperandDomain]
+                                        [known : CompileTimeEnvironmentEntry])
+                                (not (redundant-check? dom known)))
+                              expected-operand-types
+                              operand-knowledge)]
+                        
+                        [(stack-pushing-code) 
+                         (make-PushEnvironment (length rest-operands)
+                                               #f)]
+                        [(stack-popping-code) 
+                         (make-PopEnvironment (make-Const (length rest-operands))
+                                              (make-Const 0))]
+                        
+                        [(constant-operand-poss)
+                         (simple-operands->opargs constant-operands)]
+                        
+                        [(rest-operand-poss)
+                         (build-list (length rest-operands)
+                                     (lambda: ([i : Natural])
+                                       (make-EnvLexicalReference i #f)))]
+                        [(rest-operand-code)
+                         (apply append-instruction-sequences
+                                (map (lambda: ([operand : Expression]
+                                               [target : Target])
+                                       (compile operand 
+                                                extended-cenv 
+                                                target 
+                                                next-linkage/expects-single))
+                                     rest-operands
+                                     rest-operand-poss))])
+            
+            (end-with-linkage
+             linkage cenv
+             (append-instruction-sequences
+              stack-pushing-code
+              rest-operand-code
+              (make-AssignPrimOpStatement (adjust-target-depth target (length rest-operands))
+                                          (make-CallKernelPrimitiveProcedure 
+                                           kernel-op 
+                                           (append constant-operand-poss rest-operand-poss)
+                                           expected-operand-types
+                                           typechecks?))
+              stack-popping-code
+              singular-context-check)))])])))
 
 
 

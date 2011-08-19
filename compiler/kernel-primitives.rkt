@@ -2,7 +2,7 @@
 
 (provide (all-defined-out))
 
-
+(require "arity-structs.rkt")
 (define-type OperandDomain (U 'number
                               'string
                               'box
@@ -30,6 +30,7 @@
 				    'cadr
 				    'caddr
                                     'list
+                                    'list?
                                     'list*
                                     'list->vector
                                     'vector->list
@@ -88,6 +89,8 @@
                                            'car
                                            'cdr
                                            'list
+                                           'list?
+                                           'pair?
                                            'null?
                                            'not
                                            'eq?))
@@ -95,9 +98,11 @@
 
 (define-predicate KernelPrimitiveName/Inline? KernelPrimitiveName/Inline)
 
+(define-struct: IncorrectArity ([expected : Arity]))
 
 
-(: kernel-primitive-expected-operand-types (KernelPrimitiveName/Inline Natural -> (Listof OperandDomain)))
+(: kernel-primitive-expected-operand-types (KernelPrimitiveName/Inline Natural -> (U (Listof OperandDomain)
+                                                                                     IncorrectArity)))
 ;; Given a primitive and the number of arguments, produces the list of expected domains.
 ;; TODO: do something more polymorphic.
 (define (kernel-primitive-expected-operand-types prim arity)
@@ -106,72 +111,85 @@
      (build-list arity (lambda (i) 'number))]
 
     [(eq? prim '-)
-     (unless (> arity 0)
-       (error '- "expects at least one argument, given ~a" arity))
-     (build-list arity (lambda (i) 'number))]
+     (cond [(> arity 0)
+            (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 1))])]
 
     [(eq? prim '*)
      (build-list arity (lambda (i) 'number))]
 
     [(eq? prim '/)
-     (unless (> arity 0)
-       (error '/ "expects at least one argument, given ~a" arity))
-     (build-list arity (lambda (i) 'number))]
+     (cond [(> arity 0)
+            (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 1))])]
 
     [(eq? prim 'add1)
-     (unless (= arity 1)
-       (error 'add1 "expects exactly one argument, given ~a" arity))
-     (list 'number)]
+     (cond [(= arity 1)
+            (list 'number)]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 1))])]
     
     [(eq? prim 'sub1)
-     (unless (= arity 1)
-       (error 'sub1 "expects exactly one argument, given ~a" arity))
-     (list 'number)]
-    
+     (cond [(= arity 1)
+            (list 'number)]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 1))])]
+                           
     [(eq? prim '<)
-     (build-list arity (lambda (i) 'number))]
+     (cond [(>= arity 2)
+            (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 2))])]
     
     [(eq? prim '<=)
-     (build-list arity (lambda (i) 'number))]
+     (cond [(>= arity 2)
+            (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 2))])]
     
     [(eq? prim '=)
-     (build-list arity (lambda (i) 'number))]
+     (cond [(>= arity 2)
+            (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 2))])]
     
     [(eq? prim '>)
-     (build-list arity (lambda (i) 'number))]
+     (cond [(>= arity 2)
+            (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 2))])]
     
     [(eq? prim '>=)
-     (build-list arity (lambda (i) 'number))]
+     (cond [(>= arity 2)
+            (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 2))])]
 
     [(eq? prim 'cons)
-     (unless (= arity 2)
-       (error 'cons "expects exactly two arguments, given ~a" arity))
      (list 'any 'any)]
 
     [(eq? prim 'car)
-     (unless (= arity 1)
-       (error 'car "expects exactly one argument, given ~a" arity))
      (list 'pair)]
     
     [(eq? prim 'cdr)
-     (unless (= arity 1)
-       (error 'cdr "expects exactly one argument, given ~a" arity))
      (list 'pair)]
     
     [(eq? prim 'list)
      (build-list arity (lambda (i) 'any))]
-    
+
+    [(eq? prim 'list?)
+     (list 'any)]
+
+    [(eq? prim 'pair?)
+     (list 'any)]
+
     [(eq? prim 'null?)
-     (unless (= arity 1)
-       (error 'null? "expects exactly one argument, given ~a" arity))
      (list 'any)]
 
     [(eq? prim 'not)
-     (unless (= arity 1)
-       (error 'not "expects exactly one argument, given ~a" arity))
      (list 'any)]
 
     [(eq? prim 'eq?)
-     (unless (= arity 2)
-       (error 'eq? "expects exactly two arguments, given ~a" arity))
      (list 'any 'any)]))

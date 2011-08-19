@@ -83,6 +83,14 @@
           [(list)
            (let loop ([checked-operands checked-operands])
              (assemble-listof-assembled-values checked-operands))]
+
+          [(list?)
+           (format "RUNTIME.isList(~a)"
+                   (first checked-operands))]
+          
+          [(pair?)
+           (format "RUNTIME.isPair(~a)"
+                   (first checked-operands))]
           
           [(null?)
            (format "(~a === RUNTIME.NULL)" (first checked-operands))]

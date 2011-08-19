@@ -504,7 +504,7 @@ OverlayImage.prototype.equals = function(other, aUnionFind) {
 // based on http://stackoverflow.com/questions/3276467/adjusting-div-width-and-height-after-rotated
 var RotateImage = function(angle, img) {
     var sin   = Math.sin(angle * Math.PI / 180),
-    cos   = Math.cos(angle * Math.PI / 180);
+    cos = Math.cos(angle * Math.PI / 180);
     
     // (w,0) rotation
     var x1 = Math.floor(cos * img.getWidth()),
@@ -548,14 +548,13 @@ RotateImage.prototype.render = function(ctx, x, y) {
     var sin	= Math.sin(this.angle * Math.PI / 180),
     cos	= Math.cos(this.angle * Math.PI / 180),
     r	= Math.sqrt(x*x + y*y);
-    x = Math.ceil(cos * r);
-    y = -Math.floor(sin * r);
     ctx.save();
-    ctx.translate(this.translateX, this.translateY);
+    ctx.translate(x + this.translateX, y + this.translateY);
     ctx.rotate(this.angle * Math.PI / 180);
-    this.img.render(ctx, x, y);
+    this.img.render(ctx, 0, 0);
     ctx.restore();
 };
+
 
 RotateImage.prototype.equals = function(other, aUnionFind) {
     return ( other instanceof RotateImage &&

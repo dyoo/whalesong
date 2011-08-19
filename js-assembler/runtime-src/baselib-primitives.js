@@ -542,6 +542,25 @@
 
 
     installPrimitiveProcedure(
+        'make-vector',
+        makeList(1, 2),
+        function (MACHINE) {
+            var value = 0;
+            var length = baselib.numbers.toFixnum(
+                checkNatural(MACHINE, 'make-vector', 0));
+            if (MACHINE.argcount === 2) {
+                value = MACHINE.env[MACHINE.env.length - 2];
+            }
+            var arr = [];
+	    var i;
+            for(i = 0; i < length; i++) {
+                arr[i] = value;
+            }
+            return makeVector.apply(null, arr);
+        });
+    
+
+    installPrimitiveProcedure(
         'vector->list',
         1,
         function (MACHINE) {
@@ -690,24 +709,6 @@
 
 
 
-    installPrimitiveProcedure(
-        'make-vector',
-        makeList(1, 2),
-        function (MACHINE) {
-            var value = 0;
-            var length = baselib.numbers.toFixnum(
-                checkNatural(MACHINE, 'make-vector', 0));
-            if (MACHINE.argcount === 2) {
-                value = MACHINE.env[MACHINE.env.length - 2];
-            }
-            var arr = [];
-	    var i;
-            for(i = 0; i < length; i++) {
-                arr[i] = value;
-            }
-            return makeVector.apply(null, arr);
-        });
-    
 
 
     installPrimitiveProcedure(

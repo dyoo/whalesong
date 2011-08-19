@@ -615,3 +615,10 @@
 
 "(step-count? 0)"
 (step-count? 0)
+
+
+
+(beside/align "top"
+              (rectangle 20 100 "solid" "black")
+              (rectangle 20 120 "solid" "black")
+              (rectangle 20  80 "solid" "black"))

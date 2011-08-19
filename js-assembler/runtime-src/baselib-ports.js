@@ -19,6 +19,7 @@
     StandardOutputPort.prototype = baselib.heir(OutputPort.prototype);
     StandardOutputPort.prototype.writeDomNode = function (MACHINE, domNode) {
         MACHINE.params['currentDisplayer'](MACHINE, domNode);
+        $(domNode).trigger({type : 'afterAttach'});
         $('*', domNode).trigger({type : 'afterAttach'});
     };
 
@@ -28,9 +29,9 @@
     StandardErrorPort.prototype = baselib.heir(OutputPort.prototype);
     StandardErrorPort.prototype.writeDomNode = function (MACHINE, domNode) {
         MACHINE.params['currentErrorDisplayer'](MACHINE, domNode);
+        $(domNode).trigger({type : 'afterAttach'});
         $('*', domNode).trigger({type : 'afterAttach'});
     };
-
 
 
 

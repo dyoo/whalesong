@@ -809,6 +809,36 @@
         });
 
 
+    installPrimitiveProcedure(
+        'boolean?',
+        1,
+        function(MACHINE) {
+            var v = MACHINE.env[MACHINE.env.length - 1];
+            return (v === true || v === false);
+        });
+
+
+    installPrimitiveProcedure(
+        'char?',
+        1,
+        function(MACHINE) {
+            return baselib.chars.isChar(MACHINE.env[MACHINE.env.length -1 ]);
+        });
+
+
+    installPrimitiveProcedure(
+        'char=?',
+        baselib.arity.makeArityAtLeast(2),
+        function(MACHINE) {
+            var s = checkChar(MACHINE, 'char=?', 0).val;
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (checkChar(MACHINE, 'char=?', i).val !== s) {
+                    return false;
+                }
+            }
+            return true;
+        });
 
 
     

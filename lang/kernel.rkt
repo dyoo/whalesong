@@ -266,8 +266,8 @@ raise-mismatch-error
 ;;  void?
 symbol?
 string?
-;;  char?
-;;  boolean?
+char?
+boolean?
 vector?
 ;;  struct?
 ;;  eof-object?

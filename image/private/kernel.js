@@ -418,93 +418,60 @@ VideoImage.prototype.equals = function(other, aUnionFind) {
 var OverlayImage = function(img1, img2, placeX, placeY) {
     // calculate centers using width/height, so we are scene/image agnostic
     var c1x = img1.getWidth()/2;
-    var c1y = img1.getHeight()/2; 
+    var c1y = img1.getHeight()/2;
     var c2x = img2.getWidth()/2;
     var c2y = img2.getHeight()/2;
-    var X, Y;
 
+    // calculate absolute offset of 2nd image's *CENTER*
+    // convert relative X,Y to center offsets, 
+    // if placeX and placeY are UL corner offsets, convert to center offsets
+    if	(placeX == "left"  )	var xOffset = img2.getWidth()-(c1x+c2x);
+    else if (placeX == "right" )	var xOffset = img1.getWidth()-(c1x+c2x);
+    else if (placeX == "beside")	var xOffset = c1x+c2x;
+    else if (placeX == "middle")	var xOffset = 0;
+    else if (placeX == "center")	var xOffset = 0;
+    else				var xOffset = placeX - (c1x-c2x);
 
-    // keep absolute X and Y values
-    // convert relative X,Y to absolute amounts
-    // we also handle "beside" and "above"
-    if (placeX == "left")
-        X = img2.getWidth() - (c1x + c2x);
-    else if (placeX == "right")
-        X = img1.getWidth() - (c1x + c2x);
-    else if (placeX == "beside")
-        X = c1x + c2x;
-    else if (placeX == "middle" || placeX == "center")
-        X = 0;
-    else                                              
-        X = placeX;
+    if	(placeY == "bottom")	var yOffset = img1.getHeight()-(c1y+c2y);
+    else if (placeY == "top")	var yOffset = img2.getHeight()-(c1y+c2y); 
+    else if (placeY == "above" )	var yOffset = c1y+c2y;
+    else if (placeY == "middle")	var yOffset = 0;
+    else if	(placeY == "center")	var yOffset = 0;
+    else if (placeY == "baseline")	var yOffset= img1.getBaseline()-img2.getBaseline();
+    else				var yOffset = placeY - (c1y-c2y);
+
+    // Correct offsets when dealing with Scenes instead of images,
+    // by adding the center values
+    if(isScene(img1)){xOffset =+c1x; yOffset =+c1y;}
+    if(isScene(img2)){xOffset =+c2x; yOffset =+c2y;}
     
-    if (placeY == "top")
-        Y = img2.getHeight() - (c1y + c2y);
-    else if (placeY == "bottom")
-        Y = img1.getHeight() - (c1y + c2y);
-    else if (placeY == "above" )  
-        Y = c1y + c2y;
-    else if (placeY == "baseline") 
-        Y= img1.getBaseline() - img2.getBaseline();
-    else if (placeY == "middle" || placeY == "center") 
-        Y = 0;
-    else
-        Y = placeY;
+    // The *center* of the 2nd image, once overlaid, changes by the original difference in centers, 
+    // plus the size of the offsets. Calculate this delta for X and Y.
+    var deltaX	= c1x - c2x + xOffset; 
+    var deltaY	= c1y - c2y + yOffset;
 
-    // if (placeX == "right")
-    //     X = (c1x>c2x)? img2.getWidth()-(c1x+c2x) : img1.getWidth()-(c1x+c2x);
-    // else if (placeX == "left") 
-    //     X = (c1x>c2x)? img1.getWidth()-(c1x+c2x) : img2.getWidth()-(c1x+c2x);
-    // else if (placeX == "beside")
-    //     X = c1x+c2x;
-    // else if (placeX == "middle" || 
-    //          placeX == "center")
-    //     X = 0;
-    // else
-    //     X = placeX;
-    
-    // if (placeY == "bottom")
-    //     Y = (c1y>c2y)? img2.getHeight()-(c1y+c2y) : img1.getHeight()-(c1y+c2y);
-    // else if (placeY == "top")
-    //     Y = (c1y>c2y)? img1.getHeight()-(c1y+c2y) : img2.getHeight()-(c1y+c2y);
-    // else if (placeY == "above")
-    //     Y = c1y+c2y;
-    // else if (placeY == "baseline")
-    //     Y = img1.getBaseline()-img2.getBaseline();
-    // else if (placeY == "middle" || placeY == "center")
-    //     Y = 0;
-    // else
-    //     Y = placeY;
-    
-
-    // correct offsets when dealing with Scenes instead of images
-    if(isScene(img1)){
-	X = X + c1x; Y = Y + c1x;
-    }
-    if(isScene(img2)){
-	X = X - c2x; Y = Y - c2x;
-    }
-    
-    var deltaX	= img1.pinholeX - img2.pinholeX + X;
-    var deltaY	= img1.pinholeY - img2.pinholeY + Y;
-
+    // Each edge of the new, combined image may be grown or shrunk, depending on deltaX or deltaY
     var left	= Math.min(0, deltaX);
     var top		= Math.min(0, deltaY);
-    var right	= Math.max(deltaX + img2.getWidth(), img1.getWidth());
-    var bottom	= Math.max(deltaY + img2.getHeight(), img1.getHeight());	
+    var right	= Math.max(deltaX + img2.getWidth(),  img1.getWidth());
+    var bottom	= Math.max(deltaY + img2.getHeight(), img1.getHeight());
+    
+    // Calculate the new width, height and center based on edge lengths
+    this.width = right - left;
+    this.height = bottom - top;
     BaseImage.call(this, 
 		   Math.floor((right-left) / 2),
 		   Math.floor((bottom-top) / 2));
+
+    // store the overlaid images, and the offsets for each
     this.img1 = img1;
     this.img2 = img2;
-    this.width = right - left;
-    this.height = bottom - top;
-
     this.img1Dx = -left;
     this.img1Dy = -top;
     this.img2Dx = deltaX - left;	
     this.img2Dy = deltaY - top;
 };
+
 
 OverlayImage.prototype = heir(BaseImage.prototype);
 

@@ -1,6 +1,7 @@
 #lang planet dyoo/whalesong
 
-(require (planet dyoo/whalesong/world))
+(require (planet dyoo/whalesong/world)
+         (planet dyoo/whalesong/image))
 
 (define-struct world (x direction))
 

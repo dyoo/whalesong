@@ -1,6 +1,7 @@
 #lang planet dyoo/whalesong
 
 (require (planet dyoo/whalesong/world)
+         (planet dyoo/whalesong/image)
          (planet dyoo/whalesong/js))
 
 ;; Occupy the whole screen.

@@ -15,4 +15,5 @@
                                                   "")
                             (get-output-string op)))
   (define-values (base path dir?) (split-path a-path))
-  (string-append encoding-prefix "_" (path->string path)))
+  (string-append ;; encoding-prefix "_"
+                 (path->string path)))

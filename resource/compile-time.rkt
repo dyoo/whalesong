@@ -28,7 +28,6 @@
                               (syntax-e #'path)))]
             [munged-path (munge-path normal-path)]
             [content (call-with-input-file normal-path port->bytes)])
-       (printf "Read ~s\n" content)
        (with-syntax ([normal-path normal-path]
                      [munged-path munged-path]
                      [content content])

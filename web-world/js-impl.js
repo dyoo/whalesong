@@ -18,10 +18,18 @@ var View = function(top, focused, eventHandlers, pendingActions) {
     this.eventHandlers = eventHandlers;
     this.pendingActions = pendingActions;
 };
+View.prototype.toString = function() { return "#<View>"; }
 
 View.prototype.updateFocused = function(focused) {
     return new View(this.top, focused, eventHandlers, pendingActions);
 };
+
+View.prototype.initialRender = function(top) {
+    top.empty();
+    $(document.head).append(this.top.find("head").children());
+    top.append(this.top.find("body").children());
+};
+
 
 
 var isView = plt.baselib.makeClassPredicate(View);
@@ -45,20 +53,19 @@ var checkView = plt.baselib.check.makeCheckArgumentType(
 
 // coerseToView: (U resource View) -> View
 var coerseToView = function(x, onSuccess, onFail) {
+    var dom, v;
     if (isView(x)) { 
         return onSuccess(x); 
     } else if (isResource(x)) {
-        console.log(resourcePath(x), resourceKey(x), resourceContent(x).toString());
-        $.ajax({
-            url: "res/" + resourceKey(x),
-            dataType : "html",
-            success: function(data, textStatus, jqXHR) {
-                console.log("data is: ", data);
-                return onSuccess(new View(data, [], [], []));
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                return onFail(new Error(errorThrown));
-            }});
+        dom = $(resourceContent(x).toString())
+            .css("margin", "0px")
+            .css("padding", "0px")
+            .css("border", "0px");
+        dom.children("body").css("margin", "0px");
+        return onSuccess(new View(dom,
+                                  [],
+                                  [],
+                                  []));
     } else {
         return onFail(new Error("Unable to coerse to view"));
     }
@@ -79,6 +86,8 @@ var InitialViewHandler = function(args, view) {
 };
 
 InitialViewHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
+InitialViewHandler.prototype.toString = function() { return "#<initial-view>"; };
+var isInitialViewHandler = plt.baselib.makeClassPredicate(InitialViewHandler);
 
 
 
@@ -89,11 +98,22 @@ var StopWhenHandler = function(args, stopWhen) {
 };
 
 StopWhenHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
+StopWhenHandler.prototype.toString = function() { return "#<stop-when>"; };
+
+var isStopWhenHandler = plt.baselib.makeClassPredicate(StopWhenHandler);
 
 
 
 
-
+var findHandler = function(MACHINE, pred) {
+    var i;
+    for (i = 1; i < MACHINE.argcount; i++) {
+        if (pred(MACHINE.env[MACHINE.env.length - 1 - i])) {
+            return MACHINE.env[MACHINE.env.length - 1 - i];
+        }
+    }
+    return undefined;
+};
 
 
 //////////////////////////////////////////////////////////////////////
@@ -103,11 +123,15 @@ EXPORTS['big-bang'] = makeClosure(
     'big-bang',
     plt.baselib.arity.makeArityAtLeast(1),
     function(MACHINE) {
-        var oldArgcount = MACHINE.argcount;
+        var world = MACHINE.env[MACHINE.env.length - 1];
+        var initialViewHandler = findHandler(MACHINE, isInitialViewHandler);
 
+        var oldArgcount = MACHINE.argcount;
+        var top = $("<div/>");
+        MACHINE.params.currentDisplayer(MACHINE, top);
         PAUSE(function(restart) {
 
-            // FILL ME IN
+            initialViewHandler.view.initialRender(top);
 
             var onRestart = function() {
                 restart(function(MACHINE) {

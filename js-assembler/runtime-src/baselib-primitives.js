@@ -55,6 +55,7 @@
 
     var checkOutputPort = baselib.check.checkOutputPort;
     var checkString = baselib.check.checkString;
+    var checkSymbolOrString = baselib.check.checkSymbolOrString;
     var checkMutableString = baselib.check.checkMutableString;
     var checkSymbol = baselib.check.checkSymbol;
     var checkByte = baselib.check.checkByte;
@@ -112,6 +113,30 @@
     installPrimitiveConstant('null', NULL);
     installPrimitiveConstant('true', true);
     installPrimitiveConstant('false', false);
+
+
+    // The parameter keys here must be uninterned symbols, so we explicitly
+    // call the symbol constructor here.
+    installPrimitiveConstant('exception-handler-key',
+                             new baselib.symbols.Symbol("exnh"));
+    installPrimitiveConstant('parameterization-key',
+                             new baselib.symbols.Symbol("paramz"));
+    installPrimitiveConstant('break-enabled-key',
+                             new baselib.symbols.Symbol("break-on?"));
+
+
+    var gensymCounter = 0;
+    installPrimitiveProcedure(
+        'gensym',
+        makeList(0, 1),
+        function(MACHINE) {
+            var baseName = "g";
+            if (MACHINE.argcount === 1) {
+                baseName = checkSymbolOrString(MACHINE, 'gensym', 0).toString();
+            }
+            gensymCounter++;
+            return new baselib.symbols.Symbol(baseName + gensymCounter);
+        });
 
 
     installPrimitiveProcedure(

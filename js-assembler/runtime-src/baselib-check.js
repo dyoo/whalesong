@@ -143,6 +143,11 @@
         baselib.strings.isString,
         'string');
 
+    var checkSymbolOrString = makeCheckArgumentType(
+        function(x) { return (baselib.symbols.isSymbol(x) || 
+                              baselib.strings.isString(x)); },
+        'symbol or string');
+
     var checkMutableString = makeCheckArgumentType(
         baselib.strings.isMutableString,
         'mutable string');
@@ -241,10 +246,11 @@
     exports.makeCheckListofArgumentType = makeCheckListofArgumentType;
 
     exports.checkOutputPort = checkOutputPort;
+    exports.checkSymbol = checkSymbol;
     exports.checkString = checkString;
+    exports.checkSymbolOrString = checkSymbolOrString;
     exports.checkMutableString = checkMutableString;
     exports.checkChar = checkChar;
-    exports.checkSymbol = checkSymbol;
     exports.checkProcedure = checkProcedure;
     exports.checkNumber = checkNumber;
     exports.checkReal = checkReal;

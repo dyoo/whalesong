@@ -146,13 +146,15 @@
                        (foldl (lambda: ([mp : ModuleLocator]
                                         [acc : (Listof Source)])
                                        (let ([rp [ModuleLocator-real-path mp]])
-                                         (cond [((current-kernel-module-locator?)
-                                                 mp)
-                                                acc]
-                                               [(path? rp)
-                                                (cons (make-ModuleSource rp) acc)]
-                                               [else
-                                                acc])))
+                                         (cond
+                                          ;; Ignore modules that are implemented by Whalesong.
+                                          [((current-kernel-module-locator?)
+                                            mp)
+                                           acc]
+                                          [(path? rp)
+                                           (cons (make-ModuleSource rp) acc)]
+                                          [else
+                                           acc])))
                               '()
                               dependent-module-names)])
                  paths)])]))

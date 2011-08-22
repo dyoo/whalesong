@@ -99,6 +99,7 @@
 
     var isVector = function (x) { return x instanceof Vector; };
 
+    // makeVector: x ... -> vector
     var makeVector = function () {
         return Vector.makeInstance(arguments.length, arguments);
     };

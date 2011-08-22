@@ -3,8 +3,18 @@
                                      sgn conjugate))
          (prefix-in racket: racket/base)
 	 racket/local
-	 (for-syntax racket/base))
+	 (for-syntax racket/base)
 
+         
+         (only-in '#%paramz
+                  exception-handler-key
+                  parameterization-key
+                  break-enabled-key))
+
+
+(provide exception-handler-key
+         parameterization-key
+         break-enabled-key)
 
 
 ;; constants
@@ -146,7 +156,9 @@
          values
 
          apply
-         call-with-values)
+         call-with-values
+
+         gensym)
 
 
 (define (-identity x) x)
@@ -255,7 +267,7 @@ raise-mismatch-error
   magnitude
   conjugate
   ;;  inexact->exact
-;;  exact->inexact
+  ;;  exact->inexact
   number->string
   string->number
   procedure?

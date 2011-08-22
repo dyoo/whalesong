@@ -71,6 +71,8 @@
                                     'current-inspector
                                     'make-struct-field-accessor
                                     'make-struct-field-mutator
+                                    
+                                    'gensym
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

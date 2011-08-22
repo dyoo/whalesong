@@ -136,8 +136,14 @@
               [(path? val)
                (format "RUNTIME.makePath(~s)"
                        (path->string val))]
+              #;[(vector? val)
+               (format "RUNTIME.makeVector(~s)"
+                       (string-join (for/list ([elt (vector->list val)])
+                                        (loop elt))
+                                    ","))]
               [else
                (error 'assemble-const "Unsupported datum ~s" val)])))
+
 
 (: assemble-listof-assembled-values ((Listof String) -> String))
 (define (assemble-listof-assembled-values vals)

@@ -8,5 +8,11 @@
 (define (initial-view a-view-or-resource)
   (error 'initial-view "Please run in JavaScript context."))
 
-(define (stop-when a-view-or-resource)
+(define (stop-when f)
   (error 'stop-when "Please run in JavaScript context."))
+
+(define on-tick
+  (case-lambda [(f)
+                (error 'on-tick "Please run in JavaScript context.")]
+               [(f delay)
+                (error 'on-tick "Please run in JavaScript context.")]))

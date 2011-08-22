@@ -104,6 +104,22 @@ var isStopWhenHandler = plt.baselib.makeClassPredicate(StopWhenHandler);
 
 
 
+var OnTickHandler = function(args, onTick, delay) {
+    WorldHandler.call(this, args);
+    // stopWhen: Racket procedure (World -> boolean)
+    this.onTick = onTick;
+    this.delay = delay;
+};
+
+OnTickHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
+OnTickHandler.prototype.toString = function() { return "#<on-tick>"; };
+
+var isOnTickHandler = plt.baselib.makeClassPredicate(OnTickHandler);
+
+
+
+
+
 
 var findHandler = function(MACHINE, pred) {
     var i;
@@ -116,6 +132,19 @@ var findHandler = function(MACHINE, pred) {
 };
 
 
+// var startHandlers = function(MACHINE, handlers, onEvent, success, fail) {
+//     if (handlers.length === 0) {
+//         success();
+//     }
+//     handlers[0].onStart(MACHINE, onEvent, 
+//                         function(data) {
+//                             startHandlers(MACHINE, handlers.slice(1), onEvent, success, fail);
+//                         });
+// }
+
+
+
+
 //////////////////////////////////////////////////////////////////////
 
 
@@ -123,15 +152,18 @@ EXPORTS['big-bang'] = makeClosure(
     'big-bang',
     plt.baselib.arity.makeArityAtLeast(1),
     function(MACHINE) {
+        var oldArgcount = MACHINE.argcount;
         var world = MACHINE.env[MACHINE.env.length - 1];
         var initialViewHandler = findHandler(MACHINE, isInitialViewHandler);
-
-        var oldArgcount = MACHINE.argcount;
         var top = $("<div/>");
         MACHINE.params.currentDisplayer(MACHINE, top);
         PAUSE(function(restart) {
 
             initialViewHandler.view.initialRender(top);
+
+            
+            // Initialize event handlers to send to that channel.
+
 
             var onRestart = function() {
                 restart(function(MACHINE) {
@@ -155,10 +187,19 @@ EXPORTS['initial-view'] = makeClosure(
                              restart(function(MACHINE) {
                                  finalizeClosureCall(MACHINE,
                                                      new InitialViewHandler(
-                                                         { onStart : function(MACHINE, k) {k()},
-                                                           onPause : function(MACHINE, k) {k()},
-                                                           onResume : function(MACHINE, k) {k()},
-                                                           onStop : function(MACHINE, k) {k()}
+                                                         { 
+                                                             onStart : function(MACHINE, onEvent, k) {
+                                                                 k();
+                                                             },
+                                                             onPause : function(MACHINE, data, k) { 
+                                                                 k(data);
+                                                             },
+                                                             onResume : function(MACHINE, data, k) { 
+                                                                 k(data);
+                                                             },
+                                                             onStop : function(MACHINE, data, k) { 
+                                                                 k();
+                                                             }
                                                          },
                                                          v));
                              });
@@ -181,15 +222,58 @@ EXPORTS['stop-when'] = makePrimitiveProcedure(
     function(MACHINE) {
         var stopWhen = checkProcedure(MACHINE, 'stop-when', 0);
         return new StopWhenHandler(
-            { onStart : function(MACHINE, k) {k()},
-              onPause : function(MACHINE, k) {k()},
-              onResume : function(MACHINE, k) {k()},
-              onStop : function(MACHINE, k) {k()}
+            { 
+                onStart : function(MACHINE, onEvent, k) {
+                    k()
+                },
+                onPause : function(MACHINE, data, k) { 
+                    k(data) 
+                },
+                onResume : function(MACHINE, data, k) { 
+                    k(data)
+                },
+                onStop : function(MACHINE, data, k) { 
+                    k() 
+                }
             },
             stopWhen
         );
         return undefined;
     });
+
+
+EXPORTS['on-tick'] = makePrimitiveProcedure(
+    'on-tick',
+    1,
+    function(MACHINE) {
+        var onTick = checkProcedure(MACHINE, 'on-tick', 0);
+        return new OnTickHandler(
+            { 
+                onStart : function(MACHINE, onEvent, k) { 
+                    var id = setInterval(function () { onEvent(); },
+                                         this.delay);
+                    k( { id : id,
+                         onEvent : onEvent }) ;
+                },
+                onPause : function(MACHINE, data, k) { 
+                    clearInterval(data.id);
+                    k(data)
+                },
+                onResume : function(MACHINE, data, k) {
+                    data.id = setInterval(function () { data.onEvent() },
+                                          this.delay);
+                    k(data)
+                },
+                onStop : function(MACHINE, data, k) { 
+                    clearInterval(data.id);
+                    k() 
+                }
+            },
+            onTick
+        );
+        return undefined;
+    });
+
 
 
 

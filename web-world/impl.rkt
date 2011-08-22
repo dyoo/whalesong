@@ -10,4 +10,5 @@
  #:javascript ("js-impl.js")
  #:provided-values (big-bang
                     initial-view
-                    stop-when))
+                    stop-when
+                    on-tick))

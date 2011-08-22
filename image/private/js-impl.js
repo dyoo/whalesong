@@ -305,8 +305,8 @@ EXPORTS['bitmap/url'] =
                                 MACHINE, 
                                 new Error(plt.baselib.format.format(
                                     "unable to load ~a: ~a",
-                                    url,
-                                    e.message)));
+                                    [url,
+                                     e.message])));
                         });
                     }
                     rawImage.src = url.toString();

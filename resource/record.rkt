@@ -6,7 +6,7 @@
 
 
 ;; Needs to be prefabricated
-(struct resource (path key) #:prefab)
+(struct resource (path key content) #:prefab)
 
 
 (define records (make-hash))
@@ -18,5 +18,6 @@
 ;; record-javascript-implementation!: path path a-resource-path -> void
 (define (record-resource a-module-path a-resource-path a-key)
   (hash-set! records a-module-path
-             (cons (resource a-resource-path a-key)
+             (cons (resource a-resource-path a-key (call-with-input-file a-resource-path
+                                                     port->bytes))
                    (hash-ref records a-module-path '()))))

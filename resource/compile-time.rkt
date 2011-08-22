@@ -2,6 +2,7 @@
 ;; Macros for recording the definition of resources in a program.
 (require (for-syntax racket/base
                      racket/path
+                     racket/port
                      syntax/parse
                      "munge-path.rkt"
                      "record.rkt"))
@@ -16,7 +17,7 @@
 (define-syntax (define-resource stx)
   (syntax-parse stx 
     [(_ name:id)
-     (with-syntax ([path (symbol->string #'name)])
+     (with-syntax ([path (symbol->string (syntax-e #'name))])
        (syntax/loc stx
          (define-resource name path)))]
     [(_ name:id path:str)
@@ -25,9 +26,12 @@
                               (or (current-load-relative-directory)
                                   (current-directory))
                               (syntax-e #'path)))]
-            [munged-path (munge-path normal-path)])
+            [munged-path (munge-path normal-path)]
+            [content (call-with-input-file normal-path port->bytes)])
+       (printf "Read ~s\n" content)
        (with-syntax ([normal-path normal-path]
-                     [munged-path munged-path])
+                     [munged-path munged-path]
+                     [content content])
          (syntax/loc stx
            (begin 
 
@@ -40,4 +44,4 @@
                (record-resource resolved-module-path normal-path munged-path)))
              
              ;; Run time code
-             (define name (resource normal-path munged-path))))))]))
+             (define name (resource normal-path munged-path content))))))]))

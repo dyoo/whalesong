@@ -70,6 +70,7 @@
                                     'make-struct-type
                                     'current-inspector
                                     'make-struct-field-accessor
+                                    'make-struct-field-mutator
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

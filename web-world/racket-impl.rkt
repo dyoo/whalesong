@@ -1,6 +1,6 @@
 #lang racket/base
 
-(provide big-bang initial-view stop-when)
+(provide big-bang initial-view stop-when on-tick)
 
 (define (big-bang world . handlers)
   (error 'big-bang "Please run in JavaScript context."))

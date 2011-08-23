@@ -9,4 +9,3 @@
   #:transparent)
 (define-predicate AtomicArity? AtomicArity)
 (define-predicate listof-atomic-arity? (Listof AtomicArity))
-

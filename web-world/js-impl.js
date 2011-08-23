@@ -17,25 +17,35 @@
 
 
     // A View represents a functional representation of the DOM tree.
-    var View = function(top, focused, eventHandlers, pendingActions) {
+    var View = function(top, focused, eventSources, pendingActions) {
         // top: dom node
         this.top = top;
         this.focused = focused;
-        this.eventHandlers = eventHandlers;
+        this.eventSources = eventSources;
         this.pendingActions = pendingActions;
     };
 
     View.prototype.toString = function() { return "#<View>"; };
 
     View.prototype.updateFocused = function(focused) {
-        return new View(this.top, focused, this.eventHandlers, this.pendingActions);
+        return new View(this.top, focused, this.eventSources, this.pendingActions);
     };
 
     View.prototype.initialRender = function(top) {
         top.empty();
         $(document.head).append(this.top.find("head").children());
+
+        // FIXME: we should pull in the styles applied to body and its
+        // children and apply them here?
         top.append(this.top.find("body").children());
     };
+
+    // Return a list of the event sources from the view.
+    // fixme: may need to apply the pending actions to get the real set.
+    View.prototype.getEventSources = function() {
+        return this.eventSources;
+    };
+    
 
 
 
@@ -48,47 +58,58 @@
     var resourceContent = function(r) { return resourceStructType.accessor(r, 2); };
 
 
-    var checkProcedure = plt.baselib.check.checkProcedure;
-    // var checkResource = plt.baselib.check.makeCheckArgumentType(
-    //     isResource, 'resource');
-    var checkResourceOrView = plt.baselib.check.makeCheckArgumentType(
-        function(x) { return isView(x) || isResource(x); },
-        'resource or view');
-    // var checkView = plt.baselib.check.makeCheckArgumentType(
-    //     isView, 'view');
 
 
 
-    // coerseToView: (U resource View) -> View
+ 
+   // coerseToView: (U resource View) -> View
+    // Coerse a value into a view.
     var coerseToView = function(x, onSuccess, onFail) {
         var dom;
         if (isView(x)) { 
             return onSuccess(x); 
-        } else if (isResource(x)) {
-            dom = $(resourceContent(x).toString())
-                .css("margin", "0px")
-                .css("padding", "0px")
-                .css("border", "0px");
-            dom.children("body").css("margin", "0px");
+        } else  if (isResource(x)) {
+            try {
+                dom = $(resourceContent(x).toString())
+                    .css("margin", "0px")
+                    .css("padding", "0px")
+                    .css("border", "0px");
+                dom.children("body").css("margin", "0px");
+            } catch (exn) {
+                return onFail(exn);
+            }
             return onSuccess(new View(dom,
                                       [],
                                       [],
                                       []));
         } else {
-            return onFail(new Error("Unable to coerse to view"));
+            try {
+                dom = $(plt.baselib.format.toDomNode(x))
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(new View(dom,
+                                      [],
+                                      [],
+                                      []));
         }
     };
 
 
 
 
-    var WorldHandler = function(args) {
-        this.args = args;
-    };
+    //////////////////////////////////////////////////////////////////////
+    //
+    // The inputs into a big bang are WorldHandlers, which configure the big
+    // bang in terms of the initial view, the inputs, event sources, etc.
+    //
+
+    var WorldHandler = function() {};
+    var isWorldHandler = plt.baselib.makeClassPredicate(WorldHandler);
 
 
-    var InitialViewHandler = function(args, view) {
-        WorldHandler.call(this, args);
+    var InitialViewHandler = function(view) {
+        WorldHandler.call(this);
         // view: View
         this.view = view;
     };
@@ -98,60 +119,41 @@
     var isInitialViewHandler = plt.baselib.makeClassPredicate(InitialViewHandler);
 
 
-
-    var StopWhenHandler = function(args, stopWhen) {
-        WorldHandler.call(this, args);
+    var StopWhenHandler = function(stopWhen) {
+        WorldHandler.call(this);
         // stopWhen: Racket procedure (World -> boolean)
         this.stopWhen = stopWhen;
     };
 
     StopWhenHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
     StopWhenHandler.prototype.toString = function() { return "#<stop-when>"; };
-
-    // var isStopWhenHandler = plt.baselib.makeClassPredicate(StopWhenHandler);
-
+    var isStopWhenHandler = plt.baselib.makeClassPredicate(StopWhenHandler);
 
 
-    var OnTickHandler = function(args, onTick, delay) {
-        WorldHandler.call(this, args);
-        // stopWhen: Racket procedure (World -> boolean)
-        this.onTick = onTick;
-        this.delay = delay;
+
+
+    var EventHandler = function(name, eventSource, racketWorldCallback) {
+        WorldHandler.call(this);
+        this.name = name;
+        this.eventSource = eventSource;
+        this.racketWorldCallback = racketWorldCallback
     };
+    EventHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
+    EventHandler.prototype.toString = function() { return "#<" + this.name + ">"; };
+    var isEventHandler = plt.baselib.makeClassPredicate(EventHandler);
 
-    OnTickHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
-    OnTickHandler.prototype.toString = function() { return "#<on-tick>"; };
-
-    // var isOnTickHandler = plt.baselib.makeClassPredicate(OnTickHandler);
-
-
+    //////////////////////////////////////////////////////////////////////
 
 
-
-
-
-    var findHandler = function(MACHINE, pred) {
+    var find = function(handlers, pred) {
         var i;
-        for (i = 1; i < MACHINE.argcount; i++) {
-            if (pred(MACHINE.env[MACHINE.env.length - 1 - i])) {
-                return MACHINE.env[MACHINE.env.length - 1 - i];
+        for (i = 0; i < handlers.length; i++) {
+            if (pred(handlers[i])) {
+                return handlers[i];
             }
         }
         return undefined;
     };
-
-
-    // var startHandlers = function(MACHINE, handlers, onEvent, success, fail) {
-    //     if (handlers.length === 0) {
-    //         success();
-    //     }
-    //     handlers[0].onStart(MACHINE, onEvent, 
-    //                         function(data) {
-    //                             startHandlers(MACHINE, handlers.slice(1), onEvent, success, fail);
-    //                         });
-    // }
-
-
 
 
 
@@ -170,21 +172,25 @@
     EventSource.prototype.onStart = function(fireEvent) {
     };
 
+    EventSource.prototype.onStop = function() {
+    };
+
     // The default behavior of pause is to cause the event source to stop.
     EventSource.prototype.onPause = function() {
         this.onStop();
     };
+
     // The default behavior of unpause is to start an event source up again.
     EventSource.prototype.onUnpause = function(fireEvent) {
         this.onStart(fireEvent);
     };
-    EventSource.prototype.onStop = function() {
-    };
 
 
-
+    
+    // Clock ticks.
     var TickEventSource = function(delay) {
-        this.delay = delay;
+        this.delay = delay; // delay in milliseconds.
+
         this.id = undefined;
         // either undefined, or an integer representing the
         // id to cancel a timeout.
@@ -237,33 +243,73 @@
 
 
 
+    // bigBang.
+    var bigBang = function(MACHINE, world, handlers) {
+        var oldArgcount = MACHINE.argcount;
+        var worldSetter = function(v) { world = v; };
+        var worldGetter = function(v) { return world; };
+
+        var view = find(handlers, isInitialViewHandler).view;
+        var stopWhen = find(handlers, isInitialViewHandler).stopWhen;
+
+        var top = $("<div/>");
+        MACHINE.params.currentDisplayer(MACHINE, top);
+
+
+
+        PAUSE(function(restart) {
+            var onRestart = function() {
+                restart(function(MACHINE) {
+                    MACHINE.argcount = oldArgcount;
+                    finalizeClosureCall(MACHINE, "ok");
+                });
+            };
+
+
+            view.initialRender(top);
+
+            // fixme: set up the event sources
+            // fixme: set up the world updater
+            // fixme: re-render the view on world changes.
+
+            
+            // Initialize event handlers to send to that channel.
+
+            
+
+        });
+    };
+
+
+
     //////////////////////////////////////////////////////////////////////
+
+
+    var checkProcedure = plt.baselib.check.checkProcedure;
+
+    var checkResourceOrView = plt.baselib.check.makeCheckArgumentType(
+        function(x) { return isView(x) || isResource(x); },
+        'resource or view');
+
+    var checkWorldHandler = plt.baselib.check.makeCheckArgumentType(
+        isWorldHandler,
+        'world handler');
+
+    var checkView = plt.baselib.check.makeCheckArgumentType(
+        isView, 'view');
 
 
     EXPORTS['big-bang'] = makeClosure(
         'big-bang',
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
-            //var oldArgcount = MACHINE.argcount;
-            //var world = MACHINE.env[MACHINE.env.length - 1];
-            var initialViewHandler = findHandler(MACHINE, isInitialViewHandler);
-            var top = $("<div/>");
-            MACHINE.params.currentDisplayer(MACHINE, top);
-            PAUSE(function(restart) {
-
-                initialViewHandler.view.initialRender(top);
-
-                
-                // Initialize event handlers to send to that channel.
-
-
-                // var onRestart = function() {
-                //     restart(function(MACHINE) {
-                //         MACHINE.argcount = oldArgcount;
-                //         finalizeClosureCall(MACHINE, "ok");
-                //     });
-                // };
-            });
+            var world = MACHINE.env[MACHINE.env.length - 1];
+            var handlers = [];
+            var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                handlers.push(checkWorldHandler(MACHINE, 'big-bang', i));
+            }
+            return bigBang(MACHINE, world, handlers);
         });
 
 
@@ -271,42 +317,28 @@
         'initial-view',
         1,
         function(MACHINE) {
-            var resourceOrView = checkResourceOrView(MACHINE, 'initial-view', 0);
+            var viewable = MACHINE.env[MACHINE.env.length - 1];
             var oldArgcount = MACHINE.argcount;
             PAUSE(function(restart) {
-                coerseToView(resourceOrView,
+                coerseToView(viewable,
                              function(v) {
                                  restart(function(MACHINE) {
                                      MACHINE.argcount = oldArgcount;
                                      finalizeClosureCall(MACHINE,
-                                                         new InitialViewHandler(
-                                                             { 
-                                                                 onStart : function(MACHINE, onEvent, k) {
-                                                                     k();
-                                                                 },
-                                                                 onPause : function(MACHINE, data, k) { 
-                                                                     k(data);
-                                                                 },
-                                                                 onResume : function(MACHINE, data, k) { 
-                                                                     k(data);
-                                                                 },
-                                                                 onStop : function(MACHINE, data, k) { 
-                                                                     k();
-                                                                 }
-                                                             },
-                                                             v));
+                                                         new InitialViewHandler(v));
                                  });
                              },
                              function(exn) {
-                                 plt.baselib.exceptions.raise(
-                                     MACHINE, 
-                                     new Error(plt.baselib.format.format(
-                                         "unable to translate resource to view: ~a",
-                                         [exn.message])));
+                                 restart(function(MACHINE) {
+                                     plt.baselib.exceptions.raise(
+                                         MACHINE, 
+                                         new Error(plt.baselib.format.format(
+                                             "unable to translate ~s to view: ~a",
+                                             [viewable, exn.message])));
+                                 });
                              });
             });
         });
-
 
 
     EXPORTS['stop-when'] = makePrimitiveProcedure(
@@ -314,55 +346,22 @@
         1,
         function(MACHINE) {
             var stopWhen = checkProcedure(MACHINE, 'stop-when', 0);
-            return new StopWhenHandler(
-                { 
-                    onStart : function(MACHINE, onEvent, k) {
-                        k();
-                    },
-                    onPause : function(MACHINE, data, k) { 
-                        k(data);
-                    },
-                    onResume : function(MACHINE, data, k) { 
-                        k(data);
-                    },
-                    onStop : function(MACHINE, data, k) { 
-                        k();
-                    }
-                },
-                stopWhen
-            );
+            return new StopWhenHandler(stopWhen);
         });
 
 
     EXPORTS['on-tick'] = makePrimitiveProcedure(
         'on-tick',
-        1,
+        plt.baselib.lists.makeList(1, 2),
         function(MACHINE) {
             var onTick = checkProcedure(MACHINE, 'on-tick', 0);
-            return new OnTickHandler(
-                { 
-                    onStart : function(MACHINE, onEvent, k) { 
-                        var id = setInterval(function () { onEvent(); },
-                                             this.delay);
-                        k( { id : id,
-                             onEvent : onEvent }) ;
-                    },
-                    onPause : function(MACHINE, data, k) { 
-                        clearInterval(data.id);
-                        k(data);
-                    },
-                    onResume : function(MACHINE, data, k) {
-                        data.id = setInterval(function () { data.onEvent(); },
-                                              this.delay);
-                        k(data);
-                    },
-                    onStop : function(MACHINE, data, k) { 
-                        clearInterval(data.id);
-                        k();
-                    }
-                },
-                onTick
-            );
+            var delay = Math.floor(1000/28);
+            if (MACHINE.argcount === 2) {
+                delay = plt.baselib.numbers.toFixnum(checkReal(MACHINE, 'on-tick', 1));
+            }
+            return new EventHandler('on-tick', 
+                                    new TickEventSource(delay), 
+                                    onTick);
         });
 
 

@@ -9,6 +9,18 @@
  #:racket "racket-impl.rkt"
  #:javascript ("js-impl.js")
  #:provided-values (big-bang
+
+                    ;; initial view 
                     initial-view
+
+                    ;; stop-when handler
                     stop-when
-                    on-tick))
+
+                    ;; clock tick handler
+                    on-tick
+
+                    ;; draw and update the view
+                    to-draw
+                    
+                    ;; coerse to view
+                    ->view))

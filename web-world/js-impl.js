@@ -17,18 +17,18 @@
 
 
     // A View represents a functional representation of the DOM tree.
-    var View = function(top, focused, eventSources, pendingActions) {
+    var View = function(top, focused, eventHandlers, pendingActions) {
         // top: dom node
         this.top = top;
         this.focused = focused;
-        this.eventSources = eventSources;
+        this.eventHandlers = eventHandlers;
         this.pendingActions = pendingActions;
     };
 
     View.prototype.toString = function() { return "#<View>"; };
 
     View.prototype.updateFocused = function(focused) {
-        return new View(this.top, focused, this.eventSources, this.pendingActions);
+        return new View(this.top, focused, this.eventHandlers, this.pendingActions);
     };
 
     View.prototype.initialRender = function(top) {
@@ -46,8 +46,8 @@
 
     // Return a list of the event sources from the view.
     // fixme: may need to apply the pending actions to get the real set.
-    View.prototype.getEventSources = function() {
-        return this.eventSources;
+    View.prototype.getEventHandlers = function() {
+        return this.eventHandlers;
     };
     
 
@@ -135,6 +135,19 @@
 
 
 
+    var ToDrawHandler = function(toDraw) {
+        WorldHandler.call(this);
+        // toDraw: Racket procedure (World View -> View)
+        this.toDraw = toDraw;
+    };
+
+    ToDrawHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
+    ToDrawHandler.prototype.toString = function() { return "#<to-draw>"; };
+    var isToDrawHandler = plt.baselib.makeClassPredicate(ToDrawHandler);
+
+
+
+
 
     var EventHandler = function(name, eventSource, racketWorldCallback) {
         WorldHandler.call(this);
@@ -158,6 +171,17 @@
         }
         return undefined;
     };
+
+    var filter = function(handlers, pred) {
+        var i, lst = [];
+        for (i = 0; i < handlers.length; i++) {
+            if (pred(handlers[i])) {
+                lst.push(handlers[i]);
+            }
+        }
+        return lst;
+    };
+
 
 
 
@@ -247,30 +271,73 @@
 
 
 
+    var defaultToDraw = function(world, view, success, fail) {
+        return success(view);
+    };
+
+    var defaultStopWhen = function(world, success, fail) {
+        return success(false);
+    };
+
     // bigBang.
     var bigBang = function(MACHINE, world, handlers) {
         var oldArgcount = MACHINE.argcount;
         var worldSetter = function(v) { world = v; };
         var worldGetter = function(v) { return world; };
 
-        var view = find(handlers, isInitialViewHandler).view;
-        var stopWhen = find(handlers, isInitialViewHandler).stopWhen;
+
+        var defaultView = new View(plt.baselib.format.toDomNode(world),
+                                   [],
+                                   [],
+                                   []);
+
+        var view = (find(handlers, isInitialViewHandler) || { view : defaultView}).view;
+        var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
+        var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
+
+        var eventQueue = [];
 
         var top = $("<div/>");
         MACHINE.params.currentDisplayer(MACHINE, top);
 
-
-
         PAUSE(function(restart) {
+
             var onRestart = function() {
+                var i;
+                for (i = 0; i < eventHandlers.length; i++) {
+                    stopEventHandler(eventHandlers[i]);
+                }
                 restart(function(MACHINE) {
                     MACHINE.argcount = oldArgcount;
-                    finalizeClosureCall(MACHINE, "ok");
+                    finalizeClosureCall(MACHINE, world);
                 });
             };
+            
+            var startEventHandler = function(handler) {
+                var fireEvent = function() {
+                    var args = [].slice.call(arguments, 0);
+                    eventQueue.push({ handler : handler, data : args });
+                    //
+                    // fixme: if we see too many events accumulating, throttle
+                    // the ones that are marked as throttleable.
+                };
+                handler.eventSource.onStart(fireEvent);
+            };
 
+            var stopEventHandler = function(handler) {
+                handler.eventSource.onStop();
+            };
 
             view.initialRender(top);
+
+            var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
+            var i;
+            for (i = 0; i < eventHandlers.length; i++) {
+                startEventHandler(eventHandlers[i]);
+            }
+
+
+
 
             // fixme: set up the event sources
             // fixme: set up the world updater
@@ -284,11 +351,25 @@
         });
     };
 
+    var wrapFunction = function(proc) {
+        return function(MACHINE) {
+            var success = arguments[arguments.length - 2];
+            var fail = arguments[arguments.length - 1];
+            var args = [].slice.call(arguments, 0, arguments.length - 2);
+            return plt.baselib.functions.internalCallDuringPause.apply(null,
+                                                                       [MACHINE,
+                                                                        proc,
+                                                                        success,
+                                                                        fail].concat(args));
+        };
+    };
+
 
 
     //////////////////////////////////////////////////////////////////////
 
-
+    var checkReal = plt.baselib.check.checkReal;
+    
     var checkProcedure = plt.baselib.check.checkProcedure;
 
     var checkResourceOrView = plt.baselib.check.makeCheckArgumentType(
@@ -345,23 +426,55 @@
         });
 
 
+    EXPORTS['->view'] = makeClosure(
+        '->view',
+        1,
+        function(MACHINE) {
+            var oldArgcount = MACHINE.argcount;
+            PAUSE(function(restart) {
+                coerseToView(viewable,
+                             function(v) {
+                                 restart(function(MACHINE) {
+                                     MACHINE.argcount = oldArgcount;
+                                     finalizeClosureCall(MACHINE, v);
+                                 });
+                             },
+                             function(exn) {
+                                 restart(function(MACHINE) {
+                                     plt.baselib.exceptions.raise(
+                                         MACHINE, 
+                                         new Error(plt.baselib.format.format(
+                                             "unable to translate ~s to view: ~a",
+                                             [viewable, exn.message])));
+                                 });
+                             });
+            });
+        });
+
     EXPORTS['stop-when'] = makePrimitiveProcedure(
         'stop-when',
         1,
         function(MACHINE) {
-            var stopWhen = checkProcedure(MACHINE, 'stop-when', 0);
+            var stopWhen = wrapFunction(checkProcedure(MACHINE, 'stop-when', 0));
             return new StopWhenHandler(stopWhen);
         });
 
+    EXPORTS['to-draw'] = makePrimitiveProcedure(
+        'to-draw',
+        1,
+        function(MACHINE) {
+            var toDraw = wrapFunction(checkProcedure(MACHINE, 'to-draw', 0));
+            return new ToDrawHandler(toDraw);
+        });
 
     EXPORTS['on-tick'] = makePrimitiveProcedure(
         'on-tick',
         plt.baselib.lists.makeList(1, 2),
         function(MACHINE) {
-            var onTick = checkProcedure(MACHINE, 'on-tick', 0);
+            var onTick = wrapFunction(checkProcedure(MACHINE, 'on-tick', 0));
             var delay = Math.floor(1000/28);
             if (MACHINE.argcount === 2) {
-                delay = plt.baselib.numbers.toFixnum(checkReal(MACHINE, 'on-tick', 1));
+                delay = Math.floor(plt.baselib.numbers.toFixnum(checkReal(MACHINE, 'on-tick', 1)) * 1000);
             }
             return new EventHandler('on-tick', 
                                     new TickEventSource(delay), 

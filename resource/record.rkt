@@ -1,5 +1,4 @@
 #lang racket/base
-(require racket/port)
 
 (provide record-resource
          get-records)
@@ -13,6 +12,21 @@
 
 (define (get-records a-path)
   (hash-ref records a-path '()))
+
+
+;; Hack to work around bug that should be fixed after 5.1.3.  The dynamic
+;; require-for-syntax stuff isn't quite working right, which means
+;; we can't use (require racket/port) here.
+(define (port->bytes p)
+  (define out (open-output-bytes))
+  (let loop ()
+    (define b (read-byte p))
+    (cond
+     [(eof-object? b)
+      (get-output-bytes out)]
+     [else
+      (write-byte b out)
+      (loop)])))
 
 
 ;; record-javascript-implementation!: path path a-resource-path -> void

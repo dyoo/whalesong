@@ -37,7 +37,11 @@
 
         // FIXME: we should pull in the styles applied to body and its
         // children and apply them here?
-        top.append(this.top.find("body").children());
+        if (this.top.find("body").length > 0) {
+            top.append(this.top.find("body").children());
+        } else {
+            top.append(this.top);
+        }
     };
 
     // Return a list of the event sources from the view.

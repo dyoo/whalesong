@@ -13,7 +13,7 @@
 ;; tick: world view -> world
 (define (tick w v)
   (printf "Tick\n")
-  (add1 w))
+  (+ add1 w))
   
 (big-bang 0
           (initial-view index.html)

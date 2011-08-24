@@ -4,18 +4,21 @@
 
 (define-resource index.html)
 
+
 ;; draw: world view -> view
 (define (draw w v)
-  v
-  ;(view-text (view-focus v "#counter") w)
-  )
+  (update-view-text (view-focus v "#counter") w))
+
+
 
 ;; tick: world view -> world
 (define (tick w v)
-  (printf "Tick\n")
-  (+ add1 w))
-  
+  (printf "Tick ~s\n" w)
+  (+ w 1))
+
 (big-bang 0
           (initial-view index.html)
           (to-draw draw)
-          (on-tick tick 1))
+          (on-tick tick 1)
+          (stop-when (lambda (w v)
+                       (> w 10))))

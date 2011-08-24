@@ -31,7 +31,7 @@ previous attempt of jsworld:
 
 We want to take the design ideas of JQuery.
 
-    * The view is a cursor into DOM nodes.
+    * The view is a cursor into a DOM node.
 
     * Operations refocus the cursor onto particular elements of the
       dom.
@@ -249,13 +249,13 @@ handler takes, not only the world, but the current view.
     ;; When the user clicks on the button, grab at the text of the
     ;; text-field.
     (define (on-click w v)
-      (view-text (view-focus v "text-field")))
+      (view-text (view-focus v "#text-field")))
 
 
     ;; on-draw: world view -> view
     ;; Take the view, and replace the template with the world value.
     (define (on-draw w v)
-      (view-text (view-focus v "template")
+      (view-text (view-focus v "#template")
                  w)) 
        
 

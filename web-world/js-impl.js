@@ -8,7 +8,7 @@
     var makeClosure = plt.baselib.functions.makeClosure;
     var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
     var PAUSE = plt.runtime.PAUSE;
-
+    var isString = plt.baselib.strings.isString;
 
 
     var resourceStructType = 
@@ -16,20 +16,61 @@
 
 
 
-    // A View represents a functional representation of the DOM tree.
-    var View = function(top, focused, eventHandlers, pendingActions) {
+    // See Functional Pearl: The Zipper, by G\'erard Huet
+    // J. Functional Programming 7 (5): 549--554 Sepember 1997
+    var TreeCursor = function() {
+        this.parent;
+        this
+    };
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    var MockView = function(focused, pendingActions) {
+        this.focused = focused;
+        this.pendingActions = pendingActions;
+    };
+
+    var isMockView = plt.baselib.makeClassPredicate(MockView);
+
+    MockView.prototype.act = function(actionForMock, actionForReal) {
+        if (arguments.length !== 2) { throw new Error("act: insufficient arguments"); }
+
+        // FIXME: this is not enough.  We need a way to do the action
+        // on a copy of the mock.  clone is insufficient: we need to
+        // copy the whole tree, no?
+        return new MockView(actionForMock(this.focused),
+                            this.pendingActions.concat([actionForReal]));
+    };
+
+    MockView.prototype.updateFocus = function(selector) {
+        return this;
+    };
+
+    MockView.prototype.getText = function() {        
+        return "fill me in";
+    };
+
+    MockView.prototype.updateText = function(text) {
+        return this;
+    };
+    //////////////////////////////////////////////////////////////////////
+
+
+    
+    
+
+    // A View represents a representation of the DOM tree.
+    var View = function(top, focused, eventHandlers, pendingActions, proxy) {
         // top: dom node
         this.top = top;
         this.focused = focused;
         this.eventHandlers = eventHandlers;
-        this.pendingActions = pendingActions;
     };
 
     View.prototype.toString = function() { return "#<View>"; };
-
-    View.prototype.updateFocused = function(focused) {
-        return new View(this.top, focused, this.eventHandlers, this.pendingActions);
-    };
 
     View.prototype.initialRender = function(top) {
         top.empty();
@@ -49,7 +90,43 @@
     View.prototype.getEventHandlers = function() {
         return this.eventHandlers;
     };
-    
+
+    View.prototype.getMock = function() {
+        return new MockView(this.top.clone(true), []);
+    };
+
+
+
+    // View.prototype.updateFocus = function(selector) {
+    //     if (this.proxy) {
+    //         return new View(this.top, this.top.find(selector), this.eventHandlers, this.pendingActions, this.proxy);
+    //     } else {
+    //         return new View(this.top, this.top.find(selector), this.eventHandlers, this.pendingActions, this.proxy);
+    //     }
+    // };
+
+    // View.prototype.text = function() {
+    //     if (this.proxy) {
+    //         return (this.proxy.text())
+    //     } else {
+    //         return (this.focused.text());
+    //     }
+    // };
+
+    // View.prototype.updateText = function(s) {
+    //     if (this.proxy) {
+    //         this.proxy.text(s);
+    //         return new View(this.top, 
+    //                         this.focused, 
+    //                         this.eventHandlers,
+    //                         this.pendingActions.concat([ function(v) { this.focused.text(s); }]),
+    //                         this.proxy);
+    //     } else {
+    //         return (this.focused.text());
+    //     }
+    // };
+
+
 
 
 
@@ -83,9 +160,10 @@
                 return onFail(exn);
             }
             return onSuccess(new View(dom,
+                                      dom,
                                       [],
                                       [],
-                                      []));
+                                      undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x))
@@ -93,9 +171,10 @@
                 return onFail(exn);
             }
             return onSuccess(new View(dom,
+                                      dom,
                                       [],
                                       [],
-                                      []));
+                                      undefined));
         }
     };
 
@@ -271,14 +350,6 @@
 
 
 
-    var defaultToDraw = function(world, view, success, fail) {
-        return success(view);
-    };
-
-
-    var defaultStopWhen = function(world, success, fail) {
-        return success(false);
-    };
 
 
     var EventQueue = function() {
@@ -304,12 +375,23 @@
 
 
 
+    var defaultToDraw = function(MACHINE, world, view, success, fail) {
+        return success(view);
+    };
+
+
+    var defaultStopWhen = function(MACHINE, world, view, success, fail) {
+        return success(false);
+    };
+
+
     // bigBang.
     var bigBang = function(MACHINE, world, handlers) {
         var oldArgcount = MACHINE.argcount;
-
-        var view = (find(handlers, isInitialViewHandler) || { view : new View(plt.baselib.format.toDomNode(world),
-                                                                              [],
+        var running = true;
+        var top = $(plt.baselib.format.toDomNode(world));
+        var view = (find(handlers, isInitialViewHandler) || { view : new View(top,
+                                                                              top,
                                                                               [],
                                                                               [])}).view;
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
@@ -323,6 +405,7 @@
         PAUSE(function(restart) {
 
             var onCleanRestart = function() {
+                running = false;
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
                     stopEventHandler(eventHandlers[i]);
@@ -334,6 +417,7 @@
             };
 
             var onMessyRestart = function(exn) {
+                running = false;
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
                     stopEventHandler(eventHandlers[i]);
@@ -343,28 +427,43 @@
                 });
             };
 
-
- 
-
             var dispatchEventsInQueue = function() {
                 // Apply all the events on the queue, call toDraw, and then stop.
                 // If the world ever satisfies stopWhen, stop immediately and quit.
                 var nextEvent;
                 var data;
                 var racketWorldCallback;
+                var mockView;
 
                 if(! eventQueue.isEmpty() ) {
+                    // Set up the proxy object so we can do what appear to be functional
+                    // queries.
+                    mockView = view.getMock();
+
                     nextEvent = eventQueue.dequeue();
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
-
                     racketWorldCallback(MACHINE, 
                                         world,
                                         view,
                                         // data, 
                                         function(newWorld) {
                                             world = newWorld;
-                                            dispatchEventsInQueue();
+                                            
+                                            stopWhen(MACHINE,
+                                                     world,
+                                                     view,
+                                                     function(shouldStop) {
+                                                         if (shouldStop) {
+                                                             onCleanRestart();
+                                                         } else {
+                                                             dispatchEventsInQueue();
+                                                         }
+                                                     },
+
+                                                     function(err) {
+                                                         onMessyRestart(err);
+                                                     });
                                         },
                                         function(err) {
                                             onMessyRestart(err);
@@ -377,6 +476,7 @@
            
             var startEventHandler = function(handler) {
                 var fireEvent = function() {
+                    if (! running) { return; }
                     var args = [].slice.call(arguments, 0);
                     eventQueue.queue(new EventQueueElement(handler, args));
                     setTimeout(dispatchEventsInQueue, 0);
@@ -444,7 +544,12 @@
         'world handler');
 
     var checkView = plt.baselib.check.makeCheckArgumentType(
-        isView, 'view');
+        isMockView, 'view');
+
+
+
+    var checkSelector = plt.baselib.check.makeCheckArgumentType(
+        isString, 'selector');
 
 
     EXPORTS['big-bang'] = makeClosure(
@@ -545,9 +650,40 @@
         });
 
 
+    EXPORTS['view-focus'] = makePrimitiveProcedure(
+        'view-focus',
+        2,
+        function(MACHINE) {
+            var view = checkView(MACHINE, 'view-focus', 0);
+            var selector = checkSelector(MACHINE, 'view-focus', 1);
+            try {
+                return view.updateFocus(selector);
+            } catch (e) {
+                plt.baselib.exceptions.raise(
+                    MACHINE, 
+                    new Error(plt.baselib.format.format(
+                        "unable to focus to ~s",
+                        [selector])));
+            }
+        });
+
+    EXPORTS['view-text'] = makePrimitiveProcedure(
+        'view-focus',
+        1,
+        function(MACHINE) {
+            var view = checkView(MACHINE, 'view-focus', 0);
+            return view.getText();
+        });
 
 
-
+    EXPORTS['update-view-text'] = makePrimitiveProcedure(
+        'update-view-text',
+        2,
+        function(MACHINE) {
+            var view = checkView(MACHINE, 'update-view-text', 0);
+            var text = checkString(MACHINE, 'update-view-text', 1);
+            return view.updateText(text);
+        });
 
     //////////////////////////////////////////////////////////////////////
 }());

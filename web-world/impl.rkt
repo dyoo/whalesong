@@ -23,4 +23,9 @@
                     to-draw
                     
                     ;; coerse to view
-                    ->view))
+                    ->view
+
+                    view-focus
+                    view-text
+                    update-view-text
+                    ))

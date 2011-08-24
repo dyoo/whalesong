@@ -12,6 +12,7 @@
 
 ;; tick: world view -> world
 (define (tick w v)
+  (printf "Tick\n")
   (add1 w))
   
 (big-bang 0

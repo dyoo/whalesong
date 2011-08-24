@@ -275,34 +275,54 @@
         return success(view);
     };
 
+
     var defaultStopWhen = function(world, success, fail) {
         return success(false);
     };
 
+
+    var EventQueue = function() {
+        this.elts = [];
+    };
+    EventQueue.prototype.queue = function(elt) {
+        this.elts.push(elt);
+    };
+
+    EventQueue.prototype.dequeue = function() {
+        return this.elts.shift();
+    };
+
+    EventQueue.prototype.isEmpty = function() {
+        return this.elts.length === 0;
+    };
+
+
+    var EventQueueElement = function(handler, data) {
+        this.handler = handler;
+        this.data = data;
+    };
+
+
+
     // bigBang.
     var bigBang = function(MACHINE, world, handlers) {
         var oldArgcount = MACHINE.argcount;
-        var worldSetter = function(v) { world = v; };
-        var worldGetter = function(v) { return world; };
 
-
-        var defaultView = new View(plt.baselib.format.toDomNode(world),
-                                   [],
-                                   [],
-                                   []);
-
-        var view = (find(handlers, isInitialViewHandler) || { view : defaultView}).view;
+        var view = (find(handlers, isInitialViewHandler) || { view : new View(plt.baselib.format.toDomNode(world),
+                                                                              [],
+                                                                              [],
+                                                                              [])}).view;
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
 
-        var eventQueue = [];
+        var eventQueue = new EventQueue();
 
         var top = $("<div/>");
         MACHINE.params.currentDisplayer(MACHINE, top);
 
         PAUSE(function(restart) {
 
-            var onRestart = function() {
+            var onCleanRestart = function() {
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
                     stopEventHandler(eventHandlers[i]);
@@ -312,11 +332,54 @@
                     finalizeClosureCall(MACHINE, world);
                 });
             };
-            
+
+            var onMessyRestart = function(exn) {
+                var i;
+                for (i = 0; i < eventHandlers.length; i++) {
+                    stopEventHandler(eventHandlers[i]);
+                }
+                restart(function(MACHINE) {
+                    plt.baselib.exceptions.raise(MACHINE, exn);
+                });
+            };
+
+
+ 
+
+            var dispatchEventsInQueue = function() {
+                // Apply all the events on the queue, call toDraw, and then stop.
+                // If the world ever satisfies stopWhen, stop immediately and quit.
+                var nextEvent;
+                var data;
+                var racketWorldCallback;
+
+                if(! eventQueue.isEmpty() ) {
+                    nextEvent = eventQueue.dequeue();
+                    // FIXME: deal with event data here
+                    racketWorldCallback = nextEvent.handler.racketWorldCallback;
+
+                    racketWorldCallback(MACHINE, 
+                                        world,
+                                        view,
+                                        // data, 
+                                        function(newWorld) {
+                                            world = newWorld;
+                                            dispatchEventsInQueue();
+                                        },
+                                        function(err) {
+                                            onMessyRestart(err);
+                                        });
+                } else {
+                    // call redraw
+                }
+            };
+
+           
             var startEventHandler = function(handler) {
                 var fireEvent = function() {
                     var args = [].slice.call(arguments, 0);
-                    eventQueue.push({ handler : handler, data : args });
+                    eventQueue.queue(new EventQueueElement(handler, args));
+                    setTimeout(dispatchEventsInQueue, 0);
                     //
                     // fixme: if we see too many events accumulating, throttle
                     // the ones that are marked as throttleable.
@@ -355,7 +418,7 @@
         return function(MACHINE) {
             var success = arguments[arguments.length - 2];
             var fail = arguments[arguments.length - 1];
-            var args = [].slice.call(arguments, 0, arguments.length - 2);
+            var args = [].slice.call(arguments, 1, arguments.length - 2);
             return plt.baselib.functions.internalCallDuringPause.apply(null,
                                                                        [MACHINE,
                                                                         proc,

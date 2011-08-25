@@ -9,6 +9,5 @@
   (image-url
    (resource->url whale-resource)))
 
-whale-resource
 whale-image
 whale-image

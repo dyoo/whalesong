@@ -16,5 +16,5 @@ EXPORTS['resource->url'] = makePrimitiveProcedure(
     1,
     function(MACHINE) {
         var resource = checkResource(MACHINE, 'resource->url', 0);
-        return "res/" + String(getResourceKey(resource));
+        return String(getResourceKey(resource));
     });

@@ -5,6 +5,8 @@
          racket/string
          racket/match
          racket/file
+         racket/path
+         racket/port
          "make/make-structs.rkt"
          "js-assembler/package.rkt"
          "resource/structs.rkt"
@@ -33,8 +35,7 @@
 
 
 (define current-verbose? (make-parameter #f))
-(define current-resource-dir (make-parameter
-                              (build-path (current-directory) "res")))
+(define current-resource-dir (make-parameter (build-path (current-directory))))
 (define current-write-resources? (make-parameter #t))
 
 
@@ -106,6 +107,11 @@
    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define (same-file? p1 p2)
+  (or (equal? (normalize-path p1) (normalize-path p2))
+      (bytes=? (call-with-input-file p1 port->bytes)
+               (call-with-input-file p2 port->bytes))))
+
 
 (define (do-the-build f)
   (turn-on-logger!)
@@ -120,13 +126,21 @@
                       (lambda (r)
                         (make-directory* (current-resource-dir))
                         (log-info (format "Writing resource ~s" (resource-path r)))
-                        (when (file-exists?  (build-path (current-resource-dir)
-                                               (resource-key r)))
-                          (delete-file (build-path (current-resource-dir)
-                                                   (resource-key r))))
-                        (copy-file (resource-path r) 
-                                   (build-path (current-resource-dir)
-                                               (resource-key r))))])
+                        (cond
+                         [(file-exists? (build-path (current-resource-dir)
+                                                    (resource-key r)))
+                          (cond [(same-file? (build-path (current-resource-dir)
+                                                         (resource-key r))
+                                             (resource-path r))
+                                 (void)]
+                                [else
+                                 (error 'whalesong "Unable to write resource ~s; this will overwrite a file"
+                                        (build-path (current-resource-dir)
+                                                         (resource-key r)))])]
+                         [else
+                          (copy-file (resource-path r) 
+                                     (build-path (current-resource-dir)
+                                                 (resource-key r)))]))])
         (call-with-output-file* output-filename
                                 (lambda (op)
                                   (package-standalone-xhtml

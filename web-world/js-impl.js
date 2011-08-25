@@ -159,11 +159,11 @@
         return this.eventHandlers;
     };
 
-    View.prototype.getMockAndResetFocus = function() {
+    View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
         return new MockView(TreeCursor.domToCursor($(this.top).get(0)),
                             [],
-                            this.nonce);
+                            nonce);
     };
 
 
@@ -183,7 +183,7 @@
 
 
  
-   // coerseToView: (U resource View) -> View
+    // coerseToView: (U resource View) -> View
     // Coerse a value into a view.
     var coerseToView = function(x, onSuccess, onFail) {
         var dom;
@@ -210,6 +210,32 @@
             return onSuccess(new View(dom, []));
         }
     };
+
+    var coerseToMockView = function(x, onSuccess, onFail) {
+        var dom;
+        if (isMockView(x)) { 
+            return onSuccess(x); 
+        } else  if (isResource(x)) {
+            try {
+                dom = $(resourceContent(x).toString())
+                    .css("margin", "0px")
+                    .css("padding", "0px")
+                    .css("border", "0px");
+                dom.children("body").css("margin", "0px");
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(new MockView(TreeCursor.domToCursor(dom.get(0)), [], undefined));
+        } else {
+            try {
+                dom = $(plt.baselib.format.toDomNode(x))
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(new MockView(TreeCursor.domToCursor(dom.get(0)), [], undefined));
+        }
+    };
+
 
 
 
@@ -425,8 +451,7 @@
         var running = true;
         var dispatchingEvents = false;
 
-        var top = $(plt.baselib.format.toDomNode(world));
-        var view = (find(handlers, isInitialViewHandler) || { view : new View(top, [])}).view;
+        var view = (find(handlers, isInitialViewHandler) || { view : new View(top, []) }).view;
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
 
@@ -482,43 +507,60 @@
                                         // data, 
                                         function(newWorld) {
                                             world = newWorld;
-                                            
                                             stopWhen(MACHINE,
                                                      world,
                                                      mockView,
                                                      function(shouldStop) {
                                                          if (shouldStop) {
-                                                             onCleanRestart();
+                                                             refreshViewAndStopDispatching(
+                                                                 function() {
+                                                                     onCleanRestart();
+                                                                 },
+                                                                 onMessyRestart);
                                                          } else {
                                                              dispatchEventsInQueue();
                                                          }
                                                      },
-
-                                                     function(err) {
-                                                         onMessyRestart(err);
-                                                     });
+                                                     onMessyRestart);
                                         },
-                                        function(err) {
-                                            onMessyRestart(err);
-                                        });
+                                        onMessyRestart);
                 } else {
-                    toDraw(MACHINE, 
-                           world,
-                           view.getMockAndResetFocus(),
-                           function(newMockView) {
+                    refreshViewAndStopDispatching(function() {}, onMessyRestart);
+                }
+            };
+
+            var refreshViewAndStopDispatching = function(success, failure) {
+                // Note: we create a random nonce, and watch to see if the MockView we get back
+                // from the user came from here.  If not, we have no hope to do a nice, efficient
+                // update, and have to do it from scratch.
+                var nonce = Math.random();
+                
+                toDraw(MACHINE, 
+                       world,
+                       view.getMockAndResetFocus(nonce),
+                       function(newMockView) {
+                           if (newMockView.nonce === nonce) {
                                var i;
                                var actions = newMockView.pendingActions;
                                for (i = 0; i < actions.length; i++) {
                                    actions[i](view);
                                }
-                               dispatchingEvents = false;
-                           },
-                           function(err) {
-                               dispatchingEvents = false;
-                               onMessyRestart(err);
-                           })
-                }
+                           } else {
+                               view.top = $(newMockView.cursor.top().node);
+                               view.initialRender(top);
+                               // FIXME: how about events embedded in the dom?
+                           }
+                           dispatchingEvents = false;
+                           success();
+                       },
+                       function(err) {
+                           dispatchingEvents = false;
+                           failure(err);
+                       })
             };
+
+
+ 
 
            
             var startEventHandler = function(handler) {
@@ -669,7 +711,15 @@
         1,
         function(MACHINE) {
             var toDraw = wrapFunction(checkProcedure(MACHINE, 'to-draw', 0));
-            return new ToDrawHandler(toDraw);
+
+            var coersingToMockView = function(MACHINE, world, view, success, fail) {
+                return toDraw(MACHINE, world, view, 
+                              function(v) { 
+                                  coerseToMockView(v, success, fail);
+                              },
+                              fail);
+            };
+            return new ToDrawHandler(coersingToMockView);
         });
 
     EXPORTS['on-tick'] = makePrimitiveProcedure(

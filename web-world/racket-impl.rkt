@@ -1,7 +1,10 @@
 #lang racket/base
 
 (provide big-bang initial-view stop-when on-tick to-draw
-         ->view view-focus view-text update-view-text
+         ->view
+         view-focus
+         view-left view-right view-up view-down
+         view-text update-view-text
          view-attr update-view-attr)
 
 (define (big-bang world . handlers)
@@ -32,6 +35,21 @@
 
 (define (view-text v)
   (error 'view-text "Please run in JavaScript context."))
+
+
+(define (view-left v)
+  (error 'view-left))
+
+(define (view-right v)
+  (error 'view-right))
+
+(define (view-up v)
+  (error 'view-up))
+
+(define (view-down v)
+  (error 'view-down))
+
+
 
 (define (update-view-text v text)
   (error 'update-view-text "Please run in JavaScript context."))

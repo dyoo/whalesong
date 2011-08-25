@@ -79,10 +79,6 @@
 
     MockView.prototype.act = function(actionForCursor, actionForReal) {
         if (arguments.length !== 2) { throw new Error("act: insufficient arguments"); }
-
-        // FIXME: this is not enough.  We need a way to do the action
-        // on a copy of the mock.  clone is insufficient: we need to
-        // copy the whole tree, no?
         return new MockView(actionForCursor(this.cursor),
                             this.pendingActions.concat([actionForReal]),
                             this.nonce);
@@ -124,8 +120,6 @@
             })
     };
 
-
-
     MockView.prototype.getAttr = function(name) {        
         return $(this.cursor.node).attr(name);
     };
@@ -139,6 +133,47 @@
                 view.focus.attr(name, value);
             })
     };
+
+    MockView.prototype.left = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.left();
+            },
+            function(view) {
+                view.focus = view.focus.prev();
+            });
+    };
+
+    MockView.prototype.right = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.right();
+            },
+            function(view) {
+                view.focus = view.focus.next();
+            });
+    };
+
+    MockView.prototype.up = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.up();
+            },
+            function(view) {
+                view.focus = view.focus.parent();
+            }); 
+   };
+
+    MockView.prototype.down = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.down();
+            },
+            function(view) {
+                view.focus = view.focus.children(':first');
+            }); 
+    };
+
 
     //////////////////////////////////////////////////////////////////////
 
@@ -771,6 +806,44 @@
                         [selector, e.message])));
             }
         });
+
+
+    EXPORTS['view-left'] = makePrimitiveProcedure(
+        'view-left',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-left', 0);
+            return view.left();
+        });
+
+    EXPORTS['view-right'] = makePrimitiveProcedure(
+        'view-right',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-right', 0);
+            return view.right();
+        });
+
+    EXPORTS['view-up'] = makePrimitiveProcedure(
+        'view-up',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-up', 0);
+            return view.up();
+        });
+
+    EXPORTS['view-down'] = makePrimitiveProcedure(
+        'view-down',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-down', 0);
+            return view.down();
+        });
+
+
+
+
+
 
     EXPORTS['view-text'] = makePrimitiveProcedure(
         'view-text',

@@ -1,20 +1,20 @@
 .block {
-    width : 100px;
-    height : 100px;
+    width : 80px;
+    height : 10px;
     background-color : blue;
     display: inline-block;
 }
 
 .selectedBlock {
-    width : 100px;
-    height : 100px;
+    width : 80px;
+    height : 10px;
     background-color: navy;
     display: inline-block;
 }
 
 .offsetBlock {
-    width : 100px;
-    height : 100px;
+    width : 80px;
+    height : 10px;
     background-color: teal;
     display: inline-block;
 }

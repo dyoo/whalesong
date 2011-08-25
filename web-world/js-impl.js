@@ -16,45 +16,110 @@
 
 
 
+
+
     // See Functional Pearl: The Zipper, by G\'erard Huet
     // J. Functional Programming 7 (5): 549--554 Sepember 1997
-    var TreeCursor = function() {
-        this.parent;
-        this
+    var TreePath = function(parent, node, prevs, nexts) {
+        this.parent = parent; // Parent can be the top (undefined), or a TreePath
+        this.node = node;
+        this.prevs = prevs;
+        this.nexts = nexts;
+    };
+
+    TreePath.prototype.down = function() {
+        var children = node.children();
+        return new TreePath(this, node[0], [], children.slice(1));
+    };
+
+    TreePath.prototype.up = function() {
+        var parent = this.parent;
+        return new Tree
+    };
+
+    TreePath.prototype.left = function() {
+    };
+
+    TreePath.prototype.right = function() {
+    };
+    
+    TreePath.prototype.succ = function() {
+    };
+
+    TreePath.prototype.pred = function() {
     };
 
 
 
 
+    
+
+    // For the moment, we only support selection by id.
+    var idRegexp = new RegExp("^#");
+    var selectorMatches = function(selector, node) {
+        if (selector.match(idRegexp)) {
+            if (node.nodeType === 1) {
+                return node.getAttribute('id') === selector.substring(1);
+            } else {
+                return false;
+            }
+        }
+        return false;
+    };
+
 
     //////////////////////////////////////////////////////////////////////
-    var MockView = function(focused, pendingActions) {
-        this.focused = focused;
+    var MockView = function(cursor, pendingActions) {
+        this.cursor = cursor;
         this.pendingActions = pendingActions;
     };
 
     var isMockView = plt.baselib.makeClassPredicate(MockView);
 
-    MockView.prototype.act = function(actionForMock, actionForReal) {
+    MockView.prototype.act = function(actionForCursor, actionForReal) {
         if (arguments.length !== 2) { throw new Error("act: insufficient arguments"); }
 
         // FIXME: this is not enough.  We need a way to do the action
         // on a copy of the mock.  clone is insufficient: we need to
         // copy the whole tree, no?
-        return new MockView(actionForMock(this.focused),
+        return new MockView(actionForCursor(this.cursor),
                             this.pendingActions.concat([actionForReal]));
     };
 
     MockView.prototype.updateFocus = function(selector) {
-        return this;
+        selector = selector.toString();
+        return this.act(
+            function(cursor) {
+                var c = cursor.top();
+                while (true) {
+                    if (selectorMatches(selector, c.node)) {
+                        return c;
+                    }
+                    if (c.canSucc()) {
+                        c = c.succ();
+                    } else {
+                        throw new Error("unable to find " + selector);
+                    }
+                }
+            },
+            function(view) {
+                view.focus = view.top.find(selector);
+            }
+        );
     };
 
     MockView.prototype.getText = function() {        
-        return "fill me in";
+        return $(this.cursor.node).text();
     };
 
     MockView.prototype.updateText = function(text) {
-        return this;
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).text(text).get(0));
+            },
+            function(view) {
+                view.focus.text(text);
+            })
     };
     //////////////////////////////////////////////////////////////////////
 
@@ -63,10 +128,10 @@
     
 
     // A View represents a representation of the DOM tree.
-    var View = function(top, focused, eventHandlers, pendingActions, proxy) {
+    var View = function(top, eventHandlers) {
         // top: dom node
         this.top = top;
-        this.focused = focused;
+        this.focus = top;
         this.eventHandlers = eventHandlers;
     };
 
@@ -80,6 +145,7 @@
         // children and apply them here?
         if (this.top.find("body").length > 0) {
             top.append(this.top.find("body").children());
+            this.top = top;
         } else {
             top.append(this.top);
         }
@@ -91,40 +157,11 @@
         return this.eventHandlers;
     };
 
-    View.prototype.getMock = function() {
-        return new MockView(this.top.clone(true), []);
+    View.prototype.getMockAndResetFocus = function() {
+        this.focus = this.top;
+        return new MockView(TreeCursor.domToCursor($(this.top).get(0)),
+                            []);
     };
-
-
-
-    // View.prototype.updateFocus = function(selector) {
-    //     if (this.proxy) {
-    //         return new View(this.top, this.top.find(selector), this.eventHandlers, this.pendingActions, this.proxy);
-    //     } else {
-    //         return new View(this.top, this.top.find(selector), this.eventHandlers, this.pendingActions, this.proxy);
-    //     }
-    // };
-
-    // View.prototype.text = function() {
-    //     if (this.proxy) {
-    //         return (this.proxy.text())
-    //     } else {
-    //         return (this.focused.text());
-    //     }
-    // };
-
-    // View.prototype.updateText = function(s) {
-    //     if (this.proxy) {
-    //         this.proxy.text(s);
-    //         return new View(this.top, 
-    //                         this.focused, 
-    //                         this.eventHandlers,
-    //                         this.pendingActions.concat([ function(v) { this.focused.text(s); }]),
-    //                         this.proxy);
-    //     } else {
-    //         return (this.focused.text());
-    //     }
-    // };
 
 
 
@@ -159,22 +196,15 @@
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new View(dom,
-                                      dom,
-                                      [],
-                                      [],
-                                      undefined));
+            return onSuccess(new View(dom, []));
+
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x))
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new View(dom,
-                                      dom,
-                                      [],
-                                      [],
-                                      undefined));
+            return onSuccess(new View(dom, []));
         }
     };
 
@@ -388,12 +418,12 @@
     // bigBang.
     var bigBang = function(MACHINE, world, handlers) {
         var oldArgcount = MACHINE.argcount;
+
         var running = true;
+        var dispatchingEvents = false;
+
         var top = $(plt.baselib.format.toDomNode(world));
-        var view = (find(handlers, isInitialViewHandler) || { view : new View(top,
-                                                                              top,
-                                                                              [],
-                                                                              [])}).view;
+        var view = (find(handlers, isInitialViewHandler) || { view : new View(top, [])}).view;
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
 
@@ -434,25 +464,25 @@
                 var data;
                 var racketWorldCallback;
                 var mockView;
-
+                dispatchingEvents = true;
                 if(! eventQueue.isEmpty() ) {
                     // Set up the proxy object so we can do what appear to be functional
                     // queries.
-                    mockView = view.getMock();
+                    mockView = view.getMockAndResetFocus();
 
                     nextEvent = eventQueue.dequeue();
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
                     racketWorldCallback(MACHINE, 
                                         world,
-                                        view,
+                                        mockView,
                                         // data, 
                                         function(newWorld) {
                                             world = newWorld;
                                             
                                             stopWhen(MACHINE,
                                                      world,
-                                                     view,
+                                                     mockView,
                                                      function(shouldStop) {
                                                          if (shouldStop) {
                                                              onCleanRestart();
@@ -469,7 +499,21 @@
                                             onMessyRestart(err);
                                         });
                 } else {
-                    // call redraw
+                    toDraw(MACHINE, 
+                           world,
+                           view.getMockAndResetFocus(),
+                           function(newMockView) {
+                               var i;
+                               var actions = newMockView.pendingActions;
+                               for (i = 0; i < actions.length; i++) {
+                                   actions[i](view);
+                               }
+                               dispatchingEvents = false;
+                           },
+                           function(err) {
+                               dispatchingEvents = false;
+                               onMessyRestart(err);
+                           })
                 }
             };
 
@@ -479,7 +523,9 @@
                     if (! running) { return; }
                     var args = [].slice.call(arguments, 0);
                     eventQueue.queue(new EventQueueElement(handler, args));
-                    setTimeout(dispatchEventsInQueue, 0);
+                    if (! dispatchingEvents) {
+                        setTimeout(dispatchEventsInQueue, 0);
+                    }
                     //
                     // fixme: if we see too many events accumulating, throttle
                     // the ones that are marked as throttleable.
@@ -498,19 +544,6 @@
             for (i = 0; i < eventHandlers.length; i++) {
                 startEventHandler(eventHandlers[i]);
             }
-
-
-
-
-            // fixme: set up the event sources
-            // fixme: set up the world updater
-            // fixme: re-render the view on world changes.
-
-            
-            // Initialize event handlers to send to that channel.
-
-            
-
         });
     };
 
@@ -532,6 +565,7 @@
     //////////////////////////////////////////////////////////////////////
 
     var checkReal = plt.baselib.check.checkReal;
+    var checkString = plt.baselib.check.checkString;
     
     var checkProcedure = plt.baselib.check.checkProcedure;
 
@@ -543,7 +577,7 @@
         isWorldHandler,
         'world handler');
 
-    var checkView = plt.baselib.check.makeCheckArgumentType(
+    var checkMockView = plt.baselib.check.makeCheckArgumentType(
         isMockView, 'view');
 
 
@@ -654,7 +688,7 @@
         'view-focus',
         2,
         function(MACHINE) {
-            var view = checkView(MACHINE, 'view-focus', 0);
+            var view = checkMockView(MACHINE, 'view-focus', 0);
             var selector = checkSelector(MACHINE, 'view-focus', 1);
             try {
                 return view.updateFocus(selector);
@@ -662,8 +696,8 @@
                 plt.baselib.exceptions.raise(
                     MACHINE, 
                     new Error(plt.baselib.format.format(
-                        "unable to focus to ~s",
-                        [selector])));
+                        "unable to focus to ~s: ~s",
+                        [selector, e.message])));
             }
         });
 
@@ -671,7 +705,7 @@
         'view-focus',
         1,
         function(MACHINE) {
-            var view = checkView(MACHINE, 'view-focus', 0);
+            var view = checkMockView(MACHINE, 'view-focus', 0);
             return view.getText();
         });
 
@@ -680,8 +714,8 @@
         'update-view-text',
         2,
         function(MACHINE) {
-            var view = checkView(MACHINE, 'update-view-text', 0);
-            var text = checkString(MACHINE, 'update-view-text', 1);
+            var view = checkMockView(MACHINE, 'update-view-text', 0);
+            var text = plt.baselib.format.toDisplayedString(MACHINE.env[MACHINE.env.length - 2]);
             return view.updateText(text);
         });
 

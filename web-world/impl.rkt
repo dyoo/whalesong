@@ -7,7 +7,8 @@
 
 (declare-implementation
  #:racket "racket-impl.rkt"
- #:javascript ("js-impl.js")
+ #:javascript ("js-tree-cursor.js"
+               "js-impl.js")
  #:provided-values (big-bang
 
                     ;; initial view 

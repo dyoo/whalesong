@@ -69,9 +69,10 @@
 
 
     //////////////////////////////////////////////////////////////////////
-    var MockView = function(cursor, pendingActions) {
+    var MockView = function(cursor, pendingActions, nonce) {
         this.cursor = cursor;
         this.pendingActions = pendingActions;
+        this.nonce = nonce;
     };
 
     var isMockView = plt.baselib.makeClassPredicate(MockView);
@@ -83,7 +84,8 @@
         // on a copy of the mock.  clone is insufficient: we need to
         // copy the whole tree, no?
         return new MockView(actionForCursor(this.cursor),
-                            this.pendingActions.concat([actionForReal]));
+                            this.pendingActions.concat([actionForReal]),
+                            this.nonce);
     };
 
     MockView.prototype.updateFocus = function(selector) {
@@ -160,7 +162,8 @@
     View.prototype.getMockAndResetFocus = function() {
         this.focus = this.top;
         return new MockView(TreeCursor.domToCursor($(this.top).get(0)),
-                            []);
+                            [],
+                            this.nonce);
     };
 
 

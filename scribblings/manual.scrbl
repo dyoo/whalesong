@@ -413,9 +413,8 @@ executes the program in a web browser.
 
 The @filepath{.xhtml} should be self-contained, with an exception: if
 the file uses any external resources by using
-@racket[define-resource], those resources are written into a
-subdirectory called @filepath{res} under the current working
-directory.
+@racket[define-resource], those resources are written into the current
+working directory, if they do not already exist there.
 
 
 @subsection{@tt{get-javascript}}
@@ -461,7 +460,7 @@ external resources.  When Whalesong compiles a program into a package,
 these resources will be bundled alongside the JavaScript-compiled
 output.
 
-@defform[(define-resource id path-string)]{
+@defform[(define-resource id [path-string])]{
 Defines a resource with the given path name.
 
 For example,
@@ -471,6 +470,15 @@ For example,
 (define-resource my-whale-image-resource "humpback.png")
 }|
 }
+As a convenience, you can also write
+@codeblock|{
+#lang planet dyoo/whalesong
+(require (planet dyoo/whalesong/resource))
+(define-resource humpback.png)
+}|
+which defines a variable named @racket[humpback.png] whose
+resource is @filepath{humpback.png}.
+
 
 
 @defproc[(resource->url [a-resource resource?]) string?]{

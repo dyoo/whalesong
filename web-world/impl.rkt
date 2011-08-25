@@ -27,6 +27,10 @@
                     ->view
 
                     view-focus
+                    
                     view-text
                     update-view-text
+
+                    view-attr
+                    update-view-attr
                     ))

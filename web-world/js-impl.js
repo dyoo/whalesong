@@ -117,12 +117,29 @@
     MockView.prototype.updateText = function(text) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode($(cursor.node).text(text).get(0));
+                return cursor.replaceNode($(cursor.node).clone(true).text(text).get(0));
             },
             function(view) {
                 view.focus.text(text);
             })
     };
+
+
+
+    MockView.prototype.getAttr = function(name) {        
+        return $(this.cursor.node).attr(name);
+    };
+
+    MockView.prototype.updateAttr = function(name, value) {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).attr(name, value).get(0));
+            },
+            function(view) {
+                view.focus.attr(name, value);
+            })
+    };
+
     //////////////////////////////////////////////////////////////////////
 
 
@@ -611,6 +628,7 @@
 
     var checkReal = plt.baselib.check.checkReal;
     var checkString = plt.baselib.check.checkString;
+    var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
     
     var checkProcedure = plt.baselib.check.checkProcedure;
 
@@ -755,10 +773,10 @@
         });
 
     EXPORTS['view-text'] = makePrimitiveProcedure(
-        'view-focus',
+        'view-text',
         1,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-focus', 0);
+            var view = checkMockView(MACHINE, 'view-text', 0);
             return view.getText();
         });
 
@@ -771,6 +789,31 @@
             var text = plt.baselib.format.toDisplayedString(MACHINE.env[MACHINE.env.length - 2]);
             return view.updateText(text);
         });
+
+
+
+
+    EXPORTS['view-attr'] = makePrimitiveProcedure(
+        'view-attr',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-attr', 0);
+            var name = checkSymbolOrString(MACHINE, 'view-attr', 1).toString();
+            return view.getAttr(name);
+        });
+
+
+    EXPORTS['update-view-attr'] = makePrimitiveProcedure(
+        'update-view-attr',
+        3,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'update-view-attr', 0);
+            var name = checkSymbolOrString(MACHINE, 'update-view-attr', 1).toString();
+            var value = checkSymbolOrString(MACHINE, 'update-view-attr', 2).toString();
+            return view.updateAttr(name, value);
+        });
+
+
 
     //////////////////////////////////////////////////////////////////////
 }());

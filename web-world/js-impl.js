@@ -69,6 +69,10 @@
 
 
     //////////////////////////////////////////////////////////////////////
+    // A MockView provides a functional interface to the DOM.  It
+    // includes a cursor to the currently focused dom, the pending
+    // actions to perform on the actual view, and a nonce to detect
+    // freshness of the MockView.
     var MockView = function(cursor, pendingActions, nonce) {
         this.cursor = cursor;
         this.pendingActions = pendingActions;
@@ -221,6 +225,10 @@
         }
     };
 
+    View.prototype.addEventHandler = function(handler) {
+        this.eventHandlers.push(handler);
+    };
+
     // Return a list of the event sources from the view.
     // fixme: may need to apply the pending actions to get the real set.
     View.prototype.getEventHandlers = function() {
@@ -355,6 +363,8 @@
 
 
 
+    // An EventHandler combines a EventSource with a racketWorldCallback.
+
     var EventHandler = function(name, eventSource, racketWorldCallback) {
         WorldHandler.call(this);
         this.name = name;
@@ -395,7 +405,9 @@
 
     /* Event sources.
        
-       An event source are the inputs to a web world program.
+       An event source is a way to send input to a web-world program.
+
+       An event source may be started or stopped.
 
 
        Pause and Unpause are semantically meant to be cheaper than start, stop, so
@@ -421,7 +433,8 @@
 
 
     
-    // Clock ticks.
+
+    // TickEventSource sends tick events.
     var TickEventSource = function(delay) {
         this.delay = delay; // delay in milliseconds.
 
@@ -449,15 +462,17 @@
 
 
 
-    var BindEventSource = function(type, element) {
+    // A DomEventSource allows DOM elements to send events over to
+    // web-world.
+    var DomEventSource = function(type, element) {
         this.type = type;
         this.element = element;
         this.handler = undefined;
     };
 
-    BindEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+    DomEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    BindEventSource.prototype.onStart = function(fireEvent) {
+    DomEventSource.prototype.onStart = function(fireEvent) {
         this.handler = 
             function(evt) {
                 fireEvent(evt);
@@ -466,7 +481,7 @@
                              this.handler);
     };
 
-    BindEventSource.prototype.onStop = function() {
+    DomEventSource.prototype.onStop = function() {
         if (this.handler !== undefined) {
             $(this.element).unbind(this.type, this.handler);
             this.handler = undefined;
@@ -526,16 +541,16 @@
         var eventQueue = new EventQueue();
 
         var top = $("<div/>");
+        var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
+
         MACHINE.params.currentDisplayer(MACHINE, top);
 
         PAUSE(function(restart) {
+            var i;
 
             var onCleanRestart = function() {
                 running = false;
-                var i;
-                for (i = 0; i < eventHandlers.length; i++) {
-                    stopEventHandler(eventHandlers[i]);
-                }
+                stopEventHandlers();
                 restart(function(MACHINE) {
                     MACHINE.argcount = oldArgcount;
                     finalizeClosureCall(MACHINE, world);
@@ -544,14 +559,46 @@
 
             var onMessyRestart = function(exn) {
                 running = false;
-                var i;
-                for (i = 0; i < eventHandlers.length; i++) {
-                    stopEventHandler(eventHandlers[i]);
-                }
+                stopEventHandlers();
                 restart(function(MACHINE) {
                     plt.baselib.exceptions.raise(MACHINE, exn);
                 });
             };
+
+            var startEventHandlers = function() {
+                var i;
+                for (i = 0; i < eventHandlers.length; i++) {
+                    startEventHandler(eventHandlers[i]);
+                }
+            };
+
+            var stopEventHandlers = function() {
+                var i;
+                for (i = 0; i < eventHandlers.length; i++) {
+                    stopEventHandler(eventHandlers[i]);
+                }
+            };
+
+            var startEventHandler = function(handler) {
+                var fireEvent = function() {
+                    if (! running) { return; }
+                    var args = [].slice.call(arguments, 0);
+                    eventQueue.queue(new EventQueueElement(handler, args));
+                    if (! dispatchingEvents) {
+                        dispatchingEvents = true;
+                        setTimeout(dispatchEventsInQueue, 0);
+                    }
+                    //
+                    // fixme: if we see too many events accumulating, throttle
+                    // the ones that are marked as throttleable.
+                };
+                handler.eventSource.onStart(fireEvent);
+            };
+
+            var stopEventHandler = function(handler) {
+                handler.eventSource.onStop();
+            };
+
 
             var dispatchEventsInQueue = function() {
                 // Apply all the events on the queue, call toDraw, and then stop.
@@ -627,36 +674,8 @@
                        })
             };
 
-
- 
-
-           
-            var startEventHandler = function(handler) {
-                var fireEvent = function() {
-                    if (! running) { return; }
-                    var args = [].slice.call(arguments, 0);
-                    eventQueue.queue(new EventQueueElement(handler, args));
-                    if (! dispatchingEvents) {
-                        setTimeout(dispatchEventsInQueue, 0);
-                    }
-                    //
-                    // fixme: if we see too many events accumulating, throttle
-                    // the ones that are marked as throttleable.
-                };
-                handler.eventSource.onStart(fireEvent);
-            };
-
-            var stopEventHandler = function(handler) {
-                handler.eventSource.onStop();
-            };
-
             view.initialRender(top);
-
-            var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
-            var i;
-            for (i = 0; i < eventHandlers.length; i++) {
-                startEventHandler(eventHandlers[i]);
-            }
+            startEventHandlers();
         });
     };
 
@@ -671,6 +690,38 @@
                                                                         success,
                                                                         fail].concat(args));
         };
+    };
+
+
+
+    // findDomNodeLocation: dom-node dom-node -> arrayof number
+    // Given a node, returns the child indices we need to follow to reach
+    // it from the top.
+    // Assumption: top must be an ancestor of the node.  Otherwise, the
+    // result is partial.
+    var findDomNodeLocation = function(node, top) {
+        var locator = [];
+        var parent, i;
+        while(node !== top && node.parentNode !== null) {
+            parent = node.parentNode;
+            for (i = 0; i < parent.childNodes.length; i++) {
+                if (parent.childNodes[i] === node) {
+                    locator.push(i);
+                    break;
+                }
+            }
+            node = parent;
+        }
+        return locator.reverse();
+    };
+
+    var findNodeFromLocation = function(top, location) {
+        var i = 0;
+        var node = top;
+        for (i = 0; i < location.length; i++) {
+            node = node.childNodes[location[i]];
+        }
+        return node;
     };
 
 

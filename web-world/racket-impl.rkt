@@ -5,7 +5,8 @@
          view-focus
          view-left view-right view-up view-down
          view-text update-view-text
-         view-attr update-view-attr)
+         view-attr update-view-attr
+         view-bind)
 
 (define (big-bang world . handlers)
   (error 'big-bang "Please run in JavaScript context."))

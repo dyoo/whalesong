@@ -174,6 +174,22 @@
             }); 
     };
 
+    MockView.prototype.bind = function(name, worldF) {
+        // return new EventHandler('on-tick', 
+        //                         new TickEventSource(delay), 
+        //                         onTick);
+
+        return this.act(
+            function(cursor) {
+                return cursor;
+                //return cursor.replaceNode($(cursor.node).clone(true).bind(name, 
+            },
+            function(view) {
+                return view;
+                //view.focus.bind...
+            });
+    };
+
 
     //////////////////////////////////////////////////////////////////////
 
@@ -884,6 +900,18 @@
             var name = checkSymbolOrString(MACHINE, 'update-view-attr', 1).toString();
             var value = checkSymbolOrString(MACHINE, 'update-view-attr', 2).toString();
             return view.updateAttr(name, value);
+        });
+
+
+
+    EXPORTS['view-bind'] = makePrimitiveProcedure(
+        'view-bind',
+        3,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-bind', 0);
+            var name = checkSymbolOrString(MACHINE, 'view-bind', 1).toString();
+            var worldF = wrapFunction(checkProcedure(MACHINE, 'view-bind', 2));
+            return view.bind(name, worldF);
         });
 
 

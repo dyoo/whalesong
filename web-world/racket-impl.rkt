@@ -60,3 +60,7 @@
 
 (define (update-view-attr v attr-name value)
   (error 'update-view-attr "Please run in JavaScript context."))
+
+
+(define (view-bind v type worldF)
+  (error 'view-bind "Please run in JavaScript context."))

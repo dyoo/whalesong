@@ -11,6 +11,14 @@
     var isString = plt.baselib.strings.isString;
 
 
+
+    // FIXME: as soon as we get real parameters, use parameters
+    // instead.  Global: defines the currently running big bang.
+    // Parameterized around the call to bigBang.
+    var currentBigBangRecord = undefined;
+
+
+
     var resourceStructType = 
         MACHINE.modules['whalesong/resource/structs.rkt'].namespace['struct:resource'];
 
@@ -206,18 +214,25 @@
     };
 
     MockView.prototype.bind = function(name, worldF) {
-        // return new EventHandler('on-tick', 
-        //                         new TickEventSource(delay), 
-        //                         onTick);
-
         return this.act(
             function(cursor) {
-                return cursor;
-                //return cursor.replaceNode($(cursor.node).clone(true).bind(name, 
+                var newCursor = cursor.replaceNode($(cursor.node).clone(true).get(0));
+                var handler = new EventHandler('on-tick', 
+                                               new DomEventSource(name,
+                                                                 newCursor.node), 
+                                               worldF);
+                currentBigBangRecord.startEventHandler(handler);
+                return newCursor;
             },
+
             function(view) {
-                return view;
-                //view.focus.bind...
+                var handler = new EventHandler('on-tick', 
+                                               new DomEventSource(
+                                                   name, 
+                                                   view.focus.get(0)),
+                                               worldF);
+                view.addEventHandler(handler);
+                currentBigBangRecord.startEventHandler(handler);
             });
     };
 
@@ -557,6 +572,7 @@
     // bigBang.
     var bigBang = function(MACHINE, world, handlers) {
         var oldArgcount = MACHINE.argcount;
+        var oldCurrentBigBangRecord = currentBigBangRecord;
 
         var running = true;
         var dispatchingEvents = false;
@@ -580,6 +596,7 @@
                 stopEventHandlers();
                 restart(function(MACHINE) {
                     MACHINE.argcount = oldArgcount;
+                    currentBigBangRecord = oldCurrentBigBangRecord;
                     finalizeClosureCall(MACHINE, world);
                 });
             };
@@ -588,6 +605,7 @@
                 running = false;
                 stopEventHandlers();
                 restart(function(MACHINE) {
+                    currentBigBangRecord = oldCurrentBigBangRecord;
                     plt.baselib.exceptions.raise(MACHINE, exn);
                 });
             };
@@ -700,6 +718,11 @@
                            failure(err);
                        })
             };
+
+            currentBigBangRecord = { stop : onCleanRestart,
+                                     stopWithExn : onMessyRestart,
+                                     startEventHandler : startEventHandler,
+                                     stopEventHandler : stopEventHandler };
 
             view.initialRender(top);
             startEventHandlers();

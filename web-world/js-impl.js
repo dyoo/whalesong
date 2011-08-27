@@ -583,10 +583,8 @@
         if (typeof(this.elementOrId) === 'string') {
             element = $('#' + this.elementOrId).get(0);
         }
-        console.log('element', element);
 
         this.handler = function(evt) {
-            console.log('calling fireEvent');
             fireEvent(evt);
         };
         if (element !== undefined) {
@@ -691,8 +689,6 @@
             var startEventHandlers = function() {
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
-                    console.log("starting event handler", eventHandlers[i]);
-
                     startEventHandler(eventHandlers[i]);
                 }
             };
@@ -706,7 +702,6 @@
 
             var startEventHandler = function(handler) {
                 var fireEvent = function() {
-                    console.log('fireEvent');
                     if (! running) { return; }
                     var args = [].slice.call(arguments, 0);
                     eventQueue.queue(new EventQueueElement(handler, args));

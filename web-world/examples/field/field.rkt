@@ -3,7 +3,6 @@
          (planet dyoo/whalesong/resource))
 
 (define-resource index.html)
-(define-resource style.css)
 
 ;; The world is a string which represents the name of the user.
 
@@ -12,17 +11,17 @@
 ;; When the user clicks on the button, grab at the text of the
 ;; text-field.
 (define (on-click w v)
-  (view-text (view-focus v "#text-field")))
+  (view-form-value (view-focus v "#text-field")))
 
 
-;; on-draw: world view -> view
+;; draw: world view -> view
 ;; Take the view, and replace the template with the world value.
-(define (on-draw w v)
-  (view-text (view-focus v "#template")
-             w)) 
+(define (draw w v)
+  (update-view-text (view-focus v "#template")
+                    w)) 
 
 
-(define my-view (view-bind (view-focus (resource->view index.html) 
+(define my-view (view-bind (view-focus (->view index.html) 
                                        "#button")
                            "click"
                            on-click))

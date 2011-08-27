@@ -108,18 +108,20 @@
     // includes a cursor to the currently focused dom, the pending
     // actions to perform on the actual view, and a nonce to detect
     // freshness of the MockView.
-    var MockView = function(cursor, pendingActions, nonce) {
+    var MockView = function(cursor, pendingActions, eventHandlers, nonce) {
         this.cursor = cursor;
         this.pendingActions = pendingActions;
+        this.eventHandlers = eventHandlers;
         this.nonce = nonce;
     };
 
     var isMockView = plt.baselib.makeClassPredicate(MockView);
 
-    MockView.prototype.act = function(actionForCursor, actionForReal) {
-        if (arguments.length !== 2) { throw new Error("act: insufficient arguments"); }
+    MockView.prototype.act = function(actionForCursor, actionForEventHandlers, actionForReal) {
+        if (arguments.length !== 3) { throw new Error("act: insufficient arguments"); }
         return new MockView(actionForCursor(this.cursor),
                             this.pendingActions.concat([actionForReal]),
+                            actionForEventHandlers(this.eventHandlers),
                             this.nonce);
     };
 
@@ -139,6 +141,7 @@
                     }
                 }
             },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus = view.top.find(selector);
             }
@@ -154,29 +157,58 @@
             function(cursor) {
                 return cursor.replaceNode($(cursor.node).clone(true).text(text).get(0));
             },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus.text(text);
-            })
+            }
+        )
     };
 
     MockView.prototype.getAttr = function(name) {        
         return $(this.cursor.node).attr(name);
     };
 
+
     MockView.prototype.updateAttr = function(name, value) {
         return this.act(
             function(cursor) {
                 return cursor.replaceNode($(cursor.node).clone(true).attr(name, value).get(0));
+            },
+            function(eventHandlers) {
+                return eventHandlers;
             },
             function(view) {
                 view.focus.attr(name, value);
             })
     };
 
+
+    MockView.prototype.getFormValue = function() {        
+        return $(this.cursor.node).val();
+    };
+
+    MockView.prototype.updateFormValue = function(value) {        
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).val(value).get(0));
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                view.focus.val(value);
+            })
+    };
+
+
+
     MockView.prototype.left = function() {
         return this.act(
             function(cursor) {
                 return cursor.left();
+            },
+            function(eventHandlers) {
+                return eventHandlers;
             },
             function(view) {
                 view.focus = view.focus.prev();
@@ -188,6 +220,9 @@
             function(cursor) {
                 return cursor.right();
             },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
             function(view) {
                 view.focus = view.focus.next();
             });
@@ -198,9 +233,12 @@
             function(cursor) {
                 return cursor.up();
             },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
             function(view) {
                 view.focus = view.focus.parent();
-            }); 
+            });
    };
 
     MockView.prototype.down = function() {
@@ -208,25 +246,48 @@
             function(cursor) {
                 return cursor.down();
             },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
             function(view) {
                 view.focus = view.focus.children(':first');
-            }); 
+            });
     };
+    
+    var mockViewIdGensym = 0;
 
     MockView.prototype.bind = function(name, worldF) {
+        var that = this;
+
+        // HACK: every node that is bound needs to have an id.  We
+        // enforce this by mutating the node.
+        if ($(this.cursor.node).attr("id") === undefined) {
+            $(this.cursor.node).attr("id",
+                                ("__webWorldId_" + mockViewIdGensym++));
+        }
+            
         return this.act(
             function(cursor) {
                 var newCursor = cursor.replaceNode($(cursor.node).clone(true).get(0));
-                var handler = new EventHandler('on-tick', 
+                var handler = new EventHandler(name, 
                                                new DomEventSource(name,
-                                                                 newCursor.node), 
+                                                                  newCursor.node), 
                                                worldF);
-                currentBigBangRecord.startEventHandler(handler);
+                if (currentBigBangRecord !== undefined) {
+                    currentBigBangRecord.startEventHandler(handler);
+                }
                 return newCursor;
             },
-
+            function(eventHandlers) {
+                var handler = new EventHandler(name,
+                                               new DomEventSource(
+                                                   name,
+                                                   $(that.cursor.node).attr('id')),
+                                               worldF);
+                return eventHandlers.concat([handler]);
+            },
             function(view) {
-                var handler = new EventHandler('on-tick', 
+                var handler = new EventHandler(name, 
                                                new DomEventSource(
                                                    name, 
                                                    view.focus.get(0)),
@@ -281,6 +342,7 @@
         this.focus = this.top;
         return new MockView(domToCursor($(this.top).get(0)),
                             [],
+                            [],
                             nonce);
     };
 
@@ -318,7 +380,9 @@
                 return onFail(exn);
             }
             return onSuccess(new View(dom, []));
-
+        } else if (isMockView(x)) {
+            return onSuccess(new View($(x.cursor.top().node),
+                                      x.eventHandlers));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x))
@@ -343,14 +407,14 @@
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new MockView(domToCursor(dom.get(0)), [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x))
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new MockView(domToCursor(dom.get(0)), [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         }
     };
 
@@ -503,29 +567,43 @@
     };
 
 
-
+    // DomElementSource: string (U DOM string) -> EventSource
     // A DomEventSource allows DOM elements to send events over to
     // web-world.
-    var DomEventSource = function(type, element) {
+    var DomEventSource = function(type, elementOrId) {
         this.type = type;
-        this.element = element;
+        this.elementOrId = elementOrId;
         this.handler = undefined;
     };
 
     DomEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
     DomEventSource.prototype.onStart = function(fireEvent) {
-        this.handler = 
-            function(evt) {
-                fireEvent(evt);
-            };
-        $(this.element).bind(this.type,
-                             this.handler);
+        var element = this.elementOrId;
+        if (typeof(this.elementOrId) === 'string') {
+            element = $('#' + this.elementOrId).get(0);
+        }
+        console.log('element', element);
+
+        this.handler = function(evt) {
+            console.log('calling fireEvent');
+            fireEvent(evt);
+        };
+        if (element !== undefined) {
+            $(element).bind(this.type, this.handler);
+        }
     };
 
     DomEventSource.prototype.onStop = function() {
+        var element = this.elementOrId;
+        if (typeof(this.elementOrId) === 'string') {
+            element = $('#' + this.elementOrId).get(0);
+        }
+
         if (this.handler !== undefined) {
-            $(this.element).unbind(this.type, this.handler);
+            if (element !== undefined) {
+                $(element).unbind(this.type, this.handler);
+            }
             this.handler = undefined;
         }
     };
@@ -613,6 +691,8 @@
             var startEventHandlers = function() {
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
+                    console.log("starting event handler", eventHandlers[i]);
+
                     startEventHandler(eventHandlers[i]);
                 }
             };
@@ -626,6 +706,7 @@
 
             var startEventHandler = function(handler) {
                 var fireEvent = function() {
+                    console.log('fireEvent');
                     if (! running) { return; }
                     var args = [].slice.call(arguments, 0);
                     eventQueue.queue(new EventQueueElement(handler, args));
@@ -847,27 +928,28 @@
         '->view',
         1,
         function(MACHINE) {
+            var viewable = MACHINE.env[MACHINE.env.length - 1];
             var oldArgcount = MACHINE.argcount;
             PAUSE(function(restart) {
-                coerseToView(viewable,
-                             function(v) {
-                                 restart(function(MACHINE) {
-                                     MACHINE.argcount = oldArgcount;
-                                     finalizeClosureCall(MACHINE, v);
+                coerseToMockView(viewable,
+                                 function(v) {
+                                     restart(function(MACHINE) {
+                                         MACHINE.argcount = oldArgcount;
+                                         finalizeClosureCall(MACHINE, v);
+                                     });
+                                 },
+                                 function(exn) {
+                                     restart(function(MACHINE) {
+                                         plt.baselib.exceptions.raise(
+                                             MACHINE, 
+                                             new Error(plt.baselib.format.format(
+                                                 "unable to translate ~s to view: ~a",
+                                                 [viewable, exn.message])));
+                                     });
                                  });
-                             },
-                             function(exn) {
-                                 restart(function(MACHINE) {
-                                     plt.baselib.exceptions.raise(
-                                         MACHINE, 
-                                         new Error(plt.baselib.format.format(
-                                             "unable to translate ~s to view: ~a",
-                                             [viewable, exn.message])));
-                                 });
-                             });
             });
         });
-
+    
     EXPORTS['stop-when'] = makePrimitiveProcedure(
         'stop-when',
         1,
@@ -1014,6 +1096,26 @@
             var worldF = wrapFunction(checkProcedure(MACHINE, 'view-bind', 2));
             return view.bind(name, worldF);
         });
+
+
+    EXPORTS['view-form-value'] = makePrimitiveProcedure(
+        'view-form-value',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-form-value', 0);
+            return view.getFormValue();
+        });
+
+
+    EXPORTS['update-view-form-value'] = makePrimitiveProcedure(
+        'update-view-form-value',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'update-view-form-value', 0);
+            var value = checkSymbolOrString(MACHINE, 'update-view-form-value', 1).toString();
+            return view.updateFormValue(value);
+        });
+
 
 
 

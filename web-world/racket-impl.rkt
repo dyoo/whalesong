@@ -6,7 +6,11 @@
          view-left view-right view-up view-down
          view-text update-view-text
          view-attr update-view-attr
-         view-bind)
+         view-bind
+
+         view-form-value
+         update-view-form-value
+         )
 
 (define (big-bang world . handlers)
   (error 'big-bang "Please run in JavaScript context."))
@@ -65,3 +69,9 @@
 
 (define (view-bind v type worldF)
   (error 'view-bind "Please run in JavaScript context."))
+
+(define (view-form-value)
+  (error 'view-form-value "Please run in JavaScript context."))
+
+(define (update-view-form-value val)
+  (error 'view-form-value "Please run in JavaScript context."))

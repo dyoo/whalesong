@@ -39,4 +39,7 @@
                     
                     view-attr
                     update-view-attr
+
+                    view-form-value
+                    update-view-form-value
                     ))

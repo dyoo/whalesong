@@ -10,14 +10,14 @@
 ;; on-click: world view -> world
 ;; When the user clicks on the button, grab at the text of the
 ;; text-field.
-(define (on-click w v)
-  (view-form-value (view-focus v "#text-field")))
+(define (on-click w button-view)
+  (view-form-value (view-focus button-view "#text-field")))
 
 
 ;; draw: world view -> view
 ;; Take the view, and replace the template with the world value.
-(define (draw w v)
-  (update-view-text (view-focus v "#template")
+(define (draw w dom)
+  (update-view-text (view-focus dom "#template")
                     w)) 
 
 

@@ -554,7 +554,7 @@
     TickEventSource.prototype.onStart = function(fireEvent) {
         this.id = setInterval(
             function() {
-                fireEvent();
+                fireEvent(undefined);
             },
             this.delay);
     };
@@ -585,7 +585,9 @@
         }
 
         this.handler = function(evt) {
-            fireEvent(evt);
+            if (element !== undefined) {
+                fireEvent(element, evt);
+            }
         };
         if (element !== undefined) {
             $(element).bind(this.type, this.handler);
@@ -628,7 +630,8 @@
     };
 
 
-    var EventQueueElement = function(handler, data) {
+    var EventQueueElement = function(who, handler, data) {
+        this.who = who;
         this.handler = handler;
         this.data = data;
     };
@@ -701,17 +704,23 @@
             };
 
             var startEventHandler = function(handler) {
-                var fireEvent = function() {
+                var fireEvent = function(who) {
                     if (! running) { return; }
-                    var args = [].slice.call(arguments, 0);
-                    eventQueue.queue(new EventQueueElement(handler, args));
+                    var args = [].slice.call(arguments, 1);
+                    eventQueue.queue(new EventQueueElement(who, handler, args));
                     if (! dispatchingEvents) {
                         dispatchingEvents = true;
-                        setTimeout(dispatchEventsInQueue, 0);
+                        setTimeout(
+                            function() { 
+                                dispatchEventsInQueue(
+                                    function() {
+                                        refreshView(function() {}, 
+                                                    onMessyRestart);
+                                    }, 
+                                    onMessyRestart);
+                            },
+                            0);
                     }
-                    //
-                    // fixme: if we see too many events accumulating, throttle
-                    // the ones that are marked as throttleable.
                 };
                 handler.eventSource.onStart(fireEvent);
             };
@@ -721,7 +730,7 @@
             };
 
 
-            var dispatchEventsInQueue = function() {
+            var dispatchEventsInQueue = function(success, fail) {
                 // Apply all the events on the queue, call toDraw, and then stop.
                 // If the world ever satisfies stopWhen, stop immediately and quit.
                 var nextEvent;
@@ -733,8 +742,11 @@
                     // Set up the proxy object so we can do what appear to be functional
                     // queries.
                     mockView = view.getMockAndResetFocus();
-
                     nextEvent = eventQueue.dequeue();
+                    if (nextEvent.who !== undefined) {
+                        mockView = mockView.updateFocus('#' + nextEvent.who.id);
+                    }
+
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
                     racketWorldCallback(MACHINE, 
@@ -748,24 +760,25 @@
                                                      mockView,
                                                      function(shouldStop) {
                                                          if (shouldStop) {
-                                                             refreshViewAndStopDispatching(
+                                                             refreshView(
                                                                  function() {
                                                                      onCleanRestart();
                                                                  },
-                                                                 onMessyRestart);
+                                                                 fail);
                                                          } else {
-                                                             dispatchEventsInQueue();
+                                                             dispatchEventsInQueue(success, fail);
                                                          }
                                                      },
-                                                     onMessyRestart);
+                                                     fail);
                                         },
-                                        onMessyRestart);
+                                        fail);
                 } else {
-                    refreshViewAndStopDispatching(function() {}, onMessyRestart);
+                    dispatchingEvents = false;
+                    success();
                 }
             };
 
-            var refreshViewAndStopDispatching = function(success, failure) {
+            var refreshView = function(success, failure) {
                 // Note: we create a random nonce, and watch to see if the MockView we get back
                 // from the user came from here.  If not, we have no hope to do a nice, efficient
                 // update, and have to do it from scratch.
@@ -784,13 +797,12 @@
                            } else {
                                view.top = $(newMockView.cursor.top().node);
                                view.initialRender(top);
-                               // FIXME: how about events embedded in the dom?
+                               eventHandlers = newMockView.eventHandlers;
+                               startEventHandlers();
                            }
-                           dispatchingEvents = false;
                            success();
                        },
                        function(err) {
-                           dispatchingEvents = false;
                            failure(err);
                        })
             };
@@ -799,7 +811,6 @@
                                      stopWithExn : onMessyRestart,
                                      startEventHandler : startEventHandler,
                                      stopEventHandler : stopEventHandler };
-
             view.initialRender(top);
             startEventHandlers();
         });

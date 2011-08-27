@@ -316,10 +316,13 @@
 
     View.prototype.initialRender = function(top) {
         top.empty();
+        // Special case: if this.top is an html, we merge into the
+        // existing page.
+        if (this.top.children("head").children("title").length !== 0) {
+             $(document.head).find('title').remove();
+        }
         $(document.head).append(this.top.find("head").children());
 
-        // FIXME: we should pull in the styles applied to body and its
-        // children and apply them here?
         if (this.top.find("body").length > 0) {
             top.append(this.top.find("body").children());
             this.top = top;

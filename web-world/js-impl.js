@@ -813,6 +813,7 @@
                                      stopEventHandler : stopEventHandler };
             view.initialRender(top);
             startEventHandlers();
+            refreshView(function() {}, onMessyRestart);
         });
     };
 

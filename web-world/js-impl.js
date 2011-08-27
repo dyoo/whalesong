@@ -15,6 +15,33 @@
         MACHINE.modules['whalesong/resource/structs.rkt'].namespace['struct:resource'];
 
 
+    var domToCursor = function(dom) {
+        var domOpenF = 
+            // To go down, just take the children.
+            function(n) { 
+                return [].slice.call(n.childNodes, 0);
+            };
+        var domCloseF = 
+            // To go back up, take the node, do a shallow cloning, and replace the children.
+            function(node, children) { 
+                var i;
+                var newNode = node.cloneNode(false);
+                for (i = 0; i < children.length; i++) {
+                    newNode.appendChild(children[i].cloneNode(true));
+                }
+                return newNode; 
+            };
+        var domAtomicF =
+            function(node) {
+                return node.nodeType !== 1;
+            };
+        return TreeCursor.adaptTreeCursor(dom.cloneNode(true),
+                                          domOpenF,
+                                          domCloseF,
+                                          domAtomicF);
+    };
+
+
 
 
 
@@ -237,7 +264,7 @@
 
     View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
-        return new MockView(TreeCursor.domToCursor($(this.top).get(0)),
+        return new MockView(domToCursor($(this.top).get(0)),
                             [],
                             nonce);
     };
@@ -301,14 +328,14 @@
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new MockView(TreeCursor.domToCursor(dom.get(0)), [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), [], undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x))
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new MockView(TreeCursor.domToCursor(dom.get(0)), [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), [], undefined));
         }
     };
 

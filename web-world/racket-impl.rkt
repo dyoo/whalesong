@@ -5,7 +5,18 @@
          view-focus
          view-left view-right view-up view-down
          view-text update-view-text
-         view-attr update-view-attr)
+         view-attr update-view-attr
+         view-id
+
+         view-bind
+
+         view-form-value
+         update-view-form-value
+
+         view-show
+         view-hide
+         view-append-child)
+
 
 (define (big-bang world . handlers)
   (error 'big-bang "Please run in JavaScript context."))
@@ -60,3 +71,28 @@
 
 (define (update-view-attr v attr-name value)
   (error 'update-view-attr "Please run in JavaScript context."))
+
+
+(define (view-id v)
+  (error 'view-id "Please run in JavaScript context."))
+
+
+(define (view-bind v type worldF)
+  (error 'view-bind "Please run in JavaScript context."))
+
+(define (view-form-value)
+  (error 'view-form-value "Please run in JavaScript context."))
+
+(define (update-view-form-value val)
+  (error 'view-form-value "Please run in JavaScript context."))
+
+
+(define (view-show)
+  (error 'view-show "Please run in JavaScript context."))
+
+(define (view-hide)
+  (error 'view-hide "Please run in JavaScript context."))
+
+
+(define (view-append-child dom)
+  (error 'view-append "Please run in JavaScript context."))

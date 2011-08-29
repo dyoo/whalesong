@@ -11,8 +11,43 @@
     var isString = plt.baselib.strings.isString;
 
 
+
+    // FIXME: as soon as we get real parameters, use parameters
+    // instead.  Global: defines the currently running big bang.
+    // Parameterized around the call to bigBang.
+    var currentBigBangRecord = undefined;
+
+
+
     var resourceStructType = 
         MACHINE.modules['whalesong/resource/structs.rkt'].namespace['struct:resource'];
+
+
+    var domToCursor = function(dom) {
+        var domOpenF = 
+            // To go down, just take the children.
+            function(n) { 
+                return [].slice.call(n.childNodes, 0);
+            };
+        var domCloseF = 
+            // To go back up, take the node, do a shallow cloning, and replace the children.
+            function(node, children) { 
+                var i;
+                var newNode = node.cloneNode(false);
+                for (i = 0; i < children.length; i++) {
+                    newNode.appendChild(children[i].cloneNode(true));
+                }
+                return newNode; 
+            };
+        var domAtomicF =
+            function(node) {
+                return node.nodeType !== 1;
+            };
+        return TreeCursor.adaptTreeCursor(dom.cloneNode(true),
+                                          domOpenF,
+                                          domCloseF,
+                                          domAtomicF);
+    };
 
 
 
@@ -69,18 +104,24 @@
 
 
     //////////////////////////////////////////////////////////////////////
-    var MockView = function(cursor, pendingActions, nonce) {
+    // A MockView provides a functional interface to the DOM.  It
+    // includes a cursor to the currently focused dom, the pending
+    // actions to perform on the actual view, and a nonce to detect
+    // freshness of the MockView.
+    var MockView = function(cursor, pendingActions, eventHandlers, nonce) {
         this.cursor = cursor;
         this.pendingActions = pendingActions;
+        this.eventHandlers = eventHandlers;
         this.nonce = nonce;
     };
 
     var isMockView = plt.baselib.makeClassPredicate(MockView);
 
-    MockView.prototype.act = function(actionForCursor, actionForReal) {
-        if (arguments.length !== 2) { throw new Error("act: insufficient arguments"); }
+    MockView.prototype.act = function(actionForCursor, actionForEventHandlers, actionForReal) {
+        if (arguments.length !== 3) { throw new Error("act: insufficient arguments"); }
         return new MockView(actionForCursor(this.cursor),
                             this.pendingActions.concat([actionForReal]),
+                            actionForEventHandlers(this.eventHandlers),
                             this.nonce);
     };
 
@@ -100,6 +141,7 @@
                     }
                 }
             },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus = view.top.find(selector);
             }
@@ -115,29 +157,58 @@
             function(cursor) {
                 return cursor.replaceNode($(cursor.node).clone(true).text(text).get(0));
             },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus.text(text);
-            })
+            }
+        )
     };
 
     MockView.prototype.getAttr = function(name) {        
         return $(this.cursor.node).attr(name);
     };
 
+
     MockView.prototype.updateAttr = function(name, value) {
         return this.act(
             function(cursor) {
                 return cursor.replaceNode($(cursor.node).clone(true).attr(name, value).get(0));
+            },
+            function(eventHandlers) {
+                return eventHandlers;
             },
             function(view) {
                 view.focus.attr(name, value);
             })
     };
 
+
+    MockView.prototype.getFormValue = function() {        
+        return $(this.cursor.node).val();
+    };
+
+    MockView.prototype.updateFormValue = function(value) {        
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).val(value).get(0));
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                view.focus.val(value);
+            })
+    };
+
+
+
     MockView.prototype.left = function() {
         return this.act(
             function(cursor) {
                 return cursor.left();
+            },
+            function(eventHandlers) {
+                return eventHandlers;
             },
             function(view) {
                 view.focus = view.focus.prev();
@@ -149,6 +220,9 @@
             function(cursor) {
                 return cursor.right();
             },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
             function(view) {
                 view.focus = view.focus.next();
             });
@@ -159,9 +233,12 @@
             function(cursor) {
                 return cursor.up();
             },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
             function(view) {
                 view.focus = view.focus.parent();
-            }); 
+            });
    };
 
     MockView.prototype.down = function() {
@@ -169,10 +246,112 @@
             function(cursor) {
                 return cursor.down();
             },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
             function(view) {
                 view.focus = view.focus.children(':first');
-            }); 
+            });
     };
+    
+    var mockViewIdGensym = 0;
+
+    MockView.prototype.bind = function(name, worldF) {
+        var that = this;
+
+        // HACK: every node that is bound needs to have an id.  We
+        // enforce this by mutating the node.
+        if (! this.cursor.node.id) {
+            this.cursor.node.id = ("__webWorldId_" + mockViewIdGensym++);
+        }   
+        return this.act(
+            function(cursor) {
+                var newCursor = cursor.replaceNode($(cursor.node).clone(true).get(0));
+                var handler = new EventHandler(name, 
+                                               new DomEventSource(name, newCursor.node), 
+                                               worldF);
+                if (currentBigBangRecord !== undefined) {
+                    currentBigBangRecord.startEventHandler(handler);
+                }
+                return newCursor;
+            },
+            function(eventHandlers) {
+                var handler = new EventHandler(name,
+                                               new DomEventSource(
+                                                   name,
+                                                   that.cursor.node.id),
+                                               worldF);
+                return eventHandlers.concat([handler]);
+            },
+            function(view) {
+                // HACK: every node that is bound needs to have an id.  We
+                // enforce this by mutating the node.
+                if (! view.focus.get(0).id) {
+                    view.focus.get(0).id = ("__webWorldId_" + mockViewIdGensym++);
+                }
+                var handler = new EventHandler(name, 
+                                               new DomEventSource(
+                                                   name, 
+                                                   view.focus.get(0).id),
+                                               worldF);
+                view.addEventHandler(handler);
+                currentBigBangRecord.startEventHandler(handler);
+            });
+    };
+
+    MockView.prototype.show = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).show().get(0));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                view.focus.show();
+            }
+        )
+    };
+
+    MockView.prototype.hide = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).hide().get(0));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                view.focus.hide();
+            }
+        )
+    };
+
+
+    MockView.prototype.appendChild = function(domNode) {
+        return this.act(
+            function(cursor) {
+                if (cursor.canDown()) {
+                    cursor = cursor.down();
+                    while (cursor.canRight()) {
+                        cursor = cursor.right();
+                    }
+                    return cursor.insertRight(domNode.cloneNode(true));
+                } else {
+                    return cursor.insertDown(domNode.cloneNode(true));
+                }
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                var clone = $(domNode).clone(true);
+                clone.appendTo(view.focus);
+                view.focus = clone;
+            }
+        )
+    };
+
+    MockView.prototype.id = function() {
+        return this.cursor.node.id;
+    };
+
+
+
 
 
     //////////////////////////////////////////////////////////////////////
@@ -205,6 +384,10 @@
         }
     };
 
+    View.prototype.addEventHandler = function(handler) {
+        this.eventHandlers.push(handler);
+    };
+
     // Return a list of the event sources from the view.
     // fixme: may need to apply the pending actions to get the real set.
     View.prototype.getEventHandlers = function() {
@@ -213,7 +396,8 @@
 
     View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
-        return new MockView(TreeCursor.domToCursor($(this.top).get(0)),
+        return new MockView(domToCursor($(this.top).get(0)),
+                            [],
                             [],
                             nonce);
     };
@@ -252,7 +436,9 @@
                 return onFail(exn);
             }
             return onSuccess(new View(dom, []));
-
+        } else if (isMockView(x)) {
+            return onSuccess(new View($(x.cursor.top().node),
+                                      x.eventHandlers));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x))
@@ -277,16 +463,50 @@
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new MockView(TreeCursor.domToCursor(dom.get(0)), [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x))
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(new MockView(TreeCursor.domToCursor(dom.get(0)), [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         }
     };
+
+
+    var coerseToDomNode = function(x, onSuccess, onFail) {
+        var dom;
+        if (isDomNode(x)) { 
+            return onSuccess(x); 
+        } else  if (isResource(x)) {
+            try {
+                dom = $(resourceContent(x).toString())
+                    .css("margin", "0px")
+                    .css("padding", "0px")
+                    .css("border", "0px");
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(dom.get(0));
+        } else if (isMockView(x)) {
+            return onSuccess(x.cursor.top().node);
+        } else {
+            try {
+                dom = plt.baselib.format.toDomNode(x);
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(dom);
+        }
+    };
+
+
+    var isDomNode = function(x) {
+        return (x.hasOwnProperty('nodeType') &&
+                x.nodeType === 1);
+    };
+
 
 
 
@@ -339,6 +559,8 @@
 
 
 
+    // An EventHandler combines a EventSource with a racketWorldCallback.
+
     var EventHandler = function(name, eventSource, racketWorldCallback) {
         WorldHandler.call(this);
         this.name = name;
@@ -379,7 +601,9 @@
 
     /* Event sources.
        
-       An event source are the inputs to a web world program.
+       An event source is a way to send input to a web-world program.
+
+       An event source may be started or stopped.
 
 
        Pause and Unpause are semantically meant to be cheaper than start, stop, so
@@ -405,7 +629,8 @@
 
 
     
-    // Clock ticks.
+
+    // TickEventSource sends tick events.
     var TickEventSource = function(delay) {
         this.delay = delay; // delay in milliseconds.
 
@@ -419,7 +644,7 @@
     TickEventSource.prototype.onStart = function(fireEvent) {
         this.id = setInterval(
             function() {
-                fireEvent();
+                fireEvent(undefined);
             },
             this.delay);
     };
@@ -432,27 +657,43 @@
     };
 
 
-
-    var BindEventSource = function(type, element) {
+    // DomElementSource: string (U DOM string) -> EventSource
+    // A DomEventSource allows DOM elements to send events over to
+    // web-world.
+    var DomEventSource = function(type, elementOrId) {
         this.type = type;
-        this.element = element;
+        this.elementOrId = elementOrId;
         this.handler = undefined;
     };
 
-    BindEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+    DomEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    BindEventSource.prototype.onStart = function(fireEvent) {
-        this.handler = 
-            function(evt) {
-                fireEvent(evt);
-            };
-        $(this.element).bind(this.type,
-                             this.handler);
+    DomEventSource.prototype.onStart = function(fireEvent) {
+        var element = this.elementOrId;
+        if (typeof(this.elementOrId) === 'string') {
+            element = $('#' + this.elementOrId).get(0);
+        }
+
+        this.handler = function(evt) {
+            if (element !== undefined) {
+                fireEvent(element, evt);
+            }
+        };
+        if (element !== undefined) {
+            $(element).bind(this.type, this.handler);
+        }
     };
 
-    BindEventSource.prototype.onStop = function() {
+    DomEventSource.prototype.onStop = function() {
+        var element = this.elementOrId;
+        if (typeof(this.elementOrId) === 'string') {
+            element = $('#' + this.elementOrId).get(0);
+        }
+
         if (this.handler !== undefined) {
-            $(this.element).unbind(this.type, this.handler);
+            if (element !== undefined) {
+                $(element).unbind(this.type, this.handler);
+            }
             this.handler = undefined;
         }
     };
@@ -479,7 +720,8 @@
     };
 
 
-    var EventQueueElement = function(handler, data) {
+    var EventQueueElement = function(who, handler, data) {
+        this.who = who;
         this.handler = handler;
         this.data = data;
     };
@@ -499,6 +741,7 @@
     // bigBang.
     var bigBang = function(MACHINE, world, handlers) {
         var oldArgcount = MACHINE.argcount;
+        var oldCurrentBigBangRecord = currentBigBangRecord;
 
         var running = true;
         var dispatchingEvents = false;
@@ -510,34 +753,74 @@
         var eventQueue = new EventQueue();
 
         var top = $("<div/>");
+        var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
+
         MACHINE.params.currentDisplayer(MACHINE, top);
 
         PAUSE(function(restart) {
+            var i;
 
             var onCleanRestart = function() {
                 running = false;
-                var i;
-                for (i = 0; i < eventHandlers.length; i++) {
-                    stopEventHandler(eventHandlers[i]);
-                }
+                stopEventHandlers();
                 restart(function(MACHINE) {
                     MACHINE.argcount = oldArgcount;
+                    currentBigBangRecord = oldCurrentBigBangRecord;
                     finalizeClosureCall(MACHINE, world);
                 });
             };
 
             var onMessyRestart = function(exn) {
                 running = false;
-                var i;
-                for (i = 0; i < eventHandlers.length; i++) {
-                    stopEventHandler(eventHandlers[i]);
-                }
+                stopEventHandlers();
                 restart(function(MACHINE) {
+                    currentBigBangRecord = oldCurrentBigBangRecord;
                     plt.baselib.exceptions.raise(MACHINE, exn);
                 });
             };
 
-            var dispatchEventsInQueue = function() {
+            var startEventHandlers = function() {
+                var i;
+                for (i = 0; i < eventHandlers.length; i++) {
+                    startEventHandler(eventHandlers[i]);
+                }
+            };
+
+            var stopEventHandlers = function() {
+                var i;
+                for (i = 0; i < eventHandlers.length; i++) {
+                    stopEventHandler(eventHandlers[i]);
+                }
+            };
+
+            var startEventHandler = function(handler) {
+                var fireEvent = function(who) {
+                    if (! running) { return; }
+                    var args = [].slice.call(arguments, 1);
+                    eventQueue.queue(new EventQueueElement(who, handler, args));
+                    if (! dispatchingEvents) {
+                        dispatchingEvents = true;
+                        setTimeout(
+                            function() { 
+                                dispatchEventsInQueue(
+                                    function() {
+                                        refreshView(function() {}, 
+                                                    onMessyRestart);
+                                    }, 
+                                    onMessyRestart);
+                            },
+                            0);
+                    }
+                };
+                handler.eventSource.onStart(fireEvent);
+            };
+
+            var stopEventHandler = function(handler) {
+                handler.eventSource.onStop();
+            };
+
+
+            var dispatchEventsInQueue = function(success, fail) {
                 // Apply all the events on the queue, call toDraw, and then stop.
                 // If the world ever satisfies stopWhen, stop immediately and quit.
                 var nextEvent;
@@ -549,8 +832,11 @@
                     // Set up the proxy object so we can do what appear to be functional
                     // queries.
                     mockView = view.getMockAndResetFocus();
-
                     nextEvent = eventQueue.dequeue();
+                    if (nextEvent.who !== undefined) {
+                        mockView = mockView.updateFocus('#' + nextEvent.who.id);
+                    }
+
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
                     racketWorldCallback(MACHINE, 
@@ -564,24 +850,25 @@
                                                      mockView,
                                                      function(shouldStop) {
                                                          if (shouldStop) {
-                                                             refreshViewAndStopDispatching(
+                                                             refreshView(
                                                                  function() {
                                                                      onCleanRestart();
                                                                  },
-                                                                 onMessyRestart);
+                                                                 fail);
                                                          } else {
-                                                             dispatchEventsInQueue();
+                                                             dispatchEventsInQueue(success, fail);
                                                          }
                                                      },
-                                                     onMessyRestart);
+                                                     fail);
                                         },
-                                        onMessyRestart);
+                                        fail);
                 } else {
-                    refreshViewAndStopDispatching(function() {}, onMessyRestart);
+                    dispatchingEvents = false;
+                    success();
                 }
             };
 
-            var refreshViewAndStopDispatching = function(success, failure) {
+            var refreshView = function(success, failure) {
                 // Note: we create a random nonce, and watch to see if the MockView we get back
                 // from the user came from here.  If not, we have no hope to do a nice, efficient
                 // update, and have to do it from scratch.
@@ -600,47 +887,23 @@
                            } else {
                                view.top = $(newMockView.cursor.top().node);
                                view.initialRender(top);
-                               // FIXME: how about events embedded in the dom?
+                               eventHandlers = newMockView.eventHandlers;
+                               startEventHandlers();
                            }
-                           dispatchingEvents = false;
                            success();
                        },
                        function(err) {
-                           dispatchingEvents = false;
                            failure(err);
                        })
             };
 
-
- 
-
-           
-            var startEventHandler = function(handler) {
-                var fireEvent = function() {
-                    if (! running) { return; }
-                    var args = [].slice.call(arguments, 0);
-                    eventQueue.queue(new EventQueueElement(handler, args));
-                    if (! dispatchingEvents) {
-                        setTimeout(dispatchEventsInQueue, 0);
-                    }
-                    //
-                    // fixme: if we see too many events accumulating, throttle
-                    // the ones that are marked as throttleable.
-                };
-                handler.eventSource.onStart(fireEvent);
-            };
-
-            var stopEventHandler = function(handler) {
-                handler.eventSource.onStop();
-            };
-
+            currentBigBangRecord = { stop : onCleanRestart,
+                                     stopWithExn : onMessyRestart,
+                                     startEventHandler : startEventHandler,
+                                     stopEventHandler : stopEventHandler };
             view.initialRender(top);
-
-            var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
-            var i;
-            for (i = 0; i < eventHandlers.length; i++) {
-                startEventHandler(eventHandlers[i]);
-            }
+            startEventHandlers();
+            refreshView(function() {}, onMessyRestart);
         });
     };
 
@@ -655,6 +918,38 @@
                                                                         success,
                                                                         fail].concat(args));
         };
+    };
+
+
+
+    // findDomNodeLocation: dom-node dom-node -> arrayof number
+    // Given a node, returns the child indices we need to follow to reach
+    // it from the top.
+    // Assumption: top must be an ancestor of the node.  Otherwise, the
+    // result is partial.
+    var findDomNodeLocation = function(node, top) {
+        var locator = [];
+        var parent, i;
+        while(node !== top && node.parentNode !== null) {
+            parent = node.parentNode;
+            for (i = 0; i < parent.childNodes.length; i++) {
+                if (parent.childNodes[i] === node) {
+                    locator.push(i);
+                    break;
+                }
+            }
+            node = parent;
+        }
+        return locator.reverse();
+    };
+
+    var findNodeFromLocation = function(top, location) {
+        var i = 0;
+        var node = top;
+        for (i = 0; i < location.length; i++) {
+            node = node.childNodes[location[i]];
+        }
+        return node;
     };
 
 
@@ -730,27 +1025,28 @@
         '->view',
         1,
         function(MACHINE) {
+            var viewable = MACHINE.env[MACHINE.env.length - 1];
             var oldArgcount = MACHINE.argcount;
             PAUSE(function(restart) {
-                coerseToView(viewable,
-                             function(v) {
-                                 restart(function(MACHINE) {
-                                     MACHINE.argcount = oldArgcount;
-                                     finalizeClosureCall(MACHINE, v);
+                coerseToMockView(viewable,
+                                 function(v) {
+                                     restart(function(MACHINE) {
+                                         MACHINE.argcount = oldArgcount;
+                                         finalizeClosureCall(MACHINE, v);
+                                     });
+                                 },
+                                 function(exn) {
+                                     restart(function(MACHINE) {
+                                         plt.baselib.exceptions.raise(
+                                             MACHINE, 
+                                             new Error(plt.baselib.format.format(
+                                                 "unable to translate ~s to view: ~a",
+                                                 [viewable, exn.message])));
+                                     });
                                  });
-                             },
-                             function(exn) {
-                                 restart(function(MACHINE) {
-                                     plt.baselib.exceptions.raise(
-                                         MACHINE, 
-                                         new Error(plt.baselib.format.format(
-                                             "unable to translate ~s to view: ~a",
-                                             [viewable, exn.message])));
-                                 });
-                             });
             });
         });
-
+    
     EXPORTS['stop-when'] = makePrimitiveProcedure(
         'stop-when',
         1,
@@ -885,6 +1181,95 @@
             var value = checkSymbolOrString(MACHINE, 'update-view-attr', 2).toString();
             return view.updateAttr(name, value);
         });
+
+
+
+    EXPORTS['view-bind'] = makePrimitiveProcedure(
+        'view-bind',
+        3,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-bind', 0);
+            var name = checkSymbolOrString(MACHINE, 'view-bind', 1);
+            var worldF = wrapFunction(checkProcedure(MACHINE, 'view-bind', 2));
+            return view.bind(name, worldF);
+        });
+
+
+    EXPORTS['view-form-value'] = makePrimitiveProcedure(
+        'view-form-value',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-form-value', 0);
+            return view.getFormValue();
+        });
+
+
+    EXPORTS['update-view-form-value'] = makePrimitiveProcedure(
+        'update-view-form-value',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'update-view-form-value', 0);
+            var value = checkSymbolOrString(MACHINE, 'update-view-form-value', 1).toString();
+            return view.updateFormValue(value);
+        });
+
+    EXPORTS['view-show'] = makePrimitiveProcedure(
+        'view-show',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-show', 0);
+            return view.show();
+        });
+
+
+    EXPORTS['view-hide'] = makePrimitiveProcedure(
+        'view-hide',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-hide', 0);
+            return view.hide();
+        });
+
+
+    
+    EXPORTS['view-append-child'] = makeClosure(
+        'view-append-child',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-append-child', 0);
+            var oldArgcount = MACHINE.argcount;
+            var x = MACHINE.env[MACHINE.env.length - 2];
+            PAUSE(function(restart) {
+                coerseToDomNode(x,
+                                function(dom) {
+                                     restart(function(MACHINE) {
+                                         MACHINE.argcount = oldArgcount;
+                                         var updatedView = view.appendChild(dom);
+                                         finalizeClosureCall(MACHINE, updatedView);
+                                     });
+                                },
+                                function(err) {
+                                    restart(function(MACHINE) {
+                                         plt.baselib.exceptions.raise(
+                                             MACHINE, 
+                                             new Error(plt.baselib.format.format(
+                                                 "unable to translate ~s to dom node: ~a",
+                                                 [x, exn.message])));
+                                        
+                                    });
+                                });
+            });
+        });
+
+
+    EXPORTS['view-id'] = makePrimitiveProcedure(
+        'view-id',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-hide', 0);
+            return view.id();
+        });
+
 
 
 

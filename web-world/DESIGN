@@ -213,7 +213,7 @@ will be:
 
 ----------------------------------------------------------------------
 
-Example 3
+Example 3 "field"
 
 
 We want to make it easy to query from the view.  That's why each

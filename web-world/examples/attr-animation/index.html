@@ -1,8 +1,107 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-  <head>
-    <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta charset="utf-8"/>
-    <title></title>
-  </head>
-  <script>
+<html>
+<head><title>Animation</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<p>
+This should be animating:
+<hr/>
+<div>
+<div class="selectedBlock" id="0"></div>
+<div class="block" id="1"></div>
+<div class="block" id="2"></div>
+<div class="block" id="3"></div>
+<div class="block" id="4"></div>
+<div class="block" id="5"></div>
+<div class="block" id="6"></div>
+<div class="block" id="7"></div>
+<div class="block" id="8"></div>
+<div class="block" id="9"></div>
+</div>
+
+<hr/>
+
+The program for this is:
+<blockquote>
+<pre>
+#lang planet dyoo/whalesong
+
+(require (planet dyoo/whalesong/resource)
+         (planet dyoo/whalesong/web-world))
+
+(define-resource index.html)
+(define-resource style.css)
+
+(define (tick w v)
+  (modulo (add1 w) 10))
+
+
+;; pick-block: world view -> view
+;; Focus the view on block i.
+(define (pick-block v i)
+  (view-focus v (format "#~a" i)))
+
+
+(define (draw w v)
+  (define v1 (update-view-attr
+              (pick-block v w)
+              "class"
+              "selectedBlock"))
+  (define v2 (update-view-attr
+              (pick-block v1 (modulo (sub1 w) 10))
+              "class"
+              "offsetBlock"))
+  (define v3 (update-view-attr
+              (pick-block v2 (modulo (add1 w) 10))
+              "class"
+              "offsetBlock"))
+  (define v4 (update-view-attr
+              (pick-block v3 (modulo (- w 2) 10))
+                          "class"
+                          "block"))
+  (define v5 (update-view-attr
+              (pick-block v4 (modulo (+ w 2) 10))
+              "class"
+              "block"))
+  v5)
+
+
+(big-bang 0
+          (initial-view index.html)
+          (on-tick tick)
+          (to-draw draw))
+</pre>
+</blockquote>
+
+
+with <tt>style.css</tt>:
+<blockquote>
+<pre>
+.block {
+    width : 80px;
+    height : 10px;
+    background-color : blue;
+    display: inline-block;
+}
+
+.selectedBlock {
+    width : 80px;
+    height : 10px;
+    background-color: navy;
+    display: inline-block;
+}
+
+.offsetBlock {
+    width : 80px;
+    height : 10px;
+    background-color: teal;
+    display: inline-block;
+}
+</pre>
+</blockquote>
+
+
+
+</p>
+</body>
+</html>

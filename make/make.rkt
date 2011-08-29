@@ -170,11 +170,11 @@
                                 (source-name (first sources))))
              (hash-set! visited (first sources) #t)
              (let*-values ([(this-source)
-                             ((current-module-source-compiling-hook)
-                              (first sources))]
+                            ((current-module-source-compiling-hook)
+                             (first sources))]
                            [(ast stmts)
                             (get-ast-and-statements this-source)])
-               (log-debug "visiting")
+               (log-debug (format "visiting ~a\n" (source-name this-source)))
                (on-module-statements this-source ast stmts)
                (loop (append (map wrap-source (collect-new-dependencies this-source ast))
                              (rest sources)))

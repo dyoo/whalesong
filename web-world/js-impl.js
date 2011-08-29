@@ -578,6 +578,15 @@
     EventHandler.prototype.toString = function() { return "#<" + this.name + ">"; };
     var isEventHandler = plt.baselib.makeClassPredicate(EventHandler);
 
+
+
+    var WithOutputToHandler = function(outputPort) {
+        this.outputPort = outputPort;
+    };
+    WithOutputToHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
+    var isWithOutputToHandler = plt.baselib.makeClassPredicate(WithOutputToHandler);
+
+
     //////////////////////////////////////////////////////////////////////
 
 
@@ -868,12 +877,19 @@
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
 
+        var oldOutputPort = MACHINE.params.currentOutputPort;
+
         var eventQueue = new EventQueue();
 
         var top = $("<div/>");
         var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
 
         MACHINE.params.currentDisplayer(MACHINE, top);
+        
+        // From this point forward, redirect standard output if requested.
+        if (find(handlers, isWithOutputToHandler)) {
+            MACHINE.params.currentOutputPort = find(handlers, isWithOutputToHandler).outputPort;
+        }
 
         PAUSE(function(restart) {
             var i;
@@ -883,6 +899,7 @@
                 stopEventHandlers();
                 restart(function(MACHINE) {
                     MACHINE.argcount = oldArgcount;
+                    MACHINE.params.currentOutputPort = oldOutputPort;
                     currentBigBangRecord = oldCurrentBigBangRecord;
                     finalizeClosureCall(MACHINE, world);
                 });
@@ -893,6 +910,7 @@
                 stopEventHandlers();
                 restart(function(MACHINE) {
                     currentBigBangRecord = oldCurrentBigBangRecord;
+                    MACHINE.params.currentOutputPort = oldOutputPort;
                     plt.baselib.exceptions.raise(MACHINE, exn);
                 });
             };
@@ -1082,12 +1100,27 @@
 
 
 
+
+    var DomElementOutputPort = function(id) {
+        this.id = id;
+    };
+
+    DomElementOutputPort.prototype = plt.baselib.heir(plt.baselib.ports.OutputPort.prototype);
+
+    DomElementOutputPort.prototype.writeDomNode = function (MACHINE, v) {
+        $("#" + this.id).append(v);
+    };
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////
 
     var checkReal = plt.baselib.check.checkReal;
     var checkString = plt.baselib.check.checkString;
     var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
-    
+    var checkOutputPort = plt.baselib.check.checkOutputPort;    
     var checkProcedure = plt.baselib.check.checkProcedure;
 
     var checkResourceOrView = plt.baselib.check.makeCheckArgumentType(
@@ -1420,6 +1453,22 @@
             return new EventHandler('on-mock-location-change', 
                                     new MockLocationEventSource(), 
                                     onChange);
+        });
+
+    EXPORTS['with-output-to'] = makePrimitiveProcedure(
+        'with-output-to',
+        1,
+        function(MACHINE) {
+            var outputPort = checkOutputPort(MACHINE, 'with-output-to', 0);
+            return new WithOutputToHandler(outputPort);
+        });
+
+    EXPORTS['open-output-element'] = makePrimitiveProcedure(
+        'open-output-element',
+        1,
+        function(MACHINE) {
+            var id = checkString(MACHINE, 'open-output-element', 0);
+            return new DomElementOutputPort(id.toString());
         });
 
 

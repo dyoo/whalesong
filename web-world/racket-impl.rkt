@@ -19,7 +19,10 @@
 
          view-show
          view-hide
-         view-append-child)
+         view-append-child
+
+         with-output-to
+         open-output-element)
 
 
 (define (big-bang world . handlers)
@@ -116,3 +119,11 @@
 
 (define (view-append-child dom)
   (error 'view-append "Please run in JavaScript context."))
+
+
+(define (with-output-to output-port)
+  (error 'with-output-to "Please run in JavaScript context."))
+
+
+(define (open-output-element id)
+  (error 'open-output-element "Please run in JavaScript context."))

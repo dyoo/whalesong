@@ -27,6 +27,10 @@
                     
                     ;; draw and update the view
                     to-draw
+
+                    with-output-to
+                    open-output-element
+                    
                     
                     ;; coerse to view
                     ->view

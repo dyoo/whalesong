@@ -1,6 +1,10 @@
 #lang racket/base
 
-(provide big-bang initial-view stop-when on-tick to-draw
+(provide big-bang initial-view stop-when
+         on-tick
+         on-location-change on-mock-location-change
+         to-draw
+
          ->view
          view-focus
          view-left view-right view-up view-down
@@ -32,6 +36,22 @@
                 (error 'on-tick "Please run in JavaScript context.")]
                [(f delay)
                 (error 'on-tick "Please run in JavaScript context.")]))
+
+
+(define on-location-change
+  (case-lambda [(f)
+                (error 'on-location-change "Please run in JavaScript context.")]
+               [(f delay)
+                (error 'on-location-change "Please run in JavaScript context.")]))
+
+
+(define on-mock-location-change
+  (case-lambda [(f)
+                (error 'on-mock-location-change "Please run in JavaScript context.")]
+               [(f delay)
+                (error 'on-mock-location-change "Please run in JavaScript context.")]))
+
+
 
 (define (to-draw w)
   (error 'to-draw "Please run in JavaScript context."))

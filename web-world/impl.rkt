@@ -20,6 +20,12 @@
                     ;; clock tick handler
                     on-tick
 
+                    ;; location changes
+                    on-mock-location-change
+
+                    ;; location changes (for real!)
+                    on-location-change
+                    
                     ;; draw and update the view
                     to-draw
                     

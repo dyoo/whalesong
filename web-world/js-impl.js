@@ -657,6 +657,91 @@
     };
 
 
+
+
+    var MockLocationEventSource = function() {
+        this.elt = undefined;
+    };
+    MockLocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+    MockLocationEventSource.prototype.onStart = function(fireEvent) {
+        var mockLocationSetter = document.createElement("div");
+	    
+        var latInput = document.createElement("input");
+        latInput.type = "text";
+	
+        var latOutput = document.createElement("input");
+        latOutput.type = "text";
+        
+        var submitButton = document.createElement("input");
+        submitButton.type = "button";
+        submitButton.value = "send lat/lng";
+        submitButton.onclick = function() {
+            fireEvent(undefined,
+                      { latitude : plt.baselib.numbers.makeFloat(latInput.value),
+                        longitude : plt.baselib.numbers.makeFloat(latOutput.value) });
+            return false;
+        };
+	
+        mockLocationSetter.style.border = "1pt solid black";
+        mockLocationSetter.appendChild(
+            document.createTextNode("mock location setter"));
+        mockLocationSetter.appendChild(latInput);
+        mockLocationSetter.appendChild(latOutput);
+        mockLocationSetter.appendChild(submitButton);
+        document.body.appendChild(mockLocationSetter);
+
+        this.elt = mockLocationSetter;
+    };
+
+    MockLocationEventSource.prototype.onStop = function() {
+        if (this.elt !== undefined) { 
+            document.body.removeChild(mockLocationSetter);
+            this.elt = undefined;
+        };
+    };
+
+
+
+
+
+    // This version really does use the geolocation object.
+    var LocationEventSource = function() {
+        this.id = undefined;
+    };
+
+    LocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+
+    LocationEventSource.prototype.onStart = function(fireEvent) {
+        var success = function(position) {
+            fireEvent(undefined,
+                      { latitude : plt.baselib.numbers.makeFloat(position.coords.latitude),
+                        longitude: plt.baselib.numbers.makeFloat(position.coords.longitude) };
+        };
+        var fail = function(err) {
+            // Quiet failure
+        }
+        if (!!navigator.geolocation) {
+            this.id = navigator.geolocation.watchPosition(success, fail); 
+        }
+    };
+    
+    LocationEventSource.prototype.onStop = function() {
+        if (this.id !== undefined) { 
+            navigator.geolocation.clearWatch(this.id);
+            this.id = undefined;
+        };
+    };
+
+
+
+
+
+
+
+
+
+
+
     // DomElementSource: string (U DOM string) -> EventSource
     // A DomEventSource allows DOM elements to send events over to
     // web-world.
@@ -1270,6 +1355,29 @@
             return view.id();
         });
 
+
+
+
+    EXPORTS['on-location-change'] = makePrimitiveProcedure(
+        'on-location-change',
+        1,
+        function(MACHINE) {
+            var onChange = wrapFunction(checkProcedure(MACHINE, 'on-location-change', 0));
+            return new EventHandler('on-location-change', 
+                                    new LocationEventSource(), 
+                                    onChange);
+        });
+
+
+    EXPORTS['on-mock-location-change'] = makePrimitiveProcedure(
+        'on-mock-location-change',
+        1,
+        function(MACHINE) {
+            var onChange = wrapFunction(checkProcedure(MACHINE, 'on-mock-location-change', 0));
+            return new EventHandler('on-mock-location-change', 
+                                    new MockLocationEventSource(), 
+                                    onChange);
+        });
 
 
 

@@ -322,6 +322,30 @@
     };
 
 
+    MockView.prototype.appendChild = function(domNode) {
+        return this.act(
+            function(cursor) {
+                if (cursor.canDown()) {
+                    cursor = cursor.down();
+                    while (cursor.canRight()) {
+                        cursor = cursor.right();
+                    }
+                    return cursor.insertRight(domNode);
+                } else {
+                    return cursor.insertDown(domNode);
+                }
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                var clone = $(domNode).clone(true);
+                clone.appendTo(view.focus);
+                view.focus = clone;
+            }
+        )
+    };
+
+
+
 
     //////////////////////////////////////////////////////////////////////
 
@@ -442,6 +466,40 @@
             return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         }
     };
+
+
+    var coerseToDomNode = function(x, onSuccess, onFail) {
+        var dom;
+        if (isDomNode(x)) { 
+            return onSuccess(x); 
+        } else  if (isResource(x)) {
+            try {
+                dom = $(resourceContent(x).toString())
+                    .css("margin", "0px")
+                    .css("padding", "0px")
+                    .css("border", "0px");
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(dom);
+        } else if (isMockView(x)) {
+            return onSuccess(x.cursor.top().node);
+        } else {
+            try {
+                dom = $(plt.baselib.format.toDomNode(x))
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(dom);
+        }
+    };
+
+
+    var isDomNode = function(x) {
+        if (return x.hasOwnProperty(nodeType) &&
+            x.nodeType === 1);
+    };
+
 
 
 
@@ -1166,6 +1224,15 @@
         });
 
 
+    
+    EXPORTS['view-append-child'] = makePrimitiveProcedure(
+        'view-append-child',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-append-child', 1);
+            var dom = coerseToDomNode(MACHINE.env[MACHINE.env.length - 2]);
+            return view.appendChild(dom);
+        });
 
 
 

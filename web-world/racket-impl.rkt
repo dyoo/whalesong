@@ -13,6 +13,7 @@
 
          view-show
          view-hide
+         view-append-child
          )
 
 
@@ -86,3 +87,7 @@
 
 (define (view-hide)
   (error 'view-hide "Please run in JavaScript context."))
+
+
+(define (view-append-child dom)
+  (error 'view-append "Please run in JavaScript context."))

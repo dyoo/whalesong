@@ -23,8 +23,8 @@
 ;; until we're all done.
 (define (draw w v)
   (cond [(< w (length dwarf-names))
-         (view-append (view-focus v "ul")
-                      (make-item (list-ref dwarf-names w)))]
+         (view-append-child (view-focus v "ul")
+                            (make-item (list-ref dwarf-names w)))]
         [else
          v]))
 

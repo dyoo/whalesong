@@ -48,16 +48,20 @@ programs to standalone @filepath{.xhtml} files.
 
 Example usage: using @litchar{whalesong build} to compile a whalesong program.
 @verbatim|{
-fermi ~/work/whalesong $ cd examples
-fermi ~/work/whalesong/examples $ cat hello.rkt
+fermi ~/whalesong $ cd examples
+
+fermi ~/whalesong/examples $ cat hello.rkt
 #lang planet dyoo/whalesong
 
 (display "hello world")
 (newline)
-fermi ~/work/whalesong/examples $ ../whalesong build hello.rkt 
-fermi ~/work/whalesong/examples $ google-chrome hello.xhtml
+
+fermi ~/whalesong/examples $ ../whalesong build hello.rkt 
+
+fermi ~/whalesong/examples $ google-chrome hello.xhtml
 Created new window in existing browser session.
-fermi ~/work/whalesong/examples $ 
+
+fermi ~/whalesong/examples $ 
 }|
 
 
@@ -175,8 +179,11 @@ Update the textual content at the focus.}
 @defproc[(view-bind [v view] [type string] [world-updater ([w world] [v view]  [e event]? -> world)]) view]{
 Attach a world-updating event to the focus.
 
-Common event types include @racket["click"], @racket["trigger"],
-@racket["hover"].}
+Attach a world-updating event to the focus.  When the world-updater is
+called, the view will be focused on the element that triggered the
+event.
+
+Common event types include @racket["click"], @racket["mouseenter"], @racket["change"].}
 
 @defproc[(view-show [v view]) view]{
 Show the element at the focus.

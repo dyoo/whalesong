@@ -43,6 +43,8 @@
                     view-attr
                     update-view-attr
 
+                    view-id
+                    
                     view-form-value
                     update-view-form-value
                     view-append-child

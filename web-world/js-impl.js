@@ -346,6 +346,11 @@
         )
     };
 
+    MockView.prototype.id = function() {
+        return this.cursor.node.id;
+    };
+
+
 
 
 
@@ -832,8 +837,6 @@
                         mockView = mockView.updateFocus('#' + nextEvent.who.id);
                     }
 
-                    console.log('dispatching event', nextEvent);
-
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
                     racketWorldCallback(MACHINE, 
@@ -1214,17 +1217,17 @@
         'view-show',
         1,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'show', 0);
-            return view.show(value);
+            var view = checkMockView(MACHINE, 'view-show', 0);
+            return view.show();
         });
 
 
-    EXPORTS['hide'] = makePrimitiveProcedure(
-        'hide',
+    EXPORTS['view-hide'] = makePrimitiveProcedure(
+        'view-hide',
         1,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'hide', 0);
-            return view.hide(value);
+            var view = checkMockView(MACHINE, 'view-hide', 0);
+            return view.hide();
         });
 
 
@@ -1258,6 +1261,14 @@
             });
         });
 
+
+    EXPORTS['view-id'] = makePrimitiveProcedure(
+        'view-id',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-hide', 0);
+            return view.id();
+        });
 
 
 

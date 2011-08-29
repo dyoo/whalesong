@@ -6,6 +6,8 @@
          view-left view-right view-up view-down
          view-text update-view-text
          view-attr update-view-attr
+         view-id
+
          view-bind
 
          view-form-value
@@ -13,8 +15,7 @@
 
          view-show
          view-hide
-         view-append-child
-         )
+         view-append-child)
 
 
 (define (big-bang world . handlers)
@@ -70,6 +71,10 @@
 
 (define (update-view-attr v attr-name value)
   (error 'update-view-attr "Please run in JavaScript context."))
+
+
+(define (view-id v)
+  (error 'view-id "Please run in JavaScript context."))
 
 
 (define (view-bind v type worldF)

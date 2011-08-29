@@ -108,6 +108,9 @@ During the extent of a big-bang, a form widget will appear in the
 @tt{document.body} to allow you to manually send location-changing
 events.
 
+The optional @tech{event} argument will contain numbers for
+@racket["latitude"] and @racket["longitude"].
+
 }
 
 
@@ -115,6 +118,9 @@ events.
 Tells @racket[big-bang] to update when the location changes, as
 received by the
 @link["http://dev.w3.org/geo/api/spec-source.html"]{Geolocation API}.
+
+The optional @tech{event} argument will contain numbers for
+@racket["latitude"] and @racket["longitude"].
 }
 
 
@@ -195,7 +201,7 @@ Add the dom node @racket[d] as the last child of the focused node.}
 
 
 @subsection{Events}
-An @deftech{event} is a collection of name-value pairs.
+An @deftech{event} is a structure that holds name-value pairs.
 
 
 

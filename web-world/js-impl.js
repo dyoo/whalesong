@@ -9,6 +9,7 @@
     var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
     var PAUSE = plt.runtime.PAUSE;
     var isString = plt.baselib.strings.isString;
+    var makeList = plt.baselib.lists.makeList;
 
 
 
@@ -21,6 +22,10 @@
 
     var resourceStructType = 
         MACHINE.modules['whalesong/resource/structs.rkt'].namespace['struct:resource'];
+
+    var eventStructType = 
+        MACHINE.modules['whalesong/web-world/event.rkt'].namespace['struct:event'];
+
 
 
     var domToCursor = function(dom) {
@@ -597,6 +602,29 @@
 
 
 
+    // convert an object to an event.
+    // At the moment, we only copy over those values which are numbers or strings.
+    var objectToEvent = function(obj) {
+        var key, val;
+        var result = makeList();
+        for (key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                val = obj[key];
+                if (typeof(val) === 'number') {
+                    result = makePair(makeList(makeSymbol(key),
+                                               plt.baselib.numbers.makeFloat(val)),
+                                      result);
+                } else if (typeof(val) === 'string') {
+                    result = makePair(makeList(makeSymbol(key), val)
+                                      result);
+                }                         
+            }
+        }
+        return eventStructType.constructor(result);
+    };
+
+
+
 
 
     /* Event sources.
@@ -643,8 +671,9 @@
 
     TickEventSource.prototype.onStart = function(fireEvent) {
         this.id = setInterval(
-            function() {
-                fireEvent(undefined);
+            function(evt) {
+                fireEvent(undefined,
+                          objectToEvent(evt));
             },
             this.delay);
     };
@@ -655,6 +684,8 @@
             this.id = undefined;
         }
     };
+
+
 
 
 
@@ -677,8 +708,8 @@
         submitButton.value = "send lat/lng";
         submitButton.onclick = function() {
             fireEvent(undefined,
-                      { latitude : plt.baselib.numbers.makeFloat(latInput.value),
-                        longitude : plt.baselib.numbers.makeFloat(latOutput.value) });
+                      objectToEvent({ latitude: Number(latInput.value),
+                                      longitude: Number(latOutput.value)}));
             return false;
         };
 	
@@ -700,7 +731,7 @@
         };
     };
 
-
+    
 
 
 
@@ -714,8 +745,8 @@
     LocationEventSource.prototype.onStart = function(fireEvent) {
         var success = function(position) {
             fireEvent(undefined,
-                      { latitude : plt.baselib.numbers.makeFloat(position.coords.latitude),
-                        longitude: plt.baselib.numbers.makeFloat(position.coords.longitude) });
+                      objectToEvent({ latitude : plt.baselib.numbers.makeFloat(position.coords.latitude),
+                                      longitude: plt.baselib.numbers.makeFloat(position.coords.longitude) }));
         };
         var fail = function(err) {
             // Quiet failure
@@ -761,7 +792,7 @@
 
         this.handler = function(evt) {
             if (element !== undefined) {
-                fireEvent(element, evt);
+                fireEvent(element, objectToEvent(evt));
             }
         };
         if (element !== undefined) {

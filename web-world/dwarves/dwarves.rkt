@@ -1,10 +1,11 @@
 #lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world))
+(require (planet dyoo/whalesong/web-world)
+         (planet dyoo/whalesong/resource))
 (define-resource index.html)
 
 ;; make-item: string -> view
 (define (make-item name)
-  (view-bind (sexp->view `(li ,name))
+  (view-bind (->view `(li ,name))
              "click"
              hide-on-click))
 

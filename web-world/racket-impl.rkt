@@ -12,6 +12,7 @@
          update-view-form-value
          )
 
+
 (define (big-bang world . handlers)
   (error 'big-bang "Please run in JavaScript context."))
 
@@ -75,3 +76,10 @@
 
 (define (update-view-form-value val)
   (error 'view-form-value "Please run in JavaScript context."))
+
+
+(define (view-show)
+  (error 'view-show "Please run in JavaScript context."))
+
+(define (view-hide)
+  (error 'view-hide "Please run in JavaScript context."))

@@ -36,6 +36,9 @@
                     update-view-text
 
                     view-bind
+
+                    view-show
+                    view-hide
                     
                     view-attr
                     update-view-attr

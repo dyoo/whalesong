@@ -297,6 +297,31 @@
             });
     };
 
+    MockView.prototype.show = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).show().get(0));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                view.focus.show();
+            }
+        )
+    };
+
+    MockView.prototype.hide = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).hide().get(0));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                view.focus.hide();
+            }
+        )
+    };
+
+
 
     //////////////////////////////////////////////////////////////////////
 
@@ -1122,6 +1147,26 @@
             var value = checkSymbolOrString(MACHINE, 'update-view-form-value', 1).toString();
             return view.updateFormValue(value);
         });
+
+    EXPORTS['view-show'] = makePrimitiveProcedure(
+        'view-show',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'show', 0);
+            return view.show(value);
+        });
+
+
+    EXPORTS['hide'] = makePrimitiveProcedure(
+        'hide',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'hide', 0);
+            return view.hide(value);
+        });
+
+
+
 
 
 

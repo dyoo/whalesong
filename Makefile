@@ -46,3 +46,7 @@ doc:
 
 setup:
 	raco setup -P dyoo whalesong.plt 1 2
+
+
+planet-link:
+	raco planet link dyoo whalesong.plt 1 4 .

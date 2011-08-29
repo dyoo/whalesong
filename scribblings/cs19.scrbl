@@ -61,8 +61,8 @@ fermi ~/work/whalesong/examples $
 }|
 
 
-There are examples in the @filepath{whalesong/examples} and
-@filepath{whalesong/web-world/examples}.
+There are examples in the @link["https://github.com/dyoo/whalesong/tree/master/examples"]{@filepath{whalesong/examples}} and
+@link["https://github.com/dyoo/whalesong/tree/master/web-world/examples"]{@filepath{whalesong/web-world/examples}}.
 
 
 
@@ -84,18 +84,18 @@ This library presents a functional version of the DOM in the form of a
 
 
 @defproc[(big-bang [w world]
-                   [h big-bang-handlder] ...) world]{
+                   [h big-bang-handler] ...) world]{
 Start a big bang computation.
 }
 @defproc[(initial-view [x any]) big-bang-handler]{
 Provide an initial view for the big-bang.}
-@defproc[(stop-when ([w world] [dom view] -> boolean)) big-bang-handler]{
-Tells @racket[big-bang] the predicate for terminating.
+@defproc[(stop-when [stop? ([w world] [dom view] ->  boolean)]) big-bang-handler]{
+Tells @racket[big-bang] the predicate for termination.
 }
-@defproc[(on-tick ([w world] [v view] -> world)) big-bang-handler]{
+@defproc[(on-tick [tick-f ([w world] [v view] -> world)]) big-bang-handler]{
 Tells @racket[big-bang] to update the world during clock ticks.
 }
-@defproc[(to-draw ([w world] [v view] -> view)) big-bang-handler]{
+@defproc[(to-draw [draw-f ([w world] [v view] -> view)]) big-bang-handler]{
 Tells @racket[big-bang] how to update the rendering of the world.
 }
 
@@ -104,7 +104,7 @@ Tells @racket[big-bang] how to update the rendering of the world.
 @subsection{Views}
 
 @defproc[(->view [x any]) view]{
-Coerse a value into a view.  Common values for @racket[x] include resources.
+Coerse a value into a view.  Common values for @racket[x] include @tech{resource}s.
 }
 
 @defproc[(view-focus [v view] [selector String]) view]{
@@ -128,13 +128,13 @@ Move the focus to the parent.}
 Move the view to the first child.}
 
 @defproc[(view-text [v view]) string]{
-Get the string content at the focus.
+Get the textual content at the focus.
 }
-@defproc[(update-view-text) view]{
-Set the string content at the focus.}
+@defproc[(update-view-text [v view] [s string]) view]{
+Update the textual content at the focus.}
 
-@defproc[(view-bind [v view] [type string] [world-updater world-updater]) view]{
-Attach a world-updating event.
+@defproc[(view-bind [v view] [type string] [world-updater ([w world] [v view] -> world)]) view]{
+Attach a world-updating event to the focus.
 
 Common event types include @racket["click"], @racket["trigger"],
 @racket["hover"].}
@@ -177,8 +177,8 @@ Add the dom node @racket[d] as the last child of the focused node.}
 @section{Including external resources}
 @defmodule/this-package[resource]
 
-Programs may need to use external file resources that aren't
-themselves Racket programs, but instead some other kind of data.
+Programs may need to use an external file @deftech{resource} that isn't
+itself a Racket program, but instead some other kind of data.
 Graphical programs will often use @filepath{.png}s, and web-related
 programs @filepath{.html}s, for example.  Whalesong provides the
 @racketmodname/this-package[resource] library to refer and use these

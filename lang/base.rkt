@@ -5,17 +5,10 @@
                      ;; Don't publically export the bindings from #%paramz.
                      exception-handler-key
                      parameterization-key
-                     break-enabled-key
-                     
-                     ;; Use the traced app
-                     #;#%app)
+                     break-enabled-key)
+         (all-from-out "private/list.rkt"))
          
-         (all-from-out "private/list.rkt")
-         
-         #;(rename-out [traced-app #%app]))
-
-(require "private/list.rkt"
-         "private/traced-app.rkt")
+(require "private/list.rkt")
 
 
 ;; Kludge: This forces modbeg to be compiled and packaged.

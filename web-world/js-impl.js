@@ -10,6 +10,8 @@
     var PAUSE = plt.runtime.PAUSE;
     var isString = plt.baselib.strings.isString;
     var makeList = plt.baselib.lists.makeList;
+    var makePair = plt.baselib.lists.makePair;
+    var makeSymbol = plt.baselib.symbols.makeSymbol;
 
 
 
@@ -615,7 +617,7 @@
                                                plt.baselib.numbers.makeFloat(val)),
                                       result);
                 } else if (typeof(val) === 'string') {
-                    result = makePair(makeList(makeSymbol(key), val)
+                    result = makePair(makeList(makeSymbol(key), val),
                                       result);
                 }                         
             }

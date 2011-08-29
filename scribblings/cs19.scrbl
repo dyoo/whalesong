@@ -65,8 +65,123 @@ fermi ~/whalesong/examples $
 }|
 
 
-There are examples in the @link["https://github.com/dyoo/whalesong/tree/master/examples"]{@filepath{whalesong/examples}} and
+@section{Examples}
+
+There are examples in the
+@link["https://github.com/dyoo/whalesong/tree/master/examples"]{@filepath{whalesong/examples}}
+and
 @link["https://github.com/dyoo/whalesong/tree/master/web-world/examples"]{@filepath{whalesong/web-world/examples}}.
+Let's look at a few of them.
+
+
+
+@subsection{Hello world}
+
+Let's try making a simple, standalone executable.  At the moment, the
+program must be written in the base language of @racket[(planet
+dyoo/whalesong)].  This restriction unfortunately  prevents arbitrary
+@racketmodname[racket/base] programs from compiling at the moment;
+the developers (namely, dyoo) will be working to remove this
+restriction as quickly as possible.
+
+
+Write a @filepath{hello.rkt} with the following content
+@filebox["hello.rkt"]{
+@codeblock{
+    #lang planet dyoo/whalesong
+    (display "hello world")
+    (newline)
+}}
+This program is a regular Racket program, and can be executed normally,
+@verbatim|{
+$ racket hello.rkt 
+hello world
+$
+}|
+However, it can also be packaged with @filepath{whalesong}.
+@verbatim|{
+    $ whalesong build hello.rkt
+
+    $ ls -l hello.xhtml
+    -rw-rw-r-- 1 dyoo nogroup 692213 Jun  7 18:00 hello.xhtml
+}|
+Running @tt{whalesong build} on a Racket program will produce a self-contained
+@filepath{.xhtml} file.  If you open this file in your favorite web browser,
+you should see a triumphant message show on screen.
+
+
+
+
+@subsection{Tick tock}
+
+Let's do something a little more interesting, and create a ticker that
+counts on the screen.
+
+The first thing we can do is mock up a web page with a user interface, like this.
+@filebox["index.html"]{
+@verbatim|{
+<html>
+  <head><title>My simple program</title></head>
+  <body>
+    <p>The current counter is: <span id="counter">fill-me-in</span></p>
+  </body>
+</html>
+}|
+}
+We can even look at this in a standard web browser.
+
+Once we're happy with the statics of our program, we can inject dynamic behavior.
+Write a file called @filepath{tick-tock.rkt} with the following content.
+@filebox["tick-tock.rkt"]{
+@codeblock|{
+#lang planet dyoo/whalesong
+(require (planet dyoo/whalesong/web-world)
+         (planet dyoo/whalesong/resource))
+
+(define-resource index.html)
+
+;; draw: world view -> view
+(define (draw world dom)
+  (update-view-text (view-focus dom "#counter") world))
+
+
+;; tick: world view -> world
+(define (tick world dom)
+  (add1 world))
+
+
+;; stop?: world view -> boolean
+(define (stop? world dom)
+  (> world 10))
+
+(big-bang 0
+          (initial-view index.html)
+          (to-draw draw)
+          (on-tick tick 1)
+          (stop-when stop?))
+}|
+}
+
+Several things are happening here.
+@itemize[
+
+@item{We @racket[require] a few libraries to get us some additional
+behavior; in particular, @racketmodname/this-package[web-world] to let
+us write event-driven web-based programs, and @racketmodname/this-package[resource]
+to give us access to external resources.}
+
+@item{We use @racket[define-resource] to refer to external files, like @filepath{index.html} that
+we'd like to include in our program.}
+
+@item{We use @racket[big-bang] to start up a computation that
+responses to events.  In this example, that's clock ticks introduced
+by @racket[on-tick], though because we're on the web, we can
+bind to many other kinds of web events (by using @racket[view-bind]).}
+]
+
+The rest of this document describes the API.
+
+
 
 
 
@@ -94,12 +209,50 @@ provides additional information about the event that triggered the callback.
 Start a big bang computation.
 }
 @defproc[(initial-view [x any]) big-bang-handler]{
-Provide an initial view for the big-bang.}
-@defproc[(stop-when [stop? ([w world] [dom view] ->  boolean)]) big-bang-handler]{
-Tells @racket[big-bang] the predicate for termination.
+Provide an initial view for the big-bang.  Normally, @racket[x] will be a resource
+to a web page.
+@codeblock|{
+...
+(define-resource page1.html)
+...
+(big-bang ...
+          (initial-view page1.html))
+}|
 }
-@defproc[(on-tick [tick-f ([w world] [v view] [e event]? -> world)]) big-bang-handler]{
+
+
+@defproc[(stop-when [stop? ([w world] [dom view] ->  boolean)]) big-bang-handler]{
+Tells @racket[big-bang] when to stop.
+@codeblock|{
+...
+(define-struct world (given expected))
+...
+
+;; stop?: world view -> boolean
+(define (stop? world dom)
+  (string=? (world-given world) (world-expected world)))
+
+(big-bang ...
+          (stop-when stop?))
+}|
+}
+
+
+@defproc*[(((on-tick [tick-f ([w world] [v view] [e event]? -> world)] [delay real]) big-bang-handler)
+           ((on-tick [tick-f ([w world] [v view] [e event]? -> world)]) big-bang-handler))]{
 Tells @racket[big-bang] to update the world during clock ticks.
+
+By default, this will send a clock tick 28 times a second, but if
+given @racket[delay], it will use that instead.
+@codeblock|{
+...
+;; tick: world dom -> world
+(define (tick world view)
+  (add1 world))
+
+(big-bang ...
+          (on-tick tick 5)) ;; tick every five seconds
+}|
 }
 
 
@@ -112,7 +265,16 @@ events.
 
 The optional @tech{event} argument will contain numbers for
 @racket["latitude"] and @racket["longitude"].
-
+@codeblock|{
+...
+;; move: world view event -> world
+(define (move world dom event)
+  (list (event-ref event "latitude")
+        (event-ref event "longitude")))
+...
+(big-bang ...
+          (on-mock-location-change move))
+}|
 }
 
 
@@ -123,13 +285,37 @@ received by the
 
 The optional @tech{event} argument will contain numbers for
 @racket["latitude"] and @racket["longitude"].
+@codeblock|{
+...
+;; move: world view event -> world
+(define (move world dom event)
+  (list (event-ref event "latitude")
+        (event-ref event "longitude")))
+...
+(big-bang ...
+          (on-location-change move))
+}|
 }
 
 
 
 
 @defproc[(to-draw [draw-f ([w world] [v view] -> view)]) big-bang-handler]{
-Tells @racket[big-bang] how to update the rendering of the world.
+Tells @racket[big-bang] how to update the rendering of the world.  The draw
+function will be called every time an event occurs.
+
+@codeblock|{
+...
+(define-struct world (name age))
+
+;; draw: world view -> view
+(define (draw world dom)
+  (update-view-text (view-focus dom "#name-span")
+                    (world-name world)))
+...
+(big-bang ...
+          (to-draw draw))
+}|
 }
 
 
@@ -216,9 +402,16 @@ Add the dom node @racket[d] as the last child of the focused node.}
 
 
 @subsection{Events}
-An @deftech{event} is a structure that holds name-value pairs.
 
-@defstruct[event ([kvpairs (listof (list symbol value))])]{}
+An @deftech{event} is a structure that holds name-value pairs.
+Whenever an event occurs in web-world, it may include some auxiliary
+information about the event.  As a concrete example, location events
+from @racket[on-location-change] and @racket[on-mock-location-change]
+can send latitude and longitude values, as long as the world callback
+can accept the event as an argument.
+
+
+@defstruct[event ([kvpairs (listof (list symbol (or/c string number)))])]{}
 
 @defproc[(event-ref [evt event?] [name (or/c symbol string)]) value]{
 Get an value from the event, given its @racket[name].
@@ -227,8 +420,6 @@ Get an value from the event, given its @racket[name].
 @defproc[(event-keys [evt event?]) (listof symbol)]{
 Get an list of the event's keys.
 }
-
-
 
 
 

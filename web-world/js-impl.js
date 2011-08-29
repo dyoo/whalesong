@@ -261,16 +261,14 @@
 
         // HACK: every node that is bound needs to have an id.  We
         // enforce this by mutating the node.
-        if (this.cursor.node.id === undefined) {
+        if (! this.cursor.node.id) {
             this.cursor.node.id = ("__webWorldId_" + mockViewIdGensym++);
-        }
-            
+        }   
         return this.act(
             function(cursor) {
                 var newCursor = cursor.replaceNode($(cursor.node).clone(true).get(0));
                 var handler = new EventHandler(name, 
-                                               new DomEventSource(name,
-                                                                  newCursor.node), 
+                                               new DomEventSource(name, newCursor.node), 
                                                worldF);
                 if (currentBigBangRecord !== undefined) {
                     currentBigBangRecord.startEventHandler(handler);
@@ -281,15 +279,20 @@
                 var handler = new EventHandler(name,
                                                new DomEventSource(
                                                    name,
-                                                   $(that.cursor.node).attr('id')),
+                                                   that.cursor.node.id),
                                                worldF);
                 return eventHandlers.concat([handler]);
             },
             function(view) {
+                // HACK: every node that is bound needs to have an id.  We
+                // enforce this by mutating the node.
+                if (! view.focus.get(0).id) {
+                    view.focus.get(0).id = ("__webWorldId_" + mockViewIdGensym++);
+                }
                 var handler = new EventHandler(name, 
                                                new DomEventSource(
                                                    name, 
-                                                   view.focus.get(0)),
+                                                   view.focus.get(0).id),
                                                worldF);
                 view.addEventHandler(handler);
                 currentBigBangRecord.startEventHandler(handler);
@@ -829,6 +832,8 @@
                         mockView = mockView.updateFocus('#' + nextEvent.who.id);
                     }
 
+                    console.log('dispatching event', nextEvent);
+
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
                     racketWorldCallback(MACHINE, 
@@ -1181,7 +1186,7 @@
         3,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-bind', 0);
-            var name = checkSymbolOrString(MACHINE, 'view-bind', 1).toString();
+            var name = checkSymbolOrString(MACHINE, 'view-bind', 1);
             var worldF = wrapFunction(checkProcedure(MACHINE, 'view-bind', 2));
             return view.bind(name, worldF);
         });

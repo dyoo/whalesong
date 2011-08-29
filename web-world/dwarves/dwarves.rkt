@@ -36,5 +36,5 @@
 
 (big-bang 0
           (initial-view index.html)
-          (on-tick tick 10)
+          (on-tick tick .5)
           (to-draw draw))

@@ -695,7 +695,7 @@
 
     MockLocationEventSource.prototype.onStop = function() {
         if (this.elt !== undefined) { 
-            document.body.removeChild(mockLocationSetter);
+            document.body.removeChild(this.elt);
             this.elt = undefined;
         };
     };
@@ -715,7 +715,7 @@
         var success = function(position) {
             fireEvent(undefined,
                       { latitude : plt.baselib.numbers.makeFloat(position.coords.latitude),
-                        longitude: plt.baselib.numbers.makeFloat(position.coords.longitude) };
+                        longitude: plt.baselib.numbers.makeFloat(position.coords.longitude) });
         };
         var fail = function(err) {
             // Quiet failure
@@ -924,29 +924,36 @@
 
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
-                    racketWorldCallback(MACHINE, 
-                                        world,
-                                        mockView,
-                                        // data, 
-                                        function(newWorld) {
-                                            world = newWorld;
-                                            stopWhen(MACHINE,
-                                                     world,
-                                                     mockView,
-                                                     function(shouldStop) {
-                                                         if (shouldStop) {
-                                                             refreshView(
-                                                                 function() {
-                                                                     onCleanRestart();
-                                                                 },
-                                                                 fail);
-                                                         } else {
-                                                             dispatchEventsInQueue(success, fail);
-                                                         }
-                                                     },
-                                                     fail);
-                                        },
-                                        fail);
+                    var onGoodWorldUpdate = 
+                        function(newWorld) {
+                            world = newWorld;
+                            stopWhen(MACHINE,
+                                     world,
+                                     mockView,
+                                     function(shouldStop) {
+                                         if (shouldStop) {
+                                             refreshView(onCleanRestart,
+                                                         fail);
+                                         } else {
+                                             dispatchEventsInQueue(success, fail);
+                                         }
+                                     },
+                                     fail);
+                        };
+                    if (plt.baselib.arity.isArityMatching(racketWorldCallback.racketArity, 3)) {
+                        racketWorldCallback(MACHINE, 
+                                            world,
+                                            mockView,
+                                            data,
+                                            onGoodWorldUpdate,
+                                            fail);
+                    } else {
+                        racketWorldCallback(MACHINE, 
+                                            world,
+                                            mockView,
+                                            onGoodWorldUpdate,
+                                            fail);
+                    }
                 } else {
                     dispatchingEvents = false;
                     success();
@@ -993,7 +1000,7 @@
     };
 
     var wrapFunction = function(proc) {
-        return function(MACHINE) {
+        var f = function(MACHINE) {
             var success = arguments[arguments.length - 2];
             var fail = arguments[arguments.length - 1];
             var args = [].slice.call(arguments, 1, arguments.length - 2);
@@ -1003,6 +1010,8 @@
                                                                         success,
                                                                         fail].concat(args));
         };
+        f.racketArity = proc.racketArity;
+        return f;
     };
 
 

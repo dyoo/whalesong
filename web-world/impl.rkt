@@ -28,9 +28,8 @@
                     ;; draw and update the view
                     to-draw
 
-                    with-output-to
-                    open-output-element
-                    
+                    ;; helper: open an element as an output port.
+                    open-output-element                    
                     
                     ;; coerse to view
                     ->view

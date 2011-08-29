@@ -272,6 +272,23 @@
 
 
 
+    installPrimitiveProcedure(
+        'current-error-port',
+        makeList(0, 1),
+        function (MACHINE) {
+            if (MACHINE.argcount === 1) {
+                MACHINE.params['currentErrorPort'] = 
+                    checkOutputPort(MACHINE, 'current-output-port', 0);
+                return VOID;
+            } else {
+                return MACHINE.params['currentOutputPort'];
+            }
+        });
+
+
+
+
+
 
 
     installPrimitiveProcedure(

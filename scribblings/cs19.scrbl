@@ -475,3 +475,41 @@ For example,
 }
 
 
+
+
+@section{Tips and Tricks}
+@subsection{Hiding standard output or directing it to an element}
+
+@declare-exporting/this-package[web-world]
+
+For a web-world program, output written by normal side effects such as
+@racket[printf] or @racket[display] is still written to the current
+output port, whose default behavior appends to the end of
+@tt{document.body}.  You may want to either disable such printing or
+direct the output to a particular element on the page.  For such
+purposes, use a combination of @racket[current-output-port] and
+@racket[open-output-element].
+
+For example, in
+@codeblock|{
+...
+(current-output-port (open-output-element "stdout-div"))
+...
+(big-bang ...
+          (on-tick (lambda (world dom)
+                     (printf "Tick!\n")
+                     (add1 world)))
+          ...)
+}|
+
+All subsequent I/O side effects after the call to
+@racket[current-output-port] will be written out to the
+@tt{stdout-div}, which can be easily styled with @tt{display: none} to
+hide it from normal browser display.
+
+
+@defproc[(open-output-element [id string]) output-port]{
+Opens an output port that will be directed to write to the DOM element
+whose id is @racket[id].  Note: writing to this port shouldn't fail,
+even if the id does not currently exist on the page.
+}

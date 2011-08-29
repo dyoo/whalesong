@@ -21,7 +21,6 @@
          view-hide
          view-append-child
 
-         with-output-to
          open-output-element)
 
 
@@ -119,10 +118,6 @@
 
 (define (view-append-child dom)
   (error 'view-append "Please run in JavaScript context."))
-
-
-(define (with-output-to output-port)
-  (error 'with-output-to "Please run in JavaScript context."))
 
 
 (define (open-output-element id)

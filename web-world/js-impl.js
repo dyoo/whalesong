@@ -1109,9 +1109,9 @@
 
     DomElementOutputPort.prototype.writeDomNode = function (MACHINE, v) {
         $("#" + this.id).append(v);
+        $(v).trigger({type : 'afterAttach'});
+        $('*', v).trigger({type : 'afterAttach'});
     };
-
-
 
 
 
@@ -1455,13 +1455,6 @@
                                     onChange);
         });
 
-    EXPORTS['with-output-to'] = makePrimitiveProcedure(
-        'with-output-to',
-        1,
-        function(MACHINE) {
-            var outputPort = checkOutputPort(MACHINE, 'with-output-to', 0);
-            return new WithOutputToHandler(outputPort);
-        });
 
     EXPORTS['open-output-element'] = makePrimitiveProcedure(
         'open-output-element',

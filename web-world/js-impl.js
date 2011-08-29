@@ -261,9 +261,8 @@
 
         // HACK: every node that is bound needs to have an id.  We
         // enforce this by mutating the node.
-        if ($(this.cursor.node).attr("id") === undefined) {
-            $(this.cursor.node).attr("id",
-                                ("__webWorldId_" + mockViewIdGensym++));
+        if (this.cursor.node.id === undefined) {
+            this.cursor.node.id = ("__webWorldId_" + mockViewIdGensym++);
         }
             
         return this.act(
@@ -330,9 +329,9 @@
                     while (cursor.canRight()) {
                         cursor = cursor.right();
                     }
-                    return cursor.insertRight(domNode);
+                    return cursor.insertRight(domNode.cloneNode(true));
                 } else {
-                    return cursor.insertDown(domNode);
+                    return cursor.insertDown(domNode.cloneNode(true));
                 }
             },
             function(eventHandlers) { return eventHandlers; },
@@ -481,12 +480,12 @@
             } catch (exn) {
                 return onFail(exn);
             }
-            return onSuccess(dom);
+            return onSuccess(dom.get(0));
         } else if (isMockView(x)) {
             return onSuccess(x.cursor.top().node);
         } else {
             try {
-                dom = $(plt.baselib.format.toDomNode(x))
+                dom = plt.baselib.format.toDomNode(x);
             } catch (exn) {
                 return onFail(exn);
             }
@@ -496,8 +495,8 @@
 
 
     var isDomNode = function(x) {
-        if (return x.hasOwnProperty(nodeType) &&
-            x.nodeType === 1);
+        return (x.hasOwnProperty('nodeType') &&
+                x.nodeType === 1);
     };
 
 
@@ -1225,13 +1224,33 @@
 
 
     
-    EXPORTS['view-append-child'] = makePrimitiveProcedure(
+    EXPORTS['view-append-child'] = makeClosure(
         'view-append-child',
         2,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-append-child', 1);
-            var dom = coerseToDomNode(MACHINE.env[MACHINE.env.length - 2]);
-            return view.appendChild(dom);
+            var view = checkMockView(MACHINE, 'view-append-child', 0);
+            var oldArgcount = MACHINE.argcount;
+            var x = MACHINE.env[MACHINE.env.length - 2];
+            PAUSE(function(restart) {
+                coerseToDomNode(x,
+                                function(dom) {
+                                     restart(function(MACHINE) {
+                                         MACHINE.argcount = oldArgcount;
+                                         var updatedView = view.appendChild(dom);
+                                         finalizeClosureCall(MACHINE, updatedView);
+                                     });
+                                },
+                                function(err) {
+                                    restart(function(MACHINE) {
+                                         plt.baselib.exceptions.raise(
+                                             MACHINE, 
+                                             new Error(plt.baselib.format.format(
+                                                 "unable to translate ~s to dom node: ~a",
+                                                 [x, exn.message])));
+                                        
+                                    });
+                                });
+            });
         });
 
 

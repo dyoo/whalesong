@@ -23,7 +23,7 @@
 ;; until we're all done.
 (define (draw w v)
   (cond [(< w (length dwarf-names))
-         (view-append-child (view-focus v "ul")
+         (view-append-child (view-focus v "#list")
                             (make-item (list-ref dwarf-names w)))]
         [else
          v]))
@@ -36,5 +36,5 @@
 
 (big-bang 0
           (initial-view index.html)
-          (on-tick tick 1)
+          (on-tick tick 10)
           (to-draw draw))

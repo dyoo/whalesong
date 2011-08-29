@@ -175,7 +175,7 @@ Attach a world-updating event to the focus.  When the world-updater is
 called, the view will be focused on the element that triggered the
 event.
 
-Common event types include @racket["click"], @racket["hover"], @racket["change"].}
+Common event types include @racket["click"], @racket["mouseenter"], @racket["change"].}
 
 @defproc[(view-show [v view]) view]{
 Show the element at the focus.

@@ -1,9 +1,8 @@
 #lang s-exp "../lang/js/js.rkt"
 
 
-;; Make sure the resource library is loaded.
-(require "../resource.rkt")
-
+;; Make sure the resource library is loaded, as well as the event structure library.
+(require "../resource.rkt" "event.rkt")
 
 (declare-implementation
  #:racket "racket-impl.rkt"
@@ -20,6 +19,12 @@
                     ;; clock tick handler
                     on-tick
 
+                    ;; location changes
+                    on-mock-location-change
+
+                    ;; location changes (for real!)
+                    on-location-change
+                    
                     ;; draw and update the view
                     to-draw
                     

@@ -273,7 +273,6 @@ MACHINE.modules[~s] =
      ;; last
      on-last-src))
   
-  
   (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
   (fprintf op "    plt.runtime.ready(function() {")
   (fprintf op "plt.runtime.setReadyFalse();")

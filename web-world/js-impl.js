@@ -9,6 +9,9 @@
     var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
     var PAUSE = plt.runtime.PAUSE;
     var isString = plt.baselib.strings.isString;
+    var makeList = plt.baselib.lists.makeList;
+    var makePair = plt.baselib.lists.makePair;
+    var makeSymbol = plt.baselib.symbols.makeSymbol;
 
 
 
@@ -21,6 +24,10 @@
 
     var resourceStructType = 
         MACHINE.modules['whalesong/resource/structs.rkt'].namespace['struct:resource'];
+
+    var eventStructType = 
+        MACHINE.modules['whalesong/web-world/event.rkt'].namespace['struct:event'];
+
 
 
     var domToCursor = function(dom) {
@@ -597,6 +604,29 @@
 
 
 
+    // convert an object to an event.
+    // At the moment, we only copy over those values which are numbers or strings.
+    var objectToEvent = function(obj) {
+        var key, val;
+        var result = makeList();
+        for (key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                val = obj[key];
+                if (typeof(val) === 'number') {
+                    result = makePair(makeList(makeSymbol(key),
+                                               plt.baselib.numbers.makeFloat(val)),
+                                      result);
+                } else if (typeof(val) === 'string') {
+                    result = makePair(makeList(makeSymbol(key), val),
+                                      result);
+                }                         
+            }
+        }
+        return eventStructType.constructor(result);
+    };
+
+
+
 
 
     /* Event sources.
@@ -643,8 +673,9 @@
 
     TickEventSource.prototype.onStart = function(fireEvent) {
         this.id = setInterval(
-            function() {
-                fireEvent(undefined);
+            function(evt) {
+                fireEvent(undefined,
+                          objectToEvent(evt));
             },
             this.delay);
     };
@@ -655,6 +686,93 @@
             this.id = undefined;
         }
     };
+
+
+
+
+
+
+    var MockLocationEventSource = function() {
+        this.elt = undefined;
+    };
+    MockLocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+    MockLocationEventSource.prototype.onStart = function(fireEvent) {
+        var mockLocationSetter = document.createElement("div");
+	    
+        var latInput = document.createElement("input");
+        latInput.type = "text";
+	
+        var latOutput = document.createElement("input");
+        latOutput.type = "text";
+        
+        var submitButton = document.createElement("input");
+        submitButton.type = "button";
+        submitButton.value = "send lat/lng";
+        submitButton.onclick = function() {
+            fireEvent(undefined,
+                      objectToEvent({ latitude: Number(latInput.value),
+                                      longitude: Number(latOutput.value)}));
+            return false;
+        };
+	
+        mockLocationSetter.style.border = "1pt solid black";
+        mockLocationSetter.appendChild(
+            document.createTextNode("mock location setter"));
+        mockLocationSetter.appendChild(latInput);
+        mockLocationSetter.appendChild(latOutput);
+        mockLocationSetter.appendChild(submitButton);
+        document.body.appendChild(mockLocationSetter);
+
+        this.elt = mockLocationSetter;
+    };
+
+    MockLocationEventSource.prototype.onStop = function() {
+        if (this.elt !== undefined) { 
+            document.body.removeChild(this.elt);
+            this.elt = undefined;
+        };
+    };
+
+    
+
+
+
+    // This version really does use the geolocation object.
+    var LocationEventSource = function() {
+        this.id = undefined;
+    };
+
+    LocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+
+    LocationEventSource.prototype.onStart = function(fireEvent) {
+        var success = function(position) {
+            fireEvent(undefined,
+                      objectToEvent(position.coords));
+        };
+        var fail = function(err) {
+            // Quiet failure
+        }
+        if (!!(navigator.geolocation)) {
+            navigator.geolocation.getCurrentPosition(success, fail);
+            this.id = navigator.geolocation.watchPosition(success, fail); 
+        }
+    };
+    
+    LocationEventSource.prototype.onStop = function() {
+        if (this.id !== undefined) { 
+            navigator.geolocation.clearWatch(this.id);
+            this.id = undefined;
+        };
+    };
+
+
+
+
+
+
+
+
+
 
 
     // DomElementSource: string (U DOM string) -> EventSource
@@ -676,7 +794,7 @@
 
         this.handler = function(evt) {
             if (element !== undefined) {
-                fireEvent(element, evt);
+                fireEvent(element, objectToEvent(evt));
             }
         };
         if (element !== undefined) {
@@ -839,29 +957,37 @@
 
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
-                    racketWorldCallback(MACHINE, 
-                                        world,
-                                        mockView,
-                                        // data, 
-                                        function(newWorld) {
-                                            world = newWorld;
-                                            stopWhen(MACHINE,
-                                                     world,
-                                                     mockView,
-                                                     function(shouldStop) {
-                                                         if (shouldStop) {
-                                                             refreshView(
-                                                                 function() {
-                                                                     onCleanRestart();
-                                                                 },
-                                                                 fail);
-                                                         } else {
-                                                             dispatchEventsInQueue(success, fail);
-                                                         }
-                                                     },
-                                                     fail);
-                                        },
-                                        fail);
+                    data = nextEvent.data[0];
+                    var onGoodWorldUpdate = 
+                        function(newWorld) {
+                            world = newWorld;
+                            stopWhen(MACHINE,
+                                     world,
+                                     mockView,
+                                     function(shouldStop) {
+                                         if (shouldStop) {
+                                             refreshView(onCleanRestart,
+                                                         fail);
+                                         } else {
+                                             dispatchEventsInQueue(success, fail);
+                                         }
+                                     },
+                                     fail);
+                        };
+                    if (plt.baselib.arity.isArityMatching(racketWorldCallback.racketArity, 3)) {
+                        racketWorldCallback(MACHINE, 
+                                            world,
+                                            mockView,
+                                            data,
+                                            onGoodWorldUpdate,
+                                            fail);
+                    } else {
+                        racketWorldCallback(MACHINE, 
+                                            world,
+                                            mockView,
+                                            onGoodWorldUpdate,
+                                            fail);
+                    }
                 } else {
                     dispatchingEvents = false;
                     success();
@@ -908,7 +1034,7 @@
     };
 
     var wrapFunction = function(proc) {
-        return function(MACHINE) {
+        var f = function(MACHINE) {
             var success = arguments[arguments.length - 2];
             var fail = arguments[arguments.length - 1];
             var args = [].slice.call(arguments, 1, arguments.length - 2);
@@ -918,6 +1044,8 @@
                                                                         success,
                                                                         fail].concat(args));
         };
+        f.racketArity = proc.racketArity;
+        return f;
     };
 
 
@@ -1270,6 +1398,29 @@
             return view.id();
         });
 
+
+
+
+    EXPORTS['on-location-change'] = makePrimitiveProcedure(
+        'on-location-change',
+        1,
+        function(MACHINE) {
+            var onChange = wrapFunction(checkProcedure(MACHINE, 'on-location-change', 0));
+            return new EventHandler('on-location-change', 
+                                    new LocationEventSource(), 
+                                    onChange);
+        });
+
+
+    EXPORTS['on-mock-location-change'] = makePrimitiveProcedure(
+        'on-mock-location-change',
+        1,
+        function(MACHINE) {
+            var onChange = wrapFunction(checkProcedure(MACHINE, 'on-mock-location-change', 0));
+            return new EventHandler('on-mock-location-change', 
+                                    new MockLocationEventSource(), 
+                                    onChange);
+        });
 
 
 

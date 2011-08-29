@@ -83,6 +83,10 @@ functions.  One difference introduced by the web is the web page
 itself: because the page itself is a source of state, it too will be
 passed to callbacks.
 
+The world-updating callbacks may optionally take an @tech{event} object, which 
+provides additional information about the event that triggered the callback.
+
+
 This library presents a functional version of the DOM in the form of a
 @emph{view}.
 
@@ -96,9 +100,36 @@ Provide an initial view for the big-bang.}
 @defproc[(stop-when [stop? ([w world] [dom view] ->  boolean)]) big-bang-handler]{
 Tells @racket[big-bang] the predicate for termination.
 }
-@defproc[(on-tick [tick-f ([w world] [v view] -> world)]) big-bang-handler]{
+@defproc[(on-tick [tick-f ([w world] [v view] [e event]? -> world)]) big-bang-handler]{
 Tells @racket[big-bang] to update the world during clock ticks.
 }
+
+
+@defproc[(on-mock-location-change [location-f ([w world] [v view] [e event]? -> world)]) big-bang-handler]{
+Tells @racket[big-bang] to update the world during simulated movement.
+
+During the extent of a big-bang, a form widget will appear in the
+@tt{document.body} to allow you to manually send location-changing
+events.
+
+The optional @tech{event} argument will contain numbers for
+@racket["latitude"] and @racket["longitude"].
+
+}
+
+
+@defproc[(on-location-change [location-f ([w world] [v view] [e event]? -> world)]) big-bang-handler]{
+Tells @racket[big-bang] to update when the location changes, as
+received by the
+@link["http://dev.w3.org/geo/api/spec-source.html"]{Geolocation API}.
+
+The optional @tech{event} argument will contain numbers for
+@racket["latitude"] and @racket["longitude"].
+}
+
+
+
+
 @defproc[(to-draw [draw-f ([w world] [v view] -> view)]) big-bang-handler]{
 Tells @racket[big-bang] how to update the rendering of the world.
 }
@@ -137,7 +168,8 @@ Get the textual content at the focus.
 @defproc[(update-view-text [v view] [s string]) view]{
 Update the textual content at the focus.}
 
-@defproc[(view-bind [v view] [type string] [world-updater ([w world] [v view] -> world)]) view]{
+@defproc[(view-bind [v view] [type string] [world-updater ([w world] [v view]  [e event]? -> world)]) view]{
+Attach a world-updating event to the focus.
 
 Attach a world-updating event to the focus.  When the world-updater is
 called, the view will be focused on the element that triggered the
@@ -174,6 +206,19 @@ Update the form value of the node at the focus.}
 Add the dom node @racket[d] as the last child of the focused node.}
                     
 
+
+@subsection{Events}
+An @deftech{event} is a structure that holds name-value pairs.
+
+@defstruct[event ([kvpairs (listof (list symbol value))])]{}
+
+@defproc[(event-ref [evt event?] [name (or/c symbol string)]) value]{
+Get an value from the event, given its @racket[name].
+}
+
+@defproc[(event-keys [evt event?]) (listof symbol)]{
+Get an list of the event's keys.
+}
 
 
 

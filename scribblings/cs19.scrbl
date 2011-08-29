@@ -77,14 +77,12 @@ For the purposes of tour-guide, we'll be focusing on the
 Like the big-bang in regular world, the callbacks are world-to-world
 functions.  One difference introduced by the web is the web page
 itself: because the page itself is a source of state, it too will be
-passed to callbacks.
+passed to callbacks.  This library presents a
+functional version of the DOM in the form of a @tech{view}.
 
 The world-updating callbacks may optionally take an @tech{event} object, which 
 provides additional information about the event that triggered the callback.
 
-
-This library presents a functional version of the DOM in the form of a
-@emph{view}.
 
 
 @defproc[(big-bang [w world]
@@ -134,12 +132,22 @@ Tells @racket[big-bang] how to update the rendering of the world.
 
 @subsection{Views}
 
+A @deftech{view} is a functional representation of the browser DOM
+tree.  A view is always focused on an element, and the functions in
+this subsection show how to traverse and manipulate the view.
+
+
+
 @defproc[(->view [x any]) view]{
-Coerse a value into a view.  Common values for @racket[x] include @tech{resource}s.
+
+Coerse a value into a view whose focus is on the topmost element.
+Common values for @racket[x] include @tech{resource}s.
 }
 
+
 @defproc[(view-focus [v view] [selector String]) view]{
-Focuses the view on an element, given the @racket[selector].
+Focuses the view on an element, given the @racket[selector].  The view
+will be searched starting from the toplevelmost node.
 
 Selectors are currently restricted to @litchar{#id} selectors for the
 moment.

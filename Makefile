@@ -1,9 +1,10 @@
 # test-analyzer:
 # 	raco make -v --disable-inline test-analyzer.rkt
 # 	racket test-analyzer.rkt
+all: planet-link launcher
 
-launcher:
-	raco make -v --disable-inline whalesong.rkt
+
+launcher: whalesong
 	racket make-launcher.rkt
 
 whalesong: 
@@ -42,6 +43,11 @@ test-more:
 
 doc:
 	scribble  ++xref-in setup/xref load-collections-xref --redirect-main http://docs.racket-lang.org/ --dest generated-docs  --dest-name index.html scribblings/manual.scrbl
+
+
+cs19-doc:
+	scribble  ++xref-in setup/xref load-collections-xref --redirect-main http://docs.racket-lang.org/ --dest generated-docs  scribblings/cs19.scrbl
+
 
 
 setup:

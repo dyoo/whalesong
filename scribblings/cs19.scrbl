@@ -203,6 +203,16 @@ Add the dom node @racket[d] as the last child of the focused node.}
 @subsection{Events}
 An @deftech{event} is a structure that holds name-value pairs.
 
+@defstruct[event ([kvpairs (listof (list symbol value))])]{}
+
+@defproc[(event-ref [evt event?] [name (or/c symbol string)]) value]{
+Get an value from the event, given its @racket[name].
+}
+
+@defproc[(event-keys [evt event?]) (listof symbol)]{
+Get an list of the event's keys.
+}
+
 
 
 

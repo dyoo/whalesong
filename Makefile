@@ -4,7 +4,8 @@
 all: planet-link launcher
 
 
-launcher: whalesong
+launcher: 
+	raco make -v --disable-inline whalesong.rkt
 	racket make-launcher.rkt
 
 whalesong: 

@@ -60,7 +60,9 @@ Created new window in existing browser session.
 fermi ~/work/whalesong/examples $ 
 }|
 
-There are a few examples in the @filepath{whalesong/examples} directory.
+
+There are examples in the @filepath{whalesong/examples} and
+@filepath{whalesong/web-world/examples}.
 
 
 
@@ -68,28 +70,38 @@ There are a few examples in the @filepath{whalesong/examples} directory.
 @section{API}
 
 @defmodule/this-package[web-world]
+
 For the purposes of tour-guide, we'll be focusing on the
 @racketmodname/this-package[web-world] library in Whalesong.
 
+Like the big-bang in regular world, the callbacks are world-to-world
+functions.  One difference introduced by the web is the web page
+itself: because the page itself is a source of state, it too will be
+passed to callbacks.
+
+This library presents a functional version of the DOM in the form of a
+@emph{view}.
 
 
-
-
-@defproc[(big-bang) world]{
+@defproc[(big-bang [w world]
+                   [h big-bang-handlder] ...) world]{
 Start a big bang computation.
 }
-@defproc[(initial-view) big-bang-handler]{
+@defproc[(initial-view [x any]) big-bang-handler]{
 Provide an initial view for the big-bang.}
-@defproc[(stop-when) big-bang-handler]{
+@defproc[(stop-when ([w world] [dom view] -> boolean)) big-bang-handler]{
 Tells @racket[big-bang] the predicate for terminating.
 }
-@defproc[(on-tick) big-bang-handler]{
+@defproc[(on-tick ([w world] [v view] -> world)) big-bang-handler]{
 Tells @racket[big-bang] to update the world during clock ticks.
 }
-@defproc[(to-draw) big-bang-handler]{
+@defproc[(to-draw ([w world] [v view] -> view)) big-bang-handler]{
 Tells @racket[big-bang] how to update the rendering of the world.
 }
 
+
+
+@subsection{Views}
 
 @defproc[(->view [x any]) view]{
 Coerse a value into a view.  Common values for @racket[x] include resources.
@@ -98,7 +110,8 @@ Coerse a value into a view.  Common values for @racket[x] include resources.
 @defproc[(view-focus [v view] [selector String]) view]{
 Focuses the view on an element, given the @racket[selector].
 
-Selectors are currently restricted to @litchar{#id} selectors for now.
+Selectors are currently restricted to @litchar{#id} selectors for the
+moment.
 }
 
 
@@ -154,11 +167,6 @@ Update the form value of the node at the focus.}
 @defproc[(view-append-child [d dom]) view]{
 Add the dom node @racket[d] as the last child of the focused node.}
                     
-
-
-
-
-
 
 
 

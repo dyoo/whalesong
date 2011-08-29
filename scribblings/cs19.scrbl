@@ -106,8 +106,8 @@ However, it can also be packaged with @filepath{whalesong}.
     -rw-rw-r-- 1 dyoo nogroup 692213 Jun  7 18:00 hello.xhtml
 }|
 Running @tt{whalesong build} on a Racket program will produce a self-contained
-@filepath{.xhtml} file.  If you open this file in your favorite web browser,
-you should see a triumphant message show on screen.
+@filepath{.xhtml} file.  If we open this file in our favorite web browser,
+we should see a triumphant message show on screen.
 
 
 
@@ -260,7 +260,7 @@ given @racket[delay], it will use that instead.
 Tells @racket[big-bang] to update the world during simulated movement.
 
 During the extent of a big-bang, a form widget will appear in the
-@tt{document.body} to allow you to manually send location-changing
+@tt{document.body} to allow us to manually send location-changing
 events.
 
 The optional @tech{event} argument will contain numbers for
@@ -446,7 +446,7 @@ For example,
 (define-resource my-whale-image-resource "humpback.png")
 }|
 }
-As a convenience, you can also write
+As a convenience, we can also write
 @codeblock|{
 #lang planet dyoo/whalesong
 (require (planet dyoo/whalesong/resource))
@@ -482,17 +482,20 @@ For example,
 
 @declare-exporting/this-package[web-world]
 
-For a web-world program, output written by normal side effects such as
-@racket[printf] or @racket[display] is still written to the current
-output port, whose default behavior appends to the end of
-@tt{document.body}.  You may want to either disable such printing or
-direct the output to a particular element on the page.  For such
-purposes, use a combination of @racket[current-output-port] and
-@racket[open-output-element].
+For a web-world program, output is normally done by using
+@racket[to-draw].  However, side effecting functions, such as
+@racket[printf] or @racket[display], are still available, and are
+allowed to continue to append to @tt{document.body}.
 
-For example, in
+We may want to disable such printing or redirect it to a particular
+element on the page.  For such purposes, use a combination of
+@racket[current-output-port] and @racket[open-output-element] to
+redirect the output of these side effect functions to somewhere else.
+
+For example:
 @codeblock|{
 ...
+;; Redirect standard output to a div called "stdout-div".
 (current-output-port (open-output-element "stdout-div"))
 ...
 (big-bang ...
@@ -502,10 +505,12 @@ For example, in
           ...)
 }|
 
+
 All subsequent I/O side effects after the call to
 @racket[current-output-port] will be written out to the
 @tt{stdout-div}, which can be easily styled with @tt{display: none} to
 hide it from normal browser display.
+
 
 
 @defproc[(open-output-element [id string]) output-port]{

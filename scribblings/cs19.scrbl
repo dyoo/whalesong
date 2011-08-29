@@ -168,7 +168,7 @@ Several things are happening here.
 @item{We @racket[require] a few libraries to get us some additional
 behavior; in particular, @racketmodname/this-package[web-world] to let
 us write event-driven web-based programs, and @racketmodname/this-package[resource]
-to give us access to external resources.}
+to give us access to external @tech{resource}s.}
 
 @item{We use @racket[define-resource] to refer to external files, like @filepath{index.html} that
 we'd like to include in our program.}
@@ -209,7 +209,7 @@ provides additional information about the event that triggered the callback.
 Start a big bang computation.
 }
 @defproc[(initial-view [x any]) big-bang-handler]{
-Provide an initial view for the big-bang.  Normally, @racket[x] will be a resource
+Provide an initial view for the big-bang.  Normally, @racket[x] will be a @tech{resource}
 to a web page.
 @codeblock|{
 ...

@@ -747,8 +747,7 @@
     LocationEventSource.prototype.onStart = function(fireEvent) {
         var success = function(position) {
             fireEvent(undefined,
-                      objectToEvent({ latitude : plt.baselib.numbers.makeFloat(position.coords.latitude),
-                                      longitude: plt.baselib.numbers.makeFloat(position.coords.longitude) }));
+                      objectToEvent(position.coords));
         };
         var fail = function(err) {
             // Quiet failure

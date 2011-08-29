@@ -10,6 +10,9 @@
 
          view-form-value
          update-view-form-value
+
+         view-show
+         view-hide
          )
 
 

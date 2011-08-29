@@ -753,7 +753,8 @@
         var fail = function(err) {
             // Quiet failure
         }
-        if (!!navigator.geolocation) {
+        if (!!(navigator.geolocation)) {
+            navigator.geolocation.getCurrentPosition(success, fail);
             this.id = navigator.geolocation.watchPosition(success, fail); 
         }
     };
@@ -957,6 +958,7 @@
 
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
+                    data = nextEvent.data[0];
                     var onGoodWorldUpdate = 
                         function(newWorld) {
                             world = newWorld;

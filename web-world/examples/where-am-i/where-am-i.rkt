@@ -22,14 +22,18 @@
 
 
 (define (draw world dom)
-  (define v1 (update-view-text (view-focus dom "#real-location")
-                               (format "lat=~a, lng=~a"
-                                       (coord-lat (world-real world))
-                                       (coord-lng (world-real world)))))
-  (define v2 (update-view-text (view-focus v1 "#mock-location")
-                               (format "lat=~a, lng=~a"
-                                       (coord-lat (world-mock world))
-                                       (coord-lng (world-mock world)))))
+  (define v1 (if (coord? (world-real world))
+                 (update-view-text (view-focus dom "#real-location")
+                                   (format "lat=~a, lng=~a"
+                                           (coord-lat (world-real world))
+                                           (coord-lng (world-real world))))
+                 dom))
+  (define v2 (if (coord? (world-mock world))
+                 (update-view-text (view-focus v1 "#mock-location")
+                                   (format "lat=~a, lng=~a"
+                                           (coord-lat (world-mock world))
+                                           (coord-lng (world-mock world))))
+                 v1))
   v2)
 
 

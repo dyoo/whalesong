@@ -478,9 +478,10 @@
 		    // General error condition: just exit out
 		    // of the trampoline and call the current error handler.
 		    MACHINE.running = false;
-                    if (baselib.exceptions.isExn(e)) {
+                    if (baselib.exceptions.isRacketError(e) &&
+                        baselib.exceptions.isExn(e.racketError)) {
                         contMarks = MACHINE.captureContinuationMarks();
-                        baselib.exceptions.exnSetContMarks(e, contMarks);
+                        baselib.exceptions.exnSetContMarks(e.racketError, contMarks);
                     }
                     MACHINE.params.currentErrorHandler(MACHINE, e);
 	            return;

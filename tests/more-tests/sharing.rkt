@@ -56,3 +56,18 @@
   (displayln (eq? (vector-ref v 0) v))
   (displayln (vector-ref v 1))
   (displayln (vector-length v)))
+
+
+
+(define-struct person (name friends) #:mutable)
+(let-values ([(a b c)
+              (shared ([a (make-person "jill" (list b c))]
+                       [b (make-person "jack" (list a c))]
+                       [c (make-person "jane" (list))])
+                      (values a b c))])
+  (for-each displayln (map person-name (person-friends a)))
+  (newline)
+  (for-each displayln (map person-name (person-friends b)))
+  (newline)
+  (for-each displayln (map person-name (person-friends c)))
+  (newline))

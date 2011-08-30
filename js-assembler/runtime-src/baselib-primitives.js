@@ -1465,8 +1465,8 @@
 	    var i;
             if (MACHINE.argcount === 1) {
                 var sym = checkSymbol(MACHINE, 'error', 1);
-                // FIXME: we should collect the current continuation marks here...
-                raise(MACHINE, baselib.exceptions.makeExnFail(String(sym), undefined));
+                raise(MACHINE, baselib.exceptions.makeExnFail(String(sym), 
+                                                              MACHINE.captureContinuationMarks()));
             } 
             
             if (isString(MACHINE.env[MACHINE.env.length - 1])) {
@@ -1477,7 +1477,7 @@
                 raise(MACHINE, baselib.exceptions.makeExnFail(String(MACHINE.env[MACHINE.env.length - 1]) +
                                                               ": " +
                                                               vs.join(' '),
-                                                              undefined));
+                                                              MACHINE.captureContinuationMarks()));
             }
 
             if (isSymbol(MACHINE.env[MACHINE.env.length - 1])) {
@@ -1489,7 +1489,7 @@
                 raise(MACHINE, baselib.exceptions.makeExnFail(
                     baselib.format.format('~s: ' + String(fmtString),
                                           args),
-                    undefined));
+                    MACHINE.captureContinuationMarks()));
             }
 
             // Fall-through
@@ -1509,7 +1509,7 @@
                                       [name,
                                        message,
                                        val]),
-                undefined));
+                MACHINE.captureContinuationMarks()));
         });
 
 

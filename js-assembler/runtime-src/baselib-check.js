@@ -121,10 +121,12 @@
     var testArity = function (MACHINE, callerName, observed, minimum, maximum) {
         if (observed < minimum || observed > maximum) {
             baselib.exceptions.raise(
-                MACHINE, new Error(callerName + ": expected at least " + minimum
-                                   + " arguments "
-                                   + " but received " + observed));
-
+                MACHINE, 
+                baselib.exceptions.ExnFailContractArity.constructor(
+                    callerName + ": expected at least " + minimum
+                        + " arguments "
+                        + " but received " + observed,
+                    MACHINE.captureContinuationMarks()));
         }
     };
 

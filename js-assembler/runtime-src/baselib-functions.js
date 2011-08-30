@@ -212,10 +212,11 @@
             return coerseClosureToJavaScript(v, MACHINE);
         } else {
             baselib.exceptions.raise(MACHINE,
-                                         baselib.exceptions.makeExnFail(
-                                             baselib.format.format(
-                                                 "Not a procedure: ~e",
-                                                 v)));
+                                     baselib.exceptions.makeExnFailContract(
+                                         baselib.format.format(
+                                             "Not a procedure: ~e",
+                                             v),
+                                         MACHINE.captureContinuationMarks()));
         }
     };
 

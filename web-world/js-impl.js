@@ -758,8 +758,13 @@
 
     LocationEventSource.prototype.onStart = function(fireEvent) {
         var success = function(position) {
-            fireEvent(undefined,
-                      objectToEvent(position.coords));
+            if (position.hasOwnProperty('coords') &&
+                position.coords.hasOwnProperty('latitude') &&
+                position.coords.hasOwnProperty('longitude')) {
+                fireEvent(undefined,
+                          objectToEvent({ latitude : Number(position.coords.latitude),
+                                          longitude : Number(position.coords.longitude) }));
+            }
         };
         var fail = function(err) {
             // Quiet failure

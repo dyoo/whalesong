@@ -414,15 +414,15 @@ var invokeMainModule = function() {
                     function() {
                         // On main module invokation success:
                         var stopTime = new Date().valueOf();                                
-                        if (console && console.log) {
-                            console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
+                        if (window.console && window.console.log) {
+                            window.console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
                         }
                     },
                     function(MACHINE, e) {
                         var contMarkSet, appNames, i, appName;
                         // On main module invokation failure
-                        if (console && console.log) {
-                            console.log(e.stack || e);
+                        if (window.console && window.console.log) {
+                            window.console.log(e.stack || e);
                         }
                         
                         MACHINE.params.currentErrorDisplayer(
@@ -451,8 +451,8 @@ var invokeMainModule = function() {
                     })},
            function() {
                // On module loading failure
-               if (console && console.log) {
-                   console.log(e.stack || e);
+               if (window.console && window.console.log) {
+                   window.console.log(e.stack || e);
                }                       
            },
            {});

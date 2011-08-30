@@ -22,6 +22,16 @@
 
 @section{Installation}
 
+Racket 5.1.2 or greater is a prerequisite for Whalesong.  Brown CS
+maintains their own install for 5.1.3 in
+@filepath{/local/projects/racket/releases/5.1.3/bin/}.
+shell, you can add:
+@verbatim|{
+pathprependifdir PATH "/local/projects/racket/releases/5.1.3/bin"    
+}|
+to your @filepath{.environment}.
+
+
 We'll install a local development copy of Whalesong in a @filepath{whalesong} subdirectory.
 On the very first time we install Whalesong:
 @verbatim|{

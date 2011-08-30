@@ -341,6 +341,20 @@
     };
 
 
+    // Save the continuation mark on the top control frame.
+    Machine.prototype.installContinuationMarkEntry = function(key, value) {
+        var frame = this.control[this.control.length - 1];
+        var marks = frame.marks;
+        var i;
+        for (i = 0; i < marks.length; i++) {
+            if (equals(key, marks[i][0])) {
+                marks[i][1] = value;
+                return;
+            }
+        }
+        marks.push([key, value]);
+    };
+
     
 
 

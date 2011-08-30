@@ -140,7 +140,7 @@ EOF
              (assemble-oparg (UnspliceRestFromStack!-length op)))]
 
     [(InstallContinuationMarkEntry!? op)
-     (string-append "RUNTIME.installContinuationMarkEntry(MACHINE,"
+     (string-append "MACHINE.installContinuationMarkEntry("
                     "MACHINE.control[MACHINE.control.length-1].pendingContinuationMarkKey,"
                     "MACHINE.val);")]
 

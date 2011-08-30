@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang planet dyoo/whalesong/base
 
 (define-struct pair (f r))
 (define-struct color (r g b))

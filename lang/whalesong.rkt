@@ -7,7 +7,5 @@
 ;; If you don't want this, write in whalesong/base instead.
 
 (provide (except-out (all-from-out "base.rkt")
-                     ;;#%app
-                     )
-         ;;(rename-out [traced-app #%app])
-         )
+                     #%app)
+         (rename-out [traced-app #%app]))

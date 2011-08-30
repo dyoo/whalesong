@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang planet dyoo/whalesong/base
 (require (planet dyoo/whalesong/image))
 
 (image-color? "red")

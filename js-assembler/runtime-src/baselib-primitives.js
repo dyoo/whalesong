@@ -76,6 +76,7 @@
     var checkBox = baselib.check.checkBox;
     var checkMutableBox = baselib.check.checkMutableBox;
     var checkInspector = baselib.check.checkInspector;
+    var checkPlaceholder = baselib.check.checkPlaceholder;
     //////////////////////////////////////////////////////////////////////
 
 

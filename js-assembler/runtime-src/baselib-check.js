@@ -233,6 +233,9 @@
         'inspector');
 
 
+    var checkPlaceholder = makeCheckArgumentType(
+        baselib.placeholders.isPlaceholder,
+        'placeholder');
 
 
 
@@ -271,7 +274,7 @@
     exports.checkInspector = checkInspector;
     exports.checkByte = checkByte;
     exports.checkBoolean = checkBoolean;
-
+    exports.checkPlaceholder = checkPlaceholder;
 
 
 }(this.plt.baselib));

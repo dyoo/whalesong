@@ -10,6 +10,7 @@
 (test "more-tests/string-tests.rkt")
 (test "more-tests/numbers.rkt")
 (test "more-tests/hello.rkt")
+(test "more-tests/sharing.rkt")
 (test "more-tests/simple-functions.rkt")
 (test "more-tests/sk-generator.rkt")
 (test "more-tests/sk-generator-2.rkt")

@@ -109,7 +109,7 @@
 ;; fixme: use js->string
 (: assemble-const (Const -> String))
 (define (assemble-const stmt)
-  (let: loop : String ([val : Any (Const-const stmt)])
+  (let: loop : String ([val : const-value (Const-const stmt)])
         (cond [(symbol? val)
                (format "RUNTIME.makeSymbol(~s)" (symbol->string val))]
               [(pair? val)
@@ -136,13 +136,15 @@
               [(path? val)
                (format "RUNTIME.makePath(~s)"
                        (path->string val))]
-              #;[(vector? val)
+              [(vector? val)
                (format "RUNTIME.makeVector(~s)"
                        (string-join (for/list ([elt (vector->list val)])
                                         (loop elt))
                                     ","))]
-              [else
-               (error 'assemble-const "Unsupported datum ~s" val)])))
+              [(box? val)
+               (format "RUNTIME.makeBox(~s)"
+                       (loop (unbox val)))])))
+
 
 
 (: assemble-listof-assembled-values ((Listof String) -> String))

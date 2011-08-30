@@ -64,12 +64,27 @@
   #:transparent)
 
 
+(define-type const-value
+  (Rec C
+       (U Symbol
+          String
+          Number
+          Boolean
+          Void
+          Null
+          Char
+          Bytes
+          Path
+          (Pairof C C)
+          (Vectorof C)
+          (Boxof C))))
+
 
 (define-struct: Label ([name : Symbol])
   #:transparent)
 (define-struct: Reg ([name : AtomicRegisterSymbol])
   #:transparent)
-(define-struct: Const ([const : Any])
+(define-struct: Const ([const : const-value])
   #:transparent)
 
 ;; Limited arithmetic on OpArgs

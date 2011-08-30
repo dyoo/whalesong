@@ -13,8 +13,12 @@
          racket/bool
          racket/list
          racket/match)
+
 (require/typed "../logger.rkt"
                [log-debug (String -> Void)])
+
+(require/typed "compiler-helper.rkt"
+               [ensure-const-value (Any -> const-value)])
 
 (provide (rename-out [-compile compile])
          compile-general-procedure-call
@@ -450,7 +454,8 @@
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
-                       (make-AssignImmediateStatement target (make-Const (Constant-v exp)))
+                       (make-AssignImmediateStatement target (make-Const
+                                                              (ensure-const-value (Constant-v exp))))
                        singular-context-check))))
 
 
@@ -1208,7 +1213,7 @@
   (map (lambda: ([e : Expression])
          (cond
            [(Constant? e)
-            (make-Const (Constant-v e))]
+            (make-Const (ensure-const-value (Constant-v e)))]
            [(LocalRef? e)
             (make-EnvLexicalReference (LocalRef-depth e)
                                       (LocalRef-unbox? e))]
@@ -1655,7 +1660,7 @@
           '?]))]
     
     [(Constant? exp)
-     (make-Const (Constant-v exp))]
+     (make-Const (ensure-const-value (Constant-v exp)))]
     
     [(PrimitiveKernelValue? exp)
      exp]

@@ -238,36 +238,38 @@
                         end))])
   (test (machine-val (run! m))
         'ok))
-;; Give a primitive procedure in val
-(let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
-                        ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
-                        ,(make-GotoStatement (make-Label 'end))
-                        on-true
-                        ,(make-AssignImmediateStatement 'val (make-Const 'ok))
-                        end))])
-  (test (machine-val (run! m))
-        'ok))
-;; Give a primitive procedure in proc, but test val
-(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
-                        ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
-                        ,(make-GotoStatement (make-Label 'end))
-                        on-true
-                        ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
-                        end))])
-  (test (machine-val (run! m))
-        'not-a-procedure))
-;; Give a primitive procedure in proc and test proc
-(let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
-                        ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'on-true)
-                        ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
-                        ,(make-GotoStatement (make-Label 'end))
-                        on-true
-                        ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
-                        end))])
-  (test (machine-val (run! m))
-        'a-procedure))
+
+
+;; ;; Give a primitive procedure in val
+;; (let ([m (new-machine `(,(make-AssignImmediateStatement 'val (make-Const (lookup-primitive '+)))
+;;                         ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
+;;                         ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+;;                         ,(make-GotoStatement (make-Label 'end))
+;;                         on-true
+;;                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+;;                         end))])
+;;   (test (machine-val (run! m))
+;;         'ok))
+;; ;; Give a primitive procedure in proc, but test val
+;; (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
+;;                         ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'on-true)
+;;                         ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
+;;                         ,(make-GotoStatement (make-Label 'end))
+;;                         on-true
+;;                         ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
+;;                         end))])
+;;   (test (machine-val (run! m))
+;;         'not-a-procedure))
+;; ;; Give a primitive procedure in proc and test proc
+;; (let ([m (new-machine `(,(make-AssignImmediateStatement 'proc (make-Const (lookup-primitive '+)))
+;;                         ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'on-true)
+;;                         ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
+;;                         ,(make-GotoStatement (make-Label 'end))
+;;                         on-true
+;;                         ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
+;;                         end))])
+;;   (test (machine-val (run! m))
+;;         'a-procedure))
 
 
 

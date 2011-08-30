@@ -3,7 +3,7 @@
 ;; http://docs.racket-lang.org/planet/hash-lang-planet.html
 
 #:language (lambda (ip)
-	    `(file ,(path->string whalesong-lang-path)))
+	    `(file ,(path->string base-lang-path)))
 
 (require racket/runtime-path)
-(define-runtime-path whalesong-lang-path "whalesong.rkt")
+(define-runtime-path base-lang-path "../lang/base.rkt")

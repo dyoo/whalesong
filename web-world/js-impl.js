@@ -9,6 +9,9 @@
     var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
     var PAUSE = plt.runtime.PAUSE;
     var isString = plt.baselib.strings.isString;
+    var makeList = plt.baselib.lists.makeList;
+    var makePair = plt.baselib.lists.makePair;
+    var makeSymbol = plt.baselib.symbols.makeSymbol;
 
 
 
@@ -21,6 +24,10 @@
 
     var resourceStructType = 
         MACHINE.modules['whalesong/resource/structs.rkt'].namespace['struct:resource'];
+
+    var eventStructType = 
+        MACHINE.modules['whalesong/web-world/event.rkt'].namespace['struct:event'];
+
 
 
     var domToCursor = function(dom) {
@@ -261,17 +268,14 @@
 
         // HACK: every node that is bound needs to have an id.  We
         // enforce this by mutating the node.
-        if ($(this.cursor.node).attr("id") === undefined) {
-            $(this.cursor.node).attr("id",
-                                ("__webWorldId_" + mockViewIdGensym++));
-        }
-            
+        if (! this.cursor.node.id) {
+            this.cursor.node.id = ("__webWorldId_" + mockViewIdGensym++);
+        }   
         return this.act(
             function(cursor) {
                 var newCursor = cursor.replaceNode($(cursor.node).clone(true).get(0));
                 var handler = new EventHandler(name, 
-                                               new DomEventSource(name,
-                                                                  newCursor.node), 
+                                               new DomEventSource(name, newCursor.node), 
                                                worldF);
                 if (currentBigBangRecord !== undefined) {
                     currentBigBangRecord.startEventHandler(handler);
@@ -282,20 +286,79 @@
                 var handler = new EventHandler(name,
                                                new DomEventSource(
                                                    name,
-                                                   $(that.cursor.node).attr('id')),
+                                                   that.cursor.node.id),
                                                worldF);
                 return eventHandlers.concat([handler]);
             },
             function(view) {
+                // HACK: every node that is bound needs to have an id.  We
+                // enforce this by mutating the node.
+                if (! view.focus.get(0).id) {
+                    view.focus.get(0).id = ("__webWorldId_" + mockViewIdGensym++);
+                }
                 var handler = new EventHandler(name, 
                                                new DomEventSource(
                                                    name, 
-                                                   view.focus.get(0)),
+                                                   view.focus.get(0).id),
                                                worldF);
                 view.addEventHandler(handler);
                 currentBigBangRecord.startEventHandler(handler);
             });
     };
+
+    MockView.prototype.show = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).show().get(0));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                view.focus.show();
+            }
+        )
+    };
+
+    MockView.prototype.hide = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).hide().get(0));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                view.focus.hide();
+            }
+        )
+    };
+
+
+    MockView.prototype.appendChild = function(domNode) {
+        return this.act(
+            function(cursor) {
+                if (cursor.canDown()) {
+                    cursor = cursor.down();
+                    while (cursor.canRight()) {
+                        cursor = cursor.right();
+                    }
+                    return cursor.insertRight(domNode.cloneNode(true));
+                } else {
+                    return cursor.insertDown(domNode.cloneNode(true));
+                }
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                var clone = $(domNode).clone(true);
+                clone.appendTo(view.focus);
+                view.focus = clone;
+            }
+        )
+    };
+
+    MockView.prototype.id = function() {
+        return this.cursor.node.id;
+    };
+
+
+
 
 
     //////////////////////////////////////////////////////////////////////
@@ -422,6 +485,40 @@
     };
 
 
+    var coerseToDomNode = function(x, onSuccess, onFail) {
+        var dom;
+        if (isDomNode(x)) { 
+            return onSuccess(x); 
+        } else  if (isResource(x)) {
+            try {
+                dom = $(resourceContent(x).toString())
+                    .css("margin", "0px")
+                    .css("padding", "0px")
+                    .css("border", "0px");
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(dom.get(0));
+        } else if (isMockView(x)) {
+            return onSuccess(x.cursor.top().node);
+        } else {
+            try {
+                dom = plt.baselib.format.toDomNode(x);
+            } catch (exn) {
+                return onFail(exn);
+            }
+            return onSuccess(dom);
+        }
+    };
+
+
+    var isDomNode = function(x) {
+        return (x.hasOwnProperty('nodeType') &&
+                x.nodeType === 1);
+    };
+
+
+
 
 
 
@@ -484,6 +581,15 @@
     EventHandler.prototype.toString = function() { return "#<" + this.name + ">"; };
     var isEventHandler = plt.baselib.makeClassPredicate(EventHandler);
 
+
+
+    var WithOutputToHandler = function(outputPort) {
+        this.outputPort = outputPort;
+    };
+    WithOutputToHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
+    var isWithOutputToHandler = plt.baselib.makeClassPredicate(WithOutputToHandler);
+
+
     //////////////////////////////////////////////////////////////////////
 
 
@@ -507,6 +613,29 @@
         return lst;
     };
 
+
+
+
+    // convert an object to an event.
+    // At the moment, we only copy over those values which are numbers or strings.
+    var objectToEvent = function(obj) {
+        var key, val;
+        var result = makeList();
+        for (key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                val = obj[key];
+                if (typeof(val) === 'number') {
+                    result = makePair(makeList(makeSymbol(key),
+                                               plt.baselib.numbers.makeFloat(val)),
+                                      result);
+                } else if (typeof(val) === 'string') {
+                    result = makePair(makeList(makeSymbol(key), val),
+                                      result);
+                }                         
+            }
+        }
+        return eventStructType.constructor(result);
+    };
 
 
 
@@ -556,8 +685,9 @@
 
     TickEventSource.prototype.onStart = function(fireEvent) {
         this.id = setInterval(
-            function() {
-                fireEvent(undefined);
+            function(evt) {
+                fireEvent(undefined,
+                          objectToEvent(evt));
             },
             this.delay);
     };
@@ -568,6 +698,93 @@
             this.id = undefined;
         }
     };
+
+
+
+
+
+
+    var MockLocationEventSource = function() {
+        this.elt = undefined;
+    };
+    MockLocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+    MockLocationEventSource.prototype.onStart = function(fireEvent) {
+        var mockLocationSetter = document.createElement("div");
+	    
+        var latInput = document.createElement("input");
+        latInput.type = "text";
+	
+        var latOutput = document.createElement("input");
+        latOutput.type = "text";
+        
+        var submitButton = document.createElement("input");
+        submitButton.type = "button";
+        submitButton.value = "send lat/lng";
+        submitButton.onclick = function() {
+            fireEvent(undefined,
+                      objectToEvent({ latitude: Number(latInput.value),
+                                      longitude: Number(latOutput.value)}));
+            return false;
+        };
+	
+        mockLocationSetter.style.border = "1pt solid black";
+        mockLocationSetter.appendChild(
+            document.createTextNode("mock location setter"));
+        mockLocationSetter.appendChild(latInput);
+        mockLocationSetter.appendChild(latOutput);
+        mockLocationSetter.appendChild(submitButton);
+        document.body.appendChild(mockLocationSetter);
+
+        this.elt = mockLocationSetter;
+    };
+
+    MockLocationEventSource.prototype.onStop = function() {
+        if (this.elt !== undefined) { 
+            document.body.removeChild(this.elt);
+            this.elt = undefined;
+        };
+    };
+
+    
+
+
+
+    // This version really does use the geolocation object.
+    var LocationEventSource = function() {
+        this.id = undefined;
+    };
+
+    LocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+
+    LocationEventSource.prototype.onStart = function(fireEvent) {
+        var success = function(position) {
+            fireEvent(undefined,
+                      objectToEvent(position.coords));
+        };
+        var fail = function(err) {
+            // Quiet failure
+        }
+        if (!!(navigator.geolocation)) {
+            navigator.geolocation.getCurrentPosition(success, fail);
+            this.id = navigator.geolocation.watchPosition(success, fail); 
+        }
+    };
+    
+    LocationEventSource.prototype.onStop = function() {
+        if (this.id !== undefined) { 
+            navigator.geolocation.clearWatch(this.id);
+            this.id = undefined;
+        };
+    };
+
+
+
+
+
+
+
+
+
 
 
     // DomElementSource: string (U DOM string) -> EventSource
@@ -589,7 +806,7 @@
 
         this.handler = function(evt) {
             if (element !== undefined) {
-                fireEvent(element, evt);
+                fireEvent(element, objectToEvent(evt));
             }
         };
         if (element !== undefined) {
@@ -663,12 +880,19 @@
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
 
+        var oldOutputPort = MACHINE.params.currentOutputPort;
+
         var eventQueue = new EventQueue();
 
         var top = $("<div/>");
         var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
 
         MACHINE.params.currentDisplayer(MACHINE, top);
+        
+        // From this point forward, redirect standard output if requested.
+        if (find(handlers, isWithOutputToHandler)) {
+            MACHINE.params.currentOutputPort = find(handlers, isWithOutputToHandler).outputPort;
+        }
 
         PAUSE(function(restart) {
             var i;
@@ -678,6 +902,7 @@
                 stopEventHandlers();
                 restart(function(MACHINE) {
                     MACHINE.argcount = oldArgcount;
+                    MACHINE.params.currentOutputPort = oldOutputPort;
                     currentBigBangRecord = oldCurrentBigBangRecord;
                     finalizeClosureCall(MACHINE, world);
                 });
@@ -688,6 +913,7 @@
                 stopEventHandlers();
                 restart(function(MACHINE) {
                     currentBigBangRecord = oldCurrentBigBangRecord;
+                    MACHINE.params.currentOutputPort = oldOutputPort;
                     plt.baselib.exceptions.raise(MACHINE, exn);
                 });
             };
@@ -752,29 +978,37 @@
 
                     // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
-                    racketWorldCallback(MACHINE, 
-                                        world,
-                                        mockView,
-                                        // data, 
-                                        function(newWorld) {
-                                            world = newWorld;
-                                            stopWhen(MACHINE,
-                                                     world,
-                                                     mockView,
-                                                     function(shouldStop) {
-                                                         if (shouldStop) {
-                                                             refreshView(
-                                                                 function() {
-                                                                     onCleanRestart();
-                                                                 },
-                                                                 fail);
-                                                         } else {
-                                                             dispatchEventsInQueue(success, fail);
-                                                         }
-                                                     },
-                                                     fail);
-                                        },
-                                        fail);
+                    data = nextEvent.data[0];
+                    var onGoodWorldUpdate = 
+                        function(newWorld) {
+                            world = newWorld;
+                            stopWhen(MACHINE,
+                                     world,
+                                     mockView,
+                                     function(shouldStop) {
+                                         if (shouldStop) {
+                                             refreshView(onCleanRestart,
+                                                         fail);
+                                         } else {
+                                             dispatchEventsInQueue(success, fail);
+                                         }
+                                     },
+                                     fail);
+                        };
+                    if (plt.baselib.arity.isArityMatching(racketWorldCallback.racketArity, 3)) {
+                        racketWorldCallback(MACHINE, 
+                                            world,
+                                            mockView,
+                                            data,
+                                            onGoodWorldUpdate,
+                                            fail);
+                    } else {
+                        racketWorldCallback(MACHINE, 
+                                            world,
+                                            mockView,
+                                            onGoodWorldUpdate,
+                                            fail);
+                    }
                 } else {
                     dispatchingEvents = false;
                     success();
@@ -821,7 +1055,7 @@
     };
 
     var wrapFunction = function(proc) {
-        return function(MACHINE) {
+        var f = function(MACHINE) {
             var success = arguments[arguments.length - 2];
             var fail = arguments[arguments.length - 1];
             var args = [].slice.call(arguments, 1, arguments.length - 2);
@@ -831,6 +1065,8 @@
                                                                         success,
                                                                         fail].concat(args));
         };
+        f.racketArity = proc.racketArity;
+        return f;
     };
 
 
@@ -867,12 +1103,27 @@
 
 
 
+
+    var DomElementOutputPort = function(id) {
+        this.id = id;
+    };
+
+    DomElementOutputPort.prototype = plt.baselib.heir(plt.baselib.ports.OutputPort.prototype);
+
+    DomElementOutputPort.prototype.writeDomNode = function (MACHINE, v) {
+        $("#" + this.id).append(v);
+        $(v).trigger({type : 'afterAttach'});
+        $('*', v).trigger({type : 'afterAttach'});
+    };
+
+
+
     //////////////////////////////////////////////////////////////////////
 
     var checkReal = plt.baselib.check.checkReal;
     var checkString = plt.baselib.check.checkString;
     var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
-    
+    var checkOutputPort = plt.baselib.check.checkOutputPort;    
     var checkProcedure = plt.baselib.check.checkProcedure;
 
     var checkResourceOrView = plt.baselib.check.makeCheckArgumentType(
@@ -1102,7 +1353,7 @@
         3,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-bind', 0);
-            var name = checkSymbolOrString(MACHINE, 'view-bind', 1).toString();
+            var name = checkSymbolOrString(MACHINE, 'view-bind', 1);
             var worldF = wrapFunction(checkProcedure(MACHINE, 'view-bind', 2));
             return view.bind(name, worldF);
         });
@@ -1126,6 +1377,95 @@
             return view.updateFormValue(value);
         });
 
+    EXPORTS['view-show'] = makePrimitiveProcedure(
+        'view-show',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-show', 0);
+            return view.show();
+        });
+
+
+    EXPORTS['view-hide'] = makePrimitiveProcedure(
+        'view-hide',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-hide', 0);
+            return view.hide();
+        });
+
+
+    
+    EXPORTS['view-append-child'] = makeClosure(
+        'view-append-child',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-append-child', 0);
+            var oldArgcount = MACHINE.argcount;
+            var x = MACHINE.env[MACHINE.env.length - 2];
+            PAUSE(function(restart) {
+                coerseToDomNode(x,
+                                function(dom) {
+                                     restart(function(MACHINE) {
+                                         MACHINE.argcount = oldArgcount;
+                                         var updatedView = view.appendChild(dom);
+                                         finalizeClosureCall(MACHINE, updatedView);
+                                     });
+                                },
+                                function(err) {
+                                    restart(function(MACHINE) {
+                                         plt.baselib.exceptions.raise(
+                                             MACHINE, 
+                                             new Error(plt.baselib.format.format(
+                                                 "unable to translate ~s to dom node: ~a",
+                                                 [x, exn.message])));
+                                        
+                                    });
+                                });
+            });
+        });
+
+
+    EXPORTS['view-id'] = makePrimitiveProcedure(
+        'view-id',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-hide', 0);
+            return view.id();
+        });
+
+
+
+
+    EXPORTS['on-location-change'] = makePrimitiveProcedure(
+        'on-location-change',
+        1,
+        function(MACHINE) {
+            var onChange = wrapFunction(checkProcedure(MACHINE, 'on-location-change', 0));
+            return new EventHandler('on-location-change', 
+                                    new LocationEventSource(), 
+                                    onChange);
+        });
+
+
+    EXPORTS['on-mock-location-change'] = makePrimitiveProcedure(
+        'on-mock-location-change',
+        1,
+        function(MACHINE) {
+            var onChange = wrapFunction(checkProcedure(MACHINE, 'on-mock-location-change', 0));
+            return new EventHandler('on-mock-location-change', 
+                                    new MockLocationEventSource(), 
+                                    onChange);
+        });
+
+
+    EXPORTS['open-output-element'] = makePrimitiveProcedure(
+        'open-output-element',
+        1,
+        function(MACHINE) {
+            var id = checkString(MACHINE, 'open-output-element', 0);
+            return new DomElementOutputPort(id.toString());
+        });
 
 
 

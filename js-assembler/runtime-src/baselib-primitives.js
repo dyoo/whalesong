@@ -272,6 +272,23 @@
 
 
 
+    installPrimitiveProcedure(
+        'current-error-port',
+        makeList(0, 1),
+        function (MACHINE) {
+            if (MACHINE.argcount === 1) {
+                MACHINE.params['currentErrorPort'] = 
+                    checkOutputPort(MACHINE, 'current-output-port', 0);
+                return VOID;
+            } else {
+                return MACHINE.params['currentOutputPort'];
+            }
+        });
+
+
+
+
+
 
 
     installPrimitiveProcedure(
@@ -1587,7 +1604,6 @@
                             String(name) + "-accessor",
                             2,
                             function (MACHINE) {
-                                // FIXME: typechecks
                                 return structType.accessor(
                                     MACHINE.env[MACHINE.env.length - 1],
                                     baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]));
@@ -1599,7 +1615,6 @@
                             String(name) + "-mutator",
                             3,
                             function (MACHINE) {
-                                // FIXME: typechecks
                                 return structType.mutator(
                                     MACHINE.env[MACHINE.env.length - 1],
                                     baselib.numbers.toFixnum(MACHINE.env[MACHINE.env.length - 2]),
@@ -1637,8 +1652,6 @@
         'make-struct-field-accessor',
         makeList(2, 3),
         function (MACHINE){
-            // FIXME: typechecks
-            // We must guarantee that the ref argument is good.
             var structType = MACHINE.env[MACHINE.env.length - 1].structType;
             var index = MACHINE.env[MACHINE.env.length - 2];
             var name;
@@ -1647,12 +1660,15 @@
             } else {
                 name = 'field' + index;
             }
+            var checkStruct = baselib.check.makeCheckArgumentType(structType.predicate,
+                                                                  structType.name);
             return makePrimitiveProcedure(
                 name,
                 1,
                 function (MACHINE) {
+                    var aStruct = checkStruct(MACHINE, name, 0);
                     return structType.accessor(
-                        MACHINE.env[MACHINE.env.length - 1],
+                        aStruct,
                         baselib.numbers.toFixnum(index));
                 });
             
@@ -1663,8 +1679,6 @@
         'make-struct-field-mutator',
         makeList(2, 3),
         function (MACHINE){
-            // FIXME: typechecks
-            // We must guarantee that the set! argument is good.
             var structType = MACHINE.env[MACHINE.env.length - 1].structType;
             var index = MACHINE.env[MACHINE.env.length - 2];
             var name;
@@ -1673,17 +1687,19 @@
             } else {
                 name = 'field' + index;
             }
+            var checkStruct = baselib.check.makeCheckArgumentType(structType.predicate,
+                                                                  structType.name);
             return makePrimitiveProcedure(
                 name,
                 2,
                 function (MACHINE) {
+                    var aStruct = checkStruct(MACHINE, name, 0);
                     return structType.mutator(
-                        MACHINE.env[MACHINE.env.length - 1],
+                        aStruct,
                         baselib.numbers.toFixnum(index),
                         MACHINE.env[MACHINE.env.length - 2]);
                 });            
         });
-
 
 
     exports['Primitives'] = Primitives;

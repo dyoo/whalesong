@@ -1702,6 +1702,40 @@
         });
 
 
+    installPrimitiveProcedure(
+        'make-placeholder',
+        1,
+        function(MACHINE) {
+            var v = MACHINE.env[MACHINE.env.length - 1];
+            return baselib.placeholders.makePlaceholder(v);
+        });
+
+
+    installPrimitiveProcedure(
+        'placeholder-set!',
+        2,
+        function(MACHINE) {
+            var placeholder = checkPlaceholder(MACHINE, 'placeholder-set!', 0);
+            var val = MACHINE.env[MACHINE.env.length - 2];
+            placeholder.set(val);
+            return VOID;
+        });
+
+        
+
+    installPrimitiveProcedure(
+        'make-reader-graph',
+        1,
+        function(MACHINE) {
+            var x = MACHINE.env[MACHINE.env.length - 1];
+            return baselib.readergraph.readerGraph(x,
+                                                   baselib.hashes.makeLowLevelEqHash(),
+                                                   0);
+        });
+
+
+
+
     exports['Primitives'] = Primitives;
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure; 
     exports['installPrimitiveClosure'] = installPrimitiveClosure; 

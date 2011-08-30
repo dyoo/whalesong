@@ -44,6 +44,10 @@
     };
 
 
+    var makePlaceholder = function(v) {
+        return new Placeholder(v);
+    };
+
     var isPlaceholder = function (x) { 
         return x instanceof Placeholder; 
     };
@@ -52,6 +56,7 @@
 
     //////////////////////////////////////////////////////////////////////
     exports.Placeholder = Placeholder;
+    exports.makePlaceholder = makePlaceholder;
     exports.isPlaceholder = isPlaceholder;
 
 

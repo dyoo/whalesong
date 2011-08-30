@@ -432,9 +432,9 @@ char=?
 ;;  make-continuation-prompt-tag
 ;;  continuation-prompt-tag?
 
-;;  make-reader-graph
-;;  make-placeholder
-;;  placeholder-set!
+  make-reader-graph
+  make-placeholder
+  placeholder-set!
  )
 
 

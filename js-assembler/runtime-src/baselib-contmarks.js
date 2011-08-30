@@ -28,9 +28,10 @@
     ContinuationMarkSet.prototype.ref = function(key) {
         var i, j;
         var result = [];
+        var kvlist;
         for (i = 0; i < this.kvlists.length; i++) {
-            var kvlist = this.kvlists[i];
-            for (j = 0; j < this.kvlist.length; j++) {
+            kvlist = this.kvlists[i];
+            for (j = 0; j < kvlist.length; j++) {
                 if (baselib.equality.equals(kvlist[j][0], key)) {
                     result.push(kvlist[j][1]);
                 }

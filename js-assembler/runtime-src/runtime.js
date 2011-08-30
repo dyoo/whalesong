@@ -509,6 +509,14 @@
 
 
 
+    // Try to get the continuation mark key used for procedure application tracing.
+    var getTracedAppKey = function(MACHINE) {
+        if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'];
+        }
+        return undefined;
+    };
+
 
 
 
@@ -746,5 +754,6 @@
     exports['Struct'] = Struct;
     exports['StructType'] = StructType;
 
+    exports['getTracedAppKey'] = getTracedAppKey;
 
 }(this.plt, this.plt.baselib));

@@ -419,12 +419,33 @@ var invokeMainModule = function() {
                         }
                     },
                     function(MACHINE, e) {
+                        var contMarkSet, appNames, i, appName;
                         // On main module invokation failure
                         if (console && console.log) {
                             console.log(e.stack || e);
                         }
+                        
                         MACHINE.params.currentErrorDisplayer(
                              MACHINE, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
+
+                        if (e.hasOwnProperty('racketError') &&
+                            plt.baselib.exceptions.isExn(e.racketError)) {
+                            contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
+                            if (contMarkSet) {
+                                 appNames = contMarkSet.ref(plt.runtime.getTracedAppKey(MACHINE));
+                                 while (plt.baselib.lists.isPair(appNames)) {
+                                     appName = appNames.first;
+                                     console.log(appName);
+                                     MACHINE.params.currentErrorDisplayer(
+                                        MACHINE,
+                                        $('<div/>').text('  at ' + appName.elts[0] +
+                                                         ', line ' + appName.elts[2] +
+                                                         ', column ' + appName.elts[3])
+                                                   .css('color', 'red'));
+                                     appNames = appNames.rest;
+                                 }
+                            }
+                        }
                     })},
            function() {
                // On module loading failure

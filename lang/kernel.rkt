@@ -4,7 +4,7 @@
          (prefix-in racket: racket/base)
 	 racket/local
 	 (for-syntax racket/base)
-
+         racket/stxparam
          
          (only-in '#%paramz
                   exception-handler-key
@@ -16,6 +16,9 @@
          parameterization-key
          break-enabled-key)
 
+
+(provide define-syntax-parameter
+         syntax-parameterize)
 
 ;; constants
 (define true #t)
@@ -74,6 +77,7 @@
 	 #%module-begin
 	 #%datum
 	 #%app
+         #%plain-app
 	 #%top-interaction
 	 #%top
          module

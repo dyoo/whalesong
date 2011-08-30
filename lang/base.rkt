@@ -5,7 +5,12 @@
                      ;; Don't publically export the bindings from #%paramz.
                      exception-handler-key
                      parameterization-key
-                     break-enabled-key)
+                     break-enabled-key
+
+                     ;; or define-syntax-parameter
+                     define-syntax-parameter
+                     syntax-parameterize
+                     )
          (all-from-out "private/list.rkt"))
          
 (require "private/list.rkt")

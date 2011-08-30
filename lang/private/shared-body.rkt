@@ -25,21 +25,26 @@
 	  stx
 	  dup)))
      (let ([exprs (map (lambda (expr)
-                         (printf "before: ~s\n" (syntax->datum expr))
-                         (let ([result
-                           (let ([e (local-expand
-                                     expr
-                                     'expression
-                                     (append
-                                      (kernel-form-identifier-list)
-                                      names))])
+                         (let ([e (local-expand
+                                   expr
+                                   'expression
+                                   (append
+                                    (kernel-form-identifier-list)
+                                    names))])
+                           
+                           ;; Remove traced app if present
+                           (let ([removing-traced-app
+                                  (syntax-case (syntax-disarm e code-insp) (with-continuation-mark traced-app-key)
+                                    [(with-continuation-mark traced-app-key val body)
+                                     (syntax/loc e body)]
+                                    [else 
+                                     e])])
+                             
                              ;; Remove #%app if present...
-                             (syntax-case (syntax-disarm e code-insp) (#%plain-app)
+                             (syntax-case (syntax-disarm removing-traced-app code-insp) (#%plain-app)
                                [(#%plain-app a ...)
-                                (syntax/loc e (a ...))]
-                               [_else e]))])
-                           (printf "expanded to: ~s\n" (syntax->datum result))
-                           result))
+                                (syntax/loc removing-traced-app (a ...))]
+                               [_else removing-traced-app]))))
 		       exprs)]
            [temp-ids (generate-temporaries names)]
            [placeholder-ids (generate-temporaries names)]

@@ -19,6 +19,6 @@
                                    (syntax-span stx))])
          (syntax/loc stx
            (with-continuation-mark key 'pos
-                                   (#%app operator operands ...))))]
+                                   (#%plain-app operator operands ...))))]
       [else
        stx])))

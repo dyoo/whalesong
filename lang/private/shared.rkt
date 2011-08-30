@@ -5,7 +5,8 @@
                      syntax/kerncase
                      syntax/struct
                      racket/struct-info
-                     scheme/include))
+                     scheme/include)
+         "traced-app.rkt")
 
 (provide shared)
 

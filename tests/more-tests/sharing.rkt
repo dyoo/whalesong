@@ -17,3 +17,42 @@
 (car (cdr 1-and-2))
 (car (cdr (cdr 1-and-2)))
 (car (cdr (cdr (cdr 1-and-2))))
+
+
+
+(define vector-and-boxes
+  (shared ([a (vector b b b)]
+           [b (box 1)])
+          (set-box! b 5)
+          a))
+(unbox (vector-ref vector-and-boxes 0))
+(unbox (vector-ref vector-and-boxes 1))
+(unbox (vector-ref vector-and-boxes 2))
+
+
+
+(let ([v (shared ([a (cons 1 b)]
+                  [b 7])
+                 a)])
+  (displayln (car v))
+  (displayln (cdr v)))
+
+
+
+(let ([v (shared ([a (cons 1 b)] ; b is early...
+                  [b a])
+                 a)])
+  (displayln (car v))
+  (displayln (cdr v)))
+
+
+
+
+(let ([v (shared ([a (box b)]
+                  [b (vector (unbox a)   ; unbox after a is patched
+                             (unbox c))] ; unbox before c is patched
+                  [c (box b)])
+                 b)])
+  (displayln (eq? (vector-ref v 0) v))
+  (displayln (vector-ref v 1))
+  (displayln (vector-length v)))

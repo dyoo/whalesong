@@ -435,12 +435,14 @@ var invokeMainModule = function() {
                                  appNames = contMarkSet.ref(plt.runtime.getTracedAppKey(MACHINE));
                                  while (plt.baselib.lists.isPair(appNames)) {
                                      appName = appNames.first;
-                                     console.log(appName);
                                      MACHINE.params.currentErrorDisplayer(
                                         MACHINE,
                                         $('<div/>').text('  at ' + appName.elts[0] +
                                                          ', line ' + appName.elts[2] +
                                                          ', column ' + appName.elts[3])
+                                                   .addClass('stacktrace')
+                                                   .css('margin-left', '10px')
+                                                   .css('whitespace', 'pre')
                                                    .css('color', 'red'));
                                      appNames = appNames.rest;
                                  }

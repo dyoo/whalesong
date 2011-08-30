@@ -5,5 +5,6 @@
       "one"
       (* x (f (sub1 x)))))
 
+(f 0)
 (list (f 3)
       (f 4))

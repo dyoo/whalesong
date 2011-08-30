@@ -137,9 +137,9 @@
                (format "RUNTIME.makePath(~s)"
                        (path->string val))]
               [(vector? val)
-               (format "RUNTIME.makeVector(~s)"
+               (format "RUNTIME.makeVector(~a)"
                        (string-join (for/list ([elt (vector->list val)])
-                                        (loop elt))
+                                       (loop elt))
                                     ","))]
               [(box? val)
                (format "RUNTIME.makeBox(~s)"

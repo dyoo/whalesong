@@ -355,6 +355,18 @@
         marks.push([key, value]);
     };
 
+
+    Machine.prototype.captureContinuationMarks = function() {
+        var kvLists = [];
+        var i;
+        var control = this.control;
+        for (i = control.length-1; i >= 0; i--) {
+            if (control[i].marks.length !== 0) {
+                kvLists.push(control[i].marks);
+            }
+        }     
+        return new baselib.contmarks.ContinuationMarkSet(kvLists);
+    };
     
 
 
@@ -412,6 +424,7 @@
 	var MACHINE = this;
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
+        var contMarks;
 	MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
 	MACHINE.params.numBouncesBeforeYield = 
 	    MACHINE.params.maxNumBouncesBeforeYield;
@@ -465,6 +478,10 @@
 		    // General error condition: just exit out
 		    // of the trampoline and call the current error handler.
 		    MACHINE.running = false;
+                    if (baselib.exceptions.isExn(e)) {
+                        contMarks = MACHINE.captureContinuationMarks();
+                        baselib.exceptions.exnSetContMarks(e, contMarks);
+                    }
                     MACHINE.params.currentErrorHandler(MACHINE, e);
 	            return;
 		}

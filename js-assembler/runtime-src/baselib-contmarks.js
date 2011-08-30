@@ -7,8 +7,8 @@
     baselib.contmarks = exports;
 
 
-    var ContinuationMarkSet = function(dict) {
-        this.dict = dict;
+    var ContinuationMarkSet = function(kvlists) {
+        this.kvlists = kvlists;
     };
 
     ContinuationMarkSet.prototype.toDomNode = function(cache) {
@@ -26,10 +26,17 @@
     };
 
     ContinuationMarkSet.prototype.ref = function(key) {
-        if ( this.dict.containsKey(key) ) {
-	    return this.dict.get(key);
+        var i, j;
+        var result = [];
+        for (i = 0; i < this.kvlists.length; i++) {
+            var kvlist = this.kvlists[i];
+            for (j = 0; j < this.kvlist.length; j++) {
+                if (baselib.equality.equals(kvlist[j][0], key)) {
+                    result.push(kvlist[j][1]);
+                }
+            }
         }
-        return [];
+        return baselib.lists.makeList.apply(null, result);
     };
 
 

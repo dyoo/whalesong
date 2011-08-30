@@ -762,8 +762,8 @@
                 position.coords.hasOwnProperty('latitude') &&
                 position.coords.hasOwnProperty('longitude')) {
                 fireEvent(undefined,
-                          objectToEvent({ latitude : Number(position.coords.latitude),
-                                          longitude : Number(position.coords.longitude) }));
+                          objectToEvent({ 'latitude' : Number(position.coords.latitude),
+                                          'longitude' : Number(position.coords.longitude) }));
             }
         };
         var fail = function(err) {

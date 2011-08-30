@@ -18,18 +18,6 @@
     var isRacketError = baselib.makeClassPredicate(RacketError);
 
 
-    // // Error type exports
-    // var InternalError = function(val, contMarks) {
-    //     this.val = val;
-    //     this.contMarks = contMarks || false;
-    // };
-
-    // var IncompleteExn = function(constructor, msg, otherArgs) {
-    //     this.constructor = constructor;
-    //     this.msg = msg;
-    //     this.otherArgs = otherArgs;
-    // };
-
 
     // (define-struct exn (message continuation-mark-set))
     var Exn = baselib.structs.makeStructureType(
@@ -93,11 +81,12 @@
 
     var raiseUnboundToplevelError = function(MACHINE, name) {
         var message = baselib.format.format("Not bound: ~a", [name]);
+        var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE, 
               new RacketError(
                   message,
                   ExnFailContractVariable.constructor(message, 
-                                                      undefined, 
+                                                      contMarks, 
                                                       baselib.symbols.makeSymbol(name)))); 
     };
 
@@ -108,6 +97,7 @@
                                           argumentOffset,
                                           actualValue) {
         var message;
+        var contMarks = MACHINE.captureContinuationMarks();
         if (argumentOffset !== undefined) {
             message = baselib.format.format(
                           "~a: expected ~a as argument ~e but received ~e",
@@ -116,7 +106,7 @@
                            (argumentOffset + 1),
                            actualValue]);
             raise(MACHINE, new RacketError(message,
-                                           ExnFailContract.constructor(message, undefined)));
+                                           ExnFailContract.constructor(message, contMarks)));
         } else {
             message = baselib.format.format(
                           "~a: expected ~a but received ~e",
@@ -124,16 +114,17 @@
                            expectedTypeName,
                            actualValue]);
             raise(MACHINE, new RacketError(message,
-                                           ExnFailContract.constructor(message, undefined)));
+                                           ExnFailContract.constructor(message, contMarks)));
         }
     };
 
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
         var message = baselib.format.format("expected ~e values, received ~e values",
                                             [expected, MACHINE.argcount]);
+        var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE, 
               new RacketError(message,
-                              ExnFailContract.constructor(message, undefined)));
+                              ExnFailContract.constructor(message, contMarks)));
     };
 
     var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
@@ -143,38 +134,42 @@
                                              received]);
         raise(MACHINE, 
               new RacketError(message,
-                              ExnFailContractArity.constructor(message, undefined)));
+                              ExnFailContractArity.constructor(message, contMarks)));
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
         var message = baselib.format.format("not a procedure: ~e",
                                             [operator]);
+        var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE, 
               new RacketError(message,
-                              ExnFailContract.constructor(message, undefined)));
+                              ExnFailContract.constructor(message, contMarks)));
     };
 
     var raiseOperatorIsNotClosure = function(MACHINE, operator) {
         var message = baselib.format.format("not a closure: ~e",
                                             [operator]);
+        var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE,
               new RacketError(message,
-                              ExnFailContract.constructor(message, undefined)));
+                              ExnFailContract.constructor(message, contMarks)));
     };
 
     var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
         var message = baselib.format.format("not a primitive procedure: ~e",
                                             [operator]);
+        var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE,
               new RacketError(message,
-                              ExnFailContract.constructor(message, undefined)));
+                              ExnFailContract.constructor(message, contMarks)));
     };
 
 
     var raiseUnimplementedPrimitiveError = function(MACHINE, name) {
         var message = "unimplemented kernel procedure: " + name;
+        var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE, new RacketError(message,
-                                       ExnFailContract.constructor(message, undefined)));
+                                       ExnFailContract.constructor(message, contMarks)));
     };
 
 

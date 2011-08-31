@@ -15,8 +15,8 @@
     var isNumber = baselib.numbers.isNumber;
 
     var isReal = baselib.numbers.isReal;
-    var isComplex = isComplex;
-    var isRational = isRational;
+    var isComplex = baselib.numbers.isComplex;
+    var isRational = baselib.numbers.isRational;
 
 
     var isNatural = baselib.numbers.isNatural;
@@ -725,7 +725,7 @@
             var chars = [];
             for (i = 0; i < MACHINE.argcount; i++) {
                 chars.push(checkChar(MACHINE, 'string', i).val);
-            };
+            }
             return chars.join('');
         });
 
@@ -799,7 +799,7 @@
             var s = checkString(MACHINE, 'string<=?', 0).toString();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s <= checkString(MACHINE, 'string<=?', i).toString())) {
+                if ((s <= checkString(MACHINE, 'string<=?', i).toString()) === false) {
                     return false;
                 }
             }
@@ -813,7 +813,7 @@
             var s = checkString(MACHINE, 'string<?', 0).toString();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s < checkString(MACHINE, 'string<?', i).toString())) {
+                if ((s < checkString(MACHINE, 'string<?', i).toString()) === false) {
                     return false;
                 }
             }
@@ -827,7 +827,7 @@
             var s = checkString(MACHINE, 'string>=?', 0).toString();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s >= checkString(MACHINE, 'string>=?', i).toString())) {
+                if ((s >= checkString(MACHINE, 'string>=?', i).toString()) === false) {
                     return false;
                 }
             }
@@ -841,7 +841,7 @@
             var s = checkString(MACHINE, 'string>?', 0).toString();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s > checkString(MACHINE, 'string>?', i).toString())) {
+                if ((s > checkString(MACHINE, 'string>?', i).toString()) === false) {
                     return false;
                 }
             }
@@ -887,7 +887,7 @@
             var s = checkString(MACHINE, 'string-ci<=?', 0).toString().toUpperCase();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s <= checkString(MACHINE, 'string-ci<=?', i).toString().toUpperCase())) {
+                if ((s <= checkString(MACHINE, 'string-ci<=?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
             }
@@ -901,7 +901,7 @@
             var s = checkString(MACHINE, 'string-ci<?', 0).toString().toUpperCase();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s < checkString(MACHINE, 'string-ci<?', i).toString().toUpperCase())) {
+                if ((s < checkString(MACHINE, 'string-ci<?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
             }
@@ -915,7 +915,7 @@
             var s = checkString(MACHINE, 'string-ci>=?', 0).toString().toUpperCase();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s >= checkString(MACHINE, 'string-ci>=?', i).toString().toUpperCase())) {
+                if ((s >= checkString(MACHINE, 'string-ci>=?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
             }
@@ -929,7 +929,7 @@
             var s = checkString(MACHINE, 'string-ci>?', 0).toString().toUpperCase();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (! (s > checkString(MACHINE, 'string-ci>?', i).toString().toUpperCase())) {
+                if ((s > checkString(MACHINE, 'string-ci>?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
             }

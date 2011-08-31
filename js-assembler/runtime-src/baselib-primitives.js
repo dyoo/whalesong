@@ -13,6 +13,12 @@
     // pull from external modules should be listed here, and should otherwise not
     // show up outside this section!
     var isNumber = baselib.numbers.isNumber;
+
+    var isReal = baselib.numbers.isReal;
+    var isComplex = isComplex;
+    var isRational = isRational;
+
+
     var isNatural = baselib.numbers.isNatural;
     var isPair = baselib.lists.isPair;
     var isList = baselib.lists.isList;
@@ -778,12 +784,74 @@
             var s = checkString(MACHINE, 'string=?', 0).toString();
 	    var i;
             for (i = 1; i < MACHINE.argcount; i++) {
-                if (checkString(MACHINE, 'string=?', i).toString() !== s) {
+                if (s !== checkString(MACHINE, 'string=?', i).toString()) {
                     return false;
                 }
             }
             return true;
         });
+
+
+    installPrimitiveProcedure(
+        'string<=?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string<=?', 0).toString();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s <= checkString(MACHINE, 'string<=?', i).toString())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+    installPrimitiveProcedure(
+        'string<?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string<?', 0).toString();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s < checkString(MACHINE, 'string<?', i).toString())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+    installPrimitiveProcedure(
+        'string>=?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string>=?', 0).toString();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s >= checkString(MACHINE, 'string>=?', i).toString())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+    installPrimitiveProcedure(
+        'string>?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string>?', 0).toString();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s > checkString(MACHINE, 'string>?', i).toString())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+
+
+
+
 
 
     installPrimitiveProcedure(
@@ -1084,6 +1152,28 @@
 	function(MACHINE) {
 	    return isNumber(MACHINE.env[MACHINE.env.length - 1]);
 	});
+
+    installPrimitiveProcedure(
+	'real?',
+	1,
+	function(MACHINE) {
+	    return isReal(MACHINE.env[MACHINE.env.length - 1]);
+	});
+    installPrimitiveProcedure(
+	'complex?',
+	1,
+	function(MACHINE) {
+	    return isComplex(MACHINE.env[MACHINE.env.length - 1]);
+	});
+
+    installPrimitiveProcedure(
+	'rational?',
+	1,
+	function(MACHINE) {
+	    return isRational(MACHINE.env[MACHINE.env.length - 1]);
+	});
+
+
 
 
     installPrimitiveProcedure(
@@ -1456,6 +1546,42 @@
             return baselib.numbers.sign(
                 checkInteger(MACHINE, 'sgn', 0));
         });
+
+
+    installPrimitiveProcedure(
+        'min',
+        baselib.arity.makeArityAtLeast(1),
+        function(MACHINE) {
+            var i;
+            var next;
+            var currentMin = checkReal(MACHINE, 'min', 0);
+            for (i = 1; i < MACHINE.argcount; i++) {
+                next = checkReal(MACHINE, 'min', i);
+                if (baselib.numbers.lessThan(next, currentMin)) {
+                    currentMin = next;
+                }
+            }
+            return currentMin;
+        });
+
+    installPrimitiveProcedure(
+        'max',
+        baselib.arity.makeArityAtLeast(1),
+        function(MACHINE) {
+            var i;
+            var next;
+            var currentMax = checkReal(MACHINE, 'min', 0);
+            for (i = 1; i < MACHINE.argcount; i++) {
+                next = checkReal(MACHINE, 'min', i);
+                if (baselib.numbers.greaterThan(next, currentMax)) {
+                    currentMax = next;
+                }
+            }
+            return currentMax;
+        });
+
+
+
 
 
 

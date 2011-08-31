@@ -80,15 +80,64 @@
                                  ,(make-PopControlFrame)
                                  ,(make-GotoStatement (make-Reg 'proc)))))))
 
+
+
 (: make-bootstrapped-primitive-code (Symbol Any -> (Listof Statement)))
+;; Generates the bootstrapped code for some of the primitives.  Note: the source must compile
+;; under #%kernel, or else!
 (define make-bootstrapped-primitive-code
-  (let ([ns (make-base-namespace)])
+  (let ([ns (make-base-empty-namespace)])
+    (parameterize ([current-namespace ns]) (namespace-require ''#%kernel))
     (lambda (name src)
       (parameterize ([current-defined-name name])
         (append
          (whalesong-compile (parameterize ([current-namespace ns])
                               (parse-bytecode (compile src)))
                             (make-PrimitivesReference name) next-linkage/drop-multiple))))))
+
+
+
+
+(: make-map-src (Symbol Symbol -> Any))
+;; Generates the code for map.
+(define (make-map-src name combiner)
+  `(letrec-values ([(first-tuple) (lambda (lists)
+                                   (if (null? lists)
+                                       '()
+                                       (cons (car (car lists))
+                                             (first-tuple (cdr lists)))))]
+                  [(rest-lists) (lambda (lists)
+                                  (if (null? lists)
+                                      '()
+                                      (cons (cdr (car lists))
+                                            (rest-lists (cdr lists)))))]
+                  [(all-empty?) (lambda (lists)
+                                  (if (null? lists)
+                                      #t
+                                      (if (null? (car lists))
+                                          (all-empty? (cdr lists))
+                                          #f)))]
+                  [(some-empty?) (lambda (lists)
+                                   (if (null? lists)
+                                       #f
+                                       (if (null? (car lists))
+                                           #t
+                                           
+                                           (some-empty? (cdr lists)))))]
+                  [(do-it) (lambda (f lists)
+                             (letrec-values ([(loop) (lambda (lists)
+                                                       (if (all-empty? lists)
+                                                           null
+                                                           (if (some-empty? lists)
+                                                               (error 
+                                                                ',name 
+                                                                "all lists must have the same size")
+                                                               (,combiner (apply f (first-tuple lists))
+                                                                          (loop (rest-lists lists))))))])
+                                            (loop lists)))])
+                 (lambda (f . args)
+                   (do-it f args))))
+
 
 
 
@@ -103,22 +152,22 @@
    ;; Other primitives
    (make-bootstrapped-primitive-code 
     'map 
-    '(letrec ([map (lambda (f l)
-                     (if (null? l)
-                         null
-                         (cons (f (car l))
-                               (map f (cdr l)))))])
-       map))
+    (make-map-src 'map 'cons))
 
    (make-bootstrapped-primitive-code
     'for-each
-    '(letrec ([for-each (lambda (f l)
-			  (if (null? l)
-			      null
-			      (begin (f (car l))
-				     (for-each f (cdr l)))))])
-       for-each))
+    (make-map-src 'for-each 'begin))
 
+   (make-bootstrapped-primitive-code
+    'andmap
+    (make-map-src 'andmap 'and))
+
+   (make-bootstrapped-primitive-code
+    'ormap
+    (make-map-src 'ormap 'or))
+
+   
+   
    (make-bootstrapped-primitive-code
     'caar
     '(lambda (x)
@@ -127,47 +176,47 @@
 
    (make-bootstrapped-primitive-code
     'memq
-    '(letrec ([memq (lambda (x l)
-		      (if (null? l)
-			  #f
-			  (if (eq? x (car l))
-			      l
-			      (memq x (cdr l)))))])
-       memq))
+    '(letrec-values ([(memq) (lambda (x l)
+                               (if (null? l)
+                                   #f
+                                   (if (eq? x (car l))
+                                       l
+                                       (memq x (cdr l)))))])
+                    memq))
 
    (make-bootstrapped-primitive-code
     'assq
-    '(letrec ([assq (lambda (x l)
-		     (if (null? l)
-			 #f
-			 (if (eq? x (caar l))
-			     (car l)
-			     (assq x (cdr l)))))])
-      assq))
+    '(letrec-values ([(assq) (lambda (x l)
+                               (if (null? l)
+                                   #f
+                                   (if (eq? x (caar l))
+                                       (car l)
+                                       (assq x (cdr l)))))])
+                    assq))
 
    (make-bootstrapped-primitive-code
     'length
-    '(letrec ([length-iter (lambda (l i)
-			    (if (null? l)
-				i
-				(length-iter (cdr l) (add1 i))))])
-      (lambda (l) (length-iter l 0))))
-			  
+    '(letrec-values ([(length-iter) (lambda (l i)
+                                      (if (null? l)
+                                          i
+                                          (length-iter (cdr l) (add1 i))))])
+                    (lambda (l) (length-iter l 0))))
+   
 
    (make-bootstrapped-primitive-code
     'append
-    '(letrec ([append-many (lambda (lsts)
-			     (if (null? lsts)
-				 null
-				 (if (null? (cdr lsts))
-				     (car lsts)
-				     (append-2 (car lsts)
-					       (append-many (cdr lsts))))))]
-	      [append-2 (lambda (l1 l2)
-			  (if (null? l1) 
-			      l2
-			      (cons (car l1) (append-2 (cdr l1) l2))))])
-       (lambda args (append-many args))))
+    '(letrec-values ([(append-many) (lambda (lsts)
+                                      (if (null? lsts)
+                                          null
+                                          (if (null? (cdr lsts))
+                                              (car lsts)
+                                              (append-2 (car lsts)
+                                                        (append-many (cdr lsts))))))]
+                     [(append-2) (lambda (l1 l2)
+                                   (if (null? l1) 
+                                       l2
+                                       (cons (car l1) (append-2 (cdr l1) l2))))])
+                    (lambda args (append-many args))))
 
 
    (make-bootstrapped-primitive-code

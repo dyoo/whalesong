@@ -11,6 +11,8 @@
                   parameterization-key
                   break-enabled-key))
 
+(require (prefix-in kernel: '#%kernel))
+
 
 (provide exception-handler-key
          parameterization-key
@@ -159,7 +161,9 @@
          eq?
          values
 
-         apply
+         ;; The version of apply in racket/base is doing some stuff that
+         ;; we are not handling yet.  So we expose the raw apply here instead.
+         (rename-out [kernel:apply apply])
          call-with-values
 
          gensym)
@@ -291,9 +295,9 @@ vector?
 ;;  bytes?
 ;;  byte?
 number?
-;;  complex?
-;;  real?
-;;  rational?
+complex?
+real?
+rational?
 integer?
 exact?
 exact-nonnegative-integer?
@@ -330,8 +334,8 @@ exact-nonnegative-integer?
   reverse
   for-each
   map
-;;  andmap
-;;  ormap
+  andmap
+  ormap
 memq
 ;;  memv
   member

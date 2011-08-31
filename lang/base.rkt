@@ -11,9 +11,13 @@
                      define-syntax-parameter
                      syntax-parameterize
                      )
-         (all-from-out "private/list.rkt"))
+         (all-from-out "private/list.rkt")
+         (all-from-out "list.rkt")
+         (all-from-out "private/map.rkt"))
          
-(require "private/list.rkt")
+(require "private/list.rkt"
+         "private/map.rkt"
+         "list.rkt")
 
 
 ;; Kludge: This forces modbeg to be compiled and packaged.

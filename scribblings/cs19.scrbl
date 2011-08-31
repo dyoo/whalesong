@@ -357,17 +357,48 @@ moment.
 }
 
 
+Once we have a view, we can refocus the view to different elements by using
+@racket[view-left], @racket[view-right], @racket[view-up], and @racket[view-down].
+
+
+@defproc[(view-left? [v view]) boolean]{
+See if the view can be moved to the previous sibling.
+}
 @defproc[(view-left [v view]) view]{
 Move the focus to the previous sibling.
+}
+@defproc[(view-right? [v view]) boolean]{
+See if the view can be moved to the next sibling.
 }
 @defproc[(view-right [v view]) view]{
 Move the focus to the next sibling.}
 
+@defproc[(view-up? [v view]) boolean]{
+See if the view can be moved to the parent.
+}
 @defproc[(view-up [v view]) view]{
 Move the focus to the parent.}
 
+@defproc[(view-down? [v view]) boolean]{
+See if the view can be moved to the first child.
+}
 @defproc[(view-down [v view]) view]{
 Move the view to the first child.}
+
+
+
+Once we focus the view on an element, we can bind a world handler to it that
+responds to events.
+@defproc[(view-bind [v view] [type string] [world-updater ([w world] [v view]  [e event]? -> world)]) view]{
+Attach a world-updating event to the focus.  When the world-updater is
+called, the view will be focused on the element that triggered the
+event.  Common event types include @racket["click"],
+@racket["mouseenter"], @racket["change"].}
+
+
+
+When the view is on an element that we'd like to query or update, we can use
+several functions:
 
 @defproc[(view-text [v view]) string]{
 Get the textual content at the focus.
@@ -375,14 +406,6 @@ Get the textual content at the focus.
 @defproc[(update-view-text [v view] [s string]) view]{
 Update the textual content at the focus.}
 
-@defproc[(view-bind [v view] [type string] [world-updater ([w world] [v view]  [e event]? -> world)]) view]{
-Attach a world-updating event to the focus.
-
-Attach a world-updating event to the focus.  When the world-updater is
-called, the view will be focused on the element that triggered the
-event.
-
-Common event types include @racket["click"], @racket["mouseenter"], @racket["change"].}
 
 @defproc[(view-show [v view]) view]{
 Show the element at the focus.

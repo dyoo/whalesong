@@ -743,15 +743,26 @@ moment.
 }
 
 
+@defproc[(view-left? [v view]) boolean]{
+See if the view can be moved to the previous sibling.
+}
 @defproc[(view-left [v view]) view]{
 Move the focus to the previous sibling.
 }
+@defproc[(view-right? [v view]) boolean]{
+See if the view can be moved to the next sibling.
+}
 @defproc[(view-right [v view]) view]{
 Move the focus to the next sibling.}
-
+@defproc[(view-up? [v view]) boolean]{
+See if the view can be moved to the parent.
+}
 @defproc[(view-up [v view]) view]{
 Move the focus to the parent.}
 
+@defproc[(view-down? [v view]) boolean]{
+See if the view can be moved to the first child.
+}
 @defproc[(view-down [v view]) view]{
 Move the view to the first child.}
 

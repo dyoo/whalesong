@@ -420,7 +420,6 @@
     // Coerse a value into a view.
     var coerseToView = function(x, onSuccess, onFail) {
         var dom;
-        var exn;
         if (isView(x)) { 
             return onSuccess(x); 
         } else  if (isResource(x)) {
@@ -430,8 +429,8 @@
                     .css("padding", "0px")
                     .css("border", "0px");
                 dom.children("body").css("margin", "0px");
-            } catch (exn) {
-                return onFail(exn);
+            } catch (exn1) {
+                return onFail(exn1);
             }
             return onSuccess(new View(dom, []));
         } else if (isMockView(x)) {
@@ -440,8 +439,8 @@
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x));
-            } catch (exn) {
-                return onFail(exn);
+            } catch (exn2) {
+                return onFail(exn2);
             }
             return onSuccess(new View(dom, []));
         }
@@ -449,7 +448,6 @@
 
     var coerseToMockView = function(x, onSuccess, onFail) {
         var dom;
-        var exn;
         if (isMockView(x)) { 
             return onSuccess(x); 
         } else  if (isResource(x)) {
@@ -459,15 +457,15 @@
                     .css("padding", "0px")
                     .css("border", "0px");
                 dom.children("body").css("margin", "0px");
-            } catch (exn) {
-                return onFail(exn);
+            } catch (exn1) {
+                return onFail(exn1);
             }
             return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x));
-            } catch (exn) {
-                return onFail(exn);
+            } catch (exn2) {
+                return onFail(exn2);
             }
             return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         }
@@ -482,7 +480,6 @@
 
     var coerseToDomNode = function(x, onSuccess, onFail) {
         var dom;
-        var exn;
         if (isDomNode(x)) { 
             return onSuccess(x); 
         } else  if (isResource(x)) {
@@ -491,8 +488,8 @@
                     .css("margin", "0px")
                     .css("padding", "0px")
                     .css("border", "0px");
-            } catch (exn) {
-                return onFail(exn);
+            } catch (exn1) {
+                return onFail(exn1);
             }
             return onSuccess(dom.get(0));
         } else if (isMockView(x)) {
@@ -500,8 +497,8 @@
         } else {
             try {
                 dom = plt.baselib.format.toDomNode(x);
-            } catch (exn) {
-                return onFail(exn);
+            } catch (exn2) {
+                return onFail(exn2);
             }
             return onSuccess(dom);
         }

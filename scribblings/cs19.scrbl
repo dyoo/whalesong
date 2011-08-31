@@ -495,8 +495,8 @@ For example,
 
 For a web-world program, output is normally done by using
 @racket[to-draw].  However, side effecting functions, such as
-@racket[printf] or @racket[display], are still available, and are
-allowed to continue to append to @tt{document.body}.
+@racket[printf] or @racket[display], are still available, and will
+append to @tt{document.body}.
 
 We may want to disable such printing or redirect it to a particular
 element on the page.  For such purposes, use a combination of
@@ -511,8 +511,9 @@ For example:
 ...
 (big-bang ...
           (on-tick (lambda (world dom)
-                     (printf "Tick!\n")
-                     (add1 world)))
+                     (begin
+                       (printf "Tick!\n")
+                       (add1 world))))
           ...)
 }|
 

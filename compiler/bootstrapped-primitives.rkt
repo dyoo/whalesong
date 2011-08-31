@@ -3,14 +3,18 @@
          "expression-structs.rkt"
          "lexical-structs.rkt"
          "il-structs.rkt"
-         "compiler.rkt"
+         (except-in "compiler.rkt" compile)
          "compiler-structs.rkt")
+
+(require (rename-in "compiler.rkt"
+                     [compile whalesong-compile]))
+
 
 
 (require/typed "../parameters.rkt"
                (current-defined-name (Parameterof (U Symbol LamPositionalName))))
 (require/typed "../parser/parse-bytecode.rkt"
-               (parse-bytecode (Path -> Expression)))
+               (parse-bytecode (Any -> Expression)))
 
 (require/typed "../parser/baby-parser.rkt"
                [parse (Any -> Expression)])
@@ -80,10 +84,14 @@
                                  ,(make-GotoStatement (make-Reg 'proc)))))))
 
 (: make-bootstrapped-primitive-code (Symbol Any -> (Listof Statement)))
-(define (make-bootstrapped-primitive-code name src)
-  (parameterize ([current-defined-name name])
-    (append
-     (compile (parse src) (make-PrimitivesReference name) next-linkage/drop-multiple))))
+(define make-bootstrapped-primitive-code
+  (let ([ns (make-base-namespace)])
+    (lambda (name src)
+      (parameterize ([current-defined-name name])
+        (append
+         (whalesong-compile (parameterize ([current-namespace ns])
+                              (parse-bytecode (compile src)))
+                            (make-PrimitivesReference name) next-linkage/drop-multiple))))))
 
 
 

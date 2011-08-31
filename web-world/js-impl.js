@@ -1,5 +1,5 @@
 /*jslint browser: true, unparam: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
-/*global plt,MACHINE,$,EXPORTS*/
+/*global plt,MACHINE,$,EXPORTS,TreeCursor*/
 (function() {
 
     "use strict";
@@ -15,10 +15,16 @@
 
 
 
+    // EventHandler and the other classes here will be defined below.
+    // We're just trying to keep jslint happy.
+    var EventHandler, DomEventSource;
+
+
+
     // FIXME: as soon as we get real parameters, use parameters
     // instead.  Global: defines the currently running big bang.
     // Parameterized around the call to bigBang.
-    var currentBigBangRecord = undefined;
+    var currentBigBangRecord;
 
 
 
@@ -54,41 +60,6 @@
                                           domOpenF,
                                           domCloseF,
                                           domAtomicF);
-    };
-
-
-
-
-
-    // See Functional Pearl: The Zipper, by G\'erard Huet
-    // J. Functional Programming 7 (5): 549--554 Sepember 1997
-    var TreePath = function(parent, node, prevs, nexts) {
-        this.parent = parent; // Parent can be the top (undefined), or a TreePath
-        this.node = node;
-        this.prevs = prevs;
-        this.nexts = nexts;
-    };
-
-    TreePath.prototype.down = function() {
-        var children = node.children();
-        return new TreePath(this, node[0], [], children.slice(1));
-    };
-
-    TreePath.prototype.up = function() {
-        var parent = this.parent;
-        return new Tree
-    };
-
-    TreePath.prototype.left = function() {
-    };
-
-    TreePath.prototype.right = function() {
-    };
-    
-    TreePath.prototype.succ = function() {
-    };
-
-    TreePath.prototype.pred = function() {
     };
 
 
@@ -168,7 +139,7 @@
             function(view) {
                 view.focus.text(text);
             }
-        )
+        );
     };
 
     MockView.prototype.getAttr = function(name) {        
@@ -186,7 +157,7 @@
             },
             function(view) {
                 view.focus.attr(name, value);
-            })
+            });
     };
 
 
@@ -204,7 +175,7 @@
             },
             function(view) {
                 view.focus.val(value);
-            })
+            });
     };
 
 
@@ -315,7 +286,7 @@
             function(view) {
                 view.focus.show();
             }
-        )
+        );
     };
 
     MockView.prototype.hide = function() {
@@ -327,7 +298,7 @@
             function(view) {
                 view.focus.hide();
             }
-        )
+        );
     };
 
 
@@ -350,7 +321,7 @@
                 clone.appendTo(view.focus);
                 view.focus = clone;
             }
-        )
+        );
     };
 
     MockView.prototype.id = function() {
@@ -358,6 +329,22 @@
     };
 
 
+
+    MockView.prototype.isUpMovementOk = function() {
+        return this.cursor.canUp();
+    };
+
+    MockView.prototype.isDownMovementOk = function() {
+        return this.cursor.canDown();
+    };
+
+    MockView.prototype.isLeftMovementOk = function() {
+        return this.cursor.canLeft();
+    };
+
+    MockView.prototype.isRightMovementOk = function() {
+        return this.cursor.canRight();
+    };
 
 
 
@@ -433,6 +420,7 @@
     // Coerse a value into a view.
     var coerseToView = function(x, onSuccess, onFail) {
         var dom;
+        var exn;
         if (isView(x)) { 
             return onSuccess(x); 
         } else  if (isResource(x)) {
@@ -451,7 +439,7 @@
                                       x.eventHandlers));
         } else {
             try {
-                dom = $(plt.baselib.format.toDomNode(x))
+                dom = $(plt.baselib.format.toDomNode(x));
             } catch (exn) {
                 return onFail(exn);
             }
@@ -461,6 +449,7 @@
 
     var coerseToMockView = function(x, onSuccess, onFail) {
         var dom;
+        var exn;
         if (isMockView(x)) { 
             return onSuccess(x); 
         } else  if (isResource(x)) {
@@ -476,7 +465,7 @@
             return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
         } else {
             try {
-                dom = $(plt.baselib.format.toDomNode(x))
+                dom = $(plt.baselib.format.toDomNode(x));
             } catch (exn) {
                 return onFail(exn);
             }
@@ -485,8 +474,15 @@
     };
 
 
+    var isDomNode = function(x) {
+        return (x.hasOwnProperty('nodeType') &&
+                x.nodeType === 1);
+    };
+
+
     var coerseToDomNode = function(x, onSuccess, onFail) {
         var dom;
+        var exn;
         if (isDomNode(x)) { 
             return onSuccess(x); 
         } else  if (isResource(x)) {
@@ -512,10 +508,6 @@
     };
 
 
-    var isDomNode = function(x) {
-        return (x.hasOwnProperty('nodeType') &&
-                x.nodeType === 1);
-    };
 
 
 
@@ -570,12 +562,11 @@
 
 
     // An EventHandler combines a EventSource with a racketWorldCallback.
-
-    var EventHandler = function(name, eventSource, racketWorldCallback) {
+    EventHandler = function(name, eventSource, racketWorldCallback) {
         WorldHandler.call(this);
         this.name = name;
         this.eventSource = eventSource;
-        this.racketWorldCallback = racketWorldCallback
+        this.racketWorldCallback = racketWorldCallback;
     };
     EventHandler.prototype = plt.baselib.heir(WorldHandler.prototype);
     EventHandler.prototype.toString = function() { return "#<" + this.name + ">"; };
@@ -742,7 +733,7 @@
         if (this.elt !== undefined) { 
             document.body.removeChild(this.elt);
             this.elt = undefined;
-        };
+        }
     };
 
     
@@ -768,7 +759,7 @@
         };
         var fail = function(err) {
             // Quiet failure
-        }
+        };
         if (!!(navigator.geolocation)) {
             navigator.geolocation.getCurrentPosition(success, fail);
             this.id = navigator.geolocation.watchPosition(success, fail); 
@@ -779,7 +770,7 @@
         if (this.id !== undefined) { 
             navigator.geolocation.clearWatch(this.id);
             this.id = undefined;
-        };
+        }
     };
 
 
@@ -795,7 +786,7 @@
     // DomElementSource: string (U DOM string) -> EventSource
     // A DomEventSource allows DOM elements to send events over to
     // web-world.
-    var DomEventSource = function(type, elementOrId) {
+    DomEventSource = function(type, elementOrId) {
         this.type = type;
         this.elementOrId = elementOrId;
         this.handler = undefined;
@@ -881,6 +872,7 @@
         var running = true;
         var dispatchingEvents = false;
 
+        var top = $("<div/>");
         var view = (find(handlers, isInitialViewHandler) || { view : new View(top, []) }).view;
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
@@ -888,8 +880,6 @@
         var oldOutputPort = MACHINE.params.currentOutputPort;
 
         var eventQueue = new EventQueue();
-
-        var top = $("<div/>");
         var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
 
         MACHINE.params.currentDisplayer(MACHINE, top);
@@ -900,9 +890,12 @@
         }
 
         PAUSE(function(restart) {
-            var i;
+            var onCleanRestart, onMessyRestart, 
+            startEventHandlers, stopEventHandlers, 
+            startEventHandler, stopEventHandler,
+            dispatchEventsInQueue, refreshView;
 
-            var onCleanRestart = function() {
+            onCleanRestart = function() {
                 running = false;
                 stopEventHandlers();
                 restart(function(MACHINE) {
@@ -913,7 +906,7 @@
                 });
             };
 
-            var onMessyRestart = function(exn) {
+            onMessyRestart = function(exn) {
                 running = false;
                 stopEventHandlers();
                 restart(function(MACHINE) {
@@ -923,21 +916,21 @@
                 });
             };
 
-            var startEventHandlers = function() {
+            startEventHandlers = function() {
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
                     startEventHandler(eventHandlers[i]);
                 }
             };
 
-            var stopEventHandlers = function() {
+            stopEventHandlers = function() {
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
                     stopEventHandler(eventHandlers[i]);
                 }
             };
 
-            var startEventHandler = function(handler) {
+            startEventHandler = function(handler) {
                 var fireEvent = function(who) {
                     if (! running) { return; }
                     var args = [].slice.call(arguments, 1);
@@ -959,12 +952,12 @@
                 handler.eventSource.onStart(fireEvent);
             };
 
-            var stopEventHandler = function(handler) {
+            stopEventHandler = function(handler) {
                 handler.eventSource.onStop();
             };
 
 
-            var dispatchEventsInQueue = function(success, fail) {
+            dispatchEventsInQueue = function(success, fail) {
                 // Apply all the events on the queue, call toDraw, and then stop.
                 // If the world ever satisfies stopWhen, stop immediately and quit.
                 var nextEvent;
@@ -1020,7 +1013,7 @@
                 }
             };
 
-            var refreshView = function(success, failure) {
+            refreshView = function(success, failure) {
                 // Note: we create a random nonce, and watch to see if the MockView we get back
                 // from the user came from here.  If not, we have no hope to do a nice, efficient
                 // update, and have to do it from scratch.
@@ -1046,7 +1039,7 @@
                        },
                        function(err) {
                            failure(err);
-                       })
+                       });
             };
 
             currentBigBangRecord = { stop : onCleanRestart,
@@ -1076,35 +1069,35 @@
 
 
 
-    // findDomNodeLocation: dom-node dom-node -> arrayof number
-    // Given a node, returns the child indices we need to follow to reach
-    // it from the top.
-    // Assumption: top must be an ancestor of the node.  Otherwise, the
-    // result is partial.
-    var findDomNodeLocation = function(node, top) {
-        var locator = [];
-        var parent, i;
-        while(node !== top && node.parentNode !== null) {
-            parent = node.parentNode;
-            for (i = 0; i < parent.childNodes.length; i++) {
-                if (parent.childNodes[i] === node) {
-                    locator.push(i);
-                    break;
-                }
-            }
-            node = parent;
-        }
-        return locator.reverse();
-    };
+    // // findDomNodeLocation: dom-node dom-node -> arrayof number
+    // // Given a node, returns the child indices we need to follow to reach
+    // // it from the top.
+    // // Assumption: top must be an ancestor of the node.  Otherwise, the
+    // // result is partial.
+    // var findDomNodeLocation = function(node, top) {
+    //     var locator = [];
+    //     var parent, i;
+    //     while(node !== top && node.parentNode !== null) {
+    //         parent = node.parentNode;
+    //         for (i = 0; i < parent.childNodes.length; i++) {
+    //             if (parent.childNodes[i] === node) {
+    //                 locator.push(i);
+    //                 break;
+    //             }
+    //         }
+    //         node = parent;
+    //     }
+    //     return locator.reverse();
+    // };
 
-    var findNodeFromLocation = function(top, location) {
-        var i = 0;
-        var node = top;
-        for (i = 0; i < location.length; i++) {
-            node = node.childNodes[location[i]];
-        }
-        return node;
-    };
+    // var findNodeFromLocation = function(top, location) {
+    //     var i = 0;
+    //     var node = top;
+    //     for (i = 0; i < location.length; i++) {
+    //         node = node.childNodes[location[i]];
+    //     }
+    //     return node;
+    // };
 
 
 
@@ -1128,12 +1121,7 @@
     var checkReal = plt.baselib.check.checkReal;
     var checkString = plt.baselib.check.checkString;
     var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
-    var checkOutputPort = plt.baselib.check.checkOutputPort;    
     var checkProcedure = plt.baselib.check.checkProcedure;
-
-    var checkResourceOrView = plt.baselib.check.makeCheckArgumentType(
-        function(x) { return isView(x) || isResource(x); },
-        'resource or view');
 
     var checkWorldHandler = plt.baselib.check.makeCheckArgumentType(
         isWorldHandler,
@@ -1307,6 +1295,41 @@
 
 
 
+    EXPORTS['view-left?'] = makePrimitiveProcedure(
+        'view-left?',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-left?', 0);
+            return view.isLeftMovementOk();
+        });
+
+    EXPORTS['view-right?'] = makePrimitiveProcedure(
+        'view-right?',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-right?', 0);
+            return view.isRightMovementOk();
+        });
+
+    EXPORTS['view-up?'] = makePrimitiveProcedure(
+        'view-up?',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-up?', 0);
+            return view.isUpMovementOk();
+        });
+
+    EXPORTS['view-down?'] = makePrimitiveProcedure(
+        'view-down?',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-down?', 0);
+            return view.isDownMovementOk();
+        });
+
+
+
+
 
 
 
@@ -1423,7 +1446,7 @@
                                              MACHINE, 
                                              new Error(plt.baselib.format.format(
                                                  "unable to translate ~s to dom node: ~a",
-                                                 [x, exn.message])));
+                                                 [x, err.message])));
                                         
                                     });
                                 });

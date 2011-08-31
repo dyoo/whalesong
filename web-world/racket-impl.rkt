@@ -8,6 +8,7 @@
          ->view
          view-focus
          view-left view-right view-up view-down
+         view-left? view-right? view-up? view-down?
          view-text update-view-text
          view-attr update-view-attr
          view-id
@@ -70,17 +71,33 @@
   (error 'view-text "Please run in JavaScript context."))
 
 
+
 (define (view-left v)
-  (error 'view-left))
+  (error 'view-left "Please run in JavaScript context."))
 
 (define (view-right v)
-  (error 'view-right))
+  (error 'view-right "Please run in JavaScript context."))
 
 (define (view-up v)
-  (error 'view-up))
+  (error 'view-up "Please run in JavaScript context"))
 
 (define (view-down v)
-  (error 'view-down))
+  (error 'view-down "Please run in JavaScript context"))
+
+
+
+(define (view-left? v)
+  (error 'view-left? "Please run in JavaScript context."))
+
+(define (view-right? v)
+  (error 'view-right? "Please run in JavaScript context."))
+
+(define (view-up? v)
+  (error 'view-up? "Please run in JavaScript context"))
+
+(define (view-down? v)
+  (error 'view-down? "Please run in JavaScript context"))
+
 
 
 

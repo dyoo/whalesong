@@ -35,9 +35,17 @@
                     ->view
 
                     view-focus
+
+                    view-left?
                     view-left
+
+                    view-right?
                     view-right
+
+                    view-up?
                     view-up
+                    
+                    view-down?
                     view-down
                     
                     view-text

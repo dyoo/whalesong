@@ -365,15 +365,16 @@ memq
   string-length
   string-ref
   string=?
-;;  string-ci=?
-;;  string<?
-;;  string>?
-;;  string<=?
-;;  string>=?
-;;  string-ci<?
-;;  string-ci>?
-;;  string-ci<=?
-;;  string-ci>=?
+  string<?
+  string>?
+  string<=?
+  string>=?
+  string-ci=?
+  string-ci<?
+  string-ci>?
+  string-ci<=?
+  string-ci>=?
+
   substring
   string-append
   string->list

@@ -854,6 +854,92 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+    installPrimitiveProcedure(
+        'string-ci=?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string-ci=?', 0).toString().toUpperCase();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (s !== checkString(MACHINE, 'string-ci=?', i).toString().toUpperCase()) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+
+    installPrimitiveProcedure(
+        'string-ci<=?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string-ci<=?', 0).toString().toUpperCase();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s <= checkString(MACHINE, 'string-ci<=?', i).toString().toUpperCase())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+    installPrimitiveProcedure(
+        'string-ci<?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string-ci<?', 0).toString().toUpperCase();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s < checkString(MACHINE, 'string-ci<?', i).toString().toUpperCase())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+    installPrimitiveProcedure(
+        'string-ci>=?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string-ci>=?', 0).toString().toUpperCase();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s >= checkString(MACHINE, 'string-ci>=?', i).toString().toUpperCase())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+    installPrimitiveProcedure(
+        'string-ci>?',
+        baselib.arity.makeArityAtLeast(1),
+        function (MACHINE) {
+            var s = checkString(MACHINE, 'string-ci>?', 0).toString().toUpperCase();
+	    var i;
+            for (i = 1; i < MACHINE.argcount; i++) {
+                if (! (s > checkString(MACHINE, 'string-ci>?', i).toString().toUpperCase())) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+
+
+
+
     installPrimitiveProcedure(
         'string-append',
         baselib.arity.makeArityAtLeast(0),

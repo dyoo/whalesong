@@ -30,3 +30,10 @@
 (string->list "xyz")
 (string->list "x")
 (string->list "")
+
+
+(string<? "" "")
+(string<? "hello" "Hello")
+(string<? "hello" "hello")
+(string<? "hello" "hi")
+(string<? "hello" "he")

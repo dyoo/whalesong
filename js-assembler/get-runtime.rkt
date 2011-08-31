@@ -64,6 +64,7 @@
                 baselib-placeholders.js
                 baselib-keywords.js
                 baselib-structs.js
+                baselib-srclocs.js
                 baselib-ports.js
                 baselib-functions.js
                 baselib-modules.js

@@ -10,3 +10,17 @@
 (first '(hello))
 (rest '(hello))
 (second '(hello world))
+
+(andmap even? '(2 4 6 8))
+(andmap even? '())
+(andmap even? '(2 4 5 8))
+(andmap even? '(5))
+(andmap even? '(1 3 5 7))
+(andmap even? '(1 3 8 7))
+
+(ormap even? '(2 4 6 8))
+(ormap even? '())
+(ormap even? '(2 4 5 8))
+(ormap even? '(5))
+(ormap even? '(1 3 5 7))
+(ormap even? '(1 3 8 7))

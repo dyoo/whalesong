@@ -302,9 +302,9 @@ integer?
 exact?
 exact-nonnegative-integer?
 ;;  inexact?
-;;  odd?
-;;  even?
-  zero?
+odd?
+even?
+zero?
 ;;  positive?
 ;;  negative?
 ;;  box?

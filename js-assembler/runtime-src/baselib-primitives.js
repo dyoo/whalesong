@@ -1232,6 +1232,8 @@
         });
 
 
+
+
     installPrimitiveProcedure(
 	'number?',
 	1,
@@ -1258,6 +1260,23 @@
 	function(MACHINE) {
 	    return isRational(MACHINE.env[MACHINE.env.length - 1]);
 	});
+
+    installPrimitiveProcedure(
+        'even?',
+        1,
+        function(MACHINE) {
+            var n = checkInteger(MACHINE, 'even?', 0);
+            return baselib.numbers.equals(0, baselib.numbers.modulo(n, 2))
+        });
+
+    installPrimitiveProcedure(
+        'odd?',
+        1,
+        function(MACHINE) {
+            var n = checkInteger(MACHINE, 'odd?', 0);
+            return baselib.numbers.equals(1, baselib.numbers.modulo(n, 2))
+        });
+
 
 
 

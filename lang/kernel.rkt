@@ -444,7 +444,17 @@ char=?
   make-reader-graph
   make-placeholder
   placeholder-set!
- )
+
+
+  srcloc
+  make-srcloc
+  srcloc?
+  srcloc-id
+  srcloc-line
+  srcloc-column
+  srcloc-position
+  srcloc-span
+  )
 
 
 

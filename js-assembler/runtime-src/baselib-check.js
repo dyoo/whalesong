@@ -238,7 +238,9 @@
         'placeholder');
 
 
-
+    var checkSrcloc = makeCheckArgumentType(
+        baselib.srclocs.isSrcloc,
+        'srcloc');
 
 
     //////////////////////////////////////////////////////////////////////
@@ -275,6 +277,6 @@
     exports.checkByte = checkByte;
     exports.checkBoolean = checkBoolean;
     exports.checkPlaceholder = checkPlaceholder;
-
+    exports.checkSrcloc = checkSrcloc;
 
 }(this.plt.baselib));

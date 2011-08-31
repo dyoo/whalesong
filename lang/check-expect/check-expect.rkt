@@ -1,9 +1,9 @@
-#lang s-exp "../kernel.rkt"
+#lang s-exp "../base.rkt"
 
 (require (for-syntax racket/base))
 
 (provide check-expect 
-         check-within 
+         ;check-within 
          ;check-error
          run-tests)
 
@@ -37,7 +37,7 @@
          #'(accumulate-test!
             (lambda ()
               (check-expect* 'stx
-                             (make-location 'id offset line column span)
+                             (srcloc 'id offset line column span)
                              (lambda () test)
                              (lambda () expected))))))]))
     

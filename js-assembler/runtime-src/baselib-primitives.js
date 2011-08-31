@@ -83,6 +83,7 @@
     var checkMutableBox = baselib.check.checkMutableBox;
     var checkInspector = baselib.check.checkInspector;
     var checkPlaceholder = baselib.check.checkPlaceholder;
+    var checkSrcloc = baselib.check.checkSrcloc;
     //////////////////////////////////////////////////////////////////////
 
 
@@ -1285,7 +1286,7 @@
         1,
         function(MACHINE) {
             var n = checkInteger(MACHINE, 'even?', 0);
-            return baselib.numbers.equals(0, baselib.numbers.modulo(n, 2))
+            return baselib.numbers.equals(0, baselib.numbers.modulo(n, 2));
         });
 
     installPrimitiveProcedure(
@@ -1293,7 +1294,7 @@
         1,
         function(MACHINE) {
             var n = checkInteger(MACHINE, 'odd?', 0);
-            return baselib.numbers.equals(1, baselib.numbers.modulo(n, 2))
+            return baselib.numbers.equals(1, baselib.numbers.modulo(n, 2));
         });
 
 
@@ -1983,6 +1984,71 @@
                                                    baselib.hashes.makeLowLevelEqHash(),
                                                    0);
         });
+
+
+
+
+    installPrimitiveProcedure(
+        'srcloc',
+            5,
+        function(MACHINE) {
+            var source = MACHINE.env[MACHINE.env.length - 1];
+            var line = checkNatural(MACHINE, 'srcloc', 1);
+            var column = checkNatural(MACHINE, 'srcloc', 2);
+            var position = checkNatural(MACHINE, 'srcloc', 3);
+            var span = checkNatural(MACHINE, 'srcloc', 4);
+            return baselib.srclocs.makeSrcloc(source, line, column, position, span);
+        });
+    installPrimitiveProcedure(
+        'make-srcloc',
+        5,
+        function(MACHINE) {
+            var source = MACHINE.env[MACHINE.env.length - 1];
+            var line = checkNatural(MACHINE, 'make-srcloc', 1);
+            var column = checkNatural(MACHINE, 'make-srcloc', 2);
+            var position = checkNatural(MACHINE, 'make-srcloc', 3);
+            var span = checkNatural(MACHINE, 'make-srcloc', 4);
+            return baselib.srclocs.makeSrcloc(source, line, column, position, span);
+        });
+    installPrimitiveProcedure(
+        'srcloc?',
+        1,
+        function(MACHINE) {
+            return baselib.srclocs.isSrcloc(MACHINE.env[MACHINE.env.length - 1]);
+        });
+    installPrimitiveProcedure(
+        'srcloc-source',
+        1,
+        function(MACHINE) {
+            return baselib.srclocs.srclocSource(checkSrcloc(MACHINE, 'srcloc-source', 0));
+        });
+    installPrimitiveProcedure(
+        'srcloc-line',
+        1,
+        function(MACHINE) {
+            return baselib.srclocs.srclocLine(checkSrcloc(MACHINE, 'srcloc-line', 0));
+        });
+    installPrimitiveProcedure(
+        'srcloc-column',
+        1,
+        function(MACHINE) {
+            return baselib.srclocs.srclocColumn(checkSrcloc(MACHINE, 'srcloc-column', 0));
+        });
+    installPrimitiveProcedure(
+        'srcloc-position',
+        1,
+        function(MACHINE) {
+            return baselib.srclocs.srclocPosition(checkSrcloc(MACHINE, 'srcloc-position', 0));
+        });
+    installPrimitiveProcedure(
+        'srcloc-span',
+        1,
+        function(MACHINE) {
+            return baselib.srclocs.srclocSpan(checkSrcloc(MACHINE, 'srcloc-span', 0));
+        });
+    
+
+
 
 
 

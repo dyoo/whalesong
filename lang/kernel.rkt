@@ -242,8 +242,8 @@ raise-mismatch-error
   quotient
   remainder
   modulo
-;;  max
-;;  min
+  max
+  min
   gcd
   lcm
   floor

@@ -16,9 +16,6 @@
 (require/typed "../parser/parse-bytecode.rkt"
                (parse-bytecode (Any -> Expression)))
 
-(require/typed "../parser/baby-parser.rkt"
-               [parse (Any -> Expression)])
-
 
 
 (provide get-bootstrapping-code)

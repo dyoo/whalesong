@@ -1,0 +1,6 @@
+Running tests...
+check-expect: actual value "hello huh" differs from "this should fail", the expected value
+  at: #<path:/gpfs/main/home/dyoo/work/whalesong/tests/more-tests/checking.rkt>, line 7, column 0
+Ran 3 tests.
+2 tests passed.
+One test failed.

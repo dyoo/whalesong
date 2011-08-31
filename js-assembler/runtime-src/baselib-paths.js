@@ -13,7 +13,7 @@
     };
 
     Path.prototype.toString = function () {
-        return String(this.path);
+        return "#<path:" + String(this.path) + ">";
     };
 
     //////////////////////////////////////////////////////////////////////

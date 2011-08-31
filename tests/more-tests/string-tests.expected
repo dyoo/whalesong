@@ -19,9 +19,9 @@
 #\e
 #\l
 #\o
-'(#\x #\y #\z)
-'(#\x)
-'()
+(#\x #\y #\z)
+(#\x)
+()
 false
 false
 false

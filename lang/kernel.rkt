@@ -166,7 +166,17 @@
          (rename-out [kernel:apply apply])
          call-with-values
 
-         gensym)
+         gensym
+
+
+         srcloc
+         make-srcloc
+         srcloc?
+         srcloc-source
+         srcloc-line
+         srcloc-column
+         srcloc-position
+         srcloc-span)
 
 
 (define (-identity x) x)
@@ -443,18 +453,7 @@ char=?
 
   make-reader-graph
   make-placeholder
-  placeholder-set!
-
-
-  srcloc
-  make-srcloc
-  srcloc?
-  srcloc-id
-  srcloc-line
-  srcloc-column
-  srcloc-position
-  srcloc-span
-  )
+  placeholder-set!)
 
 
 

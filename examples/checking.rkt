@@ -1,7 +1,7 @@
 #lang planet dyoo/whalesong
 
 (define (greet name)
-  (string-append "hello" name))
+  (string-append "hello " name))
 
 (check-expect (greet "danny") "hello danny")
 (check-expect (greet "huh") "this should fail")

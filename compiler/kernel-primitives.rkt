@@ -73,6 +73,13 @@
                                     'make-struct-field-mutator
                                     
                                     'gensym
+                                    'srcloc
+                                    'make-srcloc
+                                    'srcloc-source
+                                    'srcloc-line
+                                    'srcloc-column
+                                    'srcloc-position
+                                    'srcloc-span
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

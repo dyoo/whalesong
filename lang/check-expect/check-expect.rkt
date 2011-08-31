@@ -37,7 +37,7 @@
          #'(accumulate-test!
             (lambda ()
               (check-expect* 'stx
-                             (srcloc 'id offset line column span)
+                             (srcloc 'id line column offset span)
                              (lambda () test)
                              (lambda () expected))))))]))
     
@@ -91,10 +91,16 @@
          #t]
         [else
          (printf "check-expect: actual value ~s differs from ~s, the expected value\n" test-value expected-value)
-         ;(newline)
-         ;(display-location test-datum a-loc)
+         (display-location a-loc)
          #f])))
 
+
+(define (display-location a-loc)
+  (printf "  at: ~s, line ~s, column ~s\n"
+          (srcloc-source a-loc)
+          (srcloc-line a-loc)
+          (srcloc-column a-loc)))
+  
 
 ;; (define (check-within* test-datum a-loc test-thunk expected-thunk delta-thunk)
 ;;   ;(with-handlers ([void

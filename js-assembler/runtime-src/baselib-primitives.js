@@ -1039,6 +1039,25 @@
         });
 
 
+    installPrimitiveProcedure(
+        'char-upcase',
+        1,
+        function(MACHINE) {
+            var ch = checkChar(MACHINE, 'char=?', 0).val;
+            return baselib.chars.makeChar(ch.toUpperCase());
+        });
+
+    installPrimitiveProcedure(
+        'char-downcase',
+        1,
+        function(MACHINE) {
+            var ch = checkChar(MACHINE, 'char=?', 0).val;
+            return baselib.chars.makeChar(ch.toLowerCase());
+        });
+
+
+
+
     
     installPrimitiveProcedure(
         'box',

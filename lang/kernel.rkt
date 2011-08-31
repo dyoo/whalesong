@@ -429,8 +429,8 @@ char=?
 ;;  char-lower-case?
 ;;  char->integer
 ;;  integer->char
-;;  char-upcase
-;;  char-downcase
+  char-upcase
+  char-downcase
 
  
 ;;  call-with-current-continuation

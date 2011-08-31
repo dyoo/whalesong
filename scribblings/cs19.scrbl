@@ -30,6 +30,8 @@ To access it, you can add the following to your @filepath{.environment}:
 @verbatim|{
 pathprependifdir PATH "/local/projects/racket/releases/5.1.3/bin"    
 }|}
+Hopefully, this should already be configured to be the default for the @tt{cs19} group
+by the time you read this.
 
 
 

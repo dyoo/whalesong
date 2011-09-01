@@ -488,6 +488,11 @@ Here are examples of expressions that evaluate to xexps:
   '(div (\@ (id "my-div-0"))
         (span "This is a span in a div"))]
 
+@racketblock[
+  `(div (\@ ,(fresh-id))
+        (span "This is another span in a div whose id is dynamically generated"))]
+
+
 More formally, a @deftech{xexp} is:
 @(let ([open @litchar{(}]
        [close @litchar{)}]

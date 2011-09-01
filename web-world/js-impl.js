@@ -165,6 +165,32 @@
     };
 
 
+
+
+
+    MockView.prototype.getCss = function(name) {        
+        return $(this.cursor.node).css(name);
+    };
+
+
+    MockView.prototype.updateCss = function(name, value) {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode($(cursor.node).clone(true).css(name, value).get(0));
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                view.focus.css(name, value);
+            });
+    };
+
+
+
+
+
+
     MockView.prototype.getFormValue = function() {        
         return $(this.cursor.node).val();
     };
@@ -1522,6 +1548,29 @@
             var value = checkSymbolOrString(MACHINE, 'update-view-attr', 2).toString();
             return view.updateAttr(name, value);
         });
+
+
+    EXPORTS['view-css'] = makePrimitiveProcedure(
+        'view-css',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-css', 0);
+            var name = checkSymbolOrString(MACHINE, 'view-css', 1).toString();
+            return view.getCss(name);
+        });
+
+
+    EXPORTS['update-view-css'] = makePrimitiveProcedure(
+        'update-view-css',
+        3,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'update-view-css', 0);
+            var name = checkSymbolOrString(MACHINE, 'update-view-css', 1).toString();
+            var value = checkSymbolOrString(MACHINE, 'update-view-css', 2).toString();
+            return view.updateCss(name, value);
+        });
+
+
 
 
 

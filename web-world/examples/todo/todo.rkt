@@ -6,13 +6,27 @@
 
 (define-resource index.html)
 
-(define-struct item (id content))
+(define-struct item (id content finished?))
 
 
 ;; new-item: string -> item
 (define (new-item content)
-  (make-item (symbol->string (gensym 'item))
-             content))
+  (make-item (fresh-id) content #f))
+
+
+;; mark-item-finished: world string -> world
+;; Mark the item with the given id so that it's finished.
+(define (mark-item-finished world id)
+  (cond
+   [(empty? world)
+    '()]
+   [(string=? id (item-id (first world)))
+    (cons (make-item id (item-content (first world)) #t)
+          (rest world))]
+   [else
+    (cons (first world)
+          (mark-item-finished (rest world) id))]))
+
 
 
 ;; world view -> world
@@ -23,22 +37,36 @@
 
 ;; world view -> view
 (define (draw world view)
-  (foldl add-item-to-view
+  (foldl refresh-item-in-view
          view
          world))
 
 
-
-;; add-item-to-view: item view -> view
-(define (add-item-to-view item view)
+;; refresh-item-in-view: item view -> view
+(define (refresh-item-in-view item view)
   (cond
    [(view-focus? view (format "#~a" (item-id item)))
-    view]
+    (update-view-css (view-focus view (format "#~a" (item-id item)))
+                     "text-decoration"
+                     (cond [(item-finished? item)
+                            "line-through"]
+                           [else
+                            "none"]))]
    [else
-    (view-append-child (view-focus view "#items")
-                       (xexp->dom `(li (@ (id ,(item-id item)))
-                                       ,(item-content item))))]))
+    (view-bind
+     (view-append-child (view-focus view "#items")
+                        (xexp->dom `(li (@ (id ,(item-id item)))
+                                        ,(item-content item))))
+     "click"
+     when-item-clicked)]))
 
+
+
+;; when-item-clicked: world view -> world
+;; When an item is clicked, set its finished? flag.
+(define (when-item-clicked world view)
+  (mark-item-finished world (view-attr view "id")))
+  
 
 (define the-view
   (view-bind (view-focus (->view index.html) "#add-button")

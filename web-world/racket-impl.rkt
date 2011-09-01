@@ -11,6 +11,7 @@
          view-left? view-right? view-up? view-down?
          view-text update-view-text
          view-attr update-view-attr
+         view-css update-view-css
          view-id
 
          view-bind
@@ -116,6 +117,16 @@
 
 (define (update-view-attr v attr-name value)
   (error 'update-view-attr "Please run in JavaScript context."))
+
+
+
+
+(define (view-css v attr-name)
+  (error 'view-css "Please run in JavaScript context."))
+
+(define (update-view-css v attr-name value)
+  (error 'update-view-css "Please run in JavaScript context."))
+
 
 
 (define (view-id v)

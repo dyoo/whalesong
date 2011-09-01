@@ -60,6 +60,9 @@
                     view-attr
                     update-view-attr
 
+                    view-css
+                    update-view-css
+                    
                     view-id
                     
                     view-form-value

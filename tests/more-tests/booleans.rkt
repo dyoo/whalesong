@@ -1,4 +1,5 @@
 #lang planet dyoo/whalesong/base
+(require (planet dyoo/whalesong/lang/bool))
 
 (boolean? "t")
 (boolean? #t)
@@ -15,3 +16,8 @@
 (char=? #\a #\a #\b)
 (char=? #\a #\b #\a)
 (char=? #\a #\a #\a)
+
+true
+false
+(false? true)
+(false? false)

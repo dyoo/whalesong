@@ -6,15 +6,37 @@
 
 (define-resource index.html)
 
+(define-struct item (id content))
+
+(define (new-item content)
+  (make-item (symbol->string (gensym 'item))
+             content))
+
 
 
 (define (on-add world view)
   (local [(define text (view-form-value (view-focus view "#next-item")))]
-    (cons text world)))
+    (cons (new-item text) world)))
 
 
-(define (to-draw world view)
-  )
+
+(define (draw world view)
+  (foldl add-item-to-view
+         view
+         world))
+
+
+(define (add-item-to-view item view)
+  (cond
+   [(view-focus? view (format "#~a" (item-id item)))
+    view]
+   [else
+    (view-append-child (view-focus view "#items")
+                       ;; FIXME: I want this to add a DOM to this.
+                       `(li (@ (id ,(item-id item)))
+                            (item-content item)))]))
+
+  
 
 
 (define the-view
@@ -24,4 +46,5 @@
 
 
 (big-bang '()
-          (initial-view the-view))
+          (initial-view the-view)
+          (to-draw draw))

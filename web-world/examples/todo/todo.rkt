@@ -33,11 +33,10 @@
    [else
     (view-append-child (view-focus view "#items")
                        ;; FIXME: I want this to add a DOM to this.
-                       `(li (@ (id ,(item-id item)))
-                            (item-content item)))]))
+                       (xexp->dom `(li (@ (id ,(item-id item)))
+                                       ,(item-content item))))]))
 
   
-
 
 (define the-view
   (view-bind (view-focus (->view index.html) "#add-button")

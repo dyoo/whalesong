@@ -6,7 +6,12 @@
 
 (define-resource index.html)
 
-(define-struct item (id content finished?))
+
+;; An item consists of a string id, the item's content, and a finished? flag.
+(define-struct item (id ;; string
+                     content ;; string
+                     finished? ;; boolean
+                     ))
 
 
 ;; new-item: string -> item
@@ -14,18 +19,18 @@
   (make-item (fresh-id) content #f))
 
 
-;; mark-item-finished: world string -> world
-;; Mark the item with the given id so that it's finished.
-(define (mark-item-finished world id)
+;; toggle-item-finished: world string -> world
+;; Mark the item with the given id so that it's finished, or reverse that change.
+(define (toggle-item-finished world id)
   (cond
    [(empty? world)
     '()]
    [(string=? id (item-id (first world)))
-    (cons (make-item id (item-content (first world)) #t)
+    (cons (make-item id (item-content (first world)) (not (item-finished? (first world))))
           (rest world))]
    [else
     (cons (first world)
-          (mark-item-finished (rest world) id))]))
+          (toggle-item-finished (rest world) id))]))
 
 
 
@@ -65,7 +70,7 @@
 ;; when-item-clicked: world view -> world
 ;; When an item is clicked, set its finished? flag.
 (define (when-item-clicked world view)
-  (mark-item-finished world (view-attr view "id")))
+  (toggle-item-finished world (view-attr view "id")))
   
 
 (define the-view

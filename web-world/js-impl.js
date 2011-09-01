@@ -1240,6 +1240,21 @@
         });
 
 
+    EXPORTS['view-focus?'] = makePrimitiveProcedure(
+        'view-focus?',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-focus', 0);
+            var selector = checkSelector(MACHINE, 'view-focus', 1);
+            try {
+                view.updateFocus(selector);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        });
+
+
     EXPORTS['view-focus'] = makePrimitiveProcedure(
         'view-focus',
         2,

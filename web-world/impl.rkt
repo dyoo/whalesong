@@ -34,8 +34,9 @@
                     ;; coerse to view
                     ->view
 
+                    view-focus?
                     view-focus
-
+                    
                     view-left?
                     view-left
 

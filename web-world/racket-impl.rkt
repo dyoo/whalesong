@@ -6,7 +6,7 @@
          to-draw
 
          ->view
-         view-focus
+         view-focus? view-focus
          view-left view-right view-up view-down
          view-left? view-right? view-up? view-down?
          view-text update-view-text
@@ -63,6 +63,9 @@
   (error '->view "Please run in JavaScript context."))
 
 
+
+(define (view-focus? v selector)
+  (error 'view-focus? "Please run in JavaScript context."))
 
 (define (view-focus v selector)
   (error 'view-focus "Please run in JavaScript context."))

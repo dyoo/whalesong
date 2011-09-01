@@ -9,15 +9,18 @@
 
 
 (define (on-add world view)
-  (local [(define text (view-text (view-focus view "next-item")))]
-    (printf "Ok, added\n")
+  (local [(define text (view-form-value (view-focus view "#next-item")))]
     (cons text world)))
 
 
+(define (to-draw world view)
+  )
+
+
 (define the-view
-  (view-bind (view-focus (->view index.html)
-                         "add-button"
-                         on-add)))
+  (view-bind (view-focus (->view index.html) "#add-button")
+             "click"
+             on-add))
 
 
 (big-bang '()

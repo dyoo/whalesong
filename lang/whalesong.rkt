@@ -11,6 +11,7 @@
          "private/traced-app.rkt"
          "private/shared.rkt"
          "check-expect/check-expect.rkt"
+         "bool.rkt"
          (for-syntax racket/base))
 
 ;; Programs written in Whalesong will have tracing enabled by default.
@@ -22,6 +23,7 @@
          (rename-out [traced-app #%app]
                      [my-module-begin #%module-begin])
          shared
+         (all-from-out "bool.rkt")
          (except-out (all-from-out "check-expect/check-expect.rkt")
                      run-tests))
 

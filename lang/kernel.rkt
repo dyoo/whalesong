@@ -23,8 +23,6 @@
          syntax-parameterize)
 
 ;; constants
-(define true #t)
-(define false #f)
 (define pi racket:pi)
 (define e (racket:exp 1))
 
@@ -70,9 +68,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Provides
-(provide true
-         false
-         pi
+(provide pi
          e
          null
          #%plain-module-begin

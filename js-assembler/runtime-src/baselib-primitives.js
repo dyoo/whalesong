@@ -1298,6 +1298,24 @@
         });
 
 
+    installPrimitiveProcedure(
+        'positive?',
+        1,
+        function(MACHINE) {
+            var n = checkReal(MACHINE, 'positive?', 0);
+            return baselib.numbers.greaterThan(n, 0);
+        });
+
+    installPrimitiveProcedure(
+        'negative?',
+        1,
+        function(MACHINE) {
+            var n = checkReal(MACHINE, 'negative?', 0);
+            return baselib.numbers.lessThan(n, 0);
+        });
+
+
+
 
 
 

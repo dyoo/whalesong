@@ -315,8 +315,8 @@ exact-nonnegative-integer?
 odd?
 even?
 zero?
-;;  positive?
-;;  negative?
+positive?
+negative?
 ;;  box?
 ;;  hash?
 

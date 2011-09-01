@@ -128,6 +128,7 @@
                                             [proc.displayName,
                                              expected,
                                              received]);
+        var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE, 
               ExnFailContractArity.constructor(message, contMarks));
     };

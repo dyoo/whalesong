@@ -498,10 +498,35 @@ Get an list of the event's keys.
 @section{Dynamic DOM generation with xexps} 
 @declare-exporting/this-package[web-world]
 We often need to dynamically inject new dom nodes into an existing
-view.  We can create new DOMs from an @tech{xexp}, which is a
-s-expression representation for a DOM node.
+view.  As an example where the UI is entirely in code:
+@codeblock|{
+#lang planet dyoo/whalesong
+(require (planet dyoo/whalesong/web-world))
 
-Here are examples of expressions that evaluate to xexps:
+;; tick: world view -> world
+(define (tick world view)
+  (add1 world))
+
+;; draw: world view -> view
+(define (draw world view)
+  (view-append-child view
+                     (xexp->dom `(p "hello, can you see this? "
+                                    ,(number->string world)))))
+
+(big-bang 0 (initial-view (xexp->dom '(html (head) (body (@ (id "body"))))))
+            (on-tick tick 1)
+            (to-draw draw))
+}|
+
+Normally, we'll want to do as much of the statics as possible with
+@filepath{.html} resources, but when nothing else will do, we can
+generate DOM nodes programmatically.
+
+
+
+We can create new DOMs from an @tech{xexp}, which is a s-expression
+representation for a DOM node.  Here are examples of expressions that
+evaluate to xexps:
 
 @racketblock["hello world"]
 
@@ -549,6 +574,7 @@ The web-world library provides a @racket[fresh-id] form to create these.
 @defproc[(fresh-id) string]{
 Return a string that can be used as a DOM node id.
 }
+
 
 
 

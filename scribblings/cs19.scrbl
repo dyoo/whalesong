@@ -3,6 +3,7 @@
           planet/version
           planet/resolver
           scribble/eval
+          scribble/bnf
           racket/sandbox
           racket/port
           (only-in racket/contract any/c)
@@ -432,9 +433,17 @@ Get the form value of the node at the focus.}
 @defproc[(update-view-form-value [v view] [value String]) view]{
 Update the form value of the node at the focus.}
 
+
+
 @defproc[(view-append-child [d dom]) view]{
-Add the dom node @racket[d] as the last child of the focused node.}
-                    
+Add the dom node @racket[d] as the last child of the focused node.
+Focus moves to the appended child.
+
+Dom nodes can be created by using @racket[xexp->dom], which converts a
+@tech{xexp} to a node.
+}
+
+
 
 
 @subsection{Events}
@@ -456,6 +465,53 @@ Get an value from the event, given its @racket[name].
 @defproc[(event-keys [evt event?]) (listof symbol)]{
 Get an list of the event's keys.
 }
+
+
+
+@section{Dynamic DOM generation with xexps} 
+@declare-exporting/this-package[web-world]
+We often need to dynamically inject new dom nodes into an existing
+view.  We can create new DOMs from an @tech{xexp}, which is a
+s-expression representation for a DOM node.
+
+Here are examples of expressions that evaluate to xexps:
+
+@racketblock["hello world"]
+
+@racketblock['(p "hello, this" "is an item")]
+
+@racketblock[
+(local [(define name "josh")]
+   `(p "hello" (i ,name)))]
+
+@racketblock[
+  '(div (\@ (id "my-div-0"))
+        (span "This is a span in a div"))]
+
+More formally, a @deftech{xexp} is:
+@(let ([open @litchar{(}]
+       [close @litchar{)}]
+       [at @litchar[(symbol->string '\@)]])
+@BNF[(list @nonterm{xexp}
+           @nonterm{string}
+           @BNF-seq[open @nonterm{id} @kleenestar[@nonterm{xexp}] close]
+           @BNF-seq[open @nonterm{id} open at @kleenestar[@nonterm{key-value}] close @kleenestar[@nonterm{xexp}] close])
+     (list @nonterm{key-value}
+           @BNF-seq[open @nonterm{symbol} @nonterm{string} close])
+])
+
+
+
+@defproc[(xexp? [x any]) boolean]{
+Return true if @racket[x] is a xexp.
+}
+
+@defproc[(xexp->dom [an-xexp xexp]) dom]{
+Return a dom from the xexp.
+}
+
+
+
 
 
 

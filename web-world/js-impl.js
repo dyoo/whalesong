@@ -332,6 +332,28 @@
     };
 
 
+    MockView.prototype.remove = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.deleteNode();
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                var elt = view.focus;
+                if (view.focus.next().length > 0) {
+                    view.focus = view.focus.next();
+                } else if (view.focus.prev().length > 0) {
+                    view.focus = view.focus.prev();
+                } else {
+                    view.focus = view.focus.parent();
+                }
+                elt.remove();
+            });
+    };
+
+
     MockView.prototype.appendChild = function(domNode) {
         return this.act(
             function(cursor) {
@@ -1621,6 +1643,15 @@
         });
 
 
+    EXPORTS['view-remove'] = makePrimitiveProcedure(
+        'view-remove',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-remove', 0);
+            return view.remove();
+        });
+
+
     
     EXPORTS['view-append-child'] = makeClosure(
         'view-append-child',
@@ -1650,6 +1681,7 @@
                                 });
             });
         });
+
 
 
     EXPORTS['view-id'] = makePrimitiveProcedure(

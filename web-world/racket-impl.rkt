@@ -23,6 +23,8 @@
          view-hide
          view-append-child
 
+         view-remove
+         
          open-output-element
 
          xexp?
@@ -136,21 +138,25 @@
 (define (view-bind v type worldF)
   (error 'view-bind "Please run in JavaScript context."))
 
-(define (view-form-value)
+(define (view-form-value view)
   (error 'view-form-value "Please run in JavaScript context."))
 
-(define (update-view-form-value val)
+(define (update-view-form-value view val)
   (error 'view-form-value "Please run in JavaScript context."))
 
 
-(define (view-show)
+(define (view-show view)
   (error 'view-show "Please run in JavaScript context."))
 
-(define (view-hide)
+(define (view-hide view)
   (error 'view-hide "Please run in JavaScript context."))
 
 
-(define (view-append-child dom)
+(define (view-remove view)
+  (error 'view-delete "Please run in JavaScript context."))
+
+
+(define (view-append-child view dom)
   (error 'view-append "Please run in JavaScript context."))
 
 

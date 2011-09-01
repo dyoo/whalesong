@@ -65,4 +65,9 @@
                     view-form-value
                     update-view-form-value
                     view-append-child
+
+
+                    xexp?
+                    xexp->dom
+
                     ))

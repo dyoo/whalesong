@@ -9,6 +9,10 @@
     var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
     var PAUSE = plt.runtime.PAUSE;
     var isString = plt.baselib.strings.isString;
+    var isSymbol = plt.baselib.symbols.isSymbol;
+    var isList = plt.baselib.lists.isList;
+    var isEmpty = plt.baselib.lists.isEmpty;
+    var listLength = plt.baselib.lists.length;
     var makeList = plt.baselib.lists.makeList;
     var makePair = plt.baselib.lists.makePair;
     var makeSymbol = plt.baselib.symbols.makeSymbol;
@@ -1113,12 +1117,85 @@
 
 
 
+
+    var isAttributeList = function(x) {
+        var children;
+        if (isList(x) && (! isEmpty(x))){
+            if (isSymbol(x.first) && x.first.val === '@') {
+                children = x.rest;
+                while(! isEmpty(children)) {
+                    if (isList(children.first) &&
+                        listLength(children.first) === 2 &&
+                        isSymbol(children.first.first) &&
+                        isString(children.first.rest.first)) {
+
+                        children = children.rest;
+
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    };
+
+
+
+    // An xexp is one of the following:
+    // xexp :== (name (@ (key value) ...) xexp ...)
+    //      :== (name xexp ...)
+    //      :== string
+    var isXexp = function(x) {
+        var children;
+        if (isString(x)) { 
+            return true; 
+        }
+        if (isList(x) && !(isEmpty(x))) {
+            if (isSymbol(x.first)) {
+                children = x.rest;
+                // Check the rest of the children.  The first is special.
+                if (isEmpty(children)) {
+                    return true;
+                }
+                if (isAttributeList(children.first)) {
+                    children = children.rest;
+                }
+                while (! (isEmpty(children))) {
+                    if (! isXexp(children.first)) {
+                        return false;
+                    }
+                    children = children.rest;
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    };
+
+
+
+    var xexpToDom = function(x) {
+        return x;
+    };
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////
 
     var checkReal = plt.baselib.check.checkReal;
     var checkString = plt.baselib.check.checkString;
     var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
     var checkProcedure = plt.baselib.check.checkProcedure;
+
 
     var checkWorldHandler = plt.baselib.check.makeCheckArgumentType(
         isWorldHandler,
@@ -1131,6 +1208,9 @@
 
     var checkSelector = plt.baselib.check.makeCheckArgumentType(
         isString, 'selector');
+
+    var checkXexp = plt.baselib.check.makeCheckArgumentType(
+        isXexp, 'xexp');
 
 
     EXPORTS['big-bang'] = makeClosure(
@@ -1507,6 +1587,22 @@
             return new DomElementOutputPort(id.toString());
         });
 
+
+    EXPORTS['xexp?'] = makePrimitiveProcedure(
+        'xexp?',
+        1,
+        function(MACHINE) {
+            return isXexp(MACHINE.env[MACHINE.env.length - 1]);
+        });
+
+
+    EXPORTS['xexp->dom'] = makePrimitiveProcedure(
+        'xexp->dom',
+        1,
+        function(MACHINE) {
+            var xexp = checkXexp(MACHINE, 'xexp->dom', 0);
+            return xexpToDom(xexp);
+        });
 
 
     //////////////////////////////////////////////////////////////////////

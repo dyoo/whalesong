@@ -349,6 +349,14 @@ Common values for @racket[x] include @tech{resource}s.
 }
 
 
+
+@defproc[(view-focus? [v view] [selector String]) boolean]{
+Return true if the view can be focused using the given selector.
+
+Selectors are currently restricted to @litchar{#id} selectors for the
+moment.
+}
+
 @defproc[(view-focus [v view] [selector String]) view]{
 Focuses the view on an element, given the @racket[selector].  The view
 will be searched starting from the toplevelmost node.
@@ -404,6 +412,7 @@ several functions:
 @defproc[(view-text [v view]) string]{
 Get the textual content at the focus.
 }
+
 @defproc[(update-view-text [v view] [s string]) view]{
 Update the textual content at the focus.}
 
@@ -415,6 +424,7 @@ Show the element at the focus.
 Hide the element at the focus.
 }
 
+
 @defproc[(view-attr [v view] [name String]) view]{
 Get the attribute @racket[name] at the focus.
 }
@@ -422,6 +432,16 @@ Get the attribute @racket[name] at the focus.
 @defproc[(update-view-attr [v view] [name String] [value String]) view]{
 Update the attribute @racket[n] with the value @racket[v] at the focus.
 }
+
+
+@defproc[(view-css [v view] [name String]) view]{
+Get the css value @racket[name] at the focus.
+}
+
+@defproc[(update-view-css [v view] [name String] [value String]) view]{
+Update the css value @racket[n] with the value @racket[v] at the focus.
+}
+
 
 @defproc[(view-id [v view]) world]{
 Get the unique identifier of the node at the focus.
@@ -442,6 +462,13 @@ Focus moves to the appended child.
 Dom nodes can be created by using @racket[xexp->dom], which converts a
 @tech{xexp} to a node.
 }
+
+@defproc[(view-remove [v view]) view]{
+Remove the dom node at the focus from the view @racket[v].  Focus tries to move
+to the right, if there's a next sibling.  If that fails, focus then
+moves to the left, if there's a previous sibling.  If that fails too,
+then focus moves to the parent.}
+
 
 
 
@@ -506,16 +533,22 @@ More formally, a @deftech{xexp} is:
 ])
 
 
-
+To check to see if something is a xexp, use @racket[xexp?]:
 @defproc[(xexp? [x any]) boolean]{
 Return true if @racket[x] is a xexp.
 }
+
 
 @defproc[(xexp->dom [an-xexp xexp]) dom]{
 Return a dom from the xexp.
 }
 
 
+When creating xexps, we may need to create unique ids for the nodes.
+The web-world library provides a @racket[fresh-id] form to create these.
+@defproc[(fresh-id) string]{
+Return a string that can be used as a DOM node id.
+}
 
 
 

@@ -54,6 +54,15 @@ Whenever we need to update whalesong, we should do the following
 }|
 
 
+@subsection{Warning on Firefox}
+
+Firefox unfortunately has a
+@link["https://bugzilla.mozilla.org/show_bug.cgi?id=676343"]{JavaScript
+bug} that prevents it from reliably evaluating Whalesong programs.  As
+of this writing, I have not been able to find a workaround.  You
+should probably use Google Chrome instead when testing your programs;
+Google Chrome should be in @filepath{/contrib/bin/google-chrome}.
+
 
 @section{Usage}
 The @filepath{whalesong} launcher in the subdirectory will compile
@@ -513,7 +522,8 @@ view.  As an example where the UI is entirely in code:
                      (xexp->dom `(p "hello, can you see this? "
                                     ,(number->string world)))))
 
-(big-bang 0 (initial-view (xexp->dom '(html (head) (body (@ (id "body"))))))
+(big-bang 0 (initial-view
+             (xexp->dom '(html (head) (body))))
             (on-tick tick 1)
             (to-draw draw))
 }|

@@ -11,6 +11,7 @@
                      (xexp->dom `(p "hello, can you see this? "
                                     ,(number->string world)))))
 
-(big-bang 0 (initial-view (xexp->dom '(html (head) (body (@ (id "body"))))))
+(big-bang 0 (initial-view
+             (xexp->dom '(html (head) (body))))
             (on-tick tick 1)
             (to-draw draw))

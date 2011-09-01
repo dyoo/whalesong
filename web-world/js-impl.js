@@ -1181,10 +1181,67 @@
 
 
 
-    var xexpToDom = function(x) {
-        return x;
-    };
 
+    var assignAttributes = function(node, x) {
+        var children, key, value;
+        if (isList(x) && (! isEmpty(x))){
+            if (isSymbol(x.first) && x.first.val === '@') {
+                children = x.rest;
+                while(! isEmpty(children)) {
+                    if (isList(children.first) &&
+                        listLength(children.first) === 2 &&
+                        isSymbol(children.first.first) &&
+                        isString(children.first.rest.first)) {
+                        
+                        key = children.first.first;
+                        value = children.first.rest.first;
+                        $(node).attr(key.val, value.toString());
+
+                        children = children.rest;
+
+                    } else {
+                        return;
+                    }
+                }
+                return;
+            } else {
+                return;
+            }
+        } else {
+            return;
+        }
+    };
+    var xexpToDom = function(x) {
+        var children;
+        var name;
+        var node;
+        if (isString(x)) { 
+            return document.createTextNode(x); 
+        }
+        if (isList(x) && !(isEmpty(x))) {
+            if (isSymbol(x.first)) {
+                name = x.first.val;
+                node = document.createElement(name);
+                children = x.rest;
+                // Check the rest of the children.  The first is special.
+                if (isEmpty(children)) {
+                    return node;
+                }
+                if (isAttributeList(children.first)) {
+                    assignAttributes(node, children.first);
+                    children = children.rest;
+                }
+                while (! (isEmpty(children))) {
+                    node.appendChild(xexpToDom(children.first));
+                    children = children.rest;
+                }
+                return node;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    };
 
 
 

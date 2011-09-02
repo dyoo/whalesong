@@ -13,4 +13,5 @@
 (define scribblings '(("scribblings/manual.scrbl")))
 (define compile-omit-paths '("tests"
                              "examples"
-                             "experiments"))
+                             "experiments"
+                             "simulator"))

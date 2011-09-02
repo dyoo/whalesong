@@ -516,9 +516,9 @@ EOF
 (define-predicate natural? Natural)
 
 (: ensure-natural (Any -> Natural))
-(define (ensure-natural x)
-  (if (natural? x)
-      x
+(define (ensure-natural n)
+  (if (natural? n)
+      n
       (error 'ensure-natural)))
 
 

@@ -134,7 +134,7 @@ var adaptWorldFunction = function(worldFunction) {
                  // FIXME: do error trapping
                  console.log(err);
              }].concat([].slice.call(arguments, 0, arguments.length - 1)));
-    }
+    };
 };
 
 

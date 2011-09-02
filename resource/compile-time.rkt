@@ -4,6 +4,7 @@
                      racket/path
                      racket/port
                      syntax/parse
+                     "coerse-content-bytes.rkt"
                      "munge-path.rkt"
                      "record.rkt"))
                      
@@ -27,7 +28,8 @@
                                   (current-directory))
                               (syntax-e #'path)))]
             [munged-path (munge-path normal-path)]
-            [content (call-with-input-file normal-path port->bytes)])
+            [content (coerse-content-bytes normal-path
+                                           (call-with-input-file normal-path port->bytes))])
        (with-syntax ([normal-path normal-path]
                      [munged-path munged-path]
                      [content content])

@@ -14,6 +14,7 @@
          racket/list
          racket/promise
          racket/set
+         racket/path
          (prefix-in query: "../lang/js/query.rkt")
          (prefix-in resource-query: "../resource/query.rkt")
          (planet dyoo/closure-compile:1:1)
@@ -162,7 +163,8 @@ MACHINE.modules[~s] =
                   (symbol->string name)
                   (assemble-modinvokes+body module-requires module-body-text))
           
-          (map make-ModuleSource module-requires))))]
+          (map (lambda (p) (make-ModuleSource (normalize-path p)))
+               module-requires))))]
     
     
     [(SexpSource? src)

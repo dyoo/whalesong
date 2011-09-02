@@ -1065,7 +1065,6 @@
                 // from the user came from here.  If not, we have no hope to do a nice, efficient
                 // update, and have to do it from scratch.
                 var nonce = Math.random();
-                
                 toDraw(MACHINE, 
                        world,
                        view.getMockAndResetFocus(nonce),

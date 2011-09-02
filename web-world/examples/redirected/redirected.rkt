@@ -9,7 +9,7 @@
 
 ;; draw: world view -> view
 (define (draw w v)
-  (update-view-text (view-focus v "#counter") w))
+  (update-view-text (view-focus v "counter") w))
 
 
 

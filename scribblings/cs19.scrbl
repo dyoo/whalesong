@@ -165,7 +165,7 @@ Write a file called @filepath{tick-tock.rkt} with the following content.
 
 ;; draw: world view -> view
 (define (draw world dom)
-  (update-view-text (view-focus dom "#counter") world))
+  (update-view-text (view-focus dom "counter") world))
 
 
 ;; tick: world view -> world
@@ -333,7 +333,7 @@ function will be called every time an event occurs.
 
 ;; draw: world view -> view
 (define (draw world dom)
-  (update-view-text (view-focus dom "#name-span")
+  (update-view-text (view-focus dom "name-span")
                     (world-name world)))
 ...
 (big-bang ...
@@ -359,19 +359,13 @@ Common values for @racket[x] include @tech{resource}s.
 
 
 
-@defproc[(view-focus? [v view] [selector String]) boolean]{
-Return true if the view can be focused using the given selector.
-
-Selectors are currently restricted to @litchar{#id} selectors for the
-moment.
+@defproc[(view-focus? [v view] [id String]) boolean]{
+Return true if the view can be focused using the given id.
 }
 
-@defproc[(view-focus [v view] [selector String]) view]{
-Focuses the view on an element, given the @racket[selector].  The view
+@defproc[(view-focus [v view] [id String]) view]{
+Focuses the view on an element, given the @racket[id].  The view
 will be searched starting from the toplevelmost node.
-
-Selectors are currently restricted to @litchar{#id} selectors for the
-moment.
 }
 
 

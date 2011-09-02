@@ -36,7 +36,7 @@
 
 ;; world view -> world
 (define (on-add world view)
-  (local [(define text (view-form-value (view-focus view "#next-item")))]
+  (local [(define text (view-form-value (view-focus view "next-item")))]
     (cons (new-item text) world)))
 
 
@@ -50,8 +50,8 @@
 ;; refresh-item-in-view: item view -> view
 (define (refresh-item-in-view item view)
   (cond
-   [(view-focus? view (format "#~a" (item-id item)))
-    (update-view-css (view-focus view (format "#~a" (item-id item)))
+   [(view-focus? view (item-id item))
+    (update-view-css (view-focus view (item-id item))
                      "text-decoration"
                      (cond [(item-finished? item)
                             "line-through"]
@@ -59,7 +59,7 @@
                             "none"]))]
    [else
     (view-bind
-     (view-append-child (view-focus view "#items")
+     (view-append-child (view-focus view "items")
                         (xexp->dom `(li (@ (id ,(item-id item)))
                                         ,(item-content item))))
      "click"
@@ -74,7 +74,7 @@
   
 
 (define the-view
-  (view-bind (view-focus (->view index.html) "#add-button")
+  (view-bind (view-focus (->view index.html) "add-button")
              "click"
              on-add))
 

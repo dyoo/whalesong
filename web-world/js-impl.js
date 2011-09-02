@@ -72,14 +72,11 @@
     
 
     // For the moment, we only support selection by id.
-    var idRegexp = new RegExp("^#");
     var selectorMatches = function(selector, node) {
-        if (selector.match(idRegexp)) {
-            if (node.nodeType === 1) {
-                return node.getAttribute('id') === selector.substring(1);
-            } else {
-                return false;
-            }
+        if (node.nodeType === 1) {
+            return node.getAttribute('id') === selector;
+        } else {
+            return false;
         }
         return false;
     };
@@ -107,6 +104,7 @@
                             this.nonce);
     };
 
+
     MockView.prototype.updateFocus = function(selector) {
         selector = selector.toString();
         return this.act(
@@ -125,7 +123,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                view.focus = view.top.find(selector);
+                view.focus = $(document.getElementById(selector));
             }
         );
     };

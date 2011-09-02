@@ -844,7 +844,7 @@
     DomEventSource.prototype.onStart = function(fireEvent) {
         var element = this.elementOrId;
         if (typeof(this.elementOrId) === 'string') {
-            element = $('#' + this.elementOrId).get(0);
+            element = document.getElementById(this.elementOrId);
         }
 
         this.handler = function(evt) {
@@ -860,7 +860,7 @@
     DomEventSource.prototype.onStop = function() {
         var element = this.elementOrId;
         if (typeof(this.elementOrId) === 'string') {
-            element = $('#' + this.elementOrId).get(0);
+            element = document.getElementById(this.elementOrId);
         }
 
         if (this.handler !== undefined) {
@@ -1018,7 +1018,7 @@
                     mockView = view.getMockAndResetFocus();
                     nextEvent = eventQueue.dequeue();
                     if (nextEvent.who !== undefined) {
-                        mockView = mockView.updateFocus('#' + nextEvent.who.id);
+                        mockView = mockView.updateFocus(nextEvent.who.id);
                     }
 
                     // FIXME: deal with event data here
@@ -1156,7 +1156,7 @@
     DomElementOutputPort.prototype = plt.baselib.heir(plt.baselib.ports.OutputPort.prototype);
 
     DomElementOutputPort.prototype.writeDomNode = function (MACHINE, v) {
-        $("#" + this.id).append(v);
+        $(document.getElementById(this.id)).append(v);
         $(v).trigger({type : 'afterAttach'});
         $('*', v).trigger({type : 'afterAttach'});
     };

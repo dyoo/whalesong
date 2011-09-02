@@ -34,20 +34,6 @@
   (make-parameter (lambda: ([s : Source]) s)))
 
 
-(: source-name (Source -> String))
-(define (source-name a-source)
-  (cond
-   [(StatementsSource? a-source)
-    "<StatementsSource>"]
-   [(UninterpretedSource? a-source)
-    "<UninterpretedSource>"]
-   [(MainModuleSource? a-source)
-    "<MainModuleSource>"]
-   [(SexpSource? a-source)
-    "<SexpSource>"]
-   [(ModuleSource? a-source)
-    (format "<ModuleSource ~a>"
-            (ModuleSource-path a-source))]))
 
 
    

@@ -237,6 +237,8 @@ MACHINE.modules[~s] =
     ;; Record the use of resources on source module visitation...
     (set! resources (set-union resources
                                (list->set (source-resources src))))
+
+    (fprintf op "\n// ** Visiting ~a\n" (source-name src))
     (cond
       [(UninterpretedSource? src)
        (fprintf op "~a" (UninterpretedSource-datum src))]

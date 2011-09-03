@@ -50,7 +50,7 @@
                             (path->string filename)
                             ".xhtml"))])
       (unless (directory-exists? (current-output-dir))
-        (fprintf (current-report-form) "Creating destination directory ~s" (current-output-dir))
+        (fprintf (current-report-port) "Creating destination directory ~s" (current-output-dir))
         (make-directory* (current-output-dir)))
       (parameterize ([current-on-resource
                       (lambda (r)
@@ -97,7 +97,7 @@
                             (path->string filename)
                             ".html"))])
       (unless (directory-exists? (current-output-dir))
-        (fprintf (current-report-form) "Creating destination directory ~s" (current-output-dir))
+        (fprintf (current-report-port) "Creating destination directory ~s" (current-output-dir))
         (make-directory* (current-output-dir)))
       (parameterize ([current-on-resource
                       (lambda (r)
@@ -124,7 +124,7 @@
         (call-with-output-file* (build-path (current-output-dir) output-js-filename)
                                 (lambda (op)
                                   (display (get-runtime) op)
-                                  (display (get-code (make-ModuleSource (build-path f)))
+                                  (display (get-inert-code (make-ModuleSource (build-path f)))
                                            op))
                                 #:exists 'replace)
 

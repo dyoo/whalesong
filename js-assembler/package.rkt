@@ -28,6 +28,7 @@
 (provide package
          package-anonymous
          package-standalone-xhtml
+         get-inert-code
          get-standalone-code
          write-standalone-code
          get-runtime
@@ -297,7 +298,7 @@ MACHINE.modules[~s] =
   (display *header* op)
   (display (quote-cdata
             (string-append (get-runtime)
-                           (get-code source-code)
+                           (get-inert-code source-code)
                            invoke-main-module-code)) op)
   (display *footer* op))
 
@@ -454,8 +455,8 @@ EOF
   ))
 
 
-;; get-code: source -> string
-(define (get-code source-code)
+;; get-inert-code: source -> string
+(define (get-inert-code source-code)
   (let ([buffer (open-output-string)])
     (package source-code
              #:should-follow-children? (lambda (src) #t)

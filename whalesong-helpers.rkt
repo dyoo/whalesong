@@ -68,7 +68,7 @@
                           [else
                            (fprintf (current-report-port)
                                     (format "Writing resource ~s\n" (build-path (current-output-dir)
-                                                                              (resource-path r))))
+                                                                                (resource-key r))))
                            (copy-file (resource-path r) 
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])
@@ -107,6 +107,11 @@
                            (cond [(same-file? (build-path (current-output-dir)
                                                           (resource-key r))
                                               (resource-path r))
+                                  (fprintf (current-report-port)
+                                           (format "Skipping writing resource ~s; already exists\n"
+                                                   (build-path (current-output-dir)
+                                                               (resource-key r))))
+                                  
                                   (void)]
                                  [else
                                   (error 'whalesong "Unable to write resource ~s; this will overwrite a file"
@@ -115,7 +120,7 @@
                           [else
                            (fprintf (current-report-port)
                                     (format "Writing resource ~s\n" (build-path (current-output-dir)
-                                                                              (resource-path r))))
+                                                                                (resource-key r))))
                            (copy-file (resource-path r) 
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])

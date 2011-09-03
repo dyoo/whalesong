@@ -177,8 +177,11 @@
                             (get-ast-and-statements this-source)])
                (log-debug (format "visiting ~a\n" (source-name this-source)))
                (on-module-statements this-source ast stmts)
-               (loop (append (map wrap-source (collect-new-dependencies this-source ast))
-                             (rest sources)))
+               (define start-time (current-inexact-milliseconds))
+               (define new-dependencies (map wrap-source (collect-new-dependencies this-source ast)))
+               (define end-time (current-inexact-milliseconds))
+               (printf "  computing dependencies: ~a milliseconds\n" (- end-time start-time))
+               (loop (append new-dependencies (rest sources)))
                (after-module-statements this-source ast stmts))])))
 
        (follow-dependencies (map wrap-source sources))])))

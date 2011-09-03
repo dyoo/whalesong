@@ -474,7 +474,7 @@
             return onSuccess(x); 
         } else  if (isResource(x)) {
             try {
-                dom = $(resourceContent(x).toString())
+                dom = $("<html/>").append($(resourceContent(x).toString()))
                     .css("margin", "0px")
                     .css("padding", "0px")
                     .css("border", "0px");

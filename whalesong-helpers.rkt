@@ -50,7 +50,7 @@
                             (path->string filename)
                             ".xhtml"))])
       (unless (directory-exists? (current-output-dir))
-        (fprintf (current-report-port) "Creating destination directory ~s" (current-output-dir))
+        (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
         (make-directory* (current-output-dir)))
       (parameterize ([current-on-resource
                       (lambda (r)
@@ -67,13 +67,13 @@
                                                      (resource-key r)))])]
                           [else
                            (fprintf (current-report-port)
-                                    (format "Writing resource ~s" (build-path (current-output-dir)
+                                    (format "Writing resource ~s\n" (build-path (current-output-dir)
                                                                               (resource-path r))))
                            (copy-file (resource-path r) 
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])
         (fprintf (current-report-port)
-                 (format "Writing program ~s" (build-path (current-output-port) output-filename)))
+                 (format "Writing program ~s\n" (build-path (current-output-port) output-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-filename)
                                 (lambda (op)
                                   (package-standalone-xhtml
@@ -97,7 +97,7 @@
                             (path->string filename)
                             ".html"))])
       (unless (directory-exists? (current-output-dir))
-        (fprintf (current-report-port) "Creating destination directory ~s" (current-output-dir))
+        (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
         (make-directory* (current-output-dir)))
       (parameterize ([current-on-resource
                       (lambda (r)
@@ -114,13 +114,13 @@
                                                      (resource-key r)))])]
                           [else
                            (fprintf (current-report-port)
-                                    (format "Writing resource ~s" (build-path (current-output-dir)
+                                    (format "Writing resource ~s\n" (build-path (current-output-dir)
                                                                               (resource-path r))))
                            (copy-file (resource-path r) 
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])
         (fprintf (current-report-port)
-                 (format "Writing program ~s" (build-path (current-output-dir) output-js-filename)))
+                 (format "Writing program ~s\n" (build-path (current-output-dir) output-js-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-js-filename)
                                 (lambda (op)
                                   (display (get-runtime) op)
@@ -129,7 +129,7 @@
                                 #:exists 'replace)
 
         (fprintf (current-report-port)
-                 (format "Writing html ~s" (build-path (current-output-dir) output-html-filename)))
+                 (format "Writing html ~s\n" (build-path (current-output-dir) output-html-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                 (lambda (op)
                                   (display (get-html-template output-js-filename) op))

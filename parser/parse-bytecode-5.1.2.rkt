@@ -144,10 +144,7 @@
                                                   base]
                                                  [else
                                                   (error 'parse-bytecode)])])
-           (define start-time (current-inexact-milliseconds))
            (define module-bytecode (get-module-bytecode normal-path))
-           (define stop-time (current-inexact-milliseconds))
-           (printf "  parse-bytecode get-module-bytecode: ~a milliseconds\n" (- stop-time start-time))
            (parse-bytecode (open-input-bytes module-bytecode))))]    
       [else
        (error 'parse-bytecode "Don't know how to parse from ~e" in)]))

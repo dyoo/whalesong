@@ -227,7 +227,10 @@
         var i;
         var oldArgcount, oldVal, oldProc, oldErrorHandler;
         if (! baselib.arity.isArityMatching(proc.racketArity, arguments.length - 4)) {
-            return fail(baselib.exceptions.makeExnFailContractArity("arity mismatch"));
+            var msg = baselib.format.format("arity mismatch: expected ~s arguments, but received ~s",
+                                            [proc.racketArity, arguments.length - 4]);
+            return fail(baselib.exceptions.makeExnFailContractArity(msg,
+                                                                    MACHINE.captureContinuationMarks()));
         }
 
         if (isPrimitiveProcedure(proc)) {

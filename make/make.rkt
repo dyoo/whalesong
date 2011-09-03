@@ -62,20 +62,36 @@
           (values ast stmts)])))]
 
    [else
-    (let ([ast
-           (cond
-            [(ModuleSource? a-source)
-             (parse-bytecode (ModuleSource-path a-source))]
-            [(SexpSource? a-source)
-             (let ([source-code-op (open-output-bytes)])
-               (write (SexpSource-sexp a-source) source-code-op)
-               (parse-bytecode
-                (open-input-bytes
-                 (get-module-bytecode
-                  (open-input-bytes
-                   (get-output-bytes source-code-op))))))])])
-      (values ast
-              (compile ast 'val next-linkage/drop-multiple)))]))
+    (let ([ast (get-ast a-source)])
+      (define start-time (current-inexact-milliseconds))
+      (define compiled-code (compile ast 'val next-linkage/drop-multiple))
+      (define stop-time (current-inexact-milliseconds))
+      (printf "  compile ast: ~a milliseconds\n" (- stop-time start-time))
+      (values ast compiled-code))]))
+
+
+
+(: get-ast ((U ModuleSource SexpSource) -> Expression))
+(define (get-ast a-source)
+  (define start-time (current-inexact-milliseconds))
+  (: ast Expression)
+  (define ast (cond
+               [(ModuleSource? a-source)
+                (parse-bytecode (ModuleSource-path a-source))]
+               [(SexpSource? a-source)
+                (let ([source-code-op (open-output-bytes)])
+                  (write (SexpSource-sexp a-source) source-code-op)
+                  (parse-bytecode
+                   (open-input-bytes
+                    (get-module-bytecode
+                     (open-input-bytes
+                      (get-output-bytes source-code-op))))))]))
+  (define stop-time (current-inexact-milliseconds))
+  (printf "  get-ast: ~a milliseconds\n" (- stop-time start-time))
+  ast)
+
+
+
 
 
 

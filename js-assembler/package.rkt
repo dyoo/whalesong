@@ -244,14 +244,16 @@ MACHINE.modules[~s] =
 
     (fprintf op "\n// ** Visiting ~a\n" (source-name src))
     (define temporary-output-port (open-output-bytes))
-    (time
-     (cond
-      [(UninterpretedSource? src)
-       (fprintf temporary-output-port "~a" (UninterpretedSource-datum src))]
-      [else
-       (assemble/write-invoke stmts temporary-output-port)
-       (fprintf temporary-output-port "(MACHINE, function() { ")]))
+    (define start-time (current-inexact-milliseconds))
+    (cond
+     [(UninterpretedSource? src)
+      (fprintf temporary-output-port "~a" (UninterpretedSource-datum src))]
+     [else
+      (assemble/write-invoke stmts temporary-output-port)
+      (fprintf temporary-output-port "(MACHINE, function() { ")])
+    (define stop-time (current-inexact-milliseconds))
     (displayln (source-name src))
+    (printf "Took: ~s milliseconds\n" (- stop-time start-time))
     (displayln (bytes-length (get-output-bytes temporary-output-port)))
     (write-bytes (get-output-bytes temporary-output-port) op)
     (void))

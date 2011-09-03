@@ -85,6 +85,7 @@
 
 (define (build-html-and-javascript f)
   (turn-on-logger!)
+  (define start-time (current-inexact-milliseconds))
   (let-values ([(base filename dir?)
                 (split-path f)])
     (let ([output-js-filename (build-path
@@ -139,6 +140,9 @@
                                 (lambda (op)
                                   (display (get-html-template output-js-filename) op))
                                 #:exists 'replace)
+        (define stop-time (current-inexact-milliseconds))
+
+        (printf "Time taken: ~a milliseconds\n" (- stop-time start-time))
         ))))
 
 

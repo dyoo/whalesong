@@ -382,7 +382,7 @@ EOF
 (define (get-html-template js)
   (format #<<EOF
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<html>
   <head>
     <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta charset="utf-8"/>

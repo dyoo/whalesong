@@ -115,7 +115,7 @@ EOF
                   (assemble-oparg tag)])))]
     
     [(FixClosureShellMap!? op)
-     (format "MACHINE.env[MACHINE.env.length - 1 - ~a].closedVals = [~a]"
+     (format "MACHINE.env[MACHINE.env.length - 1 - ~a].closedVals = [~a];"
              (FixClosureShellMap!-depth op)
               (string-join (map
 			    assemble-env-reference/closure-capture 

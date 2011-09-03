@@ -39,9 +39,9 @@
 ;; What's emitted is a function expression that, when invoked, runs the
 ;; statements.
 (define (assemble/write-invoke stmts op)
-  (fprintf op "(function(MACHINE, success, fail, params) {\n")
-  (fprintf op "var param;\n")
-  (fprintf op "var RUNTIME = plt.runtime;\n")
+  (display "(function(MACHINE, success, fail, params) {\n" op)
+  (display "var param;\n" op)
+  (display "var RUNTIME = plt.runtime;\n" op)
   
   (define-values (basic-blocks entry-points) (fracture stmts))
   
@@ -49,16 +49,16 @@
   
   (write-linked-label-attributes stmts op)
   
-  (fprintf op "MACHINE.params.currentErrorHandler = fail;\n")
-  (fprintf op "MACHINE.params.currentSuccessHandler = success;\n")
-  (fprintf op #<<EOF
+  (display "MACHINE.params.currentErrorHandler = fail;\n" op)
+  (display "MACHINE.params.currentSuccessHandler = success;\n" op)
+  (display  #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {
         MACHINE.params[param] = params[param];
     }
 }
 EOF
-           )
+           op)
   (fprintf op "MACHINE.trampoline(~a); })"
            (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))))
 
@@ -79,10 +79,10 @@ EOF
 
   (set-for-each (lambda: ([s : Symbol])
                   (log-debug (format "Emitting code for basic block ~s" s))
-                  (displayln (assemble-basic-block (hash-ref blockht s) 
-                                                   blockht
-                                                   entry-points)
-                             op)
+                  (assemble-basic-block (hash-ref blockht s) 
+                                        blockht
+                                        entry-points
+                                        op)
                   (newline op))
                 entry-points))
 
@@ -168,41 +168,44 @@ EOF
 
 
 
-;; assemble-basic-block: basic-block -> string
-(: assemble-basic-block (BasicBlock Blockht (Setof Symbol) -> String))
-(define (assemble-basic-block a-basic-block blockht entry-points)
-  (format "var ~a = function(MACHINE){
+
+(: assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
+(define (assemble-basic-block a-basic-block blockht entry-points op)
+  (fprintf op "var ~a = function(MACHINE) {
     if(--MACHINE.callsBeforeTrampoline < 0) {
         throw ~a;
-    }
-    ~a
-};"
-          (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-          (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-          (string-join (assemble-block-statements (BasicBlock-name a-basic-block)
-                                                  (BasicBlock-stmts a-basic-block)
-                                                  blockht
-                                                  entry-points)
-                       "\n")))
+    }"
+           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
+           (assemble-label (make-Label (BasicBlock-name a-basic-block))))
+  (assemble-block-statements (BasicBlock-name a-basic-block)
+                             (BasicBlock-stmts a-basic-block)
+                             blockht
+                             entry-points
+                             op)
+  (display "};\n" op)
+  'ok)
 
 
-(: assemble-block-statements (Symbol (Listof UnlabeledStatement) Blockht (Setof Symbol) -> (Listof String)))
-(define (assemble-block-statements name stmts blockht entry-points)
+
+(: assemble-block-statements (Symbol (Listof UnlabeledStatement) Blockht (Setof Symbol) Output-Port -> 'ok))
+(define (assemble-block-statements name stmts blockht entry-points op)
   
-  (: default (UnlabeledStatement -> (Listof String)))
+  (: default (UnlabeledStatement -> 'ok))
   (define (default stmt)
     (when (and (empty? (rest stmts))
                (not (GotoStatement? stmt)))
       (log-debug (format "Last statement of the block ~a is not a goto" name)))
 
-    (cons (assemble-statement stmt)
-          (assemble-block-statements name
-                                     (rest stmts) 
-                                     blockht
-                                     entry-points)))
+    (display (assemble-statement stmt) op)
+    (newline op)
+    (assemble-block-statements name
+                               (rest stmts) 
+                               blockht
+                               entry-points
+                               op))
   
   (cond [(empty? stmts)
-         empty]
+         'ok]
         [else
          (define stmt (first stmts))
          (cond
@@ -244,21 +247,23 @@ EOF
                                  (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a))"
                                          (assemble-oparg (TestClosureArityMismatch-closure test))
                                          (assemble-oparg (TestClosureArityMismatch-n test)))]))
-               `(, test-code
-                 "{"
-                 ,@(cond
-                     [(set-contains? entry-points (TestAndJumpStatement-label stmt))
-                      (list (assemble-jump (make-Label (TestAndJumpStatement-label stmt))))]
-                     [else
-                      (assemble-block-statements (BasicBlock-name
-                                                  (hash-ref blockht (TestAndJumpStatement-label stmt)))
-                                                 (BasicBlock-stmts 
-                                                  (hash-ref blockht (TestAndJumpStatement-label stmt)))
-                                                 blockht
-                                                 entry-points)])
-                 "} else {"
-                 ,@(assemble-block-statements name (rest stmts) blockht entry-points)
-                 "}")]
+               (display test-code op)
+               (display "{" op)
+               (cond
+                [(set-contains? entry-points (TestAndJumpStatement-label stmt))
+                 (display (assemble-jump (make-Label (TestAndJumpStatement-label stmt))) op)]
+                [else
+                 (assemble-block-statements (BasicBlock-name
+                                             (hash-ref blockht (TestAndJumpStatement-label stmt)))
+                                            (BasicBlock-stmts 
+                                             (hash-ref blockht (TestAndJumpStatement-label stmt)))
+                                            blockht
+                                            entry-points
+                                            op)])
+               (display "} else {" op)
+               (assemble-block-statements name (rest stmts) blockht entry-points op)
+               (display "}" op)
+               'ok]
            
            [(GotoStatement? stmt)
             (define target (GotoStatement-target stmt))
@@ -274,7 +279,8 @@ EOF
                                                (BasicBlock-stmts
                                                 (hash-ref blockht (Label-name target)))
                                                blockht
-                                               entry-points)])]
+                                               entry-points
+                                               op)])]
               [(Reg? target)
                (default stmt)]
               [(ModuleEntry? target)

@@ -10,10 +10,10 @@
   (modulo (add1 w) 10))
 
 
-;; pick-block: world view -> view
+;; pick-block: view number -> view
 ;; Focus the view on block i.
 (define (pick-block v i)
-  (view-focus v (format "#~a" i)))
+  (view-focus v (format "~a" i)))
 
 
 (define (draw w v)

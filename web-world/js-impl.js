@@ -72,14 +72,11 @@
     
 
     // For the moment, we only support selection by id.
-    var idRegexp = new RegExp("^#");
     var selectorMatches = function(selector, node) {
-        if (selector.match(idRegexp)) {
-            if (node.nodeType === 1) {
-                return node.getAttribute('id') === selector.substring(1);
-            } else {
-                return false;
-            }
+        if (node.nodeType === 1) {
+            return node.getAttribute('id') === selector;
+        } else {
+            return false;
         }
         return false;
     };
@@ -107,6 +104,7 @@
                             this.nonce);
     };
 
+
     MockView.prototype.updateFocus = function(selector) {
         selector = selector.toString();
         return this.act(
@@ -125,7 +123,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                view.focus = view.top.find(selector);
+                view.focus = $(document.getElementById(selector));
             }
         );
     };
@@ -476,7 +474,7 @@
             return onSuccess(x); 
         } else  if (isResource(x)) {
             try {
-                dom = $(resourceContent(x).toString())
+                dom = $("<html/>").append($(resourceContent(x).toString()))
                     .css("margin", "0px")
                     .css("padding", "0px")
                     .css("border", "0px");
@@ -504,7 +502,7 @@
             return onSuccess(x); 
         } else  if (isResource(x)) {
             try {
-                dom = $(resourceContent(x).toString())
+                dom = $("<html/>").append($(resourceContent(x).toString()))
                     .css("margin", "0px")
                     .css("padding", "0px")
                     .css("border", "0px");
@@ -846,7 +844,7 @@
     DomEventSource.prototype.onStart = function(fireEvent) {
         var element = this.elementOrId;
         if (typeof(this.elementOrId) === 'string') {
-            element = $('#' + this.elementOrId).get(0);
+            element = document.getElementById(this.elementOrId);
         }
 
         this.handler = function(evt) {
@@ -862,7 +860,7 @@
     DomEventSource.prototype.onStop = function() {
         var element = this.elementOrId;
         if (typeof(this.elementOrId) === 'string') {
-            element = $('#' + this.elementOrId).get(0);
+            element = document.getElementById(this.elementOrId);
         }
 
         if (this.handler !== undefined) {
@@ -1020,7 +1018,7 @@
                     mockView = view.getMockAndResetFocus();
                     nextEvent = eventQueue.dequeue();
                     if (nextEvent.who !== undefined) {
-                        mockView = mockView.updateFocus('#' + nextEvent.who.id);
+                        mockView = mockView.updateFocus(nextEvent.who.id);
                     }
 
                     // FIXME: deal with event data here
@@ -1067,7 +1065,6 @@
                 // from the user came from here.  If not, we have no hope to do a nice, efficient
                 // update, and have to do it from scratch.
                 var nonce = Math.random();
-                
                 toDraw(MACHINE, 
                        world,
                        view.getMockAndResetFocus(nonce),
@@ -1158,7 +1155,7 @@
     DomElementOutputPort.prototype = plt.baselib.heir(plt.baselib.ports.OutputPort.prototype);
 
     DomElementOutputPort.prototype.writeDomNode = function (MACHINE, v) {
-        $("#" + this.id).append(v);
+        $(document.getElementById(this.id)).append(v);
         $(v).trigger({type : 'afterAttach'});
         $('*', v).trigger({type : 'afterAttach'});
     };

@@ -16,7 +16,8 @@
          current-warn-unimplemented-kernel-primitive
          current-seen-unimplemented-kernel-primitives
          current-kernel-module-locator?
-         current-compress-javascript?)
+         current-compress-javascript?
+         current-report-port)
 
 
 
@@ -67,6 +68,11 @@
 
 (: current-compress-javascript? (Parameterof Boolean))
 (define current-compress-javascript? (make-parameter #f))
+
+
+
+(: current-report-port (Parameterof Output-Port))
+(define current-report-port (make-parameter (current-output-port)))
 
 
 

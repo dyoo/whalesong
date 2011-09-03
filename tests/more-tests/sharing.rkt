@@ -59,7 +59,7 @@
 
 
 
-(define-struct person (name friends) #:mutable)
+(define-struct person (name friends))
 (let-values ([(a b c)
               (shared ([a (make-person "jill" (list b c))]
                        [b (make-person "jack" (list a c))]

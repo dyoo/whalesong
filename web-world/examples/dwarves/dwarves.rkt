@@ -26,7 +26,7 @@
 ;; until we're all done.
 (define (draw w dom-view)
   (foldl (lambda (name view)
-           (define focused (view-focus view (format "#~a" name)))
+           (define focused (view-focus view name))
            (cond
             [(member name w)
              (view-show focused)]
@@ -41,7 +41,7 @@
 ;; to each name here.
 (define my-view
   (foldl (lambda (name view)
-           (view-bind (view-focus view (format "#~a" name))
+           (view-bind (view-focus view name)
                       "click"
                       hide-on-click))
          (->view index.html)

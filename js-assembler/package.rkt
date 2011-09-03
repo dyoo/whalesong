@@ -28,11 +28,13 @@
 (provide package
          package-anonymous
          package-standalone-xhtml
+         get-inert-code
          get-standalone-code
          write-standalone-code
          get-runtime
          write-runtime
-         current-on-resource)
+         current-on-resource
+         get-html-template)
 
 
 
@@ -302,7 +304,7 @@ MACHINE.modules[~s] =
   (display *header* op)
   (display (quote-cdata
             (string-append (get-runtime)
-                           (get-code source-code)
+                           (get-inert-code source-code)
                            invoke-main-module-code)) op)
   (display *footer* op))
 
@@ -382,8 +384,85 @@ EOF
   )
 
 
-;; get-code: source -> string
-(define (get-code source-code)
+;; get-html-template: string -> string
+(define (get-html-template js)
+  (format #<<EOF
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta charset="utf-8"/>
+    <title></title>
+  </head>
+  <script src="~a"></script>
+  <script>
+var invokeMainModule = function() {
+    var MACHINE = plt.runtime.currentMachine;
+    invoke(MACHINE,
+           function() {
+                var startTime = new Date().valueOf();
+                plt.runtime.invokeMains(
+                    MACHINE,
+                    function() {
+                        // On main module invokation success:
+                        var stopTime = new Date().valueOf();                                
+                        if (window.console && window.console.log) {
+                            window.console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
+                        }
+                    },
+                    function(MACHINE, e) {
+                        var contMarkSet, appNames, i, appName;
+                        // On main module invokation failure
+                        if (window.console && window.console.log) {
+                            window.console.log(e.stack || e);
+                        }
+                        
+                        MACHINE.params.currentErrorDisplayer(
+                             MACHINE, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
+
+                        if (e.hasOwnProperty('racketError') &&
+                            plt.baselib.exceptions.isExn(e.racketError)) {
+                            contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
+                            if (contMarkSet) {
+                                 appNames = contMarkSet.ref(plt.runtime.getTracedAppKey(MACHINE));
+                                 while (plt.baselib.lists.isPair(appNames)) {
+                                     appName = appNames.first;
+                                     MACHINE.params.currentErrorDisplayer(
+                                        MACHINE,
+                                        $('<div/>').text('  at ' + appName.elts[0] +
+                                                         ', line ' + appName.elts[2] +
+                                                         ', column ' + appName.elts[3])
+                                                   .addClass('stacktrace')
+                                                   .css('margin-left', '10px')
+                                                   .css('whitespace', 'pre')
+                                                   .css('color', 'red'));
+                                     appNames = appNames.rest;
+                                 }
+                            }
+                        }
+                    })},
+           function() {
+               // On module loading failure
+               if (window.console && window.console.log) {
+                   window.console.log(e.stack || e);
+               }                       
+           },
+           {});
+};
+  $(document).ready(invokeMainModule);
+  </script>
+  </head>
+  <body>
+  </body>
+  </html>
+EOF
+
+  js
+  ))
+
+
+;; get-inert-code: source -> string
+(define (get-inert-code source-code)
   (let ([buffer (open-output-string)])
     (package source-code
              #:should-follow-children? (lambda (src) #t)

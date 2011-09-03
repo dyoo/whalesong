@@ -83,7 +83,6 @@
         } else {
             returnVal = x.toString();
         }
-        cache.remove(x);
         return returnVal;
     };
 
@@ -127,7 +126,6 @@
         } else {
             returnVal = x.toString();
         }
-        cache.remove(x);
         return returnVal;
     };
 

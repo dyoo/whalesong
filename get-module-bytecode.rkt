@@ -60,7 +60,7 @@
   (lookup-language-namespace
    #;'racket/base
    `(file ,(path->string kernel-language-path)))
-  #;(make-base-namespace))
+   #;(make-base-namespace))
 
 
 
@@ -74,7 +74,8 @@
                           (log-debug "parsing from scratch")
                           (call-with-input-file* p
                             (lambda (ip)
-                              (get-compiled-code-from-port ip))))])
+                              (get-compiled-code-from-port ip)))
+                          )])
     (get-module-code p)))
 
 

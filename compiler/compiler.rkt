@@ -21,8 +21,8 @@
                [ensure-const-value (Any -> const-value)])
 
 (provide (rename-out [-compile compile])
-         compile-general-procedure-call
-         append-instruction-sequences)
+         compile-general-procedure-call)
+
 
 
 
@@ -2066,22 +2066,6 @@
 
 
 
-
-(: append-instruction-sequences (InstructionSequence * -> InstructionSequence))
-(define (append-instruction-sequences . seqs)
-  (append-seq-list seqs))
-
-(: append-2-sequences (InstructionSequence InstructionSequence -> InstructionSequence))
-(define (append-2-sequences seq1 seq2)
-  (make-instruction-sequence
-   (append (statements seq1) (statements seq2))))
-
-(: append-seq-list ((Listof InstructionSequence) -> InstructionSequence))
-(define (append-seq-list seqs)
-  (if (null? seqs)
-      empty-instruction-sequence
-      (append-2-sequences (car seqs)
-                          (append-seq-list (cdr seqs)))))
 
 
 (: ensure-natural (Integer -> Natural))

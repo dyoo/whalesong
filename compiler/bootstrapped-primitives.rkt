@@ -39,30 +39,29 @@
 (define (make-call/cc-code)
   (statements
    (append-instruction-sequences
-    (make-instruction-sequence 
-     `(,call/cc-label
-       ;; Precondition: the environment holds the f function that we want to jump into.
-       
-       ;; First, move f to the proc register
-       ,(make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
-       
-       ;; Next, capture the envrionment and the current continuation closure,.
-       ,(make-PushEnvironment 2 #f)
-       ,(make-AssignPrimOpStatement (make-EnvLexicalReference 0 #f) 
-                                    (make-CaptureControl 0 default-continuation-prompt-tag))
-       ,(make-AssignPrimOpStatement (make-EnvLexicalReference 1 #f)
-                                    ;; When capturing, skip over f and the two slots we just added.
-                                    (make-CaptureEnvironment 3 default-continuation-prompt-tag))
-       ,(make-AssignPrimOpStatement (make-EnvLexicalReference 2 #f)
-                                    (make-MakeCompiledProcedure call/cc-closure-entry
-                                                                1 ;; the continuation consumes a single value
-                                                                (list 0 1)
-                                                                'call/cc))
-       ,(make-PopEnvironment (make-Const 2) 
-                             (make-Const 0))))
+    call/cc-label
+    ;; Precondition: the environment holds the f function that we want to jump into.
+    
+    ;; First, move f to the proc register
+    (make-AssignImmediateStatement 'proc (make-EnvLexicalReference 0 #f))
+    
+    ;; Next, capture the envrionment and the current continuation closure,.
+    (make-PushEnvironment 2 #f)
+    (make-AssignPrimOpStatement (make-EnvLexicalReference 0 #f) 
+                                (make-CaptureControl 0 default-continuation-prompt-tag))
+    (make-AssignPrimOpStatement (make-EnvLexicalReference 1 #f)
+                                ;; When capturing, skip over f and the two slots we just added.
+                                (make-CaptureEnvironment 3 default-continuation-prompt-tag))
+    (make-AssignPrimOpStatement (make-EnvLexicalReference 2 #f)
+                                 (make-MakeCompiledProcedure call/cc-closure-entry
+                                                             1 ;; the continuation consumes a single value
+                                                             (list 0 1)
+                                                             'call/cc))
+    (make-PopEnvironment (make-Const 2) 
+                          (make-Const 0))
        
     ;; Finally, do a tail call into f.
-    (make-instruction-sequence `(,(make-AssignImmediateStatement 'argcount (make-Const 1))))
+    (make-AssignImmediateStatement 'argcount (make-Const 1))
     (compile-general-procedure-call '()
                                     (make-Const 1) ;; the stack at this point holds a single argument
                                     'val
@@ -70,15 +69,14 @@
     
     ;; The code for the continuation code follows.  It's supposed to
     ;; abandon the current continuation, initialize the control and environment, and then jump.
-    (make-instruction-sequence `(,call/cc-closure-entry
-                                 ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
-                                 ,(make-PerformStatement (make-InstallClosureValues!))
-                                 ,(make-PerformStatement 
-                                   (make-RestoreControl! default-continuation-prompt-tag))
-                                 ,(make-PerformStatement (make-RestoreEnvironment!))
-                                 ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
-                                 ,(make-PopControlFrame)
-                                 ,(make-GotoStatement (make-Reg 'proc)))))))
+    call/cc-closure-entry
+    (make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
+    (make-PerformStatement (make-InstallClosureValues!))
+    (make-PerformStatement (make-RestoreControl! default-continuation-prompt-tag))
+    (make-PerformStatement (make-RestoreEnvironment!))
+    (make-AssignImmediateStatement 'proc (make-ControlStackLabel))
+    (make-PopControlFrame)
+    (make-GotoStatement (make-Reg 'proc)))))
 
 
 

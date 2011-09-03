@@ -168,8 +168,7 @@
             [(hash-has-key? visited (first sources))
              (loop (rest sources))]
             [else
-             (log-debug (format "compiling a module ~a"
-                                (source-name (first sources))))
+             (printf "compiling a module ~a\n" (source-name (first sources)))
              (hash-set! visited (first sources) #t)
              (let*-values ([(this-source)
                             ((current-module-source-compiling-hook)

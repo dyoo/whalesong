@@ -481,10 +481,16 @@
 
 
 
-(define-type InstructionSequence (U Symbol LinkedLabel Statement instruction-sequence))
-(define-struct: instruction-sequence ([statements : (Listof Statement)])
+(define-type InstructionSequence (U Symbol
+                                    LinkedLabel
+                                    Statement
+                                    instruction-sequence-list
+                                    instruction-sequence-chunks))
+(define-struct: instruction-sequence-list ([statements : (Listof Statement)])
   #:transparent)
-(define empty-instruction-sequence (make-instruction-sequence '()))
+(define-struct: instruction-sequence-chunks ([chunks : (Listof InstructionSequence)])
+  #:transparent)
+(define empty-instruction-sequence (make-instruction-sequence-list '()))
 
 
 (define-predicate Statement? Statement)
@@ -498,9 +504,26 @@
          (list s)]
         [(Statement? s)
          (list s)]
-        [else
-         (instruction-sequence-statements s)]))
+        [(instruction-sequence-list? s)
+         (instruction-sequence-list-statements s)]
+        [(instruction-sequence-chunks? s)
+         (apply append (map statements (instruction-sequence-chunks-chunks s)))]))
 
+
+
+(: append-instruction-sequences (InstructionSequence * -> InstructionSequence))
+(define (append-instruction-sequences . seqs)
+  (append-seq-list seqs))
+
+(: append-2-sequences (InstructionSequence InstructionSequence -> InstructionSequence))
+(define (append-2-sequences seq1 seq2)
+  (make-instruction-sequence-chunks (list seq1 seq2)))
+
+(: append-seq-list ((Listof InstructionSequence) -> InstructionSequence))
+(define (append-seq-list seqs)
+  (if (null? seqs)
+      empty-instruction-sequence
+      (make-instruction-sequence-chunks seqs)))
 
 
 

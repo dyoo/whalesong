@@ -294,7 +294,8 @@
             fail(baselib.exceptions.makeExnFail(
                 baselib.format.format(
                     "Not a procedure: ~e",
-                    proc)));
+                    proc),
+                MACHINE.captureContinuationMarks()));
         }
     };
 

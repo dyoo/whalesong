@@ -253,7 +253,6 @@ MACHINE.modules[~s] =
       (fprintf temporary-output-port "(MACHINE, function() { ")])
     (define stop-time (current-inexact-milliseconds))
     (printf "  assembly: ~s milliseconds\n" (- stop-time start-time))
-    (displayln (bytes-length (get-output-bytes temporary-output-port)))
     (write-bytes (get-output-bytes temporary-output-port) op)
     (void))
   

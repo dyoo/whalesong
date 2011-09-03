@@ -66,7 +66,7 @@
       (define start-time (current-inexact-milliseconds))
       (define compiled-code (compile ast 'val next-linkage/drop-multiple))
       (define stop-time (current-inexact-milliseconds))
-      (printf "  compile ast: ~a milliseconds\n" (- stop-time start-time))
+      ;(printf "  compile ast: ~a milliseconds\n" (- stop-time start-time))
       (values ast compiled-code))]))
 
 

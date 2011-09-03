@@ -29,7 +29,7 @@
 ;;
 ;;     $ whalesong get-javascript main-module-name.rkt
 
-
+(define as-standalone-html? (make-parameter #f))
 
 
 (define (at-toplevel)
@@ -37,21 +37,6 @@
    #:program "whalesong"
    #:argv (current-command-line-arguments)
    "The Whalesong command-line tool for compiling Racket to JavaScript"
-   ["build-xhtml" "build a standalone xhtml package" 
-            "Builds a Racket program and its required dependencies into a .xhtml file."
-            #:once-each
-            [("-v" "--verbose")
-             ("Display verbose messages.")
-             (current-verbose? #t)]
-            [("--compress-javascript")
-             ("Compress JavaScript with Google Closure (requires Java)")
-             (current-compress-javascript? #t)]
-            [("--dest-dir")
-             dest-dir
-             ("Set destination directory (default: current-directory)")
-             (current-output-dir dest-dir)]
-            #:args (path)
-            (build-standalone-xhtml path)]
    ["build" "build a standalone html and javascript package" 
             "Builds a Racket program and its required dependencies into a .html and .js file."
             #:once-each
@@ -65,8 +50,14 @@
              dest-dir
              ("Set destination directory (default: current-directory)")
              (current-output-dir dest-dir)]
+            [("--as-standalone-xhtml")
+             ("Write single standalone xhtml file")
+             (as-standalone-html? #t)]
             #:args (path)
-            (build-html-and-javascript path)]
+
+            (if (as-standalone-html?)
+                (build-standalone-xhtml path)
+                (build-html-and-javascript path))]
    
    ["get-runtime" "print the runtime library to standard output"
                   "Prints the runtime JavaScript library that's used by Whalesong programs."

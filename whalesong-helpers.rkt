@@ -120,7 +120,7 @@
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])
         (fprintf (current-report-port)
-                 (format "Writing program ~s" (build-path (current-output-port) output-js-filename)))
+                 (format "Writing program ~s" (build-path (current-output-dir) output-js-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-js-filename)
                                 (lambda (op)
                                   (display (get-runtime) op)
@@ -129,7 +129,7 @@
                                 #:exists 'replace)
 
         (fprintf (current-report-port)
-                 (format "Writing html ~s" (build-path (current-output-port) output-html-filename)))
+                 (format "Writing html ~s" (build-path (current-output-dir) output-html-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                 (lambda (op)
                                   (display (get-html-template output-js-filename) op))

@@ -1,7 +1,10 @@
 #lang racket/base
 
 (provide coerse-content-bytes)
-(require (planet neil/html-parsing)
+
+;; We need at least version 1.2 of the html-parsing library, because
+;; there's a nasty bug in 1.0.
+(require (planet neil/html-parsing:1:2)
          (planet neil/html-writing))
 
 ;; coerse-content-bytes: path bytes -> bytes

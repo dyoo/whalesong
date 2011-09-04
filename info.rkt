@@ -15,3 +15,4 @@
                              "examples"
                              "experiments"
                              "simulator"))
+(define can-be-loaded-with 'all)

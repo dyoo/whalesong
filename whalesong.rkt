@@ -43,6 +43,9 @@
             [("-v" "--verbose")
              ("Display verbose messages.")
              (current-verbose? #t)]
+            [("--debug-show-timings")
+             ("Display debug messages about compilation time.")
+             (current-timing-port (current-output-port))]
             [("--compress-javascript")
              ("Compress JavaScript with Google Closure (requires Java)")
              (current-compress-javascript? #t)]
@@ -65,6 +68,9 @@
                   [("-v" "--verbose")
                    ("Display verbose messages.")
                    (current-verbose? #t)]
+                  [("--debug-show-timings")
+                   ("Display debug messages about compilation time.")
+                   (current-timing-port (current-output-port))]
                   [("--compress-javascript")
                    ("Compress JavaScript with Google Closure (requires Java)")
                    (current-compress-javascript? #t)]
@@ -77,7 +83,9 @@
                      [("-v" "--verbose")
                       ("Display verbose messages.")
                       (current-verbose? #t)]
-                     
+                     [("--debug-show-timings")
+                      ("Display debug messages about compilation time.")
+                      (current-timing-port (current-output-port))]
                      [("--compress-javascript")
                       ("Compress JavaScript with Google Closure (requires Java)")
                       (current-compress-javascript? #t)]

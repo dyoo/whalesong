@@ -252,7 +252,7 @@ MACHINE.modules[~s] =
       (assemble/write-invoke stmts temporary-output-port)
       (fprintf temporary-output-port "(MACHINE, function() { ")])
     (define stop-time (current-inexact-milliseconds))
-    (printf "  assembly: ~s milliseconds\n" (- stop-time start-time))
+    (fprintf (current-timing-port) "  assembly: ~s milliseconds\n" (- stop-time start-time))
     (write-bytes (get-output-bytes temporary-output-port) op)
     (void))
   

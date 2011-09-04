@@ -3,7 +3,8 @@
 (require "compiler/expression-structs.rkt"
          "compiler/lexical-structs.rkt"
          "sets.rkt"
-         racket/path)
+         racket/path
+         racket/port)
 
 (require/typed "logger.rkt"
                [log-warning (String -> Void)])
@@ -17,7 +18,10 @@
          current-seen-unimplemented-kernel-primitives
          current-kernel-module-locator?
          current-compress-javascript?
-         current-report-port)
+         current-report-port
+
+         current-timing-port
+         )
 
 
 
@@ -74,6 +78,10 @@
 (: current-report-port (Parameterof Output-Port))
 (define current-report-port (make-parameter (current-output-port)))
 
+
+(: current-timing-port (Parameterof Output-Port))
+(define current-timing-port (make-parameter (open-output-nowhere) ;(current-output-port)
+                                            ))
 
 
 

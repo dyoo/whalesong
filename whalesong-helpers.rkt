@@ -142,7 +142,7 @@
                                 #:exists 'replace)
         (define stop-time (current-inexact-milliseconds))
 
-        (printf "Time taken: ~a milliseconds\n" (- stop-time start-time))
+        (fprintf (current-timing-port) "Time taken: ~a milliseconds\n" (- stop-time start-time))
         ))))
 
 

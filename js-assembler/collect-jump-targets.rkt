@@ -3,6 +3,7 @@
          "../compiler/il-structs.rkt"
          "../compiler/lexical-structs.rkt"
          "../helpers.rkt"
+         "../parameters.rkt"
          racket/list)
 
 (provide collect-general-jump-targets
@@ -146,7 +147,7 @@
 
   (: end-time Real)
   (define end-time (current-inexact-milliseconds))
-  (printf "  collect-general-jump-targets: ~a milliseconds\n" (- end-time start-time))
+  (fprintf (current-timing-port) "  collect-general-jump-targets: ~a milliseconds\n" (- end-time start-time))
   result)
 
 

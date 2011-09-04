@@ -66,7 +66,7 @@
       (define start-time (current-inexact-milliseconds))
       (define compiled-code (compile ast 'val next-linkage/drop-multiple))
       (define stop-time (current-inexact-milliseconds))
-      (printf "  compile ast: ~a milliseconds\n" (- stop-time start-time))
+      (fprintf (current-timing-port) "  compile ast: ~a milliseconds\n" (- stop-time start-time))
       (values ast compiled-code))]))
 
 
@@ -87,7 +87,7 @@
                      (open-input-bytes
                       (get-output-bytes source-code-op))))))]))
   (define stop-time (current-inexact-milliseconds))
-  (printf "  get-ast: ~a milliseconds\n" (- stop-time start-time))
+  (fprintf (current-timing-port) "  get-ast: ~a milliseconds\n" (- stop-time start-time))
   ast)
 
 
@@ -168,7 +168,7 @@
             [(hash-has-key? visited (first sources))
              (loop (rest sources))]
             [else
-             (printf "compiling a module ~a\n" (source-name (first sources)))
+             (fprintf (current-timing-port) "compiling a module ~a\n" (source-name (first sources)))
              (hash-set! visited (first sources) #t)
              (let*-values ([(this-source)
                             ((current-module-source-compiling-hook)
@@ -180,7 +180,7 @@
                (define start-time (current-inexact-milliseconds))
                (define new-dependencies (map wrap-source (collect-new-dependencies this-source ast)))
                (define end-time (current-inexact-milliseconds))
-               (printf "  computing dependencies: ~a milliseconds\n" (- end-time start-time))
+               (fprintf (current-timing-port) "  computing dependencies: ~a milliseconds\n" (- end-time start-time))
                (loop (append new-dependencies (rest sources)))
                (after-module-statements this-source ast stmts))])))
 

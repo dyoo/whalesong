@@ -4,6 +4,7 @@
          "collect-jump-targets.rkt"
          "../compiler/il-structs.rkt"
          "../compiler/expression-structs.rkt"
+         "../parameters.rkt"
          racket/list)
 
 
@@ -96,6 +97,6 @@
                     (GotoStatement? (car stmts)))]))]))))
 
   (define end-time (current-inexact-milliseconds))
-  (printf "  assemble fracture: ~a milliseconds\n" (- end-time start-time))
+  (fprintf (current-timing-port) "  assemble fracture: ~a milliseconds\n" (- end-time start-time))
 
   (values blocks entries))

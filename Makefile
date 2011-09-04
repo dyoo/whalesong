@@ -41,7 +41,7 @@ cs19-doc:
 
 
 setup:
-	raco setup --no-docs -P dyoo whalesong.plt 1 2
+	raco setup --no-docs -P dyoo whalesong.plt 1 4
 
 
 planet-link:

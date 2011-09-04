@@ -182,6 +182,6 @@
                (define end-time (current-inexact-milliseconds))
                (fprintf (current-timing-port) "  computing dependencies: ~a milliseconds\n" (- end-time start-time))
                (loop (append new-dependencies (rest sources)))
-               (after-module-statements this-source ast stmts))])))
+               (after-module-statements this-source))])))
 
        (follow-dependencies (map wrap-source sources))])))

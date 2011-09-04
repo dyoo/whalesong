@@ -257,7 +257,7 @@ MACHINE.modules[~s] =
     (void))
   
   
-  (define (after-visit-src src ast stmts)
+  (define (after-visit-src src)
     (cond
       [(UninterpretedSource? src)
        (void)]
@@ -327,7 +327,7 @@ MACHINE.modules[~s] =
             (fprintf op "(MACHINE, function() { "))
           
           ;; after
-          (lambda (src ast stmts)
+          (lambda (src)
             (fprintf op " }, FAIL, PARAMS);"))
           
           ;; last

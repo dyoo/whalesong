@@ -55,10 +55,7 @@
                             (U Expression #f)
                             (Listof Statement)
                             -> Void)]
-   [after-module-statements : (Source
-                               (U Expression #f)
-                               (Listof Statement)
-                               -> Void)]
+   [after-module-statements : (Source -> Void)]
    [after-last : (-> Void)])
   #:mutable)
 
@@ -70,7 +67,7 @@
      (when (and ast (expression-module-path ast))
        (printf "debug build configuration: visiting ~s\n"
                (expression-module-path ast))))
-   (lambda (src ast stmt)
+   (lambda (src)
      (void))
    (lambda ()
      (void))))

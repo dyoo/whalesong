@@ -125,7 +125,7 @@
          (cons (substring str 0 x) (wrap-to-count (substring str y) n))))] 
     [else
      ;; iterate backwards from char n looking for a good break
-     (let loop ([k n])
+     (let loop ([k (sub1 n)])
        (cond
          [(= k 0) (error wrap-to-count "could not break string")]
          [(char=? (string-ref str k) #\space)

@@ -117,7 +117,7 @@
 ;; are eaten in the process.
 (define (wrap-to-count str n)
   (cond
-    [(< (string-length str) n) (list str)]
+    [(<= (string-length str) n) (list str)]
     [(regexp-match-positions #rx"\n" str 0 n)
      =>
      (λ (posn)
@@ -125,7 +125,7 @@
          (cons (substring str 0 x) (wrap-to-count (substring str y) n))))] 
     [else
      ;; iterate backwards from char n looking for a good break
-     (let loop ([k (sub1 n)])
+     (let loop ([k n])
        (cond
          [(= k 0) (error wrap-to-count "could not break string")]
          [(char=? (string-ref str k) #\space)

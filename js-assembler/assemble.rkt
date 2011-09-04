@@ -395,12 +395,8 @@ EOF
 (: assemble-statement (UnlabeledStatement -> String))
 ;; Generates the code to assemble a statement.
 (define (assemble-statement stmt)
-  (string-append 
-   (if (current-emit-debug-trace?)
-       (format "if (typeof(window.console) !== 'undefined' && typeof(console.log) === 'function') { console.log(~s);\n}"
-               (format "~a" stmt))
-       "")
-   (cond
+  (define assembled
+    (cond
      [(DebugPrint? stmt)
       (format "MACHINE.params.currentOutputPort.writeDomNode(MACHINE, $('<span/>').text(~a));" (assemble-oparg (DebugPrint-value stmt)))]
      [(AssignImmediateStatement? stmt)
@@ -516,7 +512,15 @@ EOF
                 val-string))]
      [(Comment? stmt)
       ;; TODO: maybe comments should be emitted as JavaScript comments.
-      ""])))
+      ""]))
+  (cond
+   [(current-emit-debug-trace?)
+    (string-append 
+     (format "if (typeof(window.console) !== 'undefined' && typeof(console.log) === 'function') { console.log(~s);\n}"
+               (format "~a" stmt))
+     assembled)]
+   [else
+    assembled]))
 
 
 (define-predicate natural? Natural)

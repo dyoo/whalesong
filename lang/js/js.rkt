@@ -12,9 +12,9 @@
     (resolve-module-path a-module-path #f)))
   
 
-(define-for-syntax (read-implementation a-module-path)
+(define-for-syntax (resolve-implementation-path a-module-path)
   (let ([a-path (my-resolve-path a-module-path)])
-    (file->string a-path)))
+    (path->string a-path)))
 
 
 (define-syntax (declare-implementation stx)
@@ -26,10 +26,8 @@
          ([resolved-racket-module-name 
            (my-resolve-path (syntax-e #'racket-module-name))]
           [impl
-           (string-join 
-            (map (compose read-implementation syntax-e)
-                 (syntax->list #'(javascript-module-name ...)))
-            "\n")]
+           (map (compose resolve-implementation-path syntax-e)
+                (syntax->list #'(javascript-module-name ...)))]
           [(internal-name ...) (generate-temporaries #'(provided-name ...))])
        (syntax/loc stx
          (begin

@@ -5,7 +5,7 @@
          syntax/modresolve)
 
 
-(provide/contract [query (module-path? . -> . string?)]
+(provide/contract [query (module-path? . -> . (listof string?))]
                   [has-javascript-implementation? (module-path? . -> . boolean?)]
                   
                   [redirected? (path? . -> . boolean?)]

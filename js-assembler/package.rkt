@@ -15,6 +15,8 @@
          racket/promise
          racket/set
          racket/path
+         racket/string
+         racket/port
          (prefix-in query: "../lang/js/query.rkt")
          (prefix-in resource-query: "../resource/query.rkt")
          (planet dyoo/closure-compile:1:1)
@@ -138,10 +140,15 @@
     [(MainModuleSource? src)
      (get-javascript-implementation (MainModuleSource-source src))]
     [(ModuleSource? src)
-     (let ([name (rewrite-path (ModuleSource-path src))]
-           [text (query:query `(file ,(path->string (ModuleSource-path src))))]
-           [module-requires (query:lookup-module-requires (ModuleSource-path src))]
-           [bytecode (parse-bytecode (ModuleSource-path src))])
+     (let* ([name (rewrite-path (ModuleSource-path src))]
+            [paths (query:query `(file ,(path->string (ModuleSource-path src))))]
+            [text (string-join
+                   (map (lambda (p)
+                          (call-with-input-file p port->string))
+                        paths)
+                   "\n")]
+            [module-requires (query:lookup-module-requires (ModuleSource-path src))]
+            [bytecode (parse-bytecode (ModuleSource-path src))])
        (when (not (empty? module-requires))
          (log-debug "~a requires ~a"
                     (ModuleSource-path src)

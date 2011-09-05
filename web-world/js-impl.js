@@ -465,6 +465,11 @@
 
 
 
+    var parseStringAsHtml = function(str) {
+        var dom = $("<html/>").append($(str));
+        return dom;
+    };
+
  
     // coerseToView: (U resource View) -> View
     // Coerse a value into a view.
@@ -474,7 +479,7 @@
             return onSuccess(x); 
         } else  if (isResource(x)) {
             try {
-                dom = $("<html/>").append($(resourceContent(x).toString()))
+                dom = parseStringAsHtml(resourceContent(x).toString())
                     .css("margin", "0px")
                     .css("padding", "0px")
                     .css("border", "0px");
@@ -502,7 +507,7 @@
             return onSuccess(x); 
         } else  if (isResource(x)) {
             try {
-                dom = $("<html/>").append($(resourceContent(x).toString()))
+                dom = parseStringAsHtml(resourceContent(x).toString())
                     .css("margin", "0px")
                     .css("padding", "0px")
                     .css("border", "0px");
@@ -534,7 +539,7 @@
             return onSuccess(x); 
         } else  if (isResource(x)) {
             try {
-                dom = $(resourceContent(x).toString())
+                dom = parseStringAsHtml(resourceContent(x).toString())
                     .css("margin", "0px")
                     .css("padding", "0px")
                     .css("border", "0px");

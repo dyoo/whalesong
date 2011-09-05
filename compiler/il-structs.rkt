@@ -154,6 +154,8 @@
 ;; instruction sequences
 (define-type UnlabeledStatement (U StraightLineStatement BranchingStatement))
 
+(define-predicate UnlabeledStatement? UnlabeledStatement)
+
 
 ;; Debug print statement.
 (define-struct: DebugPrint ([value : OpArg])
@@ -483,7 +485,7 @@
 
 (define-type InstructionSequence (U Symbol
                                     LinkedLabel
-                                    Statement
+                                    UnlabeledStatement
                                     instruction-sequence-list
                                     instruction-sequence-chunks))
 (define-struct: instruction-sequence-list ([statements : (Listof Statement)])
@@ -498,16 +500,29 @@
 
 (: statements (InstructionSequence -> (Listof Statement)))
 (define (statements s)
-  (cond [(symbol? s) 
-         (list s)]
-        [(LinkedLabel? s)
-         (list s)]
-        [(Statement? s)
-         (list s)]
-        [(instruction-sequence-list? s)
-         (instruction-sequence-list-statements s)]
-        [(instruction-sequence-chunks? s)
-         (apply append (map statements (instruction-sequence-chunks-chunks s)))]))
+  (reverse (statements-fold (inst cons Statement (Listof Statement))
+                            '() s)))
+
+
+(: statements-fold (All (A) ((Statement A -> A) A InstructionSequence -> A)))
+(define (statements-fold f acc seq)
+  (cond
+   [(symbol? seq)
+    (f seq acc)]
+   [(LinkedLabel? seq)
+    (f seq acc)]
+   [(UnlabeledStatement? seq)
+    (f seq acc)]
+   [(instruction-sequence-list? seq)
+    (foldl f acc (instruction-sequence-list-statements seq))]
+   [(instruction-sequence-chunks? seq)
+    (foldl (lambda: ([subseq : InstructionSequence] [acc : A])
+             (statements-fold f acc subseq))
+           acc
+           (instruction-sequence-chunks-chunks seq))]))
+
+            
+
 
 
 

@@ -50,6 +50,13 @@ EOF
                     )))
 
 
+;; Flatten the paths out.
+(define (strip-paths s)
+  (regexp-replace* #px"#<path:[^>]+>"
+                   s
+                   "<path:...>"))
+
+                  
 
 ;; We use a customized error structure that supports
 ;; source location reporting.
@@ -70,7 +77,8 @@ EOF
          [src-path source-file-path]
          [result (evaluate (make-MainModuleSource (make-ModuleSource src-path)))]
          [output (evaluated-stdout result)])
-    (cond [(string=? output exp)
+    (cond [(string=? (strip-paths output)
+                     (strip-paths exp))
            (printf " ok (~a milliseconds)\n" (evaluated-t result))]
           [else
            (printf " error!\n")

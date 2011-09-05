@@ -3,7 +3,9 @@
 
 (require "private/command.rkt"
          "parameters.rkt"
-         "whalesong-helpers.rkt")
+         "whalesong-helpers.rkt"
+         profile
+         (for-syntax racket/base))
 
 ;; Command line for running Whalesong.
 
@@ -30,6 +32,15 @@
 ;;     $ whalesong get-javascript main-module-name.rkt
 
 (define as-standalone-html? (make-parameter #f))
+(define with-profiling? (make-parameter #f))
+
+(define-syntax (maybe-with-profiling stx)
+  (syntax-case stx ()
+    [(_ expr)
+     (syntax/loc stx
+       (if (with-profiling?)
+           (profile expr)
+           expr))]))
 
 
 (define (at-toplevel)
@@ -46,6 +57,9 @@
             [("--debug-show-timings")
              ("Display debug messages about compilation time.")
              (current-timing-port (current-output-port))]
+            [("--enable-profiling")
+             ("Enable profiling to standard output")
+             (with-profiling? #t)]
             [("--compress-javascript")
              ("Compress JavaScript with Google Closure (requires Java)")
              (current-compress-javascript? #t)]
@@ -58,9 +72,10 @@
              (as-standalone-html? #t)]
             #:args (path)
 
-            (if (as-standalone-html?)
-                (build-standalone-xhtml path)
-                (build-html-and-javascript path))]
+            (maybe-with-profiling
+             (if (as-standalone-html?)
+                 (build-standalone-xhtml path)
+                 (build-html-and-javascript path)))]
    
    ["get-runtime" "print the runtime library to standard output"
                   "Prints the runtime JavaScript library that's used by Whalesong programs."
@@ -71,12 +86,16 @@
                   [("--debug-show-timings")
                    ("Display debug messages about compilation time.")
                    (current-timing-port (current-output-port))]
+                  [("--enable-profiling")
+                   ("Enable profiling to standard output")
+                   (with-profiling? #t)]
                   [("--compress-javascript")
                    ("Compress JavaScript with Google Closure (requires Java)")
                    (current-compress-javascript? #t)]
                   
                   #:args ()
-                  (print-the-runtime)]
+                  (maybe-with-profiling
+                   (print-the-runtime))]
    ["get-javascript" "Gets just the JavaScript code and prints it to standard output"
                      "Builds a racket program into JavaScript.  The outputted file depends on the runtime."
                      #:once-each
@@ -86,13 +105,17 @@
                      [("--debug-show-timings")
                       ("Display debug messages about compilation time.")
                       (current-timing-port (current-output-port))]
+                     [("--enable-profiling")
+                      ("Enable profiling to standard output")
+                      (with-profiling? #t)]
                      [("--compress-javascript")
                       ("Compress JavaScript with Google Closure (requires Java)")
                       (current-compress-javascript? #t)]
                      
                      
                      #:args (file)
-                     (get-javascript-code file)]))
+                     (maybe-with-profiling
+                      (get-javascript-code file))]))
 
 
 (at-toplevel)

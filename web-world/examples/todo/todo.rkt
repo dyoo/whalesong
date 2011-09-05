@@ -75,13 +75,9 @@
   
 
 (define the-view
-  (let* ([v1 (view-bind (view-focus (->view index.html) "add-button")
+  (view-bind (view-focus (->view index.html) "add-button")
                         "click"
-                        on-add)]
-         [v2 (view-bind (view-focus v1 "next-item")
-                        "change"
-                        on-add)])
-    v2))
+                        on-add))
 
 
 (big-bang (list (new-item "milk")

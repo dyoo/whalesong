@@ -78,7 +78,6 @@
         } else {
             return false;
         }
-        return false;
     };
 
 
@@ -287,7 +286,9 @@
                                                    name,
                                                    that.cursor.node.id),
                                                worldF);
-                return eventHandlers.concat([handler]);
+
+                var newHandlers = eventHandlers.concat([handler]);
+                return newHandlers;
             },
             function(view) {
                 // HACK: every node that is bound needs to have an id.  We
@@ -441,7 +442,7 @@
         this.focus = this.top;
         return new MockView(domToCursor($(this.top).get(0)),
                             [],
-                            [],
+                            this.eventHandlers.slice(0),
                             nonce);
     };
 
@@ -486,7 +487,7 @@
             return onSuccess(new View(dom, []));
         } else if (isMockView(x)) {
             return onSuccess(new View($(x.cursor.top().node),
-                                      x.eventHandlers));
+                                      x.eventHandlers.slice(0)));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x));
@@ -698,15 +699,15 @@
     EventSource.prototype.onStop = function() {
     };
 
-    // The default behavior of pause is to cause the event source to stop.
-    EventSource.prototype.onPause = function() {
-        this.onStop();
-    };
+    // // The default behavior of pause is to cause the event source to stop.
+    // EventSource.prototype.onPause = function() {
+    //     this.onStop();
+    // };
 
-    // The default behavior of unpause is to start an event source up again.
-    EventSource.prototype.onUnpause = function(fireEvent) {
-        this.onStart(fireEvent);
-    };
+    // // The default behavior of unpause is to start an event source up again.
+    // EventSource.prototype.onUnpause = function(fireEvent) {
+    //     this.onStart(fireEvent);
+    // };
 
 
     
@@ -723,12 +724,14 @@
     TickEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
     TickEventSource.prototype.onStart = function(fireEvent) {
-        this.id = setInterval(
-            function(evt) {
-                fireEvent(undefined,
-                          objectToEvent(evt));
-            },
-            this.delay);
+        if (this.id === undefined) {
+            this.id = setInterval(
+                function(evt) {
+                    fireEvent(undefined,
+                              objectToEvent(evt));
+                },
+                this.delay);
+        }
     };
 
     TickEventSource.prototype.onStop = function() {
@@ -748,33 +751,35 @@
     };
     MockLocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
     MockLocationEventSource.prototype.onStart = function(fireEvent) {
-        var mockLocationSetter = document.createElement("div");
+        if (this.elt === undefined) {
+            var mockLocationSetter = document.createElement("div");
 	    
-        var latInput = document.createElement("input");
-        latInput.type = "text";
-	
-        var latOutput = document.createElement("input");
-        latOutput.type = "text";
-        
-        var submitButton = document.createElement("input");
-        submitButton.type = "button";
-        submitButton.value = "send lat/lng";
-        submitButton.onclick = function() {
-            fireEvent(undefined,
-                      objectToEvent({ latitude: Number(latInput.value),
-                                      longitude: Number(latOutput.value)}));
-            return false;
-        };
-	
-        mockLocationSetter.style.border = "1pt solid black";
-        mockLocationSetter.appendChild(
-            document.createTextNode("mock location setter"));
-        mockLocationSetter.appendChild(latInput);
-        mockLocationSetter.appendChild(latOutput);
-        mockLocationSetter.appendChild(submitButton);
-        document.body.appendChild(mockLocationSetter);
+            var latInput = document.createElement("input");
+            latInput.type = "text";
+	    
+            var latOutput = document.createElement("input");
+            latOutput.type = "text";
+            
+            var submitButton = document.createElement("input");
+            submitButton.type = "button";
+            submitButton.value = "send lat/lng";
+            submitButton.onclick = function() {
+                fireEvent(undefined,
+                          objectToEvent({ latitude: Number(latInput.value),
+                                          longitude: Number(latOutput.value)}));
+                return false;
+            };
+	    
+            mockLocationSetter.style.border = "1pt solid black";
+            mockLocationSetter.appendChild(
+                document.createTextNode("mock location setter"));
+            mockLocationSetter.appendChild(latInput);
+            mockLocationSetter.appendChild(latOutput);
+            mockLocationSetter.appendChild(submitButton);
+            document.body.appendChild(mockLocationSetter);
 
-        this.elt = mockLocationSetter;
+            this.elt = mockLocationSetter;
+        }
     };
 
     MockLocationEventSource.prototype.onStop = function() {
@@ -796,21 +801,23 @@
     LocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
     LocationEventSource.prototype.onStart = function(fireEvent) {
-        var success = function(position) {
-            if (position.hasOwnProperty('coords') &&
-                position.coords.hasOwnProperty('latitude') &&
-                position.coords.hasOwnProperty('longitude')) {
-                fireEvent(undefined,
-                          objectToEvent({ 'latitude' : Number(position.coords.latitude),
-                                          'longitude' : Number(position.coords.longitude) }));
+        if (this.id === undefined) {
+            var success = function(position) {
+                if (position.hasOwnProperty('coords') &&
+                    position.coords.hasOwnProperty('latitude') &&
+                    position.coords.hasOwnProperty('longitude')) {
+                    fireEvent(undefined,
+                              objectToEvent({ 'latitude' : Number(position.coords.latitude),
+                                              'longitude' : Number(position.coords.longitude) }));
+                }
+            };
+            var fail = function(err) {
+                // Quiet failure
+            };
+            if (!!(navigator.geolocation)) {
+                navigator.geolocation.getCurrentPosition(success, fail);
+                this.id = navigator.geolocation.watchPosition(success, fail); 
             }
-        };
-        var fail = function(err) {
-            // Quiet failure
-        };
-        if (!!(navigator.geolocation)) {
-            navigator.geolocation.getCurrentPosition(success, fail);
-            this.id = navigator.geolocation.watchPosition(success, fail); 
         }
     };
     
@@ -848,15 +855,20 @@
             element = document.getElementById(this.elementOrId);
         }
 
+        if (! element) { return; }
+        if (this.handler !== undefined) {
+            $(element).unbind(this.type, this.handler);
+            this.handler = undefined;
+        }
+
         this.handler = function(evt) {
             if (element !== undefined) {
                 fireEvent(element, objectToEvent(evt));
             }
         };
-        if (element !== undefined) {
-            $(element).bind(this.type, this.handler);
-        }
+        $(element).bind(this.type, this.handler);
     };
+
 
     DomEventSource.prototype.onStop = function() {
         var element = this.elementOrId;
@@ -929,6 +941,7 @@
 
         var eventQueue = new EventQueue();
         var eventHandlers = filter(handlers, isEventHandler).concat(view.getEventHandlers());
+        view.eventHandlers = eventHandlers;
 
         MACHINE.params.currentDisplayer(MACHINE, top);
         
@@ -1066,9 +1079,10 @@
                 // from the user came from here.  If not, we have no hope to do a nice, efficient
                 // update, and have to do it from scratch.
                 var nonce = Math.random();
+                var originalMockView = view.getMockAndResetFocus(nonce);
                 toDraw(MACHINE, 
                        world,
-                       view.getMockAndResetFocus(nonce),
+                       originalMockView,
                        function(newMockView) {
                            if (newMockView.nonce === nonce) {
                                var i;
@@ -1079,7 +1093,8 @@
                            } else {
                                view.top = $(newMockView.cursor.top().node);
                                view.initialRender(top);
-                               eventHandlers = newMockView.eventHandlers;
+                               eventHandlers = newMockView.eventHandlers.slice(0);
+                               view.eventHandlers = eventHandlers;
                                startEventHandlers();
                            }
                            success();
@@ -1113,38 +1128,6 @@
         f.racketArity = proc.racketArity;
         return f;
     };
-
-
-
-    // // findDomNodeLocation: dom-node dom-node -> arrayof number
-    // // Given a node, returns the child indices we need to follow to reach
-    // // it from the top.
-    // // Assumption: top must be an ancestor of the node.  Otherwise, the
-    // // result is partial.
-    // var findDomNodeLocation = function(node, top) {
-    //     var locator = [];
-    //     var parent, i;
-    //     while(node !== top && node.parentNode !== null) {
-    //         parent = node.parentNode;
-    //         for (i = 0; i < parent.childNodes.length; i++) {
-    //             if (parent.childNodes[i] === node) {
-    //                 locator.push(i);
-    //                 break;
-    //             }
-    //         }
-    //         node = parent;
-    //     }
-    //     return locator.reverse();
-    // };
-
-    // var findNodeFromLocation = function(top, location) {
-    //     var i = 0;
-    //     var node = top;
-    //     for (i = 0; i < location.length; i++) {
-    //         node = node.childNodes[location[i]];
-    //     }
-    //     return node;
-    // };
 
 
 

@@ -257,26 +257,35 @@ MACHINE.modules[~s] =
                                (list->set (source-resources src))))
 
     (fprintf op "\n// ** Visiting ~a\n" (source-name src))
-    (define temporary-output-port (open-output-bytes))
     (define start-time (current-inexact-milliseconds))
     (cond
      [(UninterpretedSource? src)
-      (fprintf temporary-output-port "~a" (UninterpretedSource-datum src))]
-     [else
-      (assemble/write-invoke stmts temporary-output-port)
-      (fprintf temporary-output-port "(MACHINE, function() { ")])
-    (define stop-time (current-inexact-milliseconds))
-    (fprintf (current-timing-port) "  assembly: ~s milliseconds\n" (- stop-time start-time))
-    (write-bytes (get-output-bytes temporary-output-port) op)
-    (void))
+      (fprintf op "~a" (UninterpretedSource-datum src))]
+     [else      
+      (fprintf op "plt.runtime.ready(function() {
+                      plt.runtime.setReadyFalse();
+                      (")
+      (assemble/write-invoke stmts op)
+      (fprintf op ")(plt.runtime.currentMachine,
+                         function() {
+                              if (window.console && window.console.log) {
+                                  window.console.log('loaded ' + ~s);
+                              }
+                              plt.runtime.setReadyTrue();
+                         },
+                         function(err) {
+                             alert(err.message)
+                         },
+                         PARAMS);
+                   });\n"
+               (format "~a" (source-name src)))
+      (define stop-time (current-inexact-milliseconds))
+      (fprintf (current-timing-port) "  assembly: ~s milliseconds\n" (- stop-time start-time))
+      (void)]))
   
   
   (define (after-visit-src src)
-    (cond
-      [(UninterpretedSource? src)
-       (void)]
-      [else
-       (fprintf op " }, FAIL, PARAMS);")]))
+    (void))
   
   
   (define (on-last-src)

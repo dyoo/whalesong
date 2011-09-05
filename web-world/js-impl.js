@@ -418,17 +418,13 @@
         top.empty();
         // Special case: if this.top is an html, we merge into the
         // existing page.
-        if (this.top.children("head").children("title").length !== 0) {
+        if (this.top.children("title").length !== 0) {
              $(document.head).find('title').remove();
         }
-        $(document.head).append(this.top.find("head").children());
+        $(document.head).append(this.top.children("title"));
+        $(document.head).append(this.top.children("link"));
 
-        if (this.top.find("body").length > 0) {
-            top.append(this.top.find("body").children());
-            this.top = top;
-        } else {
-            top.append(this.top);
-        }
+        top.append(this.top);
     };
 
     View.prototype.addEventHandler = function(handler) {
@@ -466,7 +462,7 @@
 
 
     var parseStringAsHtml = function(str) {
-        var dom = $("<html/>").append($(str));
+        var dom = $('<div/>').append($(str));
         return dom;
     };
 

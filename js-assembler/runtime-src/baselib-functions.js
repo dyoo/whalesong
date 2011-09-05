@@ -117,9 +117,12 @@
                 }
 
                 if (!(baselib.arity.isArityMatching(v.racketArity, MACHINE.argcount))) {
-                    fail(new Error(baselib.format.format("arity mismatch: expected ~s arguments, but received ~s",
-                                                         [v.racketArity, MACHINE.argcount])));
-                    return;
+                    var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
+                                                    [v.displayName, v.racketArity, MACHINE.argcount]);
+                    return fail(new baselib.exceptions.RacketError(
+                        msg,
+                        baselib.exceptions.makeExnFailContractArity(msg,
+                                                                    MACHINE.captureContinuationMarks())));
                 }
 
                 var result = v(MACHINE);
@@ -140,11 +143,13 @@
             fail = fail || function () {};
 
             if (!(baselib.arity.isArityMatching(v.racketArity, arguments.length - 2))) {
-                fail(new Error(
-                    baselib.format.format(
-                        "arity mismatch: expected ~s argument(s) but received ~s",
-                        [v.racketArity, arguments.length - 2])));
-                return;
+                var msg = baselib.format.format(
+                    "arity mismatch: ~s expected ~s argument(s) but received ~s",
+                    [v.displayName, v.racketArity, arguments.length - 2]);
+                return fail(new baselib.exceptions.RacketError(
+                    msg,
+                    baselib.exceptions.makeExnFailContractArity(msg,
+                                                                MACHINE.captureContinuationMarks())));
             }
 
             var oldVal = MACHINE.val;
@@ -227,8 +232,8 @@
         var i;
         var oldArgcount, oldVal, oldProc, oldErrorHandler;
         if (! baselib.arity.isArityMatching(proc.racketArity, arguments.length - 4)) {
-            var msg = baselib.format.format("arity mismatch: expected ~s arguments, but received ~s",
-                                            [proc.racketArity, arguments.length - 4]);
+            var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
+                                            [proc.displayName, proc.racketArity, arguments.length - 4]);
             return fail(baselib.exceptions.makeExnFailContractArity(msg,
                                                                     MACHINE.captureContinuationMarks()));
         }

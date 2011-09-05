@@ -2,9 +2,10 @@
 
 (require (for-syntax racket/base))
 
-(provide traced-app traced-app-key)
+(provide traced-app traced-app-key traced-callee-key)
 
 (define traced-app-key (gensym 'traced-app-key))
+(define traced-callee-key (gensym 'traced-callee-key))
 
 
 (define-syntax-parameter traced-app

@@ -410,60 +410,7 @@ EOF
   </head>
   <script src="~a"></script>
   <script>
-var invokeMainModule = function() {
-    var MACHINE = plt.runtime.currentMachine;
-    invoke(MACHINE,
-           function() {
-                var startTime = new Date().valueOf();
-                plt.runtime.invokeMains(
-                    MACHINE,
-                    function() {
-                        // On main module invokation success:
-                        var stopTime = new Date().valueOf();                                
-                        if (window.console && window.console.log) {
-                            window.console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
-                        }
-                    },
-                    function(MACHINE, e) {
-                        var contMarkSet, appNames, i, appName;
-                        // On main module invokation failure
-                        if (window.console && window.console.log) {
-                            window.console.log(e.stack || e);
-                        }
-                        
-                        MACHINE.params.currentErrorDisplayer(
-                             MACHINE, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
-
-                        if (e.hasOwnProperty('racketError') &&
-                            plt.baselib.exceptions.isExn(e.racketError)) {
-                            contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
-                            if (contMarkSet) {
-                                 appNames = contMarkSet.ref(plt.runtime.getTracedAppKey(MACHINE));
-                                 while (plt.baselib.lists.isPair(appNames)) {
-                                     appName = appNames.first;
-                                     MACHINE.params.currentErrorDisplayer(
-                                        MACHINE,
-                                        $('<div/>').text('  at ' + appName.elts[0] +
-                                                         ', line ' + appName.elts[2] +
-                                                         ', column ' + appName.elts[3])
-                                                   .addClass('stacktrace')
-                                                   .css('margin-left', '10px')
-                                                   .css('whitespace', 'pre')
-                                                   .css('color', 'red'));
-                                     appNames = appNames.rest;
-                                 }
-                            }
-                        }
-                    })},
-           function() {
-               // On module loading failure
-               if (window.console && window.console.log) {
-                   window.console.log(e.stack || e);
-               }                       
-           },
-           {});
-};
-  $(document).ready(invokeMainModule);
+  ~a
   </script>
   </head>
   <body>
@@ -472,6 +419,7 @@ var invokeMainModule = function() {
 EOF
 
   js
+  invoke-main-module-code
   ))
 
 
@@ -522,7 +470,7 @@ var invokeMainModule = function() {
                         }
                     },
                     function(MACHINE, e) {
-                        var contMarkSet, appNames, i, appName;
+                        var contMarkSet, context, i, appName;
                         // On main module invokation failure
                         if (window.console && window.console.log) {
                             window.console.log(e.stack || e);
@@ -535,19 +483,27 @@ var invokeMainModule = function() {
                             plt.baselib.exceptions.isExn(e.racketError)) {
                             contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
                             if (contMarkSet) {
-                                 appNames = contMarkSet.ref(plt.runtime.getTracedAppKey(MACHINE));
-                                 while (plt.baselib.lists.isPair(appNames)) {
-                                     appName = appNames.first;
-                                     MACHINE.params.currentErrorDisplayer(
-                                        MACHINE,
-                                        $('<div/>').text('  at ' + appName.elts[0] +
-                                                         ', line ' + appName.elts[2] +
-                                                         ', column ' + appName.elts[3])
-                                                   .addClass('stacktrace')
-                                                   .css('margin-left', '10px')
-                                                   .css('whitespace', 'pre')
-                                                   .css('color', 'red'));
-                                     appNames = appNames.rest;
+                                 context = contMarkSet.getContext(MACHINE);
+                                 for (i = 0; i < context.length; i++) {
+                                     if (plt.runtime.isVector(context[i])) {
+                                        MACHINE.params.currentErrorDisplayer(
+                                            MACHINE,
+                                            $('<div/>').text('  at ' + context[i].elts[0] +
+                                                             ', line ' + context[i].elts[2] +
+                                                             ', column ' + context[i].elts[3])
+                                                       .addClass('stacktrace')
+                                                       .css('margin-left', '10px')
+                                                       .css('whitespace', 'pre')
+                                                       .css('color', 'red'));
+                                     } else if (plt.runtime.isProcedure(context[i])) {
+                                        MACHINE.params.currentErrorDisplayer(
+                                            MACHINE,
+                                            $('<div/>').text('  in ' + context[i].displayName)
+                                                       .addClass('stacktrace')
+                                                       .css('margin-left', '10px')
+                                                       .css('whitespace', 'pre')
+                                                       .css('color', 'red'));
+                                     }                                     
                                  }
                             }
                         }

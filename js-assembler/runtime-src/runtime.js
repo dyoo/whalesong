@@ -270,6 +270,22 @@
     };
     
 
+    // Try to get the continuation mark key used for procedure application tracing.
+    var getTracedAppKey = function(MACHINE) {
+        if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'];
+        }
+        return undefined;
+    };
+
+    var getTracedCalleeKey = function(MACHINE) {
+        if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'];
+        }
+        return undefined;
+    };
+
+
 
     // captureControl implements the continuation-capturing part of
     // call/cc.  It grabs the control frames up to (but not including) the
@@ -360,9 +376,16 @@
         var kvLists = [];
         var i;
         var control = this.control;
+        var tracedCalleeKey = getTracedCalleeKey(this);
         for (i = control.length-1; i >= 0; i--) {
             if (control[i].marks.length !== 0) {
                 kvLists.push(control[i].marks);
+            }
+            
+            if (tracedCalleeKey !== null && 
+                control[i] instanceof CallFrame &&
+                control[i].proc !== null) {
+                kvLists.push([[tracedCalleeKey, control[i].proc]]);
             }
         }     
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
@@ -424,7 +447,6 @@
 	var MACHINE = this;
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
-        var contMarks;
 	MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
 	MACHINE.params.numBouncesBeforeYield = 
 	    MACHINE.params.maxNumBouncesBeforeYield;
@@ -509,13 +531,8 @@
 
 
 
-    // Try to get the continuation mark key used for procedure application tracing.
-    var getTracedAppKey = function(MACHINE) {
-        if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'];
-        }
-        return undefined;
-    };
+
+
 
 
 
@@ -732,6 +749,7 @@
     exports['isNumber'] = isNumber;
     exports['isNatural'] = isNatural;
     exports['isReal'] = isReal;
+    exports['isProcedure'] = plt.baselib.functions.isProcedure;
     exports['equals'] = equals;
 
     exports['toDomNode'] = toDomNode;
@@ -755,5 +773,6 @@
     exports['StructType'] = StructType;
 
     exports['getTracedAppKey'] = getTracedAppKey;
+    exports['getTracedCalleeKey'] = getTracedCalleeKey;
 
 }(this.plt, this.plt.baselib));

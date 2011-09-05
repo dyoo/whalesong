@@ -184,7 +184,7 @@
             };
 
             MACHINE.control.push(
-                new baselib.frames.CallFrame(afterGoodInvoke, null));
+                new baselib.frames.CallFrame(afterGoodInvoke, v));
             MACHINE.argcount = arguments.length - 2;
             var i;
             for (i = 0; i < arguments.length - 2; i++) {
@@ -281,7 +281,7 @@
             };
 
             MACHINE.control.push(
-                new baselib.frames.CallFrame(afterGoodInvoke, null));
+                new baselib.frames.CallFrame(afterGoodInvoke, proc));
             MACHINE.argcount = arguments.length - 4;
             for (i = 0; i < arguments.length - 4; i++) {
                 MACHINE.env.push(arguments[arguments.length - 1 - i]);

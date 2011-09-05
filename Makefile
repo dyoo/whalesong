@@ -1,7 +1,7 @@
 # test-analyzer:
 # 	raco make -v --disable-inline test-analyzer.rkt
 # 	racket test-analyzer.rkt
-all: planet-link setup launcher
+all: planet-link launcher setup
 
 
 launcher: 

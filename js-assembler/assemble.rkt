@@ -398,7 +398,8 @@ EOF
   (define assembled
     (cond
      [(DebugPrint? stmt)
-      (format "MACHINE.params.currentOutputPort.writeDomNode(MACHINE, $('<span/>').text(~a));" (assemble-oparg (DebugPrint-value stmt)))]
+      (format "MACHINE.params.currentOutputPort.writeDomNode(MACHINE, $('<span/>').text(~a));"
+              (assemble-oparg (DebugPrint-value stmt)))]
      [(AssignImmediateStatement? stmt)
       (let: ([t : (String -> String) (assemble-target (AssignImmediateStatement-target stmt))]
              [v : OpArg (AssignImmediateStatement-value stmt)])
@@ -514,7 +515,7 @@ EOF
       ;; TODO: maybe comments should be emitted as JavaScript comments.
       ""]))
   (cond
-   [(current-emit-debug-trace?)
+   #;[(current-emit-debug-trace?)
     (string-append 
      (format "if (typeof(window.console) !== 'undefined' && typeof(console.log) === 'function') { console.log(~s);\n}"
                (format "~a" stmt))

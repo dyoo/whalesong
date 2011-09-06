@@ -152,53 +152,7 @@
                                   (InstallModuleEntry!-path cmd)
                                   (ref (InstallModuleEntry!-entry-point cmd)))]
        [else
-        cmd]
-       ;; [(CheckToplevelBound!? cmd)
-       ;;  cmd]
-       ;; [(CheckClosureArity!? cmd)
-       ;;  cmd]
-       ;; [(CheckPrimitiveArity!? cmd)
-       ;;  cmd]
-       
-       ;; [(ExtendEnvironment/Prefix!? cmd)
-       ;;  cmd]
-       ;; [(InstallClosureValues!? cmd)
-       ;;  cmd]
-       ;; [(FixClosureShellMap!? cmd)
-       ;;  cmd]
-       
-       ;; [(InstallContinuationMarkEntry!? cmd)
-       ;;  cmd]
-       
-       ;; [(SetFrameCallee!? cmd)
-       ;;  cmd]
-       ;; [(SpliceListIntoStack!? cmd)
-       ;;  cmd]
-       ;; [(UnspliceRestFromStack!? cmd)
-       ;;  cmd]
-       
-       ;; [(RaiseContextExpectedValuesError!? cmd)
-       ;;  cmd]
-       ;; [(RaiseArityMismatchError!? cmd)
-       ;;  cmd]
-       ;; [(RaiseOperatorApplicationError!? cmd)
-       ;;  cmd]
-       ;; [(RaiseUnimplementedPrimitiveError!? cmd)
-       ;;  cmd]
-       
-       ;; [(RestoreEnvironment!? cmd)
-       ;;  cmd]
-       ;; [(RestoreControl!? cmd)
-       ;;  cmd]
-       
-       ;; [(MarkModuleInvoked!? cmd)
-       ;;  cmd]
-       ;; [(AliasModuleAsMain!? cmd)
-       ;;  cmd]
-       ;; [(FinalizeModuleInvokation!? cmd)
-       ;;  cmd]
-
-       ))
+        cmd]))
     
 
     (: rewrite-primtest (PrimitiveTest -> PrimitiveTest))
@@ -342,7 +296,7 @@
                 (let ([first-n (PopEnvironment-n first-stmt)]
                       [second-n (PopEnvironment-n second-stmt)]
                       [first-skip (PopEnvironment-skip first-stmt)]
-                      [second-skip (PopEnvironment-skip first-stmt)])
+                      [second-skip (PopEnvironment-skip second-stmt)])
                   (cond [(and (Const? first-n) (Const? second-n) (Const? first-skip) (Const? second-skip))
                          (let ([first-n-val (Const-const first-n)]
                                [second-n-val (Const-const second-n)]

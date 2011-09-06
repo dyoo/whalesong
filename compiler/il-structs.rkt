@@ -97,11 +97,22 @@
 (define (new-SubtractArg lhs rhs)
   ;; FIXME: do some limited constant folding here
   (cond
-   [(and (Const? lhs) (number? lhs)
-         (Const? rhs) (number? rhs))
-    (make-Const (- lhs rhs))]
-   [(and (Const? rhs) (number? rhs) (= rhs 0))
-    lhs]
+   [(and (Const? lhs)(Const? rhs))
+    (let ([lhs-val (Const-const lhs)]
+          [rhs-val (Const-const rhs)])
+      (cond [(and (number? lhs-val)
+                  (number? rhs-val))
+             (make-Const (- lhs-val rhs-val))]
+            [else
+             (make-SubtractArg lhs rhs)]))]
+   [(Const? rhs)
+    (let ([rhs-val (Const-const rhs)])
+      (cond
+       [(and (number? rhs-val)
+             (= rhs-val 0))
+        lhs]
+       [else
+        (make-SubtractArg lhs rhs)]))]
    [else
     (make-SubtractArg lhs rhs)]))
 

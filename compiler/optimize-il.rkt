@@ -18,7 +18,7 @@
   ;; For now, replace pairs of PushEnvironment / AssignImmediate(0, ...)
   ;; We should do some more optimizations here, like peephole...
   (let* ([statements (filter not-no-op? statements)]
-         [statements (eliminate-no-ops statements)]
+         [statements (pairwise-reductions statements)]
          [statements (flatten-adjacent-labels statements)])
     statements))
 
@@ -302,8 +302,8 @@
     
 
 
-(: eliminate-no-ops ((Listof Statement) -> (Listof Statement)))
-(define (eliminate-no-ops statements)
+(: pairwise-reductions ((Listof Statement) -> (Listof Statement)))
+(define (pairwise-reductions statements)
   (let loop ([statements statements])
       (cond
        [(empty? statements)
@@ -319,6 +319,9 @@
            [else
             (let ([second-stmt (second statements)])
               (cond
+               
+               ;; A PushEnvironment followed by a direct AssignImmediate can be reduced to a single
+               ;; instruction.
                [(and (PushEnvironment? first-stmt)
                      (equal? first-stmt (make-PushEnvironment 1 #f))
                      (AssignImmediateStatement? second-stmt))
@@ -332,6 +335,32 @@
                           (loop (rest (rest statements))))]
                    [else
                     (default)]))]
+
+               ;; Adjacent PopEnvironments with constants can be reduced to single ones
+               [(and (PopEnvironment? first-stmt)
+                     (PopEnvironment? second-stmt))
+                (let ([first-n (PopEnvironment-n first-stmt)]
+                      [second-n (PopEnvironment-n second-stmt)]
+                      [first-skip (PopEnvironment-skip first-stmt)]
+                      [second-skip (PopEnvironment-skip first-stmt)])
+                  (cond [(and (Const? first-n) (Const? second-n) (Const? first-skip) (Const? second-skip))
+                         (let ([first-n-val (Const-const first-n)]
+                               [second-n-val (Const-const second-n)]
+                               [first-skip-val (Const-const first-skip)]
+                               [second-skip-val (Const-const second-skip)])
+                           (cond
+                            [(and (number? first-n-val)
+                                  (number? second-n-val)
+                                  (number? first-skip-val) (= first-skip-val 0)
+                                  (number? second-skip-val) (= second-skip-val 0))
+                             (loop (cons (make-PopEnvironment (make-Const (+ first-n-val second-n-val))
+                                                              (make-Const 0))
+                                         (rest (rest statements))))]
+                            [else
+                             (default)]))]
+                         [else
+                          (default)]))]
+
                [else
                 (default)]))]))])))
 

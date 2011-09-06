@@ -74,13 +74,13 @@
   (cond
    [(PrimitivesReference? target)
     (lambda: ([rhs : String])
-             (format "RUNTIME.Primitives[~s] = RUNTIME.Primitives[~s] || ~a;"
+             (format "RUNTIME.Primitives[~s]=RUNTIME.Primitives[~s]||~a;"
                      (symbol->string (PrimitivesReference-name target))
                      (symbol->string (PrimitivesReference-name target))
                      rhs))]
    [else
     (lambda: ([rhs : String])
-             (format "~a = ~a;"
+             (format "~a=~a;"
                      (cond
                       [(eq? target 'proc)
                        "MACHINE.proc"]
@@ -113,7 +113,7 @@
         (cond [(symbol? val)
                (format "RUNTIME.makeSymbol(~s)" (symbol->string val))]
               [(pair? val)
-               (format "RUNTIME.makePair(~a, ~a)" 
+               (format "RUNTIME.makePair(~a,~a)" 
                        (loop (car val))
                        (loop (cdr val)))]
               [(boolean? val)
@@ -154,7 +154,7 @@
       [(empty? vals)
        "RUNTIME.NULL"]
       [else
-       (format "RUNTIME.makePair(~a, ~a)" (first vals) (loop (rest vals)))])))
+       (format "RUNTIME.makePair(~a,~a)" (first vals) (loop (rest vals)))])))
 
 
 
@@ -190,7 +190,7 @@
           [else
            (string-append "RUNTIME.makeRational("
                           (integer->js (ensure-integer (numerator a-num)))
-                          ", "
+                          ","
                           (integer->js (ensure-integer (denominator a-num)))
                           ")")]))
 
@@ -225,7 +225,7 @@
    [(complex? a-num)
     (string-append "RUNTIME.makeComplex("
                    (assemble-numeric-constant (real-part a-num))
-                   ", "
+                   ","
                    (assemble-numeric-constant (imag-part a-num))
                    ")")]))
 
@@ -253,20 +253,20 @@
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (if (EnvLexicalReference-unbox? a-lex-ref)
-      (format "MACHINE.env[MACHINE.env.length - ~a][0]"
+      (format "MACHINE.env[MACHINE.env.length-~a][0]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))
-      (format "MACHINE.env[MACHINE.env.length - ~a]"
+      (format "MACHINE.env[MACHINE.env.length-~a]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))))
 
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)
-  (format "MACHINE.env[MACHINE.env.length - ~a][~a]"
+  (format "MACHINE.env[MACHINE.env.length-~a][~a]"
           (add1 (EnvPrefixReference-depth a-ref))
           (EnvPrefixReference-pos a-ref)))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
-  (format "MACHINE.env[MACHINE.env.length - ~a]"
+  (format "MACHINE.env[MACHINE.env.length-~a]"
           (add1 (EnvWholePrefixReference-depth a-prefix-ref))))
 
 
@@ -295,7 +295,7 @@
 
 (: assemble-subtractarg (SubtractArg -> String))
 (define (assemble-subtractarg s)
-  (format "(~a - ~a)"
+  (format "(~a-~a)"
           (assemble-oparg (SubtractArg-lhs s))
           (assemble-oparg (SubtractArg-rhs s))))
 
@@ -370,7 +370,7 @@
 
 (: assemble-jump (OpArg -> String))
 (define (assemble-jump target)
-  (format "return (~a)(MACHINE);" (assemble-oparg target)))
+  (format "return(~a)(MACHINE);" (assemble-oparg target)))
 
 
 
@@ -417,7 +417,7 @@
 
 (: assemble-is-module-linked (IsModuleLinked -> String))
 (define (assemble-is-module-linked entry)
-  (format "(MACHINE.modules[~s] !== undefined)"
+  (format "(MACHINE.modules[~s]!==undefined)"
           (symbol->string (ModuleLocator-name (IsModuleLinked-name entry)))))
 
 
@@ -425,6 +425,6 @@
 (: assemble-variable-reference (VariableReference -> String))
 (define (assemble-variable-reference varref)
   (let ([t (VariableReference-toplevel varref)])
-    (format "(new RUNTIME.VariableReference(MACHINE.env[MACHINE.env.length - ~a], ~a))"
+    (format "(new RUNTIME.VariableReference(MACHINE.env[MACHINE.env.length-~a],~a))"
             (add1 (ToplevelRef-depth t))
             (ToplevelRef-pos t))))

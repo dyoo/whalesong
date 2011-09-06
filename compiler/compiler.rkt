@@ -396,7 +396,7 @@
         (make-PushControlFrame/Call on-return)
         (make-GotoStatement (ModuleEntry a-module-name))
         on-return-multiple
-        (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
+        (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
                                                (make-Const 1))
                              (make-Const 0))
         on-return))]))
@@ -595,7 +595,7 @@
             
             (compile (first seq) cenv 'val return-linkage/nontail)
             on-return/multiple
-            (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
+            (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
                                                    (make-Const 1))
                                  (make-Const 0))
             on-return
@@ -659,7 +659,7 @@
              [(ReturnLinkage-tail? linkage)
               (append-instruction-sequences 
                (make-PopEnvironment (make-Const (length cenv)) 
-                                    (make-SubtractArg (make-Reg 'argcount)
+                                    (new-SubtractArg (make-Reg 'argcount)
                                                       (make-Const 1)))
                (make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
                (make-PopControlFrame)
@@ -844,7 +844,7 @@
                                            (make-PerformStatement 
                                             (make-UnspliceRestFromStack! 
                                              (make-Const (Lam-num-parameters exp))
-                                             (make-SubtractArg (make-Reg 'argcount)
+                                             (new-SubtractArg (make-Reg 'argcount)
                                                                (make-Const (Lam-num-parameters exp)))))
                                            empty-instruction-sequence)]
          [maybe-install-closure-values : InstructionSequence
@@ -1544,7 +1544,7 @@
                  (append-instruction-sequences
                   nontail-jump-into-procedure
                   on-return/multiple
-                  (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount)
+                  (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
                                                          (make-Const 1))
                                        (make-Const 0))
                   on-return)])]
@@ -1584,7 +1584,7 @@
     [(eq? context 'drop-multiple)
      (append-instruction-sequences
       on-return/multiple
-      (make-PopEnvironment (SubtractArg (make-Reg 'argcount) (make-Const 1))
+      (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount) (make-Const 1))
                            (make-Const 0))
       on-return)]
     
@@ -1610,7 +1610,7 @@
           (append-instruction-sequences
            on-return/multiple
            ;; if the wrong number of arguments come in, die
-           (make-TestAndJumpStatement (make-TestZero (make-SubtractArg (make-Reg 'argcount)
+           (make-TestAndJumpStatement (make-TestZero (new-SubtractArg (make-Reg 'argcount)
                                                                        (make-Const context)))
                                       after-value-check)
            on-return
@@ -1762,7 +1762,7 @@
          ;; dynamic number of arguments that need
          ;; to be preserved
          (make-PopEnvironment (make-Const n)
-                              (make-SubtractArg
+                              (new-SubtractArg
                                (make-Reg 'argcount)
                                (make-Const 1)))]
         [else
@@ -1777,7 +1777,7 @@
                 ;; n-1 values on stack that we need to route
                 ;; around
                 (make-PopEnvironment (make-Const n)
-                                     (make-SubtractArg
+                                     (new-SubtractArg
                                       (make-Const context)
                                       (make-Const 1)))])])
       after-let))))

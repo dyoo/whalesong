@@ -123,14 +123,13 @@
         raise(MACHINE, ExnFailContract.constructor(message, contMarks));
     };
 
-    var raiseArityMismatchError = function(MACHINE, proc, expected, received) {
+    var raiseArityMismatchError = function(MACHINE, proc, received) {
         var message = baselib.format.format("~a: expected ~e value(s), received ~e value(s)",
                                             [proc.displayName,
-                                             expected,
+                                             proc.racketArity,
                                              received]);
         var contMarks = MACHINE.captureContinuationMarks();
-        raise(MACHINE, 
-              ExnFailContractArity.constructor(message, contMarks));
+        raise(MACHINE, ExnFailContractArity.constructor(message, contMarks));
     };
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {

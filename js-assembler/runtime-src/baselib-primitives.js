@@ -1157,7 +1157,7 @@
                 return proc.label(MACHINE);
             }
         } else {
-            raiseArityMismatchError(MACHINE, proc, proc.racketArity, MACHINE.argcount);
+            raiseArityMismatchError(MACHINE, proc, MACHINE.argcount);
         }
     };
     installPrimitiveClosure(

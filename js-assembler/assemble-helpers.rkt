@@ -253,21 +253,21 @@
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (if (EnvLexicalReference-unbox? a-lex-ref)
-      (format "MACHINE.env[MACHINE.env.length - 1 - ~a][0]"
-              (EnvLexicalReference-depth a-lex-ref))
-      (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-              (EnvLexicalReference-depth a-lex-ref))))
+      (format "MACHINE.env[MACHINE.env.length - ~a][0]"
+              (add1 (EnvLexicalReference-depth a-lex-ref)))
+      (format "MACHINE.env[MACHINE.env.length - ~a]"
+              (add1 (EnvLexicalReference-depth a-lex-ref)))))
 
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)
-  (format "MACHINE.env[MACHINE.env.length - 1 - ~a][~a]"
-          (EnvPrefixReference-depth a-ref)
+  (format "MACHINE.env[MACHINE.env.length - ~a][~a]"
+          (add1 (EnvPrefixReference-depth a-ref))
           (EnvPrefixReference-pos a-ref)))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
-  (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-          (EnvWholePrefixReference-depth a-prefix-ref)))
+  (format "MACHINE.env[MACHINE.env.length - ~a]"
+          (add1 (EnvWholePrefixReference-depth a-prefix-ref))))
 
 
 (: assemble-reg (Reg -> String))
@@ -319,10 +319,10 @@
 
 (: assemble-compiled-procedure-closure-reference (CompiledProcedureClosureReference -> String))
 (define (assemble-compiled-procedure-closure-reference a-ref)
-  (format "(~a).closedVals[(~a).closedVals.length - 1 - ~a]"
+  (format "(~a).closedVals[(~a).closedVals.length - ~a]"
           (assemble-oparg (CompiledProcedureClosureReference-proc a-ref))
           (assemble-oparg (CompiledProcedureClosureReference-proc a-ref))
-          (CompiledProcedureClosureReference-n a-ref)))
+          (add1 (CompiledProcedureClosureReference-n a-ref))))
 
 
 
@@ -337,8 +337,8 @@
 ;; lexical references: they must remain boxes.  So all we need is 
 ;; the depth into the environment.
 (define (assemble-env-reference/closure-capture depth)
-  (format "MACHINE.env[MACHINE.env.length - 1 - ~a]"
-          depth))
+  (format "MACHINE.env[MACHINE.env.length - ~a]"
+          (add1 depth)))
 
 
 
@@ -425,6 +425,6 @@
 (: assemble-variable-reference (VariableReference -> String))
 (define (assemble-variable-reference varref)
   (let ([t (VariableReference-toplevel varref)])
-    (format "(new RUNTIME.VariableReference(MACHINE.env[MACHINE.env.length - 1 - ~a], ~a))"
-            (ToplevelRef-depth t)
+    (format "(new RUNTIME.VariableReference(MACHINE.env[MACHINE.env.length - ~a], ~a))"
+            (add1 (ToplevelRef-depth t))
             (ToplevelRef-pos t))))

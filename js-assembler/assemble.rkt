@@ -171,10 +171,7 @@ EOF
 
 (: assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
 (define (assemble-basic-block a-basic-block blockht entry-points op)
-  (fprintf op "var ~a = function(MACHINE) {
-    if(--MACHINE.callsBeforeTrampoline < 0) {
-        throw ~a;
-    }"
+  (fprintf op "var ~a = function(MACHINE) { if(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n"
            (assemble-label (make-Label (BasicBlock-name a-basic-block)))
            (assemble-label (make-Label (BasicBlock-name a-basic-block))))
   (assemble-block-statements (BasicBlock-name a-basic-block)

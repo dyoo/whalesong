@@ -27,10 +27,7 @@
                   RUNTIME.raiseOperatorIsNotClosure(MACHINE, MACHINE.proc);
               }
               if (! RUNTIME.isArityMatching(MACHINE.proc.racketArity, ~a)) {
-                  RUNTIME.raiseArityMismatchError(MACHINE,
-                                                  MACHINE.proc,
-                                                  MACHINE.proc.racketArity,
-                                                  ~a);
+                  RUNTIME.raiseArityMismatchError(MACHINE, MACHINE.proc, ~a);
               }
 EOF
              (assemble-oparg (CheckClosureArity!-num-args op))
@@ -38,20 +35,10 @@ EOF
 
     
     [(CheckPrimitiveArity!? op)
-     (format #<<EOF
-              if (! (typeof(MACHINE.proc) === 'function')) {
-                  RUNTIME.raiseOperatorIsNotPrimitiveProcedure(MACHINE, MACHINE.proc);
-              }
-              if (! RUNTIME.isArityMatching(MACHINE.proc.racketArity, ~a)) {
-                  RUNTIME.raiseArityMismatchError(MACHINE,
-                                                  MACHINE.proc,
-                                                  MACHINE.proc.racketArity,
-                                                  ~a);
-              }
-EOF
+     (format "if (! RUNTIME.isArityMatching(MACHINE.proc.racketArity, ~a)) { RUNTIME.raiseArityMismatchError(MACHINE, MACHINE.proc, ~a); }"
              (assemble-oparg (CheckPrimitiveArity!-num-args op))
              (assemble-oparg (CheckPrimitiveArity!-num-args op)))]
-     
+    
     
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
@@ -150,9 +137,8 @@ EOF
 
 
     [(RaiseArityMismatchError!? op)
-     (format "RUNTIME.raiseArityMismatchError(MACHINE, ~a, ~a, ~a);"
+     (format "RUNTIME.raiseArityMismatchError(MACHINE, ~a, ~a);"
              (assemble-oparg (RaiseArityMismatchError!-proc op))
-             (assemble-arity (RaiseArityMismatchError!-expected op))
              (assemble-oparg (RaiseArityMismatchError!-received op)))]
 
 

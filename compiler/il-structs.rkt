@@ -93,6 +93,23 @@
   #:transparent)
 
 
+(: new-SubtractArg (OpArg OpArg -> OpArg))
+(define (new-SubtractArg lhs rhs)
+  ;; FIXME: do some limited constant folding here
+  (cond
+   [(and (Const? lhs) (number? lhs)
+         (Const? rhs) (number? rhs))
+    (make-Const (- lhs rhs))]
+   [(and (Const? rhs) (number? rhs) (= rhs 0))
+    lhs]
+   [else
+    (make-SubtractArg lhs rhs)]))
+
+
+
+
+
+
 ;; Gets the return address embedded at the top of the control stack.
 (define-struct: ControlStackLabel ()
   #:transparent)

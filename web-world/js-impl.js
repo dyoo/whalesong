@@ -332,7 +332,6 @@
                                                    that.cursor.node[0].id),
                                                worldF);
                 var newHandlers = eventHandlers.concat([handler]);
-                console.log('adding handler', handler);
                 return newHandlers;
             },
             function(view) {
@@ -425,7 +424,7 @@
     };
 
     MockView.prototype.id = function() {
-        return this.cursor.node.id;
+        return this.cursor.node[0].id;
     };
 
 
@@ -1041,8 +1040,7 @@
                             function() { 
                                 dispatchEventsInQueue(
                                     function() {
-                                        refreshView(function() {}, 
-                                                    onMessyRestart);
+                                        refreshView(function() {}, onMessyRestart);
                                     }, 
                                     onMessyRestart);
                             },

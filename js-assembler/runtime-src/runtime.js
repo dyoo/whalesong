@@ -585,7 +585,7 @@
     // setReadyTrue is called.
     var ready, setReadyTrue, setReadyFalse;
     (function() {
-        var runtimeIsReady = false;
+        var runtimeIsReady = true;
         var readyWaiters = [];
         var notifyWaiter = function(w) {
             w();

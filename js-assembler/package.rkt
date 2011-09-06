@@ -267,16 +267,14 @@ MACHINE.modules[~s] =
                       (")
       (assemble/write-invoke stmts op)
       (fprintf op ")(MACHINE,
-                         function() {
-                              if (window.console && window.console.log) {
-                                  window.console.log('loaded ' + ~s);
-                              }
-                              plt.runtime.setReadyTrue();
-                         },
-                         function(err) {
-                             alert(err.message)
-                         },
-                         PARAMS);
+                     function() {
+                          if (window.console && window.console.log) {
+                              window.console.log('loaded ' + ~s);
+                          }
+                          plt.runtime.setReadyTrue();
+                     },
+                     FAIL,
+                     PARAMS);
                    });\n"
                (format "~a" (source-name src)))
       (define stop-time (current-inexact-milliseconds))
@@ -289,8 +287,11 @@ MACHINE.modules[~s] =
   
   
   (define (on-last-src)
-    (fprintf op "plt.runtime.setReadyTrue();")
-    (fprintf op "SUCCESS();"))
+    (fprintf op "plt.runtime.ready(
+                     function() {
+                         plt.runtime.setReadyTrue();
+                         SUCCESS();
+                     });"))
   
   
   (define packaging-configuration
@@ -310,7 +311,7 @@ MACHINE.modules[~s] =
   
   (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
   (fprintf op "    plt.runtime.ready(function() {")
-  (fprintf op "plt.runtime.setReadyFalse();")
+  (fprintf op "        plt.runtime.setReadyFalse();")
   (make (list (make-MainModuleSource source-code))
         packaging-configuration)
   (fprintf op "    });");

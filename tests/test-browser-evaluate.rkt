@@ -26,11 +26,12 @@
                     
                     (fprintf op #<<EOF
 return (function(succ, fail, params) {
-            var myParams = { currentDisplayer: function(MACHINE, v) { params.currentDisplayer(v); }};
-            return innerInvoke(new plt.runtime.Machine(),
+            var machine = new plt.runtime.Machine();
+            machine.params.currentDisplayer = 
+                function(MACHINE, v) { params.currentDisplayer(v); };
+            return innerInvoke(machine,
                                succ,
-                               function(MACHINE, exn) { fail(exn); },
-                               myParams);
+                               function(MACHINE, exn) { return fail(exn); });
         });
 });
 EOF

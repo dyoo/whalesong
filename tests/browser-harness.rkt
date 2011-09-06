@@ -42,8 +42,12 @@ return (function(succ, fail, params) {
                                                 }
                            };
             return innerInvoke(machine,
-                               function() { plt.runtime.invokeMains(machine, succ, fail); },
-                               function(MACHINE, e) { fail(e); },
+                               function() {
+                                   plt.runtime.invokeMains(machine, succ, fail);
+                               },
+                               function(MACHINE, e) {
+                                   return fail(e);
+                               },
                                myParams);
         });
 });

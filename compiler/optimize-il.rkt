@@ -282,11 +282,11 @@
                 (let ([target (AssignImmediateStatement-target second-stmt)])
                   (cond
                    [(equal? target (make-EnvLexicalReference 0 #f))
-                    (cons (make-PushImmediateOntoEnvironment 
-                           (adjust-oparg-depth 
-                            (AssignImmediateStatement-value second-stmt) -1)
-                           #f)
-                          (loop (rest (rest statements))))]
+                    (loop (cons (make-PushImmediateOntoEnvironment 
+                                 (adjust-oparg-depth 
+                                  (AssignImmediateStatement-value second-stmt) -1)
+                                 #f)
+                                (rest (rest statements))))]
                    [else
                     (default)]))]
 

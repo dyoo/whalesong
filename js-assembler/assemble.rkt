@@ -268,7 +268,8 @@ EOF
               [(Label? target)
                (cond
                    [(set-contains? entry-points (Label-name target))
-                    (default stmt)]
+                    (display (assemble-statement stmt) op)
+                    'ok]
                    [else
                     (log-debug (format "Assembling inlined jump into ~a" (Label-name target)) )
                     (assemble-block-statements (BasicBlock-name
@@ -279,12 +280,15 @@ EOF
                                                entry-points
                                                op)])]
               [(Reg? target)
-               (default stmt)]
+               (display (assemble-statement stmt) op)
+               'ok]
               [(ModuleEntry? target)
-               (default stmt)]
+               (display (assemble-statement stmt) op)
+               'ok]
               [(CompiledProcedureEntry? target)
-               (default stmt)])]
-           
+               (display (assemble-statement stmt) op)
+               'ok])]
+
            
            [(PushControlFrame/Generic? stmt)
             (default stmt)]

@@ -151,28 +151,24 @@
     [(eq? domain 'any)
      operand-string]
     [else
-     (let: ([test-string : String
+     (let: ([predicate : String
                          (case domain
                            [(number)
-                            (format "RUNTIME.isNumber(~a)"
-                                    operand-string)]             
+                            (format "RUNTIME.isNumber")]
                            [(string)
-                            (format "(typeof(~a) === 'string')"
-                                    operand-string)]
+                            (format "RUNTIME.isString")]
                            [(list)
-                            (format "RUNTIME.isList(~a)" operand-string)]
+                            (format "RUNTIME.isList")]
                            [(pair)
-                            (format "RUNTIME.isPair(~a)" operand-string)]
+                            (format "RUNTIME.isPair")]
                            [(box)
-                            (format "(typeof(~a) === 'object' && (~a).length === 1)"
-                                    operand-string operand-string)])])
-           (format "((~a) ? (~a) : RUNTIME.raiseArgumentTypeError(MACHINE, ~s, ~s, ~s, ~a))"
-                   test-string
-                   operand-string
-		   (symbol->string caller)
+                            (format "RUNTIME.isBox")])])
+           (format "RUNTIME.testArgument(MACHINE, ~s, ~a, ~a, ~a, ~s)"
                    (symbol->string domain)
+                   predicate
+                   operand-string
                    pos
-                   operand-string))]))
+                   (symbol->string caller)))]))
 
 
 (: maybe-typecheck-operand (Symbol OperandDomain Natural String Boolean -> String))

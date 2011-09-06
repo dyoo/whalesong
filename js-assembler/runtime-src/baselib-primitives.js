@@ -1243,9 +1243,8 @@
             var rev = NULL;
             var lst = MACHINE.env[MACHINE.env.length-1];
             while(lst !== NULL) {
-                testArgument(MACHINE,
-                             'pair', isPair, lst, 0, 'reverse');
-                rev = makePair(lst.first, rev);
+                rev = makePair(testArgument(MACHINE, 'pair', isPair, lst, 0, 'reverse').first,
+                               rev);
                 lst = lst.rest;
             }
             return rev;
@@ -1381,18 +1380,6 @@
                 return baselib.numbers.atan(
                     checkNumber(MACHINE, 'atan', 0));
             } else {
-                testArgument(MACHINE,
-                             'number',
-                             isNumber,
-                             MACHINE.env[MACHINE.env.length - 1],
-                             0,
-                             'atan');
-                testArgument(MACHINE,
-                             'number',
-                             isNumber,
-                             MACHINE.env[MACHINE.env.length - 2],
-                             1,
-                             'atan');
                 return makeFloat(
                     Math.atan2(
                         baselib.numbers.toFixnum(checkNumber(MACHINE, 'atan', 0)),

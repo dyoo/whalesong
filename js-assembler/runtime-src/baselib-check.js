@@ -16,7 +16,7 @@
     //////////////////////////////////////////////////////////////////////
 
     // testArgument: (X -> boolean) X number string string -> boolean
-    // Produces true if val is true, and otherwise raises an error.
+    // Produces the argument value the predicate is true, and otherwise raises an error.
     var testArgument = function (MACHINE,
                                  expectedTypeName,
                                  predicate,                          
@@ -24,7 +24,7 @@
                                  index, 
                                  callerName) {
         if (predicate(val)) {
-            return true;
+            return val;
         } else {
             if (typeof(expectedTypeName) === 'function') { 
                 expectedTypeName = expectedTypeName(); 
@@ -40,14 +40,13 @@
 
     var makeCheckArgumentType = function (predicate, predicateName) {
         return function (MACHINE, callerName, position) {
-            testArgument(
+            return testArgument(
                 MACHINE,
                 predicateName,
                 predicate,
                 MACHINE.env[MACHINE.env.length - 1 - position],
                 position,
                 callerName);
-            return MACHINE.env[MACHINE.env.length - 1 - position];
         };
     };
 
@@ -58,7 +57,7 @@
             for (i = 3; i < arguments.length; i++) {
                 args.push(arguments[i]);
             }
-            testArgument(
+            return testArgument(
                 MACHINE,
                 function () { return parameterizedPredicateName.apply(null, args); },
                 function (x) {
@@ -67,7 +66,6 @@
                 MACHINE.env[MACHINE.env.length - 1 - position],
                 position,
                 callerName);
-            return MACHINE.env[MACHINE.env.length - 1 - position];
         };
     };
 
@@ -101,14 +99,13 @@
             }
         };
         return function (MACHINE, callerName, position) {
-            testArgument(
+            return testArgument(
                 MACHINE,
                 'list of ' + predicateName,
                 listPredicate,
                 MACHINE.env[MACHINE.env.length - 1 - position],
                 position,
                 callerName);
-            return MACHINE.env[MACHINE.env.length - 1 - position];
         };
     };
 

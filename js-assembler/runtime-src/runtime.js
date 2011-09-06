@@ -739,6 +739,12 @@
     exports['makeBytes'] = makeBytes;
 
 
+    exports['checkPair'] = baselib.check.checkPair;
+    exports['checkNumber'] = baselib.check.checkNumber;
+    exports['checkString'] = baselib.check.checkString;
+
+
+
     // Type predicates
     exports['isPair'] = isPair;
     exports['isList'] = isList;

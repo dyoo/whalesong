@@ -495,7 +495,7 @@ EOF
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-           (format "MACHINE.env.length = MACHINE.env.length - ~a;"
+           (format "MACHINE.env.length -= ~a;"
                    (assemble-oparg (PopEnvironment-n stmt)))]
           [else
            (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"

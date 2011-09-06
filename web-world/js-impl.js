@@ -40,27 +40,45 @@
 
 
 
+
+    // domNode_to_tree: dom -> dom-tree
+    // Given a native dom node, produces the appropriate tree.
+    var domNode_to_tree = function(domNode) {
+	var result = [domNode];
+        var c;
+	for (c = domNode.firstChild; c !== null; c = c.nextSibling) {
+	    result.push(domNode_to_tree(c));
+	}
+	return result;
+    };
+
+
+    var tree_to_domNode = function(tree) {
+	var result = tree[0].cloneNode(true);
+        var i;
+        for (i = 1; i < tree.length; i++) {
+            result.appendChild(tree_to_domNode(tree[i]));
+        }
+        return result;
+    };
+
+
     var domToCursor = function(dom) {
         var domOpenF = 
             // To go down, just take the children.
-            function(n) { 
-                return [].slice.call(n.childNodes, 0);
+            function(tree) { 
+                return tree.slice(1);
             };
         var domCloseF = 
-            // To go back up, take the node, do a shallow cloning, and replace the children.
-            function(node, children) { 
-                var i;
-                var newNode = node.cloneNode(false);
-                for (i = 0; i < children.length; i++) {
-                    newNode.appendChild(children[i].cloneNode(true));
-                }
-                return newNode; 
+            // To go back up, take the tree and reconstruct it.
+            function(tree, children) { 
+                return [tree[0]].concat(children);
             };
         var domAtomicF =
-            function(node) {
-                return node.nodeType !== 1;
+            function(tree) {
+                return tree[0].nodeType !== 1;
             };
-        return TreeCursor.adaptTreeCursor(dom.cloneNode(true),
+        return TreeCursor.adaptTreeCursor(domNode_to_tree(dom.cloneNode(true)),
                                           domOpenF,
                                           domCloseF,
                                           domAtomicF);
@@ -69,12 +87,14 @@
 
 
 
+
+
     
 
     // For the moment, we only support selection by id.
-    var selectorMatches = function(selector, node) {
-        if (node.nodeType === 1) {
-            return node.getAttribute('id') === selector;
+    var selectorMatches = function(selector, tree) {
+        if (tree[0].nodeType === 1) {
+            return tree[0].getAttribute('id') === selector;
         } else {
             return false;
         }
@@ -128,13 +148,26 @@
     };
 
     MockView.prototype.getText = function() {        
-        return $(this.cursor.node).text();
+        var tree = this.cursor.node;
+        var text = [];
+        var visit = function(tree) {
+            var i;
+            if (tree[0].nodeType === 3) {
+                text.push(tree[0].nodeValue);
+            }
+            for (i = 1; i < tree.length; i++) {
+                visit(tree[i]);
+            }
+        };
+        visit(tree);
+        return text.join('');
     };
 
     MockView.prototype.updateText = function(text) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode($(cursor.node).clone(true).text(text).get(0));
+                return cursor.replaceNode([cursor.node[0]]
+                                          .concat([document.createTextNode(text)]));
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
@@ -144,14 +177,16 @@
     };
 
     MockView.prototype.getAttr = function(name) {        
-        return $(this.cursor.node).attr(name);
+        return this.cursor.node[0].getAttribute(name);
     };
 
 
     MockView.prototype.updateAttr = function(name, value) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode($(cursor.node).clone(true).attr(name, value).get(0));
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                                           .attr(name, value).get(0)]
+                                          .concat(cursor.node.slice(1)));
             },
             function(eventHandlers) {
                 return eventHandlers;
@@ -166,14 +201,16 @@
 
 
     MockView.prototype.getCss = function(name) {        
-        return $(this.cursor.node).css(name);
+        return $(this.cursor.node[0]).css(name);
     };
 
 
     MockView.prototype.updateCss = function(name, value) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode($(cursor.node).clone(true).css(name, value).get(0));
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                                           .css(name, value).get(0)]
+                                          .concat(cursor.node.slice(1)));
             },
             function(eventHandlers) {
                 return eventHandlers;
@@ -189,13 +226,15 @@
 
 
     MockView.prototype.getFormValue = function() {        
-        return $(this.cursor.node).val();
+        return $(this.cursor.node[0]).val();
     };
 
     MockView.prototype.updateFormValue = function(value) {        
         return this.act(
             function(cursor) {
-                return cursor.replaceNode($(cursor.node).clone(true).val(value).get(0));
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                                           .val(value).get(0)]
+                                          .concat(cursor.node.slice(1)));
             },
             function(eventHandlers) {
                 return eventHandlers;
@@ -266,25 +305,18 @@
 
         // HACK: every node that is bound needs to have an id.  We
         // enforce this by mutating the node.
-        if (! this.cursor.node.id) {
-            this.cursor.node.id = ("__webWorldId_" + mockViewIdGensym++);
+        if (! this.cursor.node[0].id) {
+            this.cursor.node[0].id = ("__webWorldId_" + mockViewIdGensym++);
         }   
         return this.act(
             function(cursor) {
-                var newCursor = cursor.replaceNode($(cursor.node).clone(true).get(0));
-                var handler = new EventHandler(name, 
-                                               new DomEventSource(name, newCursor.node), 
-                                               worldF);
-                if (currentBigBangRecord !== undefined) {
-                    currentBigBangRecord.startEventHandler(handler);
-                }
-                return newCursor;
+                return cursor;
             },
             function(eventHandlers) {
                 var handler = new EventHandler(name,
                                                new DomEventSource(
                                                    name,
-                                                   that.cursor.node.id),
+                                                   that.cursor.node[0].id),
                                                worldF);
 
                 var newHandlers = eventHandlers.concat([handler]);
@@ -309,7 +341,9 @@
     MockView.prototype.show = function() {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode($(cursor.node).clone(true).show().get(0));
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                                           .show().get(0)]
+                                          .concat(cursor.node.slice(1)));
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
@@ -321,7 +355,9 @@
     MockView.prototype.hide = function() {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode($(cursor.node).clone(true).hide().get(0));
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                                           .hide().get(0)]
+                                          .concat(cursor.node.slice(1)));
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
@@ -361,9 +397,9 @@
                     while (cursor.canRight()) {
                         cursor = cursor.right();
                     }
-                    return cursor.insertRight(domNode.cloneNode(true));
+                    return cursor.insertRight([domNode.cloneNode(true)]);
                 } else {
-                    return cursor.insertDown(domNode.cloneNode(true));
+                    return cursor.insertDown([domNode.cloneNode(true)]);
                 }
             },
             function(eventHandlers) { return eventHandlers; },
@@ -486,7 +522,7 @@
             }
             return onSuccess(new View(dom, []));
         } else if (isMockView(x)) {
-            return onSuccess(new View($(x.cursor.top().node),
+            return onSuccess(new View($(tree_to_domNode(x.cursor.top().node)),
                                       x.eventHandlers.slice(0)));
         } else {
             try {
@@ -545,7 +581,7 @@
             }
             return onSuccess(dom.get(0));
         } else if (isMockView(x)) {
-            return onSuccess(x.cursor.top().node);
+            return onSuccess(tree_to_domNode(x.cursor.top().node));
         } else {
             try {
                 dom = plt.baselib.format.toDomNode(x);
@@ -1091,7 +1127,7 @@
                                    actions[i](view);
                                }
                            } else {
-                               view.top = $(newMockView.cursor.top().node);
+                               view.top = $(tree_to_domNode(newMockView.cursor.top().node));
                                view.initialRender(top);
                                eventHandlers = newMockView.eventHandlers.slice(0);
                                view.eventHandlers = eventHandlers;

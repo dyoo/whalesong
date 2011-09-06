@@ -266,7 +266,7 @@ MACHINE.modules[~s] =
                       plt.runtime.setReadyFalse();
                       (")
       (assemble/write-invoke stmts op)
-      (fprintf op ")(plt.runtime.currentMachine,
+      (fprintf op ")(MACHINE,
                          function() {
                               if (window.console && window.console.log) {
                                   window.console.log('loaded ' + ~s);
@@ -469,9 +469,6 @@ var invokeMainModule = function() {
     invoke(MACHINE,
            function() {
                 var startTime = new Date().valueOf();
-                if (window.console && window.console.log) {
-                    window.console.log("invoking main modules");
-                }
                 plt.runtime.invokeMains(
                     MACHINE,
                     function() {

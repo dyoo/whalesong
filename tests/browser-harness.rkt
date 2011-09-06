@@ -37,7 +37,10 @@
                     (fprintf op #<<EOF
 return (function(succ, fail, params) {
             var machine = new plt.runtime.Machine();
-            var myParams = { currentDisplayer : function(MACHINE, v) { params.currentDisplayer(v); } };
+            var myParams = { currentDisplayer : function(MACHINE, v) {
+                                                   params.currentDisplayer(v);
+                                                }
+                           };
             return innerInvoke(machine,
                                function() { plt.runtime.invokeMains(machine, succ, fail); },
                                function(MACHINE, e) { fail(e); },

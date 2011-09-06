@@ -41,29 +41,41 @@
 
 
 
-    // domNode_to_tree: dom -> dom-tree
-    // Given a native dom node, produces the appropriate tree.
-    var domNode_to_tree = function(domNode) {
-	var result = [domNode];
+
+
+
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    
+
+    // domNodeToArrayTree: dom -> dom-tree
+    // Given a native dom node, produces the appropriate array tree representation
+    var domNodeToArrayTree = function(domNode) {
+        var result = [domNode];
         var c;
-	for (c = domNode.firstChild; c !== null; c = c.nextSibling) {
-	    result.push(domNode_to_tree(c));
-	}
-	return result;
-    };
-
-
-    var tree_to_domNode = function(tree) {
-	var result = tree[0].cloneNode(true);
-        var i;
-        for (i = 1; i < tree.length; i++) {
-            result.appendChild(tree_to_domNode(tree[i]));
+        for (c = domNode.firstChild; c !== null; c = c.nextSibling) {
+	    result.push(domNodeToArrayTree(c));
         }
         return result;
     };
 
 
-    var domToCursor = function(dom) {
+    var arrayTreeToDomNode = function(tree) {
+        var result = tree[0].cloneNode(false);
+        var i;
+        for (i = 1; i < tree.length; i++) {
+            result.appendChild(arrayTreeToDomNode(tree[i]));
+        }
+        return result;
+    };
+
+
+    var domToArrayTreeCursor = function(dom) {
         var domOpenF = 
             // To go down, just take the children.
             function(tree) { 
@@ -78,16 +90,28 @@
             function(tree) {
                 return tree[0].nodeType !== 1;
             };
-        return TreeCursor.adaptTreeCursor(domNode_to_tree(dom.cloneNode(true)),
+        return TreeCursor.adaptTreeCursor(domNodeToArrayTree(dom.cloneNode(true)),
                                           domOpenF,
                                           domCloseF,
                                           domAtomicF);
     };
 
+    var treeText = function(tree) {
+        var text = [];
+        var visit = function(tree) {
+            var i;
+            if (tree[0].nodeType === 3) {
+                text.push(tree[0].nodeValue);
+            }
+            for (i = 1; i < tree.length; i++) {
+                visit(tree[i]);
+            }
+        };
+        visit(tree);
+        return text.join('');
+    };
 
-
-
-
+    //////////////////////////////////////////////////////////////////////
 
     
 
@@ -149,18 +173,7 @@
 
     MockView.prototype.getText = function() {        
         var tree = this.cursor.node;
-        var text = [];
-        var visit = function(tree) {
-            var i;
-            if (tree[0].nodeType === 3) {
-                text.push(tree[0].nodeValue);
-            }
-            for (i = 1; i < tree.length; i++) {
-                visit(tree[i]);
-            }
-        };
-        visit(tree);
-        return text.join('');
+        return treeText(tree);
     };
 
     MockView.prototype.updateText = function(text) {
@@ -476,7 +489,7 @@
 
     View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
-        return new MockView(domToCursor($(this.top).get(0)),
+        return new MockView(domToArrayTreeCursor($(this.top).get(0)),
                             [],
                             this.eventHandlers.slice(0),
                             nonce);
@@ -522,7 +535,7 @@
             }
             return onSuccess(new View(dom, []));
         } else if (isMockView(x)) {
-            return onSuccess(new View($(tree_to_domNode(x.cursor.top().node)),
+            return onSuccess(new View($(arrayTreeToDomNode(x.cursor.top().node)),
                                       x.eventHandlers.slice(0)));
         } else {
             try {
@@ -548,14 +561,14 @@
             } catch (exn1) {
                 return onFail(exn1);
             }
-            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
+            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), [], [], undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x));
             } catch (exn2) {
                 return onFail(exn2);
             }
-            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
+            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), [], [], undefined));
         }
     };
 
@@ -581,7 +594,7 @@
             }
             return onSuccess(dom.get(0));
         } else if (isMockView(x)) {
-            return onSuccess(tree_to_domNode(x.cursor.top().node));
+            return onSuccess(arrayTreeToDomNode(x.cursor.top().node));
         } else {
             try {
                 dom = plt.baselib.format.toDomNode(x);
@@ -1127,7 +1140,7 @@
                                    actions[i](view);
                                }
                            } else {
-                               view.top = $(tree_to_domNode(newMockView.cursor.top().node));
+                               view.top = $(arrayTreeToDomNode(newMockView.cursor.top().node));
                                view.initialRender(top);
                                eventHandlers = newMockView.eventHandlers.slice(0);
                                view.eventHandlers = eventHandlers;

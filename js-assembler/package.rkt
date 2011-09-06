@@ -469,6 +469,9 @@ var invokeMainModule = function() {
     invoke(MACHINE,
            function() {
                 var startTime = new Date().valueOf();
+                if (window.console && window.console.log) {
+                    window.console.log("invoking main modules");
+                }
                 plt.runtime.invokeMains(
                     MACHINE,
                     function() {

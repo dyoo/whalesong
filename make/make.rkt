@@ -23,9 +23,10 @@
                [get-module-bytecode ((U String Path Input-Port) -> Bytes)])
 
 
-(provide make
-         current-module-source-compiling-hook
-         get-ast-and-statements)
+(provide make)
+
+
+
 
 
 (: current-module-source-compiling-hook
@@ -128,7 +129,7 @@
 
        (: follow-dependencies ((Listof Source) -> Void))
        (define (follow-dependencies sources)
-         (define visited ((inst make-hash Any Boolean)))
+         (define visited ((inst make-hash Source Boolean)))
 
          (: collect-new-dependencies
             (Source (U False Expression) -> (Listof Source)))

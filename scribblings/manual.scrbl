@@ -389,11 +389,11 @@ Almost all of the @tt{whalesong} commands support two command line options:
 
 @itemize{
 
-@item{@tt{--compress-javascript}: Use Google Closure's JavaScript
+@item{@verbatim{--compress-javascript}: Use Google Closure's JavaScript
 compiler to significantly compress the JavaScript.  Using this
 currently requires a Java 1.6 JDK.}
 
-@item{@tt{--verbose}: write verbose debugging information to standard error.}
+@item{@verbatim{--verbose}: write verbose debugging information to standard error.}
 }
 
 

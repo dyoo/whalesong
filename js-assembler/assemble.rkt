@@ -131,7 +131,7 @@ EOF
          [(symbol? stmt)
           (next)]
          [(LinkedLabel? stmt)
-          (fprintf op "~a.multipleValueReturn = ~a;\n" 
+          (fprintf op "~a.multipleValueReturn=~a;\n" 
                    (assemble-label (make-Label (LinkedLabel-label stmt)))
                    (assemble-label (make-Label (LinkedLabel-linked-to stmt))))
           (next)]
@@ -224,24 +224,24 @@ EOF
             (: test-code String)
             (define test-code (cond
                                 [(TestFalse? test)
-                                 (format "if (~a === false)"
+                                 (format "if(~a===false)"
                                          (assemble-oparg (TestFalse-operand test)))]
                                 [(TestTrue? test)
-                                 (format "if (~a !== false)"
+                                 (format "if(~a!==false)"
                                          (assemble-oparg (TestTrue-operand test)))]
                                 [(TestOne? test)
-                                 (format "if (~a === 1)"
+                                 (format "if(~a===1)"
                                          (assemble-oparg (TestOne-operand test)))]
                                 [(TestZero? test)
-                                 (format "if (~a === 0)"
+                                 (format "if(~a===0)"
                                          (assemble-oparg (TestZero-operand test)))]
                                 
                                 [(TestPrimitiveProcedure? test)
-                                 (format "if (typeof(~a) === 'function')"
+                                 (format "if(typeof(~a)==='function')"
                                          (assemble-oparg (TestPrimitiveProcedure-operand test)))]
                                 
                                 [(TestClosureArityMismatch? test)
-                                 (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a))"
+                                 (format "if(!RUNTIME.isArityMatching((~a).racketArity,~a))"
                                          (assemble-oparg (TestClosureArityMismatch-closure test))
                                          (assemble-oparg (TestClosureArityMismatch-n test)))]))
                (display test-code op)
@@ -257,7 +257,7 @@ EOF
                                             blockht
                                             entry-points
                                             op)])
-               (display "} else {" op)
+               (display "}else{" op)
                (assemble-block-statements name (rest stmts) blockht entry-points op)
                (display "}" op)
                'ok]
@@ -416,27 +416,27 @@ EOF
         ;; to help localize type checks, we add a type annotation here.
         (ann (cond
                [(TestFalse? test)
-                (format "if (~a === false) { ~a }"
+                (format "if(~a===false){~a}"
                         (assemble-oparg (TestFalse-operand test))
                         jump)]
                [(TestTrue? test)
-                (format "if (~a !== false) { ~a }"
+                (format "if(~a!==false){~a}"
                         (assemble-oparg (TestTrue-operand test))
                         jump)]
                [(TestOne? test)
-                (format "if (~a === 1) { ~a }"
+                (format "if(~a===1){~a}"
                         (assemble-oparg (TestOne-operand test))
                         jump)]
                [(TestZero? test)
-                (format "if (~a === 0) { ~a }"
+                (format "if(~a===0){~a}"
                         (assemble-oparg (TestZero-operand test))
                         jump)]
                [(TestPrimitiveProcedure? test)
-                (format "if (typeof(~a) === 'function') { ~a }"
+                (format "if(typeof(~a)==='function'){~a}"
                         (assemble-oparg (TestPrimitiveProcedure-operand test))
                         jump)]
                [(TestClosureArityMismatch? test)
-                (format "if (! RUNTIME.isArityMatching((~a).racketArity, ~a)) { ~a }"
+                (format "if(!RUNTIME.isArityMatching((~a).racketArity,~a)){~a}"
                         (assemble-oparg (TestClosureArityMismatch-closure test))
                         (assemble-oparg (TestClosureArityMismatch-n test))
                         jump)])
@@ -449,7 +449,7 @@ EOF
       "MACHINE.control.push(new RUNTIME.Frame());"]
      
      [(PushControlFrame/Call? stmt)
-      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a, MACHINE.proc));" 
+      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a,MACHINE.proc));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -459,7 +459,7 @@ EOF
      
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
-      (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a, ~a));" 
+      (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a,~a));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -492,10 +492,10 @@ EOF
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-           (format "MACHINE.env.length -= ~a;"
+           (format "MACHINE.env.length-=~a;"
                    (assemble-oparg (PopEnvironment-n stmt)))]
           [else
-           (format "MACHINE.env.splice(MACHINE.env.length - (~a + ~a), ~a);"
+           (format "MACHINE.env.splice(MACHINE.env.length-(~a +~a),~a);"
                    (assemble-oparg (PopEnvironment-skip stmt))
                    (assemble-oparg (PopEnvironment-n stmt))
                    (assemble-oparg (PopEnvironment-n stmt)))]))]
@@ -528,5 +528,3 @@ EOF
   (if (natural? n)
       n
       (error 'ensure-natural)))
-
-

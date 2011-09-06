@@ -331,8 +331,8 @@
                                                    name,
                                                    that.cursor.node[0].id),
                                                worldF);
-
                 var newHandlers = eventHandlers.concat([handler]);
+                console.log('adding handler', handler);
                 return newHandlers;
             },
             function(view) {
@@ -747,16 +747,6 @@
 
     EventSource.prototype.onStop = function() {
     };
-
-    // // The default behavior of pause is to cause the event source to stop.
-    // EventSource.prototype.onPause = function() {
-    //     this.onStop();
-    // };
-
-    // // The default behavior of unpause is to start an event source up again.
-    // EventSource.prototype.onUnpause = function(fireEvent) {
-    //     this.onStart(fireEvent);
-    // };
 
 
     

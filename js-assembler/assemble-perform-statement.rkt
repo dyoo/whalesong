@@ -22,27 +22,20 @@
 
 
     [(CheckClosureArity!? op)
-     (format #<<EOF
-              if (! (MACHINE.proc instanceof RUNTIME.Closure)) {
-                  RUNTIME.raiseOperatorIsNotClosure(MACHINE, MACHINE.proc);
-              }
-              if (! RUNTIME.isArityMatching(MACHINE.proc.racketArity, ~a)) {
-                  RUNTIME.raiseArityMismatchError(MACHINE, MACHINE.proc, ~a);
-              }
-EOF
+     (format "if(!(MACHINE.proc instanceof RUNTIME.Closure)){RUNTIME.raiseOperatorIsNotClosure(MACHINE,MACHINE.proc);}if(!RUNTIME.isArityMatching(MACHINE.proc.racketArity,~a)){RUNTIME.raiseArityMismatchError(MACHINE, MACHINE.proc,~a);}"
              (assemble-oparg (CheckClosureArity!-num-args op))
              (assemble-oparg (CheckClosureArity!-num-args op)))]
 
     
     [(CheckPrimitiveArity!? op)
-     (format "if (! RUNTIME.isArityMatching(MACHINE.proc.racketArity, ~a)) { RUNTIME.raiseArityMismatchError(MACHINE, MACHINE.proc, ~a); }"
+     (format "if(!RUNTIME.isArityMatching(MACHINE.proc.racketArity,~a)){RUNTIME.raiseArityMismatchError(MACHINE,MACHINE.proc,~a);}"
              (assemble-oparg (CheckPrimitiveArity!-num-args op))
              (assemble-oparg (CheckPrimitiveArity!-num-args op)))]
     
     
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
-           (format "MACHINE.env.push([~a]);  MACHINE.env[MACHINE.env.length-1].names = [~a];"
+           (format "MACHINE.env.push([~a]);MACHINE.env[MACHINE.env.length-1].names=[~a];"
                    (string-join (map
                                  (lambda: ([n : (U Symbol False GlobalBucket ModuleVariable)])
                                           (cond [(symbol? n)
@@ -86,10 +79,10 @@ EOF
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     "MACHINE.env.splice.apply(MACHINE.env, [MACHINE.env.length, 0].concat(MACHINE.proc.closedVals));"]
+     "MACHINE.env.splice.apply(MACHINE.env,[MACHINE.env.length, 0].concat(MACHINE.proc.closedVals));"]
     
     [(RestoreEnvironment!? op)
-     "MACHINE.env = MACHINE.env[MACHINE.env.length - 2].slice(0);"]
+     "MACHINE.env=MACHINE.env[MACHINE.env.length-2].slice(0);"]
     
     [(RestoreControl!? op)
      (format "MACHINE.restoreControl(~a);"
@@ -102,16 +95,16 @@ EOF
                   (assemble-oparg tag)])))]
     
     [(FixClosureShellMap!? op)
-     (format "MACHINE.env[MACHINE.env.length - 1 - ~a].closedVals = [~a];"
-             (FixClosureShellMap!-depth op)
-              (string-join (map
-			    assemble-env-reference/closure-capture 
-			    ;; The closure values are in reverse order
-			    ;; to make it easier to push, in bulk, into
-			    ;; the environment (which is also in reversed order)
-			    ;; during install-closure-values.
-			    (reverse (FixClosureShellMap!-closed-vals op)))
-			   ", "))]
+     (format "MACHINE.env[MACHINE.env.length-~a].closedVals=[~a];"
+             (add1 (FixClosureShellMap!-depth op))
+             (string-join (map
+                           assemble-env-reference/closure-capture 
+                           ;; The closure values are in reverse order
+                           ;; to make it easier to push, in bulk, into
+                           ;; the environment (which is also in reversed order)
+                           ;; during install-closure-values.
+                           (reverse (FixClosureShellMap!-closed-vals op)))
+                          ","))]
     
     [(SetFrameCallee!? op)
      (format "MACHINE.control[MACHINE.control.length-1].proc = ~a;"
@@ -122,7 +115,7 @@ EOF
              (assemble-oparg (SpliceListIntoStack!-depth op)))]
 
     [(UnspliceRestFromStack!? op)
-     (format "MACHINE.unspliceRestFromStack(~a, ~a);"
+     (format "MACHINE.unspliceRestFromStack(~a,~a);"
              (assemble-oparg (UnspliceRestFromStack!-depth op))
              (assemble-oparg (UnspliceRestFromStack!-length op)))]
 
@@ -132,34 +125,34 @@ EOF
                     "MACHINE.val);")]
 
     [(RaiseContextExpectedValuesError!? op)
-     (format "RUNTIME.raiseContextExpectedValuesError(MACHINE, ~a);"
+     (format "RUNTIME.raiseContextExpectedValuesError(MACHINE,~a);"
              (RaiseContextExpectedValuesError!-expected op))]
 
 
     [(RaiseArityMismatchError!? op)
-     (format "RUNTIME.raiseArityMismatchError(MACHINE, ~a, ~a);"
+     (format "RUNTIME.raiseArityMismatchError(MACHINE,~a,~a);"
              (assemble-oparg (RaiseArityMismatchError!-proc op))
              (assemble-oparg (RaiseArityMismatchError!-received op)))]
 
 
     [(RaiseOperatorApplicationError!? op)
-     (format "RUNTIME.raiseOperatorApplicationError(MACHINE, ~a);"
+     (format "RUNTIME.raiseOperatorApplicationError(MACHINE,~a);"
              (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]
 
 
     [(RaiseUnimplementedPrimitiveError!? op)
-     (format "RUNTIME.raiseUnimplementedPrimitiveError(MACHINE, ~s);"
+     (format "RUNTIME.raiseUnimplementedPrimitiveError(MACHINE,~s);"
              (symbol->string (RaiseUnimplementedPrimitiveError!-name op)))]
     
     
     [(InstallModuleEntry!? op)
-     (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s, ~a);"
+     (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s,~a);"
              (symbol->string (ModuleLocator-name (InstallModuleEntry!-path op)))
              (symbol->string (InstallModuleEntry!-name op))
              (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]
 
     [(MarkModuleInvoked!? op)
-     (format "MACHINE.modules[~s].isInvoked = true;"
+     (format "MACHINE.modules[~s].isInvoked=true;"
              (symbol->string (ModuleLocator-name (MarkModuleInvoked!-path op))))]
 
 

@@ -194,7 +194,7 @@
         return this.act(
             function(cursor) {
                 return cursor.replaceNode([cursor.node[0]]
-                                          .concat([document.createTextNode(text)]));
+                                          .concat([[document.createTextNode(text)]]));
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {

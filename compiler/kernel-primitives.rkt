@@ -80,6 +80,8 @@
                                     'srcloc-column
                                     'srcloc-position
                                     'srcloc-span
+
+                                    'raise-type-error
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

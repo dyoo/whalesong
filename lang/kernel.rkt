@@ -91,7 +91,6 @@
 	 else
 	 case
 	 quote
-	 quasiquote
 	 unquote
 	 unquote-splicing
 	 lambda

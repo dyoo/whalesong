@@ -13,11 +13,13 @@
                      )
          (all-from-out "private/list.rkt")
          (all-from-out "list.rkt")
-         (all-from-out "private/map.rkt"))
+         (all-from-out "private/map.rkt")
+         quasiquote)
          
 (require "private/list.rkt"
          "private/map.rkt"
-         "list.rkt")
+         "list.rkt"
+         (only-in "private/qq-and-or.rkt" quasiquote))
 
 
 ;; Kludge: This forces modbeg to be compiled and packaged.

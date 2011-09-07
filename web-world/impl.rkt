@@ -74,4 +74,6 @@
                     xexp?
                     xexp->dom
 
+                    view->xexp
+                    
                     ))

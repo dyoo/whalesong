@@ -28,7 +28,9 @@
          open-output-element
 
          xexp?
-         xexp->dom)
+         xexp->dom
+         view->xexp
+         )
 
 
 (define (big-bang world . handlers)
@@ -169,3 +171,7 @@
 
 (define (xexp->dom x)
   (error 'xexp->dom "Please run in JavaScript context."))
+
+
+(define (view->xexp x)
+  (error 'view->xexp "Please run in JavaScript context."))

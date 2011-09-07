@@ -124,6 +124,8 @@
         }
     };
 
+    var EMPTY_PENDING_ACTIONS = plt.baselib.lists.EMPTY;
+
 
     //////////////////////////////////////////////////////////////////////
     // A MockView provides a functional interface to the DOM.  It
@@ -132,17 +134,29 @@
     // freshness of the MockView.
     var MockView = function(cursor, pendingActions, eventHandlers, nonce) {
         this.cursor = cursor;
+
+        // (listof (view -> void))
         this.pendingActions = pendingActions;
+
         this.eventHandlers = eventHandlers;
         this.nonce = nonce;
     };
 
     var isMockView = plt.baselib.makeClassPredicate(MockView);
 
+    MockView.prototype.toString = function() {
+        return "<#view>";
+    };
+
+    MockView.prototype.getPendingActions = function() {
+        return plt.baselib.lists.listToArray(this.pendingActions).reverse();
+    };
+
+
     MockView.prototype.act = function(actionForCursor, actionForEventHandlers, actionForReal) {
         if (arguments.length !== 3) { throw new Error("act: insufficient arguments"); }
         return new MockView(actionForCursor(this.cursor),
-                            this.pendingActions.concat([actionForReal]),
+                            plt.baselib.lists.makePair(actionForReal, this.pendingActions),
                             actionForEventHandlers(this.eventHandlers),
                             this.nonce);
     };
@@ -488,8 +502,9 @@
 
     View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
+
         return new MockView(domToArrayTreeCursor($(this.top).get(0)),
-                            [],
+                            EMPTY_PENDING_ACTIONS,
                             this.eventHandlers.slice(0),
                             nonce);
     };
@@ -560,14 +575,14 @@
             } catch (exn1) {
                 return onFail(exn1);
             }
-            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), [], [], undefined));
+            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), EMPTY_PENDING_ACTIONS, [], undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x));
             } catch (exn2) {
                 return onFail(exn2);
             }
-            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), [], [], undefined));
+            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), EMPTY_PENDING_ACTIONS, [], undefined));
         }
     };
 
@@ -1123,7 +1138,7 @@
                        function(newMockView) {
                            if (newMockView.nonce === nonce) {
                                var i;
-                               var actions = newMockView.pendingActions;
+                               var actions = newMockView.getPendingActions();
                                for (i = 0; i < actions.length; i++) {
                                    actions[i](view);
                                }
@@ -1308,6 +1323,61 @@
         }
         return false;
     };
+
+    var domToXexp = function(dom) {
+        var child, attrs, name, convertedChildren, i;
+        if (dom.nodeType === 1) {
+            attrs = plt.baselib.lists.EMPTY;
+            name = plt.baselib.symbols.makeSymbol(dom.nodeName.toLowerCase());
+            child = dom.firstChild;
+            convertedChildren = plt.baselib.lists.EMPTY;
+
+            for (i = 0; i < dom.attributes.length; i++) {
+                attrs = plt.baselib.lists.makePair(
+                    plt.baselib.lists.makeList(plt.baselib.symbols.makeSymbol(dom.attributes[i].nodeName),
+                                               dom.attributes[i].nodeValue),
+                    attrs);
+            } 
+            while(child !== null) {
+                if (child.nodeType === 1) {
+                    convertedChildren = 
+                        plt.baselib.lists.makePair(
+                            domToXexp(child),
+                            convertedChildren);
+                } else if (child.nodeType === 3) {
+                    convertedChildren = plt.baselib.lists.makePair(
+                        domToXexp(child),
+                        convertedChildren);
+                }
+                // Ignore other types.
+                child = child.nextSibling;
+            }
+
+            if (attrs === plt.baselib.lists.EMPTY) {
+                return plt.baselib.lists.makePair(
+                    name,
+                    plt.baselib.lists.reverse(convertedChildren));
+            } else {
+                return plt.baselib.lists.makePair(
+                    name,
+                    plt.baselib.lists.makePair(
+                        plt.baselib.lists.makePair(plt.baselib.symbols.makeSymbol("@"),
+                                                   attrs),
+                        plt.baselib.lists.reverse(convertedChildren)));
+            }
+        } else if (dom.nodeType === 3) {
+            return dom.nodeValue;
+        } else {
+            // If we can't convert it, return false.
+            return false;
+        }
+    };     
+
+
+
+
+
+
 
 
 
@@ -1758,6 +1828,16 @@
         function(MACHINE) {
             var xexp = checkXexp(MACHINE, 'xexp->dom', 0);
             return xexpToDom(xexp);
+        });
+
+
+    EXPORTS['view->xexp'] = makePrimitiveProcedure(
+        'view->xexp',
+        1,
+        function(MACHINE) {
+            var mockView = checkMockView(MACHINE, 'view-hide', 0);
+            var domNode = arrayTreeToDomNode(mockView.cursor.top().node);
+            return domToXexp(domNode);
         });
 
 

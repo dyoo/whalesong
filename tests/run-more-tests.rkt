@@ -26,3 +26,4 @@
 (test "more-tests/hello-bf.rkt")
 (test "more-tests/conform.rkt")
 (test "more-tests/earley.rkt")
+(test "more-tests/view.rkt")

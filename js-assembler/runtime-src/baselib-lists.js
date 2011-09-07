@@ -48,6 +48,10 @@
         this.rest = rest;
     };
 
+    var makePair = function (first, rest) {
+        return new Cons(first, rest);
+    };
+
     Cons.prototype.reverse = function () {
         var lst = this;
         var ret = EMPTY;
@@ -58,9 +62,6 @@
         return ret;
     };
     
-    var makePair = function (first, rest) {
-        return new Cons(first, rest);
-    };
 
     // FIXME: can we reduce the recursion on this?
     Cons.prototype.equals = function (other, aUnionFind) {
@@ -195,7 +196,6 @@
             if (hare === EMPTY) { return true; }
             if (tortoise === hare) { return false; }
         }
-        return true;
     };
 
 

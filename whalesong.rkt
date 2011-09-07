@@ -4,7 +4,7 @@
 (require "private/command.rkt"
          "parameters.rkt"
          "whalesong-helpers.rkt"
-         profile
+         profile profile/render-text
          (for-syntax racket/base))
 
 ;; Command line for running Whalesong.
@@ -39,7 +39,13 @@
     [(_ expr)
      (syntax/loc stx
        (if (with-profiling?)
-           (profile expr)
+           (profile expr
+                    #:threads #t
+                    #:delay 0.01
+                    #:render (lambda (profile)
+                               (render profile
+                                       #:truncate-source 500)))
+
            expr))]))
 
 

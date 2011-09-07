@@ -121,7 +121,7 @@
                 break;
             }
         }
-        if (p !== Empty.EMPTY) {
+        if (p !== EMPTY) {
             texts.push('.');
             texts.push(baselib.format.toDisplayedString(p, cache));
         }
@@ -138,14 +138,14 @@
         while (p instanceof Cons) {
             node.appendChild(baselib.format.toDomNode(p.first, cache));
             p = p.rest;
-            if (p !== Empty.EMPTY) {
+            if (p !== EMPTY) {
                 node.appendChild(document.createTextNode(" "));
             }
             if (typeof (p) === 'object' && cache.containsKey(p)) {
                 break;
             }
         }
-        if (p !== Empty.EMPTY) {
+        if (p !== EMPTY) {
             node.appendChild(document.createTextNode("."));
             node.appendChild(document.createTextNode(" "));
             node.appendChild(baselib.format.toDomNode(p, cache));
@@ -157,15 +157,26 @@
 
 
     var isPair = function (x) { return x instanceof Cons; };
-    var isEmpty = function (x) { return x === Empty.EMPTY; };
+    var isEmpty = function (x) { return x === EMPTY; };
 
 
     var makePair = Cons.makeInstance;
 
     var makeList = function () {
-        var result = Empty.EMPTY, i;
+        var result = EMPTY, i;
         for (i = arguments.length - 1; i >= 0; i--) {
             result = Cons.makeInstance(arguments[i], result);
+        }
+        return result;
+    };
+
+
+    // Coerse a list back into a JavaScript array.
+    var listToArray = function(lst) {
+        var result = [];
+        while (lst !== EMPTY) {
+            result.push(lst.first);
+            lst = lst.rest;
         }
         return result;
     };
@@ -174,7 +185,7 @@
     // isList: Any -> Boolean
     // Returns true if x is a list (a chain of pairs terminated by EMPTY).
     var isList = function (x) { 
-        while (x !== Empty.EMPTY) {
+        while (x !== EMPTY) {
             if (x instanceof Cons) {
                 x = x.rest;
             } else {
@@ -229,6 +240,6 @@
     exports.reverse = reverse;
     exports.length = length;
     exports.listRef = listRef;
-
+    exports.listToArray = listToArray;
 
 }(this.plt.baselib));

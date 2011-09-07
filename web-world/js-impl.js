@@ -80,6 +80,8 @@
         }
     };
 
+    var EMPTY_PENDING_ACTIONS = plt.baselib.lists.EMPTY;
+
 
     //////////////////////////////////////////////////////////////////////
     // A MockView provides a functional interface to the DOM.  It
@@ -88,17 +90,25 @@
     // freshness of the MockView.
     var MockView = function(cursor, pendingActions, eventHandlers, nonce) {
         this.cursor = cursor;
+
+        // (listof (view -> void))
         this.pendingActions = pendingActions;
+
         this.eventHandlers = eventHandlers;
         this.nonce = nonce;
     };
 
     var isMockView = plt.baselib.makeClassPredicate(MockView);
 
+    MockView.prototype.getPendingActions = function() {
+        return plt.baselib.lists.listToArray(this.pendingActions).reverse();
+    };
+
+
     MockView.prototype.act = function(actionForCursor, actionForEventHandlers, actionForReal) {
         if (arguments.length !== 3) { throw new Error("act: insufficient arguments"); }
         return new MockView(actionForCursor(this.cursor),
-                            this.pendingActions.concat([actionForReal]),
+                            plt.baselib.lists.makePair(actionForReal, this.pendingActions),
                             actionForEventHandlers(this.eventHandlers),
                             this.nonce);
     };
@@ -441,7 +451,7 @@
     View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
         return new MockView(domToCursor($(this.top).get(0)),
-                            [],
+                            EMPTY_PENDING_ACTIONS,
                             this.eventHandlers.slice(0),
                             nonce);
     };
@@ -512,14 +522,14 @@
             } catch (exn1) {
                 return onFail(exn1);
             }
-            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), EMPTY_PENDING_ACTIONS, [], undefined));
         } else {
             try {
                 dom = $(plt.baselib.format.toDomNode(x));
             } catch (exn2) {
                 return onFail(exn2);
             }
-            return onSuccess(new MockView(domToCursor(dom.get(0)), [], [], undefined));
+            return onSuccess(new MockView(domToCursor(dom.get(0)), EMPTY_PENDING_ACTIONS, [], undefined));
         }
     };
 
@@ -1086,7 +1096,7 @@
                        function(newMockView) {
                            if (newMockView.nonce === nonce) {
                                var i;
-                               var actions = newMockView.pendingActions;
+                               var actions = newMockView.getPendingActions();
                                for (i = 0; i < actions.length; i++) {
                                    actions[i](view);
                                }

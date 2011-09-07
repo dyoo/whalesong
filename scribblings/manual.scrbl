@@ -151,6 +151,13 @@ $ planet link dyoo whalesong.plt 1 0 whalesong
 than the latest version that's on PLaneT at the time.)
 
 
+Let's make the @filepath{whalesong} launcher somewhere appropriate.  Run Racket with the following
+@racket[require]:
+@racketblock[
+(require (planet dyoo/whalesong/make-launcher))
+]
+This will create a @filepath{whalesong} executable in the current working directory.
+
 
 Finally, we need to set up Whalesong with @tt{raco setup}.
 Here's how to do this at the command
@@ -158,24 +165,30 @@ line:
 @verbatim|{
 $ raco setup -P dyoo whalesong.plt 1 0
 }|
-This should compile Whalesong, as well as set up the @filepath{whalesong} executable.
-Any time the source code in @filepath{whalesong} changes, we should repeat
-this @tt{raco setup} step again.
+This should compile Whalesong.  Any time the source code in
+@filepath{whalesong} changes, we should repeat this @tt{raco setup}
+step again.
 
 
-At this point, you should be able to rung @filepath{whalesong} from the command line.
+At this point, you should be able to run the @filepath{whalesong} executable from the command line.
 @verbatim|{
 $ ./whalesong
-Expected one of the following: [build, get-runtime, get-javascript].                    
+Usage: whalesong <subcommand> [option ...] <arg ...>
+  where any unambiguous prefix can be used for a subcommand
+
+The Whalesong command-line tool for compiling Racket to JavaScript
+
+For help on a particular subcommand, use 'whalesong <subcommand> --help'
+  whalesong build             build a standalone html and javascript package
+  whalesong get-runtime       print the runtime library to standard output
+  whalesong get-javascript    Gets just the JavaScript code and prints it to standard output
            }|
 and if this does appear, then Whalesong should be installed successfully.
 
 
-Note: whenever Whalesong's source code is updated from Github, please
-re-run the @tt{raco setup}.  Otherwise, Racket will try to recompile
-Whalesong on every single use of Whalesong, which can be very
-expensive.
-
+To repeat: whenever Whalesong's source code is updated from Github,
+please re-run the @tt{raco setup} step.  Otherwise, Racket will try to
+recompile Whalesong on every single use, which can be very expensive.
 
 
 

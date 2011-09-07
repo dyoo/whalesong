@@ -18,6 +18,15 @@
 (view->xexp (view-up (view-up updated-new-view)))
 
 
+
+(define (my-view-top v)
+  (cond [(view-up? v)
+         (my-view-top (view-up v))]
+        [else
+         v]))
+
+
+;; Trying attribute editing
 (view-attr (view-down
             (view-right
              (view-down
@@ -25,12 +34,14 @@
                                         (body (p (@ (class "blah"))))))))))
            "class")
 
-
-(define (my-view-top v)
-  (cond [(view-up? v)
-         (my-view-top (view-up v))]
-        [else
-         v]))
+(view-attr (update-view-attr (view-down
+                     (view-right
+                      (view-down
+                       (->view (xexp->dom `(html (head)
+                                                 (body (p (@ (class "blah"))))))))))
+                    "class"
+                    "baz")
+           "class")
 
 (view->xexp
  (my-view-top
@@ -41,3 +52,32 @@
                                                  (body (p (@ (class "blah"))))))))))
                     "class"
                     "baz")))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(view-css (view-down
+            (view-right
+             (view-down
+              (->view (xexp->dom `(html (head)
+                                        (body (p (@ (style "text-decoration: line-through"))))))))))
+           "text-decoration")
+
+(view-css (update-view-css (view-down
+                     (view-right
+                      (view-down
+                       (->view (xexp->dom `(html (head)
+                                                 (body (p (@ (style "text-decoration: line-through"))))))))))
+                    "text-decoration"
+                    "underline")
+           "text-decoration")
+
+(view->xexp
+ (my-view-top
+  (update-view-css (view-down
+                     (view-right
+                      (view-down
+                       (->view (xexp->dom `(html (head)
+                                                 (body (p (@ (style "text-decoration: line-through"))))))))))
+                    "text-decoration"
+                    "underline")))

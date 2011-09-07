@@ -2,4 +2,8 @@
 "some text"
 (html (head) (body (p "hello world, this is a test") (div (@ (id "a div")) "some text")))
 "blah"
+"baz"
 (html (head) (body (p (@ (class "baz")))))
+"line-through"
+"underline"
+(html (head) (body (p (@ (style "text-decoration: underline; ")))))

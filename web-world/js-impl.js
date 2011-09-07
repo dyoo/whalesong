@@ -211,7 +211,7 @@
     MockView.prototype.updateAttr = function(name, value) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .attr(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -235,7 +235,9 @@
     MockView.prototype.updateCss = function(name, value) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                console.log($(cursor.node[0].cloneNode(false))
+                            .css(name, value).get(0));
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .css(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -259,7 +261,7 @@
     MockView.prototype.updateFormValue = function(value) {        
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .val(value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -367,7 +369,7 @@
     MockView.prototype.show = function() {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .show().get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -381,7 +383,7 @@
     MockView.prototype.hide = function() {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(true))
+                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .hide().get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -423,9 +425,9 @@
                     while (cursor.canRight()) {
                         cursor = cursor.right();
                     }
-                    return cursor.insertRight([domNode.cloneNode(true)]);
+                    return cursor.insertRight(domNodeToArrayTree(domNode));
                 } else {
-                    return cursor.insertDown([domNode.cloneNode(true)]);
+                    return cursor.insertDown(domNodeToArrayTree(domNode));
                 }
             },
             function(eventHandlers) { return eventHandlers; },

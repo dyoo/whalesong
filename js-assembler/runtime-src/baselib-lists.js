@@ -52,13 +52,13 @@
         var lst = this;
         var ret = EMPTY;
         while (lst !== EMPTY) {
-            ret = Cons.makeInstance(lst.first, ret);
+            ret = makePair(lst.first, ret);
             lst = lst.rest;
         }
         return ret;
     };
     
-    Cons.makeInstance = function (first, rest) {
+    var makePair = function (first, rest) {
         return new Cons(first, rest);
     };
 
@@ -82,7 +82,7 @@
         var ret = b;
         var lst = this.reverse();
         while (lst !== EMPTY) {
-            ret = Cons.makeInstance(lst.first, ret);
+            ret = makePair(lst.first, ret);
             lst = lst.rest;
         }
         
@@ -160,12 +160,11 @@
     var isEmpty = function (x) { return x === EMPTY; };
 
 
-    var makePair = Cons.makeInstance;
 
     var makeList = function () {
         var result = EMPTY, i;
         for (i = arguments.length - 1; i >= 0; i--) {
-            result = Cons.makeInstance(arguments[i], result);
+            result = makePair(arguments[i], result);
         }
         return result;
     };
@@ -187,13 +186,14 @@
     var isList = function (x) { 
         var tortoise, hare;
         tortoise = hare = x;
+        if (hare === EMPTY) { return true; }
         while (true) {
+            if (!(hare instanceof Cons)) { return false; }
             if (tortoise instanceof Cons) { tortoise = tortoise.rest; }
-            if (hare instanceof Cons) { hare = hare.rest; }
+            hare = hare.rest;
             if (hare instanceof Cons) { hare = hare.rest; }
             if (hare === EMPTY) { return true; }
             if (tortoise === hare) { return false; }
-            if ((hare instanceof Cons) === false) { return false; }
         }
         return true;
     };

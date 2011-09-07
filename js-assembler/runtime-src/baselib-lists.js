@@ -172,7 +172,7 @@
 
 
     // Coerse a list back into a JavaScript array.
-    var listToArray = function(lst) {
+    var listToArray = function (lst) {
         var result = [];
         while (lst !== EMPTY) {
             result.push(lst.first);
@@ -185,12 +185,15 @@
     // isList: Any -> Boolean
     // Returns true if x is a list (a chain of pairs terminated by EMPTY).
     var isList = function (x) { 
-        while (x !== EMPTY) {
-            if (x instanceof Cons) {
-                x = x.rest;
-            } else {
-                return false;
-            }
+        var tortoise, hare;
+        tortoise = hare = x;
+        while (true) {
+            if (tortoise instanceof Cons) { tortoise = tortoise.rest; }
+            if (hare instanceof Cons) { hare = hare.rest; }
+            if (hare instanceof Cons) { hare = hare.rest; }
+            if (hare === EMPTY) { return true; }
+            if (tortoise === hare) { return false; }
+            if ((hare instanceof Cons) === false) { return false; }
         }
         return true;
     };

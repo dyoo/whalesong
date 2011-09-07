@@ -3,6 +3,11 @@
 '(1 2 3)
 (list "hello" "world")
 
+(list? empty)
+(list? '(1))
+(list? '(1 2))
+(list? 1)
+
 (empty? empty)
 (empty? '())
 (cons? '())

@@ -55,6 +55,8 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(newline)
+"css test"
 
 (view-css (view-down
             (view-right
@@ -81,3 +83,78 @@
                                                  (body (p (@ (style "text-decoration: line-through"))))))))))
                     "text-decoration"
                     "underline")))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(newline)
+"------"
+"navigation"
+(view-down? (->view (xexp->dom `(html))))
+(view-up? (->view (xexp->dom `(html))))
+(view-left? (->view (xexp->dom `(html))))
+(view-right? (->view (xexp->dom `(html))))
+
+(newline)
+
+(view-down? (->view (xexp->dom `(html (head) (body)))))
+(view-up? (->view (xexp->dom `(html (head) (body)))))
+(view-left? (->view (xexp->dom `(html (head) (body)))))
+(view-right? (->view (xexp->dom `(html (head) (body)))))
+
+(newline)
+
+(view-down? (view-down (->view (xexp->dom `(html (head) (body))))))
+(view-up? (view-down (->view (xexp->dom `(html (head) (body))))))
+(view-left? (view-down (->view (xexp->dom `(html (head) (body))))))
+(view-right? (view-down (->view (xexp->dom `(html (head) (body))))))
+
+(newline)
+
+(view-down? (view-right (view-down (->view (xexp->dom `(html (head) (body)))))))
+(view-up? (view-right (view-down (->view (xexp->dom `(html (head) (body)))))))
+(view-left? (view-right (view-down (->view (xexp->dom `(html (head) (body)))))))
+(view-right? (view-right (view-down (->view (xexp->dom `(html (head) (body)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(newline)
+"------"
+"adding elements"
+(view->xexp
+ (view-append-child (view-focus (->view (xexp->dom '(html (head)
+                                                          (body (h1 (@ (id "header")))
+                                                                (p (@ (id "para")))))))
+                                "para")
+                    (xexp->dom '(li "An item"))))
+
+
+(view->xexp
+ (view-insert-right
+  (view-down (view-focus (->view (xexp->dom '(html (head)
+                                                   (body (h1 (@ (id "header")))
+                                                         (p (@ (id "para"))
+                                                            (ul (li "one")))))))
+                         "para")
+             (xexp->dom '(li "two")))))
+
+
+(view->xexp
+ (view-insert-right
+  (view-insert-right
+   (view-down (view-focus (->view (xexp->dom '(html (head)
+                                                    (body (h1 (@ (id "header")))
+                                                          (p (@ (id "para"))
+                                                             (ul (li "one")))))))
+                          "para")
+              (xexp->dom '(li "two"))))
+  (xexp->dom '(li "three"))))
+
+(view->xexp
+ (view-insert-left
+  (view-down (view-focus (->view (xexp->dom '(html (head)
+                                                   (body (h1 (@ (id "header")))
+                                                         (p (@ (id "para"))
+                                                            (ul (li "one")))))))
+                         "para")
+             (xexp->dom '(li "zero")))))

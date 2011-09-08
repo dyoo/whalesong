@@ -4,6 +4,37 @@
 "blah"
 "baz"
 (html (head) (body (p (@ (class "baz")))))
+
+"css test"
 "line-through"
 "underline"
 (html (head) (body (p (@ (style "text-decoration: underline; ")))))
+
+"navigation"
+"------"
+false
+false
+false
+false
+
+true
+false
+false
+false
+
+false
+true
+false
+true
+
+false
+true
+true
+false
+
+"------"
+"adding elements"
+(html (head) (body (h1 (@ (id "header"))) (p (@ (id "para")) (li "An item"))))
+(html (head) (body (h1 (@ (id "header"))) (p (@ (id "para")) (ul (li "one") (li "two")))))
+(html (head) (body (h1 (@ (id "header"))) (p (@ (id "para")) (ul (li "one") (li "two") (li "three")))))
+(html (head) (body (h1 (@ (id "header"))) (p (@ (id "para")) (ul (li "zero") (li "one")))))

@@ -135,8 +135,8 @@
                                                    (body (h1 (@ (id "header")))
                                                          (p (@ (id "para"))
                                                             (ul (li "one")))))))
-                         "para")
-             (xexp->dom '(li "two")))))
+                         "para"))
+  (xexp->dom '(li "two"))))
 
 
 (view->xexp
@@ -146,8 +146,8 @@
                                                     (body (h1 (@ (id "header")))
                                                           (p (@ (id "para"))
                                                              (ul (li "one")))))))
-                          "para")
-              (xexp->dom '(li "two"))))
+                          "para"))
+   (xexp->dom '(li "two")))
   (xexp->dom '(li "three"))))
 
 (view->xexp
@@ -156,5 +156,5 @@
                                                    (body (h1 (@ (id "header")))
                                                          (p (@ (id "para"))
                                                             (ul (li "one")))))))
-                         "para")
-             (xexp->dom '(li "zero")))))
+                         "para"))
+  (xexp->dom '(li "zero"))))

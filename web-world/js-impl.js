@@ -439,6 +439,36 @@
         );
     };
 
+    MockView.prototype.insertRight = function(domNode) {
+        return this.act(
+            function(cursor) {
+                return cursor.insertRight(domNodeToArrayTree(domNode));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                var clone = $(domNode).clone(true);
+                clone.insertAfter(view.focus);
+                view.focus = clone;
+            }
+        );
+    };
+
+    MockView.prototype.insertLeft = function(domNode) {
+        return this.act(
+            function(cursor) {
+                return cursor.insertLeft(domNodeToArrayTree(domNode));
+            },
+            function(eventHandlers) { return eventHandlers; },
+            function(view) {
+                var clone = $(domNode).clone(true);
+                clone.insertBefore(view.focus);
+                view.focus = clone;
+            }
+        );
+    };
+
+
+
     MockView.prototype.id = function() {
         return this.cursor.node[0].id;
     };
@@ -1756,6 +1786,68 @@
                                      restart(function(MACHINE) {
                                          MACHINE.argcount = oldArgcount;
                                          var updatedView = view.appendChild(dom);
+                                         finalizeClosureCall(MACHINE, updatedView);
+                                     });
+                                },
+                                function(err) {
+                                    restart(function(MACHINE) {
+                                         plt.baselib.exceptions.raise(
+                                             MACHINE, 
+                                             new Error(plt.baselib.format.format(
+                                                 "unable to translate ~s to dom node: ~a",
+                                                 [x, err.message])));
+                                        
+                                    });
+                                });
+            });
+        });
+
+
+    EXPORTS['view-insert-right'] = makeClosure(
+        'view-insert-right',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-insert-right', 0);
+            var oldArgcount = MACHINE.argcount;
+            var x = MACHINE.env[MACHINE.env.length - 2];
+            PAUSE(function(restart) {
+                coerseToDomNode(x,
+                                function(dom) {
+                                     restart(function(MACHINE) {
+                                         MACHINE.argcount = oldArgcount;
+                                         var updatedView = view.insertRight(dom);
+                                         finalizeClosureCall(MACHINE, updatedView);
+                                     });
+                                },
+                                function(err) {
+                                    restart(function(MACHINE) {
+                                         plt.baselib.exceptions.raise(
+                                             MACHINE, 
+                                             new Error(plt.baselib.format.format(
+                                                 "unable to translate ~s to dom node: ~a",
+                                                 [x, err.message])));
+                                        
+                                    });
+                                });
+            });
+        });
+
+
+
+
+    EXPORTS['view-insert-left'] = makeClosure(
+        'view-insert-left',
+        2,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-insert-left', 0);
+            var oldArgcount = MACHINE.argcount;
+            var x = MACHINE.env[MACHINE.env.length - 2];
+            PAUSE(function(restart) {
+                coerseToDomNode(x,
+                                function(dom) {
+                                     restart(function(MACHINE) {
+                                         MACHINE.argcount = oldArgcount;
+                                         var updatedView = view.insertLeft(dom);
                                          finalizeClosureCall(MACHINE, updatedView);
                                      });
                                 },

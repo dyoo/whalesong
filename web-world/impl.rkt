@@ -70,7 +70,9 @@
 
                     view-append-child
                     view-remove                    
-
+                    view-insert-right
+                    view-insert-left
+                    
                     xexp?
                     xexp->dom
 

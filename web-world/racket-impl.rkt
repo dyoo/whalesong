@@ -22,6 +22,8 @@
          view-show
          view-hide
          view-append-child
+         view-insert-right
+         view-insert-left
 
          view-remove
          
@@ -160,6 +162,12 @@
 
 (define (view-append-child view dom)
   (error 'view-append "Please run in JavaScript context."))
+
+(define (view-insert-right view dom)
+  (error 'view-insert-right "Please run in JavaScript context."))
+
+(define (view-insert-left view dom)
+  (error 'view-insert-left "Please run in JavaScript context."))
 
 
 (define (open-output-element id)

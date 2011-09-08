@@ -83,11 +83,11 @@
              (format "~a=~a;"
                      (cond
                       [(eq? target 'proc)
-                       "MACHINE.proc"]
+                       "M.proc"]
                       [(eq? target 'val)
-                       "MACHINE.val"]
+                       "M.val"]
                       [(eq? target 'argcount)
-                       "MACHINE.argcount"]
+                       "M.argcount"]
                       [(EnvLexicalReference? target)
                        (assemble-lexical-reference target)]
                       [(EnvPrefixReference? target)
@@ -95,7 +95,7 @@
                       [(ControlFrameTemporary? target)
                        (assemble-control-frame-temporary target)]
                       [(ModulePrefixTarget? target)
-                       (format "MACHINE.modules[~s].prefix"
+                       (format "M.modules[~s].prefix"
                                (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))])
                      rhs))]))
 
@@ -103,7 +103,7 @@
 
 (: assemble-control-frame-temporary (ControlFrameTemporary -> String))
 (define (assemble-control-frame-temporary t)
-  (format "MACHINE.control[MACHINE.control.length-1].~a"
+  (format "M.control[M.control.length-1].~a"
           (ControlFrameTemporary-name t)))
 
 ;; fixme: use js->string
@@ -253,26 +253,26 @@
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (if (EnvLexicalReference-unbox? a-lex-ref)
-      (format "MACHINE.env[MACHINE.env.length-~a][0]"
+      (format "M.env[M.env.length-~a][0]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))
-      (format "MACHINE.env[MACHINE.env.length-~a]"
+      (format "M.env[M.env.length-~a]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))))
 
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)
-  (format "MACHINE.env[MACHINE.env.length-~a][~a]"
+  (format "M.env[M.env.length-~a][~a]"
           (add1 (EnvPrefixReference-depth a-ref))
           (EnvPrefixReference-pos a-ref)))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
-  (format "MACHINE.env[MACHINE.env.length-~a]"
+  (format "M.env[M.env.length-~a]"
           (add1 (EnvWholePrefixReference-depth a-prefix-ref))))
 
 
 (: assemble-reg (Reg -> String))
 (define (assemble-reg a-reg)
-  (string-append "MACHINE." (symbol->string (Reg-name a-reg))))
+  (string-append "M." (symbol->string (Reg-name a-reg))))
 
 
 
@@ -302,12 +302,12 @@
 
 (: assemble-control-stack-label (ControlStackLabel -> String))
 (define (assemble-control-stack-label a-csl)
-  "MACHINE.control[MACHINE.control.length-1].label")
+  "M.control[M.control.length-1].label")
 
 
 (: assemble-control-stack-label/multiple-value-return (ControlStackLabel/MultipleValueReturn -> String))
 (define (assemble-control-stack-label/multiple-value-return a-csl)
-  "MACHINE.control[MACHINE.control.length-1].label.multipleValueReturn")
+  "M.control[M.control.length-1].label.multipleValueReturn")
 
 
 
@@ -337,7 +337,7 @@
 ;; lexical references: they must remain boxes.  So all we need is 
 ;; the depth into the environment.
 (define (assemble-env-reference/closure-capture depth)
-  (format "MACHINE.env[MACHINE.env.length - ~a]"
+  (format "M.env[M.env.length - ~a]"
           (add1 depth)))
 
 
@@ -370,7 +370,7 @@
 
 (: assemble-jump (OpArg -> String))
 (define (assemble-jump target)
-  (format "return(~a)(MACHINE);" (assemble-oparg target)))
+  (format "return(~a)(M);" (assemble-oparg target)))
 
 
 
@@ -399,25 +399,25 @@
 
 (: assemble-primitive-kernel-value (PrimitiveKernelValue -> String))
 (define (assemble-primitive-kernel-value a-prim)
-  (format "MACHINE.primitives[~s]" (symbol->string (PrimitiveKernelValue-id a-prim))))
+  (format "M.primitives[~s]" (symbol->string (PrimitiveKernelValue-id a-prim))))
 
 
 
 (: assemble-module-entry (ModuleEntry -> String))
 (define (assemble-module-entry entry)
-  (format "MACHINE.modules[~s].label"
+  (format "M.modules[~s].label"
           (symbol->string (ModuleLocator-name (ModuleEntry-name entry)))))
 
 
 (: assemble-is-module-invoked (IsModuleInvoked -> String))
 (define (assemble-is-module-invoked entry)
-  (format "MACHINE.modules[~s].isInvoked"
+  (format "M.modules[~s].isInvoked"
           (symbol->string (ModuleLocator-name (IsModuleInvoked-name entry)))))
 
 
 (: assemble-is-module-linked (IsModuleLinked -> String))
 (define (assemble-is-module-linked entry)
-  (format "(MACHINE.modules[~s]!==undefined)"
+  (format "(M.modules[~s]!==undefined)"
           (symbol->string (ModuleLocator-name (IsModuleLinked-name entry)))))
 
 
@@ -425,6 +425,6 @@
 (: assemble-variable-reference (VariableReference -> String))
 (define (assemble-variable-reference varref)
   (let ([t (VariableReference-toplevel varref)])
-    (format "(new RT.VariableReference(MACHINE.env[MACHINE.env.length-~a],~a))"
+    (format "(new RT.VariableReference(M.env[M.env.length-~a],~a))"
             (add1 (ToplevelRef-depth t))
             (ToplevelRef-pos t))))

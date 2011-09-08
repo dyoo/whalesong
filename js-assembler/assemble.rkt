@@ -39,7 +39,7 @@
 ;; What's emitted is a function expression that, when invoked, runs the
 ;; statements.
 (define (assemble/write-invoke stmts op)
-  (display "(function(MACHINE, success, fail, params) {\n" op)
+  (display "(function(M, success, fail, params) {\n" op)
   (display "var param;\n" op)
   (display "var RT = plt.runtime;\n" op)
   
@@ -49,17 +49,17 @@
   
   (write-linked-label-attributes stmts op)
   
-  (display "MACHINE.params.currentErrorHandler = fail;\n" op)
-  (display "MACHINE.params.currentSuccessHandler = success;\n" op)
+  (display "M.params.currentErrorHandler = fail;\n" op)
+  (display "M.params.currentSuccessHandler = success;\n" op)
   (display  #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {
-        MACHINE.params[param] = params[param];
+        M.params[param] = params[param];
     }
 }
 EOF
            op)
-  (fprintf op "MACHINE.trampoline(~a); })"
+  (fprintf op "M.trampoline(~a); })"
            (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))))
 
 
@@ -171,7 +171,7 @@ EOF
 
 (: assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
 (define (assemble-basic-block a-basic-block blockht entry-points op)
-  (fprintf op "var ~a = function(MACHINE) { if(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n"
+  (fprintf op "var ~a = function(M) { if(--M.callsBeforeTrampoline < 0) { throw ~a; }\n"
            (assemble-label (make-Label (BasicBlock-name a-basic-block)))
            (assemble-label (make-Label (BasicBlock-name a-basic-block))))
   (assemble-block-statements (BasicBlock-name a-basic-block)
@@ -399,7 +399,7 @@ EOF
   (define assembled
     (cond
      [(DebugPrint? stmt)
-      (format "MACHINE.params.currentOutputPort.writeDomNode(MACHINE, $('<span/>').text(~a));"
+      (format "M.params.currentOutputPort.writeDomNode(M, $('<span/>').text(~a));"
               (assemble-oparg (DebugPrint-value stmt)))]
      [(AssignImmediateStatement? stmt)
       (let: ([t : (String -> String) (assemble-target (AssignImmediateStatement-target stmt))]
@@ -450,10 +450,10 @@ EOF
       (assemble-jump (GotoStatement-target stmt))]
      
      [(PushControlFrame/Generic? stmt)
-      "MACHINE.control.push(new RT.Frame());"]
+      "M.control.push(new RT.Frame());"]
      
      [(PushControlFrame/Call? stmt)
-      (format "MACHINE.control.push(new RT.CallFrame(~a,MACHINE.proc));" 
+      (format "M.control.push(new RT.CallFrame(~a,M.proc));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -463,7 +463,7 @@ EOF
      
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
-      (format "MACHINE.control.push(new RT.PromptFrame(~a,~a));" 
+      (format "M.control.push(new RT.PromptFrame(~a,~a));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -480,12 +480,12 @@ EOF
                    (assemble-oparg tag)])))]
      
      [(PopControlFrame? stmt)
-      "MACHINE.control.pop();"]
+      "M.control.pop();"]
      
      [(PushEnvironment? stmt)
       (if (= (PushEnvironment-n stmt) 0)
           ""
-          (format "MACHINE.env.push(~a);" (string-join
+          (format "M.env.push(~a);" (string-join
                                            (build-list (PushEnvironment-n stmt) 
                                                        (lambda: ([i : Natural])
                                                          (if (PushEnvironment-unbox? stmt)
@@ -496,16 +496,16 @@ EOF
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-           (format "MACHINE.env.length-=~a;"
+           (format "M.env.length-=~a;"
                    (assemble-oparg (PopEnvironment-n stmt)))]
           [else
-           (format "MACHINE.env.splice(MACHINE.env.length-(~a +~a),~a);"
+           (format "M.env.splice(M.env.length-(~a +~a),~a);"
                    (assemble-oparg (PopEnvironment-skip stmt))
                    (assemble-oparg (PopEnvironment-n stmt))
                    (assemble-oparg (PopEnvironment-n stmt)))]))]
      
      [(PushImmediateOntoEnvironment? stmt)
-      (format "MACHINE.env.push(~a);"
+      (format "M.env.push(~a);"
               (let: ([val-string : String
                                  (cond [(PushImmediateOntoEnvironment-box? stmt)
                                         (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]

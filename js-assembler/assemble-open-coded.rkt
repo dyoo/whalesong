@@ -163,7 +163,7 @@
                             (format "RT.isPair")]
                            [(box)
                             (format "RT.isBox")])])
-           (format "RT.testArgument(MACHINE, ~s, ~a, ~a, ~a, ~s)"
+           (format "RT.testArgument(M, ~s, ~a, ~a, ~a, ~s)"
                    (symbol->string domain)
                    predicate
                    operand-string

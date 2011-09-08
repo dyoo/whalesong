@@ -10,8 +10,8 @@
 "underline"
 (html (head) (body (p (@ (style "text-decoration: underline; ")))))
 
-"navigation"
 "------"
+"navigation"
 false
 false
 false

@@ -59,7 +59,7 @@
     Vector.prototype.toList = function () {
         var ret = baselib.lists.EMPTY, i;
         for (i = this.length() - 1; i >= 0; i--) {
-            ret = baselib.lists.Cons.makeInstance(this.elts[i], ret);           
+            ret = baselib.lists.makePair(this.elts[i], ret);           
         }       
         return ret;
     };

@@ -3,6 +3,11 @@
 '(1 2 3)
 (list "hello" "world")
 
+(list? empty)
+(list? '(1))
+(list? '(1 2))
+(list? 1)
+
 (empty? empty)
 (empty? '())
 (cons? '())
@@ -24,3 +29,6 @@
 (ormap even? '(5))
 (ormap even? '(1 3 5 7))
 (ormap even? '(1 3 8 7))
+
+
+(vector->list #(3 1 4))

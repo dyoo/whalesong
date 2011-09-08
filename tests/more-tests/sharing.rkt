@@ -71,3 +71,11 @@
   (newline)
   (for-each displayln (map person-name (person-friends c)))
   (newline))
+
+
+
+;; Make sure cyclic lists are treated correctly by list?
+(shared ([a (cons 1 a)])
+  (begin
+    (displayln (pair? a))
+    (displayln (list? a))))

@@ -2,6 +2,10 @@
 ("hello" "world")
 true
 true
+true
+false
+true
+true
 false
 true
 hello
@@ -19,3 +23,4 @@ true
 false
 false
 true
+(3 1 4)

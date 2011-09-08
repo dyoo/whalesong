@@ -48,19 +48,20 @@
         this.rest = rest;
     };
 
+    var makePair = function (first, rest) {
+        return new Cons(first, rest);
+    };
+
     Cons.prototype.reverse = function () {
         var lst = this;
         var ret = EMPTY;
         while (lst !== EMPTY) {
-            ret = Cons.makeInstance(lst.first, ret);
+            ret = makePair(lst.first, ret);
             lst = lst.rest;
         }
         return ret;
     };
     
-    Cons.makeInstance = function (first, rest) {
-        return new Cons(first, rest);
-    };
 
     // FIXME: can we reduce the recursion on this?
     Cons.prototype.equals = function (other, aUnionFind) {
@@ -82,7 +83,7 @@
         var ret = b;
         var lst = this.reverse();
         while (lst !== EMPTY) {
-            ret = Cons.makeInstance(lst.first, ret);
+            ret = makePair(lst.first, ret);
             lst = lst.rest;
         }
         
@@ -160,19 +161,18 @@
     var isEmpty = function (x) { return x === EMPTY; };
 
 
-    var makePair = Cons.makeInstance;
 
     var makeList = function () {
         var result = EMPTY, i;
         for (i = arguments.length - 1; i >= 0; i--) {
-            result = Cons.makeInstance(arguments[i], result);
+            result = makePair(arguments[i], result);
         }
         return result;
     };
 
 
     // Coerse a list back into a JavaScript array.
-    var listToArray = function(lst) {
+    var listToArray = function (lst) {
         var result = [];
         while (lst !== EMPTY) {
             result.push(lst.first);
@@ -185,14 +185,17 @@
     // isList: Any -> Boolean
     // Returns true if x is a list (a chain of pairs terminated by EMPTY).
     var isList = function (x) { 
-        while (x !== EMPTY) {
-            if (x instanceof Cons) {
-                x = x.rest;
-            } else {
-                return false;
-            }
+        var tortoise, hare;
+        tortoise = hare = x;
+        if (hare === EMPTY) { return true; }
+        while (true) {
+            if (!(hare instanceof Cons)) { return false; }
+            if (tortoise instanceof Cons) { tortoise = tortoise.rest; }
+            hare = hare.rest;
+            if (hare instanceof Cons) { hare = hare.rest; }
+            if (hare === EMPTY) { return true; }
+            if (tortoise === hare) { return false; }
         }
-        return true;
     };
 
 

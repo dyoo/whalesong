@@ -38,3 +38,9 @@ false
 (html (head) (body (h1 (@ (id "header"))) (p (@ (id "para")) (ul (li "one") (li "two")))))
 (html (head) (body (h1 (@ (id "header"))) (p (@ (id "para")) (ul (li "one") (li "two") (li "three")))))
 (html (head) (body (h1 (@ (id "header"))) (p (@ (id "para")) (ul (li "zero") (li "one")))))
+
+"this is a message"
+"hello again"
+(html (head) (body (input (@ (id "my-field") (type "text") (value "this is a message")))))
+(html (head) (body (input (@ (id "my-field") (type "text") (value "hello again")))))
+"hello again"

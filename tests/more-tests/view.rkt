@@ -162,3 +162,61 @@
                                                              (ul (li "one")))))))
                           "para")))
   (xexp->dom '(li "zero"))))
+
+
+(newline)
+
+(view-form-value
+ (view-focus (->view
+              (xexp->dom '(html (head)
+                                (body (input (@ (id "my-field")
+                                                (type "text")
+                                                (value "this is a message")))))))
+             "my-field"))
+
+(view-form-value
+ (update-view-form-value
+  (view-focus (->view
+               (xexp->dom '(html (head)
+                                 (body (input (@ (id "my-field")
+                                                 (type "text")
+                                                 (value "this is a message")))))))
+              "my-field")
+  "hello again"))
+
+
+;; For some reason, updating the form value doesn't touch the attribute, so the
+;; xexp stays the same.
+(view->xexp
+ (update-view-form-value
+  (view-focus (->view
+               (xexp->dom '(html (head)
+                                 (body (input (@ (id "my-field")
+                                                 (type "text")
+                                                 (value "this is a message")))))))
+              "my-field")
+  "hello again"))
+
+;; When you change the attribute, it also changes the form value...
+;; Good grief, sometimes I dislike the DOM...
+(view->xexp
+ (update-view-attr
+  (view-focus (->view
+               (xexp->dom '(html (head)
+                                 (body (input (@ (id "my-field")
+                                                 (type "text")
+                                                 (value "this is a message")))))))
+              "my-field")
+  "value"
+  "hello again"))
+
+(view-form-value
+ (update-view-attr
+  (view-focus (->view
+               (xexp->dom '(html (head)
+                                 (body (input (@ (id "my-field")
+                                                 (type "text")
+                                                 (value "this is a message")))))))
+              "my-field")
+  "value"
+  "hello again"))

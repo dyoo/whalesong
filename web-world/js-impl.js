@@ -1367,6 +1367,7 @@
                     plt.baselib.lists.makeList(plt.baselib.symbols.makeSymbol(dom.attributes[i].nodeName),
                                                dom.attributes[i].nodeValue),
                     attrs);
+                attrs = plt.baselib.lists.reverse(attrs);
             } 
             while(child !== null) {
                 if (child.nodeType === 1) {

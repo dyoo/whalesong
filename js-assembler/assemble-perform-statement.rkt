@@ -14,7 +14,7 @@
   (cond 
     
     [(CheckToplevelBound!? op)
-     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { RUNTIME.raiseUnboundToplevelError(MACHINE.env[MACHINE.env.length - 1 - ~a].names[~a]); }"
+     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { RT.raiseUnboundToplevelError(MACHINE.env[MACHINE.env.length - 1 - ~a].names[~a]); }"
              (CheckToplevelBound!-depth op)
              (CheckToplevelBound!-pos op)
              (CheckToplevelBound!-depth op)
@@ -22,13 +22,13 @@
 
 
     [(CheckClosureArity!? op)
-     (format "if(!(MACHINE.proc instanceof RUNTIME.Closure)){RUNTIME.raiseOperatorIsNotClosure(MACHINE,MACHINE.proc);}if(!RUNTIME.isArityMatching(MACHINE.proc.racketArity,~a)){RUNTIME.raiseArityMismatchError(MACHINE, MACHINE.proc,~a);}"
+     (format "if(!(MACHINE.proc instanceof RT.Closure)){RT.raiseOperatorIsNotClosure(MACHINE,MACHINE.proc);}if(!RT.isArityMatching(MACHINE.proc.racketArity,~a)){RT.raiseArityMismatchError(MACHINE, MACHINE.proc,~a);}"
              (assemble-oparg (CheckClosureArity!-num-args op))
              (assemble-oparg (CheckClosureArity!-num-args op)))]
 
     
     [(CheckPrimitiveArity!? op)
-     (format "if(!RUNTIME.isArityMatching(MACHINE.proc.racketArity,~a)){RUNTIME.raiseArityMismatchError(MACHINE,MACHINE.proc,~a);}"
+     (format "if(!RT.isArityMatching(MACHINE.proc.racketArity,~a)){RT.raiseArityMismatchError(MACHINE,MACHINE.proc,~a);}"
              (assemble-oparg (CheckPrimitiveArity!-num-args op))
              (assemble-oparg (CheckPrimitiveArity!-num-args op)))]
     
@@ -125,28 +125,28 @@
                     "MACHINE.val);")]
 
     [(RaiseContextExpectedValuesError!? op)
-     (format "RUNTIME.raiseContextExpectedValuesError(MACHINE,~a);"
+     (format "RT.raiseContextExpectedValuesError(MACHINE,~a);"
              (RaiseContextExpectedValuesError!-expected op))]
 
 
     [(RaiseArityMismatchError!? op)
-     (format "RUNTIME.raiseArityMismatchError(MACHINE,~a,~a);"
+     (format "RT.raiseArityMismatchError(MACHINE,~a,~a);"
              (assemble-oparg (RaiseArityMismatchError!-proc op))
              (assemble-oparg (RaiseArityMismatchError!-received op)))]
 
 
     [(RaiseOperatorApplicationError!? op)
-     (format "RUNTIME.raiseOperatorApplicationError(MACHINE,~a);"
+     (format "RT.raiseOperatorApplicationError(MACHINE,~a);"
              (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]
 
 
     [(RaiseUnimplementedPrimitiveError!? op)
-     (format "RUNTIME.raiseUnimplementedPrimitiveError(MACHINE,~s);"
+     (format "RT.raiseUnimplementedPrimitiveError(MACHINE,~s);"
              (symbol->string (RaiseUnimplementedPrimitiveError!-name op)))]
     
     
     [(InstallModuleEntry!? op)
-     (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s,~a);"
+     (format "MACHINE.modules[~s]=new RT.ModuleRecord(~s,~a);"
              (symbol->string (ModuleLocator-name (InstallModuleEntry!-path op)))
              (symbol->string (InstallModuleEntry!-name op))
              (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]

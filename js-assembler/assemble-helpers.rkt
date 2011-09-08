@@ -74,7 +74,7 @@
   (cond
    [(PrimitivesReference? target)
     (lambda: ([rhs : String])
-             (format "RUNTIME.Primitives[~s]=RUNTIME.Primitives[~s]||~a;"
+             (format "RT.Primitives[~s]=RT.Primitives[~s]||~a;"
                      (symbol->string (PrimitivesReference-name target))
                      (symbol->string (PrimitivesReference-name target))
                      rhs))]
@@ -111,38 +111,38 @@
 (define (assemble-const stmt)
   (let: loop : String ([val : const-value (Const-const stmt)])
         (cond [(symbol? val)
-               (format "RUNTIME.makeSymbol(~s)" (symbol->string val))]
+               (format "RT.makeSymbol(~s)" (symbol->string val))]
               [(pair? val)
-               (format "RUNTIME.makePair(~a,~a)" 
+               (format "RT.makePair(~a,~a)" 
                        (loop (car val))
                        (loop (cdr val)))]
               [(boolean? val)
                (if val "true" "false")]
               [(void? val)
-               "RUNTIME.VOID"]
+               "RT.VOID"]
               [(empty? val)
-               (format "RUNTIME.NULL")]
+               (format "RT.NULL")]
               [(number? val)
                (assemble-numeric-constant val)]
               [(string? val)
                (format "~s" val)]
               [(char? val)
-               (format "RUNTIME.makeChar(~s)" (string val))]
+               (format "RT.makeChar(~s)" (string val))]
               [(bytes? val)
-               (format "RUNTIME.makeBytes(~a)"
+               (format "RT.makeBytes(~a)"
                        (string-join (for/list ([a-byte val])
                                       (number->string a-byte))
                                     ","))]
               [(path? val)
-               (format "RUNTIME.makePath(~s)"
+               (format "RT.makePath(~s)"
                        (path->string val))]
               [(vector? val)
-               (format "RUNTIME.makeVector(~a)"
+               (format "RT.makeVector(~a)"
                        (string-join (for/list ([elt (vector->list val)])
                                        (loop elt))
                                     ","))]
               [(box? val)
-               (format "RUNTIME.makeBox(~s)"
+               (format "RT.makeBox(~s)"
                        (loop (unbox val)))])))
 
 
@@ -152,9 +152,9 @@
   (let loop ([vals vals])
     (cond
       [(empty? vals)
-       "RUNTIME.NULL"]
+       "RT.NULL"]
       [else
-       (format "RUNTIME.makePair(~a,~a)" (first vals) (loop (rest vals)))])))
+       (format "RT.makePair(~a,~a)" (first vals) (loop (rest vals)))])))
 
 
 
@@ -171,15 +171,15 @@
   (define (floating-number->js a-num)
     (cond
      [(eqv? a-num -0.0)
-      "RUNTIME.NEGATIVE_ZERO"]
+      "RT.NEGATIVE_ZERO"]
      [(eqv? a-num +inf.0)
-      "RUNTIME.INF"]
+      "RT.INF"]
      [(eqv? a-num -inf.0)
-      "RUNTIME.NEGATIVE_INF"]
+      "RT.NEGATIVE_INF"]
      [(eqv? a-num +nan.0)
-      "RUNTIME.NAN"]
+      "RT.NAN"]
      [else
-      (string-append "RUNTIME.makeFloat(" (number->string a-num) ")")]))
+      (string-append "RT.makeFloat(" (number->string a-num) ")")]))
 
   ;; FIXME: fix the type signature when typed-racket isn't breaking on
   ;; (define-predicate ExactRational? (U Exact-Rational))
@@ -188,7 +188,7 @@
     (cond [(= (denominator a-num) 1)
            (string-append (integer->js (ensure-integer (numerator a-num))))]
           [else
-           (string-append "RUNTIME.makeRational("
+           (string-append "RT.makeRational("
                           (integer->js (ensure-integer (numerator a-num)))
                           ","
                           (integer->js (ensure-integer (denominator a-num)))
@@ -211,7 +211,7 @@
       (number->string an-int)]
      ;; overflow case
      [else
-      (string-append "RUNTIME.makeBignum("
+      (string-append "RT.makeBignum("
                      (format "~s" (number->string an-int))
                      ")")]))
 
@@ -223,7 +223,7 @@
     (floating-number->js a-num)]
    
    [(complex? a-num)
-    (string-append "RUNTIME.makeComplex("
+    (string-append "RT.makeComplex("
                    (assemble-numeric-constant (real-part a-num))
                    ","
                    (assemble-numeric-constant (imag-part a-num))
@@ -328,7 +328,7 @@
 
 (: assemble-default-continuation-prompt-tag (-> String))
 (define (assemble-default-continuation-prompt-tag)
-  "RUNTIME.DEFAULT_CONTINUATION_PROMPT_TAG")
+  "RT.DEFAULT_CONTINUATION_PROMPT_TAG")
 
 
 
@@ -350,7 +350,7 @@
    [(natural? an-arity)
     (number->string an-arity)]
    [(ArityAtLeast? an-arity)
-    (format "(RUNTIME.makeArityAtLeast(~a))"
+    (format "(RT.makeArityAtLeast(~a))"
             (ArityAtLeast-value an-arity))]
    [(listof-atomic-arity? an-arity)
     (assemble-listof-assembled-values
@@ -360,7 +360,7 @@
 		[(natural? atomic-arity)
 		 (number->string atomic-arity)]
 		[(ArityAtLeast? atomic-arity)
-		 (format "(RUNTIME.makeArityAtLeast(~a))"
+		 (format "(RT.makeArityAtLeast(~a))"
                          (ArityAtLeast-value atomic-arity))]))
       an-arity))]))
 
@@ -425,6 +425,6 @@
 (: assemble-variable-reference (VariableReference -> String))
 (define (assemble-variable-reference varref)
   (let ([t (VariableReference-toplevel varref)])
-    (format "(new RUNTIME.VariableReference(MACHINE.env[MACHINE.env.length-~a],~a))"
+    (format "(new RT.VariableReference(MACHINE.env[MACHINE.env.length-~a],~a))"
             (add1 (ToplevelRef-depth t))
             (ToplevelRef-pos t))))

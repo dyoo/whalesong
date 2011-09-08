@@ -46,7 +46,7 @@
                               "(function() { "
 
                               runtime
-                              "var RUNTIME = plt.runtime;"
+                              "var RT = plt.runtime;"
                               "var MACHINE = new plt.runtime.Machine();\n"
 
                               "return function(success, fail, params){" 
@@ -65,7 +65,7 @@
                                  [inspector (cdr a-statement+inspector)])
 
                             (display runtime op)
-                            "var RUNTIME = plt.runtime;"
+                            "var RT = plt.runtime;"
                             (display "var MACHINE = new plt.runtime.Machine();\n" op)                           
                             (display "(function() { " op)
                             (display "var myInvoke = " op)

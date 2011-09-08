@@ -41,7 +41,7 @@
 (define (assemble/write-invoke stmts op)
   (display "(function(MACHINE, success, fail, params) {\n" op)
   (display "var param;\n" op)
-  (display "var RUNTIME = plt.runtime;\n" op)
+  (display "var RT = plt.runtime;\n" op)
   
   (define-values (basic-blocks entry-points) (fracture stmts))
   
@@ -241,7 +241,7 @@ EOF
                                          (assemble-oparg (TestPrimitiveProcedure-operand test)))]
                                 
                                 [(TestClosureArityMismatch? test)
-                                 (format "if(!RUNTIME.isArityMatching((~a).racketArity,~a))"
+                                 (format "if(!RT.isArityMatching((~a).racketArity,~a))"
                                          (assemble-oparg (TestClosureArityMismatch-closure test))
                                          (assemble-oparg (TestClosureArityMismatch-n test)))]))
                (display test-code op)
@@ -440,7 +440,7 @@ EOF
                         (assemble-oparg (TestPrimitiveProcedure-operand test))
                         jump)]
                [(TestClosureArityMismatch? test)
-                (format "if(!RUNTIME.isArityMatching((~a).racketArity,~a)){~a}"
+                (format "if(!RT.isArityMatching((~a).racketArity,~a)){~a}"
                         (assemble-oparg (TestClosureArityMismatch-closure test))
                         (assemble-oparg (TestClosureArityMismatch-n test))
                         jump)])
@@ -450,10 +450,10 @@ EOF
       (assemble-jump (GotoStatement-target stmt))]
      
      [(PushControlFrame/Generic? stmt)
-      "MACHINE.control.push(new RUNTIME.Frame());"]
+      "MACHINE.control.push(new RT.Frame());"]
      
      [(PushControlFrame/Call? stmt)
-      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a,MACHINE.proc));" 
+      (format "MACHINE.control.push(new RT.CallFrame(~a,MACHINE.proc));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -463,7 +463,7 @@ EOF
      
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
-      (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a,~a));" 
+      (format "MACHINE.control.push(new RT.PromptFrame(~a,~a));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                 (cond
                   [(symbol? label) 

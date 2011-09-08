@@ -70,7 +70,7 @@
            (assemble-boolean-chain "plt.baselib.numbers.greaterThanOrEqual" checked-operands)]
           
           [(cons)
-           (format "RUNTIME.makePair(~a, ~a)"
+           (format "RT.makePair(~a, ~a)"
                    (first checked-operands)
                    (second checked-operands))]
 
@@ -85,15 +85,15 @@
              (assemble-listof-assembled-values checked-operands))]
 
           [(list?)
-           (format "RUNTIME.isList(~a)"
+           (format "RT.isList(~a)"
                    (first checked-operands))]
           
           [(pair?)
-           (format "RUNTIME.isPair(~a)"
+           (format "RT.isPair(~a)"
                    (first checked-operands))]
           
           [(null?)
-           (format "(~a === RUNTIME.NULL)" (first checked-operands))]
+           (format "(~a === RT.NULL)" (first checked-operands))]
 
           [(not)
            (format "(~a === false)" (first checked-operands))]
@@ -154,16 +154,16 @@
      (let: ([predicate : String
                          (case domain
                            [(number)
-                            (format "RUNTIME.isNumber")]
+                            (format "RT.isNumber")]
                            [(string)
-                            (format "RUNTIME.isString")]
+                            (format "RT.isString")]
                            [(list)
-                            (format "RUNTIME.isList")]
+                            (format "RT.isList")]
                            [(pair)
-                            (format "RUNTIME.isPair")]
+                            (format "RT.isPair")]
                            [(box)
-                            (format "RUNTIME.isBox")])])
-           (format "RUNTIME.testArgument(MACHINE, ~s, ~a, ~a, ~a, ~s)"
+                            (format "RT.isBox")])])
+           (format "RT.testArgument(MACHINE, ~s, ~a, ~a, ~a, ~s)"
                    (symbol->string domain)
                    predicate
                    operand-string

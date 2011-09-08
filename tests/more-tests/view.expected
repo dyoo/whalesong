@@ -44,3 +44,10 @@ false
 (html (head) (body (input (@ (id "my-field") (type "text") (value "this is a message")))))
 (html (head) (body (input (@ (id "my-field") (type "text") (value "hello again")))))
 "hello again"
+
+"id"
+"para"
+
+"remove"
+(html (head) (body "some text"))
+"some text"

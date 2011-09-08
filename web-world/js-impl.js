@@ -1354,21 +1354,28 @@
         return false;
     };
 
+    var firstLessThan = function(x, y) {
+        return x[0] < y[0];
+    };
+
     var domToXexp = function(dom) {
-        var child, attrs, name, convertedChildren, i;
+        var child, attrs, name, convertedChildren, i, attributes;
         if (dom.nodeType === 1) {
+            attributes = [];
             attrs = plt.baselib.lists.EMPTY;
             name = plt.baselib.symbols.makeSymbol(dom.nodeName.toLowerCase());
             child = dom.firstChild;
             convertedChildren = plt.baselib.lists.EMPTY;
-
             for (i = 0; i < dom.attributes.length; i++) {
-                attrs = plt.baselib.lists.makePair(
-                    plt.baselib.lists.makeList(plt.baselib.symbols.makeSymbol(dom.attributes[i].nodeName),
-                                               dom.attributes[i].nodeValue),
-                    attrs);
-                attrs = plt.baselib.lists.reverse(attrs);
+                attributes.push([dom.attributes[i].nodeName, dom.attributes[i].nodeValue]);
             } 
+            attributes.sort(firstLessThan);
+            for (i = 0; i < attributes.length; i++) {
+                attrs = plt.baselib.lists.makePair(
+                    plt.baselib.lists.makeList(plt.baselib.symbols.makeSymbol(attributes[i][0]),
+                                               attributes[i][1]),
+                    attrs);
+            }
             while(child !== null) {
                 if (child.nodeType === 1) {
                     convertedChildren = 

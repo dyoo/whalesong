@@ -220,3 +220,32 @@
               "my-field")
   "value"
   "hello again"))
+
+
+
+(newline)
+"id"
+(view-id
+ (view-focus (->view (xexp->dom '(html (head) (body (p (@ (id "para")))))))
+             "para"))
+
+(newline)
+"remove"
+(view->xexp
+ (view-remove
+  (view-focus (->view
+               (xexp->dom '(html (head)
+                                 (body (input (@ (id "my-field")
+                                                 (type "text")
+                                                 (value "this is a message")))
+                                       "some text"))))
+              "my-field")))
+(view-text
+ (view-remove
+  (view-focus (->view
+               (xexp->dom '(html (head)
+                                 (body (input (@ (id "my-field")
+                                                 (type "text")
+                                                 (value "this is a message")))
+                                       "some text"))))
+              "my-field")))

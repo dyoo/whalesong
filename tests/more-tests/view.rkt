@@ -131,30 +131,34 @@
 
 (view->xexp
  (view-insert-right
-  (view-down (view-focus (->view (xexp->dom '(html (head)
-                                                   (body (h1 (@ (id "header")))
-                                                         (p (@ (id "para"))
-                                                            (ul (li "one")))))))
-                         "para"))
+  (view-down
+   (view-down
+    (view-focus (->view (xexp->dom '(html (head)
+                                          (body (h1 (@ (id "header")))
+                                                (p (@ (id "para"))
+                                                   (ul (li "one")))))))
+                "para")))
   (xexp->dom '(li "two"))))
 
 
 (view->xexp
  (view-insert-right
   (view-insert-right
-   (view-down (view-focus (->view (xexp->dom '(html (head)
-                                                    (body (h1 (@ (id "header")))
-                                                          (p (@ (id "para"))
-                                                             (ul (li "one")))))))
-                          "para"))
+   (view-down
+    (view-down (view-focus (->view (xexp->dom '(html (head)
+                                                     (body (h1 (@ (id "header")))
+                                                           (p (@ (id "para"))
+                                                              (ul (li "one")))))))
+                           "para")))
    (xexp->dom '(li "two")))
   (xexp->dom '(li "three"))))
 
 (view->xexp
  (view-insert-left
-  (view-down (view-focus (->view (xexp->dom '(html (head)
-                                                   (body (h1 (@ (id "header")))
-                                                         (p (@ (id "para"))
-                                                            (ul (li "one")))))))
-                         "para"))
+  (view-down
+   (view-down (view-focus (->view (xexp->dom '(html (head)
+                                                    (body (h1 (@ (id "header")))
+                                                          (p (@ (id "para"))
+                                                             (ul (li "one")))))))
+                          "para")))
   (xexp->dom '(li "zero"))))

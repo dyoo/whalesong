@@ -171,7 +171,7 @@ var TreeCursor = (function() {
     TreeCursor.prototype.insertRight = function(n) {
         return new TreeCursor(this.parent,
                               n,
-                              this.prevs.concat(this.node),
+                              this.prevs.concat([this.node]),
                               this.nexts,
                               this.openF,
                               this.closeF,

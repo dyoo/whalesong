@@ -235,8 +235,6 @@
     MockView.prototype.updateCss = function(name, value) {
         return this.act(
             function(cursor) {
-                console.log($(cursor.node[0].cloneNode(false))
-                            .css(name, value).get(0));
                 return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .css(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));

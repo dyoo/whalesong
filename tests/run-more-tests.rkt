@@ -27,3 +27,4 @@
 (test "more-tests/conform.rkt")
 (test "more-tests/earley.rkt")
 (test "more-tests/view.rkt")
+(test "more-tests/weird-cc.rkt")

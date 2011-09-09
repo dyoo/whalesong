@@ -212,11 +212,11 @@
 
     var Machine = function() {
 	this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
-	this.val = undefined;
-	this.proc = undefined;
-	this.argcount = undefined;
-	this.env = [];
-	this.control = [];     // Arrayof (U Frame CallFrame PromptFrame)
+	this.val = undefined;         // value register
+	this.proc = undefined;        // procedure register
+	this.argcount = undefined;    // argument count
+	this.env = [];                // environment
+	this.control = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.modules = {};     // String -> ModuleRecord
         this.mainModules = []; // Arrayof String
@@ -444,17 +444,16 @@
 
 
     Machine.prototype.trampoline = function(initialJump) {
-	var MACHINE = this;
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
-	MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
-	MACHINE.params.numBouncesBeforeYield = 
-	    MACHINE.params.maxNumBouncesBeforeYield;
-	MACHINE.running = true;
+	this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+	this.params.numBouncesBeforeYield = 
+	    this.params.maxNumBouncesBeforeYield;
+	this.running = true;
 
 	while(true) {
             try {
-		thunk(MACHINE);
+		thunk(this);
 		break;
             } catch (e) {
                 // There are a few kinds of things that can get thrown
@@ -479,35 +478,36 @@
                 // The running flag is set to false.
 		if (typeof(e) === 'function') {
                     thunk = e;
-                    MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+                    this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
 
-		    if (MACHINE.params.numBouncesBeforeYield-- < 0) {
+		    if (this.params.numBouncesBeforeYield-- < 0) {
 			recomputeMaxNumBouncesBeforeYield(
-			    MACHINE,
+			    this,
 			    (new Date()).valueOf() - startTime);
-			scheduleTrampoline(MACHINE, thunk);
+			scheduleTrampoline(this, thunk);
 			return;
 		    }
 		} else if (e instanceof Pause) {
-                    var restart = makeRestartFunction(MACHINE);
+                    var restart = makeRestartFunction(this);
                     e.onPause(restart);
                     return;
                 } else if (e instanceof HaltError) {
-		    MACHINE.running = false;
-                    e.onHalt(MACHINE);
+		    this.running = false;
+                    e.onHalt(this);
                     return;
                 } else {
 		    // General error condition: just exit out
 		    // of the trampoline and call the current error handler.
-		    MACHINE.running = false;
-                    MACHINE.params.currentErrorHandler(MACHINE, e);
+		    this.running = false;
+                    this.params.currentErrorHandler(this, e);
 	            return;
 		}
             }
 	}
-	MACHINE.running = false;
+	this.running = false;
+        var that = this;
         setTimeout(
-            function() { MACHINE.params.currentSuccessHandler(MACHINE); },
+            function() { that.params.currentSuccessHandler(that); },
             0);
 	return;
     };

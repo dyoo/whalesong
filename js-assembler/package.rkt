@@ -159,7 +159,7 @@
              var modrec = M.modules[~s];
              var exports = {};
              modrec.isInvoked = true;
-             (function(MACHINE, RUNTIME, EXPORTS){~a})(M, plt.runtime, exports);
+             (function(MACHINE, EXPORTS){~a})(M, exports);
              ~a
              modrec.privateExports = exports;
              return M.control.pop().label(M);"

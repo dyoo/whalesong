@@ -22,7 +22,7 @@
 
 
     [(CheckClosureAndArity!? op)
-     (format "RT.checkClosureAndArity(M, ~a);\n"
+     (format "RT.checkClosureAndArity(M, ~a);"
              (assemble-oparg (CheckClosureAndArity!-num-args op)))]
 
     [(ExtendEnvironment/Prefix!? op)

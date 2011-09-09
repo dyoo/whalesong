@@ -62,7 +62,7 @@
     // extra function call here.
     var finalizeClosureCall = function (MACHINE) {
         MACHINE.callsBeforeTrampoline--;
-        var i, returnArgs = [].slice.call(arguments, 1);
+        var returnArgs = [].slice.call(arguments, 1);
 
         // clear out stack space
         MACHINE.env.length -= MACHINE.argcount;
@@ -307,15 +307,6 @@
 
 
 
-
-
-
-    var makePrimitiveProcedure = function (name, arity, f) {
-        f.racketArity = arity;
-        f.displayName = name;
-        return f;
-    };
-
     var makeClosure = function (name, arity, f, closureArgs) {
         if (! closureArgs) { closureArgs = []; }
         return new Closure(f,
@@ -323,6 +314,23 @@
                            closureArgs,
                            name);
     };
+
+
+    var makePrimitiveProcedure = function (name, arity, f) {
+        // f.racketArity = arity;
+        // f.displayName = name;
+        // return f;
+        return makeClosure(name,
+                           arity,
+                           function(M) {
+                               --M.callsBeforeTrampoline;
+                               M.val = f(M);
+                               M.env.length -= M.argcount;
+                               return M.control.pop().label(M);
+                           },
+                           []);
+    };
+
 
 
 

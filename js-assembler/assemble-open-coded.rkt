@@ -70,7 +70,7 @@
            (assemble-boolean-chain "plt.baselib.numbers.greaterThanOrEqual" checked-operands)]
           
           [(cons)
-           (format "RT.makePair(~a, ~a)"
+           (format "RT.makePair(~a,~a)"
                    (first checked-operands)
                    (second checked-operands))]
 
@@ -93,13 +93,13 @@
                    (first checked-operands))]
           
           [(null?)
-           (format "(~a === RT.NULL)" (first checked-operands))]
+           (format "(~a===RT.NULL)" (first checked-operands))]
 
           [(not)
-           (format "(~a === false)" (first checked-operands))]
+           (format "(~a=== alse)" (first checked-operands))]
           
           [(eq?)
-           (format "(~a === ~a)" (first checked-operands) (second checked-operands))])))
+           (format "(~a===~a)" (first checked-operands) (second checked-operands))])))
 
 
 
@@ -163,7 +163,7 @@
                             (format "RT.isPair")]
                            [(box)
                             (format "RT.isBox")])])
-           (format "RT.testArgument(M, ~s, ~a, ~a, ~a, ~s)"
+           (format "RT.testArgument(M,~s,~a,~a,~a,~s)"
                    (symbol->string domain)
                    predicate
                    operand-string

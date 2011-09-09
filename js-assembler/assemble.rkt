@@ -180,15 +180,12 @@ EOF
 (: assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
 (define (assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
   (match (BasicBlock-stmts a-basic-block)
-    ;; [(list (struct PopEnvironment (n (and (? (lambda (c) (equal? c (Const 0))))
-    ;;                                       skip)))
-    ;;        (struct GotoStatement ((and (? Label?)
-    ;;                                    target))))
-    ;;  (fprintf op "~a=RT.si_popgoto(~a,function(){return ~a});\n"
-    ;;           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-    ;;           (assemble-oparg n)
-    ;;           (assemble-label target))
-    ;;  'ok]
+    [(list (struct PerformStatement ((struct RaiseContextExpectedValuesError! (expected))))
+           stmts ...)
+     (fprintf op "~a=RT.si_context_expected(~a);\n"
+              (assemble-label (make-Label (BasicBlock-name a-basic-block)))
+              expected)
+     'ok]
     [else
      (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)]))
 

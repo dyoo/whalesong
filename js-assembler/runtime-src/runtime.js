@@ -668,15 +668,11 @@
 
     //////////////////////////////////////////////////////////////////////
     // Superinstructions to try to reduce code size.
-
-    var si_popgoto = function(n, gotoTargetThunk) {
-        return function(M) {
-            --M.cbt;
-            M.env.length-=n;
-            return gotoTargetThunk()(M);
-        };
+    var si_context_expected = function(n) {
+        if (n === 1) { return si_context_expected_1; }
+        return function(M) { raiseContextExpectedValuesError(M, n); }
     };
-
+    var si_context_expected_1 = function(M) { raiseContextExpectedValuesError(M, 1); }
 
 
 
@@ -815,7 +811,7 @@
     exports['getTracedAppKey'] = getTracedAppKey;
     exports['getTracedCalleeKey'] = getTracedCalleeKey;
 
-    exports['si_popgoto'] = si_popgoto;
+    exports['si_context_expected'] = si_context_expected;
     exports['checkClosureAndArity'] = checkClosureAndArity;
 
 

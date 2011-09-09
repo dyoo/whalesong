@@ -655,6 +655,37 @@
 
 
 
+    var checkClosureAndArity = function(M, n) {
+        if(!(M.proc instanceof Closure)){
+            raiseOperatorIsNotClosure(M,M.proc);
+        }
+        if(!isArityMatching(M.proc.racketArity,n)) {
+            raiseArityMismatchError(M, M.proc,n);
+        }
+    };
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    // Superinstructions to try to reduce code size.
+
+    var si_popgoto = function(n, gotoTargetThunk) {
+        return function(M) {
+            --M.callsBeforeTrampoline;
+            M.env.length-=n;
+            return gotoTargetThunk()(M);
+        };
+    };
+
+
+
+
+
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
@@ -783,5 +814,9 @@
 
     exports['getTracedAppKey'] = getTracedAppKey;
     exports['getTracedCalleeKey'] = getTracedCalleeKey;
+
+    exports['si_popgoto'] = si_popgoto;
+    exports['checkClosureAndArity'] = checkClosureAndArity;
+
 
 }(this.plt, this.plt.baselib));

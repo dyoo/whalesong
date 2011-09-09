@@ -22,8 +22,7 @@
 
 
     [(CheckClosureAndArity!? op)
-     (format "if(!(M.proc instanceof RT.Closure)){RT.raiseOperatorIsNotClosure(M,M.proc);}if(!RT.isArityMatching(M.proc.racketArity,~a)){RT.raiseArityMismatchError(M, M.proc,~a);}"
-             (assemble-oparg (CheckClosureAndArity!-num-args op))
+     (format "RT.checkClosureAndArity(M, ~a);\n"
              (assemble-oparg (CheckClosureAndArity!-num-args op)))]
 
     [(ExtendEnvironment/Prefix!? op)

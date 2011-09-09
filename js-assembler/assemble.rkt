@@ -14,7 +14,8 @@
          "../sets.rkt"
          "../helpers.rkt"
          racket/string
-         racket/list)
+         racket/list
+         racket/match)
 (require/typed "../logger.rkt"
                [log-debug (String -> Void)])
 
@@ -44,7 +45,7 @@
   (display "var RT = plt.runtime;\n" op)
   
   (define-values (basic-blocks entry-points) (fracture stmts))
-  
+
   (write-blocks basic-blocks (list->set entry-points) op)
   
   (write-linked-label-attributes stmts op)
@@ -171,6 +172,23 @@ EOF
 
 (: assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
 (define (assemble-basic-block a-basic-block blockht entry-points op)
+  (match (BasicBlock-stmts a-basic-block)
+    ;; [(list (struct PopEnvironment (n (and (? (lambda (c) (equal? c (Const 0))))
+    ;;                                       skip)))
+    ;;        (struct GotoStatement ((and (? Label?)
+    ;;                                    target))))
+    ;;  (fprintf op "~a=RT.si_popgoto(~a,function(){return ~a});\n"
+    ;;           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
+    ;;           (assemble-oparg n)
+    ;;           (assemble-label target))
+    ;;  'ok]
+    [else
+     (default-assemble-basic-block a-basic-block blockht entry-points op)]))
+
+
+
+(: default-assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
+(define (default-assemble-basic-block a-basic-block blockht entry-points op)
   (fprintf op "var ~a = function(M) { if(--M.callsBeforeTrampoline < 0) { throw ~a; }\n"
            (assemble-label (make-Label (BasicBlock-name a-basic-block)))
            (assemble-label (make-Label (BasicBlock-name a-basic-block))))
@@ -181,6 +199,7 @@ EOF
                              op)
   (display "};\n" op)
   'ok)
+
 
 
 

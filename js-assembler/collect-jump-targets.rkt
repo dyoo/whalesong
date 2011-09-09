@@ -112,8 +112,8 @@
        (list (MakeCompiledProcedure-label op))]
       [(MakeCompiledProcedureShell? op)
        (list (MakeCompiledProcedureShell-label op))]
-      [(ApplyPrimitiveProcedure? op)
-       empty]
+      ;; [(ApplyPrimitiveProcedure? op)
+      ;;  empty]
       [(CaptureEnvironment? op)
        empty]
       [(CaptureControl? op)
@@ -258,8 +258,8 @@
        (list (MakeCompiledProcedure-label op))]
       [(MakeCompiledProcedureShell? op)
        (list (MakeCompiledProcedureShell-label op))]
-      [(ApplyPrimitiveProcedure? op)
-       empty]
+      ;; [(ApplyPrimitiveProcedure? op)
+      ;;  empty]
       [(CaptureEnvironment? op)
        empty]
       [(CaptureControl? op)
@@ -279,7 +279,7 @@
       ;; currently written this way because I'm hitting some bad type-checking behavior.
       #;([(CheckToplevelBound!? op)
           empty]
-         [(CheckClosureArity!? op)
+         [(CheckClosureAndArity!? op)
           empty]
          [(CheckPrimitiveArity!? op)
           empty]

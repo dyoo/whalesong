@@ -21,18 +21,11 @@
              (CheckToplevelBound!-pos op))]
 
 
-    [(CheckClosureArity!? op)
+    [(CheckClosureAndArity!? op)
      (format "if(!(M.proc instanceof RT.Closure)){RT.raiseOperatorIsNotClosure(M,M.proc);}if(!RT.isArityMatching(M.proc.racketArity,~a)){RT.raiseArityMismatchError(M, M.proc,~a);}"
-             (assemble-oparg (CheckClosureArity!-num-args op))
-             (assemble-oparg (CheckClosureArity!-num-args op)))]
+             (assemble-oparg (CheckClosureAndArity!-num-args op))
+             (assemble-oparg (CheckClosureAndArity!-num-args op)))]
 
-    
-    [(CheckPrimitiveArity!? op)
-     (format "if(!RT.isArityMatching(M.proc.racketArity,~a)){RT.raiseArityMismatchError(M,M.proc,~a);}"
-             (assemble-oparg (CheckPrimitiveArity!-num-args op))
-             (assemble-oparg (CheckPrimitiveArity!-num-args op)))]
-    
-    
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
            (format "M.env.push([~a]);M.env[M.env.length-1].names=[~a];"

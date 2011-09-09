@@ -36,9 +36,6 @@
              (assemble-arity (MakeCompiledProcedureShell-arity op))
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     
-    [(ApplyPrimitiveProcedure? op)
-     (format "M.proc(M)")]
-    
     [(CaptureEnvironment? op)
      (format "M.env.slice(0, M.env.length - ~a)"
              (CaptureEnvironment-skip op))]

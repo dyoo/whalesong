@@ -236,9 +236,9 @@ EOF
                                  (format "if(~a===0)"
                                          (assemble-oparg (TestZero-operand test)))]
                                 
-                                [(TestPrimitiveProcedure? test)
-                                 (format "if(typeof(~a)==='function')"
-                                         (assemble-oparg (TestPrimitiveProcedure-operand test)))]
+                                ;; [(TestPrimitiveProcedure? test)
+                                ;;  (format "if(typeof(~a)==='function')"
+                                ;;          (assemble-oparg (TestPrimitiveProcedure-operand test)))]
                                 
                                 [(TestClosureArityMismatch? test)
                                  (format "if(!RT.isArityMatching((~a).racketArity,~a))"
@@ -435,10 +435,10 @@ EOF
                 (format "if(~a===0){~a}"
                         (assemble-oparg (TestZero-operand test))
                         jump)]
-               [(TestPrimitiveProcedure? test)
-                (format "if(typeof(~a)==='function'){~a}"
-                        (assemble-oparg (TestPrimitiveProcedure-operand test))
-                        jump)]
+               ;; [(TestPrimitiveProcedure? test)
+               ;;  (format "if(typeof(~a)==='function'){~a}"
+               ;;          (assemble-oparg (TestPrimitiveProcedure-operand test))
+               ;;          jump)]
                [(TestClosureArityMismatch? test)
                 (format "if(!RT.isArityMatching((~a).racketArity,~a)){~a}"
                         (assemble-oparg (TestClosureArityMismatch-closure test))

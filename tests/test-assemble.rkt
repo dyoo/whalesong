@@ -265,7 +265,7 @@
                                                                                   (list 0 1)
                                                                                   'closureStart))
                     (make-PopEnvironment (make-Const 2) (make-Const 0))
-                    (make-PerformStatement (make-CheckClosureArity! (make-Const 5)))
+                    (make-PerformStatement (make-CheckClosureAndArity! (make-Const 5)))
                     'theEnd)))
 
 ;; this should fail, since the check is for 1, but the closure expects 5.
@@ -288,7 +288,7 @@
                                                                                 (list 0 1)
                                                                                 'closureStart))
                   (make-PopEnvironment (make-Const 2) (make-Const 0))
-                  (make-PerformStatement (make-CheckClosureArity! (make-Const 1)))
+                  (make-PerformStatement (make-CheckClosureAndArity! (make-Const 1)))
                   'theEnd)))
   (error 'expected-failure))
 
@@ -315,15 +315,15 @@
                 end))
       "ok")
 
-;; Test for primitive procedure
-(test (E-many `(,(make-AssignImmediateStatement 'val (make-Const '+))
-                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
-                ,(make-AssignImmediateStatement 'val (make-Const 'ok))
-                ,(make-GotoStatement (make-Label 'end))
-                onTrue
-                ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
-                end))
-      "ok")
+;; ;; Test for primitive procedure
+;; (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const '+))
+;;                 ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+;;                 ,(make-GotoStatement (make-Label 'end))
+;;                 onTrue
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+;;                 end))
+;;       "ok")
 
 ;; ;; Give a primitive procedure in val
 ;; (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
@@ -336,16 +336,16 @@
 ;;                 end))
 ;;       "ok")
 
-;; Give a primitive procedure in proc, but test val
-(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
-                ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
-                ,(make-GotoStatement (make-Label 'end))
-                onTrue
-                ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
-                end))
-      "not-a-procedure")
+;; ;; Give a primitive procedure in proc, but test val
+;; (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+;;                 ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
+;;                 ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
+;;                 ,(make-GotoStatement (make-Label 'end))
+;;                 onTrue
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
+;;                 end))
+;;       "not-a-procedure")
 
 ;; ;; Give a primitive procedure in proc and test proc
 ;; (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))

@@ -280,7 +280,6 @@
 (define-type PrimitiveOperator (U GetCompiledProcedureEntry
                                   MakeCompiledProcedure
                                   MakeCompiledProcedureShell
-                                  ApplyPrimitiveProcedure
                                   
 
                                   MakeBoxedEnvironmentValue
@@ -310,15 +309,6 @@
                                             [arity : Arity]
                                             [display-name : (U Symbol LamPositionalName)])
   #:transparent)
-
-
-;; Applies the primitive procedure that's stored in the proc register, using
-;; the argcount number of values that are bound in the environment as arguments
-;; to that primitive.
-(define-struct: ApplyPrimitiveProcedure ()
-  #:transparent)
-
-
 
 
 
@@ -356,14 +346,12 @@
                             TestTrue
                             TestOne
                             TestZero
-                            TestPrimitiveProcedure
                             TestClosureArityMismatch
                             ))
 (define-struct: TestFalse ([operand : OpArg]) #:transparent)
 (define-struct: TestTrue ([operand : OpArg]) #:transparent)
 (define-struct: TestOne ([operand : OpArg]) #:transparent)
 (define-struct: TestZero ([operand : OpArg]) #:transparent)
-(define-struct: TestPrimitiveProcedure ([operand : OpArg]) #:transparent)
 (define-struct: TestClosureArityMismatch ([closure : OpArg]
                                           [n : OpArg]) #:transparent)
 
@@ -375,13 +363,10 @@
                                      [pos : Natural])
   #:transparent)
 
-;; Check the closure procedure value in 'proc and make sure it can accept the
-;; # of arguments (stored as a number in the argcount register.).
-(define-struct: CheckClosureArity! ([num-args : OpArg])
+;; Check the closure procedure value in 'proc and make sure it's a closure
+;; that can accept the right arguments (stored as a number in the argcount register.).
+(define-struct: CheckClosureAndArity! ([num-args : OpArg])
   #:transparent)
-(define-struct: CheckPrimitiveArity! ([num-args : OpArg])
-  #:transparent)
-
 
 
 ;; Extends the environment with a prefix that holds
@@ -481,8 +466,7 @@
 
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
-                               CheckClosureArity!
-                               CheckPrimitiveArity!
+                               CheckClosureAndArity!
 
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!

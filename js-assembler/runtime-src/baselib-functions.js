@@ -61,7 +61,7 @@
     // I'd personally love for this to be a macro and avoid the
     // extra function call here.
     var finalizeClosureCall = function (MACHINE) {
-        MACHINE.callsBeforeTrampoline--;
+        MACHINE.cbt--;
         var returnArgs = [].slice.call(arguments, 1);
 
         // clear out stack space
@@ -323,7 +323,7 @@
         return makeClosure(name,
                            arity,
                            function(M) {
-                               --M.callsBeforeTrampoline;
+                               --M.cbt;
                                M.val = f(M);
                                M.env.length -= M.argcount;
                                return M.control.pop().label(M);

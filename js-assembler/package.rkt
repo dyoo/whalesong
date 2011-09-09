@@ -155,7 +155,7 @@
                     module-requires))
        (let ([module-body-text
               (format "
-             if(--M.callsBeforeTrampoline<0) { throw arguments.callee; }
+             if(--M.cbt<0) { throw arguments.callee; }
              var modrec = M.modules[~s];
              var exports = {};
              modrec.isInvoked = true;

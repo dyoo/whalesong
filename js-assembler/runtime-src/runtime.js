@@ -186,7 +186,7 @@
 
 
     var defaultCurrentPrintImplementation = function defaultCurrentPrintImplementation(MACHINE) {
-        if(--MACHINE.callsBeforeTrampoline < 0) { 
+        if(--MACHINE.cbt < 0) { 
             throw defaultCurrentPrintImplementation; 
         }
         var oldArgcount = MACHINE.argcount;
@@ -211,7 +211,7 @@
     // The MACHINE
 
     var Machine = function() {
-	this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
 	this.val = undefined;         // value register
 	this.proc = undefined;        // procedure register
 	this.argcount = undefined;    // argument count
@@ -446,7 +446,7 @@
     Machine.prototype.trampoline = function(initialJump) {
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
-	this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+	this.cbt = STACK_LIMIT_ESTIMATE;
 	this.params.numBouncesBeforeYield = 
 	    this.params.maxNumBouncesBeforeYield;
 	this.running = true;
@@ -478,7 +478,7 @@
                 // The running flag is set to false.
 		if (typeof(e) === 'function') {
                     thunk = e;
-                    this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+                    this.cbt = STACK_LIMIT_ESTIMATE;
 
 		    if (this.params.numBouncesBeforeYield-- < 0) {
 			recomputeMaxNumBouncesBeforeYield(
@@ -671,7 +671,7 @@
 
     var si_popgoto = function(n, gotoTargetThunk) {
         return function(M) {
-            --M.callsBeforeTrampoline;
+            --M.cbt;
             M.env.length-=n;
             return gotoTargetThunk()(M);
         };

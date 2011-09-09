@@ -198,11 +198,11 @@ EOF
 (define (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
   (cond
    [(set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
-    (fprintf op "var ~a=function(M){if(--M.callsBeforeTrampoline<0){throw ~a;}\n"
+    (fprintf op "var ~a=function(M){if(--M.cbt<0){throw ~a;}\n"
              (assemble-label (make-Label (BasicBlock-name a-basic-block)))
              (assemble-label (make-Label (BasicBlock-name a-basic-block))))]
    [else
-    (fprintf op "var ~a=function(M){--M.callsBeforeTrampoline<0;\n"
+    (fprintf op "var ~a=function(M){--M.cbt<0;\n"
              (assemble-label (make-Label (BasicBlock-name a-basic-block))))])
   (assemble-block-statements (BasicBlock-name a-basic-block)
                              (BasicBlock-stmts a-basic-block)

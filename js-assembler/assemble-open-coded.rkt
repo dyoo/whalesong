@@ -96,7 +96,7 @@
            (format "(~a===RT.NULL)" (first checked-operands))]
 
           [(not)
-           (format "(~a=== alse)" (first checked-operands))]
+           (format "(~a===false)" (first checked-operands))]
           
           [(eq?)
            (format "(~a===~a)" (first checked-operands) (second checked-operands))])))

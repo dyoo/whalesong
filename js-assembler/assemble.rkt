@@ -46,12 +46,12 @@
   
   (define-values (basic-blocks entry-points) (fracture stmts))
 
-  (define function-entry-names
-    (list->set (get-function-entry-names stmts)))
+  (define function-entry-and-exit-names
+    (list->set (get-function-entry-and-exit-names stmts)))
 
   (write-blocks basic-blocks
                 (list->set entry-points)
-                function-entry-names
+                function-entry-and-exit-names
                 op)
   
   (write-linked-label-attributes stmts op)
@@ -73,7 +73,7 @@ EOF
 
 (: write-blocks ((Listof BasicBlock) (Setof Symbol) (Setof Symbol) Output-Port -> Void))
 ;; Write out all the basic blocks associated to an entry point.
-(define (write-blocks blocks entry-points function-entry-names op)  
+(define (write-blocks blocks entry-points function-entry-and-exit-names op)  
   (: blockht : Blockht)
   (define blockht (make-hash))
   
@@ -89,7 +89,7 @@ EOF
                   (assemble-basic-block (hash-ref blockht s) 
                                         blockht
                                         entry-points
-                                        function-entry-names
+                                        function-entry-and-exit-names
                                         op)
                   (newline op))
                 entry-points))
@@ -178,7 +178,7 @@ EOF
 
 
 (: assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
-(define (assemble-basic-block a-basic-block blockht entry-points function-entry-names op)
+(define (assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
   (match (BasicBlock-stmts a-basic-block)
     ;; [(list (struct PopEnvironment (n (and (? (lambda (c) (equal? c (Const 0))))
     ;;                                       skip)))
@@ -190,14 +190,14 @@ EOF
     ;;           (assemble-label target))
     ;;  'ok]
     [else
-     (default-assemble-basic-block a-basic-block blockht entry-points function-entry-names op)]))
+     (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)]))
 
 
 
 (: default-assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
-(define (default-assemble-basic-block a-basic-block blockht entry-points function-entry-names op)
+(define (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
   (cond
-   [(set-contains? function-entry-names (BasicBlock-name a-basic-block))
+   [(set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
     (fprintf op "var ~a=function(M){if(--M.callsBeforeTrampoline<0){throw ~a;}\n"
              (assemble-label (make-Label (BasicBlock-name a-basic-block)))
              (assemble-label (make-Label (BasicBlock-name a-basic-block))))]
@@ -562,24 +562,28 @@ EOF
 
 
 
-(: get-function-entry-names ((Listof Statement) -> (Listof Symbol)))
-(define (get-function-entry-names stmts)
+(: get-function-entry-and-exit-names ((Listof Statement) -> (Listof Symbol)))
+(define (get-function-entry-and-exit-names stmts)
   (cond
    [(empty? stmts)
     '()]
    [else
     (define first-stmt (first stmts))
     (cond
+     [(LinkedLabel? first-stmt)
+      (cons (LinkedLabel-label first-stmt)
+            (cons (LinkedLabel-linked-to first-stmt)
+                  (get-function-entry-and-exit-names (rest stmts))))]
      [(AssignPrimOpStatement? first-stmt)
       (define op (AssignPrimOpStatement-op first-stmt))
       (cond
        [(MakeCompiledProcedure? op)
         (cons (MakeCompiledProcedure-label op)
-              (get-function-entry-names (rest stmts)))]
+              (get-function-entry-and-exit-names (rest stmts)))]
        [(MakeCompiledProcedureShell? first-stmt)
         (cons (MakeCompiledProcedureShell-label op)
-              (get-function-entry-names (rest stmts)))]
+              (get-function-entry-and-exit-names (rest stmts)))]
        [else
-        (get-function-entry-names (rest stmts))])]
+        (get-function-entry-and-exit-names (rest stmts))])]
      [else
-      (get-function-entry-names (rest stmts))])]))
+      (get-function-entry-and-exit-names (rest stmts))])]))

@@ -46,7 +46,13 @@
   
   (define-values (basic-blocks entry-points) (fracture stmts))
 
-  (write-blocks basic-blocks (list->set entry-points) op)
+  (define function-return-names
+    (list->set (map LinkedLabel-label (filter LinkedLabel? stmts))))
+
+  (write-blocks basic-blocks
+                (list->set entry-points)
+                function-return-names
+                op)
   
   (write-linked-label-attributes stmts op)
   
@@ -65,9 +71,9 @@ EOF
 
 
 
-(: write-blocks ((Listof BasicBlock) (Setof Symbol) Output-Port -> Void))
+(: write-blocks ((Listof BasicBlock) (Setof Symbol) (Setof Symbol) Output-Port -> Void))
 ;; Write out all the basic blocks associated to an entry point.
-(define (write-blocks blocks entry-points op)  
+(define (write-blocks blocks entry-points function-return-names op)  
   (: blockht : Blockht)
   (define blockht (make-hash))
   
@@ -83,6 +89,7 @@ EOF
                   (assemble-basic-block (hash-ref blockht s) 
                                         blockht
                                         entry-points
+                                        function-return-names
                                         op)
                   (newline op))
                 entry-points))
@@ -170,8 +177,8 @@ EOF
 
 
 
-(: assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
-(define (assemble-basic-block a-basic-block blockht entry-points op)
+(: assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
+(define (assemble-basic-block a-basic-block blockht entry-points function-return-names op)
   (match (BasicBlock-stmts a-basic-block)
     ;; [(list (struct PopEnvironment (n (and (? (lambda (c) (equal? c (Const 0))))
     ;;                                       skip)))
@@ -183,15 +190,20 @@ EOF
     ;;           (assemble-label target))
     ;;  'ok]
     [else
-     (default-assemble-basic-block a-basic-block blockht entry-points op)]))
+     (default-assemble-basic-block a-basic-block blockht entry-points function-return-names op)]))
 
 
 
-(: default-assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
-(define (default-assemble-basic-block a-basic-block blockht entry-points op)
-  (fprintf op "var ~a = function(M) { if(--M.callsBeforeTrampoline < 0) { throw ~a; }\n"
-           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-           (assemble-label (make-Label (BasicBlock-name a-basic-block))))
+(: default-assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
+(define (default-assemble-basic-block a-basic-block blockht entry-points function-return-names op)
+  (cond
+   [(set-contains? function-return-names (BasicBlock-name a-basic-block))
+    (fprintf op "var ~a=function(M){if(--M.callsBeforeTrampoline<0){throw ~a;}\n"
+             (assemble-label (make-Label (BasicBlock-name a-basic-block)))
+             (assemble-label (make-Label (BasicBlock-name a-basic-block))))]
+   [else
+    (fprintf op "var ~a=function(M){--M.callsBeforeTrampoline<0;\n"
+             (assemble-label (make-Label (BasicBlock-name a-basic-block))))])
   (assemble-block-statements (BasicBlock-name a-basic-block)
                              (BasicBlock-stmts a-basic-block)
                              blockht

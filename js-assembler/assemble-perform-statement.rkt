@@ -79,7 +79,7 @@
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     "M.env.splice.apply(M.env,[M.env.length, 0].concat(M.proc.closedVals));"]
+     "M.env.push.apply(M.env,M.proc.closedVals);"]
     
     [(RestoreEnvironment!? op)
      "M.env=M.env[M.env.length-2].slice(0);"]

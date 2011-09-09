@@ -65,8 +65,7 @@
         var i, returnArgs = [].slice.call(arguments, 1);
 
         // clear out stack space
-        // TODO: replace with a splice.
-        MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
+        MACHINE.env.length -= MACHINE.argcount;
 
         if (returnArgs.length === 1) {
             MACHINE.val = returnArgs[0];
@@ -77,10 +76,7 @@
         } else {
             MACHINE.argcount = returnArgs.length;
             MACHINE.val = returnArgs.shift();
-            // TODO: replace with a splice.
-            for (i = 0; i < MACHINE.argcount - 1; i++) {
-                MACHINE.env.push(returnArgs.pop());
-            }
+            MACHINE.env.push.apply(MACHINE.env, returnArgs.reverse());
             return MACHINE.control.pop().label.multipleValueReturn(MACHINE);
         }
     };

@@ -44,7 +44,12 @@
         var domOpenF = 
             // To go down, just take the children.
             function(n) { 
-                return [].slice.call(n.childNodes, 0);
+                var i;
+                var result = [];
+                for (i = 0; i < n.childNodes.length; i++) {
+                    result.push(n.childNodes[i]);
+                }
+                return result;
             };
         var domCloseF = 
             // To go back up, take the node, do a shallow cloning, and replace the children.

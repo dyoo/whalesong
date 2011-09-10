@@ -5,6 +5,7 @@
           scribble/eval
           racket/sandbox
           racket/port
+          racket/list
           (only-in racket/contract any/c)
           racket/runtime-path
           "scribble-helpers.rkt"
@@ -1578,14 +1579,26 @@ Whalesong uses code and utilities from the following external projects:
 ]
 
 The following folks have helped tremendously in the implementation of
-Whalesong by implementing libraries, giving guidence, and suggesting
-improvements:
+Whalesong by implementing libraries, giving guidence, reporting bugs,
+and suggesting improvements.
 
-@itemlist[
+@;;;;
+@; in no particular order... really!  I'm shuffling them!  :)
+@;;;;
+@(apply itemlist
+   (shuffle (list
    @item{Ethan Cecchetti}
    @item{Scott Newman}
    @item{Zhe Zhang}
    @item{Jens Axel Søgaard}
+   @item{Jay McCarthy}
+   @item{Sam Tobin-Hochstadt}
+   @item{Doug Orleans}
+   @item{Richard Cleis}
+   @item{Asumu Takikawa}
+   @item{Eric Hanchrow}
+   @item{Greg Hendershott}
    @item{Shriram Krishnamurthi}
    @item{Emmanuel Schanzer}
-]
+   @item{Robby Findler}))
+)

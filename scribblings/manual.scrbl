@@ -394,28 +394,29 @@ Whalesong provides a command-line utility called @tt{whalesong} for
 translating Racket to JavaScript.  It can be run in several modes:
 
 @itemize[
-@item{To create standalone XHTML documents}
+@item{To create HTML + js documents}
 @item{To output the compiled JavaScript as a single @filepath{.js} file}
-@item{To output the compiled JavaScript as several @filepath{.js} files, one per module.  (this isn't done yet...)}
 ]
 
-Using @tt{whalesong} to generate standalone XHTML documents is
+Using @tt{whalesong} to generate HTML+js documents is
 relatively straightforward with the @tt{build} command.  To use it,
 pass the name of the file to it:
 @verbatim|{
     $ whalesong build [name-of-racket-file]
 }|
-An @filepath{.xhtml} will be written to the current directory.
+A @filepath{.html} and @filepath{.js} will be written to the current directory, as will any external resources that the program uses.
 
 Almost all of the @tt{whalesong} commands support two command line options:
 
 @itemize{
 
-@item{@verbatim{--compress-javascript}: Use Google Closure's JavaScript
+@item{@verbatim{--compress-javascript} Use Google Closure's JavaScript
 compiler to significantly compress the JavaScript.  Using this
 currently requires a Java 1.6 JDK.}
 
-@item{@verbatim{--verbose}: write verbose debugging information to standard error.}
+@item{@verbatim{--verbose} Write verbose debugging information to standard error.}
+
+@item{@verbatim{--dest-dir}  Write files to a separate directory, rather than the current directory.}
 }
 
 
@@ -430,11 +431,10 @@ program.
 
 @subsection{@tt{build}}
 
-Given the name of a program, this builds a standalone
-@filepath{.xhtml} file into the current working directory that
-executes the program in a web browser.
+Given the name of a program, this builds 
+@filepath{.html} and @filepath{.js} files into the current working directory.
 
-The @filepath{.xhtml} should be self-contained, with an exception: if
+The @filepath{.html} and @filepath{.js} should be self-contained, with an exception: if
 the file uses any external @tech{resource}s by using
 @racket[define-resource], those resources are written into the current
 working directory, if they do not already exist there.
@@ -554,7 +554,7 @@ the page itself is a source of state, it too will be passed to
 callbacks.  This library presents a functional version of the DOM in
 the form of a @tech{view}.
 
-
+@margin-note{Visit @link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html} to execute this program.}
 Let's demonstrate this by creating a basic ticker that counts on the
 screen every second.
 

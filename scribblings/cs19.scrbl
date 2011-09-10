@@ -202,8 +202,57 @@ by @racket[on-tick], though because we're on the web, we can
 bind to many other kinds of web events (by using @racket[view-bind]).}
 ]
 
-The rest of this document describes the API.
 
+
+
+@subsection{More web-world examples}
+Here are a collection of web-world demos:
+@itemize[
+@item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src}]  Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
+
+@item{@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.html"]{dwarves.html}
+[@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.rkt"]{src}]
+Uses @racket[view-show] and @racket[view-hide] to manipulate a view.  Click on a dwarf to make them hide.
+  }
+
+@item{@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.html"]{dwarves-with-remove.html}
+[@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.rkt"]{src}]
+Uses @racket[view-focus?] and @racket[view-remove] to see if a dwarf should be removed from the view.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/field/field.html"]{field.html}
+[@link["http://hashcollision.org/whalesong/examples/field/field.rkt"]{src}]
+Uses @racket[view-bind] to read a text field, and @racket[update-view-text] to change
+the text content of an element.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/phases/phases.html"]{phases.html}
+[@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}]
+Switches out one view entirely in place of another.  Different views can correspond to phases in a program.
+}
+
+
+@item{@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html}
+[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}]
+Uses @racket[on-tick] to show a timer counting up.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/redirected/redirected.html"]{redirected.html}
+[@link["http://hashcollision.org/whalesong/examples/redirected/redirected.rkt"]{src}]
+Uses @racket[on-tick] to show a timer counting up, and also uses @racket[open-output-element] to
+pipe side-effecting @racket[printf]s to a hidden @tt{div}.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/todo/todo.html"]{todo.html}
+[@link["http://hashcollision.org/whalesong/examples/todo/todo.rkt"]{src}]
+A simple TODO list manager.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.html"]{where-am-i.html}
+[@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}]
+Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
+}
+]
 
 
 

@@ -544,8 +544,7 @@
 
 
     var isDomNode = function(x) {
-        return (x.hasOwnProperty('nodeType') &&
-                x.nodeType === 1);
+        return (x.nodeType && x.nodeType === 1);
     };
 
 
@@ -681,7 +680,7 @@
         var key, val;
         var result = makeList();
         for (key in obj) {
-            if (obj.hasOwnProperty(key)) {
+            if (obj.hasOwnProperty && obj.hasOwnProperty(key)) {
                 val = obj[key];
                 if (typeof(val) === 'number') {
                     result = makePair(makeList(makeSymbol(key),
@@ -822,7 +821,9 @@
     LocationEventSource.prototype.onStart = function(fireEvent) {
         if (this.id === undefined) {
             var success = function(position) {
-                if (position.hasOwnProperty('coords') &&
+                if (position.hasOwnProperty &&
+                    position.hasOwnProperty('coords') &&
+                    position.coords.hasOwnProperty &&
                     position.coords.hasOwnProperty('latitude') &&
                     position.coords.hasOwnProperty('longitude')) {
                     fireEvent(undefined,

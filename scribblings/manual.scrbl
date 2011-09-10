@@ -281,7 +281,7 @@ Visit @link["http://hashcollision.org/whalesong/examples/dom-play/dom-play.html"
 }|}
 This program uses the @link["http:/jquery.com"]{JQuery} API provided by @racketmodname[(planet dyoo/whalesong/js)],
 as well as the native JavaScript FFI to produce output on the browser.
-If w run Whalesong on this program, and view the resulting @filepath{dom-play.xhtml} in your
+If w run Whalesong on this program, and view the resulting @filepath{dom-play.html} in your
 web browser, we should see a pale, green page with some output.
 
 
@@ -320,7 +320,7 @@ with generated JavaScript binaries here:
     (* x (fact (sub1 x)))]))
 }|}
 
-Instead of creating a standalone @tt{.xhtml}, we can use @tt{whalesong} to
+Instead of creating a standalone @tt{.html}, we can use @tt{whalesong} to
 get us the module's code.  From the command-line:
 @verbatim|{
     $ whalesong get-javascript fact.rkt > fact.js

@@ -66,7 +66,7 @@ Google Chrome should be in @filepath{/contrib/bin/google-chrome}.
 
 @section{Usage}
 The @filepath{whalesong} launcher in the subdirectory will compile
-programs to standalone @filepath{.xhtml} files.
+programs to @filepath{.html} and @filepath{.js} files.
 
 
 Example usage: using @litchar{whalesong build} to compile a whalesong program.
@@ -81,7 +81,7 @@ fermi ~/whalesong/examples $ cat hello.rkt
 
 fermi ~/whalesong/examples $ ../whalesong build hello.rkt 
 
-fermi ~/whalesong/examples $ google-chrome hello.xhtml
+fermi ~/whalesong/examples $ google-chrome hello.html
 Created new window in existing browser session.
 
 fermi ~/whalesong/examples $ 
@@ -124,12 +124,16 @@ $
 However, it can also be packaged with @filepath{whalesong}.
 @verbatim|{
     $ whalesong build hello.rkt
+    Writing program #<path:/home/dyoo/work/whalesong/examples/hello.js>
+    Writing html #<path:/home/dyoo/work/whalesong/examples/hello.html>
 
-    $ ls -l hello.xhtml
-    -rw-rw-r-- 1 dyoo nogroup 692213 Jun  7 18:00 hello.xhtml
+    $ ls -l hello.html
+    -rw-r--r-- 1 dyoo dyoo 3817 2011-09-10 15:02 hello.html
+    $ ls -l hello.js
+    -rw-r--r-- 1 dyoo dyoo 2129028 2011-09-10 15:02 hello.js
 }|
-Running @tt{whalesong build} on a Racket program will produce a self-contained
-@filepath{.xhtml} file.  If we open this file in our favorite web browser,
+Running @tt{whalesong build} on a Racket program will produce 
+@filepath{.html} and @filepath{.js} files.  If we open this file in our favorite web browser,
 we should see a triumphant message show on screen.
 
 

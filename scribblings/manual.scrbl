@@ -99,7 +99,8 @@ The GitHub source repository to Whalesong can be found at
 
 
 Prerequisites: at least @link["http://racket-lang.org/"]{Racket
-5.1.1}, and a @link["http://www.java.com"]{Java 1.6} SDK.
+5.1.1}.  If you wish to use the JavaScript compression option,
+ you will need @link["http://www.java.com"]{Java 1.6} SDK.
       @; (This might be superfluous information, so commented out
       @;  for the moment...)
       @;The majority of the project is written
@@ -194,7 +195,7 @@ recompile Whalesong on every single use, which can be very expensive.
 
 
 
-@subsection{Making Standalone @tt{.xhtml} files with Whalesong}
+@subsection{Making @tt{.html} files with Whalesong}
 
 Let's try making a simple, standalone executable.  At the moment, the
 program must be written in the base language of @racket[(planet
@@ -219,21 +220,28 @@ $
 }|
 However, it can also be packaged with @filepath{whalesong}.
 @verbatim|{
-    $ whalesong build hello.rkt
+    $ whalesong build hello.rkt 
+    Writing program #<path:/home/dyoo/work/whalesong/examples/hello.js>
+    Writing html #<path:/home/dyoo/work/whalesong/examples/hello.html>
 
-    $ ls -l hello.xhtml
-    -rw-rw-r-- 1 dyoo nogroup 692213 Jun  7 18:00 hello.xhtml
+    $ ls -l hello.html
+    -rw-r--r-- 1 dyoo dyoo 3817 2011-09-10 15:02 hello.html
+    $ ls -l hello.js
+    -rw-r--r-- 1 dyoo dyoo 2129028 2011-09-10 15:02 hello.js
+
 }|
-Running @tt{whalesong build} on a Racket program will produce a self-contained
-@filepath{.xhtml} file.  If you open this file in your favorite web browser,
-you should see a triumphant message show on screen.
+
+@margin-note{Visit @link["http://hashcollision.org/whalesong/examples/hello/hello.html"]{hello.html} to execute this program.}
+Running @tt{whalesong build} on a Racket program will produce a
+@filepath{.html} and @filepath{.js} file.  If you open the
+@filepath{.html} in your favorite web browser, you should see a
+triumphant message show on screen.
 
 
 We can do something slightly more interesting.  Let's write a Whalesong program
 that accesses the JavaScript DOM.  Call this file @filepath{dom-play.rkt}.
 @margin-note{
-The generated program can be downloaded here: @link["http://hashcollision.org/whalesong/examples/dom-play.xhtml"]{dom-play.xhtml}
-}
+Visit @link["http://hashcollision.org/whalesong/examples/dom-play/dom-play.html"]{dom-play.html} to execute this program.}
 
 @filebox["dom-play.rkt"]{
 @codeblock|{

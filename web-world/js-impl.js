@@ -544,7 +544,7 @@
 
 
     var isDomNode = function(x) {
-        return (x.nodeType && x.nodeType === 1);
+        return (x.nodeType === 1);
     };
 
 

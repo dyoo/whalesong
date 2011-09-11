@@ -5,6 +5,7 @@
           scribble/eval
           racket/sandbox
           racket/port
+          racket/list
           (only-in racket/contract any/c)
           racket/runtime-path
           "scribble-helpers.rkt"
@@ -99,7 +100,8 @@ The GitHub source repository to Whalesong can be found at
 
 
 Prerequisites: at least @link["http://racket-lang.org/"]{Racket
-5.1.1}, and a @link["http://www.java.com"]{Java 1.6} SDK.
+5.1.1}.  If you wish to use the JavaScript compression option,
+ you will need @link["http://www.java.com"]{Java 1.6} SDK.
       @; (This might be superfluous information, so commented out
       @;  for the moment...)
       @;The majority of the project is written
@@ -194,7 +196,7 @@ recompile Whalesong on every single use, which can be very expensive.
 
 
 
-@subsection{Making Standalone @tt{.xhtml} files with Whalesong}
+@subsection{Making @tt{.html} files with Whalesong}
 
 Let's try making a simple, standalone executable.  At the moment, the
 program must be written in the base language of @racket[(planet
@@ -219,21 +221,28 @@ $
 }|
 However, it can also be packaged with @filepath{whalesong}.
 @verbatim|{
-    $ whalesong build hello.rkt
+    $ whalesong build hello.rkt 
+    Writing program #<path:/home/dyoo/work/whalesong/examples/hello.js>
+    Writing html #<path:/home/dyoo/work/whalesong/examples/hello.html>
 
-    $ ls -l hello.xhtml
-    -rw-rw-r-- 1 dyoo nogroup 692213 Jun  7 18:00 hello.xhtml
+    $ ls -l hello.html
+    -rw-r--r-- 1 dyoo dyoo 3817 2011-09-10 15:02 hello.html
+    $ ls -l hello.js
+    -rw-r--r-- 1 dyoo dyoo 2129028 2011-09-10 15:02 hello.js
+
 }|
-Running @tt{whalesong build} on a Racket program will produce a self-contained
-@filepath{.xhtml} file.  If you open this file in your favorite web browser,
-you should see a triumphant message show on screen.
+
+@margin-note{Visit @link["http://hashcollision.org/whalesong/examples/hello/hello.html"]{hello.html} to execute this program.}
+Running @tt{whalesong build} on a Racket program will produce a
+@filepath{.html} and @filepath{.js} file.  If you open the
+@filepath{.html} in your favorite web browser, you should see a
+triumphant message show on screen.
 
 
 We can do something slightly more interesting.  Let's write a Whalesong program
 that accesses the JavaScript DOM.  Call this file @filepath{dom-play.rkt}.
 @margin-note{
-The generated program can be downloaded here: @link["http://hashcollision.org/whalesong/examples/dom-play.xhtml"]{dom-play.xhtml}
-}
+Visit @link["http://hashcollision.org/whalesong/examples/dom-play/dom-play.html"]{dom-play.html} to execute this program.}
 
 @filebox["dom-play.rkt"]{
 @codeblock|{
@@ -272,7 +281,7 @@ The generated program can be downloaded here: @link["http://hashcollision.org/wh
 }|}
 This program uses the @link["http:/jquery.com"]{JQuery} API provided by @racketmodname[(planet dyoo/whalesong/js)],
 as well as the native JavaScript FFI to produce output on the browser.
-If w run Whalesong on this program, and view the resulting @filepath{dom-play.xhtml} in your
+If w run Whalesong on this program, and view the resulting @filepath{dom-play.html} in your
 web browser, we should see a pale, green page with some output.
 
 
@@ -289,12 +298,12 @@ function and define it in a module called @filepath{fact.rkt}:
 
 @margin-note{
 The files can also be downloaded here: 
-@itemlist[@item{@link["http://hashcollision.org/whalesong/fact-example/fact.rkt"]{fact.rkt}} 
-@item{@link["http://hashcollision.org/whalesong/fact-example/index.html"]{index.html}}]
+@itemlist[@item{@link["http://hashcollision.org/whalesong/examples/fact/fact.rkt"]{fact.rkt}} 
+@item{@link["http://hashcollision.org/whalesong/examples/fact/index.html"]{index.html}}]
 with generated JavaScript binaries here:
 @itemlist[
-@item{@link["http://hashcollision.org/whalesong/fact-example/fact.js"]{fact.js}}
-@item{@link["http://hashcollision.org/whalesong/fact-example/runtime.js"]{runtime.js}}
+@item{@link["http://hashcollision.org/whalesong/examples/fact/fact.js"]{fact.js}}
+@item{@link["http://hashcollision.org/whalesong/examples/fact/runtime.js"]{runtime.js}}
 ]
 }
 
@@ -311,7 +320,7 @@ with generated JavaScript binaries here:
     (* x (fact (sub1 x)))]))
 }|}
 
-Instead of creating a standalone @tt{.xhtml}, we can use @tt{whalesong} to
+Instead of creating a standalone @tt{.html}, we can use @tt{whalesong} to
 get us the module's code.  From the command-line:
 @verbatim|{
     $ whalesong get-javascript fact.rkt > fact.js
@@ -373,6 +382,7 @@ The factorial of 10000 is <span id="answer">being computed</span>.
 }|
 }
 
+@margin-note{See: @link["http://hashcollision.org/whalesong/examples/fact/bad-index.html"]{bad-index.html}.}
 Replacing the @racket[10000] with @racket["one-billion-dollars"] should
 reliably produce a proper error message.
 
@@ -385,28 +395,29 @@ Whalesong provides a command-line utility called @tt{whalesong} for
 translating Racket to JavaScript.  It can be run in several modes:
 
 @itemize[
-@item{To create standalone XHTML documents}
+@item{To create HTML + js documents}
 @item{To output the compiled JavaScript as a single @filepath{.js} file}
-@item{To output the compiled JavaScript as several @filepath{.js} files, one per module.  (this isn't done yet...)}
 ]
 
-Using @tt{whalesong} to generate standalone XHTML documents is
+Using @tt{whalesong} to generate HTML+js documents is
 relatively straightforward with the @tt{build} command.  To use it,
 pass the name of the file to it:
 @verbatim|{
     $ whalesong build [name-of-racket-file]
 }|
-An @filepath{.xhtml} will be written to the current directory.
+A @filepath{.html} and @filepath{.js} will be written to the current directory, as will any external resources that the program uses.
 
 Almost all of the @tt{whalesong} commands support two command line options:
 
 @itemize{
 
-@item{@verbatim{--compress-javascript}: Use Google Closure's JavaScript
+@item{@verbatim{--compress-javascript} Use Google Closure's JavaScript
 compiler to significantly compress the JavaScript.  Using this
 currently requires a Java 1.6 JDK.}
 
-@item{@verbatim{--verbose}: write verbose debugging information to standard error.}
+@item{@verbatim{--verbose} Write verbose debugging information to standard error.}
+
+@item{@verbatim{--dest-dir}  Write files to a separate directory, rather than the current directory.}
 }
 
 
@@ -421,11 +432,10 @@ program.
 
 @subsection{@tt{build}}
 
-Given the name of a program, this builds a standalone
-@filepath{.xhtml} file into the current working directory that
-executes the program in a web browser.
+Given the name of a program, this builds 
+@filepath{.html} and @filepath{.js} files into the current working directory.
 
-The @filepath{.xhtml} should be self-contained, with an exception: if
+The @filepath{.html} and @filepath{.js} should be self-contained, with an exception: if
 the file uses any external @tech{resource}s by using
 @racket[define-resource], those resources are written into the current
 working directory, if they do not already exist there.
@@ -545,7 +555,7 @@ the page itself is a source of state, it too will be passed to
 callbacks.  This library presents a functional version of the DOM in
 the form of a @tech{view}.
 
-
+@margin-note{Visit @link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html} to execute this program.}
 Let's demonstrate this by creating a basic ticker that counts on the
 screen every second.
 
@@ -610,6 +620,56 @@ responses to events.  In this example, that's clock ticks introduced
 by @racket[on-tick], though because we're on the web, we can
 bind to many other kinds of web events (by using @racket[view-bind]).}
 ]
+
+@subsection{More web-world examples}
+Here are a collection of web-world demos:
+@itemize[
+@item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src}]  Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
+
+@item{@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.html"]{dwarves.html}
+[@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.rkt"]{src}]
+Uses @racket[view-show] and @racket[view-hide] to manipulate a view.  Click on a dwarf to make them hide.
+  }
+
+@item{@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.html"]{dwarves-with-remove.html}
+[@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.rkt"]{src}]
+Uses @racket[view-focus?] and @racket[view-remove] to see if a dwarf should be removed from the view.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/field/field.html"]{field.html}
+[@link["http://hashcollision.org/whalesong/examples/field/field.rkt"]{src}]
+Uses @racket[view-bind] to read a text field, and @racket[update-view-text] to change
+the text content of an element.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/phases/phases.html"]{phases.html}
+[@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}]
+Switches out one view entirely in place of another.  Different views can correspond to phases in a program.
+}
+
+
+@item{@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html}
+[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}]
+Uses @racket[on-tick] to show a timer counting up.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/redirected/redirected.html"]{redirected.html}
+[@link["http://hashcollision.org/whalesong/examples/redirected/redirected.rkt"]{src}]
+Uses @racket[on-tick] to show a timer counting up, and also uses @racket[open-output-element] to
+pipe side-effecting @racket[printf]s to a hidden @tt{div}.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/todo/todo.html"]{todo.html}
+[@link["http://hashcollision.org/whalesong/examples/todo/todo.rkt"]{src}]
+A simple TODO list manager.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.html"]{where-am-i.html}
+[@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}]
+Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
+}
+]
+
 
 
 @subsection{@racket[big-bang] and its options}
@@ -824,6 +884,11 @@ Update the form value of the node at the focus.}
 @defproc[(view-append-child [d dom]) view]{
 Add the dom node @racket[d] as the last child of the focused node.}
                     
+@defproc[(view-remove [v view]) view]{
+Remove the dom node at the focus from the view @racket[v].  Focus tries to move
+to the right, if there's a next sibling.  If that fails, focus then
+moves to the left, if there's a previous sibling.  If that fails too,
+then focus moves to the parent.}
 
 
 @subsection{Events}
@@ -1569,14 +1634,26 @@ Whalesong uses code and utilities from the following external projects:
 ]
 
 The following folks have helped tremendously in the implementation of
-Whalesong by implementing libraries, giving guidence, and suggesting
-improvements:
+Whalesong by implementing libraries, giving guidence, reporting bugs,
+and suggesting improvements.
 
-@itemlist[
+@;;;;
+@; in no particular order... really!  I'm shuffling them!  :)
+@;;;;
+@(apply itemlist
+   (shuffle (list
    @item{Ethan Cecchetti}
    @item{Scott Newman}
    @item{Zhe Zhang}
    @item{Jens Axel Søgaard}
+   @item{Jay McCarthy}
+   @item{Sam Tobin-Hochstadt}
+   @item{Doug Orleans}
+   @item{Richard Cleis}
+   @item{Asumu Takikawa}
+   @item{Eric Hanchrow}
+   @item{Greg Hendershott}
    @item{Shriram Krishnamurthi}
    @item{Emmanuel Schanzer}
-]
+   @item{Robby Findler}))
+)

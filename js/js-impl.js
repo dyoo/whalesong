@@ -1,18 +1,21 @@
+var VOID = plt.baselib.constants.VOID_VALUE;
+var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
+
 EXPORTS['alert'] =
-    RUNTIME.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'alert',
         1,
         function(MACHINE) {
             var elt = MACHINE.env[MACHINE.env.length - 1];
             alert(String(elt));
-            return RUNTIME.VOID;
+            return VOID;
         });
 
 
 EXPORTS['body'] = $(document.body);
 
 EXPORTS['$'] =
-    RUNTIME.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         '$',
         1,
         function(MACHINE) {
@@ -21,7 +24,7 @@ EXPORTS['$'] =
         });
 
 EXPORTS['call-method'] = 
-    RUNTIME.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'call-method',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
@@ -40,7 +43,7 @@ EXPORTS['call-method'] =
 
 // Javascript-specific extensions.  A small experiment.
 EXPORTS['viewport-width'] = 
-    RUNTIME.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'viewport-width',
         0,
         function(MACHINE) {
@@ -48,7 +51,7 @@ EXPORTS['viewport-width'] =
         });
 
 EXPORTS['viewport-height'] = 
-    RUNTIME.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'viewport-height',
         0,
         function(MACHINE) {
@@ -57,7 +60,7 @@ EXPORTS['viewport-height'] =
 
 
 EXPORTS['in-javascript-context?'] =
-    RUNTIME.makePrimitiveProcedure(
+    makePrimitiveProcedure(
         'in-javascript-context?',
         0,
         function(MACHINE) {

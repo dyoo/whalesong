@@ -19,9 +19,11 @@
          racket/port
          (prefix-in query: "../lang/js/query.rkt")
          (prefix-in resource-query: "../resource/query.rkt")
-         (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
+
+;; There is a dynamic require for (planet dyoo/closure-compile) that's done
+;; if compression is turned on.
 
 
 ;; TODO: put proper contracts here
@@ -365,11 +367,13 @@ M.modules[~s] =
     (fprintf op "})(plt.runtime.currentMachine,\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")))
 
 
-
+(define closure-compile-ns (make-base-namespace))
 (define (compress x)
   (cond [(current-compress-javascript?)
          (log-debug "compressing javascript...")
-         (closure-compile x)]
+         (parameterize ([current-namespace closure-compile-ns])
+           (define closure-compile (dynamic-require '(planet dyoo/closure-compile) 'closure-compile))
+           (closure-compile x))]
         [else
          (log-debug "not compressing javascript...")
          x]))

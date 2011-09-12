@@ -48,6 +48,11 @@
                     
                     view-down?
                     view-down
+
+                    view-forward?
+                    view-forward
+                    view-backward?
+                    view-backward
                     
                     view-text
                     update-view-text

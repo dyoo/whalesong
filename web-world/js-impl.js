@@ -324,6 +324,60 @@
                 view.focus = view.focus.children(':first');
             });
     };
+
+
+    MockView.prototype.forward = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.succ();
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                if (view.focus.children().length > 0) {
+                    view.focus = view.focus.children(':first');
+                } else if (view.focus.next().length > 0) {
+                    view.focus = view.focus.next();
+                } else {
+                    while (true) {
+                        view.focus = view.focus.parent();
+                        if (view.focus.next().length > 0) {
+                            view.focus = view.focus.next();
+                            return;
+                        }
+                    }
+                }
+            });
+    };
+
+    MockView.prototype.backward = function() {
+        return this.act(
+            function(cursor) {
+                return cursor.pred();
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                if (view.focus.prev().length > 0) {
+                    view.focus = view.focus.prev();
+                    while (view.focus.children().length > 0) {
+                        view.focus = view.focus.children(':last');
+                    }
+                } else {
+                    view.focus = view.focus.parent();
+                }
+
+            });
+    };
+
+
+
+
+
+
+
     
     var mockViewIdGensym = 0;
 
@@ -489,6 +543,13 @@
         return this.cursor.canRight();
     };
 
+    MockView.prototype.isForwardMovementOk = function() {
+        return this.cursor.canSucc();
+    };
+
+    MockView.prototype.isBackwardMovementOk = function() {
+        return this.cursor.canPred();
+    };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -1620,6 +1681,21 @@
             return view.down();
         });
 
+    EXPORTS['view-forward'] = makePrimitiveProcedure(
+        'view-forward',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-forward', 0);
+            return view.forward();
+        });
+
+    EXPORTS['view-backward'] = makePrimitiveProcedure(
+        'view-backward',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-backward', 0);
+            return view.backward();
+        });
 
 
     EXPORTS['view-left?'] = makePrimitiveProcedure(
@@ -1653,6 +1729,24 @@
             var view = checkMockView(MACHINE, 'view-down?', 0);
             return view.isDownMovementOk();
         });
+
+
+    EXPORTS['view-forward?'] = makePrimitiveProcedure(
+        'view-down?',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-forward?', 0);
+            return view.isForwardMovementOk();
+        });
+
+    EXPORTS['view-backward?'] = makePrimitiveProcedure(
+        'view-backward?',
+        1,
+        function(MACHINE) {
+            var view = checkMockView(MACHINE, 'view-backward?', 0);
+            return view.isBackwardMovementOk();
+        });
+
 
 
 

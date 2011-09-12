@@ -9,6 +9,12 @@
          view-focus? view-focus
          view-left view-right view-up view-down
          view-left? view-right? view-up? view-down?
+
+         view-forward?
+         view-forward
+         view-backward?
+         view-backward
+         
          view-text update-view-text
          view-attr update-view-attr
          view-css update-view-css
@@ -24,6 +30,9 @@
          view-append-child
          view-insert-right
          view-insert-left
+
+
+         
 
          view-remove
          
@@ -110,6 +119,19 @@
 
 (define (view-down? v)
   (error 'view-down? "Please run in JavaScript context"))
+
+(define (view-forward? v)
+  (error 'view-forward? "Please run in JavaScript context"))
+
+(define (view-backward? v)
+  (error 'view-backward? "Please run in JavaScript context"))
+
+(define (view-forward v)
+  (error 'view-forward "Please run in JavaScript context"))
+
+(define (view-backward v)
+  (error 'view-backward "Please run in JavaScript context"))
+
 
 
 

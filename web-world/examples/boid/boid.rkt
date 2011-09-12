@@ -314,15 +314,15 @@
   (make-boid (fresh-id)
              (make-vec (random 10)
 		       (random 10))
-	     (make-vec (+ 20 (random 600))
-		       (+ 20 (random 300)))
+	     (make-vec (random width)
+		       (random height))
 	     (make-color (random 255)
 			 (random 255)
 			 (random 255))))
 
 
 (define (new-population)
-  (build-list 20 (lambda (i) (make-random-boid))))
+  (build-list 10 (lambda (i) (make-random-boid))))
 
 
 ;; visualize: -> void
@@ -337,9 +337,19 @@
                                                               (class "boid"))
                                                            nbsp))
                                                    population)))))
+  (define view-with-colored-boids
+    (foldl (lambda (b view)
+             (update-view-css (view-focus view (boid-id b))
+                              "background"
+                              (format "rgb(~a,~a,~a)"
+                                      (color-red (boid-color b))
+                                      (color-green (boid-color b))
+                                      (color-blue (boid-color b)))))
+           view-with-boids
+           population))
   
   (big-bang population
-            (initial-view view-with-boids)
+            (initial-view view-with-colored-boids)
             (on-tick tick 1/20)
             (to-draw draw)))
 

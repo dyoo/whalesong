@@ -19,7 +19,7 @@
 
 (define (clear-all a-view)
   (define (loop a-view n)
-    (define updated-view (update-view-css a-view "border" "none"))
+    (define updated-view a-view) ;; (update-view-css a-view "border" "none"))
     (cond
      [(view-forward? updated-view)
       (loop (view-forward updated-view) (add1 n))]

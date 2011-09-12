@@ -235,6 +235,8 @@
     MockView.prototype.updateCss = function(name, value) {
         return this.act(
             function(cursor) {
+                console.log("functionally: ", 
+                            $(cursor.node[0].cloneNode(false)).css(name, value).get(0));
                 return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .css(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
@@ -243,6 +245,10 @@
                 return eventHandlers;
             },
             function(view) {
+                if (view.focus.length === 0) {
+                    console.log('update css: empty focus?!');
+                }
+                console.log('css: updating:\n', view.focus);
                 view.focus.css(name, value);
             });
     };
@@ -524,8 +530,6 @@
     MockView.prototype.id = function() {
         return this.cursor.node[0].id;
     };
-
-
 
     MockView.prototype.isUpMovementOk = function() {
         return this.cursor.canUp();
@@ -1226,6 +1230,7 @@
                 // update, and have to do it from scratch.
                 var nonce = Math.random();
                 var originalMockView = view.getMockAndResetFocus(nonce);
+                console.log("before: ", arrayTreeToDomNode(originalMockView.cursor.node));
                 toDraw(MACHINE, 
                        world,
                        originalMockView,
@@ -1233,6 +1238,9 @@
                            if (newMockView.nonce === nonce) {
                                var i;
                                var actions = newMockView.getPendingActions();
+                               console.log("this should match:", 
+                                           view.focus.clone(true).get(0));
+                               console.log("actions", actions.length);
                                for (i = 0; i < actions.length; i++) {
                                    actions[i](view);
                                }

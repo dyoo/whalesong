@@ -140,7 +140,7 @@
                (format "RT.makePath(~s)"
                        (path->string val))]
               [(vector? val)
-               (format "RT.makeVector([~a,~a])"
+               (format "RT.makeVector(~a,[~a])"
                        (vector-length val)
                        (string-join (for/list ([elt (vector->list val)])
                                        (loop elt))

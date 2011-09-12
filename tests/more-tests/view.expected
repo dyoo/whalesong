@@ -51,3 +51,5 @@ false
 "remove"
 (html (head) (body "some text"))
 "some text"
+
+"forward and backward"

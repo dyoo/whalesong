@@ -586,7 +586,7 @@
             for (i = 0; i < M.argcount; i++) {
                 result.push(M.env[M.env.length-1-i]);
             }
-            var newVector = makeVector.apply(null, result);
+            var newVector = makeVector(result.length, result);
             return newVector;
         });
 
@@ -606,7 +606,7 @@
             for(i = 0; i < length; i++) {
                 arr[i] = value;
             }
-            return makeVector.apply(null, arr);
+            return makeVector(arr.length, arr);
         });
     
 
@@ -634,7 +634,7 @@
                 result.push(firstArg.first);
                 firstArg = firstArg.rest;
             }
-            return makeVector.apply(null, result);
+            return makeVector(result.length, result);
         });
 
 

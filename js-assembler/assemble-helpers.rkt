@@ -129,7 +129,10 @@
               [(char? val)
                (format "RT.makeChar(~s)" (string val))]
               [(bytes? val)
-               (format "RT.makeBytes(~a)"
+               ;; This needs to be an array, because this may contain
+               ;; a LOT of elements, and certain JS evaluators will break
+               ;; otherewise.
+               (format "RT.makeBytes([~a])"
                        (string-join (for/list ([a-byte val])
                                       (number->string a-byte))
                                     ","))]
@@ -137,7 +140,8 @@
                (format "RT.makePath(~s)"
                        (path->string val))]
               [(vector? val)
-               (format "RT.makeVector(~a)"
+               (format "RT.makeVector([~a,~a])"
+                       (vector-length val)
                        (string-join (for/list ([elt (vector->list val)])
                                        (loop elt))
                                     ","))]

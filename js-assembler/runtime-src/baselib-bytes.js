@@ -105,8 +105,8 @@
 	return ret.join('');
     };
 
-    var makeBytes = function() {
-        return new Bytes(arguments);
+    var makeBytes = function(chars) {
+        return new Bytes(chars);
     };
 
     var isBytes = baselib.makeClassPredicate(Bytes);

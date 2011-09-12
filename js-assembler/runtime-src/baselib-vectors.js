@@ -100,12 +100,12 @@
     var isVector = function (x) { return x instanceof Vector; };
 
     // makeVector: x ... -> vector
-    var makeVector = function () {
-        return Vector.makeInstance(arguments.length, arguments);
+    var makeVector = function (n, elts) {
+        return Vector.makeInstance(n, elts);
     };
 
-    var makeVectorImmutable = function () {
-        var v = Vector.makeInstance(arguments.length, arguments);
+    var makeVectorImmutable = function (n, elts) {
+        var v = Vector.makeInstance(n, elts);
         v.mutable = false;
         return v;
     };

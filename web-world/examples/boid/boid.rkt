@@ -318,7 +318,7 @@
 
 
 (define (new-population)
-  (build-list 25 (lambda (i) (make-random-boid))))
+  (build-list 5 (lambda (i) (make-random-boid))))
 
 
 ;; visualize: -> void

@@ -1,5 +1,8 @@
 #lang planet dyoo/whalesong
 
+(require (planet dyoo/whalesong/js)
+         (planet dyoo/whalesong/web-world))
+         
 
 ;; Boid flocking behavior.
 ;;
@@ -9,6 +12,10 @@
 
 ;; A Boid has a velocity and position vector, as well as a color
 (define-struct boid (velocity position color))
+
+
+(define width (viewport-width))
+(define height (viewport-height))
 
 
 ;; A vec represents a vector in 2d space.
@@ -151,15 +158,17 @@
 ;; (: rule-2 (boid (Listof boid) -> vec))
 ;; Boids try to keep a small distance away from other boids.
 (define (rule-2 boid boids)
-  (for/fold ([the-center (make-vec 0 0)])
-	    ([neighbor boids]
-	     #:when (not (eq? boid neighbor)))
+  (foldl (lambda (neighbor the-center)
 	    (cond
+             [(eq? boid neighbor)
+              the-center]
 	     [(too-close? boid neighbor)
 	      (vec- the-center (vec- (boid-position neighbor)
 				     (boid-position boid)))]
 	     [else
-	      the-center])))
+	      the-center]))
+         (make-vec 0 0)
+         boids))
 
 
 ;; (: too-close? (boid boid -> Boolean))
@@ -211,7 +220,7 @@
   (cond
    [(out-of-bounds? (boid-position boid))
     (vec-normalize
-     (vec- (make-vec (random 640) (random 480))
+     (vec- (make-vec (random width) (random height))
 	   (boid-position boid)))]
    [else
     (make-vec 0 0)]))
@@ -225,8 +234,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;; (: tick ((Listof boid) -> (Listof boid)))
-(define (tick boids)
+;; (: tick ((Listof boid) dom -> (Listof boid)))
+(define (tick boids dom)
   (for/list ([b boids])
      (let ([mass-data (collect-mass-data (boid-neighborhood b boids 40))])
        (cap-boid-velocity 
@@ -273,27 +282,16 @@
 
 
 ;; draw: (listof boid) -> scene
-(define (draw boids)
-  (for/fold ([scene (place-image (rectangle 640 480 'solid 'black)
+#;(define (draw boids)
+  (for/fold ([scene (place-image (rectangle width height 'solid 'black)
 				 320 240 
-				 (empty-scene 640 480))])
+				 (empty-scene width height))])
             ([b boids])
     (place-image (circle 3 'solid (boid-color b))
                  (vec-x (boid-position b))
                  (vec-y (boid-position b))
                  scene)))
 
-
-(define (key boids ke)
-  (cond
-   [(key=? ke "r")
-    (new-population)]
-   [(key=? ke "down")
-    (slow-down-boids boids)]
-   [(key=? ke "up")
-    (speed-up-boids boids)]
-   [else
-    boids]))
 
 
 ;; make-random-boid: -> boid
@@ -318,7 +316,8 @@
 (define (visualize)
   (big-bang (new-population)
             (on-tick tick)
-            (to-draw draw)
-	    (on-key key)))
+            #;(to-draw draw)
+            ))
+
 
 (visualize)

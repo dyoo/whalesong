@@ -14,39 +14,31 @@
   (cond 
     
     [(CheckToplevelBound!? op)
-     (format "if (MACHINE.env[MACHINE.env.length - 1 - ~a][~a] === undefined) { RUNTIME.raiseUnboundToplevelError(MACHINE.env[MACHINE.env.length - 1 - ~a].names[~a]); }"
+     (format "if (M.env[M.env.length - 1 - ~a][~a] === undefined) { RT.raiseUnboundToplevelError(M.env[M.env.length - 1 - ~a].names[~a]); }"
              (CheckToplevelBound!-depth op)
              (CheckToplevelBound!-pos op)
              (CheckToplevelBound!-depth op)
              (CheckToplevelBound!-pos op))]
 
 
-    [(CheckClosureArity!? op)
-     (format "if(!(MACHINE.proc instanceof RUNTIME.Closure)){RUNTIME.raiseOperatorIsNotClosure(MACHINE,MACHINE.proc);}if(!RUNTIME.isArityMatching(MACHINE.proc.racketArity,~a)){RUNTIME.raiseArityMismatchError(MACHINE, MACHINE.proc,~a);}"
-             (assemble-oparg (CheckClosureArity!-num-args op))
-             (assemble-oparg (CheckClosureArity!-num-args op)))]
+    [(CheckClosureAndArity!? op)
+     (format "RT.checkClosureAndArity(M, ~a);"
+             (assemble-oparg (CheckClosureAndArity!-num-args op)))]
 
-    
-    [(CheckPrimitiveArity!? op)
-     (format "if(!RUNTIME.isArityMatching(MACHINE.proc.racketArity,~a)){RUNTIME.raiseArityMismatchError(MACHINE,MACHINE.proc,~a);}"
-             (assemble-oparg (CheckPrimitiveArity!-num-args op))
-             (assemble-oparg (CheckPrimitiveArity!-num-args op)))]
-    
-    
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
-           (format "MACHINE.env.push([~a]);MACHINE.env[MACHINE.env.length-1].names=[~a];"
+           (format "M.env.push([~a]);M.env[M.env.length-1].names=[~a];"
                    (string-join (map
                                  (lambda: ([n : (U Symbol False GlobalBucket ModuleVariable)])
                                           (cond [(symbol? n)
-                                                 (format "MACHINE.params.currentNamespace[~s] || MACHINE.primitives[~s]"
+                                                 (format "M.params.currentNamespace[~s] || M.primitives[~s]"
                                                          (symbol->string n) 
                                                          (symbol->string n))]
                                                 [(eq? n #f)
                                                  "false"]
                                                 [(GlobalBucket? n)
                                                  ;; FIXME: maybe we should keep a set of global variables here?
-                                                 (format "MACHINE.primitives[~s]"
+                                                 (format "M.primitives[~s]"
                                                          (symbol->string (GlobalBucket-name n)))]
                                                 ;; FIXME:  this should be looking at the module path and getting
                                                 ;; the value here!  It shouldn't be looking into Primitives...
@@ -54,10 +46,10 @@
                                                  (cond
                                                   [((current-kernel-module-locator?)
                                                     (ModuleVariable-module-name n))
-                                                   (format "MACHINE.primitives[~s]"
+                                                   (format "M.primitives[~s]"
                                                            (symbol->string (ModuleVariable-name n)))]
                                                   [else
-                                                   (format "MACHINE.modules[~s].namespace[~s]"
+                                                   (format "M.modules[~s].namespace[~s]"
                                                            (symbol->string
                                                             (ModuleLocator-name
                                                              (ModuleVariable-module-name n)))
@@ -79,13 +71,13 @@
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     "MACHINE.env.splice.apply(MACHINE.env,[MACHINE.env.length, 0].concat(MACHINE.proc.closedVals));"]
+     "M.env.push.apply(M.env,M.proc.closedVals);"]
     
     [(RestoreEnvironment!? op)
-     "MACHINE.env=MACHINE.env[MACHINE.env.length-2].slice(0);"]
+     "M.env=M.env[M.env.length-2].slice(0);"]
     
     [(RestoreControl!? op)
-     (format "MACHINE.restoreControl(~a);"
+     (format "M.restoreControl(~a);"
              (let: ([tag : (U DefaultContinuationPromptTag OpArg)
 			 (RestoreControl!-tag op)])
                (cond
@@ -95,7 +87,7 @@
                   (assemble-oparg tag)])))]
     
     [(FixClosureShellMap!? op)
-     (format "MACHINE.env[MACHINE.env.length-~a].closedVals=[~a];"
+     (format "M.env[M.env.length-~a].closedVals=[~a];"
              (add1 (FixClosureShellMap!-depth op))
              (string-join (map
                            assemble-env-reference/closure-capture 
@@ -107,60 +99,60 @@
                           ","))]
     
     [(SetFrameCallee!? op)
-     (format "MACHINE.control[MACHINE.control.length-1].proc = ~a;"
+     (format "M.control[M.control.length-1].proc = ~a;"
              (assemble-oparg (SetFrameCallee!-proc op)))]
     
     [(SpliceListIntoStack!? op)
-     (format "MACHINE.spliceListIntoStack(~a);"
+     (format "M.spliceListIntoStack(~a);"
              (assemble-oparg (SpliceListIntoStack!-depth op)))]
 
     [(UnspliceRestFromStack!? op)
-     (format "MACHINE.unspliceRestFromStack(~a,~a);"
+     (format "M.unspliceRestFromStack(~a,~a);"
              (assemble-oparg (UnspliceRestFromStack!-depth op))
              (assemble-oparg (UnspliceRestFromStack!-length op)))]
 
     [(InstallContinuationMarkEntry!? op)
-     (string-append "MACHINE.installContinuationMarkEntry("
-                    "MACHINE.control[MACHINE.control.length-1].pendingContinuationMarkKey,"
-                    "MACHINE.val);")]
+     (string-append "M.installContinuationMarkEntry("
+                    "M.control[M.control.length-1].pendingContinuationMarkKey,"
+                    "M.val);")]
 
     [(RaiseContextExpectedValuesError!? op)
-     (format "RUNTIME.raiseContextExpectedValuesError(MACHINE,~a);"
+     (format "RT.raiseContextExpectedValuesError(M,~a);"
              (RaiseContextExpectedValuesError!-expected op))]
 
 
     [(RaiseArityMismatchError!? op)
-     (format "RUNTIME.raiseArityMismatchError(MACHINE,~a,~a);"
+     (format "RT.raiseArityMismatchError(M,~a,~a);"
              (assemble-oparg (RaiseArityMismatchError!-proc op))
              (assemble-oparg (RaiseArityMismatchError!-received op)))]
 
 
     [(RaiseOperatorApplicationError!? op)
-     (format "RUNTIME.raiseOperatorApplicationError(MACHINE,~a);"
+     (format "RT.raiseOperatorApplicationError(M,~a);"
              (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]
 
 
     [(RaiseUnimplementedPrimitiveError!? op)
-     (format "RUNTIME.raiseUnimplementedPrimitiveError(MACHINE,~s);"
+     (format "RT.raiseUnimplementedPrimitiveError(M,~s);"
              (symbol->string (RaiseUnimplementedPrimitiveError!-name op)))]
     
     
     [(InstallModuleEntry!? op)
-     (format "MACHINE.modules[~s]=new RUNTIME.ModuleRecord(~s,~a);"
+     (format "M.modules[~s]=new RT.ModuleRecord(~s,~a);"
              (symbol->string (ModuleLocator-name (InstallModuleEntry!-path op)))
              (symbol->string (InstallModuleEntry!-name op))
              (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]
 
     [(MarkModuleInvoked!? op)
-     (format "MACHINE.modules[~s].isInvoked=true;"
+     (format "M.modules[~s].isInvoked=true;"
              (symbol->string (ModuleLocator-name (MarkModuleInvoked!-path op))))]
 
 
     [(AliasModuleAsMain!? op)
-     (format "MACHINE.mainModules.push(MACHINE.modules[~s]);"
+     (format "M.mainModules.push(M.modules[~s]);"
              (symbol->string (ModuleLocator-name (AliasModuleAsMain!-from op))))]
 
     [(FinalizeModuleInvokation!? op)
-     (format "MACHINE.modules[~s].finalizeModuleInvokation();"
+     (format "M.modules[~s].finalizeModuleInvokation();"
              (symbol->string
               (ModuleLocator-name (FinalizeModuleInvokation!-path op))))]))

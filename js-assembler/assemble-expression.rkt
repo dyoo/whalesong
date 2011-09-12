@@ -14,10 +14,10 @@
 (define (assemble-op-expression op)
   (cond
     [(GetCompiledProcedureEntry? op)
-     "MACHINE.proc.label"]
+     "M.proc.label"]
     
     [(MakeCompiledProcedure? op)
-     (format "new RUNTIME.Closure(~a, ~a, [~a], ~a)"
+     (format "new RT.Closure(~a, ~a, [~a], ~a)"
              (assemble-label (make-Label (MakeCompiledProcedure-label op)))
              (assemble-arity (MakeCompiledProcedure-arity op))
              (string-join (map
@@ -31,20 +31,17 @@
              (assemble-display-name (MakeCompiledProcedure-display-name op)))]
     
     [(MakeCompiledProcedureShell? op)
-     (format "new RUNTIME.Closure(~a, ~a, undefined, ~a)"
+     (format "new RT.Closure(~a, ~a, undefined, ~a)"
              (assemble-label (make-Label (MakeCompiledProcedureShell-label op)))
              (assemble-arity (MakeCompiledProcedureShell-arity op))
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     
-    [(ApplyPrimitiveProcedure? op)
-     (format "MACHINE.proc(MACHINE)")]
-    
     [(CaptureEnvironment? op)
-     (format "MACHINE.env.slice(0, MACHINE.env.length - ~a)"
+     (format "M.env.slice(0, M.env.length - ~a)"
              (CaptureEnvironment-skip op))]
     
     [(CaptureControl? op)
-     (format "MACHINE.captureControl(~a, ~a)"
+     (format "M.captureControl(~a, ~a)"
              (CaptureControl-skip op)
              (let: ([tag : (U DefaultContinuationPromptTag OpArg)
 			 (CaptureControl-tag op)])
@@ -55,7 +52,7 @@
 
     
     [(MakeBoxedEnvironmentValue? op)
-     (format "[MACHINE.env[MACHINE.env.length - 1 - ~a]]"
+     (format "[M.env[M.env.length - 1 - ~a]]"
              (MakeBoxedEnvironmentValue-depth op))]
 
     [(CallKernelPrimitiveProcedure? op)

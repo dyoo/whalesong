@@ -14,7 +14,8 @@
          "../sets.rkt"
          "../helpers.rkt"
          racket/string
-         racket/list)
+         racket/list
+         racket/match)
 (require/typed "../logger.rkt"
                [log-debug (String -> Void)])
 
@@ -39,34 +40,40 @@
 ;; What's emitted is a function expression that, when invoked, runs the
 ;; statements.
 (define (assemble/write-invoke stmts op)
-  (display "(function(MACHINE, success, fail, params) {\n" op)
+  (display "(function(M, success, fail, params) {\n" op)
   (display "var param;\n" op)
-  (display "var RUNTIME = plt.runtime;\n" op)
+  (display "var RT = plt.runtime;\n" op)
   
   (define-values (basic-blocks entry-points) (fracture stmts))
-  
-  (write-blocks basic-blocks (list->set entry-points) op)
+
+  (define function-entry-and-exit-names
+    (list->set (get-function-entry-and-exit-names stmts)))
+
+  (write-blocks basic-blocks
+                (list->set entry-points)
+                function-entry-and-exit-names
+                op)
   
   (write-linked-label-attributes stmts op)
   
-  (display "MACHINE.params.currentErrorHandler = fail;\n" op)
-  (display "MACHINE.params.currentSuccessHandler = success;\n" op)
+  (display "M.params.currentErrorHandler = fail;\n" op)
+  (display "M.params.currentSuccessHandler = success;\n" op)
   (display  #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {
-        MACHINE.params[param] = params[param];
+        M.params[param] = params[param];
     }
 }
 EOF
            op)
-  (fprintf op "MACHINE.trampoline(~a); })"
+  (fprintf op "M.trampoline(~a); })"
            (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))))
 
 
 
-(: write-blocks ((Listof BasicBlock) (Setof Symbol) Output-Port -> Void))
+(: write-blocks ((Listof BasicBlock) (Setof Symbol) (Setof Symbol) Output-Port -> Void))
 ;; Write out all the basic blocks associated to an entry point.
-(define (write-blocks blocks entry-points op)  
+(define (write-blocks blocks entry-points function-entry-and-exit-names op)  
   (: blockht : Blockht)
   (define blockht (make-hash))
   
@@ -82,6 +89,7 @@ EOF
                   (assemble-basic-block (hash-ref blockht s) 
                                         blockht
                                         entry-points
+                                        function-entry-and-exit-names
                                         op)
                   (newline op))
                 entry-points))
@@ -169,11 +177,30 @@ EOF
 
 
 
-(: assemble-basic-block (BasicBlock Blockht (Setof Symbol) Output-Port -> 'ok))
-(define (assemble-basic-block a-basic-block blockht entry-points op)
-  (fprintf op "var ~a = function(MACHINE) { if(--MACHINE.callsBeforeTrampoline < 0) { throw ~a; }\n"
-           (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-           (assemble-label (make-Label (BasicBlock-name a-basic-block))))
+(: assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
+(define (assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
+  (match (BasicBlock-stmts a-basic-block)
+    [(list (struct PerformStatement ((struct RaiseContextExpectedValuesError! (expected))))
+           stmts ...)
+     (fprintf op "~a=RT.si_context_expected(~a);\n"
+              (assemble-label (make-Label (BasicBlock-name a-basic-block)))
+              expected)
+     'ok]
+    [else
+     (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)]))
+
+
+
+(: default-assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
+(define (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
+  (cond
+   [(set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
+    (fprintf op "var ~a=function(M){if(--M.cbt<0){throw ~a;}\n"
+             (assemble-label (make-Label (BasicBlock-name a-basic-block)))
+             (assemble-label (make-Label (BasicBlock-name a-basic-block))))]
+   [else
+    (fprintf op "var ~a=function(M){--M.cbt<0;\n"
+             (assemble-label (make-Label (BasicBlock-name a-basic-block))))])
   (assemble-block-statements (BasicBlock-name a-basic-block)
                              (BasicBlock-stmts a-basic-block)
                              blockht
@@ -181,6 +208,7 @@ EOF
                              op)
   (display "};\n" op)
   'ok)
+
 
 
 
@@ -236,12 +264,12 @@ EOF
                                  (format "if(~a===0)"
                                          (assemble-oparg (TestZero-operand test)))]
                                 
-                                [(TestPrimitiveProcedure? test)
-                                 (format "if(typeof(~a)==='function')"
-                                         (assemble-oparg (TestPrimitiveProcedure-operand test)))]
+                                ;; [(TestPrimitiveProcedure? test)
+                                ;;  (format "if(typeof(~a)==='function')"
+                                ;;          (assemble-oparg (TestPrimitiveProcedure-operand test)))]
                                 
                                 [(TestClosureArityMismatch? test)
-                                 (format "if(!RUNTIME.isArityMatching((~a).racketArity,~a))"
+                                 (format "if(!RT.isArityMatching((~a).racketArity,~a))"
                                          (assemble-oparg (TestClosureArityMismatch-closure test))
                                          (assemble-oparg (TestClosureArityMismatch-n test)))]))
                (display test-code op)
@@ -399,7 +427,7 @@ EOF
   (define assembled
     (cond
      [(DebugPrint? stmt)
-      (format "MACHINE.params.currentOutputPort.writeDomNode(MACHINE, $('<span/>').text(~a));"
+      (format "M.params.currentOutputPort.writeDomNode(M, $('<span/>').text(~a));"
               (assemble-oparg (DebugPrint-value stmt)))]
      [(AssignImmediateStatement? stmt)
       (let: ([t : (String -> String) (assemble-target (AssignImmediateStatement-target stmt))]
@@ -435,12 +463,8 @@ EOF
                 (format "if(~a===0){~a}"
                         (assemble-oparg (TestZero-operand test))
                         jump)]
-               [(TestPrimitiveProcedure? test)
-                (format "if(typeof(~a)==='function'){~a}"
-                        (assemble-oparg (TestPrimitiveProcedure-operand test))
-                        jump)]
                [(TestClosureArityMismatch? test)
-                (format "if(!RUNTIME.isArityMatching((~a).racketArity,~a)){~a}"
+                (format "if(!RT.isArityMatching((~a).racketArity,~a)){~a}"
                         (assemble-oparg (TestClosureArityMismatch-closure test))
                         (assemble-oparg (TestClosureArityMismatch-n test))
                         jump)])
@@ -450,10 +474,10 @@ EOF
       (assemble-jump (GotoStatement-target stmt))]
      
      [(PushControlFrame/Generic? stmt)
-      "MACHINE.control.push(new RUNTIME.Frame());"]
+      "M.control.push(new RT.Frame());"]
      
      [(PushControlFrame/Call? stmt)
-      (format "MACHINE.control.push(new RUNTIME.CallFrame(~a,MACHINE.proc));" 
+      (format "M.control.push(new RT.CallFrame(~a,M.proc));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -463,7 +487,7 @@ EOF
      
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
-      (format "MACHINE.control.push(new RUNTIME.PromptFrame(~a,~a));" 
+      (format "M.control.push(new RT.PromptFrame(~a,~a));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -480,12 +504,12 @@ EOF
                    (assemble-oparg tag)])))]
      
      [(PopControlFrame? stmt)
-      "MACHINE.control.pop();"]
+      "M.control.pop();"]
      
      [(PushEnvironment? stmt)
       (if (= (PushEnvironment-n stmt) 0)
           ""
-          (format "MACHINE.env.push(~a);" (string-join
+          (format "M.env.push(~a);" (string-join
                                            (build-list (PushEnvironment-n stmt) 
                                                        (lambda: ([i : Natural])
                                                          (if (PushEnvironment-unbox? stmt)
@@ -496,16 +520,16 @@ EOF
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-           (format "MACHINE.env.length-=~a;"
+           (format "M.env.length-=~a;"
                    (assemble-oparg (PopEnvironment-n stmt)))]
           [else
-           (format "MACHINE.env.splice(MACHINE.env.length-(~a +~a),~a);"
+           (format "M.env.splice(M.env.length-(~a +~a),~a);"
                    (assemble-oparg (PopEnvironment-skip stmt))
                    (assemble-oparg (PopEnvironment-n stmt))
                    (assemble-oparg (PopEnvironment-n stmt)))]))]
      
      [(PushImmediateOntoEnvironment? stmt)
-      (format "MACHINE.env.push(~a);"
+      (format "M.env.push(~a);"
               (let: ([val-string : String
                                  (cond [(PushImmediateOntoEnvironment-box? stmt)
                                         (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]
@@ -532,3 +556,31 @@ EOF
   (if (natural? n)
       n
       (error 'ensure-natural)))
+
+
+
+(: get-function-entry-and-exit-names ((Listof Statement) -> (Listof Symbol)))
+(define (get-function-entry-and-exit-names stmts)
+  (cond
+   [(empty? stmts)
+    '()]
+   [else
+    (define first-stmt (first stmts))
+    (cond
+     [(LinkedLabel? first-stmt)
+      (cons (LinkedLabel-label first-stmt)
+            (cons (LinkedLabel-linked-to first-stmt)
+                  (get-function-entry-and-exit-names (rest stmts))))]
+     [(AssignPrimOpStatement? first-stmt)
+      (define op (AssignPrimOpStatement-op first-stmt))
+      (cond
+       [(MakeCompiledProcedure? op)
+        (cons (MakeCompiledProcedure-label op)
+              (get-function-entry-and-exit-names (rest stmts)))]
+       [(MakeCompiledProcedureShell? first-stmt)
+        (cons (MakeCompiledProcedureShell-label op)
+              (get-function-entry-and-exit-names (rest stmts)))]
+       [else
+        (get-function-entry-and-exit-names (rest stmts))])]
+     [else
+      (get-function-entry-and-exit-names (rest stmts))])]))

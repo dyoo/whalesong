@@ -128,8 +128,6 @@
                                          (MakeCompiledProcedureShell-arity op)
                                          (MakeCompiledProcedureShell-display-name op))]
        
-       [(ApplyPrimitiveProcedure? op)
-        op]
        
        [(MakeBoxedEnvironmentValue? op)
         op]

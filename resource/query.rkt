@@ -4,13 +4,14 @@
          racket/runtime-path
          syntax/modresolve
          racket/path
-         "structs.rkt")
+         "structs.rkt"
+         racket/gui/base)
 
 
 (provide/contract [query (module-path? . -> . (listof resource?))])
                   
 (define-runtime-path record.rkt "record.rkt")
-(define ns (make-base-namespace))
+(define ns (make-gui-namespace))
 
 ;; query: module-path -> (listof record)
 ;; Given a module, collect all of its resource records

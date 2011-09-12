@@ -74,7 +74,7 @@
   (cond
    [(PrimitivesReference? target)
     (lambda: ([rhs : String])
-             (format "RUNTIME.Primitives[~s]=RUNTIME.Primitives[~s]||~a;"
+             (format "RT.Primitives[~s]=RT.Primitives[~s]||~a;"
                      (symbol->string (PrimitivesReference-name target))
                      (symbol->string (PrimitivesReference-name target))
                      rhs))]
@@ -83,11 +83,11 @@
              (format "~a=~a;"
                      (cond
                       [(eq? target 'proc)
-                       "MACHINE.proc"]
+                       "M.proc"]
                       [(eq? target 'val)
-                       "MACHINE.val"]
+                       "M.val"]
                       [(eq? target 'argcount)
-                       "MACHINE.argcount"]
+                       "M.argcount"]
                       [(EnvLexicalReference? target)
                        (assemble-lexical-reference target)]
                       [(EnvPrefixReference? target)
@@ -95,7 +95,7 @@
                       [(ControlFrameTemporary? target)
                        (assemble-control-frame-temporary target)]
                       [(ModulePrefixTarget? target)
-                       (format "MACHINE.modules[~s].prefix"
+                       (format "M.modules[~s].prefix"
                                (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))])
                      rhs))]))
 
@@ -103,7 +103,7 @@
 
 (: assemble-control-frame-temporary (ControlFrameTemporary -> String))
 (define (assemble-control-frame-temporary t)
-  (format "MACHINE.control[MACHINE.control.length-1].~a"
+  (format "M.control[M.control.length-1].~a"
           (ControlFrameTemporary-name t)))
 
 ;; fixme: use js->string
@@ -111,38 +111,38 @@
 (define (assemble-const stmt)
   (let: loop : String ([val : const-value (Const-const stmt)])
         (cond [(symbol? val)
-               (format "RUNTIME.makeSymbol(~s)" (symbol->string val))]
+               (format "RT.makeSymbol(~s)" (symbol->string val))]
               [(pair? val)
-               (format "RUNTIME.makePair(~a,~a)" 
+               (format "RT.makePair(~a,~a)" 
                        (loop (car val))
                        (loop (cdr val)))]
               [(boolean? val)
                (if val "true" "false")]
               [(void? val)
-               "RUNTIME.VOID"]
+               "RT.VOID"]
               [(empty? val)
-               (format "RUNTIME.NULL")]
+               (format "RT.NULL")]
               [(number? val)
                (assemble-numeric-constant val)]
               [(string? val)
                (format "~s" val)]
               [(char? val)
-               (format "RUNTIME.makeChar(~s)" (string val))]
+               (format "RT.makeChar(~s)" (string val))]
               [(bytes? val)
-               (format "RUNTIME.makeBytes(~a)"
+               (format "RT.makeBytes(~a)"
                        (string-join (for/list ([a-byte val])
                                       (number->string a-byte))
                                     ","))]
               [(path? val)
-               (format "RUNTIME.makePath(~s)"
+               (format "RT.makePath(~s)"
                        (path->string val))]
               [(vector? val)
-               (format "RUNTIME.makeVector(~a)"
+               (format "RT.makeVector(~a)"
                        (string-join (for/list ([elt (vector->list val)])
                                        (loop elt))
                                     ","))]
               [(box? val)
-               (format "RUNTIME.makeBox(~s)"
+               (format "RT.makeBox(~s)"
                        (loop (unbox val)))])))
 
 
@@ -152,9 +152,9 @@
   (let loop ([vals vals])
     (cond
       [(empty? vals)
-       "RUNTIME.NULL"]
+       "RT.NULL"]
       [else
-       (format "RUNTIME.makePair(~a,~a)" (first vals) (loop (rest vals)))])))
+       (format "RT.makePair(~a,~a)" (first vals) (loop (rest vals)))])))
 
 
 
@@ -171,15 +171,15 @@
   (define (floating-number->js a-num)
     (cond
      [(eqv? a-num -0.0)
-      "RUNTIME.NEGATIVE_ZERO"]
+      "RT.NEGATIVE_ZERO"]
      [(eqv? a-num +inf.0)
-      "RUNTIME.INF"]
+      "RT.INF"]
      [(eqv? a-num -inf.0)
-      "RUNTIME.NEGATIVE_INF"]
+      "RT.NEGATIVE_INF"]
      [(eqv? a-num +nan.0)
-      "RUNTIME.NAN"]
+      "RT.NAN"]
      [else
-      (string-append "RUNTIME.makeFloat(" (number->string a-num) ")")]))
+      (string-append "RT.makeFloat(" (number->string a-num) ")")]))
 
   ;; FIXME: fix the type signature when typed-racket isn't breaking on
   ;; (define-predicate ExactRational? (U Exact-Rational))
@@ -188,7 +188,7 @@
     (cond [(= (denominator a-num) 1)
            (string-append (integer->js (ensure-integer (numerator a-num))))]
           [else
-           (string-append "RUNTIME.makeRational("
+           (string-append "RT.makeRational("
                           (integer->js (ensure-integer (numerator a-num)))
                           ","
                           (integer->js (ensure-integer (denominator a-num)))
@@ -211,7 +211,7 @@
       (number->string an-int)]
      ;; overflow case
      [else
-      (string-append "RUNTIME.makeBignum("
+      (string-append "RT.makeBignum("
                      (format "~s" (number->string an-int))
                      ")")]))
 
@@ -223,7 +223,7 @@
     (floating-number->js a-num)]
    
    [(complex? a-num)
-    (string-append "RUNTIME.makeComplex("
+    (string-append "RT.makeComplex("
                    (assemble-numeric-constant (real-part a-num))
                    ","
                    (assemble-numeric-constant (imag-part a-num))
@@ -253,26 +253,26 @@
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (if (EnvLexicalReference-unbox? a-lex-ref)
-      (format "MACHINE.env[MACHINE.env.length-~a][0]"
+      (format "M.env[M.env.length-~a][0]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))
-      (format "MACHINE.env[MACHINE.env.length-~a]"
+      (format "M.env[M.env.length-~a]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))))
 
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)
-  (format "MACHINE.env[MACHINE.env.length-~a][~a]"
+  (format "M.env[M.env.length-~a][~a]"
           (add1 (EnvPrefixReference-depth a-ref))
           (EnvPrefixReference-pos a-ref)))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
-  (format "MACHINE.env[MACHINE.env.length-~a]"
+  (format "M.env[M.env.length-~a]"
           (add1 (EnvWholePrefixReference-depth a-prefix-ref))))
 
 
 (: assemble-reg (Reg -> String))
 (define (assemble-reg a-reg)
-  (string-append "MACHINE." (symbol->string (Reg-name a-reg))))
+  (string-append "M." (symbol->string (Reg-name a-reg))))
 
 
 
@@ -302,12 +302,12 @@
 
 (: assemble-control-stack-label (ControlStackLabel -> String))
 (define (assemble-control-stack-label a-csl)
-  "MACHINE.control[MACHINE.control.length-1].label")
+  "M.control[M.control.length-1].label")
 
 
 (: assemble-control-stack-label/multiple-value-return (ControlStackLabel/MultipleValueReturn -> String))
 (define (assemble-control-stack-label/multiple-value-return a-csl)
-  "MACHINE.control[MACHINE.control.length-1].label.multipleValueReturn")
+  "M.control[M.control.length-1].label.multipleValueReturn")
 
 
 
@@ -328,7 +328,7 @@
 
 (: assemble-default-continuation-prompt-tag (-> String))
 (define (assemble-default-continuation-prompt-tag)
-  "RUNTIME.DEFAULT_CONTINUATION_PROMPT_TAG")
+  "RT.DEFAULT_CONTINUATION_PROMPT_TAG")
 
 
 
@@ -337,7 +337,7 @@
 ;; lexical references: they must remain boxes.  So all we need is 
 ;; the depth into the environment.
 (define (assemble-env-reference/closure-capture depth)
-  (format "MACHINE.env[MACHINE.env.length - ~a]"
+  (format "M.env[M.env.length - ~a]"
           (add1 depth)))
 
 
@@ -350,7 +350,7 @@
    [(natural? an-arity)
     (number->string an-arity)]
    [(ArityAtLeast? an-arity)
-    (format "(RUNTIME.makeArityAtLeast(~a))"
+    (format "(RT.makeArityAtLeast(~a))"
             (ArityAtLeast-value an-arity))]
    [(listof-atomic-arity? an-arity)
     (assemble-listof-assembled-values
@@ -360,7 +360,7 @@
 		[(natural? atomic-arity)
 		 (number->string atomic-arity)]
 		[(ArityAtLeast? atomic-arity)
-		 (format "(RUNTIME.makeArityAtLeast(~a))"
+		 (format "(RT.makeArityAtLeast(~a))"
                          (ArityAtLeast-value atomic-arity))]))
       an-arity))]))
 
@@ -370,7 +370,7 @@
 
 (: assemble-jump (OpArg -> String))
 (define (assemble-jump target)
-  (format "return(~a)(MACHINE);" (assemble-oparg target)))
+  (format "return(~a)(M);" (assemble-oparg target)))
 
 
 
@@ -399,25 +399,25 @@
 
 (: assemble-primitive-kernel-value (PrimitiveKernelValue -> String))
 (define (assemble-primitive-kernel-value a-prim)
-  (format "MACHINE.primitives[~s]" (symbol->string (PrimitiveKernelValue-id a-prim))))
+  (format "M.primitives[~s]" (symbol->string (PrimitiveKernelValue-id a-prim))))
 
 
 
 (: assemble-module-entry (ModuleEntry -> String))
 (define (assemble-module-entry entry)
-  (format "MACHINE.modules[~s].label"
+  (format "M.modules[~s].label"
           (symbol->string (ModuleLocator-name (ModuleEntry-name entry)))))
 
 
 (: assemble-is-module-invoked (IsModuleInvoked -> String))
 (define (assemble-is-module-invoked entry)
-  (format "MACHINE.modules[~s].isInvoked"
+  (format "M.modules[~s].isInvoked"
           (symbol->string (ModuleLocator-name (IsModuleInvoked-name entry)))))
 
 
 (: assemble-is-module-linked (IsModuleLinked -> String))
 (define (assemble-is-module-linked entry)
-  (format "(MACHINE.modules[~s]!==undefined)"
+  (format "(M.modules[~s]!==undefined)"
           (symbol->string (ModuleLocator-name (IsModuleLinked-name entry)))))
 
 
@@ -425,6 +425,6 @@
 (: assemble-variable-reference (VariableReference -> String))
 (define (assemble-variable-reference varref)
   (let ([t (VariableReference-toplevel varref)])
-    (format "(new RUNTIME.VariableReference(MACHINE.env[MACHINE.env.length-~a],~a))"
+    (format "(new RT.VariableReference(M.env[M.env.length-~a],~a))"
             (add1 (ToplevelRef-depth t))
             (ToplevelRef-pos t))))

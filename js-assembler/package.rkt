@@ -19,9 +19,11 @@
          racket/port
          (prefix-in query: "../lang/js/query.rkt")
          (prefix-in resource-query: "../resource/query.rkt")
-         (planet dyoo/closure-compile:1:1)
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base))
+
+;; There is a dynamic require for (planet dyoo/closure-compile) that's done
+;; if compression is turned on.
 
 
 ;; TODO: put proper contracts here
@@ -155,23 +157,23 @@
                     module-requires))
        (let ([module-body-text
               (format "
-             if(--MACHINE.callsBeforeTrampoline<0) { throw arguments.callee; }
-             var modrec = MACHINE.modules[~s];
+             if(--M.cbt<0) { throw arguments.callee; }
+             var modrec = M.modules[~s];
              var exports = {};
              modrec.isInvoked = true;
-             (function(MACHINE, RUNTIME, EXPORTS){~a})(MACHINE, plt.runtime, exports);
+             (function(MACHINE, EXPORTS){~a})(M, exports);
              ~a
              modrec.privateExports = exports;
-             return MACHINE.control.pop().label(MACHINE);"
+             return M.control.pop().label(M);"
                       (symbol->string name)
                       text
                       (get-provided-name-code bytecode))])
          
          (make-UninterpretedSource
           (format "
-MACHINE.modules[~s] =
+M.modules[~s] =
     new plt.runtime.ModuleRecord(~s,
-        function(MACHINE) {
+        function(M) {
             ~a
         });
 "
@@ -204,10 +206,10 @@ MACHINE.modules[~s] =
   (let ([name (rewrite-path (path->string path))]
         [afterName (gensym 'afterName)])
     (format "var ~a = function() { ~a };
-             if (! MACHINE.modules[~s].isInvoked) {
-                 MACHINE.modules[~s].internalInvoke(MACHINE,
+             if (! M.modules[~s].isInvoked) {
+                 M.modules[~s].internalInvoke(M,
                                             ~a,
-                                            MACHINE.params.currentErrorHandler);
+                                            M.params.currentErrorHandler);
              } else {
                  ~a();
              }"
@@ -229,7 +231,7 @@ MACHINE.modules[~s] =
 ;; following module paths of a source's dependencies.
 ;;
 ;; The generated output defines a function called 'invoke' with
-;; four arguments (MACHINE, SUCCESS, FAIL, PARAMS).  When called, it will
+;; four arguments (M, SUCCESS, FAIL, PARAMS).  When called, it will
 ;; execute the code to either run standalone expressions or
 ;; load in modules.
 (define (package source-code
@@ -265,7 +267,7 @@ MACHINE.modules[~s] =
                       plt.runtime.setReadyFalse();
                       (")
       (assemble/write-invoke stmts op)
-      (fprintf op ")(MACHINE,
+      (fprintf op ")(M,
                      function() {
                           if (window.console && window.console.log) {
                               window.console.log('loaded ' + ~s);
@@ -308,7 +310,7 @@ MACHINE.modules[~s] =
      ;; last
      on-last-src))
   
-  (fprintf op "var invoke = (function(MACHINE, SUCCESS, FAIL, PARAMS) {")
+  (fprintf op "var invoke = (function(M, SUCCESS, FAIL, PARAMS) {")
   (fprintf op "    plt.runtime.ready(function() {")
   (fprintf op "        plt.runtime.setReadyFalse();")
   (make (list (make-MainModuleSource source-code))
@@ -347,7 +349,7 @@ MACHINE.modules[~s] =
           ;; on
           (lambda (src ast stmts)
             (assemble/write-invoke stmts op)
-            (fprintf op "(MACHINE, function() { "))
+            (fprintf op "(M, function() { "))
           
           ;; after
           (lambda (src)
@@ -360,16 +362,18 @@ MACHINE.modules[~s] =
     (display (runtime:get-runtime) op)
     
     (newline op)
-    (fprintf op "(function(MACHINE, SUCCESS, FAIL, PARAMS) {")
+    (fprintf op "(function(M, SUCCESS, FAIL, PARAMS) {")
     (make (list only-bootstrapped-code) packaging-configuration)
     (fprintf op "})(plt.runtime.currentMachine,\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")))
 
 
-
+(define closure-compile-ns (make-base-namespace))
 (define (compress x)
   (cond [(current-compress-javascript?)
          (log-debug "compressing javascript...")
-         (closure-compile x)]
+         (parameterize ([current-namespace closure-compile-ns])
+           (define closure-compile (dynamic-require '(planet dyoo/closure-compile) 'closure-compile))
+           (closure-compile x))]
         [else
          (log-debug "not compressing javascript...")
          x]))
@@ -465,12 +469,12 @@ EOF
 (define invoke-main-module-code
   #<<EOF
 var invokeMainModule = function() {
-    var MACHINE = plt.runtime.currentMachine;
-    invoke(MACHINE,
+    var M = plt.runtime.currentMachine;
+    invoke(M,
            function() {
                 var startTime = new Date().valueOf();
                 plt.runtime.invokeMains(
-                    MACHINE,
+                    M,
                     function() {
                         // On main module invokation success:
                         var stopTime = new Date().valueOf();                                
@@ -478,25 +482,25 @@ var invokeMainModule = function() {
                             window.console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
                         }
                     },
-                    function(MACHINE, e) {
+                    function(M, e) {
                         var contMarkSet, context, i, appName;
                         // On main module invokation failure
                         if (window.console && window.console.log) {
                             window.console.log(e.stack || e);
                         }
                         
-                        MACHINE.params.currentErrorDisplayer(
-                             MACHINE, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
+                        M.params.currentErrorDisplayer(
+                             M, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
 
                         if (e.hasOwnProperty('racketError') &&
                             plt.baselib.exceptions.isExn(e.racketError)) {
                             contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
                             if (contMarkSet) {
-                                 context = contMarkSet.getContext(MACHINE);
+                                 context = contMarkSet.getContext(M);
                                  for (i = 0; i < context.length; i++) {
                                      if (plt.runtime.isVector(context[i])) {
-                                        MACHINE.params.currentErrorDisplayer(
-                                            MACHINE,
+                                        M.params.currentErrorDisplayer(
+                                            M,
                                             $('<div/>').text('  at ' + context[i].elts[0] +
                                                              ', line ' + context[i].elts[2] +
                                                              ', column ' + context[i].elts[3])
@@ -505,8 +509,8 @@ var invokeMainModule = function() {
                                                        .css('whitespace', 'pre')
                                                        .css('color', 'red'));
                                      } else if (plt.runtime.isProcedure(context[i])) {
-                                        MACHINE.params.currentErrorDisplayer(
-                                            MACHINE,
+                                        M.params.currentErrorDisplayer(
+                                            M,
                                             $('<div/>').text('  in ' + context[i].displayName)
                                                        .addClass('stacktrace')
                                                        .css('margin-left', '10px')

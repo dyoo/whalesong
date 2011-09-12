@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4 */
+/*jslint browser: true, unparam: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4, forin: true */
 /*global plt,MACHINE,$,EXPORTS,TreeCursor*/
 (function() {
 
@@ -618,8 +618,7 @@
 
 
     var isDomNode = function(x) {
-        return (x.hasOwnProperty('nodeType') &&
-                x.nodeType === 1);
+        return (x.nodeType === 1);
     };
 
 
@@ -754,8 +753,11 @@
     var objectToEvent = function(obj) {
         var key, val;
         var result = makeList();
+        // Note: for some reason, jslint is not satisfied that I check
+        // that the object has a hasOwnProperty before I use it.  I've intentionally
+        // turned off jslint's forin check because it's breaking here:
         for (key in obj) {
-            if (obj.hasOwnProperty(key)) {
+            if (obj.hasOwnProperty && obj.hasOwnProperty(key)) {
                 val = obj[key];
                 if (typeof(val) === 'number') {
                     result = makePair(makeList(makeSymbol(key),
@@ -886,7 +888,9 @@
     LocationEventSource.prototype.onStart = function(fireEvent) {
         if (this.id === undefined) {
             var success = function(position) {
-                if (position.hasOwnProperty('coords') &&
+                if (position.hasOwnProperty &&
+                    position.hasOwnProperty('coords') &&
+                    position.coords.hasOwnProperty &&
                     position.coords.hasOwnProperty('latitude') &&
                     position.coords.hasOwnProperty('longitude')) {
                     fireEvent(undefined,

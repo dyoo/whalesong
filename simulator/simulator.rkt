@@ -308,15 +308,15 @@
                    [else
                     'ok]))]
           
-          [(CheckClosureArity!? op)
+          [(CheckClosureAndArity!? op)
            (let: ([clos : SlotValue (machine-proc m)])
                  (cond
                    [(closure? clos)
                     (if (arity-match? (closure-arity clos)
-                                      (ensure-natural (evaluate-oparg m (CheckClosureArity!-num-args op))))
+                                      (ensure-natural (evaluate-oparg m (CheckClosureAndArity!-num-args op))))
                         'ok
                         (error 'check-closure-arity "arity mismatch: passed ~s args to ~s"
-                               (ensure-natural (evaluate-oparg m (CheckClosureArity!-num-args op)))
+                               (ensure-natural (evaluate-oparg m (CheckClosureAndArity!-num-args op)))
                                (closure-display-name clos)))]
                    [else
                     (error 'check-closure-arity "not a closure: ~s" clos)]))]
@@ -654,23 +654,7 @@
                                             (MakeCompiledProcedureShell-arity op)
                                             '()
                                             (MakeCompiledProcedureShell-display-name op)))]
-                            
-          [(ApplyPrimitiveProcedure? op)
-           (let: ([prim : SlotValue (machine-proc m)]
-                  [args : (Listof PrimitiveValue)
-                        (map ensure-primitive-value (take (machine-env m)
-                                                          (ensure-natural (machine-argcount m))))])
-                 (cond
-                   [(primitive-proc? prim)
-                    (target-updater! m (ensure-primitive-value 
-                                        (parameterize ([current-output-port
-                                                        (current-simulated-output-port)])
-                                          (apply (primitive-proc-f prim)
-                                                 m
-                                                 args))))]
-                   [else
-                    (error 'apply-primitive-procedure)]))]
-          
+
           [(CaptureEnvironment? op)
            (target-updater! m (make-CapturedEnvironment (drop (machine-env m)
                                                               (CaptureEnvironment-skip op))))]

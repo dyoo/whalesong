@@ -46,8 +46,8 @@
                               "(function() { "
 
                               runtime
-                              "var RUNTIME = plt.runtime;"
-                              "var MACHINE = new plt.runtime.Machine();\n"
+                              "var RT = plt.runtime;"
+                              "var M = new plt.runtime.Machine();\n"
 
                               "return function(success, fail, params){" 
 			      snippet
@@ -55,7 +55,7 @@
                               "});")])
                        (displayln snippet)
                        (display code op))))))
-(define (E-single a-statement (inspector "MACHINE.val"))
+(define (E-single a-statement (inspector "M.val"))
   (evaluated-value ((force -E) (cons a-statement inspector))))
 
 ;; evaluating many expressions[.
@@ -65,25 +65,25 @@
                                  [inspector (cdr a-statement+inspector)])
 
                             (display runtime op)
-                            "var RUNTIME = plt.runtime;"
-                            (display "var MACHINE = new plt.runtime.Machine();\n" op)                           
+                            "var RT = plt.runtime;"
+                            (display "var M = new plt.runtime.Machine();\n" op)                           
                             (display "(function() { " op)
                             (display "var myInvoke = " op)
                             (assemble/write-invoke a-statement op)
                             (display ";" op)
                             (fprintf op 
                                      "return function(succ, fail, params) {
-                                           var newParams = { currentDisplayer: function(MACHINE, v) {
+                                           var newParams = { currentDisplayer: function(M, v) {
                                                                     params.currentDisplayer(v); } };
 
-                                           myInvoke(MACHINE,
+                                           myInvoke(M,
                                                     function(v) { succ(plt.runtime.toDisplayedString(~a));},
-                                                    function(MACHINE, exn) { fail(exn); },
+                                                    function(M, exn) { fail(exn); },
                                                     newParams);
                                       }"
                                      inspector)
                             (display "})" op))))))
-(define (E-many stmts (inspector "MACHINE.val"))
+(define (E-many stmts (inspector "M.val"))
   (evaluated-value ((force -E-many) (cons stmts inspector))))
 
 
@@ -108,27 +108,27 @@
 ;; Assigning to proc means val should still be uninitialized.
 (test (E-single (make-AssignImmediateStatement 'proc (make-Const "Danny")))
       "#<undefined>")
-;; But we should see the assignment if we inspect MACHINE.proc.
+;; But we should see the assignment if we inspect M.proc.
 (test (E-single (make-AssignImmediateStatement 'proc (make-Const "Danny"))
-                "MACHINE.proc")
+                "M.proc")
       "Danny")
 
 
 (test (E-single (make-PushEnvironment 1 #f)
-                "MACHINE.env.length")
+                "M.env.length")
       "1")
 (test (E-single (make-PushEnvironment 20 #f)
-                "MACHINE.env.length")
+                "M.env.length")
       "20")
 
 ;; PopEnvironment
 (test (E-many (list (make-PushEnvironment 2 #f))
-              "MACHINE.env.length")
+              "M.env.length")
       "2")
 (test (E-many (list (make-PushEnvironment 2 #f)
                     (make-PopEnvironment (make-Const 1) 
                                          (make-Const 0)))
-              "MACHINE.env.length")
+              "M.env.length")
       "1")
 
 
@@ -137,39 +137,39 @@
 (test (E-many (list (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 12345)))
-              "MACHINE.env[1]")
+              "M.env[1]")
       "12345")
 (test (E-many (list (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
                                                    (make-Const 12345)))
-              "MACHINE.env[0]")
+              "M.env[0]")
       "#<undefined>")
 (test (E-many (list (make-PushEnvironment 2 #f)
                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
                                                    (make-Const 12345)))
-              "MACHINE.env[0]")
+              "M.env[0]")
       "12345")
 
 
 ;; Toplevel Environment loading
 (test (E-single (make-PerformStatement (make-ExtendEnvironment/Prefix! '(pi)))
-                "plt.runtime.toWrittenString(MACHINE.env[0]).slice(0, 5)")
+                "plt.runtime.toWrittenString(M.env[0]).slice(0, 5)")
       "3.141")
 
 
 
 ;; Simple application
-(test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                    (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                    (make-PushEnvironment 2 #f)
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
-                                                   (make-Const 3))
-                    (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
-                                                   (make-Const 4))
-                    (make-AssignImmediateStatement 'argcount (make-Const 2))
-                    (make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
-                    'done))
-      "7")
+;; (test (E-many (list (make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+;;                     (make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
+;;                     (make-PushEnvironment 2 #f)
+;;                     (make-AssignImmediateStatement (make-EnvLexicalReference 0 #f)
+;;                                                    (make-Const 3))
+;;                     (make-AssignImmediateStatement (make-EnvLexicalReference 1 #f)
+;;                                                    (make-Const 4))
+;;                     (make-AssignImmediateStatement 'argcount (make-Const 2))
+;;                     (make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
+;;                     'done))
+;;       "7")
 
 
 
@@ -180,7 +180,7 @@
                     (make-GotoStatement (make-Label 'afterLambda))
                     'afterLambda
                     (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 '() 'closureStart)))
-              "MACHINE.val.displayName")
+              "M.val.displayName")
       "closureStart")
 
 
@@ -197,7 +197,7 @@
                     (make-AssignPrimOpStatement 'val (make-MakeCompiledProcedure 'closureStart 0 
                                                                                  (list 0 1)
                                                                                  'closureStart)))
-              "MACHINE.val.closedVals[1] + ',' + MACHINE.val.closedVals[0]")
+              "M.val.closedVals[1] + ',' + M.val.closedVals[0]")
       "hello,world")
 
 ;; Let's try to install the closure values.
@@ -220,7 +220,7 @@
                                          (make-Const 0))
                     (make-GotoStatement (make-Label 'closureStart))
                     'theEnd)
-              "plt.runtime.toWrittenString(MACHINE.env.length) + ',' + MACHINE.env[1] + ',' + MACHINE.env[0]")
+              "plt.runtime.toWrittenString(M.env.length) + ',' + M.env[1] + ',' + M.env[0]")
       "2,hello,world")
 
 
@@ -244,7 +244,7 @@
                     (make-PopEnvironment (make-Const 2) (make-Const 0))
                     (make-AssignPrimOpStatement 'val (make-GetCompiledProcedureEntry))
                     'theEnd)
-              "typeof(MACHINE.val) + ',' + (MACHINE.val === MACHINE.proc.label)")
+              "typeof(M.val) + ',' + (M.val === M.proc.label)")
       "function,true")
 
 
@@ -265,7 +265,7 @@
                                                                                   (list 0 1)
                                                                                   'closureStart))
                     (make-PopEnvironment (make-Const 2) (make-Const 0))
-                    (make-PerformStatement (make-CheckClosureArity! (make-Const 5)))
+                    (make-PerformStatement (make-CheckClosureAndArity! (make-Const 5)))
                     'theEnd)))
 
 ;; this should fail, since the check is for 1, but the closure expects 5.
@@ -288,7 +288,7 @@
                                                                                 (list 0 1)
                                                                                 'closureStart))
                   (make-PopEnvironment (make-Const 2) (make-Const 0))
-                  (make-PerformStatement (make-CheckClosureArity! (make-Const 1)))
+                  (make-PerformStatement (make-CheckClosureAndArity! (make-Const 1)))
                   'theEnd)))
   (error 'expected-failure))
 
@@ -315,48 +315,48 @@
                 end))
       "ok")
 
-;; Test for primitive procedure
-(test (E-many `(,(make-AssignImmediateStatement 'val (make-Const '+))
-                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
-                ,(make-AssignImmediateStatement 'val (make-Const 'ok))
-                ,(make-GotoStatement (make-Label 'end))
-                onTrue
-                ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
-                end))
-      "ok")
+;; ;; Test for primitive procedure
+;; (test (E-many `(,(make-AssignImmediateStatement 'val (make-Const '+))
+;;                 ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+;;                 ,(make-GotoStatement (make-Label 'end))
+;;                 onTrue
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+;;                 end))
+;;       "ok")
 
-;; Give a primitive procedure in val
-(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))
-                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
-                ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
-                ,(make-GotoStatement (make-Label 'end))
-                onTrue
-                ,(make-AssignImmediateStatement 'val (make-Const 'ok))
-                end))
-      "ok")
+;; ;; Give a primitive procedure in val
+;; (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+;;                 ,(make-AssignImmediateStatement 'val (make-EnvPrefixReference 0 0))
+;;                 ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'not-ok))
+;;                 ,(make-GotoStatement (make-Label 'end))
+;;                 onTrue
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'ok))
+;;                 end))
+;;       "ok")
 
-;; Give a primitive procedure in proc, but test val
-(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
-                ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
-                ,(make-GotoStatement (make-Label 'end))
-                onTrue
-                ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
-                end))
-      "not-a-procedure")
+;; ;; Give a primitive procedure in proc, but test val
+;; (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+;;                 ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
+;;                 ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'val)) 'onTrue)
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
+;;                 ,(make-GotoStatement (make-Label 'end))
+;;                 onTrue
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
+;;                 end))
+;;       "not-a-procedure")
 
-;; Give a primitive procedure in proc and test proc
-(test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
-                ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
-                ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'onTrue)
-                ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
-                ,(make-GotoStatement (make-Label 'end))
-                onTrue
-                ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
-                end))
-      "a-procedure")
+;; ;; Give a primitive procedure in proc and test proc
+;; (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(+)))
+;;                 ,(make-AssignImmediateStatement 'proc (make-EnvPrefixReference 0 0))
+;;                 ,(make-TestAndJumpStatement (make-TestPrimitiveProcedure (make-Reg 'proc)) 'onTrue)
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'not-a-procedure))
+;;                 ,(make-GotoStatement (make-Label 'end))
+;;                 onTrue
+;;                 ,(make-AssignImmediateStatement 'val (make-Const 'a-procedure))
+;;                 end))
+;;       "a-procedure")
 
 
 
@@ -364,7 +364,7 @@
 (test (E-many `(,(make-PerformStatement (make-ExtendEnvironment/Prefix! '(advisor)))
                 ,(make-AssignImmediateStatement 'val (make-Const "Kathi"))
                 ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val)))
-              "MACHINE.env[0][0]")
+              "M.env[0][0]")
       "Kathi")
 
 
@@ -381,7 +381,7 @@
                 ,(make-AssignImmediateStatement 'val (make-Const "Shriram"))
                 ,(make-AssignImmediateStatement (make-EnvPrefixReference 0 0) (make-Reg 'val))
                 ,(make-PerformStatement (make-CheckToplevelBound! 0 0)))
-              "MACHINE.env[0][0]")
+              "M.env[0][0]")
       "Shriram")
 
 
@@ -391,7 +391,7 @@
                                                 (make-Const '(1 2 3)))
                 ,(make-AssignImmediateStatement 'argcount (make-Const 1))
                 ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 0))))
-              "MACHINE.argcount + ',' + MACHINE.env[0] + ',' + MACHINE.env[1] + ',' + MACHINE.env[2]")
+              "M.argcount + ',' + M.env[0] + ',' + M.env[1] + ',' + M.env[2]")
       "3,3,2,1")
 
 
@@ -404,7 +404,7 @@
                                                 (make-Const '(1 2 3)))
                 ,(make-AssignImmediateStatement 'argcount (make-Const 3))
                 ,(make-PerformStatement (make-SpliceListIntoStack! (make-Const 2))))
-              "MACHINE.argcount + ',' + MACHINE.env[0] + ',' + MACHINE.env[1] + ',' + MACHINE.env[2] + ',' + MACHINE.env[3] + ',' + MACHINE.env[4]")
+              "M.argcount + ',' + M.env[0] + ',' + M.env[1] + ',' + M.env[2] + ',' + M.env[3] + ',' + M.env[4]")
       "5,3,2,1,world,hello")
 
 
@@ -420,7 +420,7 @@
                 ,(make-AssignImmediateStatement 'argcount (make-Const 1))
                 ,(make-PerformStatement (make-UnspliceRestFromStack! (make-Const 0)
                                                                      (make-Const 1))))
-              "MACHINE.argcount + ',' + plt.runtime.isList(MACHINE.env[0])")
+              "M.argcount + ',' + plt.runtime.isList(M.env[0])")
       "1,true")
 
 
@@ -438,7 +438,7 @@
                                          (make-Const 'z))
          ,(make-AssignImmediateStatement 'argcount (make-Const 5))
          ,(make-PerformStatement (make-UnspliceRestFromStack! (make-Const 2)  (make-Const 3))))
-       "MACHINE.argcount + ',' + MACHINE.env.length + ',' + plt.runtime.isList(MACHINE.env[0]) + ',' + MACHINE.env[2] + ',' + MACHINE.env[1]")
+       "M.argcount + ',' + M.env.length + ',' + plt.runtime.isList(M.env[0]) + ',' + M.env[2] + ',' + M.env[1]")
       "3,3,true,hello,world")
 
 
@@ -457,7 +457,7 @@
                         bad
                         ,(make-AssignImmediateStatement 'val (make-Const 'bad))
                         end)
-              "MACHINE.val")
+              "M.val")
       "ok")
       
 
@@ -474,7 +474,7 @@
                         ok
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         end)
-              "MACHINE.val")
+              "M.val")
       "ok")
 
 (test (E-many `(procedure-entry
@@ -490,7 +490,7 @@
                         ok
                         ,(make-AssignImmediateStatement 'val (make-Const 'ok))
                         end)
-              "MACHINE.val")
+              "M.val")
       "ok")
 
 (test (E-many `(procedure-entry
@@ -506,7 +506,7 @@
                         bad
                         ,(make-AssignImmediateStatement 'val (make-Const 'bad))
                         end)
-              "MACHINE.val")
+              "M.val")
       "ok")
 
 
@@ -521,7 +521,7 @@
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list 0 1) 'procedure-entry))
                 ,(make-AssignImmediateStatement 'val (make-CompiledProcedureClosureReference (make-Reg 'proc) 0)))
-              "MACHINE.val")
+              "M.val")
       "4")
 
 (test (E-many `(,(make-PushImmediateOntoEnvironment (make-Const 3) #f)
@@ -532,7 +532,7 @@
                           'proc
                           (make-MakeCompiledProcedure 'procedure-entry (make-ArityAtLeast 2) (list 0 1) 'procedure-entry))
                 ,(make-AssignImmediateStatement 'val (make-CompiledProcedureClosureReference (make-Reg 'proc) 1)))
-              "MACHINE.val")
+              "M.val")
       "3")
 
 

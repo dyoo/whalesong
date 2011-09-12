@@ -2,6 +2,7 @@
 
 (require racket/contract
          racket/runtime-path
+         racket/gui/base
          syntax/modresolve)
 
 
@@ -15,7 +16,7 @@
                   [lookup-module-requires (path? . -> . (listof path?))])
 
 (define-runtime-path record.rkt "record.rkt")
-(define ns (make-base-empty-namespace))
+(define ns (make-gui-namespace))
 
 ;; query: module-path -> string?
 ;; Given a module, see if it's implemented via Javascript.

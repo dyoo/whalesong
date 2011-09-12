@@ -186,7 +186,7 @@
 
 
     var defaultCurrentPrintImplementation = function defaultCurrentPrintImplementation(MACHINE) {
-        if(--MACHINE.callsBeforeTrampoline < 0) { 
+        if(--MACHINE.cbt < 0) { 
             throw defaultCurrentPrintImplementation; 
         }
         var oldArgcount = MACHINE.argcount;
@@ -211,12 +211,12 @@
     // The MACHINE
 
     var Machine = function() {
-	this.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
-	this.val = undefined;
-	this.proc = undefined;
-	this.argcount = undefined;
-	this.env = [];
-	this.control = [];     // Arrayof (U Frame CallFrame PromptFrame)
+	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
+	this.val = undefined;         // value register
+	this.proc = undefined;        // procedure register
+	this.argcount = undefined;    // argument count
+	this.env = [];                // environment
+	this.control = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.modules = {};     // String -> ModuleRecord
         this.mainModules = []; // Arrayof String
@@ -444,17 +444,16 @@
 
 
     Machine.prototype.trampoline = function(initialJump) {
-	var MACHINE = this;
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
-	MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
-	MACHINE.params.numBouncesBeforeYield = 
-	    MACHINE.params.maxNumBouncesBeforeYield;
-	MACHINE.running = true;
+	this.cbt = STACK_LIMIT_ESTIMATE;
+	this.params.numBouncesBeforeYield = 
+	    this.params.maxNumBouncesBeforeYield;
+	this.running = true;
 
 	while(true) {
             try {
-		thunk(MACHINE);
+		thunk(this);
 		break;
             } catch (e) {
                 // There are a few kinds of things that can get thrown
@@ -479,35 +478,36 @@
                 // The running flag is set to false.
 		if (typeof(e) === 'function') {
                     thunk = e;
-                    MACHINE.callsBeforeTrampoline = STACK_LIMIT_ESTIMATE;
+                    this.cbt = STACK_LIMIT_ESTIMATE;
 
-		    if (MACHINE.params.numBouncesBeforeYield-- < 0) {
+		    if (this.params.numBouncesBeforeYield-- < 0) {
 			recomputeMaxNumBouncesBeforeYield(
-			    MACHINE,
+			    this,
 			    (new Date()).valueOf() - startTime);
-			scheduleTrampoline(MACHINE, thunk);
+			scheduleTrampoline(this, thunk);
 			return;
 		    }
 		} else if (e instanceof Pause) {
-                    var restart = makeRestartFunction(MACHINE);
+                    var restart = makeRestartFunction(this);
                     e.onPause(restart);
                     return;
                 } else if (e instanceof HaltError) {
-		    MACHINE.running = false;
-                    e.onHalt(MACHINE);
+		    this.running = false;
+                    e.onHalt(this);
                     return;
                 } else {
 		    // General error condition: just exit out
 		    // of the trampoline and call the current error handler.
-		    MACHINE.running = false;
-                    MACHINE.params.currentErrorHandler(MACHINE, e);
+		    this.running = false;
+                    this.params.currentErrorHandler(this, e);
 	            return;
 		}
             }
 	}
-	MACHINE.running = false;
+	this.running = false;
+        var that = this;
         setTimeout(
-            function() { MACHINE.params.currentSuccessHandler(MACHINE); },
+            function() { that.params.currentSuccessHandler(that); },
             0);
 	return;
     };
@@ -655,6 +655,33 @@
 
 
 
+    var checkClosureAndArity = function(M, n) {
+        if(!(M.proc instanceof Closure)){
+            raiseOperatorIsNotClosure(M,M.proc);
+        }
+        if(!isArityMatching(M.proc.racketArity,n)) {
+            raiseArityMismatchError(M, M.proc,n);
+        }
+    };
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    // Superinstructions to try to reduce code size.
+    var si_context_expected = function(n) {
+        if (n === 1) { return si_context_expected_1; }
+        return function(M) { raiseContextExpectedValuesError(M, n); }
+    };
+    var si_context_expected_1 = function(M) { raiseContextExpectedValuesError(M, 1); }
+
+
+
+
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
@@ -783,5 +810,9 @@
 
     exports['getTracedAppKey'] = getTracedAppKey;
     exports['getTracedCalleeKey'] = getTracedCalleeKey;
+
+    exports['si_context_expected'] = si_context_expected;
+    exports['checkClosureAndArity'] = checkClosureAndArity;
+
 
 }(this.plt, this.plt.baselib));

@@ -61,12 +61,11 @@
     // I'd personally love for this to be a macro and avoid the
     // extra function call here.
     var finalizeClosureCall = function (MACHINE) {
-        MACHINE.callsBeforeTrampoline--;
-        var i, returnArgs = [].slice.call(arguments, 1);
+        MACHINE.cbt--;
+        var returnArgs = [].slice.call(arguments, 1);
 
         // clear out stack space
-        // TODO: replace with a splice.
-        MACHINE.env.length = MACHINE.env.length - MACHINE.argcount;
+        MACHINE.env.length -= MACHINE.argcount;
 
         if (returnArgs.length === 1) {
             MACHINE.val = returnArgs[0];
@@ -77,10 +76,7 @@
         } else {
             MACHINE.argcount = returnArgs.length;
             MACHINE.val = returnArgs.shift();
-            // TODO: replace with a splice.
-            for (i = 0; i < MACHINE.argcount - 1; i++) {
-                MACHINE.env.push(returnArgs.pop());
-            }
+            MACHINE.env.push.apply(MACHINE.env, returnArgs.reverse());
             return MACHINE.control.pop().label.multipleValueReturn(MACHINE);
         }
     };
@@ -311,15 +307,6 @@
 
 
 
-
-
-
-    var makePrimitiveProcedure = function (name, arity, f) {
-        f.racketArity = arity;
-        f.displayName = name;
-        return f;
-    };
-
     var makeClosure = function (name, arity, f, closureArgs) {
         if (! closureArgs) { closureArgs = []; }
         return new Closure(f,
@@ -327,6 +314,23 @@
                            closureArgs,
                            name);
     };
+
+
+    var makePrimitiveProcedure = function (name, arity, f) {
+        // f.racketArity = arity;
+        // f.displayName = name;
+        // return f;
+        return makeClosure(name,
+                           arity,
+                           function(M) {
+                               --M.cbt;
+                               M.val = f(M);
+                               M.env.length -= M.argcount;
+                               return M.control.pop().label(M);
+                           },
+                           []);
+    };
+
 
 
 

@@ -1417,13 +1417,13 @@
        linkage
        cenv
        (append-instruction-sequences
-        (make-TestAndJumpStatement (make-TestPrimitiveProcedure
-                                    (make-Reg 'proc))
-                                   primitive-branch)
+        ;; (make-TestAndJumpStatement (make-TestPrimitiveProcedure
+        ;;                             (make-Reg 'proc))
+        ;;                            primitive-branch)
         
         
         ;; Compiled branch
-        (make-PerformStatement (make-CheckClosureArity! (make-Reg 'argcount)))
+        (make-PerformStatement (make-CheckClosureAndArity! (make-Reg 'argcount)))
         (compile-compiled-procedure-application cenv
                                                 number-of-arguments
                                                 'dynamic
@@ -1431,24 +1431,24 @@
                                                 compiled-linkage)
         
         ;; Primitive branch
-        primitive-branch
-        (make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
-        (compile-primitive-application cenv target primitive-linkage)
+        ;; primitive-branch
+        ;; (make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
+        ;; (compile-primitive-application cenv target primitive-linkage)
         after-call)))))
 
 
 
-(: compile-primitive-application (CompileTimeEnvironment Target Linkage -> InstructionSequence))
-(define (compile-primitive-application cenv target linkage)
-  (let ([singular-context-check (emit-singular-context linkage)])
-    (append-instruction-sequences
-     (make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
-     (make-PopEnvironment (make-Reg 'argcount)
-                          (make-Const 0))
-     (if (eq? target 'val)
-         empty-instruction-sequence
-         (make-AssignImmediateStatement target (make-Reg 'val)))
-     singular-context-check)))
+;; (: compile-primitive-application (CompileTimeEnvironment Target Linkage -> InstructionSequence))
+;; (define (compile-primitive-application cenv target linkage)
+;;   (let ([singular-context-check (emit-singular-context linkage)])
+;;     (append-instruction-sequences
+;;      (make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
+;;      (make-PopEnvironment (make-Reg 'argcount)
+;;                           (make-Const 0))
+;;      (if (eq? target 'val)
+;;          empty-instruction-sequence
+;;          (make-AssignImmediateStatement target (make-Reg 'val)))
+;;      singular-context-check)))
 
 
 

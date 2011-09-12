@@ -1,8 +1,12 @@
 #lang planet dyoo/whalesong
 
 (require (planet dyoo/whalesong/js)
-         (planet dyoo/whalesong/web-world))
+         (planet dyoo/whalesong/image)
+         (planet dyoo/whalesong/web-world)
+         (planet dyoo/whalesong/resource))
          
+
+(define-resource index.html)
 
 ;; Boid flocking behavior.
 ;;
@@ -10,8 +14,8 @@
 ;;
 ;; 
 
-;; A Boid has a velocity and position vector, as well as a color
-(define-struct boid (velocity position color))
+;; A Boid has an identity, a velocity and position vector, as well as a color
+(define-struct boid (id velocity position color))
 
 
 (define width (viewport-width))
@@ -209,7 +213,8 @@
 	  [new-position
 	   (vec+ (boid-position b)
 		 (boid-velocity b))])
-    (make-boid new-velocity
+    (make-boid (boid-id b)
+               new-velocity
 	       new-position
 	       (boid-color b)))))
 
@@ -236,11 +241,12 @@
 
 ;; (: tick ((Listof boid) dom -> (Listof boid)))
 (define (tick boids dom)
-  (for/list ([b boids])
-     (let ([mass-data (collect-mass-data (boid-neighborhood b boids 40))])
-       (cap-boid-velocity 
-	(move-boid b boids mass-data)
-	15))))
+  (map (lambda (b)
+         (let ([mass-data (collect-mass-data (boid-neighborhood b boids 40))])
+           (cap-boid-velocity 
+            (move-boid b boids mass-data)
+            15)))
+       boids))
 
 
 
@@ -253,8 +259,9 @@
 
 
 (define (cap-boid-velocity b mag)
-  (make-boid (vec-cap (boid-vel b) mag)
-             (boid-pos b)
+  (make-boid (boid-id b)
+             (vec-cap (boid-velocity b) mag)
+             (boid-position b)
              (boid-color b)))
 
 
@@ -268,15 +275,17 @@
 
 (define (slow-down-boids boids)
   (map (lambda (b)
-         (make-boid (vec-scale (boid-vel b) 0.9)
-                    (boid-pos b)
+         (make-boid (boid-id b)
+                    (vec-scale (boid-velocity b) 0.9)
+                    (boid-position b)
                     (boid-color b)))
        boids))
 
 (define (speed-up-boids boids)
   (map (lambda (b)
-         (make-boid (vec-scale (boid-vel b) 1.1)
-                    (boid-pos b)
+         (make-boid (boid-id b)
+                    (vec-scale (boid-velocity b) 1.1)
+                    (boid-position b)
                     (boid-color b)))
        boids))
 
@@ -298,7 +307,8 @@
 ;; Makes a random boid that starts near the upper left corner,
 ;; drifting downward.
 (define (make-random-boid)
-  (make-boid (make-vec (random 10)
+  (make-boid (fresh-id)
+             (make-vec (random 10)
 		       (random 10))
 	     (make-vec (+ 20 (random 600))
 		       (+ 20 (random 300)))
@@ -314,7 +324,16 @@
 ;; visualize: -> void
 ;; Animates a scene of the boids flying around.
 (define (visualize)
-  (big-bang (new-population)
+  (define population (new-population))
+  (big-bang population
+            (initial-view
+             (view-append-child
+              (view-focus (->view index.html) "playground")
+              (xexp->dom `(div ,@(map (lambda (b)
+                                        `(div (@ (id ,(boid-id b))
+                                                 (class "boid"))
+                                              nbsp))
+                                      population)))))
             (on-tick tick)
             #;(to-draw draw)
             ))

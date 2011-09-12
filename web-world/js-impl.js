@@ -1333,6 +1333,9 @@
         if (isString(x)) { 
             return true; 
         }
+        if (isSymbol(x)) {
+            return true;
+        }
         if (isList(x) && !(isEmpty(x))) {
             if (isSymbol(x.first)) {
                 children = x.rest;
@@ -1395,6 +1398,9 @@
         var node;
         if (isString(x)) { 
             return document.createTextNode(x); 
+        }
+        if (isSymbol(x)) {
+            return $("<div>&" + x.val + ";</div>").get(0).firstChild;
         }
         if (isList(x) && !(isEmpty(x))) {
             if (isSymbol(x.first)) {

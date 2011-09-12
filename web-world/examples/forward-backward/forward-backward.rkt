@@ -11,26 +11,35 @@
 (define (go-backward world dom)
   (max (sub1 world) 0))
 
+(define (view-top a-view)
+  (if (view-up? a-view)
+      (view-top (view-up a-view))
+      a-view))
+
 
 (define (clear-all a-view)
-  (define updated-view (update-view-css a-view "border" "none"))
-  (cond
-   [(view-forward? updated-view)
-    (clear-all (view-forward updated-view))]
-   [else
-    updated-view]))
+  (define (loop a-view n)
+    (define updated-view (update-view-css a-view "border" "none"))
+    (cond
+     [(view-forward? updated-view)
+      (loop (view-forward updated-view) (add1 n))]
+     [else
+      (view-top updated-view)]))
+  (loop a-view 0))
     
 (define (iterate n f x)
   (if (<= n 0)
       x
-      (iterate (sub1 n ) f (f x))))
+      (iterate (sub1 n) f (f x))))
 
 (define (draw world dom)
-  (update-view-css (iterate world
-                            view-forward
-                            (clear-all dom))
-                   "border"
-                   "1px solid blue"))
+  (define another-view (update-view-css (iterate world
+                                                 view-forward
+                                                 (clear-all dom))
+                                        "border"
+                                        "1px solid blue"))
+  another-view)
+
 
 (define my-initial-view (view-bind
                          (view-focus

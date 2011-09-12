@@ -340,7 +340,7 @@
                 } else if (view.focus.next().length > 0) {
                     view.focus = view.focus.next();
                 } else {
-                    while (true) {
+                    while (view.focus.get(0) !== view.top.get(0)) {
                         view.focus = view.focus.parent();
                         if (view.focus.next().length > 0) {
                             view.focus = view.focus.next();
@@ -349,7 +349,7 @@
                     }
                 }
             });
-    };
+};
 
     MockView.prototype.backward = function() {
         return this.act(
@@ -593,7 +593,6 @@
 
     View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
-
         return new MockView(domToArrayTreeCursor($(this.top).get(0)),
                             EMPTY_PENDING_ACTIONS,
                             this.eventHandlers.slice(0),

@@ -290,16 +290,20 @@
        boids))
 
 
-;; draw: (listof boid) -> scene
-#;(define (draw boids)
-  (for/fold ([scene (place-image (rectangle width height 'solid 'black)
-				 320 240 
-				 (empty-scene width height))])
-            ([b boids])
-    (place-image (circle 3 'solid (boid-color b))
-                 (vec-x (boid-position b))
-                 (vec-y (boid-position b))
-                 scene)))
+;; draw: (listof boid) view -> scene
+(define (draw boids dom)
+  (foldl (lambda (boid dom)
+           (define with-left (update-view-css (view-focus dom (boid-id boid))
+                                              "left"
+                                              (format "~apx"
+                                                      (vec-x (boid-position boid)))))
+           (define with-left-and-top (update-view-css with-left
+                                             "top"
+                                             (format "~apx"
+                                                     (vec-y (boid-position boid)))))
+           with-left-and-top)
+         dom
+         boids))
 
 
 
@@ -318,25 +322,26 @@
 
 
 (define (new-population)
-  (build-list 5 (lambda (i) (make-random-boid))))
+  (build-list 20 (lambda (i) (make-random-boid))))
 
 
 ;; visualize: -> void
 ;; Animates a scene of the boids flying around.
 (define (visualize)
   (define population (new-population))
+
+  (define view-with-boids (view-append-child
+                           (view-focus (->view index.html) "playground")
+                           (xexp->dom `(div ,@(map (lambda (b)
+                                                     `(div (@ (id ,(boid-id b))
+                                                              (class "boid"))
+                                                           nbsp))
+                                                   population)))))
+  
   (big-bang population
-            (initial-view
-             (view-append-child
-              (view-focus (->view index.html) "playground")
-              (xexp->dom `(div ,@(map (lambda (b)
-                                        `(div (@ (id ,(boid-id b))
-                                                 (class "boid"))
-                                              nbsp))
-                                      population)))))
-            (on-tick tick)
-            #;(to-draw draw)
-            ))
+            (initial-view view-with-boids)
+            (on-tick tick 1/20)
+            (to-draw draw)))
 
 
 (visualize)

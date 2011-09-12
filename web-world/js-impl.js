@@ -180,7 +180,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                view.focus = $(document.getElementById(selector));
+                view.focus = document.getElementById(selector);
             }
         );
     };
@@ -198,7 +198,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                view.focus.text(text);
+                $(view.focus).text(text);
             }
         );
     };
@@ -219,7 +219,7 @@
                 return eventHandlers;
             },
             function(view) {
-                view.focus.attr(name, value);
+                $(view.focus).attr(name, value);
             });
     };
 
@@ -235,8 +235,6 @@
     MockView.prototype.updateCss = function(name, value) {
         return this.act(
             function(cursor) {
-                console.log("functionally: ", 
-                            $(cursor.node[0].cloneNode(false)).css(name, value).get(0));
                 return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
                                            .css(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
@@ -245,16 +243,9 @@
                 return eventHandlers;
             },
             function(view) {
-                if (view.focus.length === 0) {
-                    console.log('update css: empty focus?!');
-                }
-                console.log('css: updating:\n', view.focus);
-                view.focus.css(name, value);
+                $(view.focus).css(name, value);
             });
     };
-
-
-
 
 
 
@@ -273,7 +264,7 @@
                 return eventHandlers;
             },
             function(view) {
-                view.focus.val(value);
+                $(view.focus).val(value);
             });
     };
 
@@ -288,7 +279,7 @@
                 return eventHandlers;
             },
             function(view) {
-                view.focus = view.focus.prev();
+                view.focus = view.focus.previousSibling;
             });
     };
 
@@ -301,7 +292,7 @@
                 return eventHandlers;
             },
             function(view) {
-                view.focus = view.focus.next();
+                view.focus = view.focus.nextSibling;
             });
     };
 
@@ -314,7 +305,7 @@
                 return eventHandlers;
             },
             function(view) {
-                view.focus = view.focus.parent();
+                view.focus = view.focus.parentNode;
             });
    };
 
@@ -327,7 +318,7 @@
                 return eventHandlers;
             },
             function(view) {
-                view.focus = view.focus.children(':first');
+                view.focus = view.focus.firstChild;
             });
     };
 
@@ -341,15 +332,15 @@
                 return eventHandlers;
             },
             function(view) {
-                if (view.focus.children().length > 0) {
-                    view.focus = view.focus.children(':first');
-                } else if (view.focus.next().length > 0) {
-                    view.focus = view.focus.next();
+                if (view.focus.firstChild) {
+                    view.focus = view.focus.firstChild;
+                } else if (view.focus.nextSibling) {
+                    view.focus = view.focus.nextSibling;
                 } else {
-                    while (view.focus.get(0) !== view.top.get(0)) {
-                        view.focus = view.focus.parent();
-                        if (view.focus.next().length > 0) {
-                            view.focus = view.focus.next();
+                    while (view.focus !== view.top) {
+                        view.focus = view.focus.parentNode;
+                        if (view.focus.nextSibling) {
+                            view.focus = view.focus.nextSibling;
                             return;
                         }
                     }
@@ -366,13 +357,14 @@
                 return eventHandlers;
             },
             function(view) {
-                if (view.focus.prev().length > 0) {
-                    view.focus = view.focus.prev();
+                if (view.focus.previousSibling) {
+                    view.focus = view.focus.previousSibling;
                     while (view.focus.children().length > 0) {
-                        view.focus = view.focus.children(':last');
+                        view.focus = view.focus.firstChild;
+                        while(view.focus.nextSibling) { view.focus = view.focus.nextSibling; }
                     }
                 } else {
-                    view.focus = view.focus.parent();
+                    view.focus = view.focus.parentNode;
                 }
 
             });
@@ -411,13 +403,13 @@
             function(view) {
                 // HACK: every node that is bound needs to have an id.  We
                 // enforce this by mutating the node.
-                if (! view.focus.get(0).id) {
-                    view.focus.get(0).id = ("__webWorldId_" + mockViewIdGensym++);
+                if (! view.focus.id) {
+                    view.focus.id = ("__webWorldId_" + mockViewIdGensym++);
                 }
                 var handler = new EventHandler(name, 
                                                new DomEventSource(
                                                    name, 
-                                                   view.focus.get(0).id),
+                                                   view.focus.id),
                                                worldF);
                 view.addEventHandler(handler);
                 currentBigBangRecord.startEventHandler(handler);
@@ -433,7 +425,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                view.focus.show();
+                $(view.focus).show();
             }
         );
     };
@@ -447,7 +439,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                view.focus.hide();
+                $(view.focus).hide();
             }
         );
     };
@@ -463,14 +455,14 @@
             },
             function(view) {
                 var elt = view.focus;
-                if (view.focus.next().length > 0) {
-                    view.focus = view.focus.next();
-                } else if (view.focus.prev().length > 0) {
-                    view.focus = view.focus.prev();
+                if (view.focus.nextSibling) {
+                    view.focus = view.focus.nextSibling;
+                } else if (view.focus.previousSibling) {
+                    view.focus = view.focus.previousSibling;
                 } else {
-                    view.focus = view.focus.parent();
+                    view.focus = view.focus.parentNode;
                 }
-                elt.remove();
+                $(elt).remove();
             });
     };
 
@@ -491,8 +483,8 @@
             function(eventHandlers) { return eventHandlers; },
             function(view) {
                 var clone = $(domNode).clone(true);
-                clone.appendTo(view.focus);
-                view.focus = clone;
+                clone.appendTo($(view.focus));
+                view.focus = clone.get(0);
             }
         );
     };
@@ -505,8 +497,8 @@
             function(eventHandlers) { return eventHandlers; },
             function(view) {
                 var clone = $(domNode).clone(true);
-                clone.insertAfter(view.focus);
-                view.focus = clone;
+                clone.insertAfter($(view.focus));
+                view.focus = clone.get(0);
             }
         );
     };
@@ -519,8 +511,8 @@
             function(eventHandlers) { return eventHandlers; },
             function(view) {
                 var clone = $(domNode).clone(true);
-                clone.insertBefore(view.focus);
-                view.focus = clone;
+                clone.insertBefore($(view.focus));
+                view.focus = clone.get(0);
             }
         );
     };
@@ -566,6 +558,7 @@
     var View = function(top, eventHandlers) {
         // top: dom node
         this.top = top;
+        // focus: dom node
         this.focus = top;
         this.eventHandlers = eventHandlers;
     };
@@ -573,16 +566,16 @@
     View.prototype.toString = function() { return "#<View>"; };
 
     View.prototype.initialRender = function(top) {
-        top.empty();
+        $(top).empty();
         // Special case: if this.top is an html, we merge into the
         // existing page.
-        if (this.top.children("title").length !== 0) {
+        if ($(this.top).children("title").length !== 0) {
              $(document.head).find('title').remove();
         }
-        $(document.head).append(this.top.children("title"));
-        $(document.head).append(this.top.children("link"));
+        $(document.head).append($(this.top).children("title"));
+        $(document.head).append($(this.top).children("link"));
 
-        top.append(this.top);
+        $(top).append(this.top);
     };
 
     View.prototype.addEventHandler = function(handler) {
@@ -641,13 +634,13 @@
             } catch (exn1) {
                 return onFail(exn1);
             }
-            return onSuccess(new View(dom, []));
+            return onSuccess(new View(dom.get(0), []));
         } else if (isMockView(x)) {
-            return onSuccess(new View($(arrayTreeToDomNode(x.cursor.top().node)),
+            return onSuccess(new View(arrayTreeToDomNode(x.cursor.top().node),
                                       x.eventHandlers.slice(0)));
         } else {
             try {
-                dom = $(plt.baselib.format.toDomNode(x));
+                dom = plt.baselib.format.toDomNode(x);
             } catch (exn2) {
                 return onFail(exn2);
             }
@@ -669,14 +662,20 @@
             } catch (exn1) {
                 return onFail(exn1);
             }
-            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), EMPTY_PENDING_ACTIONS, [], undefined));
+            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)),
+                                          EMPTY_PENDING_ACTIONS,
+                                          [], 
+                                          undefined));
         } else {
             try {
-                dom = $(plt.baselib.format.toDomNode(x));
+                dom = plt.baselib.format.toDomNode(x);
             } catch (exn2) {
                 return onFail(exn2);
             }
-            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)), EMPTY_PENDING_ACTIONS, [], undefined));
+            return onSuccess(new MockView(domToArrayTreeCursor(dom), 
+                                          EMPTY_PENDING_ACTIONS, 
+                                          [],
+                                          undefined));
         }
     };
 
@@ -1083,7 +1082,7 @@
         var running = true;
         var dispatchingEvents = false;
 
-        var top = $("<div/>");
+        var top = $("<div/>").get(0);
         var view = (find(handlers, isInitialViewHandler) || { view : new View(top, []) }).view;
         var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
@@ -1230,7 +1229,6 @@
                 // update, and have to do it from scratch.
                 var nonce = Math.random();
                 var originalMockView = view.getMockAndResetFocus(nonce);
-                console.log("before: ", arrayTreeToDomNode(originalMockView.cursor.node));
                 toDraw(MACHINE, 
                        world,
                        originalMockView,
@@ -1238,14 +1236,11 @@
                            if (newMockView.nonce === nonce) {
                                var i;
                                var actions = newMockView.getPendingActions();
-                               console.log("this should match:", 
-                                           view.focus.clone(true).get(0));
-                               console.log("actions", actions.length);
                                for (i = 0; i < actions.length; i++) {
                                    actions[i](view);
                                }
                            } else {
-                               view.top = $(arrayTreeToDomNode(newMockView.cursor.top().node));
+                               view.top = arrayTreeToDomNode(newMockView.cursor.top().node);
                                view.initialRender(top);
                                eventHandlers = newMockView.eventHandlers.slice(0);
                                view.eventHandlers = eventHandlers;

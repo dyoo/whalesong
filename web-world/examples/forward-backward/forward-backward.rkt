@@ -21,7 +21,7 @@
     updated-view]))
     
 (define (iterate n f x)
-  (if (= n 0)
+  (if (<= n 0)
       x
       (iterate (sub1 n ) f (f x))))
 

@@ -11,6 +11,7 @@
 (provide define-resource)
 
 (require "structs.rkt")
+(require "specialize/impl.rkt")
 
 
 ;; file-resource:
@@ -45,4 +46,5 @@
                (record-resource resolved-module-path normal-path munged-path)))
              
              ;; Run time code
-             (define name (resource normal-path munged-path content))))))]))
+             (define name (specialize!
+                           (resource normal-path munged-path content)))))))]))

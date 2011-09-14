@@ -70,12 +70,6 @@ var isPointsCount = function(x) {
 
 
 
-var imageSignature = { updatePinhole : function() {},
-                       getHeight : function() {},
-                       getWidth: function() {},
-                       getBaseline : function() {},
-                       render: function() {} };
-
 
 
 // Produces true if thing is an image-like object.

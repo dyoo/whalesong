@@ -54,10 +54,6 @@ var colorString = function(aColor) {
 
 
 
-// Produces true if thing is an image.
-var isImage = function(thing) {
-    return (thing instanceof BaseImage);
-};
 
 var isSideCount = function(x) {
     return plt.baselib.numbers.isInteger(x) && jsnums.greaterThanOrEqual(x, 3);
@@ -72,6 +68,30 @@ var isPointsCount = function(x) {
     return plt.baselib.numbers.isNatural(x) && jsnums.greaterThanOrEqual(x, 2); 
 };
 
+
+
+var imageSignature = { updatePinhole : function() {},
+                       getHeight : function() {},
+                       getWidth: function() {},
+                       getBaseline : function() {},
+                       render: function() {} };
+
+
+
+// Produces true if thing is an image-like object.
+var isImage = function(thing) {
+    if (typeof(thing.getHeight) !== 'function')
+        return false;
+    if (typeof(thing.getWidth) !== 'function')
+        return false;
+    if (typeof(thing.getBaseline) !== 'function')
+        return false;
+    if (typeof(thing.updatePinhole) !== 'function')
+        return false;
+    if (typeof(thing.render) !== 'function')
+        return false;
+    return true;
+};
 
 
 

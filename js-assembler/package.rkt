@@ -263,20 +263,16 @@ M.modules[~s] =
      [(UninterpretedSource? src)
       (fprintf op "~a" (UninterpretedSource-datum src))]
      [else      
-      (fprintf op "plt.runtime.ready(function() {
-                      plt.runtime.setReadyFalse();
-                      (")
+      (fprintf op "(")
       (assemble/write-invoke stmts op)
       (fprintf op ")(M,
                      function() {
                           if (window.console && window.console.log) {
                               window.console.log('loaded ' + ~s);
                           }
-                          plt.runtime.setReadyTrue();
                      },
                      FAIL,
-                     PARAMS);
-                   });\n"
+                     PARAMS);"
                (format "~a" (source-name src)))
       (define stop-time (current-inexact-milliseconds))
       (fprintf (current-timing-port) "  assembly: ~s milliseconds\n" (- stop-time start-time))
@@ -288,11 +284,8 @@ M.modules[~s] =
   
   
   (define (on-last-src)
-    (fprintf op "plt.runtime.ready(
-                     function() {
-                         plt.runtime.setReadyTrue();
-                         SUCCESS();
-                     });"))
+    (fprintf op "plt.runtime.setReadyTrue(); SUCCESS();"))
+
   
   
   (define packaging-configuration

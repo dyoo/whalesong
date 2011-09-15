@@ -311,7 +311,7 @@
 
 (: assemble-control-stack-label/multiple-value-return (ControlStackLabel/MultipleValueReturn -> String))
 (define (assemble-control-stack-label/multiple-value-return a-csl)
-  "M.control[M.control.length-1].label.multipleValueReturn")
+  "M.control[M.control.length-1].label.mvr")
 
 
 

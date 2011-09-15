@@ -139,7 +139,8 @@ EOF
          [(symbol? stmt)
           (next)]
          [(LinkedLabel? stmt)
-          (fprintf op "~a.multipleValueReturn=~a;\n" 
+          ;; Setting up multiple-value-return
+          (fprintf op "~a.mvr=~a;\n" 
                    (assemble-label (make-Label (LinkedLabel-label stmt)))
                    (assemble-label (make-Label (LinkedLabel-linked-to stmt))))
           (next)]

@@ -72,12 +72,12 @@
             return MACHINE.control.pop().label(MACHINE);
         } else if (returnArgs.length === 0) {
             MACHINE.argcount = 0;
-            return MACHINE.control.pop().label.multipleValueReturn(MACHINE);
+            return MACHINE.control.pop().label.mvr(MACHINE);
         } else {
             MACHINE.argcount = returnArgs.length;
             MACHINE.val = returnArgs.shift();
             MACHINE.env.push.apply(MACHINE.env, returnArgs.reverse());
-            return MACHINE.control.pop().label.multipleValueReturn(MACHINE);
+            return MACHINE.control.pop().label.mvr(MACHINE);
         }
     };
 
@@ -164,7 +164,7 @@
                         succ(returnValue);
                     });
             };
-            afterGoodInvoke.multipleValueReturn = function (MACHINE) {
+            afterGoodInvoke.mvr = function (MACHINE) {
                 plt.runtime.PAUSE(
                     function (restart) {
                         MACHINE.params['currentErrorHandler'] = oldErrorHandler;
@@ -261,7 +261,7 @@
                     success(returnValue);
                 });
             };
-            afterGoodInvoke.multipleValueReturn = function (MACHINE) {
+            afterGoodInvoke.mvr = function (MACHINE) {
                 plt.runtime.PAUSE(function (restart) {
                     MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                     var returnValues = [MACHINE.val];

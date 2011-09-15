@@ -66,7 +66,7 @@ for (param in params) {
 }
 EOF
            op)
-  (fprintf op "M.trampoline(~a); })"
+  (fprintf op "M.trampoline(~a, true); })"
            (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))))
 
 

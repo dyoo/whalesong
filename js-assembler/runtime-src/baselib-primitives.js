@@ -694,7 +694,7 @@
         'substring',
         makeList(2, 3),
         function(M) {
-            var str = String(checkString(M, 'substring', 0));
+            var str = checkString(M, 'substring', 0).toString();
             var start = baselib.numbers.toFixnum(checkNatural(M, 'substring', 1));
             var end = str.length;
             if (M.a === 3) {
@@ -1722,8 +1722,8 @@
 	    var i;
             if (M.a === 1) {
                 var sym = checkSymbol(M, 'error', 1);
-                raise(M, baselib.exceptions.makeExnFail(String(sym), 
-                                                              M.captureContinuationMarks()));
+                raise(M, baselib.exceptions.makeExnFail(sym.toString(), 
+                                                        M.captureContinuationMarks()));
             } 
             
             if (isString(M.e[M.e.length - 1])) {
@@ -1731,7 +1731,7 @@
                 for (i = 1; i < M.a; i++) {
                     vs.push(baselib.format.format("~e", [M.e[M.e.length - 1 - i]]));
                 }
-                raise(M, baselib.exceptions.makeExnFail(String(M.e[M.e.length - 1]) +
+                raise(M, baselib.exceptions.makeExnFail(M.e[M.e.length - 1].toString() +
                                                               ": " +
                                                               vs.join(' '),
                                                               M.captureContinuationMarks()));
@@ -1744,7 +1744,7 @@
                     args.push(M.e[M.e.length - 1 - i]);
                 }
                 raise(M, baselib.exceptions.makeExnFail(
-                    baselib.format.format('~s: ' + String(fmtString),
+                    baselib.format.format('~s: ' + fmtString.toString(),
                                           args),
                     M.captureContinuationMarks()));
             }
@@ -1850,7 +1850,7 @@
 
                     var predicateValue = 
                         makePrimitiveProcedure(
-                            String(name) + "?",
+                            name.toString() + "?",
                             1,
                             function (M) {
                                 return structType.predicate(M.e[M.e.length - 1]);
@@ -1858,7 +1858,7 @@
 
                     var accessorValue = 
                         makePrimitiveProcedure(
-                            String(name) + "-accessor",
+                            name.toString() + "-accessor",
                             2,
                             function (M) {
                                 return structType.accessor(
@@ -1869,7 +1869,7 @@
 
                     var mutatorValue = 
                         makePrimitiveProcedure(
-                            String(name) + "-mutator",
+                            name.toString() + "-mutator",
                             3,
                             function (M) {
                                 return structType.mutator(
@@ -1913,7 +1913,7 @@
             var index = M.e[M.e.length - 2];
             var name;
             if (M.a === 3) {
-                name = String(M.e[M.e.length - 3]);
+                name = M.e[M.e.length - 3].toString();
             } else {
                 name = 'field' + index;
             }
@@ -1940,7 +1940,7 @@
             var index = M.e[M.e.length - 2];
             var name;
             if (M.a === 3) {
-                name = String(M.e[M.e.length - 3]);
+                name = M.e[M.e.length - 3].toString();
             } else {
                 name = 'field' + index;
             }

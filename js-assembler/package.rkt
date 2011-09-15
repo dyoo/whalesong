@@ -236,7 +236,8 @@ M.modules[~s] =
 ;; load in modules.
 (define (package source-code
                  #:should-follow-children? should-follow?
-                 #:output-port op)
+                 #:output-port op
+                 #:next-file-path (next-file-path (lambda () (error 'package))))
   (define resources (set))
   
   
@@ -257,22 +258,28 @@ M.modules[~s] =
     ;; Record the use of resources on source module visitation...
     (set! resources (set-union resources (list->set (source-resources src))))
 
+    
     (fprintf op "\n// ** Visiting ~a\n" (source-name src))
     (define start-time (current-inexact-milliseconds))
     (cond
      [(UninterpretedSource? src)
-      (fprintf op "~a" (UninterpretedSource-datum src))]
+      (fprintf op "(function(M) { ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
      [else      
       (fprintf op "(")
       (assemble/write-invoke stmts op)
-      (fprintf op ")(M,
+      (fprintf op ")(plt.runtime.currentMachine,
                      function() {
                           if (window.console && window.console.log) {
                               window.console.log('loaded ' + ~s);
                           }
                      },
-                     FAIL,
-                     PARAMS);"
+                     function(err) {
+                          if (window.console && window.console.log) {
+                              window.console.log('error: unable to load ' + ~s);
+                          }
+                     },
+                     {});"
+               (format "~a" (source-name src))
                (format "~a" (source-name src)))
       (define stop-time (current-inexact-milliseconds))
       (fprintf (current-timing-port) "  assembly: ~s milliseconds\n" (- stop-time start-time))
@@ -284,7 +291,7 @@ M.modules[~s] =
   
   
   (define (on-last-src)
-    (fprintf op "plt.runtime.setReadyTrue(); SUCCESS();"))
+    (void))
 
   
   
@@ -303,13 +310,8 @@ M.modules[~s] =
      ;; last
      on-last-src))
   
-  (fprintf op "var invoke = (function(M, SUCCESS, FAIL, PARAMS) {")
-  (fprintf op "    plt.runtime.ready(function() {")
-  (fprintf op "        plt.runtime.setReadyFalse();")
   (make (list (make-MainModuleSource source-code))
         packaging-configuration)
-  (fprintf op "    });");
-  (fprintf op "});\n")
   
   (for ([r resources])
     ((current-on-resource) r)))
@@ -322,7 +324,8 @@ M.modules[~s] =
   (display *header* op)
   (display (quote-cdata
             (string-append (get-runtime)
-                           (get-inert-code source-code)
+                           (get-inert-code source-code
+                                           (lambda () (error 'package-standalone-xhtml)))
                            invoke-main-module-code)) op)
   (display *footer* op))
 
@@ -431,12 +434,13 @@ EOF
   invoke-main-module-code))
 
 
-;; get-inert-code: source -> string
-(define (get-inert-code source-code)
+;; get-inert-code: source (-> path) -> string
+(define (get-inert-code source-code next-file-path)
   (let ([buffer (open-output-string)])
     (package source-code
              #:should-follow-children? (lambda (src) #t)
-             #:output-port buffer)
+             #:output-port buffer
+             #:next-file-path next-file-path)
     (compress
      (get-output-string buffer))))
 
@@ -465,66 +469,56 @@ EOF
   #<<EOF
 var invokeMainModule = function() {
     var M = plt.runtime.currentMachine;
-    invoke(M,
-           function() {
-                var startTime = new Date().valueOf();
-                plt.runtime.invokeMains(
-                    M,
-                    function() {
-                        // On main module invokation success:
-                        var stopTime = new Date().valueOf();                                
-                        if (window.console && window.console.log) {
-                            window.console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
-                        }
-                    },
-                    function(M, e) {
-                        var contMarkSet, context, i, appName;
-                        // On main module invokation failure
-                        if (window.console && window.console.log) {
-                            window.console.log(e.stack || e);
-                        }
-                        
-                        M.params.currentErrorDisplayer(
-                             M, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
+    var startTime = new Date().valueOf();
+    plt.runtime.invokeMains(
+        M,
+        function() {
+            // On main module invokation success:
+            var stopTime = new Date().valueOf();                                
+            if (window.console && window.console.log) {
+                window.console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
+            }
+        },
+        function(M, e) {
+            var contMarkSet, context, i, appName;
+            // On main module invokation failure
+            if (window.console && window.console.log) {
+                window.console.log(e.stack || e);
+            }
+            
+            M.params.currentErrorDisplayer(
+                M, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
 
-                        if (e.hasOwnProperty('racketError') &&
-                            plt.baselib.exceptions.isExn(e.racketError)) {
-                            contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
-                            if (contMarkSet) {
-                                 context = contMarkSet.getContext(M);
-                                 for (i = 0; i < context.length; i++) {
-                                     if (plt.runtime.isVector(context[i])) {
-                                        M.params.currentErrorDisplayer(
-                                            M,
-                                            $('<div/>').text('  at ' + context[i].elts[0] +
-                                                             ', line ' + context[i].elts[2] +
-                                                             ', column ' + context[i].elts[3])
-                                                       .addClass('stacktrace')
-                                                       .css('margin-left', '10px')
-                                                       .css('whitespace', 'pre')
-                                                       .css('color', 'red'));
-                                     } else if (plt.runtime.isProcedure(context[i])) {
-                                        M.params.currentErrorDisplayer(
-                                            M,
-                                            $('<div/>').text('  in ' + context[i].displayName)
-                                                       .addClass('stacktrace')
-                                                       .css('margin-left', '10px')
-                                                       .css('whitespace', 'pre')
-                                                       .css('color', 'red'));
-                                     }                                     
-                                 }
-                            }
-                        }
-                    })},
-           function() {
-               // On module loading failure
-               if (window.console && window.console.log) {
-                   window.console.log(e.stack || e);
-               }                       
-           },
-           {});
+            if (e.hasOwnProperty('racketError') &&
+                plt.baselib.exceptions.isExn(e.racketError)) {
+                contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
+                if (contMarkSet) {
+                    context = contMarkSet.getContext(M);
+                    for (i = 0; i < context.length; i++) {
+                        if (plt.runtime.isVector(context[i])) {
+                            M.params.currentErrorDisplayer(
+                                M,
+                                $('<div/>').text('  at ' + context[i].elts[0] +
+                                                 ', line ' + context[i].elts[2] +
+                                                 ', column ' + context[i].elts[3])
+                                    .addClass('stacktrace')
+                                    .css('margin-left', '10px')
+                                    .css('whitespace', 'pre')
+                                    .css('color', 'red'));
+                        } else if (plt.runtime.isProcedure(context[i])) {
+                            M.params.currentErrorDisplayer(
+                                M,
+                                $('<div/>').text('  in ' + context[i].displayName)
+                                    .addClass('stacktrace')
+                                    .css('margin-left', '10px')
+                                    .css('whitespace', 'pre')
+                                    .css('color', 'red'));
+                        }                                     
+                    }
+                }
+            }
+        });
 };
-  
   $(document).ready(invokeMainModule);
 EOF
   )

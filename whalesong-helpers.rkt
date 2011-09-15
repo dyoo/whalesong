@@ -141,7 +141,8 @@
         (call-with-output-file* output-js-filename
                                 (lambda (op)
                                   (display (get-runtime) op)
-                                  (display (get-inert-code (make-ModuleSource (build-path f)))
+                                  (display (get-inert-code (make-ModuleSource (build-path f))
+                                                           make-output-js-filename)
                                            op))
                                 #:exists 'replace)
 

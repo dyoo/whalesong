@@ -19,42 +19,38 @@
                      racket/path
                      racket/port))
 
+(define first-run #t)
+
 (define evaluate (make-evaluate 
                   (lambda (program op)
 
                     (fprintf op "(function () {")
-                    
-   		    (displayln (get-runtime) op)
-                    
                     (newline op)
-                    
-                    (fprintf op "var innerInvoke = ")
-                    (package-anonymous program
-                                       #:should-follow-children? (lambda (src) #t)
-                                       #:output-port op)
-                    (fprintf op "();\n")
-                    
-                    (fprintf op #<<EOF
-return (function(succ, fail, params) {
-            var machine = new plt.runtime.Machine();
-            var myParams = { currentDisplayer : function(MACHINE, v) {
-                                                   params.currentDisplayer(v);
-                                                }
-                           };
-            return innerInvoke(machine,
-                               function() {
-                                   plt.runtime.invokeMains(machine, succ, fail);
-                               },
-                               function(MACHINE, e) {
-                                   return fail(e);
-                               },
-                               myParams);
-        });
-});
-EOF
-                             )
-                    
-                    )))
+
+                    (when first-run
+                      (display (get-runtime) op)
+                      (set! first-run #f))
+
+                    (display "return (function(succ, fail, params) {
+                                           var machine = new plt.runtime.Machine();
+                                           plt.runtime.currentMachine = machine;" op)
+
+                    (package program
+                             #:should-follow-children? (lambda (src) #t)
+                             #:output-port op)
+                    (display "             machine.params.currentDisplayer = function(MACHINE, v) {
+                                                 params.currentDisplayer(v);
+                                           };
+                                          plt.runtime.ready(function() {
+                                              plt.runtime.invokeMains(machine,
+                                                                      succ,
+                                                                      function(MACHINE, e) {
+                                                                          fail(e);
+                                                                      });
+                                          });
+
+                                       });
+                              });" op))))
 
 
 ;; Flatten the paths out.

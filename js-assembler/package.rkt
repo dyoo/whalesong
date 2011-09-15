@@ -30,7 +30,7 @@
 
 
 (provide package
-         package-anonymous
+         ;;package-anonymous
          package-standalone-xhtml
          get-inert-code
          get-standalone-code
@@ -77,14 +77,14 @@
 
 
 
-(define (package-anonymous source-code
-                           #:should-follow-children? should-follow?
-                           #:output-port op)
-  (fprintf op "(function() {\n")
-  (package source-code
-           #:should-follow-children? should-follow?
-           #:output-port op)
-  (fprintf op " return invoke; })\n"))
+;; (define (package-anonymous source-code
+;;                            #:should-follow-children? should-follow?
+;;                            #:output-port op)
+;;   (fprintf op "(function() {\n")
+;;   (package source-code
+;;            #:should-follow-children? should-follow?
+;;            #:output-port op)
+;;   (fprintf op " return invoke; })\n"))
 
 
 
@@ -456,10 +456,10 @@ EOF
 
 ;; write-standalone-code: source output-port -> void
 (define (write-standalone-code source-code op)
-  (package-anonymous source-code
-                     #:should-follow-children? (lambda (src) #t)
-                     #:output-port op)
-  (fprintf op "()(plt.runtime.currentMachine, function() {}, function() {}, {});\n"))
+  (package source-code
+           #:should-follow-children? (lambda (src) #t)
+           #:output-port op))
+
 
 
 

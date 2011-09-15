@@ -22,5 +22,6 @@
 (define compile-omit-paths '("tests"
                              "examples"
                              "experiments"
-                             "simulator"))
+                             "simulator"
+                             "tmp"))
 (define can-be-loaded-with 'all)

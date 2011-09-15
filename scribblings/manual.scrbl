@@ -1826,25 +1826,25 @@ Whalesong by implementing libraries, giving guidence, reporting bugs,
 and suggesting improvements.
 
 @;;;;
-@; in no particular order... really!  I'm shuffling them!  :)
+@; in alphabetical order
 @;;;;
 @(apply itemlist
-   (shuffle (list
-   @item{Ethan Cecchetti}
-   @item{Scott Newman}
-   @item{Zhe Zhang}
-   @item{Jens Axel Søgaard}
-   @item{Jay McCarthy}
-   @item{Sam Tobin-Hochstadt}
-   @item{Doug Orleans}
-   @item{Richard Cleis}
-   @item{Asumu Takikawa}
-   @item{Eric Hanchrow}
-   @item{Greg Hendershott}
-   @item{Shriram Krishnamurthi}
-   @item{Emmanuel Schanzer}
-   @item{Robby Findler}
-   @item{Gregor Kiczales}
-   @item{Cristina Teodoropol}
-))
+   (map item (sort (list
+   "Ethan Cecchetti"
+   "Scott Newman"
+   "Zhe Zhang"
+   "Jens Axel Søgaard"
+   "Jay McCarthy"
+   "Sam Tobin-Hochstadt"
+   "Doug Orleans"
+   "Richard Cleis"
+   "Asumu Takikawa"
+   "Eric Hanchrow"
+   "Greg Hendershott"
+   "Shriram Krishnamurthi"
+   "Emmanuel Schanzer"
+   "Robby Findler"
+   "Gregor Kiczales"
+   "Cristina Teodoropol"
+) string<?))
 )

@@ -212,7 +212,7 @@
 
     var Machine = function() {
 	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
-	this.val = undefined;         // value register
+	this.v = undefined;         // value register
 	this.p = undefined;        // procedure register
 	this.a = undefined;           // argument count
 	this.e = [];                // environment

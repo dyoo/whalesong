@@ -85,7 +85,7 @@
                       [(eq? target 'proc)
                        "M.p"]
                       [(eq? target 'val)
-                       "M.val"]
+                       "M.v"]
                       [(eq? target 'argcount)
                        "M.a"]
                       [(EnvLexicalReference? target)
@@ -281,7 +281,7 @@
      [(eq? name 'proc)
       "M.p"]
      [(eq? name 'val)
-      "M.val"]
+      "M.v"]
      [(eq? name 'argcount)
       "M.a"])))
 

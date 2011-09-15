@@ -113,7 +113,7 @@
     [(InstallContinuationMarkEntry!? op)
      (string-append "M.installContinuationMarkEntry("
                     "M.c[M.c.length-1].pendingContinuationMarkKey,"
-                    "M.val);")]
+                    "M.v);")]
 
     [(RaiseContextExpectedValuesError!? op)
      (format "RT.raiseContextExpectedValuesError(M,~a);"

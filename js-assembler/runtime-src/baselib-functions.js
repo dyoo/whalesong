@@ -68,14 +68,14 @@
         MACHINE.e.length -= MACHINE.a;
 
         if (returnArgs.length === 1) {
-            MACHINE.val = returnArgs[0];
+            MACHINE.v = returnArgs[0];
             return MACHINE.c.pop().label(MACHINE);
         } else if (returnArgs.length === 0) {
             MACHINE.a = 0;
             return MACHINE.c.pop().label.mvr(MACHINE);
         } else {
             MACHINE.a = returnArgs.length;
-            MACHINE.val = returnArgs.shift();
+            MACHINE.v = returnArgs.shift();
             MACHINE.e.push.apply(MACHINE.e, returnArgs.reverse());
             return MACHINE.c.pop().label.mvr(MACHINE);
         }
@@ -148,7 +148,7 @@
                                                                 MACHINE.captureContinuationMarks())));
             }
 
-            var oldVal = MACHINE.val;
+            var oldVal = MACHINE.v;
             var oldArgcount = MACHINE.a;
             var oldProc = MACHINE.p;
 
@@ -157,8 +157,8 @@
                 plt.runtime.PAUSE(
                     function (restart) {
                         MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                        var returnValue = MACHINE.val;
-                        MACHINE.val = oldVal;
+                        var returnValue = MACHINE.v;
+                        MACHINE.v = oldVal;
                         MACHINE.a = oldArgcount;
                         MACHINE.p = oldProc;
                         succ(returnValue);
@@ -168,11 +168,11 @@
                 plt.runtime.PAUSE(
                     function (restart) {
                         MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                        var returnValues = [MACHINE.val], i;
+                        var returnValues = [MACHINE.v], i;
                         for (i = 0; i < MACHINE.a - 1; i++) {
                             returnValues.push(MACHINE.e.pop());
                         }
-                        MACHINE.val = oldVal;
+                        MACHINE.v = oldVal;
                         MACHINE.a = oldArgcount;
                         MACHINE.p = oldProc;
                         succ.apply(null, returnValues);
@@ -189,7 +189,7 @@
             MACHINE.p = v;
             MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                MACHINE.val = oldVal;
+                MACHINE.v = oldVal;
                 MACHINE.a = oldArgcount;
                 MACHINE.p = oldProc;
                 fail(e);
@@ -246,7 +246,7 @@
             }
             success(result);
         } else if (isClosure(proc)) {
-            oldVal = MACHINE.val;
+            oldVal = MACHINE.v;
             oldArgcount = MACHINE.a;
             oldProc = MACHINE.p;
 
@@ -254,8 +254,8 @@
             var afterGoodInvoke = function (MACHINE) { 
                 plt.runtime.PAUSE(function (restart) {
                     MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                    var returnValue = MACHINE.val;
-                    MACHINE.val = oldVal;
+                    var returnValue = MACHINE.v;
+                    MACHINE.v = oldVal;
                     MACHINE.a = oldArgcount;
                     MACHINE.p = oldProc;
                     success(returnValue);
@@ -264,12 +264,12 @@
             afterGoodInvoke.mvr = function (MACHINE) {
                 plt.runtime.PAUSE(function (restart) {
                     MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                    var returnValues = [MACHINE.val];
+                    var returnValues = [MACHINE.v];
                     var i;
                     for (i = 0; i < MACHINE.a - 1; i++) {
                         returnValues.push(MACHINE.e.pop());
                     }
-                    MACHINE.val = oldVal;
+                    MACHINE.v = oldVal;
                     MACHINE.a = oldArgcount;
                     MACHINE.p = oldProc;
                     success.apply(null, returnValues);
@@ -285,7 +285,7 @@
             MACHINE.p = proc;
             MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                MACHINE.val = oldVal;
+                MACHINE.v = oldVal;
                 MACHINE.a = oldArgcount;
                 MACHINE.p = oldProc;
                 fail(e);
@@ -324,7 +324,7 @@
                            arity,
                            function(M) {
                                --M.cbt;
-                               M.val = f(M);
+                               M.v = f(M);
                                M.e.length -= M.a;
                                return M.c.pop().label(M);
                            },

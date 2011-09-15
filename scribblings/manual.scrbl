@@ -195,13 +195,23 @@ Pacman.}
 
 At the time of this writing, although Whalesong has been deployed to
 @link["http://planet.racket-lang.org"]{PLaneT}, the version on PLaneT
-is out of date.  I'll be updating the PLaneT package as soon as
-Whalesong starts to stabilize, but the system as a whole is still in
-some flux.
+is probably a little out of date.  
 
-You may want to get the latest sources instead of using the version on
-PLaneT.  Doing so requires doing a little bit of manual work.  The
-steps are:
+If you want to use Whalesong off of PLaneT, run the following to create
+the @filepath{whalesong} launcher:
+@codeblock|{
+#lang racket/base
+(require (planet dyoo/whalesong:1:3/make-launcher))
+}|
+This will create a @filepath{whalesong} launcher in the current directory.
+
+
+
+
+@subsection{Installing Whalesong from github}
+
+Otherwise, you can download the sources from the github repository.
+Doing so requires doing a little bit of manual work.  The steps are:
 
 @itemlist[
 @item{Check Whalesong out of Github.}
@@ -220,9 +230,9 @@ Next, let's set up a @link["http://docs.racket-lang.org/planet/Developing_Packag
 parent directory that contains the @filepath{whalesong} repository, and
 then run this on your command line:
 @verbatim|{
-$ planet link dyoo whalesong.plt 1 0 whalesong
+$ planet link dyoo whalesong.plt 1 4 whalesong
 }|
-(You may need to adjust the @tt{1} and @tt{0} major/minor numbers a bit to be larger
+(You may need to adjust the @tt{1} and @tt{4} major/minor numbers a bit to be larger
 than the latest version that's on PLaneT at the time.)
 
 
@@ -238,7 +248,7 @@ Finally, we need to set up Whalesong with @tt{raco setup}.
 Here's how to do this at the command
 line:
 @verbatim|{
-$ raco setup -P dyoo whalesong.plt 1 0
+$ raco setup -P dyoo whalesong.plt 1 4
 }|
 This should compile Whalesong.  Any time the source code in
 @filepath{whalesong} changes, we should repeat this @tt{raco setup}

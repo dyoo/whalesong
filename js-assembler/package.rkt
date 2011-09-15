@@ -253,21 +253,38 @@ M.modules[~s] =
       [else
        src]))
   
+
+  (define (maybe-with-fresh-file thunk)
+    (cond
+     [(current-one-module-per-file?)
+      (define old-port op)
+      (define temp-string (open-output-string))
+      (set! op temp-string)
+      (thunk)
+      (set! op old-port)
+      (call-with-output-file (next-file-path)
+        (lambda (op)
+          (display (compress (get-output-string temp-string)) op))
+        #:exists 'replace)]
+     [else
+      (thunk)]))
+
   
   (define (on-visit-src src ast stmts)
     ;; Record the use of resources on source module visitation...
     (set! resources (set-union resources (list->set (source-resources src))))
 
-    
-    (fprintf op "\n// ** Visiting ~a\n" (source-name src))
-    (define start-time (current-inexact-milliseconds))
-    (cond
-     [(UninterpretedSource? src)
-      (fprintf op "(function(M) { ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
-     [else      
-      (fprintf op "(")
-      (assemble/write-invoke stmts op)
-      (fprintf op ")(plt.runtime.currentMachine,
+    (maybe-with-fresh-file
+     (lambda ()
+       (fprintf op "\n// ** Visiting ~a\n" (source-name src))
+       (define start-time (current-inexact-milliseconds))
+       (cond
+        [(UninterpretedSource? src)
+         (fprintf op "(function(M) { ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
+        [else      
+         (fprintf op "(")
+         (assemble/write-invoke stmts op)
+         (fprintf op ")(plt.runtime.currentMachine,
                      function() {
                           if (window.console && window.console.log) {
                               window.console.log('loaded ' + ~s);
@@ -279,11 +296,11 @@ M.modules[~s] =
                           }
                      },
                      {});"
-               (format "~a" (source-name src))
-               (format "~a" (source-name src)))
-      (define stop-time (current-inexact-milliseconds))
-      (fprintf (current-timing-port) "  assembly: ~s milliseconds\n" (- stop-time start-time))
-      (void)]))
+                  (format "~a" (source-name src))
+                  (format "~a" (source-name src)))
+         (define stop-time (current-inexact-milliseconds))
+         (fprintf (current-timing-port) "  assembly: ~s milliseconds\n" (- stop-time start-time))
+         (void)]))))
   
   
   (define (after-visit-src src)

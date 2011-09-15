@@ -16,9 +16,11 @@
          current-root-path
          current-warn-unimplemented-kernel-primitive
          current-seen-unimplemented-kernel-primitives
+
          current-kernel-module-locator?
          current-compress-javascript?
-
+         current-one-module-per-file?
+         
          current-report-port
          current-timing-port
          )

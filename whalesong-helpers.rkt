@@ -98,12 +98,13 @@
                                                        (format "_~a.js" n)))))
         (set! written-js-paths (cons result written-js-paths))
         (set! n (add1 n))
+        (fprintf (current-report-port)
+                 (format "Writing program ~s\n" result))
         result)))
       
 
   (define start-time (current-inexact-milliseconds))
-  (let ([output-js-filename (make-output-js-filename)]
-        [output-html-filename
+  (let ([output-html-filename
          (build-path
           (regexp-replace #rx"[.](rkt|ss)$"
                           (path->string (file-name-from-path f))
@@ -136,9 +137,7 @@
                            (copy-file (resource-path r) 
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])
-        (fprintf (current-report-port)
-                 (format "Writing program ~s\n" output-js-filename))
-        (call-with-output-file* output-js-filename
+        (call-with-output-file* (make-output-js-filename)
                                 (lambda (op)
                                   (display (get-runtime) op)
                                   (display (get-inert-code (make-ModuleSource (build-path f))
@@ -150,7 +149,9 @@
                  (format "Writing html ~s\n" (build-path (current-output-dir) output-html-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                 (lambda (op)
-                                  (display (get-html-template (map file-name-from-path written-js-paths))
+                                  (display (get-html-template
+                                            (map file-name-from-path
+                                                 (reverse written-js-paths)))
                                            op))
                                 #:exists 'replace)
         (define stop-time (current-inexact-milliseconds))

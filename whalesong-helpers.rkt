@@ -85,6 +85,23 @@
 
 (define (build-html-and-javascript f)
   (turn-on-logger!)
+
+  (define written-js-paths '())
+  (define make-output-js-filename
+    (let ([n 0])
+      (lambda (source-path)
+        (define-values (base filename dir?) (split-path f))
+        (define result (build-path (current-output-path)
+                                   (regexp-replace #rx"[.](rkt|ss)$"
+                                                   (path->string filename)
+                                                   (if (= n 0)
+                                                       ".js"
+                                                       (format "_~a.js" n)))))
+        (set! written-js-paths (cons result written-js-paths))
+        (set! n (add1 n))
+        result)))
+      
+
   (define start-time (current-inexact-milliseconds))
   (let-values ([(base filename dir?)
                 (split-path f)])
@@ -126,8 +143,8 @@
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])
         (fprintf (current-report-port)
-                 (format "Writing program ~s\n" (build-path (current-output-dir) output-js-filename)))
-        (call-with-output-file* (build-path (current-output-dir) output-js-filename)
+                 (format "Writing program ~s\n" output-js-filename))
+        (call-with-output-file* output-js-filename
                                 (lambda (op)
                                   (display (get-runtime) op)
                                   (display (get-inert-code (make-ModuleSource (build-path f)))
@@ -138,7 +155,8 @@
                  (format "Writing html ~s\n" (build-path (current-output-dir) output-html-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                 (lambda (op)
-                                  (display (get-html-template output-js-filename) op))
+                                  (display (get-html-template (map file-name-from-path written-js-paths))
+                                           op))
                                 #:exists 'replace)
         (define stop-time (current-inexact-milliseconds))
 

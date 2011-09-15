@@ -404,8 +404,8 @@ EOF
   )
 
 
-;; get-html-template: string -> string
-(define (get-html-template js)
+;; get-html-template: (listof string) -> string
+(define (get-html-template js-files)
   (format #<<EOF
 <!DOCTYPE html>
 <html>
@@ -414,7 +414,7 @@ EOF
     <meta charset="utf-8"/>
     <title></title>
   </head>
-  <script src="~a"></script>
+~a
   <script>
   ~a
   </script>
@@ -424,9 +424,11 @@ EOF
   </html>
 EOF
 
-  js
-  invoke-main-module-code
-  ))
+  (string-join (map (lambda (js)
+                      (format "  <script src='~a'></script>\n" js))
+                    js-files)
+               "")
+  invoke-main-module-code))
 
 
 ;; get-inert-code: source -> string

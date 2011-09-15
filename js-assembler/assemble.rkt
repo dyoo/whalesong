@@ -516,15 +516,16 @@ EOF
       "M.control.pop();"]
      
      [(PushEnvironment? stmt)
-      (if (= (PushEnvironment-n stmt) 0)
-          ""
-          (format "M.e.push(~a);" (string-join
-                                           (build-list (PushEnvironment-n stmt) 
-                                                       (lambda: ([i : Natural])
-                                                         (if (PushEnvironment-unbox? stmt)
-                                                             "[undefined]"
-                                                             "undefined")))
-                                           ", ")))]
+      (cond [(= (PushEnvironment-n stmt) 0)
+             ""]
+            [(PushEnvironment-unbox? stmt)
+             (format "M.e.push(~a);" (string-join
+                                      (build-list (PushEnvironment-n stmt) 
+                                                  (lambda: ([i : Natural])
+                                                               "[undefined]"))
+                                      ", "))]
+            [else
+             (format "M.e.length+=~a;" (PushEnvironment-n stmt))])]
      [(PopEnvironment? stmt)
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
@@ -551,7 +552,7 @@ EOF
   (cond
    #;[(current-emit-debug-trace?)
     (string-append 
-     (format "if (typeof(window.console) !== 'undefined' && typeof(console.log) === 'function') { console.log(~s);\n}"
+     (format "if(typeof(window.console)!=='undefined'&&typeof(console.log)==='function'){console.log(~s);\n}"
                (format "~a" stmt))
      assembled)]
    [else

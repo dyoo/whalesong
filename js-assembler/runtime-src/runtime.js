@@ -655,12 +655,12 @@
 
 
 
-    var checkClosureAndArity = function(M, n) {
+    var checkClosureAndArity = function(M) {
         if(!(M.proc instanceof Closure)){
             raiseOperatorIsNotClosure(M,M.proc);
         }
-        if(!isArityMatching(M.proc.racketArity,n)) {
-            raiseArityMismatchError(M, M.proc,n);
+        if(!isArityMatching(M.proc.racketArity,M.a)) {
+            raiseArityMismatchError(M, M.proc,M.a);
         }
     };
 

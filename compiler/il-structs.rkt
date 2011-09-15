@@ -365,7 +365,7 @@
 
 ;; Check the closure procedure value in 'proc and make sure it's a closure
 ;; that can accept the right arguments (stored as a number in the argcount register.).
-(define-struct: CheckClosureAndArity! ([num-args : OpArg])
+(define-struct: CheckClosureAndArity! ()
   #:transparent)
 
 

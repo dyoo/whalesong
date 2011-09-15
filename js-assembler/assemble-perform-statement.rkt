@@ -22,8 +22,7 @@
 
 
     [(CheckClosureAndArity!? op)
-     (format "RT.checkClosureAndArity(M, ~a);"
-             (assemble-oparg (CheckClosureAndArity!-num-args op)))]
+     "RT.checkClosureAndArity(M);"]
 
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])

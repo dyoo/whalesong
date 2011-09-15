@@ -1423,7 +1423,7 @@
         
         
         ;; Compiled branch
-        (make-PerformStatement (make-CheckClosureAndArity! (make-Reg 'argcount)))
+        (make-PerformStatement (make-CheckClosureAndArity!))
         (compile-compiled-procedure-application cenv
                                                 number-of-arguments
                                                 'dynamic

@@ -1150,7 +1150,7 @@
         checkList(M, 'apply', M.a - 1);
         M.spliceListIntoStack(M.a - 1);
         if (baselib.arity.isArityMatching(proc.racketArity, M.a)) {
-            M.proc = proc;
+            M.p = proc;
             if (baselib.functions.isPrimitiveProcedure(proc)) {
                 return finalizeClosureCall(M, proc(M));
             } else {

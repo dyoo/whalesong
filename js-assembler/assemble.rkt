@@ -486,7 +486,7 @@ EOF
       "M.c.push(new RT.Frame());"]
      
      [(PushControlFrame/Call? stmt)
-      (format "M.c.push(new RT.CallFrame(~a,M.proc));" 
+      (format "M.c.push(new RT.CallFrame(~a,M.p));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) 

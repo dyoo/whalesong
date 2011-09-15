@@ -213,7 +213,7 @@
     var Machine = function() {
 	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
 	this.val = undefined;         // value register
-	this.proc = undefined;        // procedure register
+	this.p = undefined;        // procedure register
 	this.a = undefined;           // argument count
 	this.e = [];                // environment
 	this.c = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
@@ -384,8 +384,8 @@
             
             if (tracedCalleeKey !== null && 
                 control[i] instanceof CallFrame &&
-                control[i].proc !== null) {
-                kvLists.push([[tracedCalleeKey, control[i].proc]]);
+                control[i].p !== null) {
+                kvLists.push([[tracedCalleeKey, control[i].p]]);
             }
         }     
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
@@ -656,11 +656,11 @@
 
 
     var checkClosureAndArity = function(M) {
-        if(!(M.proc instanceof Closure)){
-            raiseOperatorIsNotClosure(M,M.proc);
+        if(!(M.p instanceof Closure)){
+            raiseOperatorIsNotClosure(M,M.p);
         }
-        if(!isArityMatching(M.proc.racketArity,M.a)) {
-            raiseArityMismatchError(M, M.proc,M.a);
+        if(!isArityMatching(M.p.racketArity,M.a)) {
+            raiseArityMismatchError(M,M.p,M.a);
         }
     };
 

@@ -31,7 +31,7 @@
     // as well as the function being called.
     var CallFrame = function(label, proc) {
 	this.label = label;
-	this.proc = proc;
+	this.p = proc;
 
 	// The set of continuation marks.
 	this.marks = [];

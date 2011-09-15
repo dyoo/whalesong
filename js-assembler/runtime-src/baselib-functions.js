@@ -150,7 +150,7 @@
 
             var oldVal = MACHINE.val;
             var oldArgcount = MACHINE.a;
-            var oldProc = MACHINE.proc;
+            var oldProc = MACHINE.p;
 
             var oldErrorHandler = MACHINE.params['currentErrorHandler'];
             var afterGoodInvoke = function (MACHINE) { 
@@ -160,7 +160,7 @@
                         var returnValue = MACHINE.val;
                         MACHINE.val = oldVal;
                         MACHINE.a = oldArgcount;
-                        MACHINE.proc = oldProc;
+                        MACHINE.p = oldProc;
                         succ(returnValue);
                     });
             };
@@ -174,7 +174,7 @@
                         }
                         MACHINE.val = oldVal;
                         MACHINE.a = oldArgcount;
-                        MACHINE.proc = oldProc;
+                        MACHINE.p = oldProc;
                         succ.apply(null, returnValues);
                     });
             };
@@ -186,12 +186,12 @@
             for (i = 0; i < arguments.length - 2; i++) {
                 MACHINE.e.push(arguments[arguments.length - 1 - i]);
             }
-            MACHINE.proc = v;
+            MACHINE.p = v;
             MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                 MACHINE.val = oldVal;
                 MACHINE.a = oldArgcount;
-                MACHINE.proc = oldProc;
+                MACHINE.p = oldProc;
                 fail(e);
             };
             MACHINE.trampoline(v.label);
@@ -248,7 +248,7 @@
         } else if (isClosure(proc)) {
             oldVal = MACHINE.val;
             oldArgcount = MACHINE.a;
-            oldProc = MACHINE.proc;
+            oldProc = MACHINE.p;
 
             oldErrorHandler = MACHINE.params['currentErrorHandler'];
             var afterGoodInvoke = function (MACHINE) { 
@@ -257,7 +257,7 @@
                     var returnValue = MACHINE.val;
                     MACHINE.val = oldVal;
                     MACHINE.a = oldArgcount;
-                    MACHINE.proc = oldProc;
+                    MACHINE.p = oldProc;
                     success(returnValue);
                 });
             };
@@ -271,7 +271,7 @@
                     }
                     MACHINE.val = oldVal;
                     MACHINE.a = oldArgcount;
-                    MACHINE.proc = oldProc;
+                    MACHINE.p = oldProc;
                     success.apply(null, returnValues);
                 });
             };
@@ -282,12 +282,12 @@
             for (i = 0; i < arguments.length - 4; i++) {
                 MACHINE.e.push(arguments[arguments.length - 1 - i]);
             }
-            MACHINE.proc = proc;
+            MACHINE.p = proc;
             MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                 MACHINE.val = oldVal;
                 MACHINE.a = oldArgcount;
-                MACHINE.proc = oldProc;
+                MACHINE.p = oldProc;
                 fail(e);
             };
             MACHINE.trampoline(proc.label);

@@ -70,7 +70,7 @@
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     "M.e.push.apply(M.e,M.proc.closedVals);"]
+     "M.e.push.apply(M.e,M.p.closedVals);"]
     
     [(RestoreEnvironment!? op)
      "M.e=M.e[M.e.length-2].slice(0);"]
@@ -98,7 +98,7 @@
                           ","))]
     
     [(SetFrameCallee!? op)
-     (format "M.c[M.c.length-1].proc=~a;"
+     (format "M.c[M.c.length-1].p=~a;"
              (assemble-oparg (SetFrameCallee!-proc op)))]
     
     [(SpliceListIntoStack!? op)

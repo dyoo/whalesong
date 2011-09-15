@@ -83,7 +83,7 @@
              (format "~a=~a;"
                      (cond
                       [(eq? target 'proc)
-                       "M.proc"]
+                       "M.p"]
                       [(eq? target 'val)
                        "M.val"]
                       [(eq? target 'argcount)
@@ -279,7 +279,7 @@
   (let ([name (Reg-name a-reg)])
     (cond
      [(eq? name 'proc)
-      "M.proc"]
+      "M.p"]
      [(eq? name 'val)
       "M.val"]
      [(eq? name 'argcount)

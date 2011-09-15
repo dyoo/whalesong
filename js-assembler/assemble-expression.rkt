@@ -14,7 +14,7 @@
 (define (assemble-op-expression op)
   (cond
     [(GetCompiledProcedureEntry? op)
-     "M.proc.label"]
+     "M.p.label"]
     
     [(MakeCompiledProcedure? op)
      (format "new RT.Closure(~a,~a,[~a],~a)"

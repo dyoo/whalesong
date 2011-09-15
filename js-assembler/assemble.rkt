@@ -292,31 +292,39 @@ EOF
                'ok]
            
            [(GotoStatement? stmt)
-            (define target (GotoStatement-target stmt))
-            (cond
-              [(Label? target)
-               (cond
-                   [(set-contains? entry-points (Label-name target))
-                    (display (assemble-statement stmt) op)
-                    'ok]
-                   [else
-                    (log-debug (format "Assembling inlined jump into ~a" (Label-name target)) )
-                    (assemble-block-statements (BasicBlock-name
-                                                (hash-ref blockht (Label-name target)))
-                                               (BasicBlock-stmts
-                                                (hash-ref blockht (Label-name target)))
-                                               blockht
-                                               entry-points
-                                               op)])]
-              [(Reg? target)
-               (display (assemble-statement stmt) op)
-               'ok]
-              [(ModuleEntry? target)
-               (display (assemble-statement stmt) op)
-               'ok]
-              [(CompiledProcedureEntry? target)
-               (display (assemble-statement stmt) op)
-               'ok])]
+            (let loop ([stmt stmt])
+              (define target (GotoStatement-target stmt))
+              (cond
+               [(Label? target)
+                (define target-block (hash-ref blockht (Label-name target)))
+                (define target-name (BasicBlock-name target-block))
+                (define target-statements (BasicBlock-stmts target-block))
+                (cond
+                 ;; Optimization: if the target block consists of a single goto,
+                 ;; inline and follow the goto.
+                 [(and (not (empty? target-statements))
+                       (= 1 (length target-statements))
+                       (GotoStatement? (first target-statements)))
+                  (loop (first target-statements))]
+                 [(set-contains? entry-points (Label-name target))
+                  (display (assemble-statement stmt) op)
+                  'ok]
+                 [else
+                  (log-debug (format "Assembling inlined jump into ~a" (Label-name target)) )
+                  (assemble-block-statements target-name
+                                             target-statements
+                                             blockht
+                                             entry-points
+                                             op)])]
+               [(Reg? target)
+                (display (assemble-statement stmt) op)
+                'ok]
+               [(ModuleEntry? target)
+                (display (assemble-statement stmt) op)
+                'ok]
+               [(CompiledProcedureEntry? target)
+                (display (assemble-statement stmt) op)
+                'ok]))]
 
            
            [(PushControlFrame/Generic? stmt)

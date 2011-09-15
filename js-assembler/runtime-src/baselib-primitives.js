@@ -139,7 +139,7 @@
         makeList(0, 1),
         function(M) {
             var baseName = "g";
-            if (M.argcount === 1) {
+            if (M.a === 1) {
                 baseName = checkSymbolOrString(M, 'gensym', 0).toString();
             }
             gensymCounter++;
@@ -153,7 +153,7 @@
         function (M) {
             var firstArg = M.env[M.env.length - 1];
             var outputPort = M.params.currentOutputPort;
-            if (M.argcount === 2) {
+            if (M.a === 2) {
                 outputPort = checkOutputPort(M, 'display', 1);
             }
             outputPort.writeDomNode(M, toDomNode(firstArg, 'display'));
@@ -167,7 +167,7 @@
         function (M) {
             var firstArg = checkByte(M, 'write-byte', 0);
             var outputPort = M.params.currentOutputPort;
-            if (M.argcount === 2) {
+            if (M.a === 2) {
                 outputPort = checkOutputPort(M, 'display', 1);
             }
             outputPort.writeDomNode(M, toDomNode(String.fromCharCode(firstArg), 'display'));
@@ -179,7 +179,7 @@
         'newline', makeList(0, 1),
         function (M) {
             var outputPort = M.params.currentOutputPort;
-            if (M.argcount === 1) { 
+            if (M.a === 1) { 
                 outputPort = checkOutputPort(M, 'newline', 1);
             }
             outputPort.writeDomNode(M, toDomNode("\n", 'display'));
@@ -192,7 +192,7 @@
         function (M){
             var firstArg = M.env[M.env.length-1];
             var outputPort = M.params.currentOutputPort;
-            if (M.argcount === 2) {
+            if (M.a === 2) {
                 outputPort = checkOutputPort(M, 'displayln', 1);
             }
             outputPort.writeDomNode(M, toDomNode(firstArg, 'display'));
@@ -208,7 +208,7 @@
         function (M) {
             var args = [], i, formatString;
             formatString = checkString(M, 'format', 0).toString();
-            for(i = 1; i < M.argcount; i++) {
+            for(i = 1; i < M.a; i++) {
                 args.push(M.env[M.env.length - 1 - i]);
             }
             return baselib.format.format(formatString, args, 'format');
@@ -221,7 +221,7 @@
         function (M) {
             var args = [], i, formatString, result, outputPort;
             formatString = checkString(M, 'printf', 0).toString();
-            for(i = 1; i < M.argcount; i++) {
+            for(i = 1; i < M.a; i++) {
                 args.push(M.env[M.env.length - 1 - i]);
             }
             result = baselib.format.format(formatString, args, 'format');
@@ -238,7 +238,7 @@
             var args = [], i, formatString, outputPort, result;
             outputPort = checkOutputPort(M, 'fprintf', 0);
             formatString = checkString(M, 'fprintf', 1).toString();
-            for(i = 2; i < M.argcount; i++) {
+            for(i = 2; i < M.a; i++) {
                 args.push(M.env[M.env.length - 1 - i]);
             }
             result = baselib.format.format(formatString, args, 'format');
@@ -255,7 +255,7 @@
         'current-print',
         makeList(0, 1),
         function (M) {
-            if (M.argcount === 1) {
+            if (M.a === 1) {
                 M.params['currentPrint'] =                 
                     checkProcedure(M, 'current-print', 0);
                 return VOID;
@@ -269,7 +269,7 @@
         'current-output-port',
         makeList(0, 1),
         function (M) {
-            if (M.argcount === 1) {
+            if (M.a === 1) {
                 M.params['currentOutputPort'] = 
                     checkOutputPort(M, 'current-output-port', 0);
                 return VOID;
@@ -284,7 +284,7 @@
         'current-error-port',
         makeList(0, 1),
         function (M) {
-            if (M.argcount === 1) {
+            if (M.a === 1) {
                 M.params['currentErrorPort'] = 
                     checkOutputPort(M, 'current-output-port', 0);
                 return VOID;
@@ -305,7 +305,7 @@
         function (M) {
 	    var i;
             var firstArg = checkNumber(M, '=', 0), secondArg;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 secondArg = checkNumber(M, '=', i);
                 if (! (baselib.numbers.equals(firstArg, secondArg))) {
                     return false; 
@@ -333,7 +333,7 @@
     var makeChainingBinop = function (predicate, name) {
         return function (M) {
             var firstArg = checkNumber(M, name, 0), secondArg, i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 secondArg = checkNumber(M, name, i);
                 if (! (predicate(firstArg, secondArg))) {
                     return false; 
@@ -374,7 +374,7 @@
         function (M) {
             var result = 0;
             var i = 0;
-            for (i = 0; i < M.argcount; i++) {
+            for (i = 0; i < M.a; i++) {
                 result = baselib.numbers.add(
                     result, 
                     checkNumber(M, '+', i));
@@ -389,7 +389,7 @@
         function (M) {
             var result = 1;
             var i = 0;
-            for (i=0; i < M.argcount; i++) {
+            for (i=0; i < M.a; i++) {
                 result = baselib.numbers.multiply(
                     result, 
                     checkNumber(M, '*', i));
@@ -401,13 +401,13 @@
         '-',
         baselib.arity.makeArityAtLeast(1),
         function (M) {
-            if (M.argcount === 1) { 
+            if (M.a === 1) { 
                 return baselib.numbers.subtract(
                     0, 
                     checkNumber(M, '-', 0));
             }
             var result = checkNumber(M, '-', 0), i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 result = baselib.numbers.subtract(
                     result, 
                     checkNumber(M, '-', i));
@@ -420,7 +420,7 @@
         baselib.arity.makeArityAtLeast(1),
         function (M) {
             var result = checkNumber(M, '/', 0), i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 result = baselib.numbers.divide(
                     result,
                     checkNumber(M, '/', i));
@@ -471,8 +471,8 @@
         baselib.arity.makeArityAtLeast(0),
         function (M) {
             var result = NULL, i;
-            for (i = 0; i < M.argcount; i++) {
-                result = makePair(M.env[M.env.length - (M.argcount - i)],
+            for (i = 0; i < M.a; i++) {
+                result = makePair(M.env[M.env.length - (M.a - i)],
                                   result);
             }
             return result;
@@ -482,8 +482,8 @@
         'list*',
         baselib.arity.makeArityAtLeast(1),
         function (M) {
-            var result = checkList(M, 'list*', M.argcount - 1), i;
-            for (i = M.argcount - 2; i >= 0; i--) {
+            var result = checkList(M, 'list*', M.a - 1), i;
+            for (i = M.a - 2; i >= 0; i--) {
                 result = makePair(M.env[M.env.length - 1 - i],
                                   result);
             }
@@ -583,7 +583,7 @@
         function (M) {
             var i;
             var result = [];
-            for (i = 0; i < M.argcount; i++) {
+            for (i = 0; i < M.a; i++) {
                 result.push(M.env[M.env.length-1-i]);
             }
             var newVector = makeVector(result.length, result);
@@ -598,7 +598,7 @@
             var value = 0;
             var length = baselib.numbers.toFixnum(
                 checkNatural(M, 'make-vector', 0));
-            if (M.argcount === 2) {
+            if (M.a === 2) {
                 value = M.env[M.env.length - 2];
             }
             var arr = [];
@@ -679,7 +679,7 @@
             var value = String.fromCharCode(0);
             var length = baselib.numbers.toFixnum(
                 checkNatural(M, 'make-string', 0));
-            if (M.argcount === 2) {
+            if (M.a === 2) {
                 value = checkChar(M, 'make-string', 1).val;
             }
             var arr = [];
@@ -697,7 +697,7 @@
             var str = String(checkString(M, 'substring', 0));
             var start = baselib.numbers.toFixnum(checkNatural(M, 'substring', 1));
             var end = str.length;
-            if (M.argcount === 3) {
+            if (M.a === 3) {
                 end = baselib.numbers.toFixnum(checkNatural(M, 'substring', 2));
             }
             return str.substring(start, end);
@@ -724,7 +724,7 @@
         function (M) {
             var i;
             var chars = [];
-            for (i = 0; i < M.argcount; i++) {
+            for (i = 0; i < M.a; i++) {
                 chars.push(checkChar(M, 'string', i).val);
             }
             return chars.join('');
@@ -784,7 +784,7 @@
         function (M) {
             var s = checkString(M, 'string=?', 0).toString();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if (s !== checkString(M, 'string=?', i).toString()) {
                     return false;
                 }
@@ -799,7 +799,7 @@
         function (M) {
             var s = checkString(M, 'string<=?', 0).toString();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s <= checkString(M, 'string<=?', i).toString()) === false) {
                     return false;
                 }
@@ -813,7 +813,7 @@
         function (M) {
             var s = checkString(M, 'string<?', 0).toString();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s < checkString(M, 'string<?', i).toString()) === false) {
                     return false;
                 }
@@ -827,7 +827,7 @@
         function (M) {
             var s = checkString(M, 'string>=?', 0).toString();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s >= checkString(M, 'string>=?', i).toString()) === false) {
                     return false;
                 }
@@ -841,7 +841,7 @@
         function (M) {
             var s = checkString(M, 'string>?', 0).toString();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s > checkString(M, 'string>?', i).toString()) === false) {
                     return false;
                 }
@@ -872,7 +872,7 @@
         function (M) {
             var s = checkString(M, 'string-ci=?', 0).toString().toUpperCase();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if (s !== checkString(M, 'string-ci=?', i).toString().toUpperCase()) {
                     return false;
                 }
@@ -887,7 +887,7 @@
         function (M) {
             var s = checkString(M, 'string-ci<=?', 0).toString().toUpperCase();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s <= checkString(M, 'string-ci<=?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
@@ -901,7 +901,7 @@
         function (M) {
             var s = checkString(M, 'string-ci<?', 0).toString().toUpperCase();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s < checkString(M, 'string-ci<?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
@@ -915,7 +915,7 @@
         function (M) {
             var s = checkString(M, 'string-ci>=?', 0).toString().toUpperCase();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s >= checkString(M, 'string-ci>=?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
@@ -929,7 +929,7 @@
         function (M) {
             var s = checkString(M, 'string-ci>?', 0).toString().toUpperCase();
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if ((s > checkString(M, 'string-ci>?', i).toString().toUpperCase()) === false) {
                     return false;
                 }
@@ -947,7 +947,7 @@
         function (M) {
             var buffer = [];
             var i;
-            for (i = 0; i < M.argcount; i++) {
+            for (i = 0; i < M.a; i++) {
                 buffer.push(checkString(M, 'string-append', i).toString());
             }
             return buffer.join('');
@@ -1031,7 +1031,7 @@
         function(M) {
             var s = checkChar(M, 'char=?', 0).val;
 	    var i;
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 if (checkChar(M, 'char=?', i).val !== s) {
                     return false;
                 }
@@ -1098,7 +1098,7 @@
         'random',
         baselib.lists.makeList(0, 1),
         function (M) {
-            if (M.argcount === 0) {
+            if (M.a === 0) {
                 return makeFloat(Math.random());
             } else {
                 var n = checkNatural(M, 'random', 0);
@@ -1146,10 +1146,10 @@
         }
         var proc = checkProcedure(M, 'apply', 0);
         M.env.pop();
-        M.argcount--;
-        checkList(M, 'apply', M.argcount - 1);
-        M.spliceListIntoStack(M.argcount - 1);
-        if (baselib.arity.isArityMatching(proc.racketArity, M.argcount)) {
+        M.a--;
+        checkList(M, 'apply', M.a - 1);
+        M.spliceListIntoStack(M.a - 1);
+        if (baselib.arity.isArityMatching(proc.racketArity, M.a)) {
             M.proc = proc;
             if (baselib.functions.isPrimitiveProcedure(proc)) {
                 return finalizeClosureCall(M, proc(M));
@@ -1157,7 +1157,7 @@
                 return proc.label(M);
             }
         } else {
-            raiseArityMismatchError(M, proc, M.argcount);
+            raiseArityMismatchError(M, proc, M.a);
         }
     };
     installPrimitiveClosure(
@@ -1186,8 +1186,8 @@
         2,
         function (M) {
             var proc = checkProcedure(M, 'procedure-arity-includes?', 0);
-            var argcount = checkNatural(M, 'procedure-arity-includes?', 1);
-            return baselib.arity.isArityMatching(proc.racketArity, argcount);
+            var a = checkNatural(M, 'procedure-arity-includes?', 1);
+            return baselib.arity.isArityMatching(proc.racketArity, a);
         });
 
     installPrimitiveProcedure(
@@ -1376,7 +1376,7 @@
         'atan',
         makeList(1, 2),
         function (M) {
-            if (M.argcount === 1) {
+            if (M.a === 1) {
                 return baselib.numbers.atan(
                     checkNumber(M, 'atan', 0));
             } else {
@@ -1437,7 +1437,7 @@
         baselib.arity.makeArityAtLeast(1),
         function (M) {
             var args = [], i, x;
-            for (i = 0; i < M.argcount; i++) {
+            for (i = 0; i < M.a; i++) {
                 args.push(checkNumber(M, 'gcd', i));
             }
             x = args.shift();
@@ -1449,7 +1449,7 @@
         baselib.arity.makeArityAtLeast(1),
         function (M) {
             var args = [], i, x;
-            for (i = 0; i < M.argcount; i++) {
+            for (i = 0; i < M.a; i++) {
                 args.push(checkNumber(M, 'lcm', i));
             }
             x = args.shift();
@@ -1685,7 +1685,7 @@
             var i;
             var next;
             var currentMin = checkReal(M, 'min', 0);
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 next = checkReal(M, 'min', i);
                 if (baselib.numbers.lessThan(next, currentMin)) {
                     currentMin = next;
@@ -1701,7 +1701,7 @@
             var i;
             var next;
             var currentMax = checkReal(M, 'min', 0);
-            for (i = 1; i < M.argcount; i++) {
+            for (i = 1; i < M.a; i++) {
                 next = checkReal(M, 'min', i);
                 if (baselib.numbers.greaterThan(next, currentMax)) {
                     currentMax = next;
@@ -1720,7 +1720,7 @@
         baselib.arity.makeArityAtLeast(1),
         function (M) {
 	    var i;
-            if (M.argcount === 1) {
+            if (M.a === 1) {
                 var sym = checkSymbol(M, 'error', 1);
                 raise(M, baselib.exceptions.makeExnFail(String(sym), 
                                                               M.captureContinuationMarks()));
@@ -1728,7 +1728,7 @@
             
             if (isString(M.env[M.env.length - 1])) {
                 var vs = [];
-                for (i = 1; i < M.argcount; i++) {
+                for (i = 1; i < M.a; i++) {
                     vs.push(baselib.format.format("~e", [M.env[M.env.length - 1 - i]]));
                 }
                 raise(M, baselib.exceptions.makeExnFail(String(M.env[M.env.length - 1]) +
@@ -1740,7 +1740,7 @@
             if (isSymbol(M.env[M.env.length - 1])) {
                 var fmtString = checkString(M, 'error', 1);
                 var args = [M.env[M.env.length - 1]];
-                for (i = 2; i < M.argcount; i++) {
+                for (i = 2; i < M.a; i++) {
                     args.push(M.env[M.env.length - 1 - i]);
                 }
                 raise(M, baselib.exceptions.makeExnFail(
@@ -1776,7 +1776,7 @@
         function (M) {
             var name = checkSymbol(M, 'raise-type-error', 0);
             var expected = checkString(M, 'raise-type-error', 1);
-            if (M.argcount === 3) {
+            if (M.a === 3) {
                 raiseArgumentTypeError(M, 
                                        name,
                                        expected,
@@ -1894,7 +1894,7 @@
         'current-inspector',
         makeList(0, 1),
         function (M) {
-            if (M.argcount === 1) {
+            if (M.a === 1) {
                 M.params['currentInspector'] = 
                     checkInspector(M, 'current-inspector', 0);
                 return VOID;
@@ -1912,7 +1912,7 @@
             var structType = M.env[M.env.length - 1].structType;
             var index = M.env[M.env.length - 2];
             var name;
-            if (M.argcount === 3) {
+            if (M.a === 3) {
                 name = String(M.env[M.env.length - 3]);
             } else {
                 name = 'field' + index;
@@ -1939,7 +1939,7 @@
             var structType = M.env[M.env.length - 1].structType;
             var index = M.env[M.env.length - 2];
             var name;
-            if (M.argcount === 3) {
+            if (M.a === 3) {
                 name = String(M.env[M.env.length - 3]);
             } else {
                 name = 'field' + index;

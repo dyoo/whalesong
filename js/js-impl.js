@@ -31,7 +31,7 @@ EXPORTS['call-method'] =
             var obj = MACHINE.env[MACHINE.env.length - 1];
             var methodName = MACHINE.env[MACHINE.env.length - 2];
             var args = [];
-            for (var i = 0; i < MACHINE.argcount - 2; i++) {
+            for (var i = 0; i < MACHINE.a - 2; i++) {
                 args.push(MACHINE.env[MACHINE.env.length -1 - 2 - i]);
             }
             var result = obj[methodName].apply(obj, args);

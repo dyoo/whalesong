@@ -41,7 +41,7 @@ EXPORTS['big-bang'] =
         function(MACHINE) {
             var initialWorldValue = MACHINE.env[MACHINE.env.length - 1];
 	    var handlers = [];
-	    for (var i = 1; i < MACHINE.argcount; i++) {
+	    for (var i = 1; i < MACHINE.a; i++) {
 		handlers.push(checkHandler(MACHINE, 'big-bang', i));
 	    }
 	    bigBang(MACHINE, initialWorldValue, handlers);
@@ -54,10 +54,10 @@ EXPORTS['on-tick'] =
         'on-tick',
         plt.baselib.lists.makeList(1, 2),
         function(MACHINE) {
-	    if (MACHINE.argcount === 1) {
+	    if (MACHINE.a === 1) {
 		var f = checkProcedure1(MACHINE, "on-tick", 0);
 		return new OnTick(f, Math.floor(DEFAULT_TICK_DELAY * 1000));
-	    } else if (MACHINE.argcount === 2) {
+	    } else if (MACHINE.a === 2) {
 		var f = checkProcedure1(MACHINE, "on-tick", 0);
 		var delay = checkNonNegativeReal(MACHINE, "on-tick", 1);
 		return new OnTick(f, Math.floor(jsnums.toFixnum(delay) * 1000));

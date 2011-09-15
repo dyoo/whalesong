@@ -189,7 +189,7 @@
         if(--MACHINE.cbt < 0) { 
             throw defaultCurrentPrintImplementation; 
         }
-        var oldArgcount = MACHINE.argcount;
+        var oldArgcount = MACHINE.a;
 
 	var elt = MACHINE.env[MACHINE.env.length - 1];
 	var outputPort = 
@@ -198,7 +198,7 @@
 	    outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
 	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
 	}
-        MACHINE.argcount = oldArgcount;
+        MACHINE.a = oldArgcount;
         return finalizeClosureCall(MACHINE, VOID);
     };
     var defaultCurrentPrint = makeClosure(
@@ -214,7 +214,7 @@
 	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
 	this.val = undefined;         // value register
 	this.proc = undefined;        // procedure register
-	this.argcount = undefined;    // argument count
+	this.a = undefined;           // argument count
 	this.env = [];                // environment
 	this.control = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
@@ -324,7 +324,7 @@
     };
 
 
-    // Splices the list argument in the environment.  Adjusts MACHINE.argcount
+    // Splices the list argument in the environment.  Adjusts MACHINE.a
     // appropriately.
     Machine.prototype.spliceListIntoStack = function(depth) {
 	var MACHINE = this;
@@ -337,7 +337,7 @@
 	vals.reverse();
 	MACHINE.env.splice.apply(MACHINE.env,
 				 [MACHINE.env.length - 1 - depth, 1].concat(vals));
-	MACHINE.argcount = MACHINE.argcount + vals.length - 1;
+	MACHINE.a = MACHINE.a + vals.length - 1;
     };
 
 
@@ -353,7 +353,7 @@
 	MACHINE.env.splice(MACHINE.env.length - depth - length,
 			   length, 
 			   lst);
-	MACHINE.argcount = MACHINE.argcount - length + 1;
+	MACHINE.a = MACHINE.a - length + 1;
     };
 
 

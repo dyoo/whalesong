@@ -25,7 +25,7 @@ var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 
 var bigBang = function(MACHINE, initW, handlers) {
 
-    var oldArgcount = MACHINE.argcount;
+    var oldArgcount = MACHINE.a;
 
     var outerToplevelNode = $('<span/>').css('padding', '0px').get(0);
     MACHINE.params.currentOutputPort.writeDomNode(MACHINE, outerToplevelNode);
@@ -67,7 +67,7 @@ var bigBang = function(MACHINE, initW, handlers) {
 
 
 		restart(function(MACHINE) {
-                    MACHINE.argcount = oldArgcount;
+                    MACHINE.a = oldArgcount;
 		    finalizeClosureCall(
 			MACHINE, 
 			finalWorldValue);

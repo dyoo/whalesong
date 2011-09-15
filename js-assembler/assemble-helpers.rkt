@@ -87,7 +87,7 @@
                       [(eq? target 'val)
                        "M.val"]
                       [(eq? target 'argcount)
-                       "M.argcount"]
+                       "M.a"]
                       [(EnvLexicalReference? target)
                        (assemble-lexical-reference target)]
                       [(EnvPrefixReference? target)
@@ -276,7 +276,14 @@
 
 (: assemble-reg (Reg -> String))
 (define (assemble-reg a-reg)
-  (string-append "M." (symbol->string (Reg-name a-reg))))
+  (let ([name (Reg-name a-reg)])
+    (cond
+     [(eq? name 'proc)
+      "M.proc"]
+     [(eq? name 'val)
+      "M.val"]
+     [(eq? name 'argcount)
+      "M.a"])))
 
 
 

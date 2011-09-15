@@ -118,7 +118,7 @@
 
     var raiseContextExpectedValuesError = function(MACHINE, expected) {
         var message = baselib.format.format("expected ~e values, received ~e values",
-                                            [expected, MACHINE.argcount]);
+                                            [expected, MACHINE.a]);
         var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE, ExnFailContract.constructor(message, contMarks));
     };

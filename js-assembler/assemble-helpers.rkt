@@ -103,7 +103,7 @@
 
 (: assemble-control-frame-temporary (ControlFrameTemporary -> String))
 (define (assemble-control-frame-temporary t)
-  (format "M.control[M.control.length-1].~a"
+  (format "M.c[M.c.length-1].~a"
           (ControlFrameTemporary-name t)))
 
 ;; fixme: use js->string
@@ -313,12 +313,12 @@
 
 (: assemble-control-stack-label (ControlStackLabel -> String))
 (define (assemble-control-stack-label a-csl)
-  "M.control[M.control.length-1].label")
+  "M.c[M.c.length-1].label")
 
 
 (: assemble-control-stack-label/multiple-value-return (ControlStackLabel/MultipleValueReturn -> String))
 (define (assemble-control-stack-label/multiple-value-return a-csl)
-  "M.control[M.control.length-1].label.mvr")
+  "M.c[M.c.length-1].label.mvr")
 
 
 

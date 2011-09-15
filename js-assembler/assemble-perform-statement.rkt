@@ -98,7 +98,7 @@
                           ","))]
     
     [(SetFrameCallee!? op)
-     (format "M.control[M.control.length-1].proc=~a;"
+     (format "M.c[M.c.length-1].proc=~a;"
              (assemble-oparg (SetFrameCallee!-proc op)))]
     
     [(SpliceListIntoStack!? op)
@@ -112,7 +112,7 @@
 
     [(InstallContinuationMarkEntry!? op)
      (string-append "M.installContinuationMarkEntry("
-                    "M.control[M.control.length-1].pendingContinuationMarkKey,"
+                    "M.c[M.c.length-1].pendingContinuationMarkKey,"
                     "M.val);")]
 
     [(RaiseContextExpectedValuesError!? op)

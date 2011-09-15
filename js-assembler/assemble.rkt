@@ -483,10 +483,10 @@ EOF
       (assemble-jump (GotoStatement-target stmt))]
      
      [(PushControlFrame/Generic? stmt)
-      "M.control.push(new RT.Frame());"]
+      "M.c.push(new RT.Frame());"]
      
      [(PushControlFrame/Call? stmt)
-      (format "M.control.push(new RT.CallFrame(~a,M.proc));" 
+      (format "M.c.push(new RT.CallFrame(~a,M.proc));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -496,7 +496,7 @@ EOF
      
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
-      (format "M.control.push(new RT.PromptFrame(~a,~a));" 
+      (format "M.c.push(new RT.PromptFrame(~a,~a));" 
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                 (cond
                   [(symbol? label) 
@@ -513,7 +513,7 @@ EOF
                    (assemble-oparg tag)])))]
      
      [(PopControlFrame? stmt)
-      "M.control.pop();"]
+      "M.c.pop();"]
      
      [(PushEnvironment? stmt)
       (cond [(= (PushEnvironment-n stmt) 0)

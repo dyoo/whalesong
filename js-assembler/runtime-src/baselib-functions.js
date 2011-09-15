@@ -69,15 +69,15 @@
 
         if (returnArgs.length === 1) {
             MACHINE.val = returnArgs[0];
-            return MACHINE.control.pop().label(MACHINE);
+            return MACHINE.c.pop().label(MACHINE);
         } else if (returnArgs.length === 0) {
             MACHINE.a = 0;
-            return MACHINE.control.pop().label.mvr(MACHINE);
+            return MACHINE.c.pop().label.mvr(MACHINE);
         } else {
             MACHINE.a = returnArgs.length;
             MACHINE.val = returnArgs.shift();
             MACHINE.e.push.apply(MACHINE.e, returnArgs.reverse());
-            return MACHINE.control.pop().label.mvr(MACHINE);
+            return MACHINE.c.pop().label.mvr(MACHINE);
         }
     };
 
@@ -179,7 +179,7 @@
                     });
             };
 
-            MACHINE.control.push(
+            MACHINE.c.push(
                 new baselib.frames.CallFrame(afterGoodInvoke, v));
             MACHINE.a = arguments.length - 2;
             var i;
@@ -276,7 +276,7 @@
                 });
             };
 
-            MACHINE.control.push(
+            MACHINE.c.push(
                 new baselib.frames.CallFrame(afterGoodInvoke, proc));
             MACHINE.a = arguments.length - 4;
             for (i = 0; i < arguments.length - 4; i++) {
@@ -326,7 +326,7 @@
                                --M.cbt;
                                M.val = f(M);
                                M.e.length -= M.a;
-                               return M.control.pop().label(M);
+                               return M.c.pop().label(M);
                            },
                            []);
     };

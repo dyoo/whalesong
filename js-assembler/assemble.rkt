@@ -533,7 +533,7 @@ EOF
            (format "M.e.length-=~a;"
                    (assemble-oparg (PopEnvironment-n stmt)))]
           [else
-           (format "M.e.splice(M.e.length-(~a +~a),~a);"
+           (format "M.e.splice(M.e.length-(~a+~a),~a);"
                    (assemble-oparg (PopEnvironment-skip stmt))
                    (assemble-oparg (PopEnvironment-n stmt))
                    (assemble-oparg (PopEnvironment-n stmt)))]))]

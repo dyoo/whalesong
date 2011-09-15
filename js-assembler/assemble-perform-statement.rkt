@@ -98,7 +98,7 @@
                           ","))]
     
     [(SetFrameCallee!? op)
-     (format "M.control[M.control.length-1].proc = ~a;"
+     (format "M.control[M.control.length-1].proc=~a;"
              (assemble-oparg (SetFrameCallee!-proc op)))]
     
     [(SpliceListIntoStack!? op)

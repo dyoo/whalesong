@@ -89,11 +89,10 @@
   (define written-js-paths '())
   (define make-output-js-filename
     (let ([n 0])
-      (lambda (source-path)
-        (define-values (base filename dir?) (split-path f))
-        (define result (build-path (current-output-path)
+      (lambda ()
+        (define result (build-path (current-output-dir)
                                    (regexp-replace #rx"[.](rkt|ss)$"
-                                                   (path->string filename)
+                                                   (path->string (file-name-from-path f))
                                                    (if (= n 0)
                                                        ".js"
                                                        (format "_~a.js" n)))))
@@ -103,17 +102,12 @@
       
 
   (define start-time (current-inexact-milliseconds))
-  (let-values ([(base filename dir?)
-                (split-path f)])
-    (let ([output-js-filename (build-path
-                               (regexp-replace #rx"[.](rkt|ss)$"
-                                               (path->string filename)
-                                               ".js"))]
-          [output-html-filename
-           (build-path
-            (regexp-replace #rx"[.](rkt|ss)$"
-                            (path->string filename)
-                            ".html"))])
+  (let ([output-js-filename (make-output-js-filename)]
+        [output-html-filename
+         (build-path
+          (regexp-replace #rx"[.](rkt|ss)$"
+                          (path->string (file-name-from-path f))
+                          ".html"))])
       (unless (directory-exists? (current-output-dir))
         (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
         (make-directory* (current-output-dir)))
@@ -160,8 +154,7 @@
                                 #:exists 'replace)
         (define stop-time (current-inexact-milliseconds))
 
-        (fprintf (current-timing-port) "Time taken: ~a milliseconds\n" (- stop-time start-time))
-        ))))
+        (fprintf (current-timing-port) "Time taken: ~a milliseconds\n" (- stop-time start-time)))))
 
 
 

@@ -29,7 +29,9 @@
          shared
          (all-from-out "bool.rkt")
          (except-out (all-from-out "check-expect/check-expect.rkt")
-                     run-tests))
+                     run-tests)
+
+         λ)
 
 
 
@@ -40,6 +42,8 @@
        (#%module-begin body ...
                        (run-tests)))]))
 
+
+(define-syntax λ (make-rename-transformer #'lambda))
 
 
 (define-syntax (my-define-struct stx)

@@ -5,7 +5,6 @@
          "../compiler/lexical-structs.rkt"
          "../helpers.rkt"
          "../parameters.rkt"
-         "lam-entry-gensym.rkt"
          racket/list)
 
 (provide (rename-out (-parse parse)))
@@ -15,6 +14,11 @@
   (let* ([prefix (construct-the-prefix exp)])
     (make-Top prefix (parse exp (extend-lexical-environment '() prefix) #t))))
 
+
+(define (make-lam-label)
+  (make-label 'lamEntry))
+
+  
 
 
 (define (construct-the-prefix exp)

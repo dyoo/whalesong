@@ -1,6 +1,7 @@
 #lang typed/racket/base
 (require "lexical-structs.rkt")
 
+
 (provide (all-defined-out))
 
 
@@ -157,9 +158,16 @@
 
 
 
+
+(: current-short-labels? (Parameterof Boolean))
+(define current-short-labels? (make-parameter #t))
+
+
 (: make-label (Symbol -> Symbol))
 (define make-label
   (let ([n 0])
     (lambda (l)
       (set! n (add1 n))
-      (string->symbol (format "~a~a" l n)))))
+      (if (current-short-labels?)
+          (string->symbol (format "_~a" n))
+          (string->symbol (format "~a~a" l n))))))

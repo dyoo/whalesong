@@ -151,7 +151,7 @@
         'display',
         makeList(1, 2),
         function (M) {
-            var firstArg = M.env[M.env.length - 1];
+            var firstArg = M.e[M.e.length - 1];
             var outputPort = M.params.currentOutputPort;
             if (M.a === 2) {
                 outputPort = checkOutputPort(M, 'display', 1);
@@ -190,7 +190,7 @@
         'displayln',
         makeList(1, 2),
         function (M){
-            var firstArg = M.env[M.env.length-1];
+            var firstArg = M.e[M.e.length-1];
             var outputPort = M.params.currentOutputPort;
             if (M.a === 2) {
                 outputPort = checkOutputPort(M, 'displayln', 1);
@@ -209,7 +209,7 @@
             var args = [], i, formatString;
             formatString = checkString(M, 'format', 0).toString();
             for(i = 1; i < M.a; i++) {
-                args.push(M.env[M.env.length - 1 - i]);
+                args.push(M.e[M.e.length - 1 - i]);
             }
             return baselib.format.format(formatString, args, 'format');
         });
@@ -222,7 +222,7 @@
             var args = [], i, formatString, result, outputPort;
             formatString = checkString(M, 'printf', 0).toString();
             for(i = 1; i < M.a; i++) {
-                args.push(M.env[M.env.length - 1 - i]);
+                args.push(M.e[M.e.length - 1 - i]);
             }
             result = baselib.format.format(formatString, args, 'format');
             outputPort = M.params.currentOutputPort;            
@@ -239,7 +239,7 @@
             outputPort = checkOutputPort(M, 'fprintf', 0);
             formatString = checkString(M, 'fprintf', 1).toString();
             for(i = 2; i < M.a; i++) {
-                args.push(M.env[M.env.length - 1 - i]);
+                args.push(M.e[M.e.length - 1 - i]);
             }
             result = baselib.format.format(formatString, args, 'format');
             outputPort.writeDomNode(M, toDomNode(result, 'display'));
@@ -451,7 +451,7 @@
         'zero?',
         1,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
+            var firstArg = M.e[M.e.length-1];
             return baselib.numbers.equals(firstArg, 0);
         });
 
@@ -460,8 +460,8 @@
         'cons',
         2,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
-            var secondArg = M.env[M.env.length-2];
+            var firstArg = M.e[M.e.length-1];
+            var secondArg = M.e[M.e.length-2];
             return makePair(firstArg, secondArg);
         });
 
@@ -472,7 +472,7 @@
         function (M) {
             var result = NULL, i;
             for (i = 0; i < M.a; i++) {
-                result = makePair(M.env[M.env.length - (M.a - i)],
+                result = makePair(M.e[M.e.length - (M.a - i)],
                                   result);
             }
             return result;
@@ -484,7 +484,7 @@
         function (M) {
             var result = checkList(M, 'list*', M.a - 1), i;
             for (i = M.a - 2; i >= 0; i--) {
-                result = makePair(M.env[M.env.length - 1 - i],
+                result = makePair(M.e[M.e.length - 1 - i],
                                   result);
             }
             return result;
@@ -524,7 +524,7 @@
         'pair?',
         1,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
+            var firstArg = M.e[M.e.length-1];
             return isPair(firstArg);
         });
 
@@ -533,7 +533,7 @@
         'list?',
         1,
         function (M) {
-            return isList(M.env[M.env.length -1]);
+            return isList(M.e[M.e.length -1]);
         });
 
 
@@ -542,7 +542,7 @@
         2,
         function (M) {
             var firstArg = checkPair(M, 'set-car!', 0);
-            var secondArg = M.env[M.env.length-2];
+            var secondArg = M.e[M.e.length-2];
             firstArg.first = secondArg;
             return VOID;
         });
@@ -553,7 +553,7 @@
         2,
         function (M) {
             var firstArg = checkPair(M, 'set-car!', 0);
-            var secondArg = M.env[M.env.length-2];
+            var secondArg = M.e[M.e.length-2];
             firstArg.rest = secondArg;
             return VOID;
         });
@@ -563,7 +563,7 @@
         'not',
         1,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
+            var firstArg = M.e[M.e.length-1];
             return (firstArg === false);
         });
 
@@ -572,7 +572,7 @@
         'null?',
         1,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
+            var firstArg = M.e[M.e.length-1];
             return firstArg === NULL;
         });
 
@@ -584,7 +584,7 @@
             var i;
             var result = [];
             for (i = 0; i < M.a; i++) {
-                result.push(M.env[M.env.length-1-i]);
+                result.push(M.e[M.e.length-1-i]);
             }
             var newVector = makeVector(result.length, result);
             return newVector;
@@ -599,7 +599,7 @@
             var length = baselib.numbers.toFixnum(
                 checkNatural(M, 'make-vector', 0));
             if (M.a === 2) {
-                value = M.env[M.env.length - 2];
+                value = M.e[M.e.length - 2];
             }
             var arr = [];
 	    var i;
@@ -643,7 +643,7 @@
         2,
         function (M) {
             var elts = checkVector(M, 'vector-ref', 0).elts;
-            var index = M.env[M.env.length-2];
+            var index = M.e[M.e.length-2];
             return elts[index];
         });
 
@@ -657,7 +657,7 @@
             var index = baselib.numbers.toFixnum(
                 checkNaturalInRange(M, 'vector-set!', 1,
                                     0, elts.length));
-            var val = M.env[M.env.length - 1 - 2];
+            var val = M.e[M.e.length - 1 - 2];
             elts[index] = val;
             return VOID;
         });
@@ -765,7 +765,7 @@
         'symbol?',
         1,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
+            var firstArg = M.e[M.e.length-1];
             return isSymbol(firstArg);
         });
 
@@ -979,7 +979,7 @@
         'string?',
         1,
         function (M) {
-            return isString(M.env[M.env.length - 1]);
+            return isString(M.e[M.e.length - 1]);
         });
 
 
@@ -1012,7 +1012,7 @@
         'boolean?',
         1,
         function(M) {
-            var v = M.env[M.env.length - 1];
+            var v = M.e[M.e.length - 1];
             return (v === true || v === false);
         });
 
@@ -1021,7 +1021,7 @@
         'char?',
         1,
         function(M) {
-            return baselib.chars.isChar(M.env[M.env.length -1 ]);
+            return baselib.chars.isChar(M.e[M.e.length -1 ]);
         });
 
 
@@ -1064,7 +1064,7 @@
         'box',
         1,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
+            var firstArg = M.e[M.e.length-1];
             return makeBox(firstArg);
         });
 
@@ -1081,7 +1081,7 @@
         2,
         function (M) {
             var firstArg = checkMutableBox(M, 'set-box!', 0);
-            var secondArg = M.env[M.env.length-2];
+            var secondArg = M.e[M.e.length-2];
             firstArg.set(secondArg);
             return VOID;
         });
@@ -1111,8 +1111,8 @@
         'eq?',
         2,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
-            var secondArg = M.env[M.env.length-2];
+            var firstArg = M.e[M.e.length-1];
+            var secondArg = M.e[M.e.length-2];
             return firstArg === secondArg;
         });
 
@@ -1120,8 +1120,8 @@
         'eqv?',
         2,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
-            var secondArg = M.env[M.env.length-2];
+            var firstArg = M.e[M.e.length-1];
+            var secondArg = M.e[M.e.length-2];
             return baselib.equality.eqv(firstArg, secondArg);
         });
 
@@ -1131,8 +1131,8 @@
         'equal?',
         2,
         function (M) {
-            var firstArg = M.env[M.env.length-1];
-            var secondArg = M.env[M.env.length-2];
+            var firstArg = M.e[M.e.length-1];
+            var secondArg = M.e[M.e.length-2];
             return equals(firstArg, secondArg);
         });
 
@@ -1145,7 +1145,7 @@
             throw applyImplementation;
         }
         var proc = checkProcedure(M, 'apply', 0);
-        M.env.pop();
+        M.e.pop();
         M.a--;
         checkList(M, 'apply', M.a - 1);
         M.spliceListIntoStack(M.a - 1);
@@ -1178,7 +1178,7 @@
         'procedure?',
         1,
         function (M) {
-            return baselib.functions.isProcedure(M.env[M.env.length - 1]);
+            return baselib.functions.isProcedure(M.e[M.e.length - 1]);
         });
     
     installPrimitiveProcedure(
@@ -1214,8 +1214,8 @@
         'member',
         2,
         function (M) {
-            var x = M.env[M.env.length-1];
-            var lst = M.env[M.env.length-2];
+            var x = M.e[M.e.length-1];
+            var lst = M.e[M.e.length-2];
             while (true) {
                 if (lst === NULL) {
                     return false;
@@ -1225,7 +1225,7 @@
                                            'member',
                                            'list',
                                            1,
-                                           M.env[M.env.length - 1 - 1]);
+                                           M.e[M.e.length - 1 - 1]);
                 }
                 if (equals(x, (lst.first))) {
                     return lst;
@@ -1241,7 +1241,7 @@
         1,
         function (M) {
             var rev = NULL;
-            var lst = M.env[M.env.length-1];
+            var lst = M.e[M.e.length-1];
             while(lst !== NULL) {
                 rev = makePair(testArgument(M, 'pair', isPair, lst, 0, 'reverse').first,
                                rev);
@@ -1257,27 +1257,27 @@
 	'number?',
 	1,
 	function(M) {
-	    return isNumber(M.env[M.env.length - 1]);
+	    return isNumber(M.e[M.e.length - 1]);
 	});
 
     installPrimitiveProcedure(
 	'real?',
 	1,
 	function(M) {
-	    return isReal(M.env[M.env.length - 1]);
+	    return isReal(M.e[M.e.length - 1]);
 	});
     installPrimitiveProcedure(
 	'complex?',
 	1,
 	function(M) {
-	    return isComplex(M.env[M.env.length - 1]);
+	    return isComplex(M.e[M.e.length - 1]);
 	});
 
     installPrimitiveProcedure(
 	'rational?',
 	1,
 	function(M) {
-	    return isRational(M.env[M.env.length - 1]);
+	    return isRational(M.e[M.e.length - 1]);
 	});
 
     installPrimitiveProcedure(
@@ -1490,7 +1490,7 @@
         'integer?',
         1,
         function (M) {
-            return baselib.numbers.isInteger(M.env[M.env.length - 1]);
+            return baselib.numbers.isInteger(M.e[M.e.length - 1]);
         });
 
 
@@ -1498,7 +1498,7 @@
         'exact-nonnegative-integer?',
         1,
         function (M) {
-            return isNatural(M.env[M.env.length - 1]);
+            return isNatural(M.e[M.e.length - 1]);
         });
 
 
@@ -1726,22 +1726,22 @@
                                                               M.captureContinuationMarks()));
             } 
             
-            if (isString(M.env[M.env.length - 1])) {
+            if (isString(M.e[M.e.length - 1])) {
                 var vs = [];
                 for (i = 1; i < M.a; i++) {
-                    vs.push(baselib.format.format("~e", [M.env[M.env.length - 1 - i]]));
+                    vs.push(baselib.format.format("~e", [M.e[M.e.length - 1 - i]]));
                 }
-                raise(M, baselib.exceptions.makeExnFail(String(M.env[M.env.length - 1]) +
+                raise(M, baselib.exceptions.makeExnFail(String(M.e[M.e.length - 1]) +
                                                               ": " +
                                                               vs.join(' '),
                                                               M.captureContinuationMarks()));
             }
 
-            if (isSymbol(M.env[M.env.length - 1])) {
+            if (isSymbol(M.e[M.e.length - 1])) {
                 var fmtString = checkString(M, 'error', 1);
-                var args = [M.env[M.env.length - 1]];
+                var args = [M.e[M.e.length - 1]];
                 for (i = 2; i < M.a; i++) {
-                    args.push(M.env[M.env.length - 1 - i]);
+                    args.push(M.e[M.e.length - 1 - i]);
                 }
                 raise(M, baselib.exceptions.makeExnFail(
                     baselib.format.format('~s: ' + String(fmtString),
@@ -1750,7 +1750,7 @@
             }
 
             // Fall-through
-            raiseArgumentTypeError(M, 'error', 'symbol or string', 0, M.env[M.env.length - 1]);
+            raiseArgumentTypeError(M, 'error', 'symbol or string', 0, M.e[M.e.length - 1]);
         });
 
 
@@ -1760,7 +1760,7 @@
         function (M) {
             var name = checkSymbol(M, 'raise-mismatch-error', 0);
             var message = checkString(M, 'raise-mismatch-error', 0);
-            var val = M.env[M.env.length - 1 - 2];
+            var val = M.e[M.e.length - 1 - 2];
             raise(M, baselib.exceptions.makeExnFail(
 		baselib.format.format("~a: ~a~e",
                                       [name,
@@ -1781,13 +1781,13 @@
                                        name,
                                        expected,
                                        undefined,
-                                       M.env[M.env.length - 1 - 2]);
+                                       M.e[M.e.length - 1 - 2]);
             } else {
                 raiseArgumentTypeError(M, 
                                        name,
                                        expected,
                                        checkNatural(M, 'raise-type-error', 2),
-                                       M.env[M.env.length - 1 - 2]);
+                                       M.e[M.e.length - 1 - 2]);
             }
         });
     
@@ -1843,7 +1843,7 @@
                                 var args = [];
 				var i;
                                 for(i = 0; i < initFieldCount; i++) {
-                                    args.push(M.env[M.env.length - 1 - i]);
+                                    args.push(M.e[M.e.length - 1 - i]);
                                 }
                                 return structType.constructor.apply(null, args);
                             });
@@ -1853,7 +1853,7 @@
                             String(name) + "?",
                             1,
                             function (M) {
-                                return structType.predicate(M.env[M.env.length - 1]);
+                                return structType.predicate(M.e[M.e.length - 1]);
                             });
 
                     var accessorValue = 
@@ -1862,8 +1862,8 @@
                             2,
                             function (M) {
                                 return structType.accessor(
-                                    M.env[M.env.length - 1],
-                                    baselib.numbers.toFixnum(M.env[M.env.length - 2]));
+                                    M.e[M.e.length - 1],
+                                    baselib.numbers.toFixnum(M.e[M.e.length - 2]));
                             });
                     accessorValue.structType = structType;
 
@@ -1873,9 +1873,9 @@
                             3,
                             function (M) {
                                 return structType.mutator(
-                                    M.env[M.env.length - 1],
-                                    baselib.numbers.toFixnum(M.env[M.env.length - 2]),
-                                    M.env[M.env.length - 3]);
+                                    M.e[M.e.length - 1],
+                                    baselib.numbers.toFixnum(M.e[M.e.length - 2]),
+                                    M.e[M.e.length - 3]);
                             });
                     mutatorValue.structType = structType;
 
@@ -1909,11 +1909,11 @@
         'make-struct-field-accessor',
         makeList(2, 3),
         function (M){
-            var structType = M.env[M.env.length - 1].structType;
-            var index = M.env[M.env.length - 2];
+            var structType = M.e[M.e.length - 1].structType;
+            var index = M.e[M.e.length - 2];
             var name;
             if (M.a === 3) {
-                name = String(M.env[M.env.length - 3]);
+                name = String(M.e[M.e.length - 3]);
             } else {
                 name = 'field' + index;
             }
@@ -1936,11 +1936,11 @@
         'make-struct-field-mutator',
         makeList(2, 3),
         function (M){
-            var structType = M.env[M.env.length - 1].structType;
-            var index = M.env[M.env.length - 2];
+            var structType = M.e[M.e.length - 1].structType;
+            var index = M.e[M.e.length - 2];
             var name;
             if (M.a === 3) {
-                name = String(M.env[M.env.length - 3]);
+                name = String(M.e[M.e.length - 3]);
             } else {
                 name = 'field' + index;
             }
@@ -1954,7 +1954,7 @@
                     return structType.mutator(
                         aStruct,
                         baselib.numbers.toFixnum(index),
-                        M.env[M.env.length - 2]);
+                        M.e[M.e.length - 2]);
                 });            
         });
 
@@ -1963,7 +1963,7 @@
         'make-placeholder',
         1,
         function(M) {
-            var v = M.env[M.env.length - 1];
+            var v = M.e[M.e.length - 1];
             return baselib.placeholders.makePlaceholder(v);
         });
 
@@ -1973,7 +1973,7 @@
         2,
         function(M) {
             var placeholder = checkPlaceholder(M, 'placeholder-set!', 0);
-            var val = M.env[M.env.length - 2];
+            var val = M.e[M.e.length - 2];
             placeholder.set(val);
             return VOID;
         });
@@ -1984,7 +1984,7 @@
         'make-reader-graph',
         1,
         function(M) {
-            var x = M.env[M.env.length - 1];
+            var x = M.e[M.e.length - 1];
             return baselib.readergraph.readerGraph(x,
                                                    baselib.hashes.makeLowLevelEqHash(),
                                                    0);
@@ -1997,7 +1997,7 @@
         'srcloc',
             5,
         function(M) {
-            var source = M.env[M.env.length - 1];
+            var source = M.e[M.e.length - 1];
             var line = checkNatural(M, 'srcloc', 1);
             var column = checkNatural(M, 'srcloc', 2);
             var position = checkNatural(M, 'srcloc', 3);
@@ -2009,7 +2009,7 @@
         'make-srcloc',
         5,
         function(M) {
-            var source = M.env[M.env.length - 1];
+            var source = M.e[M.e.length - 1];
             var line = checkNatural(M, 'make-srcloc', 1);
             var column = checkNatural(M, 'make-srcloc', 2);
             var position = checkNatural(M, 'make-srcloc', 3);
@@ -2021,7 +2021,7 @@
         'srcloc?',
         1,
         function(M) {
-            return baselib.srclocs.isSrcloc(M.env[M.env.length - 1]);
+            return baselib.srclocs.isSrcloc(M.e[M.e.length - 1]);
         });
 
     installPrimitiveProcedure(

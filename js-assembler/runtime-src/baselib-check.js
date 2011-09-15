@@ -44,7 +44,7 @@
                 MACHINE,
                 predicateName,
                 predicate,
-                MACHINE.env[MACHINE.env.length - 1 - position],
+                MACHINE.e[MACHINE.e.length - 1 - position],
                 position,
                 callerName);
         };
@@ -63,7 +63,7 @@
                 function (x) {
                     return parameterizedPredicate.apply(null, [x].concat(args));
                 },
-                MACHINE.env[MACHINE.env.length - 1 - position],
+                MACHINE.e[MACHINE.e.length - 1 - position],
                 position,
                 callerName);
         };
@@ -103,7 +103,7 @@
                 MACHINE,
                 'list of ' + predicateName,
                 listPredicate,
-                MACHINE.env[MACHINE.env.length - 1 - position],
+                MACHINE.e[MACHINE.e.length - 1 - position],
                 position,
                 callerName);
         };

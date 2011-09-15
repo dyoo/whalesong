@@ -4,7 +4,7 @@ EXPORTS['unsafe-car'] =
         'unsafe-car',
         1,
         function(MACHINE) {
-            return MACHINE.env[MACHINE.env.length - 1].first;
+            return MACHINE.e[MACHINE.e.length - 1].first;
         });
 
 
@@ -13,5 +13,5 @@ EXPORTS['unsafe-cdr'] =
         'unsafe-cdr',
         1,
         function(MACHINE) {
-            return MACHINE.env[MACHINE.env.length - 1].rest;
+            return MACHINE.e[MACHINE.e.length - 1].rest;
         });

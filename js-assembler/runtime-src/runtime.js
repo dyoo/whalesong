@@ -191,7 +191,7 @@
         }
         var oldArgcount = MACHINE.a;
 
-	var elt = MACHINE.env[MACHINE.env.length - 1];
+	var elt = MACHINE.e[MACHINE.e.length - 1];
 	var outputPort = 
 	    MACHINE.params.currentOutputPort;
 	if (elt !== VOID) {
@@ -215,7 +215,7 @@
 	this.val = undefined;         // value register
 	this.proc = undefined;        // procedure register
 	this.a = undefined;           // argument count
-	this.env = [];                // environment
+	this.e = [];                // environment
 	this.control = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.modules = {};     // String -> ModuleRecord
@@ -315,7 +315,7 @@
 	    if (MACHINE.control[i].tag === tag) {
 		MACHINE.control = 
 		    MACHINE.control.slice(0, i+1).concat(
-			MACHINE.env[MACHINE.env.length - 1]);
+			MACHINE.e[MACHINE.e.length - 1]);
 		return;
 	    }
 	}
@@ -328,15 +328,15 @@
     // appropriately.
     Machine.prototype.spliceListIntoStack = function(depth) {
 	var MACHINE = this;
-	var lst = MACHINE.env[MACHINE.env.length - 1 - depth];
+	var lst = MACHINE.e[MACHINE.e.length - 1 - depth];
 	var vals = [];
 	while(lst !== NULL) {
 	    vals.push(lst.first);
 	    lst = lst.rest;
 	}
 	vals.reverse();
-	MACHINE.env.splice.apply(MACHINE.env,
-				 [MACHINE.env.length - 1 - depth, 1].concat(vals));
+	MACHINE.e.splice.apply(MACHINE.e,
+				 [MACHINE.e.length - 1 - depth, 1].concat(vals));
 	MACHINE.a = MACHINE.a + vals.length - 1;
     };
 
@@ -347,10 +347,10 @@
 	var lst = NULL;
 	var i;
 	for (i = 0; i < length; i++) {
-	    lst = makePair(MACHINE.env[MACHINE.env.length - depth - length + i], 
+	    lst = makePair(MACHINE.e[MACHINE.e.length - depth - length + i], 
                            lst);
 	}
-	MACHINE.env.splice(MACHINE.env.length - depth - length,
+	MACHINE.e.splice(MACHINE.e.length - depth - length,
 			   length, 
 			   lst);
 	MACHINE.a = MACHINE.a - length + 1;

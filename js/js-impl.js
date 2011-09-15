@@ -6,7 +6,7 @@ EXPORTS['alert'] =
         'alert',
         1,
         function(MACHINE) {
-            var elt = MACHINE.env[MACHINE.env.length - 1];
+            var elt = MACHINE.e[MACHINE.e.length - 1];
             alert(String(elt));
             return VOID;
         });
@@ -19,7 +19,7 @@ EXPORTS['$'] =
         '$',
         1,
         function(MACHINE) {
-            var obj = MACHINE.env[MACHINE.env.length - 1];
+            var obj = MACHINE.e[MACHINE.e.length - 1];
             return $(obj);
         });
 
@@ -28,11 +28,11 @@ EXPORTS['call-method'] =
         'call-method',
         plt.baselib.arity.makeArityAtLeast(2),
         function(MACHINE) {
-            var obj = MACHINE.env[MACHINE.env.length - 1];
-            var methodName = MACHINE.env[MACHINE.env.length - 2];
+            var obj = MACHINE.e[MACHINE.e.length - 1];
+            var methodName = MACHINE.e[MACHINE.e.length - 2];
             var args = [];
             for (var i = 0; i < MACHINE.a - 2; i++) {
-                args.push(MACHINE.env[MACHINE.env.length -1 - 2 - i]);
+                args.push(MACHINE.e[MACHINE.e.length -1 - 2 - i]);
             }
             var result = obj[methodName].apply(obj, args);
             return result;

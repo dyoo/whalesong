@@ -1521,7 +1521,7 @@
         'big-bang',
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
-            var world = MACHINE.env[MACHINE.env.length - 1];
+            var world = MACHINE.e[MACHINE.e.length - 1];
             var handlers = [];
             var i;
             for (i = 1; i < MACHINE.a; i++) {
@@ -1535,7 +1535,7 @@
         'initial-view',
         1,
         function(MACHINE) {
-            var viewable = MACHINE.env[MACHINE.env.length - 1];
+            var viewable = MACHINE.e[MACHINE.e.length - 1];
             var oldArgcount = MACHINE.a;
             PAUSE(function(restart) {
                 coerseToView(viewable,
@@ -1563,7 +1563,7 @@
         '->view',
         1,
         function(MACHINE) {
-            var viewable = MACHINE.env[MACHINE.env.length - 1];
+            var viewable = MACHINE.e[MACHINE.e.length - 1];
             var oldArgcount = MACHINE.a;
             PAUSE(function(restart) {
                 coerseToMockView(viewable,
@@ -1776,7 +1776,7 @@
         2,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'update-view-text', 0);
-            var text = plt.baselib.format.toDisplayedString(MACHINE.env[MACHINE.env.length - 2]);
+            var text = plt.baselib.format.toDisplayedString(MACHINE.e[MACHINE.e.length - 2]);
             return view.updateText(text);
         });
 
@@ -1891,7 +1891,7 @@
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-append-child', 0);
             var oldArgcount = MACHINE.a;
-            var x = MACHINE.env[MACHINE.env.length - 2];
+            var x = MACHINE.e[MACHINE.e.length - 2];
             PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
@@ -1921,7 +1921,7 @@
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-insert-right', 0);
             var oldArgcount = MACHINE.a;
-            var x = MACHINE.env[MACHINE.env.length - 2];
+            var x = MACHINE.e[MACHINE.e.length - 2];
             PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
@@ -1953,7 +1953,7 @@
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-insert-left', 0);
             var oldArgcount = MACHINE.a;
-            var x = MACHINE.env[MACHINE.env.length - 2];
+            var x = MACHINE.e[MACHINE.e.length - 2];
             PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
@@ -2024,7 +2024,7 @@
         'xexp?',
         1,
         function(MACHINE) {
-            return isXexp(MACHINE.env[MACHINE.env.length - 1]);
+            return isXexp(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 

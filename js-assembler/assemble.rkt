@@ -510,7 +510,7 @@ EOF
      [(PushEnvironment? stmt)
       (if (= (PushEnvironment-n stmt) 0)
           ""
-          (format "M.env.push(~a);" (string-join
+          (format "M.e.push(~a);" (string-join
                                            (build-list (PushEnvironment-n stmt) 
                                                        (lambda: ([i : Natural])
                                                          (if (PushEnvironment-unbox? stmt)
@@ -521,16 +521,16 @@ EOF
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-           (format "M.env.length-=~a;"
+           (format "M.e.length-=~a;"
                    (assemble-oparg (PopEnvironment-n stmt)))]
           [else
-           (format "M.env.splice(M.env.length-(~a +~a),~a);"
+           (format "M.e.splice(M.e.length-(~a +~a),~a);"
                    (assemble-oparg (PopEnvironment-skip stmt))
                    (assemble-oparg (PopEnvironment-n stmt))
                    (assemble-oparg (PopEnvironment-n stmt)))]))]
      
      [(PushImmediateOntoEnvironment? stmt)
-      (format "M.env.push(~a);"
+      (format "M.e.push(~a);"
               (let: ([val-string : String
                                  (cond [(PushImmediateOntoEnvironment-box? stmt)
                                         (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]

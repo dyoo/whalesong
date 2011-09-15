@@ -17,7 +17,7 @@
      "M.proc.label"]
     
     [(MakeCompiledProcedure? op)
-     (format "new RT.Closure(~a, ~a, [~a], ~a)"
+     (format "new RT.Closure(~a,~a,[~a],~a)"
              (assemble-label (make-Label (MakeCompiledProcedure-label op)))
              (assemble-arity (MakeCompiledProcedure-arity op))
              (string-join (map
@@ -27,21 +27,21 @@
                                ;; the environment (which is also in reversed order)
                                ;; during install-closure-values.
                                (reverse (MakeCompiledProcedure-closed-vals op)))
-                          ", ")
+                          ",")
              (assemble-display-name (MakeCompiledProcedure-display-name op)))]
     
     [(MakeCompiledProcedureShell? op)
-     (format "new RT.Closure(~a, ~a, undefined, ~a)"
+     (format "new RT.Closure(~a,~a,undefined,~a)"
              (assemble-label (make-Label (MakeCompiledProcedureShell-label op)))
              (assemble-arity (MakeCompiledProcedureShell-arity op))
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     
     [(CaptureEnvironment? op)
-     (format "M.env.slice(0, M.env.length - ~a)"
+     (format "M.e.slice(0, M.e.length-~a)"
              (CaptureEnvironment-skip op))]
     
     [(CaptureControl? op)
-     (format "M.captureControl(~a, ~a)"
+     (format "M.captureControl(~a,~a)"
              (CaptureControl-skip op)
              (let: ([tag : (U DefaultContinuationPromptTag OpArg)
 			 (CaptureControl-tag op)])
@@ -52,8 +52,8 @@
 
     
     [(MakeBoxedEnvironmentValue? op)
-     (format "[M.env[M.env.length - 1 - ~a]]"
-             (MakeBoxedEnvironmentValue-depth op))]
+     (format "[M.e[M.e.length-~a]]"
+             (add1 (MakeBoxedEnvironmentValue-depth op)))]
 
     [(CallKernelPrimitiveProcedure? op)
      (open-code-kernel-primitive-procedure op)]))

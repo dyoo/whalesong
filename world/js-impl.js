@@ -39,7 +39,7 @@ EXPORTS['big-bang'] =
         'big-bang',
         plt.baselib.arity.makeArityAtLeast(1),
         function(MACHINE) {
-            var initialWorldValue = MACHINE.env[MACHINE.env.length - 1];
+            var initialWorldValue = MACHINE.e[MACHINE.e.length - 1];
 	    var handlers = [];
 	    for (var i = 1; i < MACHINE.a; i++) {
 		handlers.push(checkHandler(MACHINE, 'big-bang', i));

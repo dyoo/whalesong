@@ -257,20 +257,20 @@
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (if (EnvLexicalReference-unbox? a-lex-ref)
-      (format "M.env[M.env.length-~a][0]"
+      (format "M.e[M.e.length-~a][0]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))
-      (format "M.env[M.env.length-~a]"
+      (format "M.e[M.e.length-~a]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))))
 
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)
-  (format "M.env[M.env.length-~a][~a]"
+  (format "M.e[M.e.length-~a][~a]"
           (add1 (EnvPrefixReference-depth a-ref))
           (EnvPrefixReference-pos a-ref)))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
-  (format "M.env[M.env.length-~a]"
+  (format "M.e[M.e.length-~a]"
           (add1 (EnvWholePrefixReference-depth a-prefix-ref))))
 
 
@@ -348,7 +348,7 @@
 ;; lexical references: they must remain boxes.  So all we need is 
 ;; the depth into the environment.
 (define (assemble-env-reference/closure-capture depth)
-  (format "M.env[M.env.length - ~a]"
+  (format "M.e[M.e.length-~a]"
           (add1 depth)))
 
 
@@ -436,6 +436,6 @@
 (: assemble-variable-reference (VariableReference -> String))
 (define (assemble-variable-reference varref)
   (let ([t (VariableReference-toplevel varref)])
-    (format "(new RT.VariableReference(M.env[M.env.length-~a],~a))"
+    (format "(new RT.VariableReference(M.e[M.e.length-~a],~a))"
             (add1 (ToplevelRef-depth t))
             (ToplevelRef-pos t))))

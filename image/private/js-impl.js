@@ -170,7 +170,7 @@ EXPORTS['image-color?'] =
         'image-color?',
         1,
         function(MACHINE) {
-            var elt = MACHINE.env[MACHINE.env.length - 1];
+            var elt = MACHINE.e[MACHINE.e.length - 1];
             return (isColorOrColorString(elt));
         });
 
@@ -181,7 +181,7 @@ EXPORTS['mode?'] =
         'mode?',
         1,
         function(MACHINE) {
-            return isMode(MACHINE.env[MACHINE.env.length - 1]);
+            return isMode(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 EXPORTS['x-place?'] = 
@@ -189,7 +189,7 @@ EXPORTS['x-place?'] =
         'x-place?',
         1,
         function(MACHINE) {
-            return isPlaceX(MACHINE.env[MACHINE.env.length - 1]);
+            return isPlaceX(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 EXPORTS['y-place?'] = 
@@ -197,7 +197,7 @@ EXPORTS['y-place?'] =
         'y-place?',
         1,
         function(MACHINE) {
-            return isPlaceY(MACHINE.env[MACHINE.env.length - 1]);
+            return isPlaceY(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 EXPORTS['angle?'] = 
@@ -205,7 +205,7 @@ EXPORTS['angle?'] =
         'angle?',
         1,
         function(MACHINE) {
-            return isAngle(MACHINE.env[MACHINE.env.length - 1]);
+            return isAngle(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 EXPORTS['side-count?'] = 
@@ -213,7 +213,7 @@ EXPORTS['side-count?'] =
         'side-count?',
         1,
         function(MACHINE) {
-            return isSideCount(MACHINE.env[MACHINE.env.length - 1]);
+            return isSideCount(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 
@@ -222,7 +222,7 @@ EXPORTS['step-count?'] =
         'step-count?',
             1,
         function(MACHINE) {
-            return isStepCount(MACHINE.env[MACHINE.env.length - 1]);
+            return isStepCount(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 
@@ -231,7 +231,7 @@ EXPORTS['image?'] =
         'image?',
             1,
         function(MACHINE) {
-            return isImage(MACHINE.env[MACHINE.env.length - 1]);
+            return isImage(MACHINE.e[MACHINE.e.length - 1]);
         });
 
 

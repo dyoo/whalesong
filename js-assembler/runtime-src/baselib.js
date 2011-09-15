@@ -45,7 +45,7 @@ if (!(this.plt)) { this.plt = {}; }
 
 
     // Helper to deal with the argument-passing of primitives.  Call f
-    // with arguments bound from MACHINE.env, assuming
+    // with arguments bound from MACHINE.e, assuming
     // MACHINE.a has been initialized with the number of
     // arguments on the stack.  vs provides optional values for the
     // arguments that go beyond those of the mandatoryArgCount.
@@ -53,10 +53,10 @@ if (!(this.plt)) { this.plt = {}; }
         var args = [], i;
         for (i = 0; i < MACHINE.a; i++) {
             if (i < mandatoryArgCount) {
-                args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+                args.push(MACHINE.e[MACHINE.e.length - 1 - i]);
             } else {
                 if (i < MACHINE.a) {
-                    args.push(MACHINE.env[MACHINE.env.length - 1 - i]);
+                    args.push(MACHINE.e[MACHINE.e.length - 1 - i]);
                 } else {
                     args.push(vs[mandatoryArgCount - i]);
                 }

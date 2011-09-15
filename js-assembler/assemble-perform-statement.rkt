@@ -14,10 +14,10 @@
   (cond 
     
     [(CheckToplevelBound!? op)
-     (format "if (M.env[M.env.length - 1 - ~a][~a] === undefined) { RT.raiseUnboundToplevelError(M.env[M.env.length - 1 - ~a].names[~a]); }"
-             (CheckToplevelBound!-depth op)
+     (format "if (M.e[M.e.length-~a][~a]===undefined){ RT.raiseUnboundToplevelError(M.e[M.e.length-~a].names[~a]); }"
+             (add1 (CheckToplevelBound!-depth op))
              (CheckToplevelBound!-pos op)
-             (CheckToplevelBound!-depth op)
+             (add1 (CheckToplevelBound!-depth op))
              (CheckToplevelBound!-pos op))]
 
 
@@ -26,11 +26,11 @@
 
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])
-           (format "M.env.push([~a]);M.env[M.env.length-1].names=[~a];"
+           (format "M.e.push([~a]);M.e[M.e.length-1].names=[~a];"
                    (string-join (map
                                  (lambda: ([n : (U Symbol False GlobalBucket ModuleVariable)])
                                           (cond [(symbol? n)
-                                                 (format "M.params.currentNamespace[~s] || M.primitives[~s]"
+                                                 (format "M.params.currentNamespace[~s]||M.primitives[~s]"
                                                          (symbol->string n) 
                                                          (symbol->string n))]
                                                 [(eq? n #f)
@@ -70,10 +70,10 @@
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     "M.env.push.apply(M.env,M.proc.closedVals);"]
+     "M.e.push.apply(M.e,M.proc.closedVals);"]
     
     [(RestoreEnvironment!? op)
-     "M.env=M.env[M.env.length-2].slice(0);"]
+     "M.e=M.e[M.e.length-2].slice(0);"]
     
     [(RestoreControl!? op)
      (format "M.restoreControl(~a);"
@@ -86,7 +86,7 @@
                   (assemble-oparg tag)])))]
     
     [(FixClosureShellMap!? op)
-     (format "M.env[M.env.length-~a].closedVals=[~a];"
+     (format "M.e[M.e.length-~a].closedVals=[~a];"
              (add1 (FixClosureShellMap!-depth op))
              (string-join (map
                            assemble-env-reference/closure-capture 

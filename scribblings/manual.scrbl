@@ -1843,5 +1843,8 @@ and suggesting improvements.
    @item{Greg Hendershott}
    @item{Shriram Krishnamurthi}
    @item{Emmanuel Schanzer}
-   @item{Robby Findler}))
+   @item{Robby Findler}
+   @item{Gregor Kiczales}
+   @item{Cristina Teodoropol}
+))
 )

@@ -13,3 +13,8 @@
 (define-struct: BasicBlock ([name : Symbol] 
                             [stmts : (Listof UnlabeledStatement)]) 
   #:transparent)
+
+
+
+;; Represents a hashtable from symbols to basic blocks
+(define-type Blockht (HashTable Symbol BasicBlock))

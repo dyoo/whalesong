@@ -29,8 +29,6 @@
 (define current-emit-debug-trace? (make-parameter #f))
 
 
-;; Represents a hashtable from symbols to basic blocks
-(define-type Blockht (HashTable Symbol BasicBlock))
 
 
 
@@ -48,12 +46,19 @@
   (define function-entry-and-exit-names
     (list->set (get-function-entry-and-exit-names stmts)))
 
+  (: blockht : Blockht)
+  (define blockht (make-hash))
+  
+  (for ([b basic-blocks])
+    (hash-set! blockht (BasicBlock-name b) b))
+
   (write-blocks basic-blocks
+                blockht
                 (list->set entry-points)
                 function-entry-and-exit-names
                 op)
   
-  (write-linked-label-attributes stmts op)
+  (write-linked-label-attributes stmts blockht op)
   
   (display "M.params.currentErrorHandler = fail;\n" op)
   (display "M.params.currentSuccessHandler = success;\n" op)
@@ -66,18 +71,14 @@ for (param in params) {
 EOF
            op)
   (fprintf op "M.trampoline(~a, true); })"
-           (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))))
+           (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))
+                           blockht)))
 
 
 
-(: write-blocks ((Listof BasicBlock) (Setof Symbol) (Setof Symbol) Output-Port -> Void))
+(: write-blocks ((Listof BasicBlock) Blockht (Setof Symbol) (Setof Symbol) Output-Port -> Void))
 ;; Write out all the basic blocks associated to an entry point.
-(define (write-blocks blocks entry-points function-entry-and-exit-names op)  
-  (: blockht : Blockht)
-  (define blockht (make-hash))
-  
-  (for ([b blocks])
-    (hash-set! blockht (BasicBlock-name b) b))
+(define (write-blocks blocks blockht entry-points function-entry-and-exit-names op)  
   
   ;; Since there may be cycles between the blocks, we cut the cycles by
   ;; making them entry points as well.
@@ -124,15 +125,15 @@ EOF
 
 
 
-(: write-linked-label-attributes ((Listof Statement) Output-Port -> 'ok))
-(define (write-linked-label-attributes stmts op)
+(: write-linked-label-attributes ((Listof Statement) Blockht Output-Port -> 'ok))
+(define (write-linked-label-attributes stmts blockht op)
   (cond
     [(empty? stmts)
      'ok]
     [else
      (let: ([stmt : Statement (first stmts)])
        
-       (define (next) (write-linked-label-attributes (rest stmts) op))
+       (define (next) (write-linked-label-attributes (rest stmts) blockht op))
        
        (cond
          [(symbol? stmt)
@@ -140,8 +141,8 @@ EOF
          [(LinkedLabel? stmt)
           ;; Setting up multiple-value-return
           (fprintf op "~a.mvr=~a;\n" 
-                   (assemble-label (make-Label (LinkedLabel-label stmt)))
-                   (assemble-label (make-Label (LinkedLabel-linked-to stmt))))
+                   (assemble-label (make-Label (LinkedLabel-label stmt)) blockht)
+                   (assemble-label (make-Label (LinkedLabel-linked-to stmt)) blockht))
           (next)]
          [(DebugPrint? stmt)
           (next)]
@@ -179,15 +180,17 @@ EOF
 
 (: assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
 (define (assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
-  (match (BasicBlock-stmts a-basic-block)
-    [(list (struct PerformStatement ((struct RaiseContextExpectedValuesError! (expected))))
-           stmts ...)
-     (fprintf op "~a=RT.si_context_expected(~a);\n"
-              (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-              expected)
-     'ok]
-    [else
-     (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)]))
+  (cond
+   [(block-looks-like-context-expected-values? a-basic-block)
+    =>
+    (lambda (expected)
+      (fprintf op "~a=RT.si_context_expected(~a);\n"
+               (assemble-label (make-Label (BasicBlock-name a-basic-block))
+                               blockht)
+               expected)
+      'ok)]
+   [else
+    (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)]))
 
 
 
@@ -196,11 +199,11 @@ EOF
   (cond
    [(set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
     (fprintf op "var ~a=function(M){if(--M.cbt<0){throw ~a;}\n"
-             (assemble-label (make-Label (BasicBlock-name a-basic-block)))
-             (assemble-label (make-Label (BasicBlock-name a-basic-block))))]
+             (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)
+             (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))]
    [else
     (fprintf op "var ~a=function(M){--M.cbt<0;\n"
-             (assemble-label (make-Label (BasicBlock-name a-basic-block))))])
+             (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))])
   (assemble-block-statements (BasicBlock-name a-basic-block)
                              (BasicBlock-stmts a-basic-block)
                              blockht
@@ -221,7 +224,7 @@ EOF
                (not (GotoStatement? stmt)))
       (log-debug (format "Last statement of the block ~a is not a goto" name)))
 
-    (display (assemble-statement stmt) op)
+    (display (assemble-statement stmt blockht) op)
     (newline op)
     (assemble-block-statements name
                                (rest stmts) 
@@ -253,30 +256,33 @@ EOF
             (define test-code (cond
                                 [(TestFalse? test)
                                  (format "if(~a===false)"
-                                         (assemble-oparg (TestFalse-operand test)))]
+                                         (assemble-oparg (TestFalse-operand test)
+                                                         blockht))]
                                 [(TestTrue? test)
                                  (format "if(~a!==false)"
-                                         (assemble-oparg (TestTrue-operand test)))]
+                                         (assemble-oparg (TestTrue-operand test)
+                                                         blockht))]
                                 [(TestOne? test)
                                  (format "if(~a===1)"
-                                         (assemble-oparg (TestOne-operand test)))]
+                                         (assemble-oparg (TestOne-operand test)
+                                                         blockht))]
                                 [(TestZero? test)
                                  (format "if(~a===0)"
-                                         (assemble-oparg (TestZero-operand test)))]
-                                
-                                ;; [(TestPrimitiveProcedure? test)
-                                ;;  (format "if(typeof(~a)==='function')"
-                                ;;          (assemble-oparg (TestPrimitiveProcedure-operand test)))]
-                                
+                                         (assemble-oparg (TestZero-operand test)
+                                                         blockht))]
+                                                                
                                 [(TestClosureArityMismatch? test)
                                  (format "if(!RT.isArityMatching((~a).racketArity,~a))"
-                                         (assemble-oparg (TestClosureArityMismatch-closure test))
-                                         (assemble-oparg (TestClosureArityMismatch-n test)))]))
+                                         (assemble-oparg (TestClosureArityMismatch-closure test)
+                                                         blockht)
+                                         (assemble-oparg (TestClosureArityMismatch-n test)
+                                                         blockht))]))
                (display test-code op)
                (display "{" op)
                (cond
                 [(set-contains? entry-points (TestAndJumpStatement-label stmt))
-                 (display (assemble-jump (make-Label (TestAndJumpStatement-label stmt))) op)]
+                 (display (assemble-jump (make-Label (TestAndJumpStatement-label stmt))
+                                         blockht) op)]
                 [else
                  (assemble-block-statements (BasicBlock-name
                                              (hash-ref blockht (TestAndJumpStatement-label stmt)))
@@ -306,7 +312,7 @@ EOF
                        (GotoStatement? (first target-statements)))
                   (loop (first target-statements))]
                  [(set-contains? entry-points (Label-name target))
-                  (display (assemble-statement stmt) op)
+                  (display (assemble-statement stmt blockht) op)
                   'ok]
                  [else
                   (log-debug (format "Assembling inlined jump into ~a" (Label-name target)) )
@@ -316,13 +322,13 @@ EOF
                                              entry-points
                                              op)])]
                [(Reg? target)
-                (display (assemble-statement stmt) op)
+                (display (assemble-statement stmt blockht) op)
                 'ok]
                [(ModuleEntry? target)
-                (display (assemble-statement stmt) op)
+                (display (assemble-statement stmt blockht) op)
                 'ok]
                [(CompiledProcedureEntry? target)
-                (display (assemble-statement stmt) op)
+                (display (assemble-statement stmt blockht) op)
                 'ok]))]
 
            
@@ -429,57 +435,67 @@ EOF
 
 
 
-(: assemble-statement (UnlabeledStatement -> String))
+(: assemble-statement (UnlabeledStatement Blockht -> String))
 ;; Generates the code to assemble a statement.
-(define (assemble-statement stmt)
+(define (assemble-statement stmt blockht)
   (define assembled
     (cond
      [(DebugPrint? stmt)
       (format "M.params.currentOutputPort.writeDomNode(M, $('<span/>').text(~a));"
-              (assemble-oparg (DebugPrint-value stmt)))]
+              (assemble-oparg (DebugPrint-value stmt)
+                              blockht))]
      [(AssignImmediateStatement? stmt)
       (let: ([t : (String -> String) (assemble-target (AssignImmediateStatement-target stmt))]
              [v : OpArg (AssignImmediateStatement-value stmt)])
-        (t (assemble-oparg v)))]
+        (t (assemble-oparg v blockht)))]
      
      [(AssignPrimOpStatement? stmt)
       ((assemble-target (AssignPrimOpStatement-target stmt))
-       (assemble-op-expression (AssignPrimOpStatement-op stmt)))]
+       (assemble-op-expression (AssignPrimOpStatement-op stmt)
+                               blockht))]
      
      [(PerformStatement? stmt)
-      (assemble-op-statement (PerformStatement-op stmt))]
+      (assemble-op-statement (PerformStatement-op stmt) blockht)]
      
      [(TestAndJumpStatement? stmt)
       (let*: ([test : PrimitiveTest (TestAndJumpStatement-op stmt)]
               [jump : String (assemble-jump 
-                              (make-Label (TestAndJumpStatement-label stmt)))])
+                              (make-Label (TestAndJumpStatement-label stmt))
+                              blockht)])
         ;; to help localize type checks, we add a type annotation here.
         (ann (cond
                [(TestFalse? test)
                 (format "if(~a===false){~a}"
-                        (assemble-oparg (TestFalse-operand test))
+                        (assemble-oparg (TestFalse-operand test)
+                                        blockht)
                         jump)]
                [(TestTrue? test)
                 (format "if(~a!==false){~a}"
-                        (assemble-oparg (TestTrue-operand test))
+                        (assemble-oparg (TestTrue-operand test)
+                                        blockht)
                         jump)]
                [(TestOne? test)
                 (format "if(~a===1){~a}"
-                        (assemble-oparg (TestOne-operand test))
+                        (assemble-oparg (TestOne-operand test)
+                                        blockht)
                         jump)]
                [(TestZero? test)
                 (format "if(~a===0){~a}"
-                        (assemble-oparg (TestZero-operand test))
+                        (assemble-oparg (TestZero-operand test)
+                                        blockht)
                         jump)]
                [(TestClosureArityMismatch? test)
                 (format "if(!RT.isArityMatching((~a).racketArity,~a)){~a}"
-                        (assemble-oparg (TestClosureArityMismatch-closure test))
-                        (assemble-oparg (TestClosureArityMismatch-n test))
+                        (assemble-oparg (TestClosureArityMismatch-closure test)
+                                        blockht)
+                        (assemble-oparg (TestClosureArityMismatch-n test)
+                                        blockht)
                         jump)])
              String))]
      
      [(GotoStatement? stmt)
-      (assemble-jump (GotoStatement-target stmt))]
+      (assemble-jump (GotoStatement-target stmt)
+                     blockht)]
      
      [(PushControlFrame/Generic? stmt)
       "M.c.push(new RT.Frame());"]
@@ -489,9 +505,11 @@ EOF
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                 (cond
                   [(symbol? label) 
-                   (assemble-label (make-Label label))]
+                   (assemble-label (make-Label label)
+                                   blockht)]
                   [(LinkedLabel? label) 
-                   (assemble-label (make-Label (LinkedLabel-label label)))])))]
+                   (assemble-label (make-Label (LinkedLabel-label label))
+                                   blockht)])))]
      
      [(PushControlFrame/Prompt? stmt)
       ;; fixme: use a different frame structure
@@ -499,9 +517,11 @@ EOF
               (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                 (cond
                   [(symbol? label) 
-                   (assemble-label (make-Label label))]
+                   (assemble-label (make-Label label)
+                                   blockht)]
                   [(LinkedLabel? label) 
-                   (assemble-label (make-Label (LinkedLabel-label label)))]))
+                   (assemble-label (make-Label (LinkedLabel-label label))
+                                   blockht)]))
               
               (let: ([tag : (U DefaultContinuationPromptTag OpArg)
                           (PushControlFrame/Prompt-tag stmt)])
@@ -509,7 +529,7 @@ EOF
                   [(DefaultContinuationPromptTag? tag)
                    (assemble-default-continuation-prompt-tag)]
                   [(OpArg? tag)
-                   (assemble-oparg tag)])))]
+                   (assemble-oparg tag blockht)])))]
      
      [(PopControlFrame? stmt)
       "M.c.pop();"]
@@ -530,20 +550,22 @@ EOF
         (cond
           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
            (format "M.e.length-=~a;"
-                   (assemble-oparg (PopEnvironment-n stmt)))]
+                   (assemble-oparg (PopEnvironment-n stmt) blockht))]
           [else
            (format "M.e.splice(M.e.length-(~a+~a),~a);"
-                   (assemble-oparg (PopEnvironment-skip stmt))
-                   (assemble-oparg (PopEnvironment-n stmt))
-                   (assemble-oparg (PopEnvironment-n stmt)))]))]
+                   (assemble-oparg (PopEnvironment-skip stmt) blockht)
+                   (assemble-oparg (PopEnvironment-n stmt) blockht)
+                   (assemble-oparg (PopEnvironment-n stmt) blockht))]))]
      
      [(PushImmediateOntoEnvironment? stmt)
       (format "M.e.push(~a);"
               (let: ([val-string : String
                                  (cond [(PushImmediateOntoEnvironment-box? stmt)
-                                        (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)))]
+                                        (format "[~a]" (assemble-oparg (PushImmediateOntoEnvironment-value stmt)
+                                                                       blockht))]
                                        [else
-                                        (assemble-oparg (PushImmediateOntoEnvironment-value stmt))])])
+                                        (assemble-oparg (PushImmediateOntoEnvironment-value stmt)
+                                                        blockht)])])
                 val-string))]
      [(Comment? stmt)
       ;; TODO: maybe comments should be emitted as JavaScript comments.

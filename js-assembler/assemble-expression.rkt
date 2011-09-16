@@ -10,15 +10,16 @@
 
 
 
-(: assemble-op-expression (PrimitiveOperator -> String))
-(define (assemble-op-expression op)
+(: assemble-op-expression (PrimitiveOperator Blockht -> String))
+(define (assemble-op-expression op blockht)
   (cond
     [(GetCompiledProcedureEntry? op)
      "M.p.label"]
     
     [(MakeCompiledProcedure? op)
      (format "new RT.Closure(~a,~a,[~a],~a)"
-             (assemble-label (make-Label (MakeCompiledProcedure-label op)))
+             (assemble-label (make-Label (MakeCompiledProcedure-label op))
+                             blockht)
              (assemble-arity (MakeCompiledProcedure-arity op))
              (string-join (map
 			   assemble-env-reference/closure-capture 
@@ -32,7 +33,8 @@
     
     [(MakeCompiledProcedureShell? op)
      (format "new RT.Closure(~a,~a,undefined,~a)"
-             (assemble-label (make-Label (MakeCompiledProcedureShell-label op)))
+             (assemble-label (make-Label (MakeCompiledProcedureShell-label op))
+                             blockht)
              (assemble-arity (MakeCompiledProcedureShell-arity op))
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     
@@ -48,7 +50,7 @@
                (cond [(DefaultContinuationPromptTag? tag)
                       (assemble-default-continuation-prompt-tag)]
                      [(OpArg? tag)
-                      (assemble-oparg tag)])))]
+                      (assemble-oparg tag blockht)])))]
 
     
     [(MakeBoxedEnvironmentValue? op)
@@ -56,4 +58,4 @@
              (add1 (MakeBoxedEnvironmentValue-depth op)))]
 
     [(CallKernelPrimitiveProcedure? op)
-     (open-code-kernel-primitive-procedure op)]))
+     (open-code-kernel-primitive-procedure op blockht)]))

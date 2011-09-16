@@ -3,14 +3,15 @@
          "../compiler/il-structs.rkt"
 	 "../compiler/lexical-structs.rkt"
          "../parameters.rkt"
+         "assemble-structs.rkt"
 	 racket/string)
 
 (provide assemble-op-statement)
 
 
 
-(: assemble-op-statement (PrimitiveCommand -> String))
-(define (assemble-op-statement op)  
+(: assemble-op-statement (PrimitiveCommand Blockht -> String))
+(define (assemble-op-statement op blockht)  
   (cond 
     
     [(CheckToplevelBound!? op)
@@ -83,7 +84,7 @@
                  [(DefaultContinuationPromptTag? tag)
                   (assemble-default-continuation-prompt-tag)]
                  [(OpArg? tag)
-                  (assemble-oparg tag)])))]
+                  (assemble-oparg tag blockht)])))]
     
     [(FixClosureShellMap!? op)
      (format "M.e[M.e.length-~a].closedVals=[~a];"
@@ -99,16 +100,18 @@
     
     [(SetFrameCallee!? op)
      (format "M.c[M.c.length-1].p=~a;"
-             (assemble-oparg (SetFrameCallee!-proc op)))]
+             (assemble-oparg (SetFrameCallee!-proc op)
+                             blockht))]
     
     [(SpliceListIntoStack!? op)
      (format "M.spliceListIntoStack(~a);"
-             (assemble-oparg (SpliceListIntoStack!-depth op)))]
+             (assemble-oparg (SpliceListIntoStack!-depth op)
+                             blockht))]
 
     [(UnspliceRestFromStack!? op)
      (format "M.unspliceRestFromStack(~a,~a);"
-             (assemble-oparg (UnspliceRestFromStack!-depth op))
-             (assemble-oparg (UnspliceRestFromStack!-length op)))]
+             (assemble-oparg (UnspliceRestFromStack!-depth op) blockht)
+             (assemble-oparg (UnspliceRestFromStack!-length op) blockht))]
 
     [(InstallContinuationMarkEntry!? op)
      (string-append "M.installContinuationMarkEntry("
@@ -122,13 +125,13 @@
 
     [(RaiseArityMismatchError!? op)
      (format "RT.raiseArityMismatchError(M,~a,~a);"
-             (assemble-oparg (RaiseArityMismatchError!-proc op))
-             (assemble-oparg (RaiseArityMismatchError!-received op)))]
+             (assemble-oparg (RaiseArityMismatchError!-proc op) blockht)
+             (assemble-oparg (RaiseArityMismatchError!-received op) blockht))]
 
 
     [(RaiseOperatorApplicationError!? op)
      (format "RT.raiseOperatorApplicationError(M,~a);"
-             (assemble-oparg (RaiseOperatorApplicationError!-operator op)))]
+             (assemble-oparg (RaiseOperatorApplicationError!-operator op) blockht))]
 
 
     [(RaiseUnimplementedPrimitiveError!? op)
@@ -140,7 +143,8 @@
      (format "M.modules[~s]=new RT.ModuleRecord(~s,~a);"
              (symbol->string (ModuleLocator-name (InstallModuleEntry!-path op)))
              (symbol->string (InstallModuleEntry!-name op))
-             (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]
+             (assemble-label (make-Label (InstallModuleEntry!-entry-point op))
+                             blockht))]
 
     [(MarkModuleInvoked!? op)
      (format "M.modules[~s].isInvoked=true;"

@@ -4,6 +4,7 @@
          "../compiler/il-structs.rkt"
          "../compiler/lexical-structs.rkt"
          "../compiler/kernel-primitives.rkt"
+         "assemble-structs.rkt"
          racket/string
          racket/list
          typed/rackunit)
@@ -12,10 +13,12 @@
 
 
 
-(: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure -> String))
-(define (open-code-kernel-primitive-procedure op)
+(: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure Blockht -> String))
+(define (open-code-kernel-primitive-procedure op blockht)
   (let*: ([operator : KernelPrimitiveName/Inline (CallKernelPrimitiveProcedure-operator op)]
-          [operands : (Listof String) (map assemble-oparg (CallKernelPrimitiveProcedure-operands op))]
+          [operands : (Listof String) (map (lambda: ([op : OpArg])
+                                                    (assemble-oparg op blockht))
+                                           (CallKernelPrimitiveProcedure-operands op))]
           [checked-operands : (Listof String)
                             (map (lambda: ([dom : OperandDomain]
 					   [pos : Natural]

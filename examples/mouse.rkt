@@ -10,8 +10,10 @@
 
 (define (mouse world x y type)
   (cond
-   [(string=? type "click")
+   
+   [(string=? type "move")
     (make-posn x y)]
+
    [else
     world]))
 
@@ -21,7 +23,7 @@
                (posn-y w)
                (empty-scene width height)))
                        
-
+(printf "let's see how this works.\n\n")
 (big-bang (make-posn 0 0)
           (on-mouse mouse)
           (to-draw draw))

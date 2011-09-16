@@ -926,8 +926,11 @@ var rawJsworld = {};
 	    var makeWrapped = function(type) {
                 return function(e) {
                     var x = e.pageX, y = e.pageY;
-                    x -= e.target.offsetLeft;
-                    y -= e.target.offsetLeft;
+                    var currentElement = e.target;
+                    do {
+                        x -= currentElement.offsetLeft;
+                        y -= currentElement.offsetTop;
+                    } while(currentElement = currentElement.offsetParent);
 		    preventDefault(e);
 		    stopPropagation(e);
 		    change_world(function(w, k) {

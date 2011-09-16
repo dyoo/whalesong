@@ -817,6 +817,7 @@
     exports['getTracedCalleeKey'] = getTracedCalleeKey;
 
     exports['si_context_expected'] = si_context_expected;
+    exports['si_context_expected_1'] = si_context_expected_1;
     exports['checkClosureAndArity'] = checkClosureAndArity;
 
 

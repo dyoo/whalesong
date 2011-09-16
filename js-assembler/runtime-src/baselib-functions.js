@@ -72,12 +72,12 @@
             return MACHINE.c.pop().label(MACHINE);
         } else if (returnArgs.length === 0) {
             MACHINE.a = 0;
-            return MACHINE.c.pop().label.mvr(MACHINE);
+            return (MACHINE.c.pop().label.mvr || plt.runtime.si_context_expected_1)(MACHINE);
         } else {
             MACHINE.a = returnArgs.length;
             MACHINE.v = returnArgs.shift();
             MACHINE.e.push.apply(MACHINE.e, returnArgs.reverse());
-            return MACHINE.c.pop().label.mvr(MACHINE);
+            return (MACHINE.c.pop().label.mvr || plt.runtime.si_context_expected_1)(MACHINE);
         }
     };
 

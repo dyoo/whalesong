@@ -139,10 +139,23 @@ EOF
          [(symbol? stmt)
           (next)]
          [(LinkedLabel? stmt)
-          ;; Setting up multiple-value-return
-          (fprintf op "~a.mvr=~a;\n" 
-                   (assemble-label (make-Label (LinkedLabel-label stmt)) blockht)
-                   (assemble-label (make-Label (LinkedLabel-linked-to stmt)) blockht))
+          ;; Setting up multiple-value-return.
+          ;; Optimization: in the most common case (expecting only one), we optimize away
+          ;; the assignment, because there's a distinguished instruction, and it's implied
+          ;; that if .mvr is missing, that the block only expects one.
+          (define linked-to-block (hash-ref blockht (LinkedLabel-linked-to stmt)))
+          (cond
+           [(block-looks-like-context-expected-values? linked-to-block)
+            => (lambda (expected)
+                 (cond
+                  [(= expected 1)
+                   (void)]
+                  [else
+                   (fprintf op "~a.mvr=RT.si_context_expected(~a);\n" expected)]))]
+           [else
+            (fprintf op "~a.mvr=~a;\n" 
+                     (assemble-label (make-Label (LinkedLabel-label stmt)) blockht)
+                     (assemble-label (make-Label (LinkedLabel-linked-to stmt)) blockht))])
           (next)]
          [(DebugPrint? stmt)
           (next)]

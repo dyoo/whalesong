@@ -298,18 +298,24 @@
 
 (: assemble-label (Label Blockht -> String))
 (define (assemble-label a-label Blockht)
-  (let ([chunks
-         (regexp-split #rx"[^a-zA-Z0-9]+"
-                       (symbol->string (Label-name a-label)))])
+  (define a-block (hash-ref Blockht (Label-name a-label)))
+  (cond
+   [(block-looks-like-context-expected-values? a-block)
+    => (lambda (expected)
+         (format "RT.si_context_expected(~a)" expected))]
+   [else
+    (define chunks
+      (regexp-split #rx"[^a-zA-Z0-9]+"
+                    (symbol->string (Label-name a-label))))
     (cond
-      [(empty? chunks)
-       (error "impossible: empty label ~s" a-label)]
-      [(empty? (rest chunks))
-       (string-append "_" (first chunks))]
-      [else
-       (string-append "_"
-                      (first chunks)
-                      (apply string-append (map string-titlecase (rest chunks))))])))
+     [(empty? chunks)
+      (error "impossible: empty label ~s" a-label)]
+     [(empty? (rest chunks))
+      (string-append "_" (first chunks))]
+     [else
+      (string-append "_"
+                     (first chunks)
+                     (apply string-append (map string-titlecase (rest chunks))))])]))
 
 
 

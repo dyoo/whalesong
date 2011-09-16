@@ -443,7 +443,7 @@
     };
 
 
-    Machine.prototype.trampoline = function(initialJump) {
+    Machine.prototype.trampoline = function(initialJump, noJumpingOff) {
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();
 	this.cbt = STACK_LIMIT_ESTIMATE;
@@ -480,6 +480,13 @@
                     thunk = e;
                     this.cbt = STACK_LIMIT_ESTIMATE;
 
+
+                    // If we're running an a model that prohibits
+                    // jumping off the trampoline, continue.
+                    if (noJumpingOff) {
+                        continue;
+                    }
+
 		    if (this.params.numBouncesBeforeYield-- < 0) {
 			recomputeMaxNumBouncesBeforeYield(
 			    this,
@@ -506,9 +513,7 @@
 	}
 	this.running = false;
         var that = this;
-        setTimeout(
-            function() { that.params.currentSuccessHandler(that); },
-            0);
+        this.params.currentSuccessHandler(this);
 	return;
     };
 

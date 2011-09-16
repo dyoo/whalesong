@@ -69,6 +69,9 @@
             [("--compress-javascript")
              ("Compress JavaScript with Google Closure (requires Java)")
              (current-compress-javascript? #t)]
+            [("--split-modules")
+             ("Write one file per module")
+             (current-one-module-per-file? #t)]
             [("--dest-dir")
              dest-dir
              ("Set destination directory (default: current-directory)")

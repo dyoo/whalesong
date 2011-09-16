@@ -74,9 +74,9 @@
                     update-view-form-value
 
                     view-append-child
-                    view-remove                    
                     view-insert-right
                     view-insert-left
+                    view-remove                    
                     
                     xexp?
                     xexp->dom

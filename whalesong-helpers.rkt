@@ -85,18 +85,30 @@
 
 (define (build-html-and-javascript f)
   (turn-on-logger!)
+
+  (define written-js-paths '())
+  (define make-output-js-filename
+    (let ([n 0])
+      (lambda ()
+        (define result (build-path (current-output-dir)
+                                   (regexp-replace #rx"[.](rkt|ss)$"
+                                                   (path->string (file-name-from-path f))
+                                                   (if (= n 0)
+                                                       ".js"
+                                                       (format "_~a.js" n)))))
+        (set! written-js-paths (cons result written-js-paths))
+        (set! n (add1 n))
+        (fprintf (current-report-port)
+                 (format "Writing program ~s\n" result))
+        result)))
+      
+
   (define start-time (current-inexact-milliseconds))
-  (let-values ([(base filename dir?)
-                (split-path f)])
-    (let ([output-js-filename (build-path
-                               (regexp-replace #rx"[.](rkt|ss)$"
-                                               (path->string filename)
-                                               ".js"))]
-          [output-html-filename
-           (build-path
-            (regexp-replace #rx"[.](rkt|ss)$"
-                            (path->string filename)
-                            ".html"))])
+  (let ([output-html-filename
+         (build-path
+          (regexp-replace #rx"[.](rkt|ss)$"
+                          (path->string (file-name-from-path f))
+                          ".html"))])
       (unless (directory-exists? (current-output-dir))
         (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
         (make-directory* (current-output-dir)))
@@ -125,12 +137,11 @@
                            (copy-file (resource-path r) 
                                       (build-path (current-output-dir)
                                                   (resource-key r)))]))])
-        (fprintf (current-report-port)
-                 (format "Writing program ~s\n" (build-path (current-output-dir) output-js-filename)))
-        (call-with-output-file* (build-path (current-output-dir) output-js-filename)
+        (call-with-output-file* (make-output-js-filename)
                                 (lambda (op)
                                   (display (get-runtime) op)
-                                  (display (get-inert-code (make-ModuleSource (build-path f)))
+                                  (display (get-inert-code (make-ModuleSource (build-path f))
+                                                           make-output-js-filename)
                                            op))
                                 #:exists 'replace)
 
@@ -138,12 +149,14 @@
                  (format "Writing html ~s\n" (build-path (current-output-dir) output-html-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                 (lambda (op)
-                                  (display (get-html-template output-js-filename) op))
+                                  (display (get-html-template
+                                            (map file-name-from-path
+                                                 (reverse written-js-paths)))
+                                           op))
                                 #:exists 'replace)
         (define stop-time (current-inexact-milliseconds))
 
-        (fprintf (current-timing-port) "Time taken: ~a milliseconds\n" (- stop-time start-time))
-        ))))
+        (fprintf (current-timing-port) "Time taken: ~a milliseconds\n" (- stop-time start-time)))))
 
 
 

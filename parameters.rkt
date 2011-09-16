@@ -16,9 +16,11 @@
          current-root-path
          current-warn-unimplemented-kernel-primitive
          current-seen-unimplemented-kernel-primitives
+
          current-kernel-module-locator?
          current-compress-javascript?
-
+         current-one-module-per-file?
+         
          current-report-port
          current-timing-port
          )
@@ -72,6 +74,12 @@
 
 (: current-compress-javascript? (Parameterof Boolean))
 (define current-compress-javascript? (make-parameter #f))
+
+
+;; Turn this one so that js-assembler/package generates a file per module, as
+;; opposed to trying to bundle them all together.
+(: current-one-module-per-file? (Parameterof Boolean))
+(define current-one-module-per-file? (make-parameter #f))
 
 
 

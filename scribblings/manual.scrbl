@@ -3,6 +3,7 @@
           planet/version
           planet/resolver
           scribble/eval
+          scribble/bnf
           racket/sandbox
           racket/port
           racket/list
@@ -98,7 +99,6 @@ The GitHub source repository to Whalesong can be found at
 @url{https://github.com/dyoo/whalesong}.
 
 
-
 Prerequisites: at least @link["http://racket-lang.org/"]{Racket
 5.1.1}.  If you wish to use the JavaScript compression option,
  you will need @link["http://www.java.com"]{Java 1.6} SDK.
@@ -112,6 +112,79 @@ Prerequisites: at least @link["http://racket-lang.org/"]{Racket
 
 
 
+@subsection{Examples}
+Here are a collection of programs that use the @emph{web-world} library described
+later in this document:
+@itemize[
+@item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src}]  Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
+
+
+@item{@link["http://hashcollision.org/whalesong/examples/boid/boid.html"]{boid.html} [@link["http://hashcollision.org/whalesong/examples/boid/boid.rkt"]{src}]  Uses @racket[update-view-css] and @racket[on-tick] to perform an animation of a flock of @link["http://en.wikipedia.org/wiki/Boids"]{boids}.}
+
+
+@item{@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.html"]{dwarves.html}
+[@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.rkt"]{src}]
+Uses @racket[view-show] and @racket[view-hide] to manipulate a view.  Click on a dwarf to make them hide.
+  }
+
+@item{@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.html"]{dwarves-with-remove.html}
+[@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.rkt"]{src}]
+Uses @racket[view-focus?] and @racket[view-remove] to see if a dwarf should be removed from the view.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/field/field.html"]{field.html}
+[@link["http://hashcollision.org/whalesong/examples/field/field.rkt"]{src}]
+Uses @racket[view-bind] to read a text field, and @racket[update-view-text] to change
+the text content of an element.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/phases/phases.html"]{phases.html}
+[@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}]
+Switches out one view entirely in place of another.  Different views can correspond to phases in a program.
+}
+
+
+@item{@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html}
+[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}]
+Uses @racket[on-tick] to show a timer counting up.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/redirected/redirected.html"]{redirected.html}
+[@link["http://hashcollision.org/whalesong/examples/redirected/redirected.rkt"]{src}]
+Uses @racket[on-tick] to show a timer counting up, and also uses @racket[open-output-element] to
+pipe side-effecting @racket[printf]s to a hidden @tt{div}.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/todo/todo.html"]{todo.html}
+[@link["http://hashcollision.org/whalesong/examples/todo/todo.rkt"]{src}]
+A simple TODO list manager.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.html"]{where-am-i.html}
+[@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}]
+Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
+}
+]
+
+
+I also gave a 
+@link["http://hashcollision.org/whalesong/racketcon"]{presentation}
+of Whalesong at RacketCon 2011, including examples like:
+@itemize[
+
+@item{@link["http://hashcollision.org/whalesong/racketcon/rain.html"]{rain.html}
+[@link["http://hashcollision.org/whalesong/racketcon/rain.rkt"]{src}]
+Uses the image libraries to show droplets of water falling down.}
+
+@item{@link["http://hashcollision.org/whalesong/racketcon/pacman.html"]{pacman.html}
+[@link["http://hashcollision.org/whalesong/racketcon/pacman.rkt"]{src}]
+Pacman.}
+]
+
+
+
+
+
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @section{Getting started}
@@ -122,13 +195,23 @@ Prerequisites: at least @link["http://racket-lang.org/"]{Racket
 
 At the time of this writing, although Whalesong has been deployed to
 @link["http://planet.racket-lang.org"]{PLaneT}, the version on PLaneT
-is out of date.  I'll be updating the PLaneT package as soon as
-Whalesong starts to stabilize, but the system as a whole is still in
-some flux.
+is probably a little out of date.  
 
-You may want to get the latest sources instead of using the version on
-PLaneT.  Doing so requires doing a little bit of manual work.  The
-steps are:
+If you want to use Whalesong off of PLaneT, run the following to create
+the @filepath{whalesong} launcher:
+@codeblock|{
+#lang racket/base
+(require (planet dyoo/whalesong:1:3/make-launcher))
+}|
+This will create a @filepath{whalesong} launcher in the current directory.
+
+
+
+
+@subsection{Installing Whalesong from github}
+
+Otherwise, you can download the sources from the github repository.
+Doing so requires doing a little bit of manual work.  The steps are:
 
 @itemlist[
 @item{Check Whalesong out of Github.}
@@ -147,9 +230,9 @@ Next, let's set up a @link["http://docs.racket-lang.org/planet/Developing_Packag
 parent directory that contains the @filepath{whalesong} repository, and
 then run this on your command line:
 @verbatim|{
-$ planet link dyoo whalesong.plt 1 0 whalesong
+$ planet link dyoo whalesong.plt 1 4 whalesong
 }|
-(You may need to adjust the @tt{1} and @tt{0} major/minor numbers a bit to be larger
+(You may need to adjust the @tt{1} and @tt{4} major/minor numbers a bit to be larger
 than the latest version that's on PLaneT at the time.)
 
 
@@ -165,7 +248,7 @@ Finally, we need to set up Whalesong with @tt{raco setup}.
 Here's how to do this at the command
 line:
 @verbatim|{
-$ raco setup -P dyoo whalesong.plt 1 0
+$ raco setup -P dyoo whalesong.plt 1 4
 }|
 This should compile Whalesong.  Any time the source code in
 @filepath{whalesong} changes, we should repeat this @tt{raco setup}
@@ -407,9 +490,11 @@ pass the name of the file to it:
 }|
 A @filepath{.html} and @filepath{.js} will be written to the current directory, as will any external resources that the program uses.
 
-Almost all of the @tt{whalesong} commands support two command line options:
 
-@itemize{
+
+The @tt{whalesong} commands support these command line options:
+
+@itemize[
 
 @item{@verbatim{--compress-javascript} Use Google Closure's JavaScript
 compiler to significantly compress the JavaScript.  Using this
@@ -418,7 +503,13 @@ currently requires a Java 1.6 JDK.}
 @item{@verbatim{--verbose} Write verbose debugging information to standard error.}
 
 @item{@verbatim{--dest-dir}  Write files to a separate directory, rather than the current directory.}
-}
+
+@item{@verbatim{--split-modules} Write each dependent module as a
+separate file, rather than in one large @filepath{.js}.  This may be
+necessary if your browser environment prohibits large @filepath{.js}
+files.  The files will be numbered starting from @racket[1].}
+
+]
 
 
 
@@ -450,17 +541,6 @@ used as a @tt{SCRIPT} source.
 By default, the given program will be treated as a @emph{main} module.
 All main modules will be executed when the JavaScript function
 @tt{plt.runtime.invokeMains()} is called.
-
-
-@subsection{@tt{write-javascript-files}}
-[NOT DONE YET]
-(needs to write a MANIFEST file?)
-(this almost seems like we need some concept of a JAR... )
-
-
-@subsection{@tt{write-resources}}
-[NOT DONE YET]
-
 
 
 @subsection{@tt{get-runtime}}
@@ -504,6 +584,22 @@ which defines a variable named @racket[humpback.png] whose
 @tech{resource} is @filepath{humpback.png}.
 
 
+If the resource given has an extension one of the following:
+@itemize[
+@item{@filepath{.png}}
+@item{@filepath{.gif}}
+@item{@filepath{.jpg}}
+@item{@filepath{.jpeg}}]
+then it can be treated as an image for which @racket[image?] will be true.
+
+If the resource has the extension @filepath{.html}, then it will be
+run through an HTML purifying process to make sure the HTML is
+well-formed.
+
+
+
+@defproc[(resource? [x any]) boolean]{
+Returns @racket[#t] if @racket[x] is a @tech{resource}.}
 
 @defproc[(resource->url [a-resource resource?]) string?]{
 Given a @tech{resource}, gets a URL.
@@ -619,59 +715,6 @@ we'd like to include in our program.}
 responses to events.  In this example, that's clock ticks introduced
 by @racket[on-tick], though because we're on the web, we can
 bind to many other kinds of web events (by using @racket[view-bind]).}
-]
-
-@subsection{More web-world examples}
-Here are a collection of web-world demos:
-@itemize[
-@item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src}]  Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
-
-
-@item{@link["http://hashcollision.org/whalesong/examples/boid/boid.html"]{boid.html} [@link["http://hashcollision.org/whalesong/examples/boid/boid.rkt"]{src}]  Uses @racket[update-view-css] and @racket[on-tick] to perform an animation of a flock of @link["http://en.wikipedia.org/wiki/Boids"]{boids}.}
-
-
-@item{@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.html"]{dwarves.html}
-[@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.rkt"]{src}]
-Uses @racket[view-show] and @racket[view-hide] to manipulate a view.  Click on a dwarf to make them hide.
-  }
-
-@item{@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.html"]{dwarves-with-remove.html}
-[@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.rkt"]{src}]
-Uses @racket[view-focus?] and @racket[view-remove] to see if a dwarf should be removed from the view.
-}
-
-@item{@link["http://hashcollision.org/whalesong/examples/field/field.html"]{field.html}
-[@link["http://hashcollision.org/whalesong/examples/field/field.rkt"]{src}]
-Uses @racket[view-bind] to read a text field, and @racket[update-view-text] to change
-the text content of an element.
-}
-
-@item{@link["http://hashcollision.org/whalesong/examples/phases/phases.html"]{phases.html}
-[@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}]
-Switches out one view entirely in place of another.  Different views can correspond to phases in a program.
-}
-
-
-@item{@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html}
-[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}]
-Uses @racket[on-tick] to show a timer counting up.
-}
-
-@item{@link["http://hashcollision.org/whalesong/examples/redirected/redirected.html"]{redirected.html}
-[@link["http://hashcollision.org/whalesong/examples/redirected/redirected.rkt"]{src}]
-Uses @racket[on-tick] to show a timer counting up, and also uses @racket[open-output-element] to
-pipe side-effecting @racket[printf]s to a hidden @tt{div}.
-}
-
-@item{@link["http://hashcollision.org/whalesong/examples/todo/todo.html"]{todo.html}
-[@link["http://hashcollision.org/whalesong/examples/todo/todo.rkt"]{src}]
-A simple TODO list manager.
-}
-
-@item{@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.html"]{where-am-i.html}
-[@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}]
-Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
-}
 ]
 
 
@@ -842,8 +885,28 @@ Move the focus to the parent.}
 @defproc[(view-down? [v view]) boolean]{
 See if the view can be moved to the first child.
 }
+
 @defproc[(view-down [v view]) view]{
 Move the view to the first child.}
+
+
+
+@defproc[(view-forward? [v view]) boolean]{
+See if the view can be moved forward.}
+
+@defproc[(view-forward [v view]) view]{
+Move the view forward, assuming a pre-order traversal.
+}
+
+@defproc[(view-backward? [v view]) boolean]{
+See if the view can be moved backward.}
+
+@defproc[(view-backward [v view]) view]{
+Move the view backward, assuming a pre-order traversal.
+}
+
+
+
 
 @defproc[(view-text [v view]) string]{
 Get the textual content at the focus.
@@ -893,8 +956,32 @@ Get the form value of the node at the focus.}
 @defproc[(update-view-form-value [v view] [value String]) view]{
 Update the form value of the node at the focus.}
 
-@defproc[(view-append-child [d dom]) view]{
-Add the dom node @racket[d] as the last child of the focused node.}
+
+
+Dom nodes can be created by using @racket[xexp->dom], which converts a
+@tech{xexp} to a node, and attached to the view by using
+@racket[view-append-child], @racket[view-insert-left], and
+@racket[view-insert-right].
+
+
+@defproc[(view-append-child [v view] [d dom]) view]{
+Add the dom node @racket[d] as the last child of the focused node.
+Focus moves to the inserted node.}
+
+
+@defproc[(view-insert-left [v view] [d dom]) view]{
+Add the dom node @racket[d] as the previous sibling of the focused node.
+Focus moves to the inserted node.}
+
+@defproc[(view-insert-right [v view] [d dom]) view]{
+Add the dom node @racket[d] as the next sibling of the focused node.
+Focus moves to the inserted node.}
+
+
+
+
+
+
                     
 @defproc[(view-remove [v view]) view]{
 Remove the dom node at the focus from the view @racket[v].  Focus tries to move
@@ -922,6 +1009,100 @@ Get an value from the event, given its @racket[name].
 @defproc[(event-keys [evt event?]) (listof symbol)]{
 Get an list of the event's keys.
 }
+
+
+
+@subsection{Dynamic DOM generation with xexps} 
+@declare-exporting/this-package[web-world]
+We often need to dynamically inject new dom nodes into an existing
+view.  As an example where the UI is entirely in code:
+@codeblock|{
+#lang planet dyoo/whalesong
+(require (planet dyoo/whalesong/web-world))
+
+;; tick: world view -> world
+(define (tick world view)
+  (add1 world))
+
+;; draw: world view -> view
+(define (draw world view)
+  (view-append-child view
+                     (xexp->dom `(p "hello, can you see this? "
+                                    ,(number->string world)))))
+
+(big-bang 0 (initial-view
+             (xexp->dom '(html (head) (body))))
+            (on-tick tick 1)
+            (to-draw draw))
+}|
+
+Normally, we'll want to do as much of the statics as possible with
+@filepath{.html} resources, but when nothing else will do, we can
+generate DOM nodes programmatically.
+
+
+
+We can create new DOMs from an @tech{xexp}, which is a s-expression
+representation for a DOM node.  Here are examples of expressions that
+evaluate to xexps:
+
+@racketblock["hello world"]
+
+@racketblock['(p "hello, this" "is an item")]
+
+@racketblock[
+(local [(define name "josh")]
+   `(p "hello" (i ,name)))]
+
+@racketblock[
+  '(div (\@ (id "my-div-0"))
+        (span "This is a span in a div"))]
+
+@racketblock[
+  `(div (\@ ,(fresh-id))
+        (span "This is another span in a div whose id is dynamically generated"))]
+
+
+More formally, a @deftech{xexp} is:
+@(let ([open @litchar{(}]
+       [close @litchar{)}]
+       [at @litchar[(symbol->string '\@)]])
+@BNF[(list @nonterm{xexp}
+           @nonterm{string}
+           @nonterm{symbol}
+           @BNF-seq[open @nonterm{id} @kleenestar[@nonterm{xexp}] close]
+           @BNF-seq[open @nonterm{id} open at @kleenestar[@nonterm{key-value}] close @kleenestar[@nonterm{xexp}] close])
+     (list @nonterm{key-value}
+           @BNF-seq[open @nonterm{symbol} @nonterm{string} close])
+])
+
+
+To check to see if something is a xexp, use @racket[xexp?]:
+@defproc[(xexp? [x any]) boolean]{
+Return true if @racket[x] is a xexp.
+}
+
+
+@defproc[(xexp->dom [an-xexp xexp]) dom]{
+Return a dom from the xexp.
+}
+
+
+When creating xexps, we may need to create unique ids for the nodes.
+The web-world library provides a @racket[fresh-id] form to create these.
+@defproc[(fresh-id) string]{
+Return a string that can be used as a DOM node id.
+}
+
+
+We may also want to take a view and turn it back into an @tech{xexp}.
+@defproc[(view->xexp [a-view view]) xexp]{
+Coerses a view into a @tech{xexp}.
+}
+
+
+
+
 
 
 
@@ -965,6 +1146,9 @@ Opens an output port that will be directed to write to the DOM element
 whose id is @racket[id].  Note: writing to this port shouldn't fail,
 even if the id does not currently exist on the page.
 }
+
+
+
 
 
 
@@ -1493,6 +1677,8 @@ language.
 @defform[(eq? ...)]{}
 @defform[(equal? ...)]{}
 @defform[(void ...)]{}
+@defform[(quote ...)]{}
+@defform[(quasiquote ...)]{}
 
 
 
@@ -1650,22 +1836,25 @@ Whalesong by implementing libraries, giving guidence, reporting bugs,
 and suggesting improvements.
 
 @;;;;
-@; in no particular order... really!  I'm shuffling them!  :)
+@; in alphabetical order
 @;;;;
 @(apply itemlist
-   (shuffle (list
-   @item{Ethan Cecchetti}
-   @item{Scott Newman}
-   @item{Zhe Zhang}
-   @item{Jens Axel Søgaard}
-   @item{Jay McCarthy}
-   @item{Sam Tobin-Hochstadt}
-   @item{Doug Orleans}
-   @item{Richard Cleis}
-   @item{Asumu Takikawa}
-   @item{Eric Hanchrow}
-   @item{Greg Hendershott}
-   @item{Shriram Krishnamurthi}
-   @item{Emmanuel Schanzer}
-   @item{Robby Findler}))
+   (map item (sort (list
+   "Ethan Cecchetti"
+   "Scott Newman"
+   "Zhe Zhang"
+   "Jens Axel Søgaard"
+   "Jay McCarthy"
+   "Sam Tobin-Hochstadt"
+   "Doug Orleans"
+   "Richard Cleis"
+   "Asumu Takikawa"
+   "Eric Hanchrow"
+   "Greg Hendershott"
+   "Shriram Krishnamurthi"
+   "Emmanuel Schanzer"
+   "Robby Findler"
+   "Gregor Kiczales"
+   "Cristina Teodoropol"
+) string<?))
 )

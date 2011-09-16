@@ -923,19 +923,32 @@ var rawJsworld = {};
     // http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
     function on_mouse(mouse) {
 	return function() {
+            var isButtonDown = false;
 	    var makeWrapped = function(type) {
                 return function(e) {
+		    preventDefault(e);
+		    stopPropagation(e);
                     var x = e.pageX, y = e.pageY;
                     var currentElement = e.target;
                     do {
                         x -= currentElement.offsetLeft;
                         y -= currentElement.offsetTop;
                     } while(currentElement = currentElement.offsetParent);
-		    preventDefault(e);
-		    stopPropagation(e);
-		    change_world(function(w, k) {
-                        mouse(w, x, y, type, k);
-                    }, doNothing);
+
+                    if (type === 'button-down') { 
+                        isButtonDown = true;
+                    } else if (type === 'button-up') {
+                        isButtonDown = false;
+                    }
+                    if (type === 'move' && isButtonDown) {
+		        change_world(function(w, k) {
+                            mouse(w, x, y, 'drag', k);
+                        }, doNothing);
+                    } else {
+		        change_world(function(w, k) {
+                            mouse(w, x, y, type, k);
+                        }, doNothing);
+                    }
 	        };
             };
             var wrappedDown = makeWrapped('button-down');

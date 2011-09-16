@@ -233,6 +233,27 @@ var getKeyCodeName = function(e) {
 
 
 
+var OnMouse = function(handler) {
+    WorldConfigOption.call(this, 'on-mouse');
+    this.handler = handler;
+}
+
+OnMouse.prototype = plt.baselib.heir(WorldConfigOption.prototype);
+ 
+OnMouse.prototype.toRawHandler = function(MACHINE, toplevelNode) {
+    var that = this;
+    var worldFunction = adaptWorldFunction(that.handler);
+    return rawJsworld.on_mouse(
+        function(w, x, y, type, success) {
+            worldFunction(w, x, y, type, success);
+        });
+};
+
+
+
+
+
+
 
 
 var OutputConfig = function() {}

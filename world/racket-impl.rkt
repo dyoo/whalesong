@@ -1,8 +1,9 @@
 #lang s-exp "../lang/base.rkt"
 
 (provide big-bang
-         on-tick
          to-draw
+         on-tick
+         on-mouse
          on-key
          key=?
          stop-when)
@@ -13,23 +14,27 @@
 
 
 (define (big-bang initial-world . args)
-  (error 'big-bang "not done yet"))
+  (error 'big-bang "must be run in JavaScript context"))
 
 
 (define on-tick
   (case-lambda [(handler)
-                (error 'on-tick "not done yet")]
+                (error 'on-tick "must be run in JavaScript context")]
                [(handler interval)
-                (error 'on-tick "not done yet")]))
+                (error 'on-tick "must be run in JavaScript context")]))
+
+
+(define (on-mouse handle)
+  (error 'on-mouse "must be run in JavaScript context"))
 
 (define (to-draw handler)
-  (error 'to-draw "not done yet"))
+  (error 'to-draw "must be run in JavaScript context"))
 
 (define (on-key handler)
-  (error 'on-key "not done yet"))
+  (error 'on-key "must be run in JavaScript context"))
 
 (define (key=? key-1 key-2)
-  (error 'key=? "not done yet"))
+  (error 'key=? "must be run in JavaScript context"))
 
 (define (stop-when handler)
-  (error 'stop-when "not done yet"))
+  (error 'stop-when "must be run in JavaScript context"))

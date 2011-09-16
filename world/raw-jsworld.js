@@ -917,6 +917,55 @@ var rawJsworld = {};
     Jsworld.on_key = on_key;
 
 
+
+
+    // http://www.quirksmode.org/js/events_mouse.html
+    // http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
+    function on_mouse(mouse) {
+	return function() {
+	    var makeWrapped = function(type) {
+                return function(e) {
+                    var x = e.pageX, y = e.pageY;
+                    x -= e.target.offsetLeft;
+                    y -= e.target.offsetLeft;
+		    preventDefault(e);
+		    stopPropagation(e);
+		    change_world(function(w, k) {
+                        mouse(w, x, y, type, k);
+                    }, doNothing);
+	        };
+            };
+            var wrappedDown = makeWrapped('button-down');
+            var wrappedUp = makeWrapped('button-up');
+            // How do we do drag?
+            var wrappedMove = makeWrapped('move');
+            var wrappedEnter = makeWrapped('enter');
+            var wrappedLeave = makeWrapped('leave');
+	    return {
+		onRegister: function(top) { 
+                    attachEvent(top, 'mousedown', wrappedDown); 
+                    attachEvent(top, 'mouseup', wrappedUp); 
+                    attachEvent(top, 'mousemove', wrappedMove); 
+                    attachEvent(top, 'mouseenter', wrappedEnter); 
+                    attachEvent(top, 'mouseleave', wrappedLeave); 
+                },
+		onUnregister: function(top) { 
+                    detachEvent(top, 'mousedown', wrappedDown); 
+                    detachEvent(top, 'mouseup', wrappedUp); 
+                    detachEvent(top, 'mousemove', wrappedMove); 
+                    detachEvent(top, 'mouseenter', wrappedEnter); 
+                    detachEvent(top, 'mouseleave', wrappedLeave); 
+                }
+	    };
+	}
+    }
+    Jsworld.on_mouse = on_mouse;
+
+
+
+
+
+
     
     //  on_draw: CPS(world -> (sexpof node)) CPS(world -> (sexpof css-style)) -> handler
     function on_draw(redraw, redraw_css) {

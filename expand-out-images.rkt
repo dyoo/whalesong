@@ -202,12 +202,16 @@
        (define-values ids #,(on-expr #'expr)))]
     
     [(define-syntaxes ids expr)
-     (quasisyntax/loc stx 
-       (define-syntaxes ids #,(on-expr #'expr)))]
+     #'(void)
+     ;(quasisyntax/loc stx 
+     ;  (define-syntaxes ids #,(on-expr #'expr)))
+     ]
     
     [(define-values-for-syntax ids expr)
-     (quasisyntax/loc stx 
-       (define-values-for-syntax ids #,(on-expr #'expr)))]
+     #'(void)
+     ;(quasisyntax/loc stx 
+     ;  (define-values-for-syntax ids #,(on-expr #'expr)))
+     ]
     
     [else
      (on-expr stx)]))

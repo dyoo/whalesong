@@ -8,7 +8,6 @@
          "assemble-helpers.rkt"
          "assemble-expression.rkt"
          "assemble-perform-statement.rkt"
-         "optimize-basic-blocks.rkt"
          "fracture.rkt"
          "../compiler/il-structs.rkt"
          "../sets.rkt"

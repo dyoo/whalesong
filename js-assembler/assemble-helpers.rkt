@@ -19,6 +19,7 @@
          assemble-prefix-reference
          assemble-whole-prefix-reference
          assemble-reg
+         munge-label-name
          assemble-label
          assemble-listof-assembled-values
 	 assemble-default-continuation-prompt-tag
@@ -295,27 +296,26 @@
       "M.a"])))
 
 
+(: munge-label-name (Label -> String))
+(define (munge-label-name a-label)
+  (define chunks
+    (regexp-split #rx"[^a-zA-Z0-9]+"
+                  (symbol->string (Label-name a-label))))
+  (cond
+   [(empty? chunks)
+    (error "impossible: empty label ~s" a-label)]
+   [(empty? (rest chunks))
+    (string-append "_" (first chunks))]
+   [else
+    (string-append "_"
+                   (first chunks)
+                   (apply string-append (map string-titlecase (rest chunks))))]))
+
+
 
 (: assemble-label (Label Blockht -> String))
 (define (assemble-label a-label Blockht)
-  (define a-block (hash-ref Blockht (Label-name a-label)))
-  (cond
-   [(block-looks-like-context-expected-values? a-block)
-    => (lambda (expected)
-         (format "RT.si_context_expected(~a)" expected))]
-   [else
-    (define chunks
-      (regexp-split #rx"[^a-zA-Z0-9]+"
-                    (symbol->string (Label-name a-label))))
-    (cond
-     [(empty? chunks)
-      (error "impossible: empty label ~s" a-label)]
-     [(empty? (rest chunks))
-      (string-append "_" (first chunks))]
-     [else
-      (string-append "_"
-                     (first chunks)
-                     (apply string-append (map string-titlecase (rest chunks))))])]))
+  (munge-label-name a-label))
 
 
 
@@ -333,7 +333,7 @@
 
 (: assemble-control-stack-label/multiple-value-return (ControlStackLabel/MultipleValueReturn -> String))
 (define (assemble-control-stack-label/multiple-value-return a-csl)
-  "M.c[M.c.length-1].label.mvr")
+  "(M.c[M.c.length-1].label.mvr||RT.si_context_expected_1)")
 
 
 

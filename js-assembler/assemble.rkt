@@ -151,10 +151,12 @@ EOF
                   [(= expected 1)
                    (void)]
                   [else
-                   (fprintf op "~a.mvr=RT.si_context_expected(~a);\n" expected)]))]
+                   (fprintf op "~a.mvr=RT.si_context_expected(~a);\n"
+                            (munge-label-name (make-Label (LinkedLabel-label stmt)))
+                            expected)]))]
            [else
             (fprintf op "~a.mvr=~a;\n" 
-                     (assemble-label (make-Label (LinkedLabel-label stmt)) blockht)
+                     (munge-label-name (make-Label (LinkedLabel-label stmt)))
                      (assemble-label (make-Label (LinkedLabel-linked-to stmt)) blockht))])
           (next)]
          [(DebugPrint? stmt)
@@ -197,11 +199,14 @@ EOF
    [(block-looks-like-context-expected-values? a-basic-block)
     =>
     (lambda (expected)
-      (fprintf op "~a=RT.si_context_expected(~a);\n"
-               (assemble-label (make-Label (BasicBlock-name a-basic-block))
-                               blockht)
-               expected)
-      'ok)]
+      (cond
+       [(= expected 1)
+        'ok]
+       [else
+        (fprintf op "~a=RT.si_context_expected(~a);\n"
+                 (munge-label-name (make-Label (BasicBlock-name a-basic-block)))
+                 expected)
+        'ok]))]
    [else
     (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)]))
 

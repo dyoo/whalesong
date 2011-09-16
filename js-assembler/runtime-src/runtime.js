@@ -675,10 +675,10 @@
     // Superinstructions to try to reduce code size.
     var si_context_expected = function(n) {
         if (n === 1) { return si_context_expected_1; }
-        return function(M) { raiseContextExpectedValuesError(M, n); }
+        var f = function(M) { raiseContextExpectedValuesError(M, n); };
+        return f;
     };
     var si_context_expected_1 = function(M) { raiseContextExpectedValuesError(M, 1); }
-
 
 
 

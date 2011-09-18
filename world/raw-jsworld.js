@@ -259,26 +259,29 @@ var rawJsworld = {};
 
 
     function augment(o, a) {
-        var oo = {};
-        for (var e in o) {
+        var oo = {}, e;
+        for (e in o) {
             if (o.hasOwnProperty(e)) {
                 oo[e] = o[e];
             }
         }
-        for (var e in a) {
+        for (e in a) {
             if (a.hasOwnProperty(e)) {
                 oo[e] = a[e];
             }
         }
         return oo;
-    };
+    }
     Jsworld.augment = augment;
 
 
     function assoc_cons(o, k, v) {
-        var oo = {};
-        for (var e in o)
-            oo[e] = o[e];
+        var oo = {}, e;
+        for (e in o) {
+            if (o.hasOwnProperty(e)) {
+                oo[e] = o[e];
+            }
+        }
         oo[k] = v;
         return oo;
     }
@@ -297,36 +300,30 @@ var rawJsworld = {};
     Jsworld.append = append;
 
     function array_join(array1, array2){
-        var joined = [];
-        for (var i = 0; i < array1.length; i++)
+        var joined = [], i;
+        for (i = 0; i < array1.length; i++) {
             joined.push([array1[i], array2[i]]);
+        }
         return joined;
     }
     Jsworld.array_join = array_join;
 
 
     function removeq(a, value) {
-        for (var i = 0; i < a.length; i++)
+        var i;
+        for (i = 0; i < a.length; i++) {
             if (a[i] === value){
                 return a.slice(0, i).concat(a.slice(i+1));
-            }                   
+            }
+        }
         return a;
     }
     Jsworld.removeq = removeq;
 
-    function removef(a, value) {
-        for (var i = 0; i < a.length; i++)
-            if ( f(a[i]) ){
-                return a.slice(0, i).concat(a.slice(i+1));
-            }                   
-        return a;
-    }
-    Jsworld.removef = removef;
-
 
     function filter(a, f) {
-        var b = [];
-        for (var i = 0; i < a.length; i++) {
+        var b = [], i;
+        for (i = 0; i < a.length; i++) {
                 if ( f(a[i]) ) {
                         b.push(a[i]);
                 }
@@ -337,26 +334,38 @@ var rawJsworld = {};
 
 
     function without(obj, attrib) {
-        var o = {};
-        for (var a in obj)
-            if (a != attrib)
-                o[a] = obj[a];
+        var o = {}, a;
+        for (a in obj) {
+            if (obj.hasOwnProperty(a)) {
+                if (a !== attrib) {
+                    o[a] = obj[a];
+                }
+            }
+        }
         return o;
     }
     Jsworld.without = without;
 
 
     function memberq(a, x) {
-        for (var i = 0; i < a.length; i++)
-            if (a[i] === x) return true;
+        var i;
+        for (i = 0; i < a.length; i++) {
+            if (a[i] === x) {
+                return true;
+            }
+        }
         return false;
     }
     Jsworld.memberq = memberq;
 
 
     function member(a, x) {
-        for (var i = 0; i < a.length; i++)
-            if (a[i] == x) return true;
+        var i;
+        for (i = 0; i < a.length; i++) {
+            if (a[i] === x) {
+                return true;
+            }
+        }
         return false;
     }
     Jsworld.member = member;
@@ -436,8 +445,8 @@ var rawJsworld = {};
     // node_to_tree: dom -> dom-tree
     // Given a native dom node, produces the appropriate tree.
     function node_to_tree(domNode) {
-        var result = [domNode];
-        for (var c = domNode.firstChild; c != null; c = c.nextSibling) {
+        var result = [domNode], c;
+        for (c = domNode.firstChild; c !== null; c = c.nextSibling) {
             result.push(node_to_tree(c));
         }
         return result;
@@ -448,40 +457,41 @@ var rawJsworld = {};
 
     // nodes(tree(N)) = nodes(N)
     function nodes(tree) {
-        var ret;
-        
-        if (tree.node.jsworldOpaque == true) {
+        var ret, i;
+        if (tree.node.jsworldOpaque === true) {
             return [tree.node];
         }
 
         ret = [tree.node];
-        for (var i = 0; i < tree.children.length; i++)
+        for (i = 0; i < tree.children.length; i++) {
             ret = ret.concat(nodes(tree.children[i]));
-        
+        }
         return ret;
     }
 
 
     // relations(tree(N)) = relations(N)
     function relations(tree) {
-        var ret = [];   
-
-        for (var i = 0; i < tree.children.length; i++)
-            ret.push({ relation: 'parent', 
-                       parent: tree.node, 
+        var ret = [];
+        var i;
+        for (i = 0; i < tree.children.length; i++) {
+            ret.push({ relation: 'parent',
+                       parent: tree.node,
                        child: tree.children[i].node });
-        
-        for (var i = 0; i < tree.children.length - 1; i++)
-            ret.push({ relation: 'neighbor', 
+        }
+
+        for (i = 0; i < tree.children.length - 1; i++) {
+            ret.push({ relation: 'neighbor',
                        left: tree.children[i].node,
                        right: tree.children[i + 1].node });
-        
+        }
+
         if (! tree.node.jsworldOpaque) {
-            for (var i = 0; i < tree.children.length; i++) {
+            for (i = 0; i < tree.children.length; i++) {
                 ret = ret.concat(relations(tree.children[i]));
             }
         }
-        
+
         return ret;
     }
 
@@ -491,7 +501,7 @@ var rawJsworld = {};
         while (n.firstChild) {
             n.removeChild(n.firstChild);
         }
-    }
+    };
 
 
     // Preorder traversal.
@@ -500,7 +510,7 @@ var rawJsworld = {};
             var child = node.firstChild;
             var nextSibling;
             while (child) {
-                var nextSibling = child.nextSibling;
+                nextSibling = child.nextSibling;
                 preorder(child, f);
                 child = nextSibling;
             }
@@ -508,32 +518,66 @@ var rawJsworld = {};
     };
 
 
+    // nodeEq: node node -> boolean
+    // Returns true if the two nodes should be the same.
+    var nodeEq = function(node1, node2) {
+        return (node1 && node2 && node1 === node2);
+    };
+
+
+    // isMemq: X (arrayof X) -> boolean
+    // Produces true if any of the elements of L are nodeEq to x.
+    var isMemq = function(x, L) {
+        var i;
+        for (i = 0 ; i < L.length; i++) {
+            if (nodeEq(x, L[i])) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+
+
+    // If any node cares about the world, send it in.
+    function refresh_node_values(nodes) {
+        var i;
+        for (i = 0; i < nodes.length; i++) {
+            if (nodes[i].onWorldChange) {
+                nodes[i].onWorldChange(world);
+            }
+        }
+    }
+
+
+
     // update_dom(nodes(Node), relations(Node)) = void
     function update_dom(toplevelNode, nodes, relations) {
-
+        var i, parent, child;
         // TODO: rewrite this to move stuff all in one go... possible? necessary?
-        
+
         // move all children to their proper parents
-        for (var i = 0; i < relations.length; i++) {
-            if (relations[i].relation == 'parent') {
-                var parent = relations[i].parent, child = relations[i].child;
+        for (i = 0; i < relations.length; i++) {
+            if (relations[i].relation === 'parent') {
+                parent = relations[i].parent;
+                child = relations[i].child;
                 if (child.parentNode !== parent) {
                     parent.appendChild(child);
                 }
             }
         }
-        
+
         // arrange siblings in proper order
         // truly terrible... BUBBLE SORT
         var unsorted = true;
         while (unsorted) {
             unsorted = false;
-            for (var i = 0; i < relations.length; i++) {
-                if (relations[i].relation == 'neighbor') {
+            for (i = 0; i < relations.length; i++) {
+                if (relations[i].relation === 'neighbor') {
                     var left = relations[i].left, right = relations[i].right;
-                                
+
                     if (! nodeEq(left.nextSibling, right)) {
-                        left.parentNode.insertBefore(left, right)
+                        left.parentNode.insertBefore(left, right);
                         unsorted = true;
                     }
                 }
@@ -558,37 +602,18 @@ var rawJsworld = {};
 
         refresh_node_values(nodes);
     }
-    
-
-    // isMemq: X (arrayof X) -> boolean
-    // Produces true if any of the elements of L are nodeEq to x.
-    var isMemq = function(x, L) {
-        var i;
-        for (i = 0 ; i < L.length; i++) {
-            if (nodeEq(x, L[i])) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-
-    // nodeEq: node node -> boolean
-    // Returns true if the two nodes should be the same.
-    var nodeEq = function(node1, node2) {
-        return (node1 && node2 && node1 === node2);
-    }
 
 
 
     // camelCase: string -> string
     function camelCase(name) {
-        return name.replace(/\-(.)/g, function(m, l){return l.toUpperCase()});
+        return name.replace(/\-(.)/g, function(m, l){return l.toUpperCase();});
     }
 
 
     function set_css_attribs(node, attribs) {
-        for (var j = 0; j < attribs.length; j++){
+        var j;
+        for (j = 0; j < attribs.length; j++){
             node.style[camelCase(attribs[j].attrib)] = attribs[j].values.join(" ");
         }
     }
@@ -599,31 +624,11 @@ var rawJsworld = {};
     function isMatchingCssSelector(node, css) {
         if (css.id.match(/^\./)) {
             // Check to see if we match the class
-            return ('className' in node && member(node['className'].split(/\s+/),
-                                              css.id.substring(1)));
+            return (node.className && member(node.className.split(/\s+/),
+                                             css.id.substring(1)));
         } else {
-            return ('id' in node && node.id == css.id);
+            return (node.id && node.id === css.id);
         }
-    }
-
-
-    function update_css(nodes, css) {
-        // clear CSS
-        for (var i = 0; i < nodes.length; i++) {
-            if ( !nodes[i].jsworldOpaque ) {
-                    clearCss(nodes[i]);
-            }
-        }
-        
-        // set CSS
-        for (var i = 0; i < css.length; i++)
-            if ('id' in css[i]) {
-                for (var j = 0; j < nodes.length; j++)
-                    if (isMatchingCssSelector(nodes[j], css[i])) {
-                        set_css_attribs(nodes[j], css[i].attribs);
-                    }
-            }
-            else set_css_attribs(css[i].node, css[i].attribs);
     }
 
 
@@ -631,18 +636,38 @@ var rawJsworld = {};
         // FIXME: we should not be clearing the css
 //      if ('style' in node)
 //          node.style.cssText = "";
-    }
+    };
 
 
 
-    // If any node cares about the world, send it in.
-    function refresh_node_values(nodes) {
-        for (var i = 0; i < nodes.length; i++) {
-            if (nodes[i].onWorldChange) {
-                nodes[i].onWorldChange(world);
+    function update_css(nodes, css) {
+        // clear CSS
+        var i, j;
+        for (i = 0; i < nodes.length; i++) {
+            if ( !nodes[i].jsworldOpaque ) {
+                    clearCss(nodes[i]);
+            }
+        }
+
+        // set CSS
+        for (i = 0; i < css.length; i++) {
+            if (css[i].id) {
+                for (j = 0; j < nodes.length; j++) {
+                    if (isMatchingCssSelector(nodes[j], css[i])) {
+                        set_css_attribs(nodes[j], css[i].attribs);
+                    }
+                }
+            } else {
+                set_css_attribs(css[i].node, css[i].attribs);
             }
         }
     }
+
+
+
+    var sexp2tree;
+    var sexp2css;
+    var maintainingSelection;
 
 
 
@@ -700,7 +725,6 @@ var rawJsworld = {};
                                 function(newRedrawCss) {
                                     var t = sexp2tree(newRedraw);
                                     var ns = nodes(t);
-                                    
                                     // Try to save the current selection and preserve it across
                                     // dom updates.
 
@@ -712,21 +736,28 @@ var rawJsworld = {};
                                     update_dom(toplevelNode, ns, relations(t));
 
                                     k2();
-                                })
-                        })
-
-
-
-
-
+                                });
+                        });
                 }, k);
         }
     }
 
 
+
+    var FocusedSelection;
+
+    function hasCurrentFocusedSelection() {
+        return currentFocusedNode !== undefined;
+    }
+
+    function getCurrentFocusedSelection() {
+        return new FocusedSelection();
+    }
+
+
     // maintainingSelection: (-> void) -> void
     // Calls the thunk f while trying to maintain the current focused selection.
-    function maintainingSelection(f, k) {
+    maintainingSelection = function(f, k) {
         var currentFocusedSelection;
         if (hasCurrentFocusedSelection()) {
             currentFocusedSelection = getCurrentFocusedSelection();
@@ -737,15 +768,15 @@ var rawJsworld = {};
         } else {
             f(function() { k(); });
         }
-    }
+    };
 
 
 
-    function FocusedSelection() {
+    FocusedSelection = function() {
         this.focused = currentFocusedNode;
         this.selectionStart = currentFocusedNode.selectionStart;
         this.selectionEnd = currentFocusedNode.selectionEnd;
-    }
+    };
 
     // Try to restore the focus.
     FocusedSelection.prototype.restore = function() {
@@ -765,19 +796,15 @@ var rawJsworld = {};
         }
     };
 
-    function hasCurrentFocusedSelection() {
-        return currentFocusedNode != undefined;
-    }
 
-    function getCurrentFocusedSelection() {
-        return new FocusedSelection();
-    }
 
 
 
     //////////////////////////////////////////////////////////////////////
 
-    function BigBangRecord(top, world, handlerCreators, handlers, attribs) {    
+    var bigBang;
+
+    function BigBangRecord(top, world, handlerCreators, handlers, attribs) {
         this.top = top;
         this.world = world;
         this.handlers = handlers;
@@ -808,7 +835,7 @@ var rawJsworld = {};
     // init_world: any
     // handlerCreators: (Arrayof (-> handler))
     // k: any -> void
-    function bigBang(top, init_world, handlerCreators, attribs, succ) {
+    bigBang = function(top, init_world, handlerCreators, attribs, succ) {
         // clear_running_state();
 
         // Construct a fresh set of the handlers.
@@ -867,9 +894,7 @@ var rawJsworld = {};
         // Finally, begin the big-bang.
         copy_attribs(top, attribs);
         change_world(function(w, k2) { k2(init_world); }, doNothing);
-
-
-    }
+    };
     Jsworld.bigBang = bigBang;
 
 
@@ -1137,10 +1162,10 @@ var rawJsworld = {};
     //
 
 
-    function sexp2tree(sexp) {
+    sexp2tree = function(sexp) {
         if(sexp.length == undefined) return { node: sexp, children: [] };
         else return { node: sexp[0], children: map(sexp.slice(1), sexp2tree) };
-    }
+    };
 
     function sexp2attrib(sexp) {
         return { attrib: sexp[0], values: sexp.slice(1) };
@@ -1157,9 +1182,9 @@ var rawJsworld = {};
         }
     }
 
-    function sexp2css(sexp) {
+    sexp2css = function(sexp) {
         return concat_map(sexp, sexp2css_node);
-    }
+    };
 
 
 

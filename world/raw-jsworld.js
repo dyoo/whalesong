@@ -498,11 +498,6 @@ var rawJsworld = {};
 
 
 
-    var removeAllChildren = function(n) {
-        while (n.firstChild) {
-            n.removeChild(n.firstChild);
-        }
-    };
 
 
     // Preorder traversal.
@@ -1331,8 +1326,10 @@ var rawJsworld = {};
                         stopPropagation(e);
                     });
         return node;
-    }
-    
+    };
+
+
+    var text_input, checkbox_input;
 
     // input: string CPS(world -> world) 
     function input(aType, updateF, attribs) {
@@ -1356,7 +1353,7 @@ var rawJsworld = {};
 
 
 
-    var text_input = function(type, updateF, attribs) {
+    text_input = function(type, updateF, attribs) {
         var n = document.createElement('input');
         n.type = type;
 
@@ -1365,7 +1362,7 @@ var rawJsworld = {};
             if (! n.parentNode) { return; }
             setTimeout(
                 function() {
-                    if (lastVal != n.value) {
+                    if (lastVal !== n.value) {
                         lastVal = n.value;
                         change_world(function (w, k) {
                             updateF(w, n.value, k);
@@ -1373,7 +1370,7 @@ var rawJsworld = {};
                     }
                 },
                 0);
-        }
+        };
 
         attachEvent(n, "keydown", onEvent);
         eventDetachers.push(function() {
@@ -1388,7 +1385,7 @@ var rawJsworld = {};
     };
 
 
-    var checkbox_input = function(type, updateF, attribs) {
+    checkbox_input = function(type, updateF, attribs) {
         var n = document.createElement('input');
         n.type = type;
         var onCheck = function(w, e, k) {
@@ -1396,7 +1393,7 @@ var rawJsworld = {};
         };
         // This established the widget->world direction
         add_ev_after(n, 'change', onCheck);
-        
+
         attachEvent(n, 'click', function(e) {
             stopPropagation(e);
         });
@@ -1405,15 +1402,14 @@ var rawJsworld = {};
     };
 
 
-    var button_input = function(type, updateF, attribs) {
-        var n = document.createElement('button');
-        add_ev(n, 'click', function(w, e, k) { updateF(w, n.value, k); });
-        return addFocusTracking(copy_attribs(n, attribs));
-    };
+    // var button_input = function(type, updateF, attribs) {
+    //     var n = document.createElement('button');
+    //     add_ev(n, 'click', function(w, e, k) { updateF(w, n.value, k); });
+    //     return addFocusTracking(copy_attribs(n, attribs));
+    // };
 
 
 
-    
 
     function text(s, attribs) {
         var result = document.createElement("div");
@@ -1423,9 +1419,11 @@ var rawJsworld = {};
     }
     Jsworld.text = text;
 
+    var option;
+
     function select(attribs, opts, f){
-        var n = document.createElement('select');
-        for(var i = 0; i < opts.length; i++) {
+        var n = document.createElement('select'), i;
+        for(i = 0; i < opts.length; i++) {
             n.add(option({value: opts[i]}), null);
         }
         n.jsworldOpaque = true;
@@ -1435,12 +1433,12 @@ var rawJsworld = {};
     }
     Jsworld.select = select;
 
-    function option(attribs){
+    option = function(attribs){
         var node = document.createElement("option");
         node.text = attribs.value;
         node.value = attribs.value;
         return node;
-    }
+    };
 
 
 
@@ -1455,7 +1453,7 @@ var rawJsworld = {};
     Jsworld.h1 = h1;
 
     function canvas(attribs){
-        return addFocusTracking(copy_attribs(document.createElement('canvas'), attribs));       
+        return addFocusTracking(copy_attribs(document.createElement('canvas'), attribs));
     }
     Jsworld.canvas = canvas;
 
@@ -1517,4 +1515,4 @@ var rawJsworld = {};
     };
 
 
-})();
+}());

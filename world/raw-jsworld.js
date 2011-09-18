@@ -1,3 +1,4 @@
+/*global $,plt*/
 var rawJsworld = {};
 
 // Stuff here is copy-and-pasted from Chris King's JSWorld.
@@ -802,7 +803,7 @@ var rawJsworld = {};
 
     //////////////////////////////////////////////////////////////////////
 
-    var bigBang;
+    var bigBang, StopWhenHandler;
 
     function BigBangRecord(top, world, handlerCreators, handlers, attribs) {
         this.top = top;
@@ -814,19 +815,20 @@ var rawJsworld = {};
 
     BigBangRecord.prototype.restart = function() {
         bigBang(this.top, this.world, this.handlerCreators, this.attribs);
-    }
-    
+    };
+
     BigBangRecord.prototype.pause = function() {
-        for(var i = 0 ; i < this.handlers.length; i++) {
-            if (this.handlers[i] instanceof StopWhenHandler) {
-                // Do nothing for now.
-            } else {
-                this.handlers[i].onUnregister(top);
+        var i;
+        for(i = 0 ; i < this.handlers.length; i++) {
+            if (! (this.handlers[i] instanceof StopWhenHandler)) {
+                this.handlers[i].onUnregister(this.top);
             }
         }
     };
     //////////////////////////////////////////////////////////////////////
 
+
+    var copy_attribs;
 
 
     // Notes: bigBang maintains a stack of activation records; it should be possible
@@ -836,16 +838,17 @@ var rawJsworld = {};
     // handlerCreators: (Arrayof (-> handler))
     // k: any -> void
     bigBang = function(top, init_world, handlerCreators, attribs, succ) {
+        var i;
         // clear_running_state();
 
         // Construct a fresh set of the handlers.
         var handlers = map(handlerCreators, function(x) { return x();} );
-        if (runningBigBangs.length > 0) { 
+        if (runningBigBangs.length > 0) {
             runningBigBangs[runningBigBangs.length - 1].pause();
         }
 
         // Create an activation record for this big-bang.
-        var activationRecord = 
+        var activationRecord =
             new BigBangRecord(top, init_world, handlerCreators, handlers, attribs);
         runningBigBangs.push(activationRecord);
         function keepRecordUpToDate(w, oldW, k2) {
@@ -859,7 +862,7 @@ var rawJsworld = {};
         // Monitor for termination and register the other handlers.
         var stopWhen = new StopWhenHandler(function(w, k2) { k2(false); },
                                            function(w, k2) { k2(w); });
-        for(var i = 0 ; i < handlers.length; i++) {
+        for(i = 0 ; i < handlers.length; i++) {
             if (handlers[i] instanceof StopWhenHandler) {
                 stopWhen = handlers[i];
             } else {
@@ -905,40 +908,40 @@ var rawJsworld = {};
     var on_tick = function(delay, tick) {
         return function() {
             var scheduleTick, ticker;
-
-
-            (new Date()).valueOf()
-
             scheduleTick = function(t) {
                 ticker.watchId = setTimeout(
-                    function() { 
+                    function() {
                         ticker.watchId = undefined;
                         var startTime = (new Date()).valueOf();
-                        change_world(tick, 
-                                     function() { 
+                        change_world(tick,
+                                     function() {
                                          var endTime = (new Date()).valueOf();
                                          scheduleTick(Math.max(delay - (endTime - startTime),
-                                                               0)); 
-                                     }); 
+                                                               0));
+                                     });
                     },
                     t);
             };
-            
+
             ticker = {
                 watchId: -1,
-                onRegister: function (top) { 
+                onRegister: function (top) {
                     scheduleTick(delay);
                 },
 
                 onUnregister: function (top) {
-                    if (ticker.watchId)
+                    if (ticker.watchId) {
                         clearTimeout(ticker.watchId);
+                    }
                 }
             };
             return ticker;
         };
-    }
+    };
     Jsworld.on_tick = on_tick;
+
+    var preventDefault, stopPropagation;
+    var attachEvent, detachEvent;
 
 
     function on_key(press) {
@@ -949,17 +952,17 @@ var rawJsworld = {};
                 change_world(function(w, k) { press(w, e, k); }, doNothing);
             };
             return {
-                onRegister: function(top) { 
+                onRegister: function(top) {
                     //http://www.w3.org/TR/html5/editing.html#sequential-focus-navigation-and-the-tabindex-attribue
                     $(top).attr('tabindex', 1);
                     $(top).focus();
-                    attachEvent(top, 'keydown', wrappedPress); 
+                    attachEvent(top, 'keydown', wrappedPress);
                 },
-                onUnregister: function(top) { 
-                    detachEvent(top, 'keydown', wrappedPress); 
+                onUnregister: function(top) {
+                    detachEvent(top, 'keydown', wrappedPress);
                 }
             };
-        }
+        };
     }
     Jsworld.on_key = on_key;
 
@@ -980,9 +983,10 @@ var rawJsworld = {};
                     do {
                         x -= currentElement.offsetLeft;
                         y -= currentElement.offsetTop;
-                    } while(currentElement = currentElement.offsetParent);
+                        currentElement = currentElement.offsetParent;
+                    } while(currentElement);
 
-                    if (type === 'button-down') { 
+                    if (type === 'button-down') {
                         isButtonDown = true;
                     } else if (type === 'button-up') {
                         isButtonDown = false;
@@ -1005,22 +1009,22 @@ var rawJsworld = {};
             var wrappedEnter = makeWrapped('enter');
             var wrappedLeave = makeWrapped('leave');
             return {
-                onRegister: function(top) { 
-                    attachEvent(top, 'mousedown', wrappedDown); 
-                    attachEvent(top, 'mouseup', wrappedUp); 
-                    attachEvent(top, 'mousemove', wrappedMove); 
-                    attachEvent(top, 'mouseenter', wrappedEnter); 
-                    attachEvent(top, 'mouseleave', wrappedLeave); 
+                onRegister: function(top) {
+                    attachEvent(top, 'mousedown', wrappedDown);
+                    attachEvent(top, 'mouseup', wrappedUp);
+                    attachEvent(top, 'mousemove', wrappedMove);
+                    attachEvent(top, 'mouseenter', wrappedEnter);
+                    attachEvent(top, 'mouseleave', wrappedLeave);
                 },
-                onUnregister: function(top) { 
-                    detachEvent(top, 'mousedown', wrappedDown); 
-                    detachEvent(top, 'mouseup', wrappedUp); 
-                    detachEvent(top, 'mousemove', wrappedMove); 
-                    detachEvent(top, 'mouseenter', wrappedEnter); 
-                    detachEvent(top, 'mouseleave', wrappedLeave); 
+                onUnregister: function(top) {
+                    detachEvent(top, 'mousedown', wrappedDown);
+                    detachEvent(top, 'mouseup', wrappedUp);
+                    detachEvent(top, 'mousemove', wrappedMove);
+                    detachEvent(top, 'mouseenter', wrappedEnter);
+                    detachEvent(top, 'mouseleave', wrappedLeave);
                 }
             };
-        }
+        };
     }
     Jsworld.on_mouse = on_mouse;
 
@@ -1028,8 +1032,9 @@ var rawJsworld = {};
 
 
 
+    var checkDomSexp;
 
-    
+
     //  on_draw: CPS(world -> (sexpof node)) CPS(world -> (sexpof css-style)) -> handler
     function on_draw(redraw, redraw_css) {
         var wrappedRedraw = function(w, k) {
@@ -1037,15 +1042,15 @@ var rawJsworld = {};
                 checkDomSexp(newDomTree, newDomTree);
                 k(newDomTree);
             });
-        }
+        };
 
         return function() {
             var drawer = {
                 _top: null,
-                _listener: function(w, oldW, k2) { 
-                    do_redraw(w, oldW, drawer._top, wrappedRedraw, redraw_css, k2); 
+                _listener: function(w, oldW, k2) {
+                    do_redraw(w, oldW, drawer._top, wrappedRedraw, redraw_css, k2);
                 },
-                onRegister: function (top) { 
+                onRegister: function (top) {
                     drawer._top = top;
                     add_world_listener(drawer._listener);
                 },
@@ -1061,14 +1066,14 @@ var rawJsworld = {};
 
 
 
-    function StopWhenHandler(test, receiver) {
+    StopWhenHandler = function(test, receiver) {
         this.test = test;
         this.receiver = receiver;
-    }
+    };
     // stop_when: CPS(world -> boolean) CPS(world -> boolean) -> handler
     function stop_when(test, receiver) {
         return function() {
-            if (receiver == undefined) {
+            if (receiver === undefined) {
                 receiver = function(w, k) { k(w); };
             }
             return new StopWhenHandler(test, receiver);
@@ -1081,11 +1086,11 @@ var rawJsworld = {};
     function on_world_change(f) {
         var listener = function(world, oldW, k) { f(world, k); };
         return function() {
-            return { 
-                onRegister: function (top) { 
+            return {
+                onRegister: function (top) {
                     add_world_listener(listener); },
                 onUnregister: function (top) {
-                    remove_world_listener(listener)}
+                    remove_world_listener(listener); }
             };
         };
     }
@@ -1096,7 +1101,7 @@ var rawJsworld = {};
 
 
     // Compatibility for attaching events to nodes.
-    function attachEvent(node, eventName, fn) {
+    attachEvent = function(node, eventName, fn) {
         if (node.addEventListener) {
             // Mozilla
             node.addEventListener(eventName, fn, false);
@@ -1104,9 +1109,9 @@ var rawJsworld = {};
             // IE
             node.attachEvent('on' + eventName, fn, false);
         }
-    }
+    };
 
-    var detachEvent = function(node, eventName, fn) {
+    detachEvent = function(node, eventName, fn) {
         if (node.addEventListener) {
             // Mozilla
             node.removeEventListener(eventName, fn, false);
@@ -1114,7 +1119,7 @@ var rawJsworld = {};
             // IE
             node.detachEvent('on' + eventName, fn, false);
         }
-    }
+    };
 
     //
     // DOM CREATION STUFFS
@@ -1163,8 +1168,8 @@ var rawJsworld = {};
 
 
     sexp2tree = function(sexp) {
-        if(sexp.length == undefined) return { node: sexp, children: [] };
-        else return { node: sexp[0], children: map(sexp.slice(1), sexp2tree) };
+        if(sexp.length === undefined) { return { node: sexp, children: [] }; }
+        else { return { node: sexp[0], children: map(sexp.slice(1), sexp2tree) }; }
     };
 
     function sexp2attrib(sexp) {
@@ -1173,10 +1178,10 @@ var rawJsworld = {};
 
     function sexp2css_node(sexp) {
         var attribs = map(sexp.slice(1), sexp2attrib);
-        if (typeof sexp[0] == 'string'){
+        if (typeof sexp[0] === 'string'){
             return [{ id: sexp[0], attribs: attribs }];
-        } else if ('length' in sexp[0]){
-            return map(sexp[0], function (id) { return { id: id, attribs: attribs } });
+        } else if (sexp[0].length !== undefined){
+            return map(sexp[0], function (id) { return { id: id, attribs: attribs }; });
         } else {
             return [{ node: sexp[0], attribs: attribs }];
         }
@@ -1189,14 +1194,15 @@ var rawJsworld = {};
 
 
     function isTextNode(n) {
-        return (n.nodeType == Node.TEXT_NODE);
-    };
+        return (n.nodeType === 3);
+    }
 
 
     function isElementNode(n) {
-        return (n.nodeType == Node.ELEMENT_NODE);
-    };
+        return (n.nodeType === 1);
+    }
 
+    var JsworldDomError;
 
     var throwDomError = function(thing, topThing) {
         throw new JsworldDomError(
@@ -1209,11 +1215,12 @@ var rawJsworld = {};
     // checkDomSexp: X X -> boolean
     // Checks to see if thing is a DOM-sexp.  If not,
     // throws an object that explains why not.
-    function checkDomSexp(thing, topThing) {
+    checkDomSexp = function(thing, topThing) {
+        var i;
         if (! thing instanceof Array) {
             throwDomError(thing, topThing);
         }
-        if (thing.length == 0) {
+        if (thing.length === 0) {
             throwDomError(thing, topThing);
         }
 
@@ -1226,11 +1233,11 @@ var rawJsworld = {};
                                           thing);
             }
         } else if (isElementNode(thing[0])) {
-            for (var i = 1; i < thing.length; i++) {
+            for (i = 1; i < thing.length; i++) {
                 checkDomSexp(thing[i], thing);
             }
         } else {
-            console.log(thing[0]);
+            if (window.console && window.console.log) { window.console.log(thing[0]); }
 
             throw new JsworldDomError(
                 plt.baselib.format.format(
@@ -1238,15 +1245,15 @@ var rawJsworld = {};
                     [thing, topThing]),
                 thing[0]);
         }
-    }
+    };
 
-    function JsworldDomError(msg, elt) {
+    JsworldDomError = function(msg, elt) {
         this.msg = msg;
         this.elt = elt;
-    }
+    };
     JsworldDomError.prototype.toString = function() {
         return "JsworldDomError: " + this.msg;
-    }
+    };
 
 
 
@@ -1257,19 +1264,21 @@ var rawJsworld = {};
     //
 
 
-    function copy_attribs(node, attribs) {
-        if (attribs)
+    copy_attribs = function(node, attribs) {
+        var a;
+        if (attribs) {
             for (a in attribs) {
                 if (attribs.hasOwnProperty(a)) {
-                    if (typeof attribs[a] == 'function')
+                    if (typeof attribs[a] === 'function') {
                         add_ev(node, a, attribs[a]);
-                    else{
-                        node[a] = attribs[a];//eval("node."+a+"='"+attribs[a]+"'");
+                    } else {
+                        node[a] = attribs[a];
                     }
                 }
             }
+        }
         return node;
-    }
+    };
 
 
     //
@@ -1299,21 +1308,21 @@ var rawJsworld = {};
 
 
 
-    var preventDefault = function(event) {
+    preventDefault = function(event) {
         if (event.preventDefault) {
             event.preventDefault();
         } else {
             event.returnValue = false;
         }
-    }
+    };
 
-    var stopPropagation = function(event) {
+    stopPropagation = function(event) {
         if (event.stopPropagation) {
             event.stopPropagation();
         } else {
             event.cancelBubble = true;
         }
-    }
+    };
 
 
     var stopClickPropagation = function(node) {

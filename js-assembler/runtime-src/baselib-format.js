@@ -209,8 +209,21 @@
                 this[k] = params[k];
             }
         }
-        this.objectCounter = 0;
+        if (this.depth === undefined) {
+            this.depth = 0;
+        }
+        if (this.objectCounter === undefined) {
+            this.objectCounter = 0;
+        }
     };
+
+
+    ToDomNodeParameters.prototype.incrementDepth = function() {
+        return new ToDomNodeParameters({ mode : this.mode,
+                                         depth: this.depth + 1,
+                                         objectCounter: objectCounter });
+    };
+    
 
     // getMode: -> (U "print" "display" "write")
     ToDomNodeParameters.prototype.getMode = function() {
@@ -239,6 +252,10 @@
     ToDomNodeParameters.prototype.put = function(x) {
         this.objectCounter++;
         return this.cache.put(x, this.objectCounter);
+    };
+
+    ToDomNodeParameters.prototype.recur = function(x) {
+        return toDomNode(x, this.incrementDepth());
     };
 
 

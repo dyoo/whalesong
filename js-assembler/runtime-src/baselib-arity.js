@@ -41,7 +41,7 @@
 	    while (arity !== baselib.lists.EMPTY) {
 		if (typeof(arity.first) === 'number') {
 		    if (arity.first === n) { return true; }
-		} else if (isArityAtLeast(arity)) {
+		} else if (isArityAtLeast(arity.first)) {
 		    if (n >= arityAtLeastValue(arity.first)) { return true; }
 		}
 		arity = arity.rest;

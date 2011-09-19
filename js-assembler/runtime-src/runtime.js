@@ -222,6 +222,9 @@
         this.mainModules = []; // Arrayof String
 	this.params = {
 
+            // print-as-expression: boolean
+            'print-as-expression' : true,
+
 	    // currentDisplayer: DomNode -> Void
 	    // currentDisplayer is responsible for displaying to the browser.
 	    'currentDisplayer': function(MACHINE, domNode) {

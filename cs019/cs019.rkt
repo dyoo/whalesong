@@ -24,6 +24,32 @@
 
 
 
+
+
+			      ;; advanced-define
+			      ;; advanced-lambda
+			      ;; advanced-app
+			      ;; advanced-set!  advanced-set!-continue
+			      ;; advanced-when
+			      ;; advanced-unless
+			      ;; advanced-define-struct
+                              ;; advanced-define-datatype
+			      ;; advanced-let
+			      ;; advanced-recur
+			      ;; advanced-begin
+			      ;; advanced-begin0
+			      ;; advanced-case
+                              ;; advanced-match
+			      ;; advanced-shared
+			      ;; advanced-delay
+
+
+
+
+
+
+
+
 (define-for-syntax (local-expand-for-error stx ctx stops)
   ;; This function should only be called in an 'expression
   ;;  context. In case we mess up, avoid bogus error messages.

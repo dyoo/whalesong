@@ -180,16 +180,6 @@
     exceptions.RacketError = RacketError;
     exceptions.isRacketError = isRacketError;
 
-
-    // exceptions.InternalError = InternalError;
-    // exceptions.internalError = function(v, contMarks) { return new InternalError(v, contMarks); };
-    // exceptions.isInternalError = function(x) { return x instanceof InternalError; };
-
-    // exceptions.IncompleteExn = IncompleteExn;
-    // exceptions.makeIncompleteExn = function(constructor, msg, args) { return new IncompleteExn(constructor, msg, args); };
-    // exceptions.isIncompleteExn = function(x) { return x instanceof IncompleteExn; };
-
-
     exceptions.Exn = Exn;
     exceptions.makeExn = Exn.constructor;
     exceptions.isExn = Exn.predicate;

@@ -239,6 +239,17 @@
         baselib.srclocs.isSrcloc,
         'srcloc');
 
+    var checkContinuationMarkSet = makeCheckArgumentType(
+        baselib.contmarks.isContinuationMarkSet,
+        'continuation mark set');
+
+    var checkContinuationPromptTag = makeCheckArgumentType(
+        baselib.contmarks.isContinuationPromptTag,
+        'continuation prompt tag');
+
+    var checkExn = makeCheckArgumentType(
+        baselib.exceptions.isExn,
+        'exn');
 
     //////////////////////////////////////////////////////////////////////
 
@@ -248,7 +259,6 @@
     exports.makeCheckArgumentType = makeCheckArgumentType;
     exports.makeCheckParameterizedArgumentType = makeCheckParameterizedArgumentType;
     exports.makeCheckListofArgumentType = makeCheckListofArgumentType;
-
     exports.checkOutputPort = checkOutputPort;
     exports.checkSymbol = checkSymbol;
     exports.checkString = checkString;
@@ -275,5 +285,8 @@
     exports.checkBoolean = checkBoolean;
     exports.checkPlaceholder = checkPlaceholder;
     exports.checkSrcloc = checkSrcloc;
+    exports.checkContinuationMarkSet = checkContinuationMarkSet;
+    exports.checkContinuationPromptTag = checkContinuationPromptTag;
+    exports.checkExn = checkExn;
 
 }(this.plt.baselib));

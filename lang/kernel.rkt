@@ -195,7 +195,7 @@
  displayln
 
  
-;;  current-continuation-marks
+ current-continuation-marks
 
 ;;  continuation-mark-set?
 ;;  continuation-mark-set->list
@@ -221,21 +221,22 @@
   random
 ;;  sleep
 ;;  (identity -identity)
-;;  raise
-  
+
+raise  
 error
 raise-type-error
 raise-mismatch-error
 
-;;  make-exn
-;;  make-exn:fail
-;;  make-exn:fail:contract
-;;  make-exn:fail:contract:arity
-;;  make-exn:fail:contract:variable
-;;  make-exn:fail:contract:divide-by-zero
+make-exn
+make-exn:fail
+make-exn:fail:contract
+make-exn:fail:contract:arity
+make-exn:fail:contract:variable
+make-exn:fail:contract:divide-by-zero
 
-;;  exn-message
-;;  exn-continuation-marks
+exn-message
+exn-continuation-marks
+
 
 ;;  exn?
 ;;  exn:fail?

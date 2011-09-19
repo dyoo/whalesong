@@ -41,8 +41,6 @@
         return baselib.lists.makeList.apply(null, result);
     };
 
-
-
     // Returns an approximate stack trace.
     // getContext: MACHINE -> (arrayof (U Procedure (Vector source line column position span)))
     ContinuationMarkSet.prototype.getContext = function(MACHINE) {
@@ -71,21 +69,16 @@
         return result;
     };
 
-
-
-
-
     // A continuation prompt tag labels a prompt frame.
     var ContinuationPromptTag = function(name) {
 	this.name = name;
     };
 
-
-
-
-
+    var isContinuationMarkSet = baselib.makeClassPredicate(ContinuationMarkSet);
+    var isContinuationPromptTag = baselib.makeClassPredicate(ContinuationPromptTag);
 
     exports.ContinuationMarkSet = ContinuationMarkSet;
     exports.ContinuationPromptTag = ContinuationPromptTag;
-
+    exports.isContinuationMarkSet = isContinuationMarkSet;
+    exports.isContinuationPromptTag = isContinuationPromptTag;
 }(this.plt.baselib));

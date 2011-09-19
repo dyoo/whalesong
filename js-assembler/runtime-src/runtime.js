@@ -375,12 +375,15 @@
     };
 
 
-    Machine.prototype.captureContinuationMarks = function() {
+    Machine.prototype.captureContinuationMarks = function(promptTag) {
         var kvLists = [];
         var i;
         var control = this.c;
         var tracedCalleeKey = getTracedCalleeKey(this);
         for (i = control.length-1; i >= 0; i--) {
+            if (control[i] instanceof PromptFrame && control[i].tag === promptTag) {
+                break;
+            }
             if (control[i].marks.length !== 0) {
                 kvLists.push(control[i].marks);
             }

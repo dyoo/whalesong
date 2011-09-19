@@ -185,7 +185,7 @@
 
 
 
-    var defaultCurrentPrintImplementation = function defaultCurrentPrintImplementation(MACHINE) {
+    var defaultCurrentPrintImplementation = function (MACHINE) {
         if(--MACHINE.cbt < 0) { 
             throw defaultCurrentPrintImplementation; 
         }
@@ -195,7 +195,9 @@
 	var outputPort = 
 	    MACHINE.params.currentOutputPort;
 	if (elt !== VOID) {
-	    outputPort.writeDomNode(MACHINE, toDomNode(elt, 'print'));
+	    outputPort.writeDomNode(
+                MACHINE, 
+                toDomNode(elt, MACHINE.params['print-mode']));
 	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
 	}
         MACHINE.a = oldArgcount;
@@ -225,6 +227,10 @@
             // print-as-expression: boolean
             'print-as-expression' : true,
 
+            // print-mode: (one-of "write" "print" "constructor")
+            'print-mode' : 'write',
+
+
 	    // currentDisplayer: DomNode -> Void
 	    // currentDisplayer is responsible for displaying to the browser.
 	    'currentDisplayer': function(MACHINE, domNode) {
@@ -245,7 +251,7 @@
 	    'currentErrorHandler': function(MACHINE, exn) {
                 MACHINE.params.currentErrorDisplayer(
                     MACHINE,
-                    toDomNode(exn));
+                    toDomNode(exn, MACHINE.params['print-mode']));
             },
 	    
 	    'currentNamespace': {},

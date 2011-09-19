@@ -42,11 +42,11 @@
         return "#&" + baselib.format.toDisplayedString(this.val, cache);
     };
 
-    Box.prototype.toDomNode = function(cache) {
-        cache.put(this, true);
+    Box.prototype.toDomNode = function(params) {
+        params.put(this, true);
         var parent = document.createElement("span");
         parent.appendChild(document.createTextNode('#&'));
-        parent.appendChild(baselib.format.toDomNode(this.val, cache));
+        parent.appendChild(baselib.format.toDomNode(this.val, params));
         return parent;
     };
 

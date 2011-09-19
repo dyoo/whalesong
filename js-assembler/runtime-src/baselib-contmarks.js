@@ -12,7 +12,7 @@
         this.kvlists = kvlists;
     };
 
-    ContinuationMarkSet.prototype.toDomNode = function(cache) {
+    ContinuationMarkSet.prototype.toDomNode = function(params) {
         var dom = document.createElement("span");
         dom.appendChild(document.createTextNode('#<continuation-mark-set>'));
         return dom;

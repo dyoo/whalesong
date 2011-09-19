@@ -76,9 +76,9 @@
         }
 
         var returnVal;
-        if (typeof(x.toWrittenString) !== 'undefined') {
+        if (x.toWrittenString) {
             returnVal = x.toWrittenString(cache);
-        } else if (typeof(x.toDisplayedString) !== 'undefined') {
+        } else if (x.toDisplayedString) {
             returnVal = x.toDisplayedString(cache);
         } else {
             returnVal = x.toString();
@@ -119,9 +119,9 @@
         }
 
         var returnVal;
-        if (typeof(x.toDisplayedString) !== 'undefined') {
+        if (x.toDisplayedString) {
             returnVal = x.toDisplayedString(cache);
-        } else if (typeof(x.toWrittenString) !== 'undefined') {
+        } else if (x.toWrittenString) {
             returnVal = x.toWrittenString(cache);
         } else {
             returnVal = x.toString();
@@ -218,6 +218,10 @@
             return this.mode; 
         }
         return 'print';
+    };
+
+    ToDomNodeParameters.prototype.getDepth = function(x) {
+        return this.depth;
     };
 
     ToDomNodeParameters.prototype.containsKey = function(x) {
@@ -324,6 +328,8 @@
             params = new ToDomNodeParameters({'mode' : 'print'});
         } else if (params === 'display') {
             params = new ToDomNodeParameters({'mode' : 'display'});
+        } else if (params === 'constructor') {
+            params = new ToDomNodeParameters({'mode' : 'constructor'});
         } else {
             params = params || new ToDomNodeParameters({'mode' : 'display'});
         } 
@@ -331,40 +337,6 @@
         if (baselib.numbers.isSchemeNumber(x)) {
             node = numberToDomNode(x, params);
             $(node).addClass("number");
-            return node;
-        }
-        
-        if (x === null) {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode("null"));
-            $(node).addClass("null");
-            return node;
-        }
-
-        if (x === true) {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode("true"));
-            $(node).addClass("boolean");
-            return node;
-        }
-
-        if (x === false) {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode("false"));
-            $(node).addClass("boolean");
-            return node;
-        }
-
-        if (typeof(x) === 'object') {
-            if (params.containsKey(x)) {
-                node = document.createElement("span");
-                node.appendChild(document.createTextNode("#" + params.get(x)));
-                return node;
-            }
-        }
-        if (x === undefined || x === null) {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode("#<undefined>"));
             return node;
         }
 
@@ -379,6 +351,35 @@
             wrapper.appendChild(node);
             $(wrapper).addClass("string");
             return wrapper;
+        }
+
+        if (x === true || x === false) {
+            node = document.createElement("span");
+            node.appendChild(document.createTextNode(x ? "true" : "false"));
+            $(node).addClass("boolean");
+            return node;
+        }
+
+        if (x === null) {
+            node = document.createElement("span");
+            node.appendChild(document.createTextNode("null"));
+            $(node).addClass("null");
+            return node;
+        }
+
+        if (x === undefined) {
+            node = document.createElement("span");
+            node.appendChild(document.createTextNode("#<undefined>"));
+            return node;
+        }
+
+
+        if (typeof(x) === 'object') {
+            if (params.containsKey(x)) {
+                node = document.createElement("span");
+                node.appendChild(document.createTextNode("#" + params.get(x)));
+                return node;
+            }
         }
 
         if (baselib.functions.isProcedure(x)) {
@@ -397,15 +398,13 @@
         var returnVal;
         if (x.nodeType) {
             returnVal =  x;
-        } else if (typeof(x.toDomNode) !== 'undefined') {
+        } else if (x.toDomNode) {
             returnVal =  x.toDomNode(params);
-        } else if (params.getMode() === 'write' && 
-                   typeof(x.toWrittenString) !== 'undefined') {
+        } else if (params.getMode() === 'write' && x.toWrittenString) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode(x.toWrittenString(params)));
             returnVal =  node;
-        } else if (params.getMode() === 'display' &&
-                   typeof(x.toDisplayedString) !== 'undefined') {
+        } else if (params.getMode() === 'display' && x.toDisplayedString) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode(x.toDisplayedString(params)));
             returnVal =  node;

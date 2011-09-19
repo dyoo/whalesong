@@ -166,7 +166,7 @@ var withIeHack = function(canvas, f) {
 
 // Images are expected to define a render() method, which is used
 // here to draw to the canvas.
-BaseImage.prototype.toDomNode = function(cache) {
+BaseImage.prototype.toDomNode = function(params) {
     var that = this;
     var width = that.getWidth();
     var height = that.getHeight();
@@ -365,7 +365,7 @@ FileImage.prototype.getHeight = function() {
 };
 
 // Override toDomNode: we don't need a full-fledged canvas here.
-FileImage.prototype.toDomNode = function(cache) {
+FileImage.prototype.toDomNode = function(params) {
     return this.img.cloneNode(true);
 };
 

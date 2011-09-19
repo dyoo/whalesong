@@ -2,19 +2,25 @@
 
 ;; Like the big whalesong language, but with additional ASL restrictions.
 
-(require (for-syntax racket/base syntax/stx)
-         (only-in "../lang/whalesong.rkt"))
+(require (for-syntax racket/base syntax/stx racket/match))
 
-(provide (except-out (all-from-out "../lang/whalesong.rkt")
+
+(require (prefix-in whalesong: "../lang/whalesong.rkt"))
+(provide (except-out (filtered-out
+                      (lambda (name)
+                        (match name
+                          [(regexp #rx"^whalesong:(.+)$" (list _ real-name))
+                           real-name]
+                          [else
+                           #f]))
+                      (all-from-out "../lang/whalesong.rkt"))
                      if
                      cond
                      case
                      when
                      unless
                      member))
-
-
-
+                     
 
 
 
@@ -68,13 +74,19 @@
       [else "something else"])))
 
 ;; verify-boolean is inserted to check for boolean results:
-(define (verify-boolean b where)
-  (if (or (eq? b #t) (eq? b #f))
-      b
-      (raise
-       (make-exn:fail:contract
-        (format "~a: question result is not true or false: ~e" where b)
-        (current-continuation-marks)))))
+(define-for-syntax (verify-boolean b where)
+  (with-syntax ([b b]
+                [where where])
+    (quasisyntax/loc #'b
+      (let ([bv b])
+        (if (or (eq? bv #t) (eq? bv #f))
+            bv
+            #,(syntax/loc #'b
+                (whalesong:#%app raise
+                                 (make-exn:fail:contract
+                                  (format "~a: question result is not true or false: ~e" 'where bv)
+                                  (current-continuation-marks)))))))))
+
 
 (define-syntax (-cond stx)
   (syntax-case stx ()
@@ -118,7 +130,7 @@
                         (syntax/loc clause (new-test answer))))]
                    [(question answer)
                     (with-syntax ([verified 
-                                   (syntax (verify-boolean question 'cond))])
+                                   (verify-boolean #'question 'cond)])
                       (syntax/loc clause (verified answer)))]
                    [()
                     (check-preceding-exprs clause)
@@ -162,7 +174,7 @@
          ;; Add `else' clause for error (always):
          (let ([clauses (append checked-clauses 
                                 (list 
-                                 (with-syntax ([error-call (syntax/loc stx (error 'cond "all question results were false"))])
+                                 (with-syntax ([error-call (syntax/loc stx (whalesong:#%app raise (make-exn:fail:contract "cond: all question results were false" (current-continuation-marks))))])
                                    (syntax [else error-call]))))])
            (with-syntax ([clauses clauses])
              (syntax/loc stx (cond . clauses))))))]
@@ -178,7 +190,7 @@
 (define-syntax (-if stx)
   (syntax-case stx ()
     [(_ test then else)
-     (with-syntax ([new-test (syntax (verify-boolean test 'if))])
+     (with-syntax ([new-test (verify-boolean #'test 'if)])
        (syntax/loc stx
          (if new-test
              then
@@ -327,7 +339,7 @@
                           [(null? clauses)
                            (list
                             (syntax/loc stx
-                              [else (error 'case "the expression matched none of the choices")]))]
+                              [else (whalesong:#%app raise (make-exn:fail:contract "case: the expression matched none of the choices" (current-continuation-marks)))]))]
                           [(syntax-case (car clauses) (else)
                              [(else . _) (syntax/loc (car clauses) (else . _))]
                              [_else #f])
@@ -381,10 +393,11 @@
                                 stx
                                 exprs
                                 null)
-       (let ([result
-              (syntax/loc stx 
-                (when (verify-boolean q 'when) expr ...))])
-         result))]
+       (with-syntax ([new-test (verify-boolean #'q 'when)])
+         (let ([result
+                (syntax/loc stx 
+                  (when new-test expr ...))])
+           result)))]
     [(_)
      (teach-syntax-error
       #'when
@@ -404,10 +417,11 @@
                                 stx
                                 exprs
                                 null)
-       (let ([result
-              (syntax/loc stx 
-                (unless (verify-boolean q 'unless) expr ...))])
-         result))]
+<       (with-syntax ([new-test (verify-boolean #'q 'when)])
+         (let ([result
+                (syntax/loc stx 
+                  (unless new-test expr ...))])
+           result)))]
     [(_)
      (teach-syntax-error
       #'unless
@@ -428,7 +442,7 @@
 ;; ASL's member returns booleans.
 (define (-member x L)
   (cond
-    [(false? (member x L)) #f]
+    [(eq? (member x L) #f) #f]
     [else #t]))
 
 (provide (rename-out [-member member]))

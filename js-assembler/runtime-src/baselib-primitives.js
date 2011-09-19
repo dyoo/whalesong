@@ -1881,7 +1881,11 @@
             if (M.a === 1) {
                 promptTag = checkContinuationPromptTag(M, 'current-continuation-marks', 0);
             }
-            return M.captureContinuationMarks(promptTag);
+            var contMarks = M.captureContinuationMarks(promptTag);
+            // The continuation marks shouldn't capture the record of the call to
+            // current-continuation-marks itself.
+            contMarks.shift();
+            return contMarks;
         });
         
 

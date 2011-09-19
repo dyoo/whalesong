@@ -2,6 +2,7 @@
 (require (prefix-in racket: (only-in racket/math pi sinh cosh sqr
                                      sgn conjugate))
          (prefix-in racket: racket/base)
+         racket/provide
 	 racket/local
 	 (for-syntax racket/base)
          racket/stxparam
@@ -121,6 +122,8 @@
 	 except-out
 	 rename-out
 	 struct-out
+         filtered-out
+         
          define-syntax-rule
 	 define-syntax
 	 define-syntaxes

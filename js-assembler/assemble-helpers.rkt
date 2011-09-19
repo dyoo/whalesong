@@ -4,8 +4,13 @@
          "../compiler/expression-structs.rkt"
          "../compiler/lexical-structs.rkt"
          "../compiler/arity-structs.rkt"
+         "assemble-structs.rkt"
          racket/list
-         racket/string)
+         racket/string
+         racket/match)
+
+
+
 
 (provide assemble-oparg
          assemble-target
@@ -14,6 +19,7 @@
          assemble-prefix-reference
          assemble-whole-prefix-reference
          assemble-reg
+         munge-label-name
          assemble-label
          assemble-listof-assembled-values
 	 assemble-default-continuation-prompt-tag
@@ -22,19 +28,21 @@
 	 assemble-jump
 	 assemble-display-name
 	 assemble-location
-         assemble-numeric-constant)
+         assemble-numeric-constant
+
+         block-looks-like-context-expected-values?)
 
 (require/typed typed/racket/base
                [regexp-split (Regexp String -> (Listof String))])
 
 
-(: assemble-oparg (OpArg -> String))
-(define (assemble-oparg v)
+(: assemble-oparg (OpArg Blockht -> String))
+(define (assemble-oparg v blockht)
   (cond 
     [(Reg? v)
      (assemble-reg v)]
     [(Label? v)
-     (assemble-label v)]
+     (assemble-label v blockht)]
     [(Const? v)
      (assemble-const v)]
     [(EnvLexicalReference? v)
@@ -44,7 +52,7 @@
     [(EnvWholePrefixReference? v)
      (assemble-whole-prefix-reference v)]
     [(SubtractArg? v)
-     (assemble-subtractarg v)]
+     (assemble-subtractarg v blockht)]
     [(ControlStackLabel? v)
      (assemble-control-stack-label v)]
     [(ControlStackLabel/MultipleValueReturn? v)
@@ -52,9 +60,9 @@
     [(ControlFrameTemporary? v)
      (assemble-control-frame-temporary v)]
     [(CompiledProcedureEntry? v)
-     (assemble-compiled-procedure-entry v)]
+     (assemble-compiled-procedure-entry v blockht)]
     [(CompiledProcedureClosureReference? v)
-     (assemble-compiled-procedure-closure-reference v)]
+     (assemble-compiled-procedure-closure-reference v blockht)]
     [(PrimitiveKernelValue? v)
      (assemble-primitive-kernel-value v)]
     [(ModuleEntry? v)
@@ -65,6 +73,8 @@
      (assemble-is-module-linked v)]
     [(VariableReference? v)
      (assemble-variable-reference v)]))
+
+
 
 
 
@@ -83,9 +93,9 @@
              (format "~a=~a;"
                      (cond
                       [(eq? target 'proc)
-                       "M.proc"]
+                       "M.p"]
                       [(eq? target 'val)
-                       "M.val"]
+                       "M.v"]
                       [(eq? target 'argcount)
                        "M.a"]
                       [(EnvLexicalReference? target)
@@ -103,7 +113,7 @@
 
 (: assemble-control-frame-temporary (ControlFrameTemporary -> String))
 (define (assemble-control-frame-temporary t)
-  (format "M.control[M.control.length-1].~a"
+  (format "M.c[M.c.length-1].~a"
           (ControlFrameTemporary-name t)))
 
 ;; fixme: use js->string
@@ -279,60 +289,66 @@
   (let ([name (Reg-name a-reg)])
     (cond
      [(eq? name 'proc)
-      "M.proc"]
+      "M.p"]
      [(eq? name 'val)
-      "M.val"]
+      "M.v"]
      [(eq? name 'argcount)
       "M.a"])))
 
 
-
-(: assemble-label (Label -> String))
-(define (assemble-label a-label)
-  (let ([chunks
-         (regexp-split #rx"[^a-zA-Z0-9]+"
-                       (symbol->string (Label-name a-label)))])
-    (cond
-      [(empty? chunks)
-       (error "impossible: empty label ~s" a-label)]
-      [(empty? (rest chunks))
-       (string-append "_" (first chunks))]
-      [else
-       (string-append "_"
-                      (first chunks)
-                      (apply string-append (map string-titlecase (rest chunks))))])))
-
+(: munge-label-name (Label -> String))
+(define (munge-label-name a-label)
+  (define chunks
+    (regexp-split #rx"[^a-zA-Z0-9]+"
+                  (symbol->string (Label-name a-label))))
+  (cond
+   [(empty? chunks)
+    (error "impossible: empty label ~s" a-label)]
+   [(empty? (rest chunks))
+    (string-append "_" (first chunks))]
+   [else
+    (string-append "_"
+                   (first chunks)
+                   (apply string-append (map string-titlecase (rest chunks))))]))
 
 
-(: assemble-subtractarg (SubtractArg -> String))
-(define (assemble-subtractarg s)
+
+(: assemble-label (Label Blockht -> String))
+(define (assemble-label a-label Blockht)
+  (munge-label-name a-label))
+
+
+
+(: assemble-subtractarg (SubtractArg Blockht -> String))
+(define (assemble-subtractarg s blockht)
   (format "(~a-~a)"
-          (assemble-oparg (SubtractArg-lhs s))
-          (assemble-oparg (SubtractArg-rhs s))))
+          (assemble-oparg (SubtractArg-lhs s) blockht)
+          (assemble-oparg (SubtractArg-rhs s) blockht)))
 
 
 (: assemble-control-stack-label (ControlStackLabel -> String))
 (define (assemble-control-stack-label a-csl)
-  "M.control[M.control.length-1].label")
+  "M.c[M.c.length-1].label")
 
 
 (: assemble-control-stack-label/multiple-value-return (ControlStackLabel/MultipleValueReturn -> String))
 (define (assemble-control-stack-label/multiple-value-return a-csl)
-  "M.control[M.control.length-1].label.mvr")
+  "(M.c[M.c.length-1].label.mvr||RT.si_context_expected_1)")
 
 
 
-(: assemble-compiled-procedure-entry (CompiledProcedureEntry -> String))
-(define (assemble-compiled-procedure-entry a-compiled-procedure-entry)
+(: assemble-compiled-procedure-entry (CompiledProcedureEntry Blockht -> String))
+(define (assemble-compiled-procedure-entry a-compiled-procedure-entry blockht)
   (format "(~a).label"
-          (assemble-oparg (CompiledProcedureEntry-proc a-compiled-procedure-entry))))
+          (assemble-oparg (CompiledProcedureEntry-proc a-compiled-procedure-entry)
+                          blockht)))
 
 
-(: assemble-compiled-procedure-closure-reference (CompiledProcedureClosureReference -> String))
-(define (assemble-compiled-procedure-closure-reference a-ref)
+(: assemble-compiled-procedure-closure-reference (CompiledProcedureClosureReference Blockht -> String))
+(define (assemble-compiled-procedure-closure-reference a-ref blockht)
   (format "(~a).closedVals[(~a).closedVals.length - ~a]"
-          (assemble-oparg (CompiledProcedureClosureReference-proc a-ref))
-          (assemble-oparg (CompiledProcedureClosureReference-proc a-ref))
+          (assemble-oparg (CompiledProcedureClosureReference-proc a-ref) blockht)
+          (assemble-oparg (CompiledProcedureClosureReference-proc a-ref) blockht)
           (add1 (CompiledProcedureClosureReference-n a-ref))))
 
 
@@ -379,9 +395,38 @@
 
 
 
-(: assemble-jump (OpArg -> String))
-(define (assemble-jump target)
-  (format "return(~a)(M);" (assemble-oparg target)))
+
+(: assemble-jump (OpArg Blockht -> String))
+(define (assemble-jump target blockht)
+
+  (define (default)
+    (format "return(~a)(M);" (assemble-oparg target blockht)))
+  
+  ;; Optimization: if the target of the jump goes to a block whose
+  ;; only body is a si-context-expected_1, then jump directly to that code.
+  (cond
+   [(Label? target)
+    (define target-block (hash-ref blockht (Label-name target)))
+    (cond
+     [(block-looks-like-context-expected-values? target-block)
+      =>
+      (lambda (expected)
+        (format "RT.si_context_expected(~a)(M);\n" expected))]
+     [else
+      (default)])]
+   [else
+    (default)]))
+
+
+
+(: block-looks-like-context-expected-values? (BasicBlock -> (U Natural False)))
+(define (block-looks-like-context-expected-values? a-block)
+  (match (BasicBlock-stmts a-block)
+    [(list (struct PerformStatement ((struct RaiseContextExpectedValuesError! (expected))))
+           stmts ...)
+     expected]
+    [else
+     #f]))
 
 
 
@@ -399,13 +444,13 @@
 
 
 
-(: assemble-location ((U Reg Label) -> String))
-(define (assemble-location a-location)
+(: assemble-location ((U Reg Label) Blockht -> String))
+(define (assemble-location a-location blockht)
   (cond
      [(Reg? a-location)
       (assemble-reg a-location)]
      [(Label? a-location)
-      (assemble-label a-location)]))
+      (assemble-label a-location blockht)]))
 
 
 (: assemble-primitive-kernel-value (PrimitiveKernelValue -> String))

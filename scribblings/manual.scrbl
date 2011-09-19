@@ -1856,5 +1856,6 @@ and suggesting improvements.
    "Robby Findler"
    "Gregor Kiczales"
    "Cristina Teodoropol"
+   "Matthew Flatt"
 ) string<?))
 )

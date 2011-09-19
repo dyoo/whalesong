@@ -164,7 +164,7 @@
              (function(MACHINE, EXPORTS){~a})(M, exports);
              ~a
              modrec.privateExports = exports;
-             return M.control.pop().label(M);"
+             return M.c.pop().label(M);"
                       (symbol->string name)
                       text
                       (get-provided-name-code bytecode))])

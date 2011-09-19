@@ -180,10 +180,14 @@
                 (loop (rest stmts)))]
          
          [(DebugPrint? a-stmt)
-          (cons a-stmt (loop (rest stmts)))]
+          ;(cons a-stmt (loop (rest stmts)))
+          (loop (rest stmts))
+          ]
 
          [(Comment? a-stmt)
-          (cons a-stmt (loop (rest stmts)))]
+          (loop (rest stmts))
+          ;(cons a-stmt (loop (rest stmts)))
+          ]
          
          [(AssignImmediateStatement? a-stmt)
           (cons (make-AssignImmediateStatement (rewrite-target (AssignImmediateStatement-target a-stmt))
@@ -332,7 +336,8 @@
      #f]
     
     [(DebugPrint? stmt)
-     #f]
+     ;#f
+     #t]
     
     [(AssignImmediateStatement? stmt)
      (equal? (AssignImmediateStatement-target stmt)

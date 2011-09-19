@@ -68,16 +68,16 @@
         MACHINE.e.length -= MACHINE.a;
 
         if (returnArgs.length === 1) {
-            MACHINE.val = returnArgs[0];
-            return MACHINE.control.pop().label(MACHINE);
+            MACHINE.v = returnArgs[0];
+            return MACHINE.c.pop().label(MACHINE);
         } else if (returnArgs.length === 0) {
             MACHINE.a = 0;
-            return MACHINE.control.pop().label.mvr(MACHINE);
+            return (MACHINE.c.pop().label.mvr || plt.runtime.si_context_expected_1)(MACHINE);
         } else {
             MACHINE.a = returnArgs.length;
-            MACHINE.val = returnArgs.shift();
+            MACHINE.v = returnArgs.shift();
             MACHINE.e.push.apply(MACHINE.e, returnArgs.reverse());
-            return MACHINE.control.pop().label.mvr(MACHINE);
+            return (MACHINE.c.pop().label.mvr || plt.runtime.si_context_expected_1)(MACHINE);
         }
     };
 
@@ -148,19 +148,19 @@
                                                                 MACHINE.captureContinuationMarks())));
             }
 
-            var oldVal = MACHINE.val;
+            var oldVal = MACHINE.v;
             var oldArgcount = MACHINE.a;
-            var oldProc = MACHINE.proc;
+            var oldProc = MACHINE.p;
 
             var oldErrorHandler = MACHINE.params['currentErrorHandler'];
             var afterGoodInvoke = function (MACHINE) { 
                 plt.runtime.PAUSE(
                     function (restart) {
                         MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                        var returnValue = MACHINE.val;
-                        MACHINE.val = oldVal;
+                        var returnValue = MACHINE.v;
+                        MACHINE.v = oldVal;
                         MACHINE.a = oldArgcount;
-                        MACHINE.proc = oldProc;
+                        MACHINE.p = oldProc;
                         succ(returnValue);
                     });
             };
@@ -168,30 +168,30 @@
                 plt.runtime.PAUSE(
                     function (restart) {
                         MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                        var returnValues = [MACHINE.val], i;
+                        var returnValues = [MACHINE.v], i;
                         for (i = 0; i < MACHINE.a - 1; i++) {
                             returnValues.push(MACHINE.e.pop());
                         }
-                        MACHINE.val = oldVal;
+                        MACHINE.v = oldVal;
                         MACHINE.a = oldArgcount;
-                        MACHINE.proc = oldProc;
+                        MACHINE.p = oldProc;
                         succ.apply(null, returnValues);
                     });
             };
 
-            MACHINE.control.push(
+            MACHINE.c.push(
                 new baselib.frames.CallFrame(afterGoodInvoke, v));
             MACHINE.a = arguments.length - 2;
             var i;
             for (i = 0; i < arguments.length - 2; i++) {
                 MACHINE.e.push(arguments[arguments.length - 1 - i]);
             }
-            MACHINE.proc = v;
+            MACHINE.p = v;
             MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                MACHINE.val = oldVal;
+                MACHINE.v = oldVal;
                 MACHINE.a = oldArgcount;
-                MACHINE.proc = oldProc;
+                MACHINE.p = oldProc;
                 fail(e);
             };
             MACHINE.trampoline(v.label);
@@ -246,48 +246,48 @@
             }
             success(result);
         } else if (isClosure(proc)) {
-            oldVal = MACHINE.val;
+            oldVal = MACHINE.v;
             oldArgcount = MACHINE.a;
-            oldProc = MACHINE.proc;
+            oldProc = MACHINE.p;
 
             oldErrorHandler = MACHINE.params['currentErrorHandler'];
             var afterGoodInvoke = function (MACHINE) { 
                 plt.runtime.PAUSE(function (restart) {
                     MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                    var returnValue = MACHINE.val;
-                    MACHINE.val = oldVal;
+                    var returnValue = MACHINE.v;
+                    MACHINE.v = oldVal;
                     MACHINE.a = oldArgcount;
-                    MACHINE.proc = oldProc;
+                    MACHINE.p = oldProc;
                     success(returnValue);
                 });
             };
             afterGoodInvoke.mvr = function (MACHINE) {
                 plt.runtime.PAUSE(function (restart) {
                     MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                    var returnValues = [MACHINE.val];
+                    var returnValues = [MACHINE.v];
                     var i;
                     for (i = 0; i < MACHINE.a - 1; i++) {
                         returnValues.push(MACHINE.e.pop());
                     }
-                    MACHINE.val = oldVal;
+                    MACHINE.v = oldVal;
                     MACHINE.a = oldArgcount;
-                    MACHINE.proc = oldProc;
+                    MACHINE.p = oldProc;
                     success.apply(null, returnValues);
                 });
             };
 
-            MACHINE.control.push(
+            MACHINE.c.push(
                 new baselib.frames.CallFrame(afterGoodInvoke, proc));
             MACHINE.a = arguments.length - 4;
             for (i = 0; i < arguments.length - 4; i++) {
                 MACHINE.e.push(arguments[arguments.length - 1 - i]);
             }
-            MACHINE.proc = proc;
+            MACHINE.p = proc;
             MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                MACHINE.val = oldVal;
+                MACHINE.v = oldVal;
                 MACHINE.a = oldArgcount;
-                MACHINE.proc = oldProc;
+                MACHINE.p = oldProc;
                 fail(e);
             };
             MACHINE.trampoline(proc.label);
@@ -324,9 +324,9 @@
                            arity,
                            function(M) {
                                --M.cbt;
-                               M.val = f(M);
+                               M.v = f(M);
                                M.e.length -= M.a;
-                               return M.control.pop().label(M);
+                               return M.c.pop().label(M);
                            },
                            []);
     };

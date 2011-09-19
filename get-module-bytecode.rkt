@@ -46,8 +46,12 @@
        (error 'get-module-bytecode)]))
 
   (with-handlers ([exn? (lambda (exn)
+                          ;(printf "error? ~s\n" (exn-message exn))
                           (define op (open-output-bytes))
-                          (write (alternative-f) op)
+                          ;(printf "trying alternative to get bytecode\n")
+                          (define bytecode (alternative-f))
+                          ;(printf "got the bytecode\n")
+                          (write bytecode op)
                           (get-output-bytes op))])
     (define op (open-output-bytes))
     (write compiled-code op)
@@ -57,10 +61,11 @@
 
 
 (define base-namespace
-  (lookup-language-namespace
-   #;'racket/base
-   `(file ,(path->string kernel-language-path)))
-   #;(make-base-namespace))
+  (make-base-namespace))
+  ;(lookup-language-namespace
+   ;;'racket/base
+   ;;`(file ,(path->string kernel-language-path)))
+   ;(make-base-namespace)))
 
 
 
@@ -82,8 +87,11 @@
 ;; get-compiled-code-from-port: input-port -> compiled-code
 ;; Compiles the source from scratch.
 (define (get-compiled-code-from-port ip)
+  ;(printf "get-compiled-code-from-port\n")
   (parameterize ([read-accept-reader #t]
                  [current-namespace base-namespace])
     (define stx (read-syntax (object-name ip) ip))
+    ;(printf "got stx; now expanding out the images\n")
     (define expanded-stx (expand-out-images stx))
+    ;(printf "now trying to compile the expanded syntax\n")
     (compile expanded-stx)))

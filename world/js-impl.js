@@ -21,6 +21,12 @@ var checkProcedureWithKey = plt.baselib.check.makeCheckArgumentType(
                           plt.baselib.arity.isArityMatching(x.racketArity, 2)); },
     'procedure that consumes a world argument and a key');
 
+var checkProcedureWithMouse = plt.baselib.check.makeCheckArgumentType(
+    function(x) { return (plt.baselib.functions.isProcedure(x) &&
+                          plt.baselib.arity.isArityMatching(x.racketArity, 4)); },
+    'procedure that consumes a world argument, an x and y coordinate, and a mouse event');
+
+
 
 var checkHandler = plt.baselib.check.makeCheckArgumentType(
     isWorldConfigOption,
@@ -96,6 +102,17 @@ EXPORTS['on-key'] =
             var f = checkProcedureWithKey(MACHINE, "on-key", 0);
             return new OnKey(f);
         });
+
+EXPORTS['on-mouse'] =
+    makePrimitiveProcedure(
+        'on-mouse',
+        1,
+        function(MACHINE) {
+            var f = checkProcedureWithMouse(MACHINE, "on-key", 0);
+            return new OnMouse(f);
+        });
+
+
 
 EXPORTS['key=?'] =
     makePrimitiveProcedure(

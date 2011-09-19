@@ -139,7 +139,7 @@ var makeCanvas = function(width, height) {
 
     // KLUDGE: IE compatibility uses /js/excanvas.js, and dynamic
     // elements must be marked this way.
-    if (window && typeof window.G_vmlCanvasManager != 'undefined') {
+    if (window.G_vmlCanvasManager) {
 	canvas = window.G_vmlCanvasManager.initElement(canvas);
     }
     return canvas;

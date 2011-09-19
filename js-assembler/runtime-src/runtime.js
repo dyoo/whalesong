@@ -212,15 +212,18 @@
 
     var Machine = function() {
 	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
-	this.val = undefined;         // value register
-	this.proc = undefined;        // procedure register
+	this.v = undefined;         // value register
+	this.p = undefined;        // procedure register
 	this.a = undefined;           // argument count
 	this.e = [];                // environment
-	this.control = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
+	this.c = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
 	this.modules = {};     // String -> ModuleRecord
         this.mainModules = []; // Arrayof String
 	this.params = {
+
+            // print-as-expression: boolean
+            'print-as-expression' : true,
 
 	    // currentDisplayer: DomNode -> Void
 	    // currentDisplayer is responsible for displaying to the browser.
@@ -293,10 +296,10 @@
     Machine.prototype.captureControl = function(skip, tag) {
 	var MACHINE = this;
 	var i;
-	for (i = MACHINE.control.length - 1 - skip; i >= 0; i--) {
-	    if (MACHINE.control[i].tag === tag) {
-		return MACHINE.control.slice(i + 1,
-					     MACHINE.control.length - skip);
+	for (i = MACHINE.c.length - 1 - skip; i >= 0; i--) {
+	    if (MACHINE.c[i].tag === tag) {
+		return MACHINE.c.slice(i + 1,
+					     MACHINE.c.length - skip);
 	    }
 	} 
 	raise(MACHINE, new Error("captureControl: unable to find tag " + tag));
@@ -311,10 +314,10 @@
     Machine.prototype.restoreControl = function(tag) {
 	var MACHINE = this;
 	var i;
-	for (i = MACHINE.control.length - 1; i >= 0; i--) {
-	    if (MACHINE.control[i].tag === tag) {
-		MACHINE.control = 
-		    MACHINE.control.slice(0, i+1).concat(
+	for (i = MACHINE.c.length - 1; i >= 0; i--) {
+	    if (MACHINE.c[i].tag === tag) {
+		MACHINE.c = 
+		    MACHINE.c.slice(0, i+1).concat(
 			MACHINE.e[MACHINE.e.length - 1]);
 		return;
 	    }
@@ -359,7 +362,7 @@
 
     // Save the continuation mark on the top control frame.
     Machine.prototype.installContinuationMarkEntry = function(key, value) {
-        var frame = this.control[this.control.length - 1];
+        var frame = this.c[this.c.length - 1];
         var marks = frame.marks;
         var i;
         for (i = 0; i < marks.length; i++) {
@@ -375,7 +378,7 @@
     Machine.prototype.captureContinuationMarks = function() {
         var kvLists = [];
         var i;
-        var control = this.control;
+        var control = this.c;
         var tracedCalleeKey = getTracedCalleeKey(this);
         for (i = control.length-1; i >= 0; i--) {
             if (control[i].marks.length !== 0) {
@@ -384,8 +387,8 @@
             
             if (tracedCalleeKey !== null && 
                 control[i] instanceof CallFrame &&
-                control[i].proc !== null) {
-                kvLists.push([[tracedCalleeKey, control[i].proc]]);
+                control[i].p !== null) {
+                kvLists.push([[tracedCalleeKey, control[i].p]]);
             }
         }     
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
@@ -661,11 +664,11 @@
 
 
     var checkClosureAndArity = function(M) {
-        if(!(M.proc instanceof Closure)){
-            raiseOperatorIsNotClosure(M,M.proc);
+        if(!(M.p instanceof Closure)){
+            raiseOperatorIsNotClosure(M,M.p);
         }
-        if(!isArityMatching(M.proc.racketArity,M.a)) {
-            raiseArityMismatchError(M, M.proc,M.a);
+        if(!isArityMatching(M.p.racketArity,M.a)) {
+            raiseArityMismatchError(M,M.p,M.a);
         }
     };
 
@@ -675,10 +678,10 @@
     // Superinstructions to try to reduce code size.
     var si_context_expected = function(n) {
         if (n === 1) { return si_context_expected_1; }
-        return function(M) { raiseContextExpectedValuesError(M, n); }
+        var f = function(M) { raiseContextExpectedValuesError(M, n); };
+        return f;
     };
     var si_context_expected_1 = function(M) { raiseContextExpectedValuesError(M, 1); }
-
 
 
 
@@ -817,6 +820,7 @@
     exports['getTracedCalleeKey'] = getTracedCalleeKey;
 
     exports['si_context_expected'] = si_context_expected;
+    exports['si_context_expected_1'] = si_context_expected_1;
     exports['checkClosureAndArity'] = checkClosureAndArity;
 
 

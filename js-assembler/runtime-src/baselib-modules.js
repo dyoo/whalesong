@@ -66,7 +66,7 @@
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                 fail(MACHINE, anError);
             };
-            MACHINE.control.push(new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
+            MACHINE.c.push(new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
             if (isInternal) {
                 throw that.label;
             } else {

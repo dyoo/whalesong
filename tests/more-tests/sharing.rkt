@@ -79,3 +79,15 @@
   (begin
     (displayln (pair? a))
     (displayln (list? a))))
+
+
+
+
+(shared ([a (cons 1 a)])
+  a)
+
+
+
+(shared ([a (cons 1 b)]
+         [b (cons 2 a)])
+        a)

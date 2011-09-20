@@ -202,12 +202,17 @@
 
     var ToDomNodeParameters = function(params) {
         if (! params) { params = {}; }
-        this.cache = baselib.hashes.makeLowLevelEqHash();
         var k;
         for (k in params) {
             if (params.hasOwnProperty(k)) {
                 this[k] = params[k];
             }
+        }
+        if (this.cache === undefined) {
+            this.cache = baselib.hashes.makeLowLevelEqHash();
+        }
+        if (this.cycles === undefined) {
+            this.cycles = baselib.hashes.makeLowLevelEqHash();
         }
         if (this.depth === undefined) {
             this.depth = 0;
@@ -221,6 +226,8 @@
     ToDomNodeParameters.prototype.incrementDepth = function() {
         return new ToDomNodeParameters({ mode : this.mode,
                                          depth: this.depth + 1,
+                                         cache: this.cache,
+                                         cycles: this.cycles,
                                          objectCounter: this.objectCounter });
     };
     
@@ -241,6 +248,10 @@
         return this.cache.containsKey(x);
     };
 
+    ToDomNodeParameters.prototype.seesOldCycle = function(x) {
+        return this.cycles.containsKey(x);
+    };
+
     ToDomNodeParameters.prototype.get = function(x) {
         return this.cache.get(x);
     };
@@ -249,9 +260,8 @@
         return this.cache.remove(x);
     };
 
-    ToDomNodeParameters.prototype.put = function(x) {
-        this.objectCounter++;
-        return this.cache.put(x, this.objectCounter);
+    ToDomNodeParameters.prototype.put = function(x, v) {
+        return this.cache.put(x, v);
     };
 
     ToDomNodeParameters.prototype.recur = function(x) {
@@ -354,8 +364,22 @@
 
     // toDomNode: scheme-value -> dom-node
     var toDomNode = function(x, params) {
-        var node;
+        var node, retval;
         params = coerseToParams(params);
+
+        if (x === null) {
+            node = document.createElement("span");
+            node.appendChild(document.createTextNode("#<null>"));
+            $(node).addClass("null");
+            return node;
+        }
+
+        if (x === undefined) {
+            node = document.createElement("span");
+            node.appendChild(document.createTextNode("#<undefined>"));
+            $(node).addClass("undefined");
+            return node;
+        }
 
         if (baselib.numbers.isSchemeNumber(x)) {
             node = numberToDomNode(x, params);
@@ -383,20 +407,6 @@
             return node;
         }
 
-        if (x === null) {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode("#<null>"));
-            $(node).addClass("null");
-            return node;
-        }
-
-        if (x === undefined) {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode("#<undefined>"));
-            $(node).addClass("undefined");
-            return node;
-        }
-
         if (baselib.functions.isProcedure(x)) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode('#<procedure: ' + x.displayName + '>'));
@@ -410,31 +420,52 @@
             return node;
         }
 
+        if (x.nodeType) {
+            return x;
+        }
+
+
+
         // Otherwise, we know the value is an object.
-        if (params.containsKey(x)) {
+        
+        // If we're along a print path with a loop, we need to stop
+        // and return the key.
+        if (params.seesOldCycle(x)) {
             node = document.createElement("span");
-            node.appendChild(document.createTextNode("#" + params.get(x)));
+            node.appendChild(document.createTextNode("#" + params.cycles.get(x) + "#"));
+            $(node).addClass("cycle");
             return node;
         }
-        var returnVal;
-        if (x.nodeType) {
-            returnVal = x;
-        } else if (x.toDomNode) {
-            returnVal = x.toDomNode(params);
-        } else if (params.getMode() === 'write' && x.toWrittenString) {
+
+        // If we see a fresh cycle, register it.
+        if (params.containsKey(x)) {
+            $('<span/>').text('#' + params.objectCounter +'=')
+                    .prependTo(params.get(x));
+
+            params.cycles.put(x, params.objectCounter);
+            params.objectCounter++;
+
             node = document.createElement("span");
-            node.appendChild(document.createTextNode(x.toWrittenString(params)));
-            returnVal = node;
-        } else if (params.getMode() === 'display' && x.toDisplayedString) {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode(x.toDisplayedString(params)));
-            returnVal = node;
-        } else {
-            node = document.createElement("span");
-            node.appendChild(document.createTextNode(x.toString()));
-            returnVal = node;
+            node.appendChild(document.createTextNode("#" + params.cycles.get(x) + "#"));
+            $(node).addClass("cycle");
+            return node;
         }
-        return returnVal;
+
+        node = document.createElement("span");
+        params.put(x, node);
+        if (x.toDomNode) {
+            node.appendChild(x.toDomNode(params));
+        } else if (params.getMode() === 'write' && x.toWrittenString) {
+            node.appendChild(document.createTextNode(
+                x.toWrittenString(params)));
+        } else if (params.getMode() === 'display' && x.toDisplayedString) {
+            node.appendChild(document.createTextNode(
+                x.toDisplayedString(params)));
+        } else {
+            node.appendChild(document.createTextNode(x.toString()));
+        }
+        params.remove(x);
+        return node;
     };
 
 

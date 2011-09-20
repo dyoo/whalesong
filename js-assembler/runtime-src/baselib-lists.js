@@ -1,3 +1,4 @@
+/*global $*/
 /*jslint browser: true, unparam: true, vars: true, plusplus: true, maxerr: 50, indent: 4 */
 
 
@@ -7,10 +8,7 @@
     var exports = {};
     baselib.lists = exports;
 
-    
 
-
-    
     var Empty = function () {
     };
     Empty.EMPTY = new Empty();
@@ -48,12 +46,10 @@
         }
     };
 
-    
     // Empty.append: (listof X) -> (listof X)
     Empty.prototype.append = function (b) {
         return b;
     };
-    
 
 
 
@@ -79,7 +75,6 @@
         }
         return ret;
     };
-    
 
     // FIXME: can we reduce the recursion on this?
     Cons.prototype.equals = function (other, aUnionFind) {
@@ -89,9 +84,7 @@
         return (baselib.equality.equals(this.first, other.first, aUnionFind) &&
                 baselib.equality.equals(this.rest, other.rest, aUnionFind));
     };
-    
 
-    
 
     // Cons.append: (listof X) -> (listof X)
     Cons.prototype.append = function (b) {
@@ -104,10 +97,9 @@
             ret = makePair(lst.first, ret);
             lst = lst.rest;
         }
-        
         return ret;
     };
-    
+
 
     Cons.prototype.toWrittenString = function (cache) {
         cache.put(this, true);
@@ -150,26 +142,68 @@
 
 
     Cons.prototype.toDomNode = function (params) {
-        params.put(this, true);
-        var node = document.createElement("span");
-        node.appendChild(document.createTextNode("("));
+        var node;
+
+        var subelts = [], dottedPair = false, i;
         var p = this;
         while (p instanceof Cons) {
-            node.appendChild(params.recur(p.first));
+            subelts.push(params.recur(p.first));
             p = p.rest;
-            if (p !== EMPTY) {
-                node.appendChild(document.createTextNode(" "));
-            }
             if (typeof (p) === 'object' && params.containsKey(p)) {
                 break;
             }
         }
         if (p !== EMPTY) {
-            node.appendChild(document.createTextNode("."));
-            node.appendChild(document.createTextNode(" "));
-            node.appendChild(params.recur(p));
+            dottedPair = true;
+            subelts.push(params.recur(p));
         }
 
+
+        if (params.getMode() === 'constructor') {
+            if (dottedPair) {
+                node = subelts[subelts.length - 1];
+                for (i = subelts.length - 2; i >= 0; i--) {
+                    node = $('<span/>')
+                        .text("(cons ")
+                        .append(subelts[i])
+                        .append(" ")
+                        .append(node)
+                        .append(")").get(0);
+                }
+                return node;
+            } else {
+                node = document.createElement("span");
+                node.appendChild(document.createTextNode("("));
+                node.appendChild(document.createTextElement("list"));
+                node.appendChild(document.createTextElement(" "));
+                node.appendChild(subelts[0]);
+                for (i = 1; i < subelts.length; i++) {
+                    node.appendChild(document.createTextElement(" "));
+                    node.appendChild(subelts[i]);
+                }
+                node.appendChild(document.createTextNode(")"));
+                return node;
+            }
+        }
+
+        node = document.createElement('span');
+        if (params.getMode() === 'print') {
+            node.appendChild(document.createTextNode("'"));
+        }
+        node.appendChild(document.createTextNode("("));
+        node.appendChild(subelts[0]);
+        if (subelts.length > 1) {
+            for (i = 1; i < subelts.length - 1; i++) {
+                node.appendChild(document.createTextNode(" "));
+                node.appendChild(subelts[i]);
+            }
+            if (dottedPair) {
+                node.appendChild(document.createTextNode(" "));
+                node.appendChild(document.createTextNode("."));
+            }
+            node.appendChild(document.createTextNode(" "));
+            node.appendChild(subelts[subelts.length - 1]);
+        }
         node.appendChild(document.createTextNode(")"));
         return node;
     };
@@ -202,7 +236,7 @@
 
     // isList: Any -> Boolean
     // Returns true if x is a list (a chain of pairs terminated by EMPTY).
-    var isList = function (x) { 
+    var isList = function (x) {
         var tortoise, hare;
         tortoise = hare = x;
         if (hare === EMPTY) { return true; }

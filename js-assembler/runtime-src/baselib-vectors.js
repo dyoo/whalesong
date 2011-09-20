@@ -84,7 +84,6 @@
 
     Vector.prototype.toDomNode = function (params) {
         var node = document.createElement("span"), i;
-        params.put(this, true);
         node.appendChild(document.createTextNode("#("));
         for (i = 0; i < this.length(); i++) {
             node.appendChild(params.recur(this.ref(i)));

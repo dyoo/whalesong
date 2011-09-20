@@ -43,7 +43,6 @@
     };
 
     Box.prototype.toDomNode = function(params) {
-        params.put(this, true);
         var parent = document.createElement("span");
         parent.appendChild(document.createTextNode('#&'));
         parent.appendChild(params.recur(this.val));

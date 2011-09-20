@@ -33,7 +33,6 @@
 
     Struct.prototype.toDomNode = function (params) {
         var node = document.createElement("span"), i;
-        params.put(this, true);
         $(node).append(document.createTextNode("("));
         $(node).append(document.createTextNode(this._constructorName));
         for(i = 0; i < this._fields.length; i++) {

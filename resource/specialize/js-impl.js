@@ -46,7 +46,7 @@ var injectImageMethods = function(r, img) {
         installHackToSupportAnimatedGifs(r);
         ctx.drawImage(r.animationHackImg, x, y);
     };
-    r.toDomNode = function() {
+    r.toDomNode = function(params) {
         return img.cloneNode(true);
     };
 };

@@ -38,7 +38,7 @@
         $(node).append(document.createTextNode(this._constructorName));
         for(i = 0; i < this._fields.length; i++) {
             $(node).append(document.createTextNode(" "));
-            $(node).append(baselib.format.toDomNode(this._fields[i], params));
+            $(node).append(params.recur(this._fields[i]));
         }
         $(node).append(document.createTextNode(")"));
         return node;

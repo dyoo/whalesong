@@ -82,12 +82,12 @@
         return "#(" + texts.join(" ") + ")";
     };
 
-    Vector.prototype.toDomNode = function (cache) {
+    Vector.prototype.toDomNode = function (params) {
         var node = document.createElement("span"), i;
-        cache.put(this, true);
+        params.put(this, true);
         node.appendChild(document.createTextNode("#("));
         for (i = 0; i < this.length(); i++) {
-            node.appendChild(baselib.format.toDomNode(this.ref(i), cache));
+            node.appendChild(params.recur(this.ref(i)));
             if (i !== this.length() - 1) {
                 node.appendChild(document.createTextNode(" "));
             }

@@ -95,7 +95,7 @@ WorldConfigOption.prototype.configure = function(config) {
 };
 
 
-WorldConfigOption.prototype.toDomNode = function(cache) {  
+WorldConfigOption.prototype.toDomNode = function(params) {  
     var span = document.createElement('span');
     span.appendChild(document.createTextNode("(" + this.name + " ...)"));
     return span;
@@ -311,7 +311,7 @@ ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
 		    v.render(ctx, 0, 0);
 		    success([toplevelNode, reusableCanvasNode]);
 		} else {
-		    success([toplevelNode, rawJsworld.node_to_tree(plt.baselib.format.toDomNode(v))]);
+		    success([toplevelNode, rawJsworld.node_to_tree(plt.baselib.format.toDomNode(v, MACHINE.params['print-mode']))]);
 		}
             });
     };
@@ -346,7 +346,8 @@ DefaultDrawingOutput.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
     var worldFunction = function(world, success) {
         success([toplevelNode,
-                 rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world))]);
+                 rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world,
+                                                                      MACHINE.params['print-mode']))]);
         //k(rawJsworld.node_to_tree(plt.baselib.format.toDomNode(world)));
     };
     var cssFunction = function(w, success) { success([]); }

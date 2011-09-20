@@ -225,7 +225,7 @@
 	this.params = {
 
             // print-as-expression: boolean
-            'print-as-expression' : true,
+            'print-as-expression' : false,
 
             // print-mode: (one-of "write" "print" "constructor")
             'print-mode' : 'write',

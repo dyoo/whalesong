@@ -30,6 +30,24 @@
     Empty.prototype.toDisplayedString = function (cache) { return "empty"; };
     Empty.prototype.toString = function (cache) { return "()"; };
 
+    Empty.prototype.toDomNode = function(params) {
+        if (params.getMode() === "display") {
+            return $("<span/>").text("()").get(0);
+        } else if (params.getMode() === "write") {
+            return $("<span/>").text("()").get(0);
+        } else if (params.getMode() === "print") {
+            if (params.getDepth() === 0) {
+                return $("<span/>").text("'()").get(0);
+            } else {
+                return $("<span/>").text("()").get(0);
+            }
+        } else if (params.getMode() === "constructor") {
+            return $("<span/>").text("(list)").get(0);
+        } else {
+            return $("<span/>").text("()").get(0);
+        }
+    };
+
     
     // Empty.append: (listof X) -> (listof X)
     Empty.prototype.append = function (b) {
@@ -131,25 +149,25 @@
 
 
 
-    Cons.prototype.toDomNode = function (cache) {
-        cache.put(this, true);
+    Cons.prototype.toDomNode = function (params) {
+        params.put(this, true);
         var node = document.createElement("span");
         node.appendChild(document.createTextNode("("));
         var p = this;
         while (p instanceof Cons) {
-            node.appendChild(baselib.format.toDomNode(p.first, cache));
+            node.appendChild(params.recur(p.first));
             p = p.rest;
             if (p !== EMPTY) {
                 node.appendChild(document.createTextNode(" "));
             }
-            if (typeof (p) === 'object' && cache.containsKey(p)) {
+            if (typeof (p) === 'object' && params.containsKey(p)) {
                 break;
             }
         }
         if (p !== EMPTY) {
             node.appendChild(document.createTextNode("."));
             node.appendChild(document.createTextNode(" "));
-            node.appendChild(baselib.format.toDomNode(p, cache));
+            node.appendChild(params.recur(p));
         }
 
         node.appendChild(document.createTextNode(")"));

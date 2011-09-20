@@ -46,7 +46,7 @@
         params.put(this, true);
         var parent = document.createElement("span");
         parent.appendChild(document.createTextNode('#&'));
-        parent.appendChild(baselib.format.toDomNode(this.val, params));
+        parent.appendChild(params.recur(this.val));
         return parent;
     };
 

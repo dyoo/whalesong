@@ -221,11 +221,11 @@
     ToDomNodeParameters.prototype.incrementDepth = function() {
         return new ToDomNodeParameters({ mode : this.mode,
                                          depth: this.depth + 1,
-                                         objectCounter: objectCounter });
+                                         objectCounter: this.objectCounter });
     };
     
 
-    // getMode: -> (U "print" "display" "write")
+    // getMode: -> (U "print" "display" "write" "constructor")
     ToDomNodeParameters.prototype.getMode = function() {
         if (this.mode) { 
             return this.mode; 
@@ -336,9 +336,7 @@
     };
 
 
-    // toDomNode: scheme-value -> dom-node
-    var toDomNode = function(x, params) {
-        var node;
+    var coerseToParams = function(params) {
         if (params === 'write') {
             params = new ToDomNodeParameters({'mode' : 'write'});
         } else if (params === 'print') {
@@ -350,6 +348,14 @@
         } else {
             params = params || new ToDomNodeParameters({'mode' : 'display'});
         } 
+        return params;
+    };
+
+
+    // toDomNode: scheme-value -> dom-node
+    var toDomNode = function(x, params) {
+        var node;
+        params = coerseToParams(params);
 
         if (baselib.numbers.isSchemeNumber(x)) {
             node = numberToDomNode(x, params);
@@ -379,7 +385,7 @@
 
         if (x === null) {
             node = document.createElement("span");
-            node.appendChild(document.createTextNode("null"));
+            node.appendChild(document.createTextNode("#<null>"));
             $(node).addClass("null");
             return node;
         }
@@ -387,16 +393,8 @@
         if (x === undefined) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode("#<undefined>"));
+            $(node).addClass("undefined");
             return node;
-        }
-
-
-        if (typeof(x) === 'object') {
-            if (params.containsKey(x)) {
-                node = document.createElement("span");
-                node.appendChild(document.createTextNode("#" + params.get(x)));
-                return node;
-            }
         }
 
         if (baselib.functions.isProcedure(x)) {
@@ -406,31 +404,36 @@
             return node;
         }
 
-        if (typeof(x) !== 'object' && typeof(x) !== 'function') {
+        if (typeof(x) !== 'object') {
             node = document.createElement("span");
             node.appendChild(document.createTextNode(x.toString()));
             return node;
         }
 
+        // Otherwise, we know the value is an object.
+        if (params.containsKey(x)) {
+            node = document.createElement("span");
+            node.appendChild(document.createTextNode("#" + params.get(x)));
+            return node;
+        }
         var returnVal;
         if (x.nodeType) {
-            returnVal =  x;
+            returnVal = x;
         } else if (x.toDomNode) {
-            returnVal =  x.toDomNode(params);
+            returnVal = x.toDomNode(params);
         } else if (params.getMode() === 'write' && x.toWrittenString) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode(x.toWrittenString(params)));
-            returnVal =  node;
+            returnVal = node;
         } else if (params.getMode() === 'display' && x.toDisplayedString) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode(x.toDisplayedString(params)));
-            returnVal =  node;
+            returnVal = node;
         } else {
             node = document.createElement("span");
             node.appendChild(document.createTextNode(x.toString()));
-            returnVal =  node;
+            returnVal = node;
         }
-        params.remove(x);
         return returnVal;
     };
 

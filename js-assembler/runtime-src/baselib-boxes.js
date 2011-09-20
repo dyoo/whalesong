@@ -43,10 +43,16 @@
     };
 
     Box.prototype.toDomNode = function(params) {
-        var parent = document.createElement("span");
-        parent.appendChild(document.createTextNode('#&'));
-        parent.appendChild(params.recur(this.val));
-        return parent;
+        var node = document.createElement("span");
+        if (params.getMode() === 'constructor') {
+            node.appendChild(document.createTextNode("(box "));
+            node.appendChild(params.recur(this.val));
+            node.appendChild(document.createTextNode(")"));
+        } else {
+            node.appendChild(document.createTextNode('#&'));
+            node.appendChild(params.recur(this.val));
+        }
+        return node;
     };
 
     Box.prototype.equals = function(other, aUnionFind) {

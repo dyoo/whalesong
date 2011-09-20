@@ -84,14 +84,23 @@
 
     Vector.prototype.toDomNode = function (params) {
         var node = document.createElement("span"), i;
-        node.appendChild(document.createTextNode("#("));
-        for (i = 0; i < this.length(); i++) {
-            node.appendChild(params.recur(this.ref(i)));
-            if (i !== this.length() - 1) {
+        if (params.getMode() === 'constructor') {
+            node.appendChild(document.createTextNode("(vector"));
+            for (i = 0; i < this.length(); i++) {
                 node.appendChild(document.createTextNode(" "));
+                node.appendChild(params.recur(this.ref(i)));
             }
+            node.appendChild(document.createTextNode(")"));
+        } else {
+            node.appendChild(document.createTextNode("#("));
+            for (i = 0; i < this.length(); i++) {
+                node.appendChild(params.recur(this.ref(i)));
+                if (i !== this.length() - 1) {
+                    node.appendChild(document.createTextNode(" "));
+                }
+            }
+            node.appendChild(document.createTextNode(")"));
         }
-        node.appendChild(document.createTextNode(")"));
         return node;
     };
 

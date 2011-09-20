@@ -174,11 +174,11 @@
             } else {
                 node = document.createElement("span");
                 node.appendChild(document.createTextNode("("));
-                node.appendChild(document.createTextElement("list"));
-                node.appendChild(document.createTextElement(" "));
+                node.appendChild(document.createTextNode("list"));
+                node.appendChild(document.createTextNode(" "));
                 node.appendChild(subelts[0]);
                 for (i = 1; i < subelts.length; i++) {
-                    node.appendChild(document.createTextElement(" "));
+                    node.appendChild(document.createTextNode(" "));
                     node.appendChild(subelts[i]);
                 }
                 node.appendChild(document.createTextNode(")"));

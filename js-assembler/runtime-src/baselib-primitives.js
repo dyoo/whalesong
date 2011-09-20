@@ -266,6 +266,19 @@
 
 
     installPrimitiveProcedure(
+        'current-print-mode',
+        makeList(0, 1),
+        function (M) {
+            if (M.a === 1) {
+                M.params['print-mode'] = checkString(M, 'print-mode', 0);
+                return VOID;
+            } else {
+                return M.params['print-mode'];
+            }
+        });
+
+
+    installPrimitiveProcedure(
         'current-output-port',
         makeList(0, 1),
         function (M) {

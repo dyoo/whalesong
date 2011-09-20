@@ -1,0 +1,12 @@
+(list 1 2 3)
+(list "hello" "world")
+(list 'hello 'world)
+(cons 1 2)
+(list 1 2 3)
+(cons 1 (cons 2 (cons 3 4)))
+(list)
+'hello
+(box 'hello)
+(vector 'hello 'world)
+(person 'danny 32)
+(person "jerry" 32)

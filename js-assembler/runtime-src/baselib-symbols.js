@@ -44,6 +44,28 @@
         return this.val;
     };
 
+    Symbol.prototype.toDomNode = function(params) {
+        if (params.getMode() === 'write') {
+            return $("<span/>").text(this.val).get(0);
+        }
+        if (params.getMode() === 'display') {
+            return $("<span/>").text(this.val).get(0);
+        }
+        if (params.getMode() === 'print') {
+            if (params.getDepth() === 0) {
+                return $("<span/>").text("'" + this.val).get(0);
+            } else {
+                return $("<span/>").text(this.val).get(0);
+            }
+        }
+        if (params.getMode() === 'constructor') {
+            return $("<span/>").text("'" + this.val).get(0);
+        }
+
+        return $("<span/>").text(this.val).get(0);
+    };
+    
+
 
     var isSymbol = function (x) { return x instanceof Symbol; };
 

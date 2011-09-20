@@ -27,6 +27,15 @@
 (define e (racket:exp 1))
 
 
+(define my-current-print-mode "write")
+(define current-print-mode
+  (case-lambda
+    [() my-current-print-mode]
+    [(v) (set! my-current-print-mode v)]))
+
+(provide current-print-mode)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Primitive function stubs
 
@@ -188,6 +197,9 @@
 
  current-output-port
  current-print 
+
+
+
  write
  write-byte
  display

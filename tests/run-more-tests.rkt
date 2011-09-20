@@ -13,6 +13,7 @@
 (test "more-tests/numbers.rkt")
 (test "more-tests/hello.rkt")
 (test "more-tests/sharing.rkt")
+(test "more-tests/printing.rkt")
 (test "more-tests/simple-functions.rkt")
 (test "more-tests/map.rkt")
 (test "more-tests/quasi.rkt")

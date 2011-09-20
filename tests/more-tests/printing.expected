@@ -10,3 +10,4 @@
 (vector 'hello 'world)
 (person 'danny 32)
 (person "jerry" 32)
+#0=(cons 1 #0#)

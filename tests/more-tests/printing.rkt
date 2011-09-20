@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang planet dyoo/whalesong
 
 (current-print-mode "constructor")
 
@@ -18,3 +18,9 @@
 (define-struct person (name age))
 (person 'danny 32)
 (person "jerry" 32)
+
+
+;; This is slightly broken: we should follow DrRacket shared printing
+;; notation.
+(shared ([a (cons 1 a)])
+  a)

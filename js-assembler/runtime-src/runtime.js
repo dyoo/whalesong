@@ -565,8 +565,8 @@
 
     // There is a single, distinguished default continuation prompt tag
     // that's used to wrap around toplevel prompts.
-    var DEFAULT_CONTINUATION_PROMPT_TAG = 
-	new ContinuationPromptTag("default-continuation-prompt-tag");
+    var DEFAULT_CONTINUATION_PROMPT_TAG =
+        baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
 
 
 

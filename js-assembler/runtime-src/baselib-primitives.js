@@ -2058,6 +2058,7 @@
             return baselib.srclocs.srclocColumn(checkSrcloc(M, 'srcloc-column', 0));
         });
 
+
     installPrimitiveProcedure(
         'srcloc-position',
         1,
@@ -2065,12 +2066,44 @@
             return baselib.srclocs.srclocPosition(checkSrcloc(M, 'srcloc-position', 0));
         });
 
+
     installPrimitiveProcedure(
         'srcloc-span',
         1,
         function(M) {
             return baselib.srclocs.srclocSpan(checkSrcloc(M, 'srcloc-span', 0));
         });
+
+
+
+    installPrimitiveProcedure(
+        'make-continuation-prompt-tag',
+        makeList(0, 1),
+        function(M) {
+            var sym;
+            if (M.a === 1) {
+                sym = checkSymbol(M, "make-continuation-prompt-tag", 0);
+                return new baselib.contmarks.ContinuationPromptTag(sym.toString());
+            }
+            return new baselib.contmarks.ContinuationPromptTag(undefined);
+        });
+
+    installPrimitiveProcedure(
+        'continuation-prompt-tag?',
+        1,
+        function(M) {
+            return baselib.contmarks.isContinuationPromptTag(M.e[M.e.length - 1]);
+        });
+
+
+
+    installPrimitiveProcedure(
+        'default-continuation-prompt-tag',
+        0,
+        function(M) {
+            return baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
+        });
+
 
     exports['Primitives'] = Primitives;
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure; 

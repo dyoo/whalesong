@@ -12,6 +12,11 @@
         this.kvlists = kvlists;
     };
 
+
+    ContinuationMarkSet.prototype.shift = function() {
+        this.kvlists.shift();
+    };
+
     ContinuationMarkSet.prototype.toDomNode = function(params) {
         var dom = document.createElement("span");
         dom.appendChild(document.createTextNode('#<continuation-mark-set>'));
@@ -41,8 +46,6 @@
         return baselib.lists.makeList.apply(null, result);
     };
 
-
-
     // Returns an approximate stack trace.
     // getContext: MACHINE -> (arrayof (U Procedure (Vector source line column position span)))
     ContinuationMarkSet.prototype.getContext = function(MACHINE) {
@@ -71,7 +74,9 @@
         return result;
     };
 
+
     var isContinuationMarkSet = baselib.makeClassPredicate(ContinuationMarkSet);
+
 
 
 
@@ -82,22 +87,17 @@
 
     };
 
+
     var isContinuationPromptTag = baselib.makeClassPredicate(ContinuationPromptTag);
-
-
 
     var DEFAULT_CONTINUATION_PROMPT_TAG =
         new ContinuationPromptTag("default-continuation-prompt-tag");
 
 
-
-
-
     exports.ContinuationMarkSet = ContinuationMarkSet;
     exports.isContinuationMarkSet = isContinuationMarkSet;
     exports.ContinuationPromptTag = ContinuationPromptTag;
+
     exports.isContinuationPromptTag = isContinuationPromptTag;
     exports.DEFAULT_CONTINUATION_PROMPT_TAG = DEFAULT_CONTINUATION_PROMPT_TAG;
-
-
 }(this.plt.baselib));

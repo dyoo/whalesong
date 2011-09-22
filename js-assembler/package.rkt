@@ -343,17 +343,53 @@ M.modules[~s] =
 
 ;; on-source: Source (Promise (Listof Statement)) OutputPort -> void
 ;; Generates the source for the statements here.
+;; Optimization: if we've seen this source before, we may be able to pull
+;; it from the cache.
 (define (on-source src stmts op)
+
+  (define (on-path path)
+    (cond
+     [(cached? path)
+      =>
+      (lambda (bytes)
+	(display bytes op))]
+     [(cacheable? path)
+      (define string-op (open-output-bytes))
+      (assemble/write-invoke (my-force stmts) string-op)
+      (save-in-cache! path (open-output-bytes))
+      (display (get-output-string string-op) op)]
+
+     [else
+      (assemble/write-invoke (my-force stmts) op)]))
+
   (cond
    [(ModuleSource? src)
-    (assemble/write-invoke (my-force stmts) op)]
+    (on-path (ModuleSource-path src))]
    [(MainModuleSource? src)
-    (assemble/write-invoke (my-force stmts) op)]
+    (on-path (MainModuleSource-path src))]
    [else
     (assemble/write-invoke (my-force stmts) op)]))
 
 
+;; cached?: path -> (U false bytes)
+;; Returns a true value (the cached bytes) if we've seen this path
+;; and know its JavaScript-compiled bytes.
+(define (cached? path)
+  #f)
 
+
+;; cacheable?: path -> boolean
+;; Produces true if the file should be cached.
+(define (cacheable? path)
+  #f)
+
+
+;; save-in-cache!: path bytes -> void
+;; Saves the bytes in the cache, associated with that path.
+;; TODO: Needs to sign with the internal version of Whalesong, and
+;; the md5sum of the path's content.
+(define (save-in-cache! path bytes)
+  (void))
 
 
 

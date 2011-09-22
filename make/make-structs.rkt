@@ -3,7 +3,8 @@
 (require "../compiler/il-structs.rkt"
          "../compiler/bootstrapped-primitives.rkt"
          "../compiler/expression-structs.rkt"
-         "get-dependencies.rkt")
+         "get-dependencies.rkt"
+	 "../promise.rkt")
 
 
 
@@ -51,11 +52,11 @@
 (define-struct: Configuration
   ([wrap-source : (Source -> Source)]
    [should-follow-children? : (Source -> Boolean)]
-   [on-module-statements : (Source
-                            (U Expression #f)
-                            (Listof Statement)
-                            -> Void)]
-   [after-module-statements : (Source -> Void)]
+   [on-source : (Source 
+                 (U Expression #f) 
+                 (MyPromise (Listof Statement)) 
+                 -> Void)]
+   [after-source : (Source -> Void)]
    [after-last : (-> Void)])
   #:mutable)
 

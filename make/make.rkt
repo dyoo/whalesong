@@ -10,7 +10,8 @@
          "get-dependencies.rkt"
          "make-structs.rkt"
          racket/list
-         racket/match)
+         racket/match
+	 "../promise.rkt")
 
 
 (require/typed "../logger.rkt"
@@ -39,36 +40,41 @@
 
    
 (: get-ast-and-statements (Source -> (values (U False Expression)
-                                             (Listof Statement))))
+                                             (MyPromise (Listof Statement)))))
 (define (get-ast-and-statements a-source)
   (cond
    [(StatementsSource? a-source)
-    (values #f (StatementsSource-stmts a-source))]
+    (values #f (my-delay (StatementsSource-stmts a-source)))]
 
    [(UninterpretedSource? a-source)
-    (values #f '())]
+    (values #f (my-delay '()))]
    
    [(MainModuleSource? a-source)
     (let-values ([(ast stmts)
                   (get-ast-and-statements (MainModuleSource-source a-source))])
-      (let ([maybe-module-locator (find-module-locator ast)])
-        (cond
-         [(ModuleLocator? maybe-module-locator)
-          (values ast (append stmts
-                             ;; Set the main module name
-                              (list (make-PerformStatement
-                                     (make-AliasModuleAsMain!
-                                      maybe-module-locator)))))]
-         [else
-          (values ast stmts)])))]
-
+      (values ast
+	      (my-delay
+		(let ([maybe-module-locator (find-module-locator ast)])
+		  (cond
+		   [(ModuleLocator? maybe-module-locator)
+		    (append (my-force stmts)
+			    ;; Set the main module name
+			    (list (make-PerformStatement
+				   (make-AliasModuleAsMain!
+				    maybe-module-locator))))]
+		   [else
+		    (my-force stmts)])))))]
    [else
     (let ([ast (get-ast a-source)])
-      (define start-time (current-inexact-milliseconds))
-      (define compiled-code (compile ast 'val next-linkage/drop-multiple))
-      (define stop-time (current-inexact-milliseconds))
-      (fprintf (current-timing-port) "  compile ast: ~a milliseconds\n" (- stop-time start-time))
-      (values ast compiled-code))]))
+      (values ast
+	      (my-delay 
+		(define start-time (current-inexact-milliseconds))
+		(define compiled-code (compile ast 'val next-linkage/drop-multiple))
+		(define stop-time (current-inexact-milliseconds))
+		(fprintf (current-timing-port) 
+			 "  compile ast: ~a milliseconds\n" 
+			 (- stop-time start-time))
+		compiled-code)))]))
 
 
 
@@ -122,7 +128,7 @@
     (match config
       [(struct Configuration (wrap-source
                               should-follow-children?
-                              on-module-statements
+                              on-source
                               after-module-statements
                               after-last))
 
@@ -177,7 +183,7 @@
                            [(ast stmts)
                             (get-ast-and-statements this-source)])
                (log-debug (format "visiting ~a\n" (source-name this-source)))
-               (on-module-statements this-source ast stmts)
+               ((Configuration-on-source config) this-source ast stmts)
                (define start-time (current-inexact-milliseconds))
                (define new-dependencies (map wrap-source (collect-new-dependencies this-source ast)))
                (define end-time (current-inexact-milliseconds))

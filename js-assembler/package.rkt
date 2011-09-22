@@ -10,6 +10,7 @@
          "../parser/path-rewriter.rkt"
          "../parser/parse-bytecode.rkt"
          "../resource/structs.rkt"
+	 "../promise.rkt"
          racket/match
          racket/list
          racket/promise
@@ -283,7 +284,7 @@ M.modules[~s] =
          (fprintf op "(function(M) { ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
         [else      
          (fprintf op "(")
-         (assemble/write-invoke stmts op)
+         (assemble/write-invoke (my-force stmts) op)
          (fprintf op ")(plt.runtime.currentMachine,
                      function() {
                           if (window.console && window.console.log) {
@@ -361,7 +362,7 @@ M.modules[~s] =
           (lambda (src) #t)
           ;; on
           (lambda (src ast stmts)
-            (assemble/write-invoke stmts op)
+            (assemble/write-invoke (my-force stmts) op)
             (fprintf op "(M, function() { "))
           
           ;; after

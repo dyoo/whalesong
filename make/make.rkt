@@ -51,7 +51,7 @@
    
    [(MainModuleSource? a-source)
     (let-values ([(ast stmts)
-                  (get-ast-and-statements (MainModuleSource-source a-source))])
+                  (get-ast-and-statements (make-ModuleSource (MainModuleSource-path a-source)))])
       (values ast
 	      (my-delay
 		(let ([maybe-module-locator (find-module-locator ast)])

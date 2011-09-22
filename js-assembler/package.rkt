@@ -31,7 +31,6 @@
 
 
 (provide package
-         ;;package-anonymous
          package-standalone-xhtml
          get-inert-code
          get-standalone-code
@@ -96,8 +95,8 @@
     [(StatementsSource? src)
      #f]
     [(MainModuleSource? src)
-     (source-is-javascript-module?
-      (MainModuleSource-source src))]
+     (query:has-javascript-implementation?
+      `(file ,(path->string (MainModuleSource-path src))))]
     [(ModuleSource? src)
      (query:has-javascript-implementation?
       `(file ,(path->string (ModuleSource-path src))))]
@@ -111,8 +110,8 @@
     [(StatementsSource? src)
      empty]
     [(MainModuleSource? src)
-     (source-resources
-      (MainModuleSource-source src))]
+     (resource-query:query
+      `(file ,(path->string (MainModuleSource-path src))))]
     [(ModuleSource? src)
      (resource-query:query
       `(file ,(path->string (ModuleSource-path src))))]
@@ -137,27 +136,24 @@
                    provides))]
       [else
        ""]))
-  (cond
-    [(StatementsSource? src)
-     (error 'get-javascript-implementation src)]
-    [(MainModuleSource? src)
-     (get-javascript-implementation (MainModuleSource-source src))]
-    [(ModuleSource? src)
-     (let* ([name (rewrite-path (ModuleSource-path src))]
-            [paths (query:query `(file ,(path->string (ModuleSource-path src))))]
-            [text (string-join
-                   (map (lambda (p)
-                          (call-with-input-file p port->string))
-                        paths)
-                   "\n")]
-            [module-requires (query:lookup-module-requires (ModuleSource-path src))]
-            [bytecode (parse-bytecode (ModuleSource-path src))])
-       (when (not (empty? module-requires))
-         (log-debug "~a requires ~a"
-                    (ModuleSource-path src)
-                    module-requires))
-       (let ([module-body-text
-              (format "
+
+
+  (define (get-implementation-from-path path)
+    (let* ([name (rewrite-path path)]
+	   [paths (query:query `(file ,(path->string path)))]
+	   [text (string-join
+		  (map (lambda (p)
+			 (call-with-input-file p port->string))
+		       paths)
+		  "\n")]
+	   [module-requires (query:lookup-module-requires path)]
+	   [bytecode (parse-bytecode path)])
+      (when (not (empty? module-requires))
+	    (log-debug "~a requires ~a"
+		       path
+		       module-requires))
+      (let ([module-body-text
+	     (format "
              if(--M.cbt<0) { throw arguments.callee; }
              var modrec = M.modules[~s];
              var exports = {};
@@ -166,24 +162,34 @@
              ~a
              modrec.privateExports = exports;
              return M.c.pop().label(M);"
-                      (symbol->string name)
-                      text
-                      (get-provided-name-code bytecode))])
-         
-         (make-UninterpretedSource
-          (format "
+		     (symbol->string name)
+		     text
+		     (get-provided-name-code bytecode))])
+	
+	(make-UninterpretedSource
+	 (format "
 M.modules[~s] =
     new plt.runtime.ModuleRecord(~s,
         function(M) {
             ~a
         });
 "
-                  (symbol->string name)
-                  (symbol->string name)
-                  (assemble-modinvokes+body module-requires module-body-text))
-          
-          (map (lambda (p) (make-ModuleSource (normalize-path p)))
-               module-requires))))]
+		 (symbol->string name)
+		 (symbol->string name)
+		 (assemble-modinvokes+body module-requires module-body-text))
+	 
+	 (map (lambda (p) (make-ModuleSource (normalize-path p)))
+	      module-requires)))))
+
+
+
+  (cond
+    [(StatementsSource? src)
+     (error 'get-javascript-implementation src)]
+    [(MainModuleSource? src)
+     (get-implementation-from-path (MainModuleSource-path src))]
+    [(ModuleSource? src)
+     (get-implementation-from-path (ModuleSource-path src))]
     
     
     [(SexpSource? src)
@@ -284,7 +290,7 @@ M.modules[~s] =
          (fprintf op "(function(M) { ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
         [else      
          (fprintf op "(")
-         (assemble/write-invoke (my-force stmts) op)
+         (on-source src stmts op)
          (fprintf op ")(plt.runtime.currentMachine,
                      function() {
                           if (window.console && window.console.log) {
@@ -328,11 +334,25 @@ M.modules[~s] =
      ;; last
      on-last-src))
   
-  (make (list (make-MainModuleSource source-code))
-        packaging-configuration)
+  (make (list source-code) packaging-configuration)
   
   (for ([r resources])
     ((current-on-resource) r)))
+
+
+
+;; on-source: Source (Promise (Listof Statement)) OutputPort -> void
+;; Generates the source for the statements here.
+(define (on-source src stmts op)
+  (cond
+   [(ModuleSource? src)
+    (assemble/write-invoke (my-force stmts) op)]
+   [(MainModuleSource? src)
+    (assemble/write-invoke (my-force stmts) op)]
+   [else
+    (assemble/write-invoke (my-force stmts) op)]))
+
+
 
 
 
@@ -362,7 +382,7 @@ M.modules[~s] =
           (lambda (src) #t)
           ;; on
           (lambda (src ast stmts)
-            (assemble/write-invoke (my-force stmts) op)
+            (on-source src stmts op)
             (fprintf op "(M, function() { "))
           
           ;; after

@@ -20,7 +20,7 @@
 
 (define-struct: StatementsSource ([stmts : (Listof Statement)])
   #:transparent)
-(define-struct: MainModuleSource ([source : Source])
+(define-struct: MainModuleSource ([path : Path])
   #:transparent)
 (define-struct: ModuleSource ([path : Path])
   #:transparent)
@@ -40,7 +40,7 @@
    [(UninterpretedSource? a-source)
     "<UninterpretedSource>"]
    [(MainModuleSource? a-source)
-    "<MainModuleSource>"]
+    (format "<MainModuleSource ~a>" (MainModuleSource-path a-source))]
    [(SexpSource? a-source)
     "<SexpSource>"]
    [(ModuleSource? a-source)

@@ -77,7 +77,7 @@
         (call-with-output-file* (build-path (current-output-dir) output-filename)
                                 (lambda (op)
                                   (package-standalone-xhtml
-                                   (make-ModuleSource (build-path f))
+                                   (make-MainModuleSource (build-path f))
                                    op))
                                 #:exists 'replace)))))
 
@@ -140,7 +140,7 @@
         (call-with-output-file* (make-output-js-filename)
                                 (lambda (op)
                                   (display (get-runtime) op)
-                                  (display (get-inert-code (make-ModuleSource (build-path f))
+                                  (display (get-inert-code (make-MainModuleSource (build-path f))
                                                            make-output-js-filename)
                                            op))
                                 #:exists 'replace)
@@ -170,5 +170,5 @@
 (define (get-javascript-code filename)
   (turn-on-logger!)
   (display (get-standalone-code
-            (make-ModuleSource (build-path filename)))
+            (make-MainModuleSource (build-path filename)))
            (current-output-port)))

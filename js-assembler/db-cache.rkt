@@ -4,7 +4,16 @@
          (prefix-in whalesong: "../version.rkt")
          racket/file
          racket/path
-         file/md5)
+         file/md5
+         file/gzip
+         file/gunzip
+         racket/contract)
+
+
+(provide/contract
+ [cached? (path? . -> . (or/c false/c bytes?))]
+ [save-in-cache! (path? bytes? . -> . any)])
+
 
 (define cache-directory-path
   (build-path (find-system-path 'pref-dir)
@@ -70,22 +79,28 @@
                                " values (?, ?, ?);")))
 
 
-;; cached?: path -> (U false (vector string bytes (U string bytes)))
+;; cached?: path -> (U false bytes)
 ;; Returns a true value, (vector path md5-signature data), if we can
 ;; find an appropriate entry in the cache, and false otherwise.
 (define (cached? path)
   (cond
     [(file-exists? path)
-     (query-maybe-row conn 
-                      lookup-cache-stmt 
-                      (path->string path)
-                      (call-with-input-file* path md5))]
+     (define maybe-row 
+       (query-maybe-row conn 
+                        lookup-cache-stmt 
+                        (path->string path)
+                        (call-with-input-file* path md5)))
+     (cond
+       [maybe-row
+        (gunzip-content (vector-ref maybe-row 2))]
+       [else
+        #f])]
     [else
      #f]))
 
 
 
-;; save-in-cache!: path (U string bytes) -> void
+;; save-in-cache!: path bytes -> void
 ;; Saves a record.
 (define (save-in-cache! path data)
   (cond
@@ -97,6 +112,25 @@
      (query-exec conn insert-cache-stmt
                  (path->string path)
                  signature
-                 data)]
+                 (gzip-content data))]
     [else
      (error 'save-in-cache! "File ~e does not exist" path)]))
+
+
+
+;; gzip-content: bytes -> bytes
+(define (gzip-content content)
+  (define op (open-output-bytes))
+  (gzip-through-ports (open-input-bytes content)
+                      op
+                      #f
+                      0)
+  (get-output-bytes op))
+
+
+;; gunzip-content: bytes -> bytes
+(define (gunzip-content content)
+  (define op (open-output-bytes))
+  (gunzip-through-ports (open-input-bytes content)
+                        op)
+  (get-output-bytes op))

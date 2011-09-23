@@ -124,6 +124,7 @@
 	 begin-for-syntax
 	 prefix-in
 	 only-in
+         rename-in
 	 provide
 	 planet
 	 all-defined-out

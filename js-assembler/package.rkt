@@ -21,7 +21,30 @@
          (prefix-in query: "../lang/js/query.rkt")
          (prefix-in resource-query: "../resource/query.rkt")
          (prefix-in runtime: "get-runtime.rkt")
-         (prefix-in racket: racket/base))
+         (prefix-in racket: racket/base)
+         racket/runtime-path)
+
+
+;; Here, I'm trying to dynamically require the db-cache module
+;; because not everyone's going to have Sqlite3 installed.
+;; If this fails, just gracefully fall back to no caching.
+(define-runtime-path db-cache.rkt "db-cache.rkt")
+(define-values (db-cache:cached? db-cache:save-in-cache!)
+  (with-handlers ([exn:fail?
+                   (lambda (exn)
+                     (log-debug "Unable to use Sqlite3 cache.  Falling back to no-cache.")
+                     (values (lambda (path)
+                               #f)
+                             (lambda (path data)
+                               (void))))])
+    (parameterize ([current-namespace (make-base-namespace)])
+      (values
+       (dynamic-require `(file ,(path->string db-cache.rkt)) 
+                        'cached?)
+       (dynamic-require `(file ,(path->string db-cache.rkt)) 
+                        'save-in-cache!)))))
+
+
 
 ;; There is a dynamic require for (planet dyoo/closure-compile) that's done
 ;; if compression is turned on.
@@ -375,13 +398,16 @@ M.modules[~s] =
 ;; Returns a true value (the cached bytes) if we've seen this path
 ;; and know its JavaScript-compiled bytes.
 (define (cached? path)
-  #f)
+  (db-cache:cached? path))
+
 
 
 ;; cacheable?: path -> boolean
 ;; Produces true if the file should be cached.
+;; At the current time, only cache modules that are provided
+;; by whalesong itself.
 (define (cacheable? path)
-  #f)
+  (within-whalesong-path? path))
 
 
 ;; save-in-cache!: path bytes -> void
@@ -389,7 +415,8 @@ M.modules[~s] =
 ;; TODO: Needs to sign with the internal version of Whalesong, and
 ;; the md5sum of the path's content.
 (define (save-in-cache! path bytes)
-  (void))
+  (db-cache:save-in-cache! path bytes))
+
 
 
 

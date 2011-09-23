@@ -10,9 +10,13 @@
          racket/contract)
 
 
-(provide/contract
- [cached? (path? . -> . (or/c false/c bytes?))]
- [save-in-cache! (path? bytes? . -> . any)])
+(provide cached? save-in-cache!)
+
+;; Contracts are off because when I dynamic-require, I can't
+;; dynamic require the syntaxes exposed by the contract.
+#;(provide/contract
+   [cached? (path? . -> . (or/c false/c bytes?))]
+   [save-in-cache! (path? bytes? . -> . any)])
 
 
 (define cache-directory-path

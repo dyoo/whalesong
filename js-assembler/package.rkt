@@ -29,14 +29,19 @@
 ;; because not everyone's going to have Sqlite3 installed.
 ;; If this fails, just gracefully fall back to no caching.
 (define-runtime-path db-cache.rkt "db-cache.rkt")
-(define-values (db-cache:cached? db-cache:save-in-cache!)
-  (with-handlers ([exn:fail?
+(define-runtime-path hash-cache.rkt "hash-cache.rkt")
+(define-values (impl-cached? impl-save-in-cache!)
+  (values (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                           'cached?)
+          (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                           'save-in-cache!))
+  #;(with-handlers ([exn:fail?
                    (lambda (exn)
-                     (log-debug "Unable to use Sqlite3 cache.  Falling back to no-cache.")
-                     (values (lambda (path)
-                               #f)
-                             (lambda (path data)
-                               (void))))])
+                     (log-debug "Unable to use Sqlite3 cache.  Falling back to serialized hashtable cache.")
+                     (values (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                                              'cached?)
+                             (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                                              'save-in-cache!)))])
     (parameterize ([current-namespace (make-base-namespace)])
       (values
        (dynamic-require `(file ,(path->string db-cache.rkt)) 
@@ -399,7 +404,7 @@ M.modules[~s] =
 ;; Returns a true value (the cached bytes) if we've seen this path
 ;; and know its JavaScript-compiled bytes.
 (define (cached? path)
-  (db-cache:cached? path))
+  (impl-cached? path))
 
 
 
@@ -416,7 +421,7 @@ M.modules[~s] =
 ;; TODO: Needs to sign with the internal version of Whalesong, and
 ;; the md5sum of the path's content.
 (define (save-in-cache! path bytes)
-  (db-cache:save-in-cache! path bytes))
+  (impl-save-in-cache! path bytes))
 
 
 

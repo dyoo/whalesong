@@ -18,14 +18,19 @@
     (make-directory* cache-directory-path)))
   
 
+;; clear-cache-files!: -> void
+;; Remove all the cache files.
+(define (clear-cache-files!)
+  (for ([file (directory-list cache-directory-path)])
+    (when (file-exists? (build-path cache-directory-path file))
+      (with-handlers ([exn:fail? void])
+        (delete-file (build-path cache-directory-path file))))))
+  
+  
 (define (ensure-cache-db-structure!)
   (when (not (file-exists? whalesong-cache.sqlite3))
     ;; Clear existing cache files: they're obsolete.
-    (for ([file (directory-list cache-directory-path)])
-      (when (file-exists? (build-path cache-directory-path file))
-        (with-handlers ([exn:fail? void])
-          (delete-file (build-path cache-directory-path file)))))
-    
+    (clear-cache-files!)
     (define conn 
       (sqlite3-connect #:database whalesong-cache.sqlite3
                        #:mode 'create))
@@ -57,11 +62,17 @@
   (prepare conn (string-append "select path, md5sum, data "
                                "from cache "
                                "where path=? and md5sum=?")))
+(define delete-cache-stmt 
+  (prepare conn (string-append "delete from cache "
+                               "where path=?")))
 (define insert-cache-stmt 
   (prepare conn (string-append "insert into cache(path, md5sum, data)"
                                " values (?, ?, ?);")))
 
-;; cached?:
+
+;; cached?: path -> (U false (vector string bytes (U string bytes)))
+;; Returns a true value, (vector path md5-signature data), if we can
+;; find an appropriate entry in the cache, and false otherwise.
 (define (cached? path)
   (cond
     [(file-exists? path)
@@ -74,15 +85,18 @@
 
 
 
-;; save-in-cache!: path string -> void
+;; save-in-cache!: path (U string bytes) -> void
 ;; Saves a record.
 (define (save-in-cache! path data)
   (cond
     [(file-exists? path)
-     (query-exec conn 
-                 insert-cache-stmt
+     (define signature (call-with-input-file* path md5))
+     ;; Make sure there's a unique row/column by deleting
+     ;; any row with the same key.
+     (query-exec conn delete-cache-stmt (path->string path))
+     (query-exec conn insert-cache-stmt
                  (path->string path)
-                 (call-with-input-file* path md5)
+                 signature
                  data)]
     [else
      (error 'save-in-cache! "File ~e does not exist" path)]))

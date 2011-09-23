@@ -1,7 +1,7 @@
 # test-analyzer:
 # 	raco make -v --disable-inline test-analyzer.rkt
 # 	racket test-analyzer.rkt
-all: bump-version planet-link launcher setup
+all: planet-link launcher setup
 
 
 bump-version:

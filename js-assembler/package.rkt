@@ -369,22 +369,23 @@ M.modules[~s] =
 ;; Optimization: if we've seen this source before, we may be able to pull
 ;; it from the cache.
 (define (on-source src stmts op)
-
   (define (on-path path)
     (cond
-     [(cached? path)
-      =>
-      (lambda (bytes)
-	(display bytes op))]
-     [(cacheable? path)
-      (define string-op (open-output-bytes))
-      (assemble/write-invoke (my-force stmts) string-op)
-      (save-in-cache! path (open-output-bytes))
-      (display (get-output-string string-op) op)]
-
-     [else
-      (assemble/write-invoke (my-force stmts) op)]))
-
+      [(current-with-cache?)
+       (cond
+         [(cached? path)
+          =>
+          (lambda (bytes)
+            (display bytes op))]
+         [(cacheable? path)
+          (define string-op (open-output-bytes))
+          (assemble/write-invoke (my-force stmts) string-op)
+          (save-in-cache! path (get-output-bytes string-op))
+          (display (get-output-string string-op) op)]
+         [else
+          (assemble/write-invoke (my-force stmts) op)])]
+      [else
+       (assemble/write-invoke (my-force stmts) op)]))
   (cond
    [(ModuleSource? src)
     (on-path (ModuleSource-path src))]

@@ -96,7 +96,7 @@
                         (call-with-input-file* path md5)))
      (cond
        [maybe-row
-        (gunzip-content (vector-ref maybe-row 2))]
+        (vector-ref maybe-row 2) #;(gunzip-content (vector-ref maybe-row 2))]
        [else
         #f])]
     [else
@@ -116,7 +116,7 @@
      (query-exec conn insert-cache-stmt
                  (path->string path)
                  signature
-                 (gzip-content data))]
+                 data #;(gzip-content data))]
     [else
      (error 'save-in-cache! "File ~e does not exist" path)]))
 

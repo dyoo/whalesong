@@ -41,7 +41,7 @@
        (if (with-profiling?)
            (profile expr
                     #:threads #t
-                    #:delay 0.01
+                    #:delay 0.0001
                     #:render (lambda (profile)
                                (render profile
                                        #:truncate-source 500)))

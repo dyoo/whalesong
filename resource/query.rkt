@@ -18,5 +18,5 @@
 (define (query a-module-path)
   (let ([resolved-path (normalize-path (resolve-module-path a-module-path #f))])
     (parameterize ([current-namespace ns])
-      (dynamic-require a-module-path (void)) ;; get the compile-time code running.
+      (dynamic-require resolved-path (void)) ;; get the compile-time code running.
       ((dynamic-require-for-syntax record.rkt 'get-records) resolved-path))))

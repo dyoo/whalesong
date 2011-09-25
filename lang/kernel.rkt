@@ -450,7 +450,7 @@ char=?
 ;;  char-upper-case?
 ;;  char-lower-case?
 ;;  char->integer
-;;  integer->char
+  integer->char
   char-upcase
   char-downcase
 
@@ -469,7 +469,7 @@ char=?
   make-placeholder
   placeholder-set!
 
-
+  eof-object?
   read-byte)
 
 

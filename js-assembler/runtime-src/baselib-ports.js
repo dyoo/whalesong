@@ -124,6 +124,7 @@
                 cleanupAndContinue();
             });
         MACHINE.params['currentDisplayer'](MACHINE, textFieldDiv.get(0));
+        readLine.focus();
     };
 
 

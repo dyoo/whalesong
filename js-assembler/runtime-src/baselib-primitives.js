@@ -75,6 +75,17 @@
     var checkNatural = baselib.check.checkNatural;
     var checkNaturalInRange = baselib.check.checkNaturalInRange;
     var checkInteger = baselib.check.checkInteger;
+    var checkIntegerForChar = baselib.check.makeCheckArgumentType(
+        function(x) {
+            return (baselib.numbers.isInteger(x) && 
+                    ((baselib.numbers.lessThanOrEqual(0, x) && 
+                      baselib.numbers.lessThanOrEqual(x, 55295))
+                     ||
+                     (baselib.numbers.lessThanOrEqual(57344, x) && 
+                      baselib.numbers.lessThanOrEqual(x, 1114111))));
+        },
+        'integer'
+    );
     var checkRational = baselib.check.checkRational;
     var checkPair = baselib.check.checkPair;
     var checkList = baselib.check.checkList;
@@ -1082,6 +1093,15 @@
 
 
     installPrimitiveProcedure(
+        'integer->char',
+        1,
+        function(M) {
+            var ch = baselib.numbers.toFixnum(checkIntegerForChar(M, 'integer->char', 0));
+            return baselib.chars.makeChar(String.fromCharCode(ch));
+        });
+
+    
+    installPrimitiveProcedure(
         'char-upcase',
         1,
         function(M) {
@@ -1290,7 +1310,12 @@
         });
 
 
-
+    installPrimitiveProcedure(
+        'eof-object?',
+        1,
+        function(M) {
+            return M.e[M.e.length -1] === baselib.constants.EOF_VALUE;
+        });
 
     installPrimitiveProcedure(
 	'number?',

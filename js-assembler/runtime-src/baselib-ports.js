@@ -67,20 +67,20 @@
     var isInputPort = baselib.makeClassPredicate(InputPort);
 
 
-    var DefaultInputPort = function() {
+    var StandardInputPort = function() {
         this.content = [];
         this.closed = false;
     };
-    DefaultInputPort.prototype = baselib.heir(InputPort.prototype);
+    StandardInputPort.prototype = baselib.heir(InputPort.prototype);
 
-    DefaultInputPort.prototype.readByte = function(MACHINE) {
+    StandardInputPort.prototype.readByte = function(MACHINE) {
         if (this.content.length !== 0) {
             return this.content.shift();
         }
         return baselib.constants.EOF_VALUE;
     };
 
-    DefaultInputPort.prototype.callWhenReady = function(MACHINE, k) {
+    StandardInputPort.prototype.callWhenReady = function(MACHINE, k) {
         if (this.content.length > 0) {
             return k();
         }
@@ -89,8 +89,8 @@
         }
         var that = this;
         var textFieldDiv = $("<div>" +
-                             "  <input class='readline' type='text' size='80'/>" +
-                             "  <input class='eofread' type='button'/>"+
+                             "  <input class='readline' type='text' size='80%'/>" +
+                             "  <input class='eofread' type='button' value='EOF'/>"+
                              "</div>");
         var readLine = textFieldDiv.find(".readline");
         var eofRead = textFieldDiv.find(".eofread");
@@ -101,14 +101,14 @@
             return k();
         };
 
-        readLine.find(".readline").keypress(
+        readLine.keypress(
             function(e) {
                 var val, i;
                 // On return, send the text content into that.content;
                 if (e.which === 13) {
                     e.stopPropagation();
                     e.preventDefault();
-                    val = textFieldDiv.val();
+                    val = readLine.val();
                     for (i = 0; i < val.length; i++) {
                         that.content.push(val.charCodeAt(i));
                     }
@@ -116,8 +116,10 @@
                     cleanupAndContinue();
                 }
             });
-        eofRead.find(".eofread").click(
+        eofRead.click(
             function(e) {
+                e.stopPropagation();
+                e.preventDefault();
                 that.closed = true;
                 cleanupAndContinue();
             });
@@ -135,5 +137,7 @@
 
     exports.InputPort = InputPort;
     exports.isInputPort = isInputPort;
+    exports.StandardInputPort = StandardInputPort;
+
 
 }(this.plt.baselib, $));

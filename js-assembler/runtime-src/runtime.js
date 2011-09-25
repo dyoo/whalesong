@@ -93,6 +93,7 @@
     var isOutputPort = baselib.ports.isOutputPort;
     var StandardOutputPort = baselib.ports.StandardOutputPort;
     var StandardErrorPort = baselib.ports.StandardErrorPort;
+    var StandardInputPort = baselib.ports.StandardInputPort;
     var isOutputStringPort = baselib.ports.isOutputStringPort;
 
 
@@ -247,6 +248,7 @@
 	    
 	    'currentOutputPort': new StandardOutputPort(),
 	    'currentErrorPort': new StandardErrorPort(),
+            'currentInputPort': new StandardInputPort(),
 	    'currentSuccessHandler': function(MACHINE) {},
 	    'currentErrorHandler': function(MACHINE, exn) {
                 MACHINE.params.currentErrorDisplayer(

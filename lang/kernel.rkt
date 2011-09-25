@@ -467,8 +467,10 @@ char=?
 
   make-reader-graph
   make-placeholder
-  placeholder-set!)
+  placeholder-set!
 
+
+  read-byte)
 
 
 

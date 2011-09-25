@@ -134,6 +134,10 @@
         baselib.ports.isOutputPort,
         'output port');
 
+    var checkInputPort = makeCheckArgumentType(
+        baselib.ports.isInputPort,
+        'input port');
+
     var checkSymbol = makeCheckArgumentType(
         baselib.symbols.isSymbol,
         'symbol');
@@ -260,6 +264,7 @@
     exports.makeCheckParameterizedArgumentType = makeCheckParameterizedArgumentType;
     exports.makeCheckListofArgumentType = makeCheckListofArgumentType;
     exports.checkOutputPort = checkOutputPort;
+    exports.checkInputPort = checkInputPort;
     exports.checkSymbol = checkSymbol;
     exports.checkString = checkString;
     exports.checkSymbolOrString = checkSymbolOrString;

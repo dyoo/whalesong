@@ -4,6 +4,7 @@
          racket/file
          racket/path
          racket/port
+         racket/date
          "make/make-structs.rkt"
          "js-assembler/package.rkt"
          "resource/structs.rkt"
@@ -173,6 +174,7 @@
         (call-with-output-file* (build-path (current-output-dir) output-manifest-filename)
                                 (lambda (op)
                                   (fprintf op "CACHE MANIFEST\n")
+                                  (fprintf op "## Timestamp: ~a\n" (date->string (current-date) #t))
                                   (for [(js-name (map file-name-from-path (reverse written-js-paths)))]
                                        (fprintf op "~a\n" js-name))
                                   (for [(resource-name written-resources)]

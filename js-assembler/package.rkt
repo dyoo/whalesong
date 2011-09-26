@@ -11,6 +11,7 @@
          "../parser/parse-bytecode.rkt"
          "../resource/structs.rkt"
 	 "../promise.rkt"
+         (prefix-in hash-cache: "hash-cache.rkt")
          racket/match
          racket/list
          racket/promise
@@ -23,31 +24,6 @@
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base)
          racket/runtime-path)
-
-
-;; Here, I'm trying to dynamically require the db-cache module
-;; because not everyone's going to have Sqlite3 installed.
-;; If this fails, just gracefully fall back to no caching.
-(define-runtime-path db-cache.rkt "db-cache.rkt")
-(define-runtime-path hash-cache.rkt "hash-cache.rkt")
-(define-values (impl-cached? impl-save-in-cache!)
-  (values (dynamic-require `(file ,(path->string hash-cache.rkt)) 
-                           'cached?)
-          (dynamic-require `(file ,(path->string hash-cache.rkt)) 
-                           'save-in-cache!))
-  #;(with-handlers ([exn:fail?
-                   (lambda (exn)
-                     (log-debug "Unable to use Sqlite3 cache.  Falling back to serialized hashtable cache.")
-                     (values (dynamic-require `(file ,(path->string hash-cache.rkt)) 
-                                              'cached?)
-                             (dynamic-require `(file ,(path->string hash-cache.rkt)) 
-                                              'save-in-cache!)))])
-    (parameterize ([current-namespace (make-base-namespace)])
-      (values
-       (dynamic-require `(file ,(path->string db-cache.rkt)) 
-                        'cached?)
-       (dynamic-require `(file ,(path->string db-cache.rkt)) 
-                        'save-in-cache!)))))
 
 
 
@@ -404,7 +380,7 @@ M.modules[~s] =
 ;; Returns a true value (the cached bytes) if we've seen this path
 ;; and know its JavaScript-compiled bytes.
 (define (cached? path)
-  (impl-cached? path))
+  (hash-cache:cached? path))
 
 
 
@@ -421,7 +397,7 @@ M.modules[~s] =
 ;; TODO: Needs to sign with the internal version of Whalesong, and
 ;; the md5sum of the path's content.
 (define (save-in-cache! path bytes)
-  (impl-save-in-cache! path bytes))
+  (hash-cache:save-in-cache! path bytes))
 
 
 

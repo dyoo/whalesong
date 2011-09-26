@@ -88,6 +88,7 @@
   (turn-on-logger!)
 
   (define written-js-paths '())
+  (define written-resources '())
   (define make-output-js-filename
     (let ([n 0])
       (lambda ()
@@ -105,11 +106,20 @@
       
 
   (define start-time (current-inexact-milliseconds))
-  (let ([output-html-filename
+  (let ([title
+         (regexp-replace #rx"([.](rkt|ss))$"
+                          (path->string (file-name-from-path f))
+                          "")]
+        [output-html-filename
          (build-path
           (regexp-replace #rx"[.](rkt|ss)$"
                           (path->string (file-name-from-path f))
-                          ".html"))])
+                          ".html"))]
+        [output-manifest-filename
+         (build-path
+          (regexp-replace #rx"[.](rkt|ss)$"
+                          (path->string (file-name-from-path f))
+                          ".manifest"))])
       (unless (directory-exists? (current-output-dir))
         (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
         (make-directory* (current-output-dir)))
@@ -137,7 +147,8 @@
                                                                                 (resource-key r))))
                            (copy-file (resource-path r) 
                                       (build-path (current-output-dir)
-                                                  (resource-key r)))]))])
+                                                  (resource-key r)))])
+                        (set! written-resources (cons (resource-key r) written-resources)))])
         (call-with-output-file* (make-output-js-filename)
                                 (lambda (op)
                                   (display (get-runtime) op)
@@ -153,8 +164,19 @@
                                 (lambda (op)
                                   (display (get-html-template
                                             (map file-name-from-path
-                                                 (reverse written-js-paths)))
+                                                 (reverse written-js-paths))
+                                            #:title title
+                                            #:manifest output-manifest-filename)
                                            op))
+                                #:exists 'replace)
+        ;; Write the manifest
+        (call-with-output-file* (build-path (current-output-dir) output-manifest-filename)
+                                (lambda (op)
+                                  (fprintf op "CACHE MANIFEST\n")
+                                  (for [(js-name (map file-name-from-path (reverse written-js-paths)))]
+                                       (fprintf op "~a\n" js-name))
+                                  (for [(resource-name written-resources)]
+                                       (fprintf op "~a\n" resource-name)))
                                 #:exists 'replace)
         (define stop-time (current-inexact-milliseconds))
 

@@ -490,15 +490,17 @@ EOF
   )
 
 
-;; get-html-template: (listof string) -> string
-(define (get-html-template js-files)
+;; get-html-template: (listof string) (#:manifest path) -> string
+(define (get-html-template js-files
+                           #:manifest (manifest #f)
+                           #:title (title ""))
   (format #<<EOF
 <!DOCTYPE html>
-<html>
+<html ~a>
   <head>
     <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta charset="utf-8"/>
-    <title></title>
+    <title>~a</title>
 ~a
   <script>
   ~a
@@ -508,7 +510,8 @@ EOF
   </body>
   </html>
 EOF
-
+  (if manifest (format "manifest=~s" (path->string manifest)) "")
+  title
   (string-join (map (lambda (js)
                       (format "  <script src='~a'></script>\n" js))
                     js-files)

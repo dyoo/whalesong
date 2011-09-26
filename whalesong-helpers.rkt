@@ -120,7 +120,7 @@
          (build-path
           (regexp-replace #rx"[.](rkt|ss)$"
                           (path->string (file-name-from-path f))
-                          ".manifest"))])
+                          ".appcache"))])
       (unless (directory-exists? (current-output-dir))
         (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
         (make-directory* (current-output-dir)))

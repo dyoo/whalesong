@@ -170,7 +170,10 @@
                                             #:manifest output-manifest-filename)
                                            op))
                                 #:exists 'replace)
+
         ;; Write the manifest
+        (fprintf (current-report-port)
+                 (format "Writing manifest ~s\n" (build-path (current-output-dir) output-manifest-filename)))
         (call-with-output-file* (build-path (current-output-dir) output-manifest-filename)
                                 (lambda (op)
                                   (fprintf op "CACHE MANIFEST\n")

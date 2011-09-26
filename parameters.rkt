@@ -20,6 +20,8 @@
          current-kernel-module-locator?
          current-compress-javascript?
          current-one-module-per-file?
+         current-with-cache?
+         
          
          current-report-port
          current-timing-port
@@ -81,6 +83,11 @@
 (: current-one-module-per-file? (Parameterof Boolean))
 (define current-one-module-per-file? (make-parameter #f))
 
+
+;; Turns on caching of compiled programs, so that repeated compilations
+;; will reuse existing work.
+(: current-with-cache? (Parameterof Boolean))
+(define current-with-cache? (make-parameter #t))
 
 
 

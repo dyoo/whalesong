@@ -41,7 +41,7 @@
        (if (with-profiling?)
            (profile expr
                     #:threads #t
-                    #:delay 0.01
+                    #:delay 0.0001
                     #:render (lambda (profile)
                                (render profile
                                        #:truncate-source 500)))
@@ -66,6 +66,9 @@
             [("--enable-profiling")
              ("Enable profiling to standard output")
              (with-profiling? #t)]
+            [("--without-cache")
+             ("Turn off the internal compilation cache")
+             (current-with-cache? #f)]
             [("--compress-javascript")
              ("Compress JavaScript with Google Closure (requires Java)")
              (current-compress-javascript? #t)]
@@ -98,6 +101,9 @@
                   [("--enable-profiling")
                    ("Enable profiling to standard output")
                    (with-profiling? #t)]
+                  [("--without-cache")
+                   ("Turn off the internal compilation cache")
+                   (current-with-cache? #f)]
                   [("--compress-javascript")
                    ("Compress JavaScript with Google Closure (requires Java)")
                    (current-compress-javascript? #t)]
@@ -117,6 +123,9 @@
                      [("--enable-profiling")
                       ("Enable profiling to standard output")
                       (with-profiling? #t)]
+                     [("--without-cache")
+                      ("Turn off the internal compilation cache")
+                      (current-with-cache? #f)]
                      [("--compress-javascript")
                       ("Compress JavaScript with Google Closure (requires Java)")
                       (current-compress-javascript? #t)]

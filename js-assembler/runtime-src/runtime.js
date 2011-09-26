@@ -93,6 +93,7 @@
     var isOutputPort = baselib.ports.isOutputPort;
     var StandardOutputPort = baselib.ports.StandardOutputPort;
     var StandardErrorPort = baselib.ports.StandardErrorPort;
+    var StandardInputPort = baselib.ports.StandardInputPort;
     var isOutputStringPort = baselib.ports.isOutputStringPort;
 
 
@@ -247,6 +248,7 @@
 	    
 	    'currentOutputPort': new StandardOutputPort(),
 	    'currentErrorPort': new StandardErrorPort(),
+            'currentInputPort': new StandardInputPort(),
 	    'currentSuccessHandler': function(MACHINE) {},
 	    'currentErrorHandler': function(MACHINE, exn) {
                 MACHINE.params.currentErrorDisplayer(
@@ -381,12 +383,16 @@
     };
 
 
-    Machine.prototype.captureContinuationMarks = function() {
+    Machine.prototype.captureContinuationMarks = function(promptTag) {
         var kvLists = [];
         var i;
         var control = this.c;
         var tracedCalleeKey = getTracedCalleeKey(this);
         for (i = control.length-1; i >= 0; i--) {
+            if (promptTag !== null &&
+                control[i] instanceof PromptFrame && control[i].tag === promptTag) {
+                break;
+            }
             if (control[i].marks.length !== 0) {
                 kvLists.push(control[i].marks);
             }
@@ -396,7 +402,7 @@
                 control[i].p !== null) {
                 kvLists.push([[tracedCalleeKey, control[i].p]]);
             }
-        }     
+        }
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
     };
     
@@ -565,8 +571,8 @@
 
     // There is a single, distinguished default continuation prompt tag
     // that's used to wrap around toplevel prompts.
-    var DEFAULT_CONTINUATION_PROMPT_TAG = 
-	new ContinuationPromptTag("default-continuation-prompt-tag");
+    var DEFAULT_CONTINUATION_PROMPT_TAG =
+        baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
 
 
 

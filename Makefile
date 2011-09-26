@@ -4,6 +4,9 @@
 all: planet-link launcher setup
 
 
+bump-version:
+	racket bump-version.rkt
+
 launcher: 
 	racket make-launcher.rkt
 

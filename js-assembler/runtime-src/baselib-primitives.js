@@ -1,3 +1,4 @@
+/*global plt*/
 /*jslint unparam: true, sub: true, vars: true, white: true, nomen: true, plusplus: true, maxerr: 50, indent: 4 */
 
 // Arity structure
@@ -60,6 +61,7 @@
     var testArgument = baselib.check.testArgument;
 
     var checkOutputPort = baselib.check.checkOutputPort;
+    var checkInputPort = baselib.check.checkInputPort;
     var checkString = baselib.check.checkString;
     var checkSymbolOrString = baselib.check.checkSymbolOrString;
     var checkMutableString = baselib.check.checkMutableString;
@@ -73,6 +75,17 @@
     var checkNatural = baselib.check.checkNatural;
     var checkNaturalInRange = baselib.check.checkNaturalInRange;
     var checkInteger = baselib.check.checkInteger;
+    var checkIntegerForChar = baselib.check.makeCheckArgumentType(
+        function(x) {
+            return (baselib.numbers.isInteger(x) && 
+                    ((baselib.numbers.lessThanOrEqual(0, x) && 
+                      baselib.numbers.lessThanOrEqual(x, 55295))
+                     ||
+                     (baselib.numbers.lessThanOrEqual(57344, x) && 
+                      baselib.numbers.lessThanOrEqual(x, 1114111))));
+        },
+        'integer'
+    );
     var checkRational = baselib.check.checkRational;
     var checkPair = baselib.check.checkPair;
     var checkList = baselib.check.checkList;
@@ -84,6 +97,9 @@
     var checkInspector = baselib.check.checkInspector;
     var checkPlaceholder = baselib.check.checkPlaceholder;
     var checkSrcloc = baselib.check.checkSrcloc;
+    var checkContinuationPromptTag = baselib.check.checkContinuationPromptTag;
+    var checkContinuationMarkSet = baselib.check.checkContinuationMarkSet;
+    var checkExn = baselib.check.checkExn;
     //////////////////////////////////////////////////////////////////////
 
 
@@ -162,7 +178,7 @@
 
 
     installPrimitiveProcedure(
-        'write-byte', 
+        'write-byte',
         makeList(1, 2),
         function (M) {
             var firstArg = checkByte(M, 'write-byte', 0);
@@ -179,7 +195,7 @@
         'newline', makeList(0, 1),
         function (M) {
             var outputPort = M.params.currentOutputPort;
-            if (M.a === 1) { 
+            if (M.a === 1) {
                 outputPort = checkOutputPort(M, 'newline', 1);
             }
             outputPort.writeDomNode(M, toDomNode("\n", 'display'));
@@ -225,7 +241,7 @@
                 args.push(M.e[M.e.length - 1 - i]);
             }
             result = baselib.format.format(formatString, args, 'format');
-            outputPort = M.params.currentOutputPort;            
+            outputPort = M.params.currentOutputPort;
             outputPort.writeDomNode(M, toDomNode(result, 'display'));
             return VOID;
         });
@@ -248,15 +264,12 @@
 
 
 
-
-
-
     installPrimitiveProcedure(
         'current-print',
         makeList(0, 1),
         function (M) {
             if (M.a === 1) {
-                M.params['currentPrint'] =                 
+                M.params['currentPrint'] =
                     checkProcedure(M, 'current-print', 0);
                 return VOID;
             } else {
@@ -283,7 +296,7 @@
         makeList(0, 1),
         function (M) {
             if (M.a === 1) {
-                M.params['currentOutputPort'] = 
+                M.params['currentOutputPort'] =
                     checkOutputPort(M, 'current-output-port', 0);
                 return VOID;
             } else {
@@ -298,7 +311,7 @@
         makeList(0, 1),
         function (M) {
             if (M.a === 1) {
-                M.params['currentErrorPort'] = 
+                M.params['currentErrorPort'] =
                     checkOutputPort(M, 'current-output-port', 0);
                 return VOID;
             } else {
@@ -308,7 +321,38 @@
 
 
 
+    installPrimitiveProcedure(
+        'current-input-port',
+        makeList(0, 1),
+        function (M) {
+            if (M.a === 1) {
+                M.params['currentInputPort'] =
+                    checkInputPort(M, 'current-input-port', 0);
+                return VOID;
+            } else {
+                return M.params['currentInputPort'];
+            }
+        });
 
+
+
+    installPrimitiveClosure(
+        'read-byte',
+        makeList(0, 1),
+        function(M) {
+            var inputPort = M.params['currentInputPort'];
+            if (M.a === 1) {
+                inputPort = checkInputPort(M, 'read-byte', 0);
+            }
+            plt.runtime.PAUSE(function(restart) {
+                inputPort.callWhenReady(M, function() {
+                    restart(function(MACHINE) {
+                        plt.runtime.finalizeClosureCall(MACHINE,
+                                                        inputPort.readByte(MACHINE));
+                    });
+                });
+            });
+        });
 
 
 
@@ -321,14 +365,13 @@
             for (i = 1; i < M.a; i++) {
                 secondArg = checkNumber(M, '=', i);
                 if (! (baselib.numbers.equals(firstArg, secondArg))) {
-                    return false; 
+                    return false;
                 }
             }
             return true;
         });
 
 
-    
     installPrimitiveProcedure(
         '=~',
         3,
@@ -337,7 +380,7 @@
             var y = checkReal(M, '=~', 1);
             var range = checkNonNegativeReal(M, '=~', 2);
             return baselib.numbers.lessThanOrEqual(
-                baselib.numbers.abs(baselib.numbers.subtract(x, y)), 
+                baselib.numbers.abs(baselib.numbers.subtract(x, y)),
                 range);
         });
 
@@ -349,7 +392,7 @@
             for (i = 1; i < M.a; i++) {
                 secondArg = checkNumber(M, name, i);
                 if (! (predicate(firstArg, secondArg))) {
-                    return false; 
+                    return false;
                 }
                 firstArg = secondArg;
             }
@@ -379,7 +422,7 @@
         '>=',
         baselib.arity.makeArityAtLeast(2),
         makeChainingBinop(baselib.numbers.greaterThanOrEqual, '>='));
-    
+
 
     installPrimitiveProcedure(
         '+',
@@ -389,12 +432,12 @@
             var i = 0;
             for (i = 0; i < M.a; i++) {
                 result = baselib.numbers.add(
-                    result, 
+                    result,
                     checkNumber(M, '+', i));
             }
             return result;
         });
-    
+
 
     installPrimitiveProcedure(
         '*',
@@ -404,7 +447,7 @@
             var i = 0;
             for (i=0; i < M.a; i++) {
                 result = baselib.numbers.multiply(
-                    result, 
+                    result,
                     checkNumber(M, '*', i));
             }
             return result;
@@ -414,20 +457,20 @@
         '-',
         baselib.arity.makeArityAtLeast(1),
         function (M) {
-            if (M.a === 1) { 
+            if (M.a === 1) {
                 return baselib.numbers.subtract(
-                    0, 
+                    0,
                     checkNumber(M, '-', 0));
             }
             var result = checkNumber(M, '-', 0), i;
             for (i = 1; i < M.a; i++) {
                 result = baselib.numbers.subtract(
-                    result, 
+                    result,
                     checkNumber(M, '-', i));
             }
             return result;
         });
-    
+
     installPrimitiveProcedure(
         '/',
         baselib.arity.makeArityAtLeast(1),
@@ -440,7 +483,6 @@
             }
             return result;
         });
-    
 
     installPrimitiveProcedure(
         'add1',
@@ -571,7 +613,6 @@
             return VOID;
         });
 
-    
     installPrimitiveProcedure(
         'not',
         1,
@@ -621,7 +662,6 @@
             }
             return makeVector(arr.length, arr);
         });
-    
 
     installPrimitiveProcedure(
         'vector->list',
@@ -636,7 +676,6 @@
             return result;
         });
 
-    
     installPrimitiveProcedure(
         'list->vector',
         1,
@@ -1054,6 +1093,15 @@
 
 
     installPrimitiveProcedure(
+        'integer->char',
+        1,
+        function(M) {
+            var ch = baselib.numbers.toFixnum(checkIntegerForChar(M, 'integer->char', 0));
+            return baselib.chars.makeChar(String.fromCharCode(ch));
+        });
+
+    
+    installPrimitiveProcedure(
         'char-upcase',
         1,
         function(M) {
@@ -1072,7 +1120,6 @@
 
 
 
-    
     installPrimitiveProcedure(
         'box',
         1,
@@ -1154,7 +1201,7 @@
     // implementation of apply in the boostrapped-primitives.rkt,
     // since it provides nicer error handling.
     var applyImplementation = function (M) {
-        if(--M.callsBeforeTrampoline < 0) { 
+        if(--M.callsBeforeTrampoline < 0) {
             throw applyImplementation;
         }
         var proc = checkProcedure(M, 'apply', 0);
@@ -1193,7 +1240,7 @@
         function (M) {
             return baselib.functions.isProcedure(M.e[M.e.length - 1]);
         });
-    
+
     installPrimitiveProcedure(
         'procedure-arity-includes?',
         2,
@@ -1244,9 +1291,8 @@
                     return lst;
                 }
                 lst = lst.rest;
-            }   
+            }
         });
-    
 
 
     installPrimitiveProcedure(
@@ -1264,7 +1310,12 @@
         });
 
 
-
+    installPrimitiveProcedure(
+        'eof-object?',
+        1,
+        function(M) {
+            return M.e[M.e.length -1] === baselib.constants.EOF_VALUE;
+        });
 
     installPrimitiveProcedure(
 	'number?',
@@ -1383,7 +1434,6 @@
                 checkNumber(M, 'tan', 0));
         });
 
-    
 
     installPrimitiveProcedure(
         'atan',
@@ -1591,7 +1641,7 @@
             return baselib.numbers.floor(
                 checkReal(M, 'floor', 0));
         });
-    
+
 
     installPrimitiveProcedure(
         'ceiling',
@@ -1600,7 +1650,7 @@
             return baselib.numbers.ceiling(
                 checkReal(M, 'ceiling', 0));
         });
-    
+
 
     installPrimitiveProcedure(
         'round',
@@ -1609,7 +1659,7 @@
             return baselib.numbers.round(
                 checkReal(M, 'round', 0));
         });
-    
+
 
     installPrimitiveProcedure(
         'truncate',
@@ -1622,7 +1672,7 @@
                 return baselib.numbers.floor(n);
             }
         });
-    
+
 
     installPrimitiveProcedure(
         'numerator',
@@ -1735,10 +1785,10 @@
 	    var i;
             if (M.a === 1) {
                 var sym = checkSymbol(M, 'error', 1);
-                raise(M, baselib.exceptions.makeExnFail(sym.toString(), 
+                raise(M, baselib.exceptions.makeExnFail(sym.toString(),
                                                         M.captureContinuationMarks()));
-            } 
-            
+            }
+
             if (isString(M.e[M.e.length - 1])) {
                 var vs = [];
                 for (i = 1; i < M.a; i++) {
@@ -1768,6 +1818,18 @@
 
 
     installPrimitiveProcedure(
+        'raise',
+        makeList(1, 2),
+        function(M) {
+            var v = M.e[M.e.length - 1];
+            // At the moment, not using the continuation barrier yet.
+            // var withBarrier = M.e[M.e.length - 2];
+            raise(M, v);
+        });
+
+
+
+    installPrimitiveProcedure(
         'raise-mismatch-error',
         3,
         function (M) {
@@ -1790,21 +1852,110 @@
             var name = checkSymbol(M, 'raise-type-error', 0);
             var expected = checkString(M, 'raise-type-error', 1);
             if (M.a === 3) {
-                raiseArgumentTypeError(M, 
+                raiseArgumentTypeError(M,
                                        name,
                                        expected,
                                        undefined,
                                        M.e[M.e.length - 1 - 2]);
             } else {
-                raiseArgumentTypeError(M, 
+                raiseArgumentTypeError(M,
                                        name,
                                        expected,
                                        checkNatural(M, 'raise-type-error', 2),
                                        M.e[M.e.length - 1 - 2]);
             }
         });
-    
 
+
+
+    installPrimitiveProcedure(
+        'make-exn',
+        2,
+        function(M) {
+            var message = checkString(M, 'make-exn', 0);
+            var marks = checkContinuationMarkSet(M, 'make-exn', 1);
+            return baselib.exceptions.makeExn(message, marks);
+        });
+
+
+    installPrimitiveProcedure(
+        'make-exn:fail',
+        2,
+        function(M) {
+            var message = checkString(M, 'make-exn:fail', 0);
+            var marks = checkContinuationMarkSet(M, 'make-exn:fail', 1);
+            return baselib.exceptions.makeExnFail(message, marks);
+        });
+
+
+    installPrimitiveProcedure(
+        'make-exn:fail:contract',
+        2,
+        function(M) {
+            var message = checkString(M, 'make-exn:fail:contract', 0);
+            var marks = checkContinuationMarkSet(M, 'make-exn:fail:contract', 1);
+            return baselib.exceptions.makeExnFailContract(message, marks);
+        });
+
+
+    installPrimitiveProcedure(
+        'make-exn:fail:contract:arity',
+        2,
+        function(M) {
+            var message = checkString(M, 'make-exn:fail:contract:arity', 0);
+            var marks = checkContinuationMarkSet(M, 'make-exn:fail:contract:arity', 1);
+            return baselib.exceptions.makeExnFailContractArity(message, marks);
+        });
+
+    installPrimitiveProcedure(
+        'make-exn:fail:contract:variable',
+        2,
+        function(M) {
+            var message = checkString(M, 'make-exn:fail:contract:variable', 0);
+            var marks = checkContinuationMarkSet(M, 'make-exn:fail:contract:variable', 1);
+            return baselib.exceptions.makeExnFailContractVariable(message, marks);
+        });
+
+    installPrimitiveProcedure(
+        'make-exn:fail:contract:divide-by-zero',
+        2,
+        function(M) {
+            var message = checkString(M, 'make-exn:fail:contract:divide-by-zero', 0);
+            var marks = checkContinuationMarkSet(M, 'make-exn:fail:contract:divide-by-zero', 1);
+            return baselib.exceptions.makeExnFailContractDivisionByZero(message, marks);
+        });
+
+    installPrimitiveProcedure(
+        'exn-message',
+        1,
+        function(M) {
+            var exn = checkExn(M, 'exn-message', 0);
+            return baselib.exceptions.exnMessage(exn);
+        });
+
+    installPrimitiveProcedure(
+        'exn-continuation-marks',
+        1,
+        function(M) {
+            var exn = checkExn(M, 'exn-continuation-marks', 0);
+            return baselib.exceptions.exnContMarks(exn);
+        });
+
+
+    installPrimitiveProcedure(
+        'current-continuation-marks',
+        makeList(0, 1),
+        function(M) {
+            var promptTag;
+            if (M.a === 1) {
+                promptTag = checkContinuationPromptTag(M, 'current-continuation-marks', 0);
+            }
+            var contMarks = M.captureContinuationMarks(promptTag);
+            // The continuation marks shouldn't capture the record of the call to
+            // current-continuation-marks itself.
+            contMarks.shift();
+            return contMarks;
+        });
 
 
     installPrimitiveClosure(
@@ -1814,14 +1965,14 @@
             withArguments(
                 M,
                 4,
-                [false, 
+                [false,
                  NULL,
                  false,
                  false,
                  NULL,
                  false,
                  false],
-                function (name, 
+                function (name,
                           superType,
                           initFieldCount,
                           autoFieldCount,
@@ -1848,7 +1999,7 @@
                         //immutables,
                         guard);
 
-                    var constructorValue = 
+                    var constructorValue =
                         makePrimitiveProcedure(
                             constructorName,
                             baselib.numbers.toFixnum(initFieldCount),
@@ -1861,7 +2012,7 @@
                                 return structType.constructor.apply(null, args);
                             });
 
-                    var predicateValue = 
+                    var predicateValue =
                         makePrimitiveProcedure(
                             name.toString() + "?",
                             1,
@@ -1869,7 +2020,7 @@
                                 return structType.predicate(M.e[M.e.length - 1]);
                             });
 
-                    var accessorValue = 
+                    var accessorValue =
                         makePrimitiveProcedure(
                             name.toString() + "-accessor",
                             2,
@@ -1880,7 +2031,7 @@
                             });
                     accessorValue.structType = structType;
 
-                    var mutatorValue = 
+                    var mutatorValue =
                         makePrimitiveProcedure(
                             name.toString() + "-mutator",
                             3,
@@ -1901,21 +2052,21 @@
                                         mutatorValue);
                 });
         });
-    
+
 
     installPrimitiveProcedure(
         'current-inspector',
         makeList(0, 1),
         function (M) {
             if (M.a === 1) {
-                M.params['currentInspector'] = 
+                M.params['currentInspector'] =
                     checkInspector(M, 'current-inspector', 0);
                 return VOID;
             } else {
                 return M.params['currentInspector'];
             }
         }
-    ); 
+    );
 
 
     installPrimitiveProcedure(
@@ -1941,7 +2092,6 @@
                         aStruct,
                         baselib.numbers.toFixnum(index));
                 });
-            
         });
 
 
@@ -1968,7 +2118,7 @@
                         aStruct,
                         baselib.numbers.toFixnum(index),
                         M.e[M.e.length - 2]);
-                });            
+                });
         });
 
 
@@ -1991,7 +2141,6 @@
             return VOID;
         });
 
-        
 
     installPrimitiveProcedure(
         'make-reader-graph',
@@ -2058,12 +2207,14 @@
             return baselib.srclocs.srclocColumn(checkSrcloc(M, 'srcloc-column', 0));
         });
 
+
     installPrimitiveProcedure(
         'srcloc-position',
         1,
         function(M) {
             return baselib.srclocs.srclocPosition(checkSrcloc(M, 'srcloc-position', 0));
         });
+
 
     installPrimitiveProcedure(
         'srcloc-span',
@@ -2072,9 +2223,45 @@
             return baselib.srclocs.srclocSpan(checkSrcloc(M, 'srcloc-span', 0));
         });
 
+
+
+    installPrimitiveProcedure(
+        'make-continuation-prompt-tag',
+        makeList(0, 1),
+        function(M) {
+            var sym;
+            if (M.a === 1) {
+                sym = checkSymbol(M, "make-continuation-prompt-tag", 0);
+                return new baselib.contmarks.ContinuationPromptTag(sym.toString());
+            }
+            return new baselib.contmarks.ContinuationPromptTag(undefined);
+        });
+
+    installPrimitiveProcedure(
+        'continuation-prompt-tag?',
+        1,
+        function(M) {
+            return baselib.contmarks.isContinuationPromptTag(M.e[M.e.length - 1]);
+        });
+
+
+
+    installPrimitiveProcedure(
+        'default-continuation-prompt-tag',
+        0,
+        function(M) {
+            return baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
+        });
+
+
+
+
+
+
+
     exports['Primitives'] = Primitives;
-    exports['installPrimitiveProcedure'] = installPrimitiveProcedure; 
-    exports['installPrimitiveClosure'] = installPrimitiveClosure; 
-    exports['installPrimitiveConstant'] = installPrimitiveConstant; 
+    exports['installPrimitiveProcedure'] = installPrimitiveProcedure;
+    exports['installPrimitiveClosure'] = installPrimitiveClosure;
+    exports['installPrimitiveConstant'] = installPrimitiveConstant;
 
 }(this.plt.baselib));

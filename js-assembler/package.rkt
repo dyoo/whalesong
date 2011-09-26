@@ -10,6 +10,7 @@
          "../parser/path-rewriter.rkt"
          "../parser/parse-bytecode.rkt"
          "../resource/structs.rkt"
+	 "../promise.rkt"
          racket/match
          racket/list
          racket/promise
@@ -20,7 +21,35 @@
          (prefix-in query: "../lang/js/query.rkt")
          (prefix-in resource-query: "../resource/query.rkt")
          (prefix-in runtime: "get-runtime.rkt")
-         (prefix-in racket: racket/base))
+         (prefix-in racket: racket/base)
+         racket/runtime-path)
+
+
+;; Here, I'm trying to dynamically require the db-cache module
+;; because not everyone's going to have Sqlite3 installed.
+;; If this fails, just gracefully fall back to no caching.
+(define-runtime-path db-cache.rkt "db-cache.rkt")
+(define-runtime-path hash-cache.rkt "hash-cache.rkt")
+(define-values (impl-cached? impl-save-in-cache!)
+  (values (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                           'cached?)
+          (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                           'save-in-cache!))
+  #;(with-handlers ([exn:fail?
+                   (lambda (exn)
+                     (log-debug "Unable to use Sqlite3 cache.  Falling back to serialized hashtable cache.")
+                     (values (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                                              'cached?)
+                             (dynamic-require `(file ,(path->string hash-cache.rkt)) 
+                                              'save-in-cache!)))])
+    (parameterize ([current-namespace (make-base-namespace)])
+      (values
+       (dynamic-require `(file ,(path->string db-cache.rkt)) 
+                        'cached?)
+       (dynamic-require `(file ,(path->string db-cache.rkt)) 
+                        'save-in-cache!)))))
+
+
 
 ;; There is a dynamic require for (planet dyoo/closure-compile) that's done
 ;; if compression is turned on.
@@ -30,7 +59,6 @@
 
 
 (provide package
-         ;;package-anonymous
          package-standalone-xhtml
          get-inert-code
          get-standalone-code
@@ -95,8 +123,8 @@
     [(StatementsSource? src)
      #f]
     [(MainModuleSource? src)
-     (source-is-javascript-module?
-      (MainModuleSource-source src))]
+     (query:has-javascript-implementation?
+      `(file ,(path->string (MainModuleSource-path src))))]
     [(ModuleSource? src)
      (query:has-javascript-implementation?
       `(file ,(path->string (ModuleSource-path src))))]
@@ -110,8 +138,8 @@
     [(StatementsSource? src)
      empty]
     [(MainModuleSource? src)
-     (source-resources
-      (MainModuleSource-source src))]
+     (resource-query:query
+      `(file ,(path->string (MainModuleSource-path src))))]
     [(ModuleSource? src)
      (resource-query:query
       `(file ,(path->string (ModuleSource-path src))))]
@@ -136,27 +164,24 @@
                    provides))]
       [else
        ""]))
-  (cond
-    [(StatementsSource? src)
-     (error 'get-javascript-implementation src)]
-    [(MainModuleSource? src)
-     (get-javascript-implementation (MainModuleSource-source src))]
-    [(ModuleSource? src)
-     (let* ([name (rewrite-path (ModuleSource-path src))]
-            [paths (query:query `(file ,(path->string (ModuleSource-path src))))]
-            [text (string-join
-                   (map (lambda (p)
-                          (call-with-input-file p port->string))
-                        paths)
-                   "\n")]
-            [module-requires (query:lookup-module-requires (ModuleSource-path src))]
-            [bytecode (parse-bytecode (ModuleSource-path src))])
-       (when (not (empty? module-requires))
-         (log-debug "~a requires ~a"
-                    (ModuleSource-path src)
-                    module-requires))
-       (let ([module-body-text
-              (format "
+
+
+  (define (get-implementation-from-path path)
+    (let* ([name (rewrite-path path)]
+	   [paths (query:query `(file ,(path->string path)))]
+	   [text (string-join
+		  (map (lambda (p)
+			 (call-with-input-file p port->string))
+		       paths)
+		  "\n")]
+	   [module-requires (query:lookup-module-requires path)]
+	   [bytecode (parse-bytecode path)])
+      (when (not (empty? module-requires))
+	    (log-debug "~a requires ~a"
+		       path
+		       module-requires))
+      (let ([module-body-text
+	     (format "
              if(--M.cbt<0) { throw arguments.callee; }
              var modrec = M.modules[~s];
              var exports = {};
@@ -165,24 +190,34 @@
              ~a
              modrec.privateExports = exports;
              return M.c.pop().label(M);"
-                      (symbol->string name)
-                      text
-                      (get-provided-name-code bytecode))])
-         
-         (make-UninterpretedSource
-          (format "
+		     (symbol->string name)
+		     text
+		     (get-provided-name-code bytecode))])
+	
+	(make-UninterpretedSource
+	 (format "
 M.modules[~s] =
     new plt.runtime.ModuleRecord(~s,
         function(M) {
             ~a
         });
 "
-                  (symbol->string name)
-                  (symbol->string name)
-                  (assemble-modinvokes+body module-requires module-body-text))
-          
-          (map (lambda (p) (make-ModuleSource (normalize-path p)))
-               module-requires))))]
+		 (symbol->string name)
+		 (symbol->string name)
+		 (assemble-modinvokes+body module-requires module-body-text))
+	 
+	 (map (lambda (p) (make-ModuleSource (normalize-path p)))
+	      module-requires)))))
+
+
+
+  (cond
+    [(StatementsSource? src)
+     (error 'get-javascript-implementation src)]
+    [(MainModuleSource? src)
+     (get-implementation-from-path (MainModuleSource-path src))]
+    [(ModuleSource? src)
+     (get-implementation-from-path (ModuleSource-path src))]
     
     
     [(SexpSource? src)
@@ -283,7 +318,7 @@ M.modules[~s] =
          (fprintf op "(function(M) { ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
         [else      
          (fprintf op "(")
-         (assemble/write-invoke stmts op)
+         (on-source src stmts op)
          (fprintf op ")(plt.runtime.currentMachine,
                      function() {
                           if (window.console && window.console.log) {
@@ -327,11 +362,66 @@ M.modules[~s] =
      ;; last
      on-last-src))
   
-  (make (list (make-MainModuleSource source-code))
-        packaging-configuration)
+  (make (list source-code) packaging-configuration)
   
   (for ([r resources])
     ((current-on-resource) r)))
+
+
+
+;; on-source: Source (Promise (Listof Statement)) OutputPort -> void
+;; Generates the source for the statements here.
+;; Optimization: if we've seen this source before, we may be able to pull
+;; it from the cache.
+(define (on-source src stmts op)
+  (define (on-path path)
+    (cond
+      [(current-with-cache?)
+       (cond
+         [(cached? path)
+          =>
+          (lambda (bytes)
+            (display bytes op))]
+         [(cacheable? path)
+          (define string-op (open-output-bytes))
+          (assemble/write-invoke (my-force stmts) string-op)
+          (save-in-cache! path (get-output-bytes string-op))
+          (display (get-output-string string-op) op)]
+         [else
+          (assemble/write-invoke (my-force stmts) op)])]
+      [else
+       (assemble/write-invoke (my-force stmts) op)]))
+  (cond
+   [(ModuleSource? src)
+    (on-path (ModuleSource-path src))]
+   [(MainModuleSource? src)
+    (on-path (MainModuleSource-path src))]
+   [else
+    (assemble/write-invoke (my-force stmts) op)]))
+
+
+;; cached?: path -> (U false bytes)
+;; Returns a true value (the cached bytes) if we've seen this path
+;; and know its JavaScript-compiled bytes.
+(define (cached? path)
+  (impl-cached? path))
+
+
+
+;; cacheable?: path -> boolean
+;; Produces true if the file should be cached.
+;; At the current time, only cache modules that are provided
+;; by whalesong itself.
+(define (cacheable? path)
+  (within-whalesong-path? path))
+
+
+;; save-in-cache!: path bytes -> void
+;; Saves the bytes in the cache, associated with that path.
+;; TODO: Needs to sign with the internal version of Whalesong, and
+;; the md5sum of the path's content.
+(define (save-in-cache! path bytes)
+  (impl-save-in-cache! path bytes))
 
 
 
@@ -361,7 +451,7 @@ M.modules[~s] =
           (lambda (src) #t)
           ;; on
           (lambda (src ast stmts)
-            (assemble/write-invoke stmts op)
+            (on-source src stmts op)
             (fprintf op "(M, function() { "))
           
           ;; after

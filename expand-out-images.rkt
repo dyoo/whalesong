@@ -1,15 +1,9 @@
 #lang racket/base
 
 (require racket/runtime-path
-         planet/version
          syntax/kerncase
          net/base64
-         (for-template (this-package-in lang/kernel)
-                       #;(this-package-in image/main))
-         
-         ;; FIXME: I don't quite understand why I should be doing a require
-         ;; of the image library at compile time, and not at template time.
-         (this-package-in image/main))
+         (for-template "lang/kernel.rkt"))
 
 
 
@@ -34,9 +28,10 @@
   ;; fruitfully use compiler/zo-parse.    
   (define rewritten
     (parameterize
-        ([my-image-url (car (generate-temporaries #'(image-url)))])
+        ([my-image-url (car (generate-temporaries #'(my-image-url)))])
       
-      (kernel-syntax-case (syntax-disarm expanded code-insp) #f
+      (define disarmed (syntax-disarm expanded code-insp))
+      (kernel-syntax-case disarmed #f
         [(#%expression expr)
          (quasisyntax/loc stx
            (#%expression #,(on-expr #'expr)))]
@@ -49,8 +44,8 @@
                                  ;; Kludge: I'm trying to get at the image-url
                                  ;; function, but in a way that doesn't clash with the
                                  ;; user's existing program.
-                                 (require (rename-in (file image-library-path)
-                                                     [image-url #,(my-image-url)]))
+                                 (require (only-in (file image-library-path)
+                                                   [bitmap/url #,(my-image-url)]))
                                  
                                  #,@(map on-toplevel
                                          (syntax->list #'(module-level-form ...)))))))]

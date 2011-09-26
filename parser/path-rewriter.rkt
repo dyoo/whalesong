@@ -9,7 +9,8 @@
 
 
 
-(provide/contract [rewrite-path (complete-path? . -> . (or/c symbol? false/c))])
+(provide/contract [rewrite-path (complete-path? . -> . (or/c symbol? false/c))]
+                  [within-whalesong-path? (complete-path? . -> . boolean?)])
 
 
 
@@ -31,7 +32,7 @@
 (define (rewrite-path a-path)
   (let ([a-path (normalize-path a-path)])
     (cond
-     [(within-this-project-path? a-path)
+     [(within-whalesong-path? a-path)
       (string->symbol
        (string-append "whalesong/"
                       (path->string
@@ -60,7 +61,7 @@
   (within? collects-path a-path))
 
 
-(define (within-this-project-path? a-path)
+(define (within-whalesong-path? a-path)
   (within? normal-whalesong-path a-path))
 
 

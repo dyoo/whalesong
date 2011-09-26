@@ -2,6 +2,7 @@
 (require (prefix-in racket: (only-in racket/math pi sinh cosh sqr
                                      sgn conjugate))
          (prefix-in racket: racket/base)
+         racket/provide
 	 racket/local
 	 (for-syntax racket/base)
          racket/stxparam
@@ -123,6 +124,7 @@
 	 begin-for-syntax
 	 prefix-in
 	 only-in
+         rename-in
 	 provide
 	 planet
 	 all-defined-out
@@ -130,6 +132,8 @@
 	 except-out
 	 rename-out
 	 struct-out
+         filtered-out
+         
          define-syntax-rule
 	 define-syntax
 	 define-syntaxes
@@ -207,7 +211,7 @@
  displayln
 
  
-;;  current-continuation-marks
+ current-continuation-marks
 
 ;;  continuation-mark-set?
 ;;  continuation-mark-set->list
@@ -233,21 +237,22 @@
   random
 ;;  sleep
 ;;  (identity -identity)
-;;  raise
-  
+
+raise  
 error
 raise-type-error
 raise-mismatch-error
 
-;;  make-exn
-;;  make-exn:fail
-;;  make-exn:fail:contract
-;;  make-exn:fail:contract:arity
-;;  make-exn:fail:contract:variable
-;;  make-exn:fail:contract:divide-by-zero
+make-exn
+make-exn:fail
+make-exn:fail:contract
+make-exn:fail:contract:arity
+make-exn:fail:contract:variable
+make-exn:fail:contract:divide-by-zero
 
-;;  exn-message
-;;  exn-continuation-marks
+exn-message
+exn-continuation-marks
+
 
 ;;  exn?
 ;;  exn:fail?
@@ -445,23 +450,27 @@ char=?
 ;;  char-upper-case?
 ;;  char-lower-case?
 ;;  char->integer
-;;  integer->char
+  integer->char
   char-upcase
   char-downcase
 
- 
-;;  call-with-current-continuation
+  
+  ;; these are defined in bootstrapped-primitives in Whalesong's compiler package
+  call-with-current-continuation
   call/cc
-;;  call-with-continuation-prompt
-;;  abort-current-continuation
-;;  default-continuation-prompt-tag
-;;  make-continuation-prompt-tag
-;;  continuation-prompt-tag?
+
+  ;;  call-with-continuation-prompt
+  ;;  abort-current-continuation
+  default-continuation-prompt-tag
+  make-continuation-prompt-tag
+  continuation-prompt-tag?
 
   make-reader-graph
   make-placeholder
-  placeholder-set!)
+  placeholder-set!
 
+  eof-object?
+  read-byte)
 
 
 

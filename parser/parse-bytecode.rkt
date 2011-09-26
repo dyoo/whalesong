@@ -32,10 +32,3 @@
      (parse-bytecode x)]
     [else
      (parse-bytecode x)]))
-
-
-(define cache-dir (build-path (find-system-path 'pref-dir)
-                              "whalesong"
-                              whalesong:version))
-(unless (directory-exists? cache-dir)
-  (make-directory* cache-dir))

@@ -78,7 +78,7 @@
   (flush-output (current-output-port))
   (let* ([exp (call-with-input-file expected-file-path port->string)]
          [src-path source-file-path]
-         [result (evaluate (make-MainModuleSource (make-ModuleSource src-path)))]
+         [result (evaluate (make-MainModuleSource src-path))]
          [output (evaluated-stdout result)])
     (cond [(string=? (strip-paths output)
                      (strip-paths exp))

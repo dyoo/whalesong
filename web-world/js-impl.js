@@ -966,7 +966,10 @@
             };
             if (!!(navigator.geolocation)) {
                 navigator.geolocation.getCurrentPosition(success, fail);
-                this.id = navigator.geolocation.watchPosition(success, fail); 
+                this.id = navigator.geolocation.watchPosition(
+                    success,
+                    fail,
+                    { enableHighAccuracy : true }); 
             }
         }
     };
@@ -977,11 +980,6 @@
             this.id = undefined;
         }
     };
-
-
-
-
-
 
 
 

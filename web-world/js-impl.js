@@ -949,6 +949,7 @@
     LocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
     LocationEventSource.prototype.onStart = function(fireEvent) {
+        var that = this;
         if (this.id === undefined) {
             var success = function(position) {
                 if (position.hasOwnProperty &&
@@ -961,6 +962,14 @@
                                               'longitude' : Number(position.coords.longitude) }));
                 }
             };
+            // If we fail while trying to watch the position
+            // using high accuracy, switch over to the coarse one.
+            var onFailSwitchoverToCoerse = function() {
+                navigator.geolocation.clearWatch(that.id);
+                that.id = navigator.geolocation.watchPosition(
+                    success,
+                    fail);
+            };
             var fail = function(err) {
                 // Quiet failure
             };
@@ -968,7 +977,7 @@
                 navigator.geolocation.getCurrentPosition(success, fail);
                 this.id = navigator.geolocation.watchPosition(
                     success,
-                    fail,
+                    onFailSwitchoverToCoerse,
                     { enableHighAccuracy : true }); 
             }
         }

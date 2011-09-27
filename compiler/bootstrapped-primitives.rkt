@@ -252,17 +252,17 @@
 
        ;; Common case: we're running multiple values.  Put the first in the val register
        ;; and go to the multiple value return.
-       ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
        ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
        ,(make-PopEnvironment (make-Const 1) (make-Const 0))
+       ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
        ,(make-PopControlFrame)
        ,(make-GotoStatement (make-Reg 'proc))
 
        ;; Special case: on a single value, just use the regular return address
        ,on-single-value
-       ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
        ,(make-AssignImmediateStatement 'val (make-EnvLexicalReference 0 #f))
        ,(make-PopEnvironment (make-Const 1) (make-Const 0))
+       ,(make-AssignImmediateStatement 'proc (make-ControlStackLabel))
        ,(make-PopControlFrame)
        ,(make-GotoStatement (make-Reg 'proc))
 

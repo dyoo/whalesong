@@ -1680,9 +1680,11 @@
                              (make-EnvLexicalReference 0 #f)
                              next-linkage/expects-single)]
           [after-body-code : Symbol (make-label 'afterLetBody)]
-          [extended-cenv : CompileTimeEnvironment (cons (extract-static-knowledge (Let1-rhs exp)
-                                                                                  (cons '? cenv))
-                                                        cenv)]
+          [extended-cenv : CompileTimeEnvironment 
+                         (cons (extract-static-knowledge (Let1-rhs exp)
+                                                         (cons '? cenv))
+                               cenv)]
+          [context : ValuesContext (linkage-context linkage)]
           [let-linkage : Linkage
                        (cond
                          [(NextLinkage? linkage)
@@ -1694,6 +1696,7 @@
                                  (make-LabelLinkage after-body-code (linkage-context linkage))])]
                          [(LabelLinkage? linkage)
                           (make-LabelLinkage after-body-code (LabelLinkage-context linkage))])]
+
           [body-target : Target (adjust-target-depth target 1)]
           [body-code : InstructionSequence
                      (compile (Let1-body exp) extended-cenv body-target let-linkage)])
@@ -1706,7 +1709,42 @@
       rhs-code
       body-code
       after-body-code
-      (make-PopEnvironment (make-Const 1) (make-Const 0))))))
+      
+      ;; We want to clear out the scratch space introduced by the
+      ;; let1.  However, there may be multiple values coming
+      ;; back at this point, from the evaluation of the body.  We
+      ;; look at the context and route around those values
+      ;; appropriate.
+      (cond
+        [(eq? context 'tail)
+         empty-instruction-sequence]
+        [(eq? context 'drop-multiple)
+         (make-PopEnvironment (make-Const 1)
+                              (new-SubtractArg
+                               (make-Reg 'argcount)
+                               (make-Const 1)))]
+        [(eq? context 'keep-multiple)
+         ;; dynamic number of arguments that need
+         ;; to be preserved
+
+         (make-PopEnvironment (make-Const 1)
+                              (new-SubtractArg
+                               (make-Reg 'argcount)
+                               (make-Const 1)))]
+        [else
+         (cond [(= context 0)
+                (make-PopEnvironment (make-Const 1)                                  
+                                     (make-Const 0))]
+               [(= context 1)
+                (make-PopEnvironment (make-Const 1)
+                                     (make-Const 0))]
+               [else
+                ;; n-1 values on stack that we need to route
+                ;; around
+                (make-PopEnvironment (make-Const 1)
+                                     (new-SubtractArg
+                                      (make-Const context)
+                                      (make-Const 1)))])])))))
 
 
 

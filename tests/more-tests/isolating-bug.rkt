@@ -21,9 +21,12 @@
                    (define-struct name (fields ...) kw ...)
                    (let ([cnstr (lambda args
                                   (apply cnstr args))])
+                     (displayln names) ...
                      (values names ...))))))))]))
-
 (my-define-struct swf (f) #:mutable)
+(displayln "---")
+struct:swf
 make-swf
 swf?
 swf-f
+set-swf-f!

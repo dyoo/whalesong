@@ -397,7 +397,7 @@
         (make-GotoStatement (ModuleEntry a-module-name))
         on-return-multiple
         (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                               (make-Const 1))
+                                              (make-Const 1))
                              (make-Const 0))
         on-return))]))
 
@@ -596,7 +596,7 @@
             (compile (first seq) cenv 'val return-linkage/nontail)
             on-return/multiple
             (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                                   (make-Const 1))
+                                                  (make-Const 1))
                                  (make-Const 0))
             on-return
             (compile-splice (rest seq) cenv target linkage)))]))
@@ -660,7 +660,7 @@
               (append-instruction-sequences 
                (make-PopEnvironment (make-Const (length cenv)) 
                                     (new-SubtractArg (make-Reg 'argcount)
-                                                      (make-Const 1)))
+                                                     (make-Const 1)))
                (make-AssignImmediateStatement 'proc (make-ControlStackLabel/MultipleValueReturn))
                (make-PopControlFrame)
                (make-GotoStatement (make-Reg 'proc)))]
@@ -845,7 +845,7 @@
                                             (make-UnspliceRestFromStack! 
                                              (make-Const (Lam-num-parameters exp))
                                              (new-SubtractArg (make-Reg 'argcount)
-                                                               (make-Const (Lam-num-parameters exp)))))
+                                                              (make-Const (Lam-num-parameters exp)))))
                                            empty-instruction-sequence)]
          [maybe-install-closure-values : InstructionSequence
                                        (if (not (empty? (Lam-closure-map exp)))
@@ -1036,10 +1036,10 @@
 (define (compile-kernel-primitive-application kernel-op exp cenv target linkage)
   (let ([singular-context-check (emit-singular-context linkage)]
         [n (length (App-operands exp))])
-
+    
     (define expected-operand-types
       (kernel-primitive-expected-operand-types kernel-op n))
-
+    
     (: make-runtime-arity-mismatch-code (Arity -> InstructionSequence))
     (define (make-runtime-arity-mismatch-code expected-arity)
       ;; We compile the code to generate a runtime arity error here.
@@ -1067,11 +1067,11 @@
                                 (make-Reg 'proc)
                                 expected-arity
                                 (make-Const n))))))
-
+    
     (cond
       [(IncorrectArity? expected-operand-types)
        (make-runtime-arity-mismatch-code (IncorrectArity-expected expected-operand-types))]
-
+      
       [(not (= n (length expected-operand-types)))
        (make-runtime-arity-mismatch-code (length expected-operand-types))]
       
@@ -1099,7 +1099,7 @@
                          (not (redundant-check? dom known)))
                        expected-operand-types
                        operand-knowledge)]
-
+                 
                  [operand-poss
                   (simple-operands->opargs (map (lambda: ([op : Expression])
                                                   (adjust-expression-depth op n n))
@@ -1545,7 +1545,7 @@
                   nontail-jump-into-procedure
                   on-return/multiple
                   (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                                         (make-Const 1))
+                                                        (make-Const 1))
                                        (make-Const 0))
                   on-return)])]
              
@@ -1611,7 +1611,7 @@
            on-return/multiple
            ;; if the wrong number of arguments come in, die
            (make-TestAndJumpStatement (make-TestZero (new-SubtractArg (make-Reg 'argcount)
-                                                                       (make-Const context)))
+                                                                      (make-Const context)))
                                       after-value-check)
            on-return
            (make-PerformStatement

@@ -25,6 +25,7 @@
 (test "more-tests/images.rkt")
 (test "more-tests/lists.rkt")
 (test "more-tests/simple-apply.rkt")
+(test "more-tests/isolating-bug.rkt")
 (test "more-tests/hello-bf.rkt")
 (test "more-tests/conform.rkt")
 (test "more-tests/earley.rkt")

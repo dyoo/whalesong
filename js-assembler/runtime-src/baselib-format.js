@@ -409,7 +409,7 @@
 
         if (baselib.functions.isProcedure(x)) {
             node = document.createElement("span");
-            node.appendChild(document.createTextNode('#<procedure: ' + x.displayName + '>'));
+            node.appendChild(document.createTextNode('#<procedure:' + x.displayName + '>'));
             $(node).addClass("procedure");
             return node;
         }

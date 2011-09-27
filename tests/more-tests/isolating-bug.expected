@@ -1,3 +1,27 @@
+#<struct-type:swf>
 #<procedure:make-swf>
 #<procedure:swf?>
 #<procedure:swf-f>
+#<procedure:set-swf-f!>
+in the result of call-with-values
+(#<struct-type:swf> #<procedure:make-swf> #<procedure:swf?> #<procedure:swf-f> #<procedure:set-swf-f!>)
+---
+#<struct-type:swf>
+#<procedure:make-swf>
+#<procedure:swf?>
+#<procedure:swf-f>
+#<procedure:set-swf-f!>
+***
+#<struct-type:swf2>
+#<procedure:make-swf2>
+#<procedure:swf2?>
+#<procedure:swf2-f>
+#<procedure:set-swf2-f!>
+in the result of call-with-values
+(#<struct-type:swf2> #<procedure:make-swf2> #<procedure:swf2?> #<procedure:swf2-f> #<procedure:set-swf2-f!>)
+---
+#<struct-type:swf2>
+#<procedure:make-swf2>
+#<procedure:swf2?>
+#<procedure:swf2-f>
+#<procedure:set-swf2-f!>

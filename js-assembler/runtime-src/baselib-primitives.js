@@ -2077,9 +2077,9 @@
             var index = M.e[M.e.length - 2];
             var name;
             if (M.a === 3) {
-                name = M.e[M.e.length - 3].toString();
+                name = structType.name + "-" + M.e[M.e.length - 3].toString();
             } else {
-                name = 'field' + index;
+                name = structType.name + "-" + 'field' + index;
             }
             var checkStruct = baselib.check.makeCheckArgumentType(structType.predicate,
                                                                   structType.name);
@@ -2103,9 +2103,9 @@
             var index = M.e[M.e.length - 2];
             var name;
             if (M.a === 3) {
-                name = M.e[M.e.length - 3].toString();
+                name = "set-" + structType.name + "-" + M.e[M.e.length - 3].toString() + "!";
             } else {
-                name = 'field' + index;
+                name = "set-" + structType.name + "-" + 'field' + index + "!";
             }
             var checkStruct = baselib.check.makeCheckArgumentType(structType.predicate,
                                                                   structType.name);

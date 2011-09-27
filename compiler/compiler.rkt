@@ -1721,9 +1721,7 @@
          empty-instruction-sequence]
         [(eq? context 'drop-multiple)
          (make-PopEnvironment (make-Const 1)
-                              (new-SubtractArg
-                               (make-Reg 'argcount)
-                               (make-Const 1)))]
+                              (make-Const 0))]
         [(eq? context 'keep-multiple)
          ;; dynamic number of arguments that need
          ;; to be preserved

@@ -442,7 +442,7 @@ M.modules[~s] =
     
     (newline op)
     (fprintf op "(function(M, SUCCESS, FAIL, PARAMS) {")
-    (make (list only-bootstrapped-code) packaging-configuration)
+    (make (list (my-force only-bootstrapped-code)) packaging-configuration)
     (fprintf op "})(plt.runtime.currentMachine,\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")))
 
 

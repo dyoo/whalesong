@@ -77,8 +77,6 @@
 
 
 
-(: only-bootstrapped-code : StatementsSource)
+(: only-bootstrapped-code : (MyPromise StatementsSource))
 (define only-bootstrapped-code
-  (make-StatementsSource (get-bootstrapping-code)))
-
-
+  (my-delay (make-StatementsSource (get-bootstrapping-code))))

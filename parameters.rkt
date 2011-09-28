@@ -87,7 +87,7 @@
 ;; Turns on caching of compiled programs, so that repeated compilations
 ;; will reuse existing work.
 (: current-with-cache? (Parameterof Boolean))
-(define current-with-cache? (make-parameter #f))
+(define current-with-cache? (make-parameter #t))
 
 
 

@@ -88,6 +88,16 @@
     );
     var checkRational = baselib.check.checkRational;
     var checkPair = baselib.check.checkPair;
+    var checkCaarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first);
+	},
+	'caarable value');
+    var checkCadrPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first);
+	},
+	'cadrable value');
     var checkList = baselib.check.checkList;
     var checkListofChars = baselib.check.makeCheckListofArgumentType(baselib.chars.isChar,
                                                                      'character');
@@ -557,8 +567,6 @@
         });
 
 
-
-
     installPrimitiveProcedure(
         'car',
         1,
@@ -567,6 +575,20 @@
             return firstArg.first;
         });
 
+    installPrimitiveProcedure(
+        'caar',
+        1,
+        function (M) {
+            var firstArg = checkCaarPair(M, 'caar', 0);
+            return firstArg.first.first;
+        });
+    installPrimitiveProcedure(
+        'cadr',
+        1,
+        function (M) {
+            var firstArg = checkCadrPair(M, 'cadr', 0);
+            return firstArg.first.rest;
+        });
     installPrimitiveProcedure(
         'cdr',
         1,

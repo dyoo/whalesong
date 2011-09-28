@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang typed/racket/base/no-check
 
 
 ;; Assembles the statement stream into JavaScript.

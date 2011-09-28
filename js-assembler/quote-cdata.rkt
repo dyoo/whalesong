@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang typed/racket/base/no-check
 
 ;; quoting cdata for script tags.  This is used to help generate SCRIPT bodies in XHTML.
 ;; Note that this won't help too much in regular HTML5 documents.

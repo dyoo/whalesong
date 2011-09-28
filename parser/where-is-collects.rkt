@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang typed/racket/base/no-check
 (require/typed racket/path
                (normalize-path (Path -> Path)))
 (require/typed typed/racket/base

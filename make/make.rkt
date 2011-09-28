@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang typed/racket/base/no-check
 
 (require "../compiler/compiler.rkt"
          "../compiler/il-structs.rkt"

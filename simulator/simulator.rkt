@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang typed/racket/base/no-check
 
 ;; An evaluator for the intermediate language, so I can do experiments.
 ;;

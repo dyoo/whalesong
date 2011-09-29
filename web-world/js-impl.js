@@ -1083,7 +1083,6 @@
 
     // bigBang.
     var bigBang = function(MACHINE, world, handlers) {
-        var oldArgcount = MACHINE.a;
         var oldCurrentBigBangRecord = currentBigBangRecord;
 
         var running = true;
@@ -1117,7 +1116,6 @@
                 running = false;
                 stopEventHandlers();
                 restart(function(MACHINE) {
-                    MACHINE.a = oldArgcount;
                     MACHINE.params.currentOutputPort = oldOutputPort;
                     currentBigBangRecord = oldCurrentBigBangRecord;
                     finalizeClosureCall(MACHINE, world);
@@ -1543,12 +1541,10 @@
         1,
         function(MACHINE) {
             var viewable = MACHINE.e[MACHINE.e.length - 1];
-            var oldArgcount = MACHINE.a;
             PAUSE(function(restart) {
                 coerseToView(viewable,
                              function(v) {
                                  restart(function(MACHINE) {
-                                     MACHINE.a = oldArgcount;
                                      finalizeClosureCall(MACHINE,
                                                          new InitialViewHandler(v));
                                  });
@@ -1571,12 +1567,10 @@
         1,
         function(MACHINE) {
             var viewable = MACHINE.e[MACHINE.e.length - 1];
-            var oldArgcount = MACHINE.a;
             PAUSE(function(restart) {
                 coerseToMockView(viewable,
                                  function(v) {
                                      restart(function(MACHINE) {
-                                         MACHINE.a = oldArgcount;
                                          finalizeClosureCall(MACHINE, v);
                                      });
                                  },
@@ -1897,13 +1891,11 @@
         2,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-append-child', 0);
-            var oldArgcount = MACHINE.a;
             var x = MACHINE.e[MACHINE.e.length - 2];
             PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
                                      restart(function(MACHINE) {
-                                         MACHINE.a = oldArgcount;
                                          var updatedView = view.appendChild(dom);
                                          finalizeClosureCall(MACHINE, updatedView);
                                      });
@@ -1927,13 +1919,11 @@
         2,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-insert-right', 0);
-            var oldArgcount = MACHINE.a;
             var x = MACHINE.e[MACHINE.e.length - 2];
             PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
                                      restart(function(MACHINE) {
-                                         MACHINE.a = oldArgcount;
                                          var updatedView = view.insertRight(dom);
                                          finalizeClosureCall(MACHINE, updatedView);
                                      });
@@ -1959,13 +1949,11 @@
         2,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-insert-left', 0);
-            var oldArgcount = MACHINE.a;
             var x = MACHINE.e[MACHINE.e.length - 2];
             PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
                                      restart(function(MACHINE) {
-                                         MACHINE.a = oldArgcount;
                                          var updatedView = view.insertLeft(dom);
                                          finalizeClosureCall(MACHINE, updatedView);
                                      });

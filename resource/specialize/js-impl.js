@@ -71,7 +71,7 @@ EXPORTS['specialize!'] = makeClosure(
     1,
     function(MACHINE) {
         var resource = checkResource(MACHINE, 'specialize!', 0);
-        var oldArgcount = MACHINE.a;
+
         if (isImagePath(getResourceKey(resource).toString())) {
             return PAUSE(
                 function(restart) {
@@ -81,7 +81,6 @@ EXPORTS['specialize!'] = makeClosure(
                         delete(rawImage.onerror);
                         injectImageMethods(resource, rawImage);
                         restart(function(MACHINE) {
-                            MACHINE.a = oldArgcount;
                             return finalizeClosureCall(MACHINE, resource);
                         });
                     };
@@ -91,7 +90,6 @@ EXPORTS['specialize!'] = makeClosure(
                         // on any kind of image-loading error, fail out and
                         // just return the resource unchanged.
                         restart(function(MACHINE) {
-                            MACHINE.a = oldArgcount;
                             return finalizeClosureCall(MACHINE, resource);
                         });
                     }

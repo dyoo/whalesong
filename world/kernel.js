@@ -24,9 +24,6 @@ var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 //////////////////////////////////////////////////////////////////////
 
 var bigBang = function(MACHINE, initW, handlers) {
-
-    var oldArgcount = MACHINE.a;
-
     var outerToplevelNode = $('<span/>').css('padding', '0px').get(0);
     MACHINE.params.currentOutputPort.writeDomNode(MACHINE, outerToplevelNode);
     var toplevelNode = $('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
@@ -65,9 +62,7 @@ var bigBang = function(MACHINE, initW, handlers) {
 	    function(finalWorldValue) {
 		// state.removeBreakRequestedListener(onBreak);
 
-
 		restart(function(MACHINE) {
-                    MACHINE.a = oldArgcount;
 		    finalizeClosureCall(
 			MACHINE, 
 			finalWorldValue);

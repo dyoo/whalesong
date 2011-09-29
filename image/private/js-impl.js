@@ -286,13 +286,11 @@ EXPORTS['bitmap/url'] =
         1,
         function(MACHINE) {
             var url = checkString(MACHINE, 'bitmap/url', 0);
-            var oldArgcount = MACHINE.a;
             PAUSE(
                 function(restart) {
                     var rawImage = new Image();
                     rawImage.onload = function() {
                         restart(function(MACHINE) {
-                            MACHINE.a = oldArgcount;
                             finalizeClosureCall(
                                 MACHINE, 
                                 makeFileImage(url.toString(),

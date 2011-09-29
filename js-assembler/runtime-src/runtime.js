@@ -432,8 +432,14 @@
             },
 	    0);
     };
+
+    // Creates a restarting function, that reschedules f in a context
+    // with the old argcount in place. 
+    // Meant to be used only by the trampoline.
     var makeRestartFunction = function(MACHINE) {
+        var oldArgcount = MACHINE.a;
         return function(f) { 
+            MACHINE.a = oldArgcount;
             return scheduleTrampoline(MACHINE, f);
         };
     };

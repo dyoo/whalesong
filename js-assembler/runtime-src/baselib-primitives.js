@@ -791,7 +791,7 @@
             var i;
             var result = NULL;
             for (i = str.length - 1; i >= 0; i--) {
-                result = makePair(baselib.chars.makeChar(str[i]), result);
+                result = makePair(baselib.chars.makeChar(str.charAt(i)), result);
             }
             return result;
         });
@@ -1022,7 +1022,7 @@
             var index = baselib.numbers.toFixnum(
                 checkNaturalInRange(M, 'string-ref', 1,
                                     0, firstArg.length));
-            return baselib.chars.makeChar(firstArg[index]);
+            return baselib.chars.makeChar(firstArg.charAt(index));
         });
 
 

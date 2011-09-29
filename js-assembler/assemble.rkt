@@ -591,7 +591,7 @@ EOF
   (cond
    #;[(current-emit-debug-trace?)
     (string-append 
-     (format "if(typeof(window.console)!=='undefined'&&typeof(console.log)==='function'){console.log(~s);\n}"
+     (format "if(typeof(window.console)!=='undefined'&&typeof(window.console.log)==='function'){window.console.log(~s);\n}"
                (format "~a" stmt))
      assembled)]
    [else

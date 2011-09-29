@@ -132,7 +132,11 @@ var adaptWorldFunction = function(worldFunction) {
              },
              function(err) {
                  // FIXME: do error trapping
-                 console.log(err);
+                 if (window.console && window.console.log) {
+                     window.console.log(err);
+                 } else {
+                     throw err;
+                 }
              }].concat([].slice.call(arguments, 0, arguments.length - 1)));
     };
 };

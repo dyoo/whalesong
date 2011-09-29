@@ -66,6 +66,9 @@
             [("--enable-profiling")
              ("Enable profiling to standard output")
              (with-profiling? #t)]
+            [("--without-ie")
+             ("Disable IE legacy support")
+             (current-with-legacy-ie-support? #f)]
             [("--without-cache")
              ("Turn off the internal compilation cache")
              (current-with-cache? #f)]
@@ -101,6 +104,9 @@
                   [("--enable-profiling")
                    ("Enable profiling to standard output")
                    (with-profiling? #t)]
+                  [("--without-ie")
+                   ("Disable IE legacy support")
+                   (current-with-legacy-ie-support? #f)]
                   [("--without-cache")
                    ("Turn off the internal compilation cache")
                    (current-with-cache? #f)]
@@ -123,6 +129,9 @@
                      [("--enable-profiling")
                       ("Enable profiling to standard output")
                       (with-profiling? #t)]
+                     [("--without-ie")
+                      ("Disable IE legacy support")
+                      (current-with-legacy-ie-support? #f)]
                      [("--without-cache")
                       ("Turn off the internal compilation cache")
                       (current-with-cache? #f)]

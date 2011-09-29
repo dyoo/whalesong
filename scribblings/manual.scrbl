@@ -1262,11 +1262,15 @@ Functional I/O System}).  Here's an example of such a world program:
 
 Whalesong uses code and utilities from the following external projects:
 @itemlist[
-@item{   jshashtable (@url{http://www.timdown.co.uk/jshashtable/})}
-@item{   js-numbers (@url{http://github.com/dyoo/js-numbers/})}
-@item{   JSON (@url{http://www.json.org/js.html})}
-@item{   jquery (@url{http://jquery.com/})}
-@item{   Google Closure Compiler (@url{http://code.google.com/p/closure-compiler/})}
+@item{jshashtable (@url{http://www.timdown.co.uk/jshashtable/})}
+@item{js-numbers (@url{http://github.com/dyoo/js-numbers/})}
+@item{JSON (@url{http://www.json.org/js.html})}
+@item{jquery (@url{http://jquery.com/})}
+@item{Google Closure Compiler (@url{http://code.google.com/p/closure-compiler/}}}
+
+
+@item{excanvas (@url{http://excanvas.sourceforge.net/})}
+@item{canvas-text (@url{http://code.google.com/p/canvas-text/source/browse/trunk})} 
 ]
 
 The following folks have helped tremendously in the implementation of

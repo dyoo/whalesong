@@ -21,6 +21,7 @@
          current-compress-javascript?
          current-one-module-per-file?
          current-with-cache?
+         current-with-legacy-ie-support?
          
          
          current-report-port
@@ -88,6 +89,13 @@
 ;; will reuse existing work.
 (: current-with-cache? (Parameterof Boolean))
 (define current-with-cache? (make-parameter #f))
+
+
+;; Turns on ie legacy support; includes excanvas and other helper libraries
+;; to smooth out compatibility issues.
+(: current-with-legacy-ie-support? (Parameterof Boolean))
+(define current-with-legacy-ie-support? (make-parameter #t))
+
 
 
 

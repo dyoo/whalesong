@@ -493,11 +493,13 @@ EOF
 ;; get-html-template: (listof string) (#:manifest path) -> string
 (define (get-html-template js-files
                            #:manifest (manifest #f)
+                           #:with-legacy-ie-support? (with-legacy-ie-support? #t)
                            #:title (title ""))
   (format #<<EOF
 <!DOCTYPE html>
 <html ~a>
   <head>
+    ~a
     <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -513,6 +515,9 @@ EOF
   </html>
 EOF
   (if manifest (format "manifest=~s" (path->string manifest)) "")
+  (if with-legacy-ie-support?
+      "<!--[if IE]><meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'><![endif]--><!--lt IE 9?><script src='excanvas.js' type='text/javascript'></script><script src='canvas.text.js'></script><script src='optimer-normal-normal.js'></script><!endif?-->"
+      "")
   title
   (string-join (map (lambda (js)
                       (format "  <script src='~a'></script>\n" js))

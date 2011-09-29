@@ -12,8 +12,7 @@
 
 
    ;; Parsing Racket 5.1.2 bytecode structures into our own structures.
-   (require "typed-module-path.rkt"
-            "path-rewriter.rkt"
+   (require "path-rewriter.rkt"
             "../compiler/expression-structs.rkt"
             "../compiler/lexical-structs.rkt"
             "../parameters.rkt"

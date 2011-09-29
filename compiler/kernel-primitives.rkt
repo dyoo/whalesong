@@ -27,6 +27,7 @@
                                     '>=
                                     'cons
                                     'car
+				    'caar
                                     'cdr
 				    'cadr
 				    'caddr
@@ -81,6 +82,7 @@
                                     'srcloc-position
                                     'srcloc-span
 
+				    'error
                                     'raise-type-error
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)

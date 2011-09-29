@@ -81,7 +81,8 @@
                             (lambda (ip)
                               (get-compiled-code-from-port ip)))
                           )])
-    (get-module-code p)))
+    (parameterize ([compile-context-preservation-enabled #f])
+      (get-module-code p))))
 
 
 ;; get-compiled-code-from-port: input-port -> compiled-code
@@ -89,6 +90,7 @@
 (define (get-compiled-code-from-port ip)
   ;(printf "get-compiled-code-from-port\n")
   (parameterize ([read-accept-reader #t]
+                 [compile-context-preservation-enabled #f]
                  [current-namespace base-namespace])
     (define stx (read-syntax (object-name ip) ip))
     ;(printf "got stx; now expanding out the images\n")

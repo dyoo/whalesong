@@ -336,7 +336,7 @@ negative?
   eqv?
 
   caar
-;;  cadr
+  cadr
 ;;  cdar
 ;;  cddr
 ;;  caaar

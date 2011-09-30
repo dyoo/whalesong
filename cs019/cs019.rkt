@@ -10,8 +10,10 @@
 
 (require "cs019-pre-base.rkt")
 (provide (rename-out [cs019-lambda lambda]
+                     [cs019-define define]
                      [cs019-when when]
-                     [cs019-unless unless]))
+                     [cs019-unless unless]
+                     [cs019-case case]))
 
 
 (require (prefix-in whalesong: "../lang/whalesong.rkt"))
@@ -27,7 +29,10 @@
                      cond
                      case
                      member
-                     lambda)
+                     define
+                     lambda
+                     unless
+                     when)
 
          string-ith
          replicate
@@ -276,112 +281,6 @@
          "one"
          "at least one"))))
 
-
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; case
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define-syntax (-case stx)
-  (syntax-case stx ()
-    [(_)
-     (teach-syntax-error
-      'case
-      stx
-      #f
-      "expected an expression after `case', but nothing's there")]
-    [(_ expr)
-     (teach-syntax-error
-      'case
-      stx
-      #f
-      "expected a choices--answer clause after the expression following `case', but nothing's there")]
-    [(_ v-expr clause ...)
-     (let ([clauses (syntax->list (syntax (clause ...)))])
-       (for-each
-        (lambda (clause)
-          (syntax-case clause (else)
-            [(else answer ...)
-             (let ([lpos (memq clause clauses)])
-               (when (not (null? (cdr lpos)))
-                 (teach-syntax-error
-                  'case
-                  stx
-                  clause
-                  "found an `else' clause that isn't the last clause ~
-                                    in its `case' expression"))
-               (let ([answers (syntax->list (syntax (answer ...)))])
-                 (check-single-expression 'case
-                                          "for the answer in a case clause"
-                                          clause
-                                          answers
-                                          null)))]
-            [(choices answer ...)
-             (let ([choices (syntax choices)]
-                   [answers (syntax->list (syntax (answer ...)))])
-               (syntax-case choices ()
-                 [(elem ...)
-                  (let ([elems (syntax->list (syntax (elem ...)))])
-                    (for-each (lambda (e)
-                                (let ([v (syntax-e e)])
-                                  (unless (or (number? v)
-                                              (symbol? v))
-                                    (teach-syntax-error
-                                     'case
-                                     stx
-                                     e
-                                     "expected a name (for a symbol) or a number as a choice value, but found ~a"
-                                     (something-else e)))))
-                              elems))]
-                 [_else (teach-syntax-error
-                         'case
-                         stx
-                         choices
-                         "expected a parenthesized sequence of choice values, but found ~a"
-                         (something-else choices))])
-               (when (stx-null? choices)
-                 (teach-syntax-error
-                  'case
-                  stx
-                  choices
-                  "expected at least once choice in a parenthesized sequence of choice values, but nothing's there"))
-               (check-single-expression 'case
-                                        "for the answer in a `case' clause"
-                                        clause
-                                        answers
-                                        null))]
-            [()
-             (teach-syntax-error
-              'case
-              stx
-              clause
-              "expected a choices--answer clause, but found an empty clause")]
-            [_else
-             (teach-syntax-error
-              'case
-              stx
-              clause
-              "expected a choices--answer clause, but found ~a"
-              (something-else clause))]))
-        clauses)
-       ;; Add `else' clause for error, if necessary:
-       (let ([clauses (let loop ([clauses clauses])
-                        (cond
-                          [(null? clauses)
-                           (list
-                            (syntax/loc stx
-                              [else (whalesong:#%app raise (make-exn:fail:contract "case: the expression matched none of the choices" (current-continuation-marks)))]))]
-                          [(syntax-case (car clauses) (else)
-                             [(else . _) (syntax/loc (car clauses) (else . _))]
-                             [_else #f])
-                           => 
-                           (lambda (x) (cons x (cdr clauses)))]
-                          [else (cons (car clauses) (loop (cdr clauses)))]))])
-         (with-syntax ([clauses clauses])
-           (syntax/loc stx (case v-expr . clauses)))))]
-    [_else (bad-use-error 'case stx)]))
-
-(provide (rename-out [-case case]))
 
 
 

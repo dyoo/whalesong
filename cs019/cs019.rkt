@@ -2,11 +2,14 @@
 
 ;; Like the big whalesong language, but with additional ASL restrictions.
 
-
 (current-print-mode "constructor")
+
 
 (require (for-syntax racket/base syntax/stx racket/match))
 
+
+(require "cs019-pre-base.rkt")
+(provide (rename-out [cs019-lambda lambda]))
 
 
 (require (prefix-in whalesong: "../lang/whalesong.rkt"))
@@ -23,7 +26,8 @@
                      case
                      when
                      unless
-                     member)
+                     member
+                     lambda)
 
          string-ith
          replicate
@@ -590,3 +594,4 @@
 
 (provide (rename-out [-member member]
                      [-member member?]))
+

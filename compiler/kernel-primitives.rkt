@@ -51,6 +51,7 @@
                                     'null?
                                     'not
                                     'eq?
+                                    'eqv?
 				    'remainder
 				    'display
 				    'newline
@@ -110,7 +111,8 @@
                                            'pair?
                                            'null?
                                            'not
-                                           'eq?))
+                                           'eq?
+                                           ))
 
 (ensure-type-subsetof KernelPrimitiveName/Inline KernelPrimitiveName)
 

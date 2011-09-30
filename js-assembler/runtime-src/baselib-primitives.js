@@ -2072,6 +2072,16 @@
         });
 
 
+    installPrimitiveConstant(
+        'exn:fail',
+        baselib.exceptions.ExnFail);
+
+
+    installPrimitiveConstant(
+        'prop:exn:srclocs',
+        "fixme");
+
+
     installPrimitiveProcedure(
         'make-exn:fail',
         2,

@@ -136,6 +136,10 @@
 	 rename-out
 	 struct-out
          filtered-out
+         combine-in
+         protect-out
+         combine-out
+
          
          define-syntax-rule
 	 define-syntax
@@ -193,7 +197,10 @@
          make-struct-type
          make-struct-field-accessor
          make-struct-field-mutator
-         struct-type?)
+         struct-type?
+
+         exn:fail
+         prop:exn:srclocs)
 
 
 (define (-identity x) x)

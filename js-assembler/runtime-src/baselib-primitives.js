@@ -16,6 +16,7 @@
     var isNumber = baselib.numbers.isNumber;
 
     var isReal = baselib.numbers.isReal;
+    var isInexact = baselib.numbers.isInexact;
     var isComplex = baselib.numbers.isComplex;
     var isRational = baselib.numbers.isRational;
 
@@ -25,6 +26,7 @@
     var isList = baselib.lists.isList;
     var isString = baselib.strings.isString;
     var isSymbol = baselib.symbols.isSymbol;
+    var isBox = baselib.boxes.isBox;
     var equals = baselib.equality.equals;
 
     var NULL = baselib.lists.EMPTY;
@@ -147,6 +149,7 @@
     installPrimitiveConstant('null', NULL);
     installPrimitiveConstant('true', true);
     installPrimitiveConstant('false', false);
+    installPrimitiveConstant('eof', baselib.constants.EOF_VALUE);
 
 
     // The parameter keys here must be uninterned symbols, so we explicitly
@@ -1331,6 +1334,21 @@
             return rev;
         });
 
+    installPrimitiveProcedure(
+        'void?',
+        1,
+        function(M) {
+            return M.e[M.e.length -1] === VOID;
+        });
+
+
+    installPrimitiveProcedure(
+        'box?',
+        1,
+        function(M) {
+            return isBox(M.e[M.e.length -1]);
+        });
+
 
     installPrimitiveProcedure(
         'eof-object?',
@@ -1352,6 +1370,14 @@
 	function(M) {
 	    return isReal(M.e[M.e.length - 1]);
 	});
+
+    installPrimitiveProcedure(
+	'inexact?',
+	1,
+	function(M) {
+	    return isInexact(M.e[M.e.length - 1]);
+	});
+
     installPrimitiveProcedure(
 	'complex?',
 	1,
@@ -1400,9 +1426,21 @@
         });
 
 
+    installPrimitiveProcedure(
+        'inexact->exact',
+        1,
+        function (M) {
+            return baselib.numbers.toExact(
+                checkNumber(M, 'inexact->exact', 0));
+        });
 
-
-
+    installPrimitiveProcedure(
+        'exact->inexact',
+        1,
+        function (M) {
+            return baselib.numbers.toInexact(
+                checkNumber(M, 'exact->inexact', 0));
+        });
 
     installPrimitiveProcedure(
         'abs',

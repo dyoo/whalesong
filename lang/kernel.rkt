@@ -81,6 +81,7 @@
 (provide pi
          e
          null
+         eof
          #%plain-module-begin
 	 #%module-begin
 	 #%datum
@@ -296,8 +297,8 @@ exn-continuation-marks
   angle
   magnitude
   conjugate
-  ;;  inexact->exact
-  ;;  exact->inexact
+  inexact->exact
+  exact->inexact
   number->string
   string->number
   procedure?
@@ -306,7 +307,7 @@ exn-continuation-marks
   procedure-rename
   ;;  (undefined? -undefined?)
 ;;  immutable?
-;;  void?
+void?
 symbol?
 string?
 char?
@@ -323,13 +324,13 @@ rational?
 integer?
 exact?
 exact-nonnegative-integer?
-;;  inexact?
+inexact?
 odd?
 even?
 zero?
 positive?
 negative?
-;;  box?
+box?
 ;;  hash?
 
   equal?

@@ -247,42 +247,6 @@
 
 
 
-;; Use to generate nicer error messages than direct pattern
-;; matching. The `where' argument is an English description
-;; of the portion of the larger expression where a single
-;; sub-expression was expected.
-(define-for-syntax (check-single-expression who where stx exprs will-bind)
-  (when (null? exprs)
-    (teach-syntax-error
-     who
-     stx
-     #f
-     "expected an expression ~a, but nothing's there"
-     where))
-  (unless (null? (cdr exprs))
-    ;; In case it's erroneous, to ensure left-to-right reading, let's
-    ;;  try expanding the first expression. We have to use
-    ;;  `will-bind' to avoid errors for unbound ids that will actually
-    ;;  be bound. Since they're used as stopping points, we may miss
-    ;;  some errors after all. It's worth a try, though. We also
-    ;;  have to stop at advanced-set!, in case it's used with
-    ;;  one of the identifiers in will-bind.
-    (when will-bind
-      (local-expand-for-error (car exprs) 'expression (cons #'advanced-set!
-                                                            will-bind)))
-    ;; First expression seems ok, report an error for 2nd and later:
-    (teach-syntax-error
-     who
-     stx
-     (cadr exprs)
-     "expected only one expression ~a, but found ~a extra part"
-     where
-     (if (null? (cddr exprs))
-         "one"
-         "at least one"))))
-
-
-
 
 
 

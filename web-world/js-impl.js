@@ -42,11 +42,9 @@
 
 
 
-
-
-
-
-
+    var shallowCloneNode = function(node) {
+        return node.cloneNode(false);
+    };
 
 
 
@@ -66,7 +64,7 @@
 
 
     var arrayTreeToDomNode = function(tree) {
-        var result = tree[0].cloneNode(false);
+        var result = shallowCloneNode(tree[0]);
         var i;
         for (i = 1; i < tree.length; i++) {
             result.appendChild(arrayTreeToDomNode(tree[i]));
@@ -211,7 +209,7 @@
     MockView.prototype.updateAttr = function(name, value) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
+                return cursor.replaceNode([$(shallowCloneNode(cursor.node[0]))
                                            .attr(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -235,7 +233,7 @@
     MockView.prototype.updateCss = function(name, value) {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
+                return cursor.replaceNode([$(shallowCloneNode(cursor.node[0]))
                                            .css(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -256,7 +254,7 @@
     MockView.prototype.updateFormValue = function(value) {        
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
+                return cursor.replaceNode([$(shallowCloneNode(cursor.node[0]))
                                            .val(value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -419,7 +417,7 @@
     MockView.prototype.show = function() {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
+                return cursor.replaceNode([$(shallowCloneNode(cursor.node[0]))
                                            .show().get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -433,7 +431,7 @@
     MockView.prototype.hide = function() {
         return this.act(
             function(cursor) {
-                return cursor.replaceNode([$(cursor.node[0].cloneNode(false))
+                return cursor.replaceNode([$(shallowCloneNode(cursor.node[0]))
                                            .hide().get(0)]
                                           .concat(cursor.node.slice(1)));
             },
@@ -1072,7 +1070,9 @@
 
 
     var defaultToDraw = function(MACHINE, world, view, success, fail) {
-        return success(view);
+        coerseToMockView(world,
+                         success,
+                         fail);
     };
 
 
@@ -1089,8 +1089,10 @@
         var dispatchingEvents = false;
 
         var top = $("<div/>").get(0);
-        var view = (find(handlers, isInitialViewHandler) || { view : new View(top, []) }).view;
-        var stopWhen = (find(handlers, isStopWhenHandler) || { stopWhen: defaultStopWhen }).stopWhen;
+        var view = (find(handlers, isInitialViewHandler) ||
+                    { view : new View($('<div/>').get(0), []) }).view;
+        var stopWhen = (find(handlers, isStopWhenHandler) ||
+                        { stopWhen: defaultStopWhen }).stopWhen;
         var toDraw = (find(handlers, isToDrawHandler) || {toDraw : defaultToDraw} ).toDraw;
 
         var oldOutputPort = MACHINE.params.currentOutputPort;

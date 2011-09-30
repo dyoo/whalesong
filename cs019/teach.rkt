@@ -102,7 +102,7 @@
                               ;; source location of the original
                               ;; expression:
                               (syntax/loc stx
-                                (check-top-level-not-defined 'who #'name))))
+                                (void) #;(check-top-level-not-defined 'who #'name))))
                           names)])
         (stepper-syntax-property 
          (syntax/loc stx

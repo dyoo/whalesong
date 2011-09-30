@@ -185,7 +185,13 @@
          srcloc-line
          srcloc-column
          srcloc-position
-         srcloc-span)
+         srcloc-span
+
+
+         make-struct-type
+         make-struct-field-accessor
+         make-struct-field-mutator
+         struct-type?)
 
 
 (define (-identity x) x)
@@ -217,10 +223,6 @@
 ;;  continuation-mark-set?
 ;;  continuation-mark-set->list
 
-;;  make-struct-type
-;;  make-struct-field-accessor
-;;  make-struct-field-mutator
-;;  struct-type?
 ;;  struct-constructor-procedure?
 ;;  struct-predicate-procedure?
 ;;  struct-accessor-procedure?
@@ -313,7 +315,7 @@ string?
 char?
 boolean?
 vector?
-;;  struct?
+struct?
 ;;  eof-object?
 ;;  bytes?
 ;;  byte?
@@ -435,16 +437,16 @@ symbol->string
   vector->list
   list->vector
 ;;  build-vector
-char=?
-;;  char<?
-;;  char>?
-;;  char<=?
-;;  char>=?
-;;  char-ci=?
-;;  char-ci<?
-;;  char-ci>?
-;;  char-ci<=?
-;;  char-ci>=?
+  char=?
+  char<?
+  char>?
+  char<=?
+  char>=?
+  char-ci=?
+  char-ci<?
+  char-ci>?
+  char-ci<=?
+  char-ci>=?
 ;;  char-alphabetic?
 ;;  char-numeric?
 ;;  char-whitespace?

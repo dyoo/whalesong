@@ -27,6 +27,8 @@
     var isString = baselib.strings.isString;
     var isSymbol = baselib.symbols.isSymbol;
     var isBox = baselib.boxes.isBox;
+    var isStruct = baselib.structs.isStruct;
+    var isStructType = baselib.structs.isStructType;
     var equals = baselib.equality.equals;
 
     var NULL = baselib.lists.EMPTY;
@@ -79,11 +81,11 @@
     var checkInteger = baselib.check.checkInteger;
     var checkIntegerForChar = baselib.check.makeCheckArgumentType(
         function(x) {
-            return (baselib.numbers.isInteger(x) && 
-                    ((baselib.numbers.lessThanOrEqual(0, x) && 
+            return (baselib.numbers.isInteger(x) &&
+                    ((baselib.numbers.lessThanOrEqual(0, x) &&
                       baselib.numbers.lessThanOrEqual(x, 55295))
                      ||
-                     (baselib.numbers.lessThanOrEqual(57344, x) && 
+                     (baselib.numbers.lessThanOrEqual(57344, x) &&
                       baselib.numbers.lessThanOrEqual(x, 1114111))));
         },
         'integer'
@@ -927,22 +929,6 @@
         });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     installPrimitiveProcedure(
         'string-ci=?',
         baselib.arity.makeArityAtLeast(1),
@@ -1013,9 +999,6 @@
             }
             return true;
         });
-
-
-
 
 
     installPrimitiveProcedure(
@@ -1102,19 +1085,99 @@
         });
 
 
-    installPrimitiveProcedure(
-        'char=?',
-        baselib.arity.makeArityAtLeast(2),
-        function(M) {
-            var s = checkChar(M, 'char=?', 0).val;
+    var makeCharComparator = function(name, cmp) {
+        return function(M) {
+            var s = checkChar(M, name, 0).val;
 	    var i;
             for (i = 1; i < M.a; i++) {
-                if (checkChar(M, 'char=?', i).val !== s) {
+                if (!(cmp(s, checkChar(M, name, i).val))) {
                     return false;
                 }
             }
             return true;
-        });
+        };
+    };
+
+    installPrimitiveProcedure(
+        'char>?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char>?',
+                           function(x, y) {
+                               return x > y;
+                           }));
+
+    installPrimitiveProcedure(
+        'char>=?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char>=?',
+                           function(x, y) {
+                               return x >= y;
+                           }));
+
+    installPrimitiveProcedure(
+        'char<?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char<?',
+                           function(x, y) {
+                               return x < y;
+                           }));
+
+    installPrimitiveProcedure(
+        'char<=?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char<=?',
+                           function(x, y) {
+                               return x <= y;
+                           }));
+
+    installPrimitiveProcedure(
+        'char=?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char=?',
+                           function(x, y) {
+                               return x === y;
+                           }));
+
+    installPrimitiveProcedure(
+        'char-ci>?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char-ci>?',
+                           function(x, y) {
+                               return x.toUpperCase() > y.toUpperCase();
+                           }));
+
+    installPrimitiveProcedure(
+        'char-ci>=?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char-ci>=?',
+                           function(x, y) {
+                               return x.toUpperCase() >= y.toUpperCase();
+                           }));
+
+    installPrimitiveProcedure(
+        'char-ci<?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char-ci<?',
+                           function(x, y) {
+                               return x.toUpperCase() < y.toUpperCase();
+                           }));
+
+    installPrimitiveProcedure(
+        'char-ci<=?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char-ci<=?',
+                           function(x, y) {
+                               return x.toUpperCase() <= y.toUpperCase();
+                           }));
+
+    installPrimitiveProcedure(
+        'char-ci=?',
+        baselib.arity.makeArityAtLeast(2),
+        makeCharComparator('char-ci=?',
+                           function(x, y) {
+                               return x.toUpperCase() === y.toUpperCase();
+                           }));
+
 
 
     installPrimitiveProcedure(
@@ -1125,7 +1188,6 @@
             return baselib.chars.makeChar(String.fromCharCode(ch));
         });
 
-    
     installPrimitiveProcedure(
         'char-upcase',
         1,
@@ -1855,9 +1917,9 @@
                     vs.push(baselib.format.format("~e", [M.e[M.e.length - 1 - i]]));
                 }
                 raise(M, baselib.exceptions.makeExnFail(M.e[M.e.length - 1].toString() +
-                                                              ": " +
-                                                              vs.join(' '),
-                                                              M.captureContinuationMarks()));
+                                                        ": " +
+                                                        vs.join(' '),
+                                                        M.captureContinuationMarks()));
             }
 
             if (isSymbol(M.e[M.e.length - 1])) {
@@ -2017,7 +2079,6 @@
             return contMarks;
         });
 
-
     installPrimitiveClosure(
         'make-struct-type',
         makeList(4, 5, 6, 7, 8, 9, 10, 11),
@@ -2113,6 +2174,19 @@
                 });
         });
 
+    installPrimitiveClosure(
+        'struct?',
+        1,
+        function(M) {
+            return isStruct(M.e[M.e.length - 1]);
+        });
+
+    installPrimitiveClosure(
+        'struct-type?',
+        1,
+        function(M) {
+            return isStructType(M.e[M.e.length - 1]);
+        });
 
     installPrimitiveProcedure(
         'current-inspector',
@@ -2217,7 +2291,7 @@
 
     installPrimitiveProcedure(
         'srcloc',
-            5,
+        5,
         function(M) {
             var source = M.e[M.e.length - 1];
             var line = checkNatural(M, 'srcloc', 1);
@@ -2312,12 +2386,6 @@
         function(M) {
             return baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
         });
-
-
-
-
-
-
 
     exports['Primitives'] = Primitives;
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;

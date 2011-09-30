@@ -1,4 +1,4 @@
-#lang s-exp "../lang/kernel.rkt"
+#lang s-exp "../lang/base.rkt"
 
 ;; Like the big whalesong language, but with additional ASL restrictions.
 
@@ -23,7 +23,19 @@
                      case
                      when
                      unless
-                     member))
+                     member)
+
+         string-ith
+         replicate
+         int->string
+         string->int
+         explode
+         implode
+         string-numeric?
+         string-alphabetic?
+         string-whitespace?
+         string-upper-case?
+         string-lower-case?)
                      
 
 (require "../image.rkt")
@@ -452,6 +464,122 @@
 
 
 
+
+
+
+(define 1-LET "1-letter string")
+(define 1-LETTER (format "~a" 1-LET))
+(define 1-LETTER* (format "list of ~as" 1-LET))
+(define NAT "natural number")
+
+;; Symbol Any -> Boolean 
+;; is this a 1-letter string?
+(define (1-letter? tag s)
+  (unless (string? s) (err tag "expected a ~a, but received a string: ~e" 1-LETTER s))
+  (= (string-length s) 1))
+
+;; Symbol Any -> Boolean 
+;; is s a list of 1-letter strings
+;; effect: not a list, not a list of strings 
+(define (1-letter*? tag s)
+  (unless (list? s) (err tag "expected a ~a, but received: ~e" 1-LETTER* s))
+  (for-each 
+   (lambda (c) 
+     (unless (string? c) (err tag "expected a ~a, but received: ~e" 1-LETTER* c)))
+   s)
+  (andmap (compose (lambda (x) (= x 1)) string-length) s))
+
+
+(define (err tag msg-format . args)
+  (raise 
+   (make-exn:fail:contract
+    (apply format (string-append (symbol->string tag) ": " msg-format) args)
+    (current-continuation-marks))))
+
+(define (a-or-an after)
+  (if (member (string-ref (format "~a" after) 0) '(#\a #\e #\i #\o #\u))
+      "an" "a"))
+
+(define cerr 
+  (case-lambda
+    [(tag check-result format-msg actual)
+     (unless check-result
+       (err tag (string-append "expected " (a-or-an format-msg) " " format-msg ", but received ~e") actual))]
+    [(tag check-result format-msg actual snd)
+     (unless check-result
+       (err tag (string-append "expected " (a-or-an format-msg) " " format-msg " for the ~a argument, but received ~e")
+            snd actual))]))
+
+(define string-ith
+  (lambda (s n)
+    (define f "exact integer in [0, length of the given string]")
+    (cerr 'string-ith (string? s) "string" s "first")
+    (cerr 'string-ith (and (number? n) (integer? n) (>= n 0)) NAT n "second")
+    (let ([l (string-length s)]) 
+      (cerr 'string-ith (< n l) f n "second"))
+    (string (string-ref s n))))
+
+
+
+(define replicate 
+  (lambda (n s1)
+    (cerr 'replicate (and (number? n) (exact-integer? n) (>= n 0)) NAT n)
+    (cerr 'replicate (string? s1) "string" s1)
+    (apply string-append (build-list n (lambda (i) s1)))))
+
+(define int->string 
+  (lambda (i) 
+    (cerr 'int->string 
+          (and (exact-integer? i) (or (<= 0 i 55295) (<= 57344 i 1114111)))
+          "exact integer in [0,55295] or [57344 1114111]"
+          i)
+    (string (integer->char i))))
+
+(define string->int 
+  (lambda (s) 
+    (cerr 'string->int (1-letter? 'string->int s) 1-LETTER s)
+    (char->integer (string-ref s 0))))
+
+
+(define explode 
+  (lambda (s)
+    (cerr 'explode (string? s) "string" s)
+    (map string (string->list s))))
+
+(define implode
+  (lambda (los)
+    (cerr 'implode (1-letter*? 'implode los) 1-LETTER* los)
+    (apply string-append los)))
+
+
+
+(define string-numeric? 
+  ;; is this: (number? (string->number s)) enough?
+  (lambda (s1)
+    (cerr 'string-numeric? (string? s1) "string" s1)
+    (andmap char-numeric? (string->list s1))))
+
+(define string-alphabetic? 
+  (lambda (s1)
+    (cerr 'string-alphabetic? (string? s1) "string" s1)
+    (andmap char-alphabetic? (string->list s1))))
+
+
+(define string-whitespace? 
+  (lambda (s)
+    (cerr 'string-upper-case? (string? s)  "string" s)
+    (andmap char-whitespace? (string->list s))))
+
+(define string-upper-case? 
+  (lambda (s)
+    (cerr 'string-upper-case? (string? s) "string" s)
+    (andmap char-upper-case? (string->list s))))
+
+
+(define string-lower-case? 
+  (lambda (s)
+    (cerr 'string-lower-case? (string? s) "string" s)
+    (andmap char-lower-case? (string->list s))))
 
 
 ;; ASL's member returns booleans.

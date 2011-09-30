@@ -19,7 +19,7 @@
     var isInexact = baselib.numbers.isInexact;
     var isComplex = baselib.numbers.isComplex;
     var isRational = baselib.numbers.isRational;
-
+    var isBytes = baselib.bytes.isBytes;
 
     var isNatural = baselib.numbers.isNatural;
     var isPair = baselib.lists.isPair;
@@ -1181,6 +1181,13 @@
 
 
     installPrimitiveProcedure(
+        'char->integer',
+        1,
+        function(M) {
+            return checkChar(M, 'char->integer', 0).val.charCodeAt(0);
+        });
+
+    installPrimitiveProcedure(
         'integer->char',
         1,
         function(M) {
@@ -1204,7 +1211,48 @@
             return baselib.chars.makeChar(ch.toLowerCase());
         });
 
+    installPrimitiveProcedure(
+        'char-numeric?',
+        1,
+        function(M) {
+            var val = checkChar(M, 'char-numeric?', 0).val;
+            return val >= '0' && val <= '9';
+        });
 
+    installPrimitiveProcedure(
+        'char-alphabetic?',
+        1,
+        function(M) {
+            var val = checkChar(M, 'char-alphabetic?', 0).val;
+            return ((val >= 'a' && val <= 'z') ||
+                    (val >= 'A' && val <= 'Z'));
+        });
+
+    var whitespaceRegexp = new RegExp("^\\s*$");
+    installPrimitiveProcedure(
+        'char-whitespace?',
+        1,
+        function(M) {
+            var val = checkChar(M, 'char-whitespace?', 0).val;
+            return val.match(whitespaceRegexp ? true : false);
+      });
+
+
+    installPrimitiveProcedure(
+        'char-upper-case?',
+        1,
+        function(M) {
+            var val = checkChar(M, 'char-upper-case?', 0).val;
+            return val === val.toUpperCase();
+      });
+
+    installPrimitiveProcedure(
+        'char-lower-case?',
+        1,
+        function(M) {
+            var val = checkChar(M, 'char-lower-case?', 0).val;
+            return val === val.toLowerCase();
+      });
 
 
     installPrimitiveProcedure(
@@ -1448,6 +1496,23 @@
 	});
 
     installPrimitiveProcedure(
+        'bytes?',
+        1,
+        function(M) {
+            return isBytes(M.e[M.e.length-1]);
+        });
+
+    installPrimitiveProcedure(
+	'byte?',
+	1,
+	function(M) {
+	    var v = M.e[M.e.length - 1];
+            if(!isNatural(v)) { return false; }
+            v = baselib.numbers.toFixnum(v);
+            return v >= 0 && v < 256;
+	});
+
+    installPrimitiveProcedure(
 	'rational?',
 	1,
 	function(M) {
@@ -1678,6 +1743,13 @@
             return baselib.numbers.isInteger(M.e[M.e.length - 1]);
         });
 
+    installPrimitiveProcedure(
+        'exact-integer?',
+        1,
+        function (M) {
+            return (baselib.numbers.isInteger(M.e[M.e.length - 1]) &&
+                    baselib.numbers.isExact(M.e[M.e.length - 1]));
+        });
 
     installPrimitiveProcedure(
         'exact-nonnegative-integer?',

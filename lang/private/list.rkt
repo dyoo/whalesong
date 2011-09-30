@@ -34,8 +34,8 @@
          build-string
          build-list
 
-         #;compose
-         #;compose1
+         compose
+         compose1
          )
 
 (require (only-in "../unsafe/ops.rkt" unsafe-car unsafe-cdr))
@@ -313,14 +313,14 @@
           [else (cons (fcn j)
                       (recr (add1 j) (sub1 i)))])))
 
-#;(define-values [compose1 compose]
+(define-values [compose1 compose]
   (let ()
     (define-syntax-rule (app1 E1 E2) (E1 E2))
     (define-syntax-rule (app* E1 E2) (call-with-values (lambda () E2) E1))
     (define-syntax-rule (mk-simple-compose app f g)
       (let*-values
           ([(arity) (procedure-arity g)]
-           [(required-kwds allowed-kwds) (procedure-keywords g)]
+           [(required-kwds allowed-kwds) (values '() '())  #; (procedure-keywords g)]
            [(composed)
             ;; FIXME: would be nice to use `procedure-reduce-arity' and
             ;; `procedure-reduce-keyword-arity' in the places marked below,
@@ -331,14 +331,14 @@
                   [(x)   (app f (g x))]
                   [(x y) (app f (g x y))]
                   [args  (app f (apply g args))]))])
-        (if (null? allowed-kwds)
+        composed #;(if (null? allowed-kwds)
             composed
             (make-keyword-procedure   ; <--- and here
              (lambda (kws kw-args . xs)
                (app f (keyword-apply g kws kw-args xs)))
              composed))))
     (define-syntax-rule (can-compose* name n g f fs)
-      (unless (null? (let-values ([(req _) (procedure-keywords g)]) req))
+      (unless (null? (let-values ([(req _) (values '() '()) #;(procedure-keywords g)]) req))
         (apply raise-type-error 'name "procedure (no required keywords)"
                n f fs)))
     (define-syntax-rule (can-compose1 name n g f fs)

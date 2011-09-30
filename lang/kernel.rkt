@@ -126,10 +126,12 @@
 	 prefix-in
 	 only-in
          rename-in
+         except-in
 	 provide
 	 planet
 	 all-defined-out
 	 all-from-out
+         prefix-out
 	 except-out
 	 rename-out
 	 struct-out
@@ -316,14 +318,14 @@ char?
 boolean?
 vector?
 struct?
-;;  eof-object?
 ;;  bytes?
-;;  byte?
+byte?
 number?
 complex?
 real?
 rational?
 integer?
+exact-integer?
 exact?
 exact-nonnegative-integer?
 inexact?
@@ -368,12 +370,7 @@ box?
   assq
   assv
   assoc
-;;  remove
-;;  filter
-;;  foldl
-;;  foldr
 ;;  sort
-;;  build-list
   box
 ;;  box-immutable
   unbox
@@ -410,7 +407,6 @@ symbol->string
   format
   printf
   fprintf
-;;  build-string
 ;;  string->immutable-string
   string-set!
 ;;  string-fill!
@@ -436,7 +432,6 @@ symbol->string
   vector-set!
   vector->list
   list->vector
-;;  build-vector
   char=?
   char<?
   char>?
@@ -447,12 +442,12 @@ symbol->string
   char-ci>?
   char-ci<=?
   char-ci>=?
-;;  char-alphabetic?
-;;  char-numeric?
-;;  char-whitespace?
-;;  char-upper-case?
-;;  char-lower-case?
-;;  char->integer
+  char-alphabetic?
+  char-numeric?
+  char-whitespace?
+  char-upper-case?
+  char-lower-case?
+  char->integer
   integer->char
   char-upcase
   char-downcase

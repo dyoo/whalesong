@@ -173,12 +173,12 @@ BaseImage.prototype.toDomNode = function(params) {
     var canvas = makeCanvas(width, height);
     var ctx;
 
-    // Try best effort to render to screen at this point.
-    try {
-	ctx = canvas.getContext("2d");
-	that.render(ctx, 0, 0);
-    } catch (e) {
-    }
+    // // Try best effort to render to screen at this point.
+    // try {
+    //     ctx = canvas.getContext("2d");
+    //     that.render(ctx, 0, 0);
+    // } catch (e) {
+    // }
     // KLUDGE: on IE, the canvas rendering functions depend on a
     // context where the canvas is attached to the DOM tree.
     // We initialize an afterAttach hook; the client's responsible
@@ -190,6 +190,10 @@ BaseImage.prototype.toDomNode = function(params) {
 	that.render(ctx, 0, 0);
     };
     $(canvas).bind('afterAttach', onAfterAttach);
+
+    // Canvases lose their drawn content on cloning.  data may help us to preserve it.
+    $(canvas).data('toRender', onAfterAttach);
+
     return canvas;
 };
 

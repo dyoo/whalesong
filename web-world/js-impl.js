@@ -43,7 +43,9 @@
 
 
     var shallowCloneNode = function(node) {
-        return node.cloneNode(false);
+        var result = node.cloneNode(false);
+        $(result).data($(node).data());
+        return result;
     };
 
 
@@ -88,7 +90,7 @@
             function(tree) {
                 return tree[0].nodeType !== 1;
             };
-        return TreeCursor.adaptTreeCursor(domNodeToArrayTree(dom.cloneNode(true)),
+        return TreeCursor.adaptTreeCursor(domNodeToArrayTree($(dom).clone(true).get(0)),
                                           domOpenF,
                                           domCloseF,
                                           domAtomicF);
@@ -563,7 +565,10 @@
 
     View.prototype.toString = function() { return "#<View>"; };
 
-    View.prototype.initialRender = function(top) {
+
+    var defaultToRender = function(){};
+ 
+   View.prototype.initialRender = function(top) {
         $(top).empty();
         // Special case: if this.top is an html, we merge into the
         // existing page.
@@ -574,7 +579,22 @@
         $(document.head).append($(this.top).children("link"));
 
         $(top).append(this.top);
-    };
+
+       // The snip here is meant to accomodate weirdness with canvas dom
+       // elements.  cloning a canvas doesn't preserve how it draws.
+       // However, we attach a toRender using jQuery's data(), which does
+       // do the preservation we need.  On an initial render, we walk
+       // through all the elements and toRender them.
+
+       // It may be that this will deprecate the afterAttach stuff
+       // that I'm using earlier.
+       ($(this.top).data('toRender') || defaultToRender)();
+       $('*', this.top).each(
+           function(index, elt) {
+               ($(elt).data('toRender') || defaultToRender).call(elt);
+           });
+   };
+
 
     View.prototype.addEventHandler = function(handler) {
         this.eventHandlers.push(handler);

@@ -1244,7 +1244,11 @@
               [(list)
                (list? (Const-const knowledge))]
               [(pair)
-               (pair? (Const-const knowledge))])]
+               (pair? (Const-const knowledge))]
+              [(caarpair)
+               (let ([x (Const-const knowledge)])
+                 (and (pair? x)
+                      (pair? (car x))))])]
            [else
             #f])]))
 

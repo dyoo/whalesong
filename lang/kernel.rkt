@@ -361,13 +361,13 @@ box?
   map
   andmap
   ormap
-memq
-;;  memv
+  memq
+  memv
   member
-;;  memf
+  memf
   assq
-;;  assv
-;;  assoc
+  assv
+  assoc
 ;;  remove
 ;;  filter
 ;;  foldl

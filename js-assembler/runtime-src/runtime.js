@@ -22,6 +22,7 @@
     var isNatural = baselib.numbers.isNatural;
     var isReal = baselib.numbers.isReal;
     var isPair = baselib.lists.isPair;
+    var isCaarPair = function(x) { return isPair(x) && isPair(x.first); };
     var isList = baselib.lists.isList;
     var isVector = baselib.vectors.isVector;
     var isString = baselib.strings.isString;
@@ -800,6 +801,7 @@
 
     // Type predicates
     exports['isPair'] = isPair;
+    exports['isCaarPair'] = isCaarPair;
     exports['isList'] = isList;
     exports['isVector'] = isVector;
     exports['isOutputPort'] = isOutputPort;

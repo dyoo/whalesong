@@ -9,6 +9,7 @@
                               'box
                               'list
                               'pair
+                              'caarpair
                               'any))
 
 
@@ -102,6 +103,7 @@
                                            '>=
                                            'cons
                                            'car
+                                           'caar
                                            'cdr
                                            'list
                                            'list?
@@ -189,6 +191,9 @@
 
     [(eq? prim 'car)
      (list 'pair)]
+
+    [(eq? prim 'caar)
+     (list 'caarpair)]
     
     [(eq? prim 'cdr)
      (list 'pair)]

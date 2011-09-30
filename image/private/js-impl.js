@@ -1029,8 +1029,6 @@ EXPORTS['color-list->image'] =
                                     pinholeY);
         });
 
-
-
 EXPORTS['image-width'] = 
     makePrimitiveProcedure(
         'image-width',

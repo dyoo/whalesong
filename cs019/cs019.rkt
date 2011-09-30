@@ -460,4 +460,5 @@
     [(eq? (member x L) #f) #f]
     [else #t]))
 
-(provide (rename-out [-member member]))
+(provide (rename-out [-member member]
+                     [-member member?]))

@@ -79,6 +79,9 @@
 
           [(car)
            (format "(~a).first" (first checked-operands))]
+
+          [(caar)
+           (format "(~a).first.first" (first checked-operands))]
           
           [(cdr)
            (format "(~a).rest" (first checked-operands))]
@@ -164,6 +167,8 @@
                             (format "RT.isList")]
                            [(pair)
                             (format "RT.isPair")]
+                           [(caarpair)
+                            (format "RT.isCaarPair")]
                            [(box)
                             (format "RT.isBox")])])
            (format "RT.testArgument(M,~s,~a,~a,~a,~s)"

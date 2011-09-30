@@ -14,6 +14,7 @@
          "private/shared.rkt"
          "check-expect/check-expect.rkt"
          "bool.rkt"
+         "posn.rkt"
          (for-syntax racket/base))
 
 ;; Programs written in Whalesong will have tracing enabled by default.
@@ -28,6 +29,7 @@
                      [my-define-struct define-struct])
          shared
          (all-from-out "bool.rkt")
+         (all-from-out "posn.rkt")
          (except-out (all-from-out "check-expect/check-expect.rkt")
                      run-tests)
 

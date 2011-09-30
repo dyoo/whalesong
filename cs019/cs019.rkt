@@ -26,6 +26,17 @@
                      member))
                      
 
+(require "../image.rkt")
+(provide (all-from-out "../image.rkt"))
+
+(require "../web-world.rkt")
+(provide (all-from-out "../web-world.rkt"))
+
+(require "../resource.rkt")
+(provide (all-from-out "../resource.rkt"))
+
+
+
 
 
 (define-for-syntax (local-expand-for-error stx ctx stops)

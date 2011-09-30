@@ -5,7 +5,9 @@
           racket/list)
 
 
-(provide advanced-lambda/proc)
+(provide advanced-lambda/proc
+         advanced-when/proc
+         advanced-unless/proc)
 
 
 
@@ -16,6 +18,17 @@
     (if detail
         (raise-syntax-error form msg stx detail)
         (raise-syntax-error form msg stx))))
+
+
+(define (teach-syntax-error* form stx details msg . args)
+  (let ([exn (with-handlers ([exn:fail:syntax?
+                              (lambda (x) x)])
+               (apply teach-syntax-error form stx #f msg args))])
+    (raise
+     (make-exn:fail:syntax
+      (exn-message exn)
+      (exn-continuation-marks exn)
+      details))))
 
 
 
@@ -137,3 +150,47 @@
          "expected at least one variable (in parentheses) after lambda, but nothing's there")]
        [_else
         (bad-use-error 'lambda stx)]))))
+
+
+
+
+
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; when and unless (advanced)
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-values (advanced-when/proc advanced-unless/proc)
+  (let ([mk
+         (lambda (who target-stx)
+           (lambda (stx)
+             (ensure-expression
+              stx
+              (lambda ()
+                (syntax-case stx ()
+                  [(_)
+                   (teach-syntax-error
+                    who
+                    stx
+                    #f
+                    "expected a question and an answer, but nothing's there")]
+                  [(_ q)
+                   (teach-syntax-error
+                    who
+                    stx
+                    #'q
+                    "expected a question and an answer, but found only one part")]		      
+                  [(_ q a)
+                   (with-syntax ([who who]
+                                 [target target-stx])
+                     (syntax/loc stx (target (verify-boolean q 'who) a)))]
+                  [(_ . parts)
+                   (teach-syntax-error*
+                    who
+                    stx
+                    (syntax->list #'parts)
+                    "expected a question and an answer, but found ~a parts" (length (syntax->list #'parts)))]
+                  [_else
+                   (bad-use-error who stx)])))))])
+    (values (mk 'when (quote-syntax when))
+            (mk 'unless (quote-syntax unless)))))

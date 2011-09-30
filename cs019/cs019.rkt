@@ -9,7 +9,9 @@
 
 
 (require "cs019-pre-base.rkt")
-(provide (rename-out [cs019-lambda lambda]))
+(provide (rename-out [cs019-lambda lambda]
+                     [cs019-when when]
+                     [cs019-unless unless]))
 
 
 (require (prefix-in whalesong: "../lang/whalesong.rkt"))
@@ -24,8 +26,6 @@
                      if
                      cond
                      case
-                     when
-                     unless
                      member
                      lambda)
 
@@ -382,90 +382,6 @@
     [_else (bad-use-error 'case stx)]))
 
 (provide (rename-out [-case case]))
-
-
-
-#;(define-for-syntax (make-when-unless who target-stx)
-  (lambda (stx)
-    (syntax-case stx ()
-      [(_ q expr ...)
-       (let ([exprs (syntax->list (syntax (expr ...)))])
-         (check-single-expression who
-                                  (format "for the answer in `~a'"
-                                          who)
-                                  stx
-                                  exprs
-                                  null)
-         )]
-      [(_)
-       (teach-syntax-error
-        who
-        stx
-        #f
-        "expected a question expression after `~a', but nothing's there"
-        who)]
-      [_else
-       (bad-use-error who stx)])))
-
-
-;; FIXME: I'm seeing a bad error message when trying to use the functional
-;; abstraction in teach.rkt to define the -when and -unless macros.
-;;
-;; The error message is: module-path-index-resolve: "self" index has
-;; no resolution: #<module-path-index>
-;; As soon as the bug's resolved, refactor this back.
-(define-syntax (-when stx)
-  (syntax-case stx ()
-    [(_ q expr ...)
-     (let ([exprs (syntax->list (syntax (expr ...)))])
-       (check-single-expression #'when
-                                (format "for the answer in `~a'"
-                                        #'when)
-                                stx
-                                exprs
-                                null)
-       (with-syntax ([new-test (verify-boolean #'q 'when)])
-         (let ([result
-                (syntax/loc stx 
-                  (when new-test expr ...))])
-           result)))]
-    [(_)
-     (teach-syntax-error
-      #'when
-      stx
-      #f
-      "expected a question expression after `~a', but nothing's there"
-      #'when)]
-    [_else
-     (bad-use-error #'when stx)]))
-(define-syntax (-unless stx)
-  (syntax-case stx ()
-    [(_ q expr ...)
-     (let ([exprs (syntax->list (syntax (expr ...)))])
-       (check-single-expression #'unless
-                                (format "for the answer in `~a'"
-                                        #'unless)
-                                stx
-                                exprs
-                                null)
-       (with-syntax ([new-test (verify-boolean #'q 'when)])
-         (let ([result
-                (syntax/loc stx 
-                  (unless new-test expr ...))])
-           result)))]
-    [(_)
-     (teach-syntax-error
-      #'unless
-      stx
-      #f
-      "expected a question expression after `~a', but nothing's there"
-      #'unless)]
-    [_else
-     (bad-use-error #'unless stx)]))
-
-(provide (rename-out [-when when]
-                     [-unless unless]))
-
 
 
 

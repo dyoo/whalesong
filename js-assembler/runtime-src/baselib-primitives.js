@@ -2197,8 +2197,6 @@
                           constructorName
                          ) {
 
-                    // FIXME: typechecks.
-
                     var structType = baselib.structs.makeStructureType(
                         name,
                         superType,
@@ -2214,7 +2212,7 @@
                     var constructorValue =
                         makePrimitiveProcedure(
                             constructorName,
-                            baselib.numbers.toFixnum(initFieldCount),
+                            initFieldCount + (superType ? superType.numberOfArgs : 0),
                             function (M) {
                                 var args = [];
 				var i;

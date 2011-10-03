@@ -2330,10 +2330,11 @@
                 2,
                 function (M) {
                     var aStruct = checkStruct(M, name, 0);
-                    return structType.mutator(
+                    structType.mutator(
                         aStruct,
                         baselib.numbers.toFixnum(index),
                         M.e[M.e.length - 2]);
+                    return VOID;
                 });
         });
 

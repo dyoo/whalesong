@@ -118,11 +118,13 @@
     (let ([n 0])
       (lambda ()
         (define result (build-path (current-output-dir)
-                                   (regexp-replace #rx"[.](rkt|ss)$"
-                                                   (path->string (file-name-from-path f))
-                                                   (if (= n 0)
-                                                       ".js"
-                                                       (format "_~a.js" n)))))
+                                   (string-append
+                                    (regexp-replace #rx"[.](rkt|ss)$"
+                                                    (path->string (file-name-from-path f))
+                                                    "")
+                                    (if (= n 0)
+                                        ".js"
+                                        (format "_~a.js" n)))))
         (set! written-js-paths (cons result written-js-paths))
         (set! n (add1 n))
         (fprintf (current-report-port)
@@ -162,14 +164,17 @@
                           "")]
         [output-html-filename
          (build-path
-          (regexp-replace #rx"[.](rkt|ss)$"
+          (string-append (regexp-replace #rx"[.](rkt|ss)$"
                           (path->string (file-name-from-path f))
-                          ".html"))]
+                          "")
+                         ".html"))]
         [output-manifest-filename
          (build-path
-          (regexp-replace #rx"[.](rkt|ss)$"
-                          (path->string (file-name-from-path f))
-                          ".appcache"))])
+          (string-append
+           (regexp-replace #rx"[.](rkt|ss)$"
+                           (path->string (file-name-from-path f))
+                           "")
+           ".appcache"))])
       (unless (directory-exists? (current-output-dir))
         (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
         (make-directory* (current-output-dir)))

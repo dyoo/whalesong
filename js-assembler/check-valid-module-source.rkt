@@ -14,6 +14,8 @@
   (exit))
 
 
+(define ns (make-base-namespace))
+
 
 (define (check-valid-module-source module-source-path)
   ;; Check that the file exists.
@@ -48,7 +50,8 @@
       (parameterize ([read-accept-reader #t])
         (call-with-input-file* module-source-path
                                (lambda (ip)
-                                 (read-syntax #f ip))))))
+                                 (port-count-lines! ip)
+                                 (read-syntax module-source-path ip))))))
 
   (define relative-language-stx
     (kernel-syntax-case stx #t
@@ -60,7 +63,7 @@
        (abort-abort)]))
 
 
-  ;; Finally, check that the module is written in a language that we allow.
+  ;; Check that the module is written in a language that we allow.
   (define resolved-language-path
     (resolve-module-path (syntax->datum relative-language-stx)
                          module-source-path))
@@ -87,4 +90,21 @@
               module-source-path
               (syntax->datum relative-language-stx)
               normalized-resolved-language-path)
-      (abort-abort)])]))
+      (abort-abort)])])
+
+
+  ;; Once we know that the module is in a language we allow, we 
+  ;; check that the file compiles.
+  (with-handlers ([exn:fail?
+                   (lambda (exn)
+                     (printf "ERROR: the racket module ~e raises a compile-time error during compilation." module-source-path)
+                     (printf "\n\nFor reference, the error message produced during compilation is the following:\n\n")
+                     (printf "~a\n" (exn-message exn))
+                     (newline)
+                     (abort-abort))])
+    (parameterize ([current-namespace ns]
+                   [current-load-relative-directory
+                    (path-only module-source-path)]
+                   [current-directory
+                    (path-only module-source-path)])
+      (compile stx))))

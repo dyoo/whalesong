@@ -2189,9 +2189,9 @@
                           initFieldCount,
                           autoFieldCount,
                           autoV,
-                          props,  // FIXME: currently ignored
+                          props,
                           inspector,  // FIXME: currently ignored
-                          procSpec,       // FIXME: currently ignored
+                          procSpec,   // FIXME: currently ignored
                           immutables, // FIXME: currently ignored
                           guard,      // FIXME: currently ignored
                           constructorName
@@ -2215,7 +2215,7 @@
                             function (M) {
                                 var args = [];
 				var i;
-                                for(i = 0; i < initFieldCount; i++) {
+                                for(i = 0; i < M.a; i++) {
                                     args.push(M.e[M.e.length - 1 - i]);
                                 }
                                 return structType.constructor.apply(null, args);

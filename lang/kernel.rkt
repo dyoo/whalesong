@@ -200,6 +200,7 @@
          struct-type?
 
          exn:fail
+         struct:exn:fail
          prop:exn:srclocs)
 
 

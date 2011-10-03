@@ -86,6 +86,8 @@
 
 				    'error
                                     'raise-type-error
+                                    'struct:exn:fail
+                                    'prop:exn:srclocs
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

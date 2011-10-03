@@ -15,6 +15,18 @@
                      [cs019-unless unless]
                      [cs019-case case]))
 
+(require "private/sigs-patched.rkt")
+(provide [all-from-out "private/sigs-patched.rkt"])
+(provide Image$)
+(define Image$ (Sig: image?))
+
+
+(require "../lang/posn.rkt")
+(provide [all-from-out "../lang/posn.rkt"])
+(define Posn$ (Sig: posn?))
+(provide Posn$)
+
+
 
 (require (prefix-in whalesong: "../lang/whalesong.rkt"))
 (provide (except-out (filtered-out

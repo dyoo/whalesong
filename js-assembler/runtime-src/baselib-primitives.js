@@ -2073,7 +2073,7 @@
 
 
     installPrimitiveConstant(
-        'exn:fail',
+        'struct:exn:fail',
         baselib.exceptions.ExnFail);
 
 

@@ -16,6 +16,9 @@
                      [cs019-case case]
                      [cs019-local local]))
 
+(define-syntax λ (make-rename-transformer #'cs019-lambda))
+
+
 (require "private/sigs-patched.rkt")
 (provide [all-from-out "private/sigs-patched.rkt"])
 (provide Image$)

@@ -12,6 +12,7 @@
          "../resource/structs.rkt"
 	 "../promise.rkt"
          "../get-module-bytecode.rkt"
+         "check-valid-module-source.rkt"
          (prefix-in hash-cache: "hash-cache.rkt")
          racket/match
          racket/list
@@ -22,6 +23,7 @@
          racket/port
          syntax/modread
          syntax/kerncase
+         syntax/modresolve
          (prefix-in query: "../lang/js/query.rkt")
          (prefix-in resource-query: "../resource/query.rkt")
          (prefix-in runtime: "get-runtime.rkt")
@@ -109,44 +111,6 @@
     (void)]
    [(UninterpretedSource? src)
     (void)]))
-
-(define (check-valid-module-source module-source-path)
-  ;; Check that the file exists.
-  (unless (file-exists? module-source-path)
-    (printf "Can't read a Racket module from ~e.  The file does not appear to exist.\n"
-            module-source-path)
-    (error 'check-valid-module-source))
-
-  ;; Check that it looks like a module.
-  (define stx
-    (with-handlers ([exn:fail?
-                     (lambda (exn)
-                       ;; We can't even get the bytecode for the file.
-                       ;; Fail immediately.
-                       (printf "Can't read a Racket module from ~e.  The file may be ill-formed.\n"
-                               module-source-path)
-                       (printf "\nFor reference, the error message produced when trying to read ~e is:\n\n" module-source-path)
-                       (printf "~a\n" (exn-message exn))
-                       (error 'check-valid-module-source))])
-      (parameterize ([read-accept-reader #t])
-        (call-with-input-file* module-source-path
-                               (lambda (ip)
-                                 (read-syntax #f ip))))))
-
-  (define language-stx
-    (kernel-syntax-case stx #t
-      [(module name language body ...)
-       #'language]
-      [else
-       (printf "Can't read a Racket module from ~e.\nThe file exists, but does not appear to be a Racket module.\n"
-               module-source-path)
-       (error 'check-valid-module-source)]))
-
-  ;; Check that the module is written in a language that we allow.
-  (displayln language-stx)
-  (void))
-
-   
 
 
 

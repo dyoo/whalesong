@@ -10,6 +10,7 @@
 
 
 (provide/contract [rewrite-path (complete-path? . -> . (or/c symbol? false/c))]
+                  [within-root-path? (complete-path? . -> . boolean?)]
                   [within-whalesong-path? (complete-path? . -> . boolean?)])
 
 
@@ -42,7 +43,7 @@
        (string-append "collects/"
                       (path->string
                        (find-relative-path collects-path a-path))))]
-     [(within-root? a-path)
+     [(within-root-path? a-path)
       (string->symbol
        (string-append "root/"
                       (path->string
@@ -53,7 +54,7 @@
 
        
 
-(define (within-root? a-path)
+(define (within-root-path? a-path)
   (within? (current-root-path) a-path))
 
 

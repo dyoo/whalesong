@@ -87,7 +87,7 @@
                                               (resource-path r))
                                   (void)]
                                  [else
-                                  (error 'whalesong "Unable to write resource ~s; this will overwrite a file"
+                                  (error 'whalesong "Unable to write resource ~s; this will overwrite a file that already exists."
                                          (build-path (current-output-dir)
                                                      (resource-key r)))])]
                           [else
@@ -141,7 +141,7 @@
                                           (resource-key r))))
              (void)]
             [else
-             (error 'whalesong "Unable to write resource ~s; this will overwrite a file"
+             (error 'whalesong "Unable to write resource ~s; this will overwrite a file that already exists."
                     (build-path (current-output-dir)
                                 (resource-key r)))])]
      [else

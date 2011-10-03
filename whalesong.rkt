@@ -5,6 +5,7 @@
          "parameters.rkt"
          "whalesong-helpers.rkt"
          profile profile/render-text
+         racket/path
          (for-syntax racket/base))
 
 ;; Command line for running Whalesong.
@@ -49,6 +50,15 @@
            expr))]))
 
 
+(define (set-root-path! root-path)
+  (unless (directory-exists? root-path)
+    (printf "ERROR: root path ~a does not appear to exist.\n" root-path)
+    (printf "Aborting compilation.\n")
+    (exit))
+  (current-root-path (normalize-path root-path)))
+
+
+
 (define (at-toplevel)
   (svn-style-command-line
    #:program "whalesong"
@@ -78,6 +88,10 @@
             [("--split-modules")
              ("Write one file per module")
              (current-one-module-per-file? #t)]
+            [("--root-dir")
+             root-path
+             ("Set the root package path (default: current-directory)")
+             (set-root-path! root-path)]
             [("--dest-dir")
              dest-dir
              ("Set destination directory (default: current-directory)")
@@ -110,6 +124,10 @@
                   [("--without-cache")
                    ("Turn off the internal compilation cache")
                    (current-with-cache? #f)]
+                  [("--root-dir")
+                   root-path
+                   ("Set the root package path (default: current-directory)")
+                   (set-root-path! root-path)]
                   [("--compress-javascript")
                    ("Compress JavaScript with Google Closure (requires Java)")
                    (current-compress-javascript? #t)]
@@ -135,6 +153,11 @@
                      [("--without-cache")
                       ("Turn off the internal compilation cache")
                       (current-with-cache? #f)]
+                     [("--root-dir")
+                      root-path
+                      ("Set the root package path (default: current-directory)")
+                      (set-root-path! root-path)]
+                     
                      [("--compress-javascript")
                       ("Compress JavaScript with Google Closure (requires Java)")
                       (current-compress-javascript? #t)]

@@ -36,3 +36,4 @@
 (test "more-tests/booleans-cs019.rkt")
 (test "more-tests/checking-cs019.rkt")
 (test "more-tests/sharing-cs019.rkt")
+(test "more-tests/basics-cs019.rkt")

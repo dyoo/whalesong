@@ -4,6 +4,10 @@
 (require (for-syntax "teach.rkt")
          (for-syntax racket/base))
 
+;; FIXME: there's something wrong with the compiler: it's not picking
+;; up that teach-runtime is a dependency.
+(require "teach-runtime.rkt")
+
 (provide cs019-lambda
          cs019-define
          cs019-when

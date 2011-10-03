@@ -2196,18 +2196,17 @@
                           guard,      // FIXME: currently ignored
                           constructorName
                          ) {
-
                     var structType = baselib.structs.makeStructureType(
                         name,
                         superType,
                         initFieldCount,
                         autoFieldCount,
                         autoV,
-                        //props,
                         //inspector,
                         //procSpec,
                         //immutables,
-                        guard);
+                        guard,
+                        props);
 
                     var constructorValue =
                         makePrimitiveProcedure(

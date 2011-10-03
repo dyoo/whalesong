@@ -51,8 +51,8 @@
         }
         for (i = 0; i < this._fields.length; i++) {
             if (! baselib.equality.equals(this._fields[i],
-                         other._fields[i],
-                         aUnionFind)) {
+                                          other._fields[i],
+                                          aUnionFind)) {
                 return false;
             }
         }
@@ -74,7 +74,8 @@
                                constructor,
                                predicate, 
                                accessor,
-                               mutator) {
+                               mutator,
+                               propertiesList) {
         this.name = name;
         this.type = type;
         this.numberOfArgs = numberOfArgs;
@@ -86,6 +87,7 @@
         this.predicate = predicate;
         this.accessor = accessor;
         this.mutator = mutator;
+        this.propertiesList = propertiesList;
     };
 
 
@@ -133,14 +135,14 @@
                                       initFieldCnt, 
                                       autoFieldCnt, 
                                       autoV, 
-                                      guard) {
+                                      guard,
+                                      propertiesList) {
 
 
         // Defaults
         autoFieldCnt = autoFieldCnt || 0;
         parentType = parentType || DEFAULT_PARENT_TYPE;
         guard = guard || DEFAULT_GUARD;
-
 
 
         // RawConstructor creates a new struct type inheriting from
@@ -202,19 +204,62 @@
             function (x, i) { return x._fields[i + this.firstField]; },
 
             // mutator
-            function (x, i, v) { x._fields[i + this.firstField] = v; });
+            function (x, i, v) { x._fields[i + this.firstField] = v; },
+
+            // structure properties list
+            propertiesList);
         return newType;
     };
 
 
 
 
+    var StructTypeProperty = function(name, guards, supers) {
+        this.name = name;
+        this.guards = guards;
+        this.supers = supers;
+    };
 
 
 
+    // supportsStructureTypeProperty: StructType StructureTypeProperty -> boolean
+    // Produces true if the structure type provides a binding for the
+    // given structure property.
+    var supportsStructureTypeProperty = function(structType, property) {
+        var propertiesList = structType.propertiesList;
+        while (propertiesList !== baselib.lists.EMPTY) {
+            if (propertiesList.first.first === property) {
+                return true;
+            }
+            propertiesList = propertiesList.rest;
+        }
+        return false;
+    };
 
-    var isStruct = function (x) { return x instanceof Struct; };
-    var isStructType = function (x) { return x instanceof StructType; };
+
+    // lookupStructureTypeProperty: StructType StructureTypeProperty -> any
+    // Returns the binding associated to this particular structure type propery.
+    var lookupStructureTypeProperty = function(structType, property) {
+        var propertiesList = structType.propertiesList;
+        while (propertiesList !== baselib.lists.EMPTY) {
+            if (propertiesList.first.first === property) {
+                return propertiesList.first.rest;
+            }
+            propertiesList = propertiesList.rest;
+        }
+        return undefined;
+    };
+
+
+    // A structure type property for noting if an exception supports
+    var propExnSrcloc = new StructTypeProperty("prop:exn:srcloc");
+
+
+
+    var isStruct = baselib.makeClassPredicate(Struct);
+    var isStructType = baselib.makeClassPredicate(StructType);
+    var isStructTypeProperty = baselib.makeClassPredicate(StructTypeProperty);
+
 
 
     //////////////////////////////////////////////////////////////////////
@@ -223,7 +268,14 @@
     exports.StructType = StructType;
     exports.Struct = Struct;
     exports.makeStructureType = makeStructureType;
+
+    exports.StructTypeProperty = StructTypeProperty;
+    exports.supportsStructureTypeProperty = supportsStructureTypeProperty;
+    exports.lookupStructureTypeProperty = lookupStructureTypeProperty;
+
+    exports.propExnSrcloc = propExnSrcloc;
+
     exports.isStruct = isStruct;
     exports.isStructType = isStructType;
-
+    exports.isStructTypeProperty = isStructTypeProperty;
 }(this.plt.baselib, $));

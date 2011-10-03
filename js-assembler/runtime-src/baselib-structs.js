@@ -9,9 +9,10 @@
 
     //////////////////////////////////////////////////////////////////////
 
-    var Struct = function (constructorName, fields) {
+    var Struct = function (constructorName, fields, structType) {
         this._constructorName = constructorName; 
         this._fields = [];
+        this.structType = structType;
     };
 
     Struct.prototype.toWrittenString = function (cache) { 
@@ -147,9 +148,9 @@
 
         // RawConstructor creates a new struct type inheriting from
         // the parent, with no guard checks.
-        var RawConstructor = function (name, args) {
+        var RawConstructor = function (name, args, structType) {
             var i;
-            parentType.type.call(this, name, args);
+            parentType.type.call(this, name, args, structType);
             for (i = 0; i < initFieldCnt; i++) {
                 this._fields.push(args[i+parentType.numberOfArgs]);
             }
@@ -192,7 +193,7 @@
                     args,
                     baselib.symbols.Symbol.makeInstance(theName),
                     function (res) { 
-                        return new RawConstructor(theName, res); });
+                        return new RawConstructor(theName, res, newType); });
             },
 
             // predicate

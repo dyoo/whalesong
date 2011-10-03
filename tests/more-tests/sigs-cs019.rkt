@@ -19,6 +19,7 @@
 
 (define: (g [x : Number$]) -> String$ "x")
 (check-expect (g 10) "x")
+(g "x")
 #;(check-error (g "x"))
 #;(check-violation-highlights
  (g "x")

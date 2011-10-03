@@ -597,7 +597,7 @@ var invokeMainModule = function() {
             }
         },
         function(M, e) {
-            var contMarkSet, context, i, appName;
+            var contMarkSet, context, i, appName, contextDiv;
             // On main module invokation failure
             if (window.console && window.console.log) {
                 window.console.log(e.stack || e);
@@ -609,30 +609,39 @@ var invokeMainModule = function() {
             if (e.hasOwnProperty('racketError') &&
                 plt.baselib.exceptions.isExn(e.racketError)) {
                 contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
+                contextDiv = $('<div/>');
+
+                if (e.racketError.structType &&
+                    plt.baselib.structs.supportsStructureTypeProperty(
+                        e.racketError.structType,
+                        plt.baselib.structs.propExnSrcloc)) {
+
+
+                }
+
                 if (contMarkSet) {
                     context = contMarkSet.getContext(M);
                     for (i = 0; i < context.length; i++) {
                         if (plt.runtime.isVector(context[i])) {
-                            M.params.currentErrorDisplayer(
-                                M,
-                                $('<div/>').text('  at ' + context[i].elts[0] +
+                                $('<div/>').text('at ' + context[i].elts[0] +
                                                  ', line ' + context[i].elts[2] +
                                                  ', column ' + context[i].elts[3])
                                     .addClass('stacktrace')
                                     .css('margin-left', '10px')
                                     .css('whitespace', 'pre')
-                                    .css('color', 'red'));
+                                    .css('color', 'red')
+                                    .appendTo(contextDiv);
                         } else if (plt.runtime.isProcedure(context[i])) {
-                            M.params.currentErrorDisplayer(
-                                M,
-                                $('<div/>').text('  in ' + context[i].displayName)
+                            $('<div/>').text('in ' + context[i].displayName)
                                     .addClass('stacktrace')
                                     .css('margin-left', '10px')
                                     .css('whitespace', 'pre')
-                                    .css('color', 'red'));
+                                    .css('color', 'red')
+                                    .appendTo(contextDiv);
                         }                                     
                     }
                 }
+                M.params.currentErrorDisplayer(M, contextDiv);
             }
         });
 };

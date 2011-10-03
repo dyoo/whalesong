@@ -2088,7 +2088,7 @@
 
     installPrimitiveConstant(
         'prop:exn:srclocs',
-        "fixme");
+        baselib.structs.propExnSrcloc);
 
 
     installPrimitiveProcedure(

@@ -42,7 +42,7 @@
                      (lambda (exn)
                        ;; We can't even get the bytecode for the file.
                        ;; Fail immediately.
-                       (printf "ERROR: Can't read a Racket module from ~e.  The file may be ill-formed.\n"
+                       (printf "ERROR: Can't read a Racket module from ~e.  The file may be ill-formed or be written in a language that Whalesong doesn't recognize.\n"
                                module-source-path)
                        (printf "\nFor reference, the error message produced when trying to read ~e is:\n\n" module-source-path)
                        (printf "~a\n" (exn-message exn))

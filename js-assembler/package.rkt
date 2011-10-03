@@ -597,7 +597,36 @@ var invokeMainModule = function() {
             }
         },
         function(M, e) {
-            var contMarkSet, context, i, appName, contextDiv;
+            var contMarkSet, context, i, appName, contextDiv, srclocProcedure;
+
+            var displayContext = function() {
+                var subcontextDiv = $('<div/>').css('color', 'red');
+                subcontextDiv.append("Stacktrace:\n");
+                if (contMarkSet) {
+                    context = contMarkSet.getContext(M);
+                    for (i = 0; i < context.length; i++) {
+                        if (plt.runtime.isVector(context[i])) {
+                                $('<div/>').text('at ' + context[i].elts[0] +
+                                                 ', line ' + context[i].elts[2] +
+                                                 ', column ' + context[i].elts[3])
+                                    .addClass('stacktrace')
+                                    .css('margin-left', '10px')
+                                    .css('whitespace', 'pre')
+                                    .appendTo(subcontextDiv);
+                        } else if (plt.runtime.isProcedure(context[i])) {
+                            $('<div/>').text('in ' + context[i].displayName)
+                                    .addClass('stacktrace')
+                                    .css('margin-left', '10px')
+                                    .css('whitespace', 'pre')
+                                    .appendTo(subcontextDiv);
+                        }                                     
+                    }
+                }
+                contextDiv.append(subcontextDiv);
+                M.params.currentErrorDisplayer(M, contextDiv);
+            };
+
+
             // On main module invokation failure
             if (window.console && window.console.log) {
                 window.console.log(e.stack || e);
@@ -615,33 +644,36 @@ var invokeMainModule = function() {
                     plt.baselib.structs.supportsStructureTypeProperty(
                         e.racketError.structType,
                         plt.baselib.structs.propExnSrcloc)) {
-
-
+                    srclocProcedure = plt.baselib.functions.asJavaScriptFunction(
+                              plt.baselib.structs.lookupStructureTypeProperty(
+                                  e.racketError.structType,
+                                  plt.baselib.structs.propExnSrcloc),
+                              M);
+                    srclocProcedure(function(v) {
+                                        if (plt.baselib.lists.isList(v)) {
+                                            while(v !== plt.baselib.lists.EMPTY) {
+                                                if (plt.baselib.srclocs.isSrcloc(v.first)) {
+                                                    $('<div/>').text('at ' + plt.baselib.srclocs.srclocSource(v.first) +
+                                                                     ', line ' + plt.baselib.srclocs.srclocLine(v.first) +
+                                                                     ', column ' + plt.baselib.srclocs.srclocColumn(v.first))
+                                                               .addClass('srcloc')
+                                                               .css('margin-left', '10px')
+                                                               .css('whitespace', 'pre')
+                                                               .css('color', 'red')
+                                                               .appendTo(contextDiv);
+                                                }
+                                                v = v.rest;
+                                            }
+                                        }
+                                        displayContext();
+                                    },
+                                    function(err) {
+                                        displayContext();
+                                    },
+                                    e.racketError);
+                } else {
+                    displayContext();
                 }
-
-                if (contMarkSet) {
-                    context = contMarkSet.getContext(M);
-                    for (i = 0; i < context.length; i++) {
-                        if (plt.runtime.isVector(context[i])) {
-                                $('<div/>').text('at ' + context[i].elts[0] +
-                                                 ', line ' + context[i].elts[2] +
-                                                 ', column ' + context[i].elts[3])
-                                    .addClass('stacktrace')
-                                    .css('margin-left', '10px')
-                                    .css('whitespace', 'pre')
-                                    .css('color', 'red')
-                                    .appendTo(contextDiv);
-                        } else if (plt.runtime.isProcedure(context[i])) {
-                            $('<div/>').text('in ' + context[i].displayName)
-                                    .addClass('stacktrace')
-                                    .css('margin-left', '10px')
-                                    .css('whitespace', 'pre')
-                                    .css('color', 'red')
-                                    .appendTo(contextDiv);
-                        }                                     
-                    }
-                }
-                M.params.currentErrorDisplayer(M, contextDiv);
             }
         });
 };

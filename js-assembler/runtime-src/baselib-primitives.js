@@ -24,6 +24,7 @@
     var isNatural = baselib.numbers.isNatural;
     var isPair = baselib.lists.isPair;
     var isList = baselib.lists.isList;
+    var isVector = baselib.vectors.isVector;
     var isString = baselib.strings.isString;
     var isSymbol = baselib.symbols.isSymbol;
     var isBox = baselib.boxes.isBox;
@@ -657,6 +658,14 @@
             return firstArg === NULL;
         });
 
+
+    installPrimitiveProcedure(
+        'vector?',
+        1,
+        function (M) {
+            var firstArg = M.e[M.e.length-1];
+            return isVector(firstArg);
+        });
 
     installPrimitiveProcedure(
         'vector',

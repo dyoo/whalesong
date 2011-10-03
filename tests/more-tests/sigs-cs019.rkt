@@ -50,6 +50,7 @@
 (define: c1 : Char$ #\c)
 (check-expect c1 #\c)
 
+
 #;(define: key1 : Key$ "up")
 #;(check-expect key1 "up")
 
@@ -68,7 +69,10 @@
 (check-expect ((swf-f a-swf) 10) 11)
 #;(check-error (set-swf-f! a-swf 3))
 #;(check-violation-highlights 
+
+
  (set-swf-f! a-swf 3)
+
  ;; What should be highlighted is the entire signature
  (list "(Number$ -> Number$)")
  (list 26))
@@ -97,6 +101,8 @@
 (define-struct mt ())
 (define mt$ (Sig: mt?))
 (define-struct: nd ([v : Number$] [l : Tree$] [r : Tree$]))
+
+
 
 #;(check-error (set-nd-v! (make-nd 0 (make-mt) (make-mt)) "x"))
 #;(check-violation-highlights
@@ -132,6 +138,7 @@
  (list 12))
 
 
+
 (define: (tree-sum (t : Tree$)) -> Number$
   (cond
     [(mt? t) 0]
@@ -149,6 +156,7 @@
                     (make-nd 2 (make-nd 1 (make-mt) 10) (make-mt))))
  (list "(or: mt$ nd$)")
  (list 14))
+
 
 
 (define: (prime? [n : (Sig: (lambda (n) (and (positive? n) (integer? n))))]) 
@@ -172,6 +180,8 @@
  (prime? 1.5)
  (list "(Sig: (lambda (n) (and (positive? n) (integer? n))))")
  (list 22))
+
+
 
 (define BadSig$ (or: (Number$ -> Number$) Number$))
 ;(define: bs : BadSig 3)
@@ -211,6 +221,8 @@
 #;(check-violation-highlights (s2n "xyz")
                             (list "Number$")
                             (list 27))
+
+
 
 (define: (i [f : (Number$ -> Number$)]) -> Number$
   (f 5))
@@ -265,6 +277,8 @@
  (list "String$")
  (list 22))
 
+
+
 (check-expect (local ([define: (f [x : Number$]) -> String$
                         (number->string x)])
                 (f 10))
@@ -302,9 +316,12 @@
  (list 47))
 
 
+
+
 (define: l : (Listof: Number$) (list 1 2 3))
 (check-expect l (list 1 2 3))
 ; (define: m : (Listof: Number$) (list 1 2 "X"))
+
 
 (define: (n [l : (Listof: (Number$ -> Number$))]) -> (Listof: Number$)
   (map (lambda (f) (f 10)) l))
@@ -316,9 +333,12 @@
  (list 38))
 #;(check-error (n (list add1 string->number)))
 
+
 (define: vs : (Vectorof: String$)
   (vector "0" "1" "2"))
+
 (check-expect vs (vector "0" "1" "2"))
+
 
 (define: (cvts [ns : (Listof: Number$)]) -> (Listof: String$)
   (local [(define: cv : (Vectorof: ((Listof: String$) -> (Listof: String$)))

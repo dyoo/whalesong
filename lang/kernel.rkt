@@ -201,7 +201,12 @@
 
          exn:fail
          struct:exn:fail
-         prop:exn:srclocs)
+         prop:exn:srclocs
+
+
+         ;; needed for cs019-local
+         #%stratified-body
+         )
 
 
 (define (-identity x) x)

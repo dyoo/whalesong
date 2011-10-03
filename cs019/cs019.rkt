@@ -13,7 +13,8 @@
                      [cs019-define define]
                      [cs019-when when]
                      [cs019-unless unless]
-                     [cs019-case case]))
+                     [cs019-case case]
+                     [cs019-local local]))
 
 (require "private/sigs-patched.rkt")
 (provide [all-from-out "private/sigs-patched.rkt"])
@@ -44,7 +45,8 @@
                      define
                      lambda
                      unless
-                     when)
+                     when
+                     local)
 
          string-ith
          replicate

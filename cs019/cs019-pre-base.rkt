@@ -9,10 +9,12 @@
          cs019-when
          cs019-unless
          cs019-set!
-         cs019-case)
+         cs019-case
+         cs019-local)
 
 (define-syntax cs019-define advanced-define/proc)
 (define-syntax cs019-lambda advanced-lambda/proc)
 (define-syntaxes (cs019-when cs019-unless) (values advanced-when/proc advanced-unless/proc))
 (define-syntax cs019-set! advanced-set!/proc)
 (define-syntax cs019-case advanced-case/proc)
+(define-syntax cs019-local intermediate-local/proc)

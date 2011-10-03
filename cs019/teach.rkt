@@ -1,8 +1,12 @@
 #lang racket/base
 
 (require (for-template "../lang/base.rkt")
+         (for-template "teach-runtime.rkt")
+         "teachhelp.rkt"
          stepper/private/shared
          racket/list
+         syntax/context
+         syntax/kerncase
          syntax/stx)
 
 
@@ -11,7 +15,19 @@
          advanced-when/proc
          advanced-unless/proc
          advanced-set!/proc advanced-set!-continue/proc
-         advanced-case/proc)
+         advanced-case/proc
+         intermediate-local/proc)
+
+
+
+  ;; verify-boolean is inserted to check for boolean results:
+  (define (verify-boolean b where)
+    (if (or (eq? b #t) (eq? b #f))
+      b
+      (raise
+       (make-exn:fail:contract
+        (format "~a: question result is not true or false: ~e" where b)
+        (current-continuation-marks)))))
 
 
 ;; A consistent pattern for stepper-skipto:
@@ -266,6 +282,178 @@
          "expected at least one variable (in parentheses) after lambda, but nothing's there")]
        [_else 'ok])]
     [_else 'ok]))
+
+
+
+
+
+
+
+
+
+
+
+    ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; local
+    ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    (define (intermediate-local/proc stx)
+      (ensure-expression
+       stx
+       (lambda ()
+	 (syntax-case stx ()
+	   [(_ (definition ...) . exprs)
+	    (let ([defns (syntax->list (syntax (definition ...)))]
+		  ;; The following context value lets teaching-language definition
+		  ;;  forms know that it's ok to expand in this internal
+		  ;;  definition context.
+		  [int-def-ctx (build-expand-context (make-expanding-for-intermediate-local))])
+	      (let* ([partly-expand (lambda (d)
+                                      (local-expand
+                                       d
+                                       int-def-ctx
+                                       (kernel-form-identifier-list)))]
+                     [partly-expanded-defns
+		      (map partly-expand defns)]
+		     [flattened-defns
+		      (let loop ([l partly-expanded-defns][origs defns])
+			(apply
+			 append
+			 (map (lambda (d orig)
+				(syntax-case d (begin define-values define-syntaxes)
+				  ;; we don't have to check for ill-formed `define-values'
+				  ;; or `define-syntaxes', because only macros can generate
+				  ;; them
+				  [(begin defn ...)
+				   (let ([l (map partly-expand (syntax->list (syntax (defn ...))))])
+				     (loop l l))]
+				  [(define-values . _)
+				   (list d)]
+				  [(define-syntaxes . _)
+				   (list d)]
+				  [_else
+				   (teach-syntax-error
+				    'local
+				    stx
+				    orig
+				    "expected a definition, but found ~a"
+				    (something-else orig))]))
+			      l origs)))]
+		     [val-defns
+		      (apply
+		       append
+		       (map (lambda (partly-expanded)
+			      (syntax-case partly-expanded (define-values)
+				[(define-values (id ...) expr)
+				 (list partly-expanded)]
+				[_else
+				 null]))
+			    flattened-defns))]
+		     [stx-defns
+		      (apply
+		       append
+		       (map (lambda (partly-expanded)
+			      (syntax-case partly-expanded (define-syntaxes)
+				[(define-syntaxes (id ...) expr)
+				 (list partly-expanded)]
+				[_else
+				 null]))
+			    flattened-defns))]
+		     [get-ids (lambda (l)
+				(apply
+				 append
+				 (map (lambda (partly-expanded)
+					(syntax-case partly-expanded ()
+					  [(_ (id ...) expr)
+					   (syntax->list (syntax (id ...)))]))
+				      l)))]
+		     [val-ids (get-ids val-defns)]
+		     [stx-ids (get-ids stx-defns)])
+		(let ([dup (check-duplicate-identifier (append val-ids stx-ids))])
+		  (when dup
+		    (teach-syntax-error
+		     'local
+		     stx
+		     dup
+		     "~a was defined locally more than once"
+		     (syntax-e dup)))
+		  (let ([exprs (syntax->list (syntax exprs))])
+		    (check-single-expression 'local
+					     "after the local definitions"
+					     stx
+					     exprs
+					     (append val-ids stx-ids)))
+		  (with-syntax ([((d-v (def-id ...) def-expr) ...) val-defns]
+				[(stx-def ...) stx-defns])
+		    (with-syntax ([(((tmp-id def-id/prop) ...) ...)
+				   ;; Generate tmp-ids that at least look like the defined
+				   ;;  ids, for the purposes of error reporting, etc.:
+				   (map (lambda (def-ids)
+					  (map (lambda (def-id)
+						 (list
+						  (stepper-syntax-property
+						   (datum->syntax
+						    #f
+						    (string->uninterned-symbol
+						     (symbol->string (syntax-e def-id))))
+						   'stepper-orig-name
+						   def-id)
+						  (syntax-property
+						   def-id
+						   'bind-as-variable
+						   #t)))
+					       (syntax->list def-ids)))
+					(syntax->list (syntax ((def-id ...) ...))))])
+		      (with-syntax ([(mapping ...)
+				     (let ([mappers
+					    (syntax->list
+					     (syntax
+					      ((define-syntaxes (def-id/prop ...)
+						 (values
+						  (make-undefined-check
+						   (quote-syntax check-not-undefined)
+						   (quote-syntax tmp-id))
+						  ...))
+					       ...)))])
+				       (map syntax-track-origin
+					    mappers
+					    val-defns
+					    (syntax->list (syntax (d-v ...)))))])
+			(stepper-syntax-property
+			 (quasisyntax/loc stx
+			   (let ()
+                             (#%stratified-body
+                              (define #,(gensym) 1) ; this ensures that the expansion of 'local' looks
+					            ; roughly the same, even if the local has no defs.
+                              mapping ...
+                              stx-def ...
+                              (define-values (tmp-id ...) def-expr)
+                              ...
+                              . exprs)))
+			 'stepper-hint
+			 'comes-from-local)))))))]
+	   [(_ def-non-seq . __)
+	    (teach-syntax-error
+	     'local
+	     stx
+	     (syntax def-non-seq)
+	     "expected at least one definition (in square brackets) after local, but found ~a"
+	     (something-else (syntax def-non-seq)))]
+	   [(_)
+	    (teach-syntax-error
+	     'local
+	     stx
+	     #f
+             "expected at least one definition (in square brackets) after local, but nothing's there")]
+	   [_else (bad-use-error 'local stx)]))))
+
+
+
+
+
+
+
+
 
 
 

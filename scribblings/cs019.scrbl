@@ -11,13 +11,17 @@
           "scribble-helpers.rkt")
 
 @(require (for-label (except-in (this-package-in cs019/cs019)
+          ;; I am not documenting these: SK already documents them.
                                 define:
+                                Sig:
                                 Number$ Boolean$
                                 local
                                 shared
                                 printf display
-                                define-struct
+                                define-struct define-struct:
                                 define
+                                if
+                                format
                                 string=? string?
                                 image?
                                 e
@@ -25,6 +29,7 @@
                                 number->string
                                 quasiquote
                                 bitmap/url
+                                symbol? symbol=?
                                 current-output-port
                                 lambda
                                 true false)))
@@ -32,7 +37,7 @@
 @(define-runtime-path whalesong-path "..")
 
 
-@title{CS19 instructions for Whalesong}
+@title{CS019 instructions for Whalesong}
 @author+email["Danny Yoo" "dyoo@hashcollision.org"]
 
 
@@ -50,7 +55,7 @@ If it isn't, you can add the following to your @filepath{.environment}:
 @verbatim|{
 pathprependifdir PATH "/local/projects/racket/releases/5.1.3/bin"    
 }|}
-But hopefully, this should already be configured to be the default for the @tt{cs19} group
+But hopefully, this should already be configured to be the default for the @tt{cs019} group
 by the time you read this.
 
 
@@ -204,9 +209,93 @@ browser}.
 
 
 
+@subsection{Where am I?}
+
+@margin-note{The resource used is: @link["http://hashcollision.org/whalesong/examples/cs019/where-am-i/index.html"]{@filepath{index.html}}.}
+Finally, let's look at a program that displays our current geolocation.
+
+@filebox["where-am-i.rkt"]{
+@codeblock|{
+#lang planet dyoo/whalesong/cs019
+
+(define-resource index.html)
+
+(define-struct: coord ([lat : Number$]
+                       [lng : Number$]))
+
+;; coord/unknown?: any -> boolean
+;; Returns true if x is a coord or the symbol 'unknown.
+(define (coord/unknown? x)
+  (or (coord? x)
+      (and (symbol? x)
+           (symbol=? x 'unknown))))
+
+(define Coord/Unknown$ (Sig: coord/unknown?))
+  
+
+;; The world stores both the real location, as well as a mocked-up
+;; one.
+(define-struct: world ([real : Coord/Unknown$]
+                       [mock : Coord/Unknown$]))
+(define World$ (Sig: world?))
+
+
+
+(define: (location-change [world : World$]
+                          [dom : View$]
+                          [evt : Event$]) -> World$
+  (make-world (make-coord (event-ref evt "latitude")
+                          (event-ref evt "longitude"))
+              (world-mock world)))
+
+
+(define: (mock-location-change [world : World$]
+                               [dom : View$]
+                               [evt : Event$]) -> World$
+  (make-world (world-real world)
+              (make-coord (event-ref evt "latitude")
+                          (event-ref evt "longitude"))))
+
+
+(define: (draw [world : World$] [dom : View$]) -> View$
+  (local [(define v1 
+            (if (coord? (world-real world))
+                (update-view-text
+                 (view-focus dom "real-location")
+                 (format "lat=~a, lng=~a"
+                         (coord-lat (world-real world))
+                         (coord-lng (world-real world))))
+                dom))
+          (define v2
+            (if (coord? (world-mock world))
+                (update-view-text
+                 (view-focus v1 "mock-location")
+                 (format "lat=~a, lng=~a"
+                         (coord-lat (world-mock world))
+                         (coord-lng (world-mock world))))
+                v1))]
+         v2))
+
+
+(big-bang (make-world 'unknown 'unknown)
+          (initial-view index.html)
+          (to-draw draw)
+          (on-location-change location-change)
+          (on-mock-location-change mock-location-change))
+}|
+}
+
+@link["http://hashcollision.org/whalesong/examples/cs019/where-am-i/where-am-i.html"]{This program} uses @racket[on-location-change], which uses HTML5's
+Geolocation support to provide latitude and longitude information.  We
+receive a change to our location in the form of an @tech{event}.  To
+make it easier to test programs that depend on Geolocation, a
+@racket[on-mock-location-change] provides the same interface, but
+the location can be entered from a form in the browser window.
+
+
 
 @subsection{More web-world examples}
-Here are a collection of web-world demos:
+Here are more examples of web-world demos, to get a feel for the library:
 @itemize[
 @item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src}]  Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
 

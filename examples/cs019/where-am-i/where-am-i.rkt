@@ -2,12 +2,11 @@
 
 (define-resource index.html)
 
-
 (define-struct: coord ([lat : Number$]
                        [lng : Number$]))
 
-
-
+;; coord/unknown?: any -> boolean
+;; Returns true if x is a coord or the symbol 'unknown.
 (define (coord/unknown? x)
   (or (coord? x)
       (and (symbol? x)
@@ -16,8 +15,8 @@
 (define Coord/Unknown$ (Sig: coord/unknown?))
   
 
-
-
+;; The world stores both the real location, as well as a mocked-up
+;; one.
 (define-struct: world ([real : Coord/Unknown$]
                        [mock : Coord/Unknown$]))
 (define World$ (Sig: world?))

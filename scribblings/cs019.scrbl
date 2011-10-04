@@ -10,9 +10,23 @@
           racket/runtime-path
           "scribble-helpers.rkt")
 
-
-@(require (for-label (this-package-in resource))
-          (for-label (this-package-in web-world)))
+@(require (for-label (except-in (this-package-in cs019/cs019)
+                                define:
+                                Number$ Boolean$
+                                local
+                                shared
+                                printf display
+                                define-struct
+                                define
+                                string=? string?
+                                image?
+                                e
+                                string
+                                number->string
+                                quasiquote
+                                bitmap/url
+                                current-output-port
+                                lambda)))
 
 @(define-runtime-path whalesong-path "..")
 
@@ -46,8 +60,9 @@ your current directory.
 #lang racket/base
 (require (planet dyoo/whalesong:1:4/make-launcher))
 }|
-This will create a @filepath{whalesong} launcher in the current directory.
-
+This will create a @filepath{whalesong} launcher in the current
+directory.  Place this somewhere in your PATH to make it easy to
+execute.
 
 
 
@@ -146,13 +161,9 @@ Write a file called @filepath{tick-tock.rkt} with the following content.
 (define: (draw ([world : Number$] [dom : View$])) -> View$
   (update-view-text (view-focus dom "counter") world))
 
-
-;; tick: world view -> world
 (define: (tick ([world : Number$] [dom : View$])) -> Number$
   (add1 world))
 
-
-;; stop?: world view -> boolean
 (define: (stop? ([world : Number$] [dom : View$])) -> Boolean$
   (> world 10))
 
@@ -167,8 +178,12 @@ Write a file called @filepath{tick-tock.rkt} with the following content.
 
 Several things are happening here.
 @itemize[
-@item{We use @racket[define-resource] to refer to external @tech{resource }files,
-like @filepath{index.html} that we'd like to include in our program.}
+@item{We're using the signature support in the cs019 language as discussed in
+@url{http://www.cs.brown.edu/courses/cs019/2011/software/doc}.}
+
+@item{We use @racket[define-resource] to refer to external
+@tech{resource} files, like @filepath{index.html} that we'd like to
+include in our program.}
 
 @item{
 Whalesong includes a world library for doing event-driven programs.
@@ -177,7 +192,9 @@ computation that responses to events.  In this example, that's clock
 ticks introduced by @racket[on-tick].
 
 However, because we're on the web, we can bind to many other kinds of
-web events (by using @racket[view-bind]).}]
+web events (by using @racket[view-bind]).  Each of our callbacks also
+consumes the DOM as an argument, since the DOM, too, is a source of
+external state in a program.}]
 
 
 
@@ -237,33 +254,9 @@ Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonst
 
 
 
-@section{Usage}
-The @filepath{whalesong} launcher in the subdirectory will compile
-programs to @filepath{.html} and @filepath{.js} files.
-
-
-Example usage: using @litchar{whalesong build} to compile a whalesong program.
-@verbatim|{
-
-$ cat hello.rkt
-#lang planet dyoo/whalesong/cs019
-
-(display "hello world")
-(newline)
-
-$ whalesong build hello.rkt 
-
-fermi ~/whalesong/examples $ google-chrome hello.html
-Created new window in existing browser session.
-}|
-
-
-
-
-
 @section{API}
 
-@defmodule/this-package[web-world]
+@declare-exporting/this-package[cs019/cs019]
 
 For the purposes of tour-guide, we'll be focusing on the
 @racketmodname/this-package[web-world] library in Whalesong.
@@ -402,6 +395,10 @@ tree.  A view is always focused on an element, and the functions in
 this subsection show how to traverse and manipulate the view.
 
 
+@defproc[(view? [x any]) boolean]{
+Produces true if x is a @tech{view}.}
+
+@defthing[View$ Sig]{The signature of a view.}
 
 @defproc[(->view [x any]) view]{
 
@@ -412,17 +409,18 @@ Common values for @racket[x] include @tech{resource}s.
 
 
 @defproc[(view-focus? [v view] [id String]) boolean]{
-Return true if the view can be focused using the given id.
-}
+Return true if the view can be focused onto an element in the view
+with the given id.}
 
 @defproc[(view-focus [v view] [id String]) view]{
-Focuses the view on an element, given the @racket[id].  The view
-will be searched starting from the toplevelmost node.
+Focuses the view on an element, given the @racket[id].
 }
 
 
-Once we have a view, we can refocus the view to different elements by using
-@racket[view-left], @racket[view-right], @racket[view-up], and @racket[view-down].
+Once we have a view, we can refocus the view using
+@racket[view-focus], or traverse the view locally by using
+@racket[view-left], @racket[view-right], @racket[view-up], and
+@racket[view-down].
 
 
 @defproc[(view-left? [v view]) boolean]{
@@ -475,8 +473,10 @@ Update the textual content at the focus.}
 @defproc[(view-show [v view]) view]{
 Show the element at the focus.
 }
+
 @defproc[(view-hide [v view]) view]{
-Hide the element at the focus.
+Hide the element at the focus.  The element will continue to exist
+in the tree, but not be shown.
 }
 
 
@@ -514,9 +514,11 @@ Update the form value of the node at the focus.}
 Add the dom node @racket[d] as the last child of the focused node.
 Focus moves to the appended child.
 
+
 Dom nodes can be created by using @racket[xexp->dom], which converts a
-@tech{xexp} to a node.
-}
+@tech{xexp} to a node.  Furthermore, values can be treated as DOM
+nodes whose DOM representation will be the way they print.  This
+including images.}
 
 @defproc[(view-remove [v view]) view]{
 Remove the dom node at the focus from the view @racket[v].  Focus tries to move
@@ -551,12 +553,11 @@ Get an list of the event's keys.
 
 
 @section{Dynamic DOM generation with xexps} 
-@declare-exporting/this-package[web-world]
+@declare-exporting/this-package[cs019/cs019]
 We often need to dynamically inject new dom nodes into an existing
 view.  As an example where the UI is entirely in code:
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world))
+#lang planet dyoo/whalesong/cs019
 
 ;; tick: world view -> world
 (define (tick world view)
@@ -637,7 +638,7 @@ Return a string that can be used as a DOM node id.
 
 
 @section{Including external resources}
-@defmodule/this-package[resource]
+@declare-exporting/this-package[cs019/cs019]
 
 Programs may need to use an external file @deftech{resource} that isn't
 itself a Racket program, but instead some other kind of data.
@@ -649,23 +650,44 @@ these resources will be bundled alongside the JavaScript-compiled
 output.
 
 @defform[(define-resource id [path-string])]{
-Defines a resource with the given path name.
+Defines a resource with the given path name.  The path is relative
+to the program.
 
 For example,
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/resource))
+#lang planet dyoo/whalesong/cs019
 (define-resource my-whale-image-resource "humpback.png")
 }|
 }
-As a convenience, we can also write
+Since the name we're using will often match the filename itself,
+as a convenience, we can also write the following:
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/resource))
+#lang planet dyoo/whalesong/cs019
 (define-resource humpback.png)
 }|
 which defines a variable named @racket[humpback.png] whose
 resource is @filepath{humpback.png}.
+
+
+If the resource given has an extension one of the following:
+@itemize[
+@item{@filepath{.png}}
+@item{@filepath{.gif}}
+@item{@filepath{.jpg}}
+@item{@filepath{.jpeg}}]
+then the resource is also an image for which @racket[image?] will be true.
+
+If the resource has the extension @filepath{.html}, then it will be
+run through an HTML purifying process to make sure the HTML is
+well-formed.
+
+@defproc[(resource? [x any]) boolean]{
+Produces true if @racket[x] is a resource.
+}
+
+@defthing[Resource$ sig]{
+The signature of a resource.
+}
 
 
 
@@ -674,15 +696,16 @@ Given a resource, gets a URL.
 
 For example,
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/resource)
-         (planet dyoo/whalesong/image))
+#lang planet dyoo/whalesong/cs019
 
 (define-resource my-whale-image-resource "humpback.png")
 
 (define WHALE-IMAGE
   (bitmap/url (resource->url my-whale-image-resource)))
 }|
+
+(This particular example is somewhat redundant, because image
+resources behave already as images.)
 
 }
 
@@ -692,7 +715,7 @@ For example,
 @section{Tips and Tricks}
 @subsection{Hiding standard output or directing it to an element}
 
-@declare-exporting/this-package[web-world]
+@declare-exporting/this-package[cs019/cs019]
 
 For a web-world program, output is normally done by using
 @racket[to-draw].  However, side effecting functions, such as

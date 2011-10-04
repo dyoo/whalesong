@@ -32,6 +32,7 @@
 
 
 
+
 (require (prefix-in whalesong: "../lang/whalesong.rkt"))
 (provide (except-out (filtered-out
                       (lambda (name)
@@ -70,9 +71,16 @@
 (require "../web-world.rkt")
 (provide (all-from-out "../web-world.rkt"))
 
+(define View$ (Sig: view?))
+(provide View$)
+
+
 (require "../resource.rkt")
 (provide (all-from-out "../resource.rkt"))
 
+
+(define Resource$ (Sig: resource?))
+(provide Resource$)
 
 
 

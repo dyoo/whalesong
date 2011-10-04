@@ -8,8 +8,8 @@
           racket/port
           (only-in racket/contract any/c)
           racket/runtime-path
-          "scribble-helpers.rkt"
-          "../js-assembler/get-js-vm-implemented-primitives.rkt")
+          "scribble-helpers.rkt")
+
 
 @(require (for-label (this-package-in resource))
           (for-label (this-package-in web-world)))
@@ -21,71 +21,34 @@
 @author+email["Danny Yoo" "dyoo@hashcollision.org"]
 
 
+
 @section{Installation}
 
-Racket 5.1.2 or greater is a prerequisite for Whalesong.  Brown CS
+Racket 5.1.3 or greater is a prerequisite for Whalesong.  Brown CS
 maintains its own installation of Racket 5.1.3 in
-@filepath{/local/projects/racket/releases/5.1.3}.
-To access it, you can add the following to your @filepath{.environment}:
+@filepath{/local/projects/racket/releases/5.1.3}.  This should already be in
+your @litchar{PATH}.
+
+
+If it isn't, you can add the following to your @filepath{.environment}:
 @filebox[".environment"]{
 @verbatim|{
 pathprependifdir PATH "/local/projects/racket/releases/5.1.3/bin"    
 }|}
-Hopefully, this should already be configured to be the default for the @tt{cs19} group
+But hopefully, this should already be configured to be the default for the @tt{cs19} group
 by the time you read this.
 
 
 
-We'll install a local development copy of Whalesong in a @filepath{whalesong} subdirectory.
-On the very first time we install Whalesong:
-@verbatim|{
-    $ git clone git://github.com/dyoo/whalesong.git
-    $ cd whalesong
-    $ make
+Run the following to create the @filepath{whalesong} launcher program in
+your current directory.
+@codeblock|{
+#lang racket/base
+(require (planet dyoo/whalesong:1:4/make-launcher))
 }|
-The @filepath{make} step make take a minute or two, and creates a command-line program called
-@filepath{whalesong} that we'll use to build Whalesong programs.
+This will create a @filepath{whalesong} launcher in the current directory.
 
 
-Whenever we need to update whalesong, we should do the following
-@verbatim|{
-    $ git pull
-    $ make
-}|
-
-
-@subsection{Warning on Firefox}
-
-Firefox unfortunately has a
-@link["https://bugzilla.mozilla.org/show_bug.cgi?id=676343"]{JavaScript
-bug} that prevents it from reliably evaluating Whalesong programs.  As
-of this writing, I have not been able to find a workaround.  You
-should probably use Google Chrome instead when testing your programs;
-Google Chrome should be in @filepath{/contrib/bin/google-chrome}.
-
-
-@section{Usage}
-The @filepath{whalesong} launcher in the subdirectory will compile
-programs to @filepath{.html} and @filepath{.js} files.
-
-
-Example usage: using @litchar{whalesong build} to compile a whalesong program.
-@verbatim|{
-fermi ~/whalesong $ cd examples
-
-fermi ~/whalesong/examples $ cat hello.rkt
-#lang planet dyoo/whalesong
-
-(display "hello world")
-(newline)
-
-fermi ~/whalesong/examples $ ../whalesong build hello.rkt 
-
-fermi ~/whalesong/examples $ google-chrome hello.html
-Created new window in existing browser session.
-
-fermi ~/whalesong/examples $ 
-}|
 
 
 @section{Examples}
@@ -101,47 +64,61 @@ Let's look at a few of them.
 @subsection{Hello world}
 
 Let's try making a simple, standalone executable.  At the moment, the
-program must be written in the base language of @racket[(planet
-dyoo/whalesong)].  This restriction unfortunately  prevents arbitrary
-@racketmodname[racket/base] programs from compiling at the moment;
-the developers (namely, dyoo) will be working to remove this
-restriction as quickly as possible.
+program should be written in the base language of @racket[(planet
+dyoo/whalesong/cs019)], as it provides the language features that
+you've been using in cs019 (@racket[local], @racket[shared], etc...),
+as well as support for the @racketmodname/this-package[web-world]
+package described later in this document.
 
 
 Write a @filepath{hello.rkt} with the following content
 @filebox["hello.rkt"]{
 @codeblock{
-    #lang planet dyoo/whalesong
-    (display "hello world")
-    (newline)
+    #lang planet dyoo/whalesong/cs019
+    "hello world"
 }}
 This program is a regular Racket program, and can be executed normally,
 @verbatim|{
 $ racket hello.rkt 
-hello world
+"hello world"
 $
 }|
 However, it can also be packaged with @filepath{whalesong}.
 @verbatim|{
     $ whalesong build hello.rkt
     Writing program #<path:/home/dyoo/work/whalesong/examples/hello.js>
-    Writing html #<path:/home/dyoo/work/whalesong/examples/hello.html>
+    Writing resource #<path:/gpfs/main/home/dyoo/work/whalesong/examples/excanvas.js>
+    Writing resource #<path:/gpfs/main/home/dyoo/work/whalesong/examples/canvas.text.js>
+    Writing resource #<path:/gpfs/main/home/dyoo/work/whalesong/examples/optimer-normal-normal.js>
+    Writing html #<path:/gpfs/main/home/dyoo/work/whalesong/examples/hello.html>
+    Writing manifest #<path:/gpfs/main/home/dyoo/work/whalesong/examples/hello.appcache>
 
     $ ls -l hello.html
     -rw-r--r-- 1 dyoo dyoo 3817 2011-09-10 15:02 hello.html
     $ ls -l hello.js
     -rw-r--r-- 1 dyoo dyoo 2129028 2011-09-10 15:02 hello.js
 }|
-Running @tt{whalesong build} on a Racket program will produce 
-@filepath{.html} and @filepath{.js} files.  If we open this file in our favorite web browser,
-we should see a triumphant message show on screen.
+
+Running @tt{whalesong build} will produce @filepath{.html} and
+@filepath{.js} files.  If we open this file in our favorite web
+browser, we should see a triumphant message show on screen.
+
+
+There are several other files generated as part of the application
+besides the main @filepath{.html} and the @filepath{.js}.  Several of
+these files provide Internet Explorer compatibility and should be
+included during distribution.  The @filepath{.appcache} file, too,
+should be included, as it catalog the files in the application, and is
+used to enable offline
+@link["http://diveintohtml5.org/offline.html"]{HTML application
+support}.
 
 
 
 
 @subsection{Tick tock}
 
-Let's do something a little more interesting, and create a ticker that
+Let's do something a little more interesting and create a ticker that
 counts on the screen.
 
 The first thing we can do is mock up a web page with a user interface, like this.
@@ -161,24 +138,22 @@ Once we're happy with the statics of our program, we can inject dynamic behavior
 Write a file called @filepath{tick-tock.rkt} with the following content.
 @filebox["tick-tock.rkt"]{
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world)
-         (planet dyoo/whalesong/resource))
+#lang planet dyoo/whalesong/cs019
 
 (define-resource index.html)
 
-;; draw: world view -> view
-(define (draw world dom)
+
+(define: (draw ([world : Number$] [dom : View$])) -> View$
   (update-view-text (view-focus dom "counter") world))
 
 
 ;; tick: world view -> world
-(define (tick world dom)
+(define: (tick ([world : Number$] [dom : View$])) -> Number$
   (add1 world))
 
 
 ;; stop?: world view -> boolean
-(define (stop? world dom)
+(define: (stop? ([world : Number$] [dom : View$])) -> Boolean$
   (> world 10))
 
 (big-bang 0
@@ -189,22 +164,20 @@ Write a file called @filepath{tick-tock.rkt} with the following content.
 }|
 }
 
+
 Several things are happening here.
 @itemize[
+@item{We use @racket[define-resource] to refer to external @tech{resource }files,
+like @filepath{index.html} that we'd like to include in our program.}
 
-@item{We @racket[require] a few libraries to get us some additional
-behavior; in particular, @racketmodname/this-package[web-world] to let
-us write event-driven web-based programs, and @racketmodname/this-package[resource]
-to give us access to external @tech{resource}s.}
+@item{
+Whalesong includes a world library for doing event-driven programs.
+As you may have seen earlier, we use @racket[big-bang] to start up a
+computation that responses to events.  In this example, that's clock
+ticks introduced by @racket[on-tick].
 
-@item{We use @racket[define-resource] to refer to external files, like @filepath{index.html} that
-we'd like to include in our program.}
-
-@item{We use @racket[big-bang] to start up a computation that
-responses to events.  In this example, that's clock ticks introduced
-by @racket[on-tick], though because we're on the web, we can
-bind to many other kinds of web events (by using @racket[view-bind]).}
-]
+However, because we're on the web, we can bind to many other kinds of
+web events (by using @racket[view-bind]).}]
 
 
 
@@ -260,6 +233,29 @@ A simple TODO list manager.
 Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
 }
 ]
+
+
+
+
+@section{Usage}
+The @filepath{whalesong} launcher in the subdirectory will compile
+programs to @filepath{.html} and @filepath{.js} files.
+
+
+Example usage: using @litchar{whalesong build} to compile a whalesong program.
+@verbatim|{
+
+$ cat hello.rkt
+#lang planet dyoo/whalesong/cs019
+
+(display "hello world")
+(newline)
+
+$ whalesong build hello.rkt 
+
+fermi ~/whalesong/examples $ google-chrome hello.html
+Created new window in existing browser session.
+}|
 
 
 

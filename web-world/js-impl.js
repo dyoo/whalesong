@@ -1583,6 +1583,13 @@
             });
         });
 
+    EXPORTS['view?'] = makePrimitiveProcedure(
+        'view?',
+        1,
+        function(M) {
+            return isMockView(M.e[M.e.length - 1]);
+        });
+
 
     EXPORTS['->view'] = makeClosure(
         '->view',

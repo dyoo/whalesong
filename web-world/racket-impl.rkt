@@ -6,6 +6,8 @@
          to-draw
 
          ->view
+         view?
+
          view-focus? view-focus
          view-left view-right view-up view-down
          view-left? view-right? view-up? view-down?
@@ -80,6 +82,9 @@
 
 (define (->view x)
   (error '->view "Please run in JavaScript context."))
+
+(define (view? x)
+  (error 'view? "Please run in JavaScript context."))
 
 
 

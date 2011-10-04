@@ -34,6 +34,8 @@
                     ;; coerse to view
                     ->view
 
+                    view?
+                    
                     view-focus?
                     view-focus
                     

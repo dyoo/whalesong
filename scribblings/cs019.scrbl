@@ -26,7 +26,8 @@
                                 quasiquote
                                 bitmap/url
                                 current-output-port
-                                lambda)))
+                                lambda
+                                true false)))
 
 @(define-runtime-path whalesong-path "..")
 
@@ -197,6 +198,11 @@ consumes the DOM as an argument, since the DOM, too, is a source of
 external state in a program.}]
 
 
+This program cannot be executed directly in Racket/DrRacket,
+unfortunately, but it can be compiled through Whalesong and @link["http://hashcollision.org/whalesong/examples/cs019/tick-tock/tick-tock.html"]{run in the
+browser}.
+
+
 
 
 @subsection{More web-world examples}
@@ -251,7 +257,13 @@ Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonst
 }
 ]
 
-
+These examples are written in a less featureful language level
+(@litchar{#lang planet dyoo/whalesong}), which is why it uses explicit
+@racket[require] statements to pull in support for
+@racketmodname/this-package[web-world] and
+@racketmodname/this-package[resource].  As long as you use
+@litchar{#lang planet dyoo/whalesong/cs019}, you shouldn't need to
+require those particular libraries.
 
 
 @section{API}
@@ -286,11 +298,18 @@ to a web page.
 (big-bang ...
           (initial-view page1.html))
 }|
+
+
+If both the @racket[initial-view] and @racket[to-draw] are omitted
+from a @racket[big-bang], then @racket[big-bang] will render the world
+value itself.
 }
 
 
 @defproc[(stop-when [stop? ([w world] [dom view] ->  boolean)]) big-bang-handler]{
 Tells @racket[big-bang] when to stop.
+
+For example,
 @codeblock|{
 ...
 (define-struct world (given expected))
@@ -303,6 +322,8 @@ Tells @racket[big-bang] when to stop.
 (big-bang ...
           (stop-when stop?))
 }|
+
+will stop the computation as soon as @racket[stop?] returns @racket[true].
 }
 
 
@@ -520,6 +541,18 @@ Dom nodes can be created by using @racket[xexp->dom], which converts a
 nodes whose DOM representation will be the way they print.  This
 including images.}
 
+
+
+@defproc[(view-insert-left [v view] [d dom]) view]{
+Add the dom node @racket[d] as the previous sibling of the focused node.
+Focus moves to the inserted node.}
+
+@defproc[(view-insert-right [v view] [d dom]) view]{
+Add the dom node @racket[d] as the next sibling of the focused node.
+Focus moves to the inserted node.}
+
+
+
 @defproc[(view-remove [v view]) view]{
 Remove the dom node at the focus from the view @racket[v].  Focus tries to move
 to the right, if there's a next sibling.  If that fails, focus then
@@ -541,6 +574,8 @@ can accept the event as an argument.
 
 
 @defstruct[event ([kvpairs (listof (list symbol (or/c string number)))])]{}
+
+@defthing[Event$ sig]{The signature for an event.}
 
 @defproc[(event-ref [evt event?] [name (or/c symbol string)]) value]{
 Get an value from the event, given its @racket[name].
@@ -692,7 +727,7 @@ The signature of a resource.
 
 
 @defproc[(resource->url [a-resource resource?]) string?]{
-Given a resource, gets a URL.
+Given a resource, gets its URL.
 
 For example,
 @codeblock|{
@@ -704,8 +739,8 @@ For example,
   (bitmap/url (resource->url my-whale-image-resource)))
 }|
 
-(This particular example is somewhat redundant, because image
-resources behave already as images.)
+This particular example is somewhat redundant, because image resources
+behave already as images.
 
 }
 

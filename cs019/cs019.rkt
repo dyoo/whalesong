@@ -74,6 +74,10 @@
 (define View$ (Sig: view?))
 (provide View$)
 
+(define Event$ (Sig: event?))
+(provide Event$)
+
+
 
 (require "../resource.rkt")
 (provide (all-from-out "../resource.rkt"))

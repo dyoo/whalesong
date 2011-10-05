@@ -17,6 +17,17 @@
 (define ns (make-base-namespace))
 
 
+
+
+(define (looks-like-old-moby-or-js-vm? module-source-path)
+  (or (call-with-input-file* module-source-path
+                             (lambda (ip) (regexp-match #px"^\\s*#lang\\s+planet\\s+dyoo/moby" ip)))
+      (call-with-input-file* module-source-path
+                             (lambda (ip) (regexp-match #px"^\\s*#lang\\s+planet\\s+dyoo/js-vm" ip)))))
+
+
+
+
 (define (check-valid-module-source module-source-path)
   ;; Check that the file exists.
   (unless (file-exists? module-source-path)
@@ -33,8 +44,15 @@
                  module-source-path
                  (current-root-path))
          (abort-abort)])
-                 
+
   
+  ;; Does it look like something out of moby or js-vm?  Abort early, because if we don't do
+  ;; this up front, Racket will try to install the deprecated module, and that's bad.
+  (when (looks-like-old-moby-or-js-vm? module-source-path)
+    (printf "ERROR: The program in ~e appears to be written using the deprecated project js-vm or Moby.\n\nPlease change the lang line to:\n\n    #lang planet dyoo/whalesong\n\ninstead.\n"
+            module-source-path)
+    (abort-abort))
+    
 
   ;; Check that it looks like a module.
   (define stx

@@ -17,7 +17,19 @@
 
 
 @(require (for-label (this-package-in js))
-          (for-label (this-package-in lang/base))
+          (for-label (except-in (this-package-in lang/base)
+                                string?
+                                printf
+                                number->string
+                                void
+                                quasiquote
+                                string=?
+                                string
+                                e
+                                number?
+                                newline
+                                current-output-port
+                                display))
           (for-label (this-package-in resource)
           (for-label (this-package-in web-world))))
 

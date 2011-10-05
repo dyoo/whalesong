@@ -3,6 +3,7 @@
 (require racket/contract
          racket/runtime-path
          racket/gui/base
+         racket/path
          syntax/modresolve)
 
 
@@ -20,7 +21,7 @@
 
 
 (define (my-resolve-module-path a-module-path)
-  (resolve-module-path a-module-path #f))
+  (normalize-path (resolve-module-path a-module-path #f)))
 
 
 

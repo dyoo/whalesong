@@ -2,6 +2,7 @@
 (require (for-syntax racket/base 
                      racket/file
                      racket/string
+                     racket/path
                      syntax/parse
                      syntax/modresolve
                      "record.rkt"))
@@ -9,8 +10,13 @@
 (define-for-syntax (my-resolve-path a-module-path)
   (parameterize ([current-directory (or (current-load-relative-directory)
                                         (current-directory))])
-    (resolve-module-path a-module-path #f)))
-  
+    (define resolved-path (resolve-module-path a-module-path #f))
+    (cond
+     [(path? resolved-path)
+      (normalize-path resolved-path)]
+     [else
+      resolved-path])))
+
 
 (define-for-syntax (resolve-implementation-path a-module-path)
   (let ([a-path (my-resolve-path a-module-path)])
@@ -39,7 +45,8 @@
              (let* ([this-module 
                      (variable-reference->resolved-module-path
                       (#%variable-reference))]
-                    [key (resolved-module-path-name this-module)])
+                    [key
+                     (resolved-module-path-name this-module)])
                (record-redirection! (#%datum . resolved-racket-module-name)
                                     key)
                (record-javascript-implementation! key (#%datum . impl))

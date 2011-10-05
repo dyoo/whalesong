@@ -555,7 +555,9 @@ EOF
 (define (get-inert-code source-code next-file-path)
   (let ([buffer (open-output-string)])
     (package source-code
-             #:should-follow-children? (lambda (src) #t)
+             #:should-follow-children?
+             (lambda (src)
+               (not (source-is-javascript-module? src)))
              #:output-port buffer
              #:next-file-path next-file-path)
     (compress

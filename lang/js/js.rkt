@@ -42,16 +42,21 @@
            ;; Also, record that any references to the racket-module name
            ;; should be redirected to this module.
            (begin-for-syntax
-             (let* ([this-module 
-                     (variable-reference->resolved-module-path
-                      (#%variable-reference))]
-                    [key
-                     (resolved-module-path-name this-module)])
-               (record-redirection! (#%datum . resolved-racket-module-name)
-                                    key)
-               (record-javascript-implementation! key (#%datum . impl))
-               ;;(record-exported-name! key 'internal-name 'provided-name) ...
-               ))
+            (printf "compile time code registering\n")
+            (let* ([this-module 
+                    (variable-reference->resolved-module-path
+                     (#%variable-reference))]
+                   [key
+                    (let ([p (resolved-module-path-name this-module)])
+                      (if (path? p)
+                          (normalize-path p)
+                          p))])
+              (record-redirection! (#%datum . resolved-racket-module-name)
+                                   key)
+              (printf "Registered ~s\n" key)
+              (record-javascript-implementation! key (#%datum . impl))
+              ;;(record-exported-name! key 'internal-name 'provided-name) ...
+              ))
 
            (require racket-module-name)
            (define internal-name provided-name) ...

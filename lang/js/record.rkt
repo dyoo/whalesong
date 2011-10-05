@@ -35,6 +35,8 @@
 
 ;; has-javascript-implementation?: path -> boolean
 (define (has-javascript-implementation? a-path)
+  (printf "has-javascript-implementation: ~s\n"
+          records)
   (let loop ([lst records])
     (cond
       [(null? lst)
@@ -42,6 +44,7 @@
       [(equal? a-path (record-path (car lst)))
        #t]
       [else
+       (printf "not equal\n~s\n~s\n" a-path (record-path (car lst)))
        (loop (cdr lst))])))
 
 

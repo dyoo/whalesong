@@ -37,8 +37,11 @@
 ;; has-javascript-implementation?:  module-path -> boolean
 (define (has-javascript-implementation? a-module-path)  
   (let ([resolved-path (my-resolve-module-path a-module-path)])
+    (fprintf (current-error-port) "\nlooking at: ~s\n" resolved-path)
     (parameterize ([current-namespace ns])
-      (dynamic-require resolved-path (void)) ;; get the compile-time code running.
+      (fprintf (current-error-port) "Trying to visit\n")
+      (namespace-require/expansion-time resolved-path #;(void)) ;; get the compile-time code running.
+      (fprintf (current-error-port) "Done visiting compile-time code\n")
       ((dynamic-require-for-syntax record.rkt 'has-javascript-implementation?) resolved-path))))
   
 

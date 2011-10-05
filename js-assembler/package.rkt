@@ -117,19 +117,26 @@
 ;; source-is-javascript-module?: Source -> boolean
 ;; Returns true if the source looks like a Javascript-implemented module.
 (define (source-is-javascript-module? src)
-  (cond
-    [(StatementsSource? src)
-     #f]
-    [(MainModuleSource? src)
-     (query:has-javascript-implementation?
-      `(file ,(path->string (MainModuleSource-path src))))]
-    [(ModuleSource? src)
-     (query:has-javascript-implementation?
-      `(file ,(path->string (ModuleSource-path src))))]
-    [(SexpSource? src)
-     #f]
-    [(UninterpretedSource? src)
-     #f]))
+  (define answer
+    (cond
+     [(StatementsSource? src)
+      #f]
+     [(MainModuleSource? src)
+      (query:has-javascript-implementation?
+       `(file ,(path->string (MainModuleSource-path src))))]
+     [(ModuleSource? src)
+      (query:has-javascript-implementation?
+       `(file ,(path->string (ModuleSource-path src))))]
+     [(SexpSource? src)
+      #f]
+     [(UninterpretedSource? src)
+      #f]))
+  (fprintf (current-error-port) "source-is-javascript-module ~a: ~a\n"
+                               src
+                               answer)
+  answer)
+
+
 
 (define (source-resources src)
   (cond

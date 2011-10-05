@@ -11,8 +11,10 @@ echo "Checking out clean repo"
 git archive --format=tar --prefix=$PROJNAME/ HEAD | (cd tmp && tar xf -)
 
 ## Remove any directories that we don't want as part of the repository.
-#cd $OLDDIR/tmp/$PROJNAME/private
-#rm -rf sandbox
+rm -rf $OLDDIR/tmp/experiments
+rm -rf $OLDDIR/tmp/notes
+rm -rf $OLDDIR/tmp/simulator
+rm -rf $OLDDIR/tmp/tests
 
 
 cd $OLDDIR/tmp

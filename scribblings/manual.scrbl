@@ -9,8 +9,8 @@
           racket/list
           (only-in racket/contract any/c)
           racket/runtime-path
-          "scribble-helpers.rkt"
-          "../js-assembler/get-js-vm-implemented-primitives.rkt")
+          "scribble-helpers.rkt")
+
 
 @(require racket/runtime-path)
 @(define-runtime-path git-head-path "../.git/refs/heads/master")

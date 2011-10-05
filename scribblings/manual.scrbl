@@ -197,7 +197,10 @@ the @filepath{whalesong} launcher:
 #lang racket/base
 (require (planet dyoo/whalesong:1:4/make-launcher))
 }|
-This will create a @filepath{whalesong} launcher in the current directory.
+This may take a few minutes, as Racket is compiling Whalesong, its
+dependencies, and its documentation.  When it finally finishes,
+you should see a @filepath{whalesong} launcher in the current
+directory.
 
 
 

@@ -56,6 +56,61 @@
 @author+email["Danny Yoo" "dyoo@hashcollision.org"]
 
 
+
+
+@section{Installing Whalesong from github}
+
+Although Whalesong has been deployed to
+@link["http://planet.racket-lang.org"]{PLaneT}, you can download the
+sources from the github repository and run from there instead.  Doing
+so requires doing a little bit of manual work.  The steps are:
+
+@itemlist[
+@item{Check Whalesong out of Github.}
+@item{Set up the PLaneT development link to your local Whalesong instance.}
+@item{Run @link["http://docs.racket-lang.org/raco/setup.html"]{@tt{raco setup}} over Whalesong to finish the installation}]
+
+We can check it out of the source repository in
+@link["https://github.com/"]{GitHub}; the repository can be checked out by
+using @tt{git clone}.  At the command-line, clone the tree
+with: @verbatim|{ $ git clone git://github.com/dyoo/whalesong.git }|
+This should check the repository in the current directory.
+
+
+
+Next, let's set up a @link["http://docs.racket-lang.org/planet/Developing_Packages_for_PLaneT.html#(part._devlinks)"]{PLaneT development link}.  Make sure you are in the
+parent directory that contains the @filepath{whalesong} repository, and
+then run this on your command line:
+@verbatim|{
+$ planet link dyoo whalesong.plt 1 5 whalesong
+}|
+(You may need to adjust the @tt{1} and @tt{5} major/minor numbers a bit to be larger
+than the latest version that's on PLaneT at the time.)
+
+
+Let's make the @filepath{whalesong} launcher somewhere appropriate.  Run Racket with the following
+@racket[require]:
+@racketblock[
+(require (planet dyoo/whalesong/make-launcher))
+]
+This will create a @filepath{whalesong} executable in the current working directory.
+
+
+Finally, we need to set up Whalesong with @tt{raco setup}.
+Here's how to do this at the command
+line:
+@verbatim|{
+$ raco setup -P dyoo whalesong.plt 1 5
+}|
+This should compile Whalesong.  Any time the source code in
+@filepath{whalesong} changes, we should repeat this @tt{raco setup}
+step again.
+
+
+
+
+
+
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @section{Internals}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

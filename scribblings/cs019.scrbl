@@ -165,13 +165,13 @@ Write a file called @filepath{tick-tock.rkt} with the following content.
 (define-resource index.html)
 
 
-(define: (draw ([world : Number$] [dom : View$])) -> View$
+(define: (draw [world : Number$] [dom : View$]) -> View$
   (update-view-text (view-focus dom "counter") world))
 
-(define: (tick ([world : Number$] [dom : View$])) -> Number$
+(define: (tick [world : Number$] [dom : View$]) -> Number$
   (add1 world))
 
-(define: (stop? ([world : Number$] [dom : View$])) -> Boolean$
+(define: (stop? [world : Number$] [dom : View$]) -> Boolean$
   (> world 10))
 
 (big-bang 0

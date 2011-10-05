@@ -6,7 +6,8 @@
          syntax/modresolve
          racket/path
          "../parameters.rkt"
-         "../parser/path-rewriter.rkt")
+         "../parser/path-rewriter.rkt"
+         (prefix-in query: "../lang/js/query.rkt"))
 
 
 (define (abort-abort)
@@ -15,6 +16,13 @@
 
 
 (define ns (make-base-namespace))
+
+
+
+(define (has-javascript-implementation? path)
+  (query:has-javascript-implementation?
+   `(file ,(path->string path))))
+
 
 
 (define (check-valid-module-source module-source-path)
@@ -79,6 +87,9 @@
       (void)]
 
      [(within-whalesong-path? normalized-resolved-language-path)
+      (void)]
+
+     [(has-javascript-implementation? normalized-resolved-language-path)
       (void)]
 
      [else

@@ -19,23 +19,21 @@
 ;; one.
 (define-struct: world ([real : Coord/Unknown$]
                        [mock : Coord/Unknown$]))
-(define World$ (Sig: world?))
 
 
-
-(define: (location-change [world : World$] [dom : View$] [evt : Event$]) -> World$
+(define: (location-change [world : world$] [dom : View$] [evt : Event$]) -> world$
   (make-world (make-coord (event-ref evt "latitude")
                           (event-ref evt "longitude"))
               (world-mock world)))
 
 
-(define: (mock-location-change [world : World$] [dom : View$] [evt : Event$]) -> World$
+(define: (mock-location-change [world : world$] [dom : View$] [evt : Event$]) -> world$
   (make-world (world-real world)
               (make-coord (event-ref evt "latitude")
                           (event-ref evt "longitude"))))
 
 
-(define: (draw [world : World$] [dom : View$]) -> View$
+(define: (draw [world : world$] [dom : View$]) -> View$
   (local [(define v1 (if (coord? (world-real world))
                          (update-view-text (view-focus dom "real-location")
                                            (format "lat=~a, lng=~a"

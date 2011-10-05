@@ -1266,7 +1266,7 @@ Whalesong uses code and utilities from the following external projects:
 @item{js-numbers (@url{http://github.com/dyoo/js-numbers/})}
 @item{JSON (@url{http://www.json.org/js.html})}
 @item{jquery (@url{http://jquery.com/})}
-@item{Google Closure Compiler (@url{http://code.google.com/p/closure-compiler/}}}
+@item{Google Closure Compiler (@url{http://code.google.com/p/closure-compiler/})}
 
 
 @item{excanvas (@url{http://excanvas.sourceforge.net/})}

@@ -26,16 +26,6 @@
     (displayln "Done!"))
   (generator value on-success on-fail))
 
-
-(define (step-structure generator value)
-  (define (on-success elt restart)
-    (displayln elt)
-    (void (read-line))
-    (restart))
-  (define (on-fail)
-    (displayln "Done!"))
-  (generator value on-success on-fail))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (print-structure list-fringe '(1 2 3 4 5))

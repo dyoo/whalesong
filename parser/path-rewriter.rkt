@@ -5,7 +5,8 @@
          racket/path
          racket/contract
          racket/list
-         racket/runtime-path)
+         racket/runtime-path
+         racket/string)
 
 
 
@@ -36,20 +37,27 @@
      [(within-whalesong-path? a-path)
       (string->symbol
        (string-append "whalesong/"
-                      (path->string
+                      (my-path->string
                        (find-relative-path normal-whalesong-path a-path))))]
      [(within-collects? a-path)
       (string->symbol
        (string-append "collects/"
-                      (path->string
+                      (my-path->string
                        (find-relative-path collects-path a-path))))]
      [(within-root-path? a-path)
       (string->symbol
        (string-append "root/"
-                      (path->string
+                      (my-path->string
                        (find-relative-path (current-root-path) a-path))))]
      [else 
       #f])))
+
+
+
+;; Like path->string, but I force the path separator to be '/' rather than the platform
+;; specific one.
+(define (my-path->string a-path)
+  (string-join (map path->string (explode-path a-path)) "/"))
 
 
        

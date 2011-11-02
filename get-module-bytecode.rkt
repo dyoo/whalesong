@@ -81,6 +81,7 @@
                  [compile-context-preservation-enabled #t]
                  [current-namespace base-namespace])
     (define stx (read-syntax (object-name ip) ip))
+    
     ;(printf "got stx; now expanding out the images\n")
     (define expanded-stx (expand-out-images stx))
     ;(printf "now trying to compile the expanded syntax\n")

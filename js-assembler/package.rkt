@@ -11,7 +11,6 @@
          "../parser/parse-bytecode.rkt"
          "../resource/structs.rkt"
 	 "../promise.rkt"
-         "../get-module-bytecode.rkt"
          "check-valid-module-source.rkt"
          "find-primitive-implemented.rkt"
          (prefix-in hash-cache: "hash-cache.rkt")

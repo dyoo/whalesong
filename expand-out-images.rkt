@@ -31,7 +31,7 @@
         ([my-image-url (car (generate-temporaries #'(my-image-url)))])
       
       (define disarmed (syntax-disarm expanded code-insp))
-      (kernel-syntax-case disarmed #f
+      (kernel-syntax-case disarmed #t
         [(#%expression expr)
          (quasisyntax/loc stx
            (#%expression #,(on-expr #'expr)))]
@@ -76,7 +76,8 @@
                               (syntax-case (syntax-disarm a-clause code-insp) ()
                                 [(formals subexpr ...)
                                  (quasisyntax/loc a-clause
-                                   (formals #,@(map on-expr #'(subexpr ...))))]))
+                                   (formals #,@(map on-expr
+                                                    (syntax->list #'(subexpr ...)))))]))
                             (syntax->list #'(case-lambda-clauses ...)))))]
     
     [(if test true-part false-part)
@@ -139,7 +140,8 @@
     
     [(#%plain-app subexpr ...)
      (quasisyntax/loc expr
-       (#%plain-app #,@(map on-expr (syntax->list #'(subexpr ...)))))]
+       (#%plain-app
+        #,@(map on-expr (syntax->list #'(subexpr ...)))))]
     
     [(#%top . id)
      expr]
@@ -197,15 +199,15 @@
        (define-values ids #,(on-expr #'expr)))]
     
     [(define-syntaxes ids expr)
-     #'(void)
-     ;(quasisyntax/loc stx 
-     ;  (define-syntaxes ids #,(on-expr #'expr)))
+     ;#'(void)
+     (quasisyntax/loc stx 
+       (define-syntaxes ids #,(on-expr #'expr)))
      ]
     
     [(define-values-for-syntax ids expr)
-     #'(void)
-     ;(quasisyntax/loc stx 
-     ;  (define-values-for-syntax ids #,(on-expr #'expr)))
+     ;#'(void)
+     (quasisyntax/loc stx 
+       (define-values-for-syntax ids #,(on-expr #'expr)))
      ]
     
     [else

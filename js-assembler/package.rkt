@@ -64,7 +64,8 @@
 
 ;; Sets up the compiler parameters we need to do javascript-specific compilation.
 (define (with-compiler-params thunk)
-  (parameterize ([current-primitive-identifier?
+  (parameterize ([compile-context-preservation-enabled #t]
+                 [current-primitive-identifier?
                   (lambda (a-name)
                     (set-member? primitive-identifiers-set a-name))])
     (thunk)))

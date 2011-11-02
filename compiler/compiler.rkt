@@ -1420,26 +1420,17 @@
 ;; cenv is the compile-time enviroment before arguments have been shifted in.
 ;; extended-cenv is the compile-time environment after arguments have been shifted in.
 (define (compile-general-procedure-call cenv number-of-arguments target linkage)
-  (let: ([primitive-branch : Symbol (make-label 'primitiveBranch)]
-         [after-call : Symbol (make-label 'afterCall)])
-    (let: ([compiled-linkage : Linkage (if (and (ReturnLinkage? linkage)
-                                                (ReturnLinkage-tail? linkage))
-                                           linkage
-                                           (make-LabelLinkage after-call
-                                                              (linkage-context linkage)))]
-           [primitive-linkage : Linkage
-                              (make-NextLinkage (linkage-context linkage))])
-      (end-with-linkage
-       linkage
-       cenv
-       (append-instruction-sequences
-        (make-PerformStatement (make-CheckClosureAndArity!))
-        (compile-compiled-procedure-application cenv
-                                                number-of-arguments
-                                                'dynamic
-                                                target
-                                                compiled-linkage)
-        after-call)))))
+  (end-with-linkage
+   linkage
+   cenv
+   (append-instruction-sequences
+    (make-PerformStatement (make-CheckClosureAndArity!))
+    (compile-compiled-procedure-application cenv
+                                            number-of-arguments
+                                            'dynamic
+                                            target
+                                            linkage))))
+
 
 
 ;; If we know the procedure is implemented as a primitive (as opposed to a general closure),

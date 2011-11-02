@@ -20,6 +20,7 @@
 (require/typed "compiler-helper.rkt"
                [ensure-const-value (Any -> const-value)])
 
+
 (provide (rename-out [-compile compile])
          compile-general-procedure-call)
 
@@ -954,19 +955,20 @@
          (let ([id (PrimitiveKernelValue-id op-knowledge)])
            (cond
              [(KernelPrimitiveName/Inline? id)
-              (compile-kernel-primitive-application id exp cenv target linkage)]
+              (compile-open-codeable-application id exp cenv target linkage)]
              [else
               (default)]))]
         [(ModuleVariable? op-knowledge)
          (cond
-           [(symbol=? (ModuleLocator-name
-                       (ModuleVariable-module-name op-knowledge))
-                      '#%kernel)
+           [(or (symbol=? (ModuleLocator-name
+                           (ModuleVariable-module-name op-knowledge))
+                          '#%kernel)
+                (symbol=? (ModuleLocator-name
+                           (ModuleVariable-module-name op-knowledge))
+                          'whalesong/lang/kernel.rkt))
             (let ([op (ModuleVariable-name op-knowledge)])
               (cond [(KernelPrimitiveName/Inline? op)
-                     (compile-kernel-primitive-application 
-                      op
-                      exp cenv target linkage)]
+                     (compile-open-codeable-application op exp cenv target linkage)]
                     [else
                      (default)]))]
            [else
@@ -1022,17 +1024,18 @@
                                      linkage))))
 
 
-(: compile-kernel-primitive-application
+(: compile-open-codeable-application
    (KernelPrimitiveName/Inline App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; This is a special case of application, where the operator is statically
-;; known to be in the set of hardcoded primitives.
+;; known to be in the set of hardcoded primitives, and where we can open-code
+;; the application.
 ;;
 ;; There's a special case optimization we can perform: we can avoid touching
 ;; the stack for constant arguments; rather than allocate (length (App-operands exp))
 ;; stack slots, we can do less than that.
 ;;
 ;; We have to be sensitive to mutation.
-(define (compile-kernel-primitive-application kernel-op exp cenv target linkage)
+(define (compile-open-codeable-application kernel-op exp cenv target linkage)
   (let ([singular-context-check (emit-singular-context linkage)]
         [n (length (App-operands exp))])
     

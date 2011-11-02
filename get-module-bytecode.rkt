@@ -80,6 +80,7 @@
                  ;; Note: we're trying to preserve the context, to avoid code expansion.
                  [compile-context-preservation-enabled #t]
                  [current-namespace base-namespace])
+    (port-count-lines! ip)
     (define stx (read-syntax (object-name ip) ip))
     
     ;(printf "got stx; now expanding out the images\n")

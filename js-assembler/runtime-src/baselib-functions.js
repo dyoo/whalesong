@@ -317,18 +317,18 @@
 
 
     var makePrimitiveProcedure = function (name, arity, f) {
-        // f.racketArity = arity;
-        // f.displayName = name;
-        // return f;
-        return makeClosure(name,
-                           arity,
-                           function(M) {
-                               --M.cbt;
-                               M.v = f(M);
-                               M.e.length -= M.a;
-                               return M.c.pop().label(M);
-                           },
-                           []);
+        var proc = makeClosure(name,
+                               arity,
+                               function(M) {
+                                   --M.cbt;
+                                   M.v = f(M);
+                                   M.e.length -= M.a;
+                                   return M.c.pop().label(M);
+                               },
+                               []);
+        // Also, record the raw implementation of the function.
+        proc.rawImpl = f;
+        return proc;
     };
 
 

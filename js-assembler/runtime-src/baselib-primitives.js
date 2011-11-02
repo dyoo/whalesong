@@ -2476,6 +2476,21 @@
             return baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
         });
 
+    installPrimitiveProcedure(
+        'current-inexact-milliseconds',
+        0,
+        function(M) {
+            return makeFloat((new Date()).valueOf());
+        });
+
+
+    installPrimitiveProcedure(
+        'current-seconds',
+        0,
+        function() {
+            return Math.floor( (new Date()).getTime() / 1000 );
+        });
+
     exports['Primitives'] = Primitives;
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;
     exports['installPrimitiveClosure'] = installPrimitiveClosure;

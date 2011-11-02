@@ -204,6 +204,10 @@
          prop:exn:srclocs
 
 
+         current-inexact-milliseconds
+         current-seconds
+         
+         
          ;; needed for cs019-local
          #%stratified-body
          )

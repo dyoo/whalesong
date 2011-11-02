@@ -228,6 +228,9 @@
     // given structure property.
     var supportsStructureTypeProperty = function(structType, property) {
         var propertiesList = structType.propertiesList;
+        if (! propertiesList) {
+            return false;
+        }
         while (propertiesList !== baselib.lists.EMPTY) {
             if (propertiesList.first.first === property) {
                 return true;
@@ -242,6 +245,9 @@
     // Returns the binding associated to this particular structure type propery.
     var lookupStructureTypeProperty = function(structType, property) {
         var propertiesList = structType.propertiesList;
+        if (! propertiesList) {
+            return undefined;
+        }
         while (propertiesList !== baselib.lists.EMPTY) {
             if (propertiesList.first.first === property) {
                 return propertiesList.first.rest;

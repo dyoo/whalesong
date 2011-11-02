@@ -879,3 +879,12 @@ Opens an output port that will be directed to write to the DOM element
 whose id is @racket[id].  Note: writing to this port shouldn't fail,
 even if the id does not currently exist on the page.
 }
+
+
+
+@section{Known Bugs}
+
+Whalesong's compiler doesn't know how to compile programs with
+embedded image snips.  You can work around this by using
+@racket[define-resource], and save an image file in the same directory
+as your source.

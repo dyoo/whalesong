@@ -957,6 +957,8 @@
            (cond
              [(KernelPrimitiveName/Inline? id)
               (compile-open-codeable-application id exp cenv target linkage)]
+             [((current-primitive-identifier?) id)
+              (compile-primitive-application exp cenv target linkage)]
              [else
               (default)]))]
         [(StaticallyKnownLam? op-knowledge)
@@ -1040,6 +1042,39 @@
                                      (make-Const (length (App-operands exp)))
                                      target
                                      linkage))))
+
+
+
+
+
+
+(: compile-primitive-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
+(define (compile-primitive-application exp cenv target linkage)
+  (let* ([extended-cenv
+          (extend-compile-time-environment/scratch-space 
+           cenv 
+           (length (App-operands exp)))]
+         [proc-code (compile (App-operator exp) extended-cenv 'proc next-linkage/expects-single)]
+         [operand-codes (map (lambda: ([operand : Expression]
+                                       [target : Target])
+                               (compile operand
+                                        extended-cenv
+                                        target
+                                        next-linkage/expects-single))
+                             (App-operands exp)
+                             (build-list (length (App-operands exp))
+                                         (lambda: ([i : Natural])
+                                           (make-EnvLexicalReference i #f))))])
+    (append-instruction-sequences
+     (make-PushEnvironment (length (App-operands exp)) #f)
+     (apply append-instruction-sequences operand-codes)
+     proc-code
+     (make-AssignImmediateStatement 'argcount (make-Const (length (App-operands exp))))
+     (compile-primitive-procedure-call cenv 
+                                       (make-Const (length (App-operands exp)))
+                                       target
+                                       linkage))))
+
 
 
 (: compile-open-codeable-application

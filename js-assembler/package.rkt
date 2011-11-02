@@ -13,6 +13,7 @@
 	 "../promise.rkt"
          "../get-module-bytecode.rkt"
          "check-valid-module-source.rkt"
+         "find-primitive-implemented.rkt"
          (prefix-in hash-cache: "hash-cache.rkt")
          racket/match
          racket/list
@@ -55,6 +56,19 @@
 ;; Print out log message during the build process.
 (define (notify msg . args)
   (displayln (apply format msg args)))
+
+
+
+(define primitive-identifiers-set
+  (list->set primitive-ids))
+
+;; Sets up the compiler parameters we need to do javascript-specific compilation.
+(define (with-compiler-params thunk)
+  (parameterize ([current-primitive-identifier?
+                  (lambda (a-name)
+                    (set-member? primitive-identifiers-set a-name))])
+    (thunk)))
+
 
 
 
@@ -363,7 +377,8 @@ M.modules[~s] =
      ;; last
      on-last-src))
   
-  (make (list source-code) packaging-configuration)
+  (with-compiler-params
+   (lambda () (make (list source-code) packaging-configuration)))
   
   (for ([r resources])
     ((current-on-resource) r)))
@@ -467,7 +482,9 @@ M.modules[~s] =
     
     (newline op)
     (fprintf op "(function(M, SUCCESS, FAIL, PARAMS) {")
-    (make (list (my-force only-bootstrapped-code)) packaging-configuration)
+    (with-compiler-params
+     (lambda ()
+       (make (list (my-force only-bootstrapped-code)) packaging-configuration)))
     (fprintf op "})(plt.runtime.currentMachine,\nfunction(){ plt.runtime.setReadyTrue(); },\nfunction(){},\n{});\n")))
 
 

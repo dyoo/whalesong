@@ -18,6 +18,9 @@
          current-seen-unimplemented-kernel-primitives
 
          current-kernel-module-locator?
+
+         current-primitive-identifier?
+         
          current-compress-javascript?
          current-one-module-per-file?
          current-with-cache?
@@ -73,6 +76,9 @@
            (eq? (ModuleLocator-real-path locator) '#%paramz))))
 
 
+
+(: current-primitive-identifier? (Parameterof (Symbol -> Boolean)))
+(define current-primitive-identifier? (make-parameter (lambda: ([name : Symbol]) #f)))
 
 
 (: current-compress-javascript? (Parameterof Boolean))

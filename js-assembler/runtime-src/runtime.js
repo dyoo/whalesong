@@ -691,6 +691,11 @@
         }
     };
 
+    var checkPrimitiveArity = function(M) {
+        if(!isArityMatching(M.p.racketArity,M.a)) {
+            raiseArityMismatchError(M,M.p,M.a);
+        }
+    };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -842,6 +847,6 @@
     exports['si_context_expected'] = si_context_expected;
     exports['si_context_expected_1'] = si_context_expected_1;
     exports['checkClosureAndArity'] = checkClosureAndArity;
-
+    exports['checkPrimitiveArity'] = checkPrimitiveArity;
 
 }(this.plt, this.plt.baselib));

@@ -58,4 +58,6 @@
              (add1 (MakeBoxedEnvironmentValue-depth op)))]
 
     [(CallKernelPrimitiveProcedure? op)
-     (open-code-kernel-primitive-procedure op blockht)]))
+     (open-code-kernel-primitive-procedure op blockht)]
+    [(ApplyPrimitiveProcedure? op)
+     "M.p.rawImpl(M)"]))

@@ -112,8 +112,8 @@
        (list (MakeCompiledProcedure-label op))]
       [(MakeCompiledProcedureShell? op)
        (list (MakeCompiledProcedureShell-label op))]
-      ;; [(ApplyPrimitiveProcedure? op)
-      ;;  empty]
+      [(ApplyPrimitiveProcedure? op)
+        empty]
       [(CaptureEnvironment? op)
        empty]
       [(CaptureControl? op)
@@ -122,6 +122,7 @@
        empty]
       [(CallKernelPrimitiveProcedure? op)
        empty]))
+
   
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))
   (define (collect-primitive-command op)
@@ -258,8 +259,8 @@
        (list (MakeCompiledProcedure-label op))]
       [(MakeCompiledProcedureShell? op)
        (list (MakeCompiledProcedureShell-label op))]
-      ;; [(ApplyPrimitiveProcedure? op)
-      ;;  empty]
+      [(ApplyPrimitiveProcedure? op)
+        empty]
       [(CaptureEnvironment? op)
        empty]
       [(CaptureControl? op)

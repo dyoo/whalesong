@@ -960,12 +960,7 @@
               (default)]))]
         [(ModuleVariable? op-knowledge)
          (cond
-           [(or (symbol=? (ModuleLocator-name
-                           (ModuleVariable-module-name op-knowledge))
-                          '#%kernel)
-                (symbol=? (ModuleLocator-name
-                           (ModuleVariable-module-name op-knowledge))
-                          'whalesong/lang/kernel.rkt))
+           [(kernel-module-locator? (ModuleVariable-module-name op-knowledge))
             (let ([op (ModuleVariable-name op-knowledge)])
               (cond [(KernelPrimitiveName/Inline? op)
                      (compile-open-codeable-application op exp cenv target linkage)]
@@ -983,6 +978,21 @@
           (make-PerformStatement
            (make-RaiseOperatorApplicationError! (make-Reg 'proc))))]))))
 
+
+
+(: kernel-module-locator? (ModuleLocator -> Boolean))
+;; Produces true if the ModuleLocator is pointing to a module that's marked
+;; as kernel.
+(define (kernel-module-locator? a-module-locator)
+  (or (symbol=? (ModuleLocator-name
+                 a-module-locator)
+                '#%kernel)
+      (symbol=? (ModuleLocator-name
+                 a-module-locator)
+                'whalesong/lang/kernel.rkt)))
+
+  
+  
 
 (: compile-general-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-general-application exp cenv target linkage)
@@ -1423,38 +1433,37 @@
        linkage
        cenv
        (append-instruction-sequences
-        ;; (make-TestAndJumpStatement (make-TestPrimitiveProcedure
-        ;;                             (make-Reg 'proc))
-        ;;                            primitive-branch)
-        
-        
-        ;; Compiled branch
         (make-PerformStatement (make-CheckClosureAndArity!))
         (compile-compiled-procedure-application cenv
                                                 number-of-arguments
                                                 'dynamic
                                                 target
                                                 compiled-linkage)
-        
-        ;; Primitive branch
-        ;; primitive-branch
-        ;; (make-PerformStatement (make-CheckPrimitiveArity! (make-Reg 'argcount)))
-        ;; (compile-primitive-application cenv target primitive-linkage)
         after-call)))))
 
 
+;; If we know the procedure is implemented as a primitive (as opposed to a general closure),
+;; we can do a little less work.
+;; Assumes 1. the procedure value is loaded into proc,
+;;         2. number-of-arguments has been written into the argcount register,
+; ;        3. the number-of-arguments values are on the stack.
+(: compile-primitive-procedure-call (CompileTimeEnvironment OpArg Target Linkage 
+                                                            -> InstructionSequence))
+(define (compile-primitive-procedure-call cenv number-of-arguments target linkage)
+  (end-with-linkage
+   linkage
+   cenv
+   (append-instruction-sequences
+    (make-PerformStatement (make-CheckPrimitiveArity!))
+    (make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
+    (make-PopEnvironment number-of-arguments (make-Const 0))
+    (if (eq? target 'val)
+        empty-instruction-sequence
+        (make-AssignImmediateStatement target (make-Reg 'val)))
+    (emit-singular-context linkage))))
+    
 
-;; (: compile-primitive-application (CompileTimeEnvironment Target Linkage -> InstructionSequence))
-;; (define (compile-primitive-application cenv target linkage)
-;;   (let ([singular-context-check (emit-singular-context linkage)])
-;;     (append-instruction-sequences
-;;      (make-AssignPrimOpStatement 'val (make-ApplyPrimitiveProcedure))
-;;      (make-PopEnvironment (make-Reg 'argcount)
-;;                           (make-Const 0))
-;;      (if (eq? target 'val)
-;;          empty-instruction-sequence
-;;          (make-AssignImmediateStatement target (make-Reg 'val)))
-;;      singular-context-check)))
+
 
 
 

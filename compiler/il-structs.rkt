@@ -287,7 +287,9 @@
                                   CaptureEnvironment
                                   CaptureControl
                                   
-                                  CallKernelPrimitiveProcedure))
+                                  CallKernelPrimitiveProcedure
+                                  ApplyPrimitiveProcedure
+                                  ))
 
 ;; Gets the label from the closure stored in the 'proc register and returns it.
 (define-struct: GetCompiledProcedureEntry ()
@@ -321,6 +323,9 @@
                                               ;; For each operand, #t will add code to typecheck the operand
                                               [typechecks? : (Listof Boolean)])
   #:transparent)
+
+
+(define-struct: ApplyPrimitiveProcedure () #:transparent)
 
 
 
@@ -367,6 +372,10 @@
 ;; that can accept the right arguments (stored as a number in the argcount register.).
 (define-struct: CheckClosureAndArity! ()
   #:transparent)
+
+;; Check the primitive can accept the right arguments 
+;; (stored as a number in the argcount register.).
+(define-struct: CheckPrimitiveArity! () #:transparent)
 
 
 ;; Extends the environment with a prefix that holds
@@ -467,6 +476,7 @@
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
                                CheckClosureAndArity!
+                               CheckPrimitiveArity!
 
                                ExtendEnvironment/Prefix!
                                InstallClosureValues!

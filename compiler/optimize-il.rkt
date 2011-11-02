@@ -139,6 +139,9 @@
         op]
        
        [(CallKernelPrimitiveProcedure? op)
+        op]
+       
+       [(ApplyPrimitiveProcedure? op)
         op]))
 
 

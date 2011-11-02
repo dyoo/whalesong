@@ -24,6 +24,9 @@
 
     [(CheckClosureAndArity!? op)
      "RT.checkClosureAndArity(M);"]
+    
+    [(CheckPrimitiveArity!? op)
+     "RT.checkPrimitiveArity(M);"]
 
     [(ExtendEnvironment/Prefix!? op)
      (let: ([names : (Listof (U Symbol False GlobalBucket ModuleVariable)) (ExtendEnvironment/Prefix!-names op)])

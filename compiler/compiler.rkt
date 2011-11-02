@@ -951,23 +951,14 @@
       (cond
         [(eq? op-knowledge '?)
          (default)]
-        [(PrimitiveKernelValue? op-knowledge)
-         (let ([id (PrimitiveKernelValue-id op-knowledge)])
+        [(operator-is-statically-known-identifier? op-knowledge)
+         => 
+         (lambda (id)
            (cond
              [(KernelPrimitiveName/Inline? id)
               (compile-open-codeable-application id exp cenv target linkage)]
              [else
               (default)]))]
-        [(ModuleVariable? op-knowledge)
-         (cond
-           [(kernel-module-locator? (ModuleVariable-module-name op-knowledge))
-            (let ([op (ModuleVariable-name op-knowledge)])
-              (cond [(KernelPrimitiveName/Inline? op)
-                     (compile-open-codeable-application op exp cenv target linkage)]
-                    [else
-                     (default)]))]
-           [else
-            (default)])]
         [(StaticallyKnownLam? op-knowledge)
          (compile-statically-known-lam-application op-knowledge exp cenv target linkage)]
         [(Prefix? op-knowledge)
@@ -976,7 +967,24 @@
          (append-instruction-sequences
           (make-AssignImmediateStatement 'proc op-knowledge)
           (make-PerformStatement
-           (make-RaiseOperatorApplicationError! (make-Reg 'proc))))]))))
+           (make-RaiseOperatorApplicationError! (make-Reg 'proc))))]
+        [else
+         (default)]))))
+
+
+(: operator-is-statically-known-identifier? (CompileTimeEnvironmentEntry -> (U False Symbol)))
+(define (operator-is-statically-known-identifier? op-knowledge)
+  (cond [(PrimitiveKernelValue? op-knowledge)
+         (let ([id (PrimitiveKernelValue-id op-knowledge)])
+           id)]
+        [(ModuleVariable? op-knowledge)
+         (cond
+           [(kernel-module-locator? (ModuleVariable-module-name op-knowledge))
+            (ModuleVariable-name op-knowledge)]
+           [else
+            #f])]
+        [else
+         #f]))
 
 
 

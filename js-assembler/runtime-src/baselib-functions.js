@@ -327,7 +327,7 @@
                                },
                                []);
         // Also, record the raw implementation of the function.
-        proc.rawImpl = f;
+        proc._i = f;
         return proc;
     };
 

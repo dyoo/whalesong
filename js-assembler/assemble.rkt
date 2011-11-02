@@ -567,8 +567,12 @@ EOF
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
           [(and (Const? skip) (= (ensure-natural (Const-const skip)) 0))
-           (format "M.e.length-=~a;"
-                   (assemble-oparg (PopEnvironment-n stmt) blockht))]
+           (cond [(equal? (PopEnvironment-n stmt)
+                          (make-Const 1))
+                  "M.e.pop();"]
+                 [else
+                  (format "M.e.length-=~a;"
+                          (assemble-oparg (PopEnvironment-n stmt) blockht))])]
           [else
            (format "M.e.splice(M.e.length-(~a+~a),~a);"
                    (assemble-oparg (PopEnvironment-skip stmt) blockht)

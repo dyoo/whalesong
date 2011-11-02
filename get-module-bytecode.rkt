@@ -81,7 +81,8 @@
                             (lambda (ip)
                               (get-compiled-code-from-port ip)))
                           )])
-    (parameterize ([compile-context-preservation-enabled #f])
+    ;; Note: we're trying to preserve the context, to avoid code expansion.
+    (parameterize ([compile-context-preservation-enabled #t])
       (get-module-code p))))
 
 
@@ -90,7 +91,8 @@
 (define (get-compiled-code-from-port ip)
   ;(printf "get-compiled-code-from-port\n")
   (parameterize ([read-accept-reader #t]
-                 [compile-context-preservation-enabled #f]
+                 ;; Note: we're trying to preserve the context, to avoid code expansion.
+                 [compile-context-preservation-enabled #t]
                  [current-namespace base-namespace])
     (define stx (read-syntax (object-name ip) ip))
     ;(printf "got stx; now expanding out the images\n")

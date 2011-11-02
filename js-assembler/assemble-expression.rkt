@@ -60,4 +60,4 @@
     [(CallKernelPrimitiveProcedure? op)
      (open-code-kernel-primitive-procedure op blockht)]
     [(ApplyPrimitiveProcedure? op)
-     "M.p.rawImpl(M)"]))
+     "M.p._i(M)"]))

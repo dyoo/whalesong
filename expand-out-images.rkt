@@ -64,7 +64,8 @@
 
 
 (define (on-expr expr)
-  (kernel-syntax-case (syntax-disarm expr code-insp) #f
+  (define disarmed (syntax-disarm expr code-insp))
+  (kernel-syntax-case disarmed #t
     
     [(#%plain-lambda formals subexpr ...)
      (quasisyntax/loc expr
@@ -187,7 +188,7 @@
 
 
 (define (on-toplevel stx)
-  (kernel-syntax-case (syntax-disarm stx code-insp) #f
+  (kernel-syntax-case (syntax-disarm stx code-insp) #t
     [(#%provide raw-provide-spec ...)
      stx]
     
@@ -199,16 +200,12 @@
        (define-values ids #,(on-expr #'expr)))]
     
     [(define-syntaxes ids expr)
-     ;#'(void)
      (quasisyntax/loc stx 
-       (define-syntaxes ids #,(on-expr #'expr)))
-     ]
+       (define-syntaxes ids #,(on-expr #'expr)))]
     
     [(define-values-for-syntax ids expr)
-     ;#'(void)
      (quasisyntax/loc stx 
-       (define-values-for-syntax ids #,(on-expr #'expr)))
-     ]
+       (define-values-for-syntax ids #,(on-expr #'expr)))]
     
     [else
      (on-expr stx)]))

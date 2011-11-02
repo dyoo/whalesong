@@ -86,4 +86,5 @@
     ;(printf "got stx; now expanding out the images\n")
     #;(define expanded-stx (expand-out-images stx))
     ;(printf "now trying to compile the expanded syntax\n")
-    #;(compile expanded-stx)))
+    #;(compile expanded-stx)
+    ))

@@ -82,8 +82,8 @@
                  [current-namespace base-namespace])
     (port-count-lines! ip)
     (define stx (read-syntax (object-name ip) ip))
-    
+    (compile stx)
     ;(printf "got stx; now expanding out the images\n")
-    (define expanded-stx (expand-out-images stx))
+    #;(define expanded-stx (expand-out-images stx))
     ;(printf "now trying to compile the expanded syntax\n")
-    (compile expanded-stx)))
+    #;(compile expanded-stx)))

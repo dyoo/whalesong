@@ -837,7 +837,7 @@ behave already as images.
 
 
 
-@section{Tips and Tricks}
+@section{Tips and tricks}
 @subsection{Hiding standard output or directing it to an element}
 
 @declare-exporting/this-package[cs019/cs019]
@@ -882,7 +882,7 @@ even if the id does not currently exist on the page.
 
 
 
-@section{Known Bugs}
+@section{Known bugs}
 
 Whalesong's compiler doesn't know how to compile programs with
 embedded image snips.  You can work around this by using

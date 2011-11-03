@@ -1,7 +1,6 @@
 #lang planet dyoo/whalesong
 
 
-
 ;; shuffle: vector -> vector
 ;; Reorders the contents of a vector according to the Fisher-Yates shuffling algorithm.
 (define (shuffle! a-vec)

@@ -38,7 +38,6 @@
                 jquery.js
                 jquery-protect-footer.js
                 
-                jshashtable-2.1_src.js
                 js-numbers.js
                 
                 baselib.js
@@ -57,7 +56,14 @@
                 baselib-symbols.js
                 baselib-strings.js
                 baselib-bytes.js                    
+
+                hashes-header.js
+                jshashtable-2.1_src.js
+                avltree.js
                 baselib-hashes.js
+                hashes-footer.js
+
+                
                 baselib-regexps.js
                 baselib-paths.js
                 baselib-boxes.js

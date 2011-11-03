@@ -3,8 +3,6 @@
 // edits to flatten the namespace from goog.structs to just
 // AvlTree, commented out inorderTraverse and reverseOrderTraverse.
 //
-// I'm considering changing the code to work with CPSed control flow.
-//
 // ----------------------------------------------------------------------
 // Original license follows:
 // ----------------------------------------------------------------------
@@ -471,22 +469,6 @@ AvlTree.prototype.traverse_ =
         while (node && node != endNode) {
             node = traversalFunc.call(this, node);
         }
-    };
-
-
-// CPS'ed version of the traverse function
-AvlTree.prototype.traverse_k_ =
-    function(traversalFunc_k, opt_startNode, opt_endNode, k) {
-        var node = opt_startNode ? opt_startNode : this.root_;
-        var endNode = opt_endNode ? opt_endNode : null;
-        var loop = function(node) {
-            if (node && node != endNode) {
-                traversalFunc_k.call(this, node, loop);
-            } else {
-                k();
-            }
-        }
-        return loop(node);
     };
 
 

@@ -1,6 +1,6 @@
 /*jslint unparam: true, vars: true, white: true, newcap: true, nomen: true, plusplus: true, maxerr: 50, indent: 4 */
 
-/*global Hashtable*/
+/*global window,Hashtable*/
 
 // Mutable hashtables.
 
@@ -80,7 +80,7 @@
 
 
     //////////////////////////////////////////////////////////////////////
-    // Whalesong's Hashtables are a thin wrapper around the Hashtable
+    // Whalesong's Hashtables are a thin wrapper around the mutable Hashtable
     // class to make it printable and equatable.
     var WhalesongHashtable = function (type, hash_function, equality_function) {
         this.type = type;
@@ -164,4 +164,4 @@
     exports.isHash = isHash;
 
 
-}(this.plt.baselib, Hashtable));
+}(window.plt.baselib, Hashtable));

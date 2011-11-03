@@ -134,16 +134,24 @@
         return true;
     };
 
-    WhalesongHashtable.prototype.ref = function(key) {
+
+
+
+
+    WhalesongHashtable.prototype.get = function(key) {
         return this.hash.get(key);
     };
 
-    WhalesongHashtable.prototype.set = function(key, value) {
-        return this.hash.put(key, value);
+    WhalesongHashtable.prototype.put = function(key, value) {
+        this.hash.put(key, value);
     };
 
     WhalesongHashtable.prototype.remove = function(key) {
         this.hash.remove(key);
+    };
+
+    WhalesongHashtable.prototype.containsKey = function(key) {
+        return this.hash.containsKey(key);
     };
 
     var isHash = function (x) { 

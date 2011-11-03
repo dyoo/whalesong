@@ -255,6 +255,10 @@
         baselib.exceptions.isExn,
         'exn');
 
+    var checkHash = makeCheckArgumentType(
+        baselib.hashes.isHash,
+        'hash');
+
     //////////////////////////////////////////////////////////////////////
 
 
@@ -293,5 +297,6 @@
     exports.checkContinuationMarkSet = checkContinuationMarkSet;
     exports.checkContinuationPromptTag = checkContinuationPromptTag;
     exports.checkExn = checkExn;
+    exports.checkHash = checkHash;
 
 }(this.plt.baselib));

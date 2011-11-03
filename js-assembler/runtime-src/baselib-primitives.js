@@ -116,6 +116,10 @@
     var checkContinuationPromptTag = baselib.check.checkContinuationPromptTag;
     var checkContinuationMarkSet = baselib.check.checkContinuationMarkSet;
     var checkExn = baselib.check.checkExn;
+    var checkHash = baselib.check.checkHash;
+    var checkAny = baselib.check.makeCheckArgumentType(
+        function(x) { return true; },
+        'any');
     //////////////////////////////////////////////////////////////////////
 
 
@@ -1354,17 +1358,14 @@
         M.a--;
         checkList(M, 'apply', M.a - 1);
         M.spliceListIntoStack(M.a - 1);
+        M.p = proc;
         if (baselib.arity.isArityMatching(proc.racketArity, M.a)) {
-            M.p = proc;
-            if (baselib.functions.isPrimitiveProcedure(proc)) {
-                return finalizeClosureCall(M, proc(M));
-            } else {
-                return proc.label(M);
-            }
+            return proc.label(M);
         } else {
             raiseArityMismatchError(M, proc, M.a);
         }
     };
+
     installPrimitiveClosure(
         'apply',
         baselib.arity.makeArityAtLeast(2),
@@ -2263,14 +2264,14 @@
                 });
         });
 
-    installPrimitiveClosure(
+    installPrimitiveProcedure(
         'struct?',
         1,
         function(M) {
             return isStruct(M.e[M.e.length - 1]);
         });
 
-    installPrimitiveClosure(
+    installPrimitiveProcedure(
         'struct-type?',
         1,
         function(M) {
@@ -2503,6 +2504,13 @@
     };
 
     installPrimitiveProcedure(
+        'hash?',
+        1,
+        function(M) {
+            return baselib.hashes.isHash(checkAny(M, 'hash?', 0));
+        });
+
+    installPrimitiveProcedure(
         'make-hasheq',
         makeList(0, 1),
         function(M) {
@@ -2534,6 +2542,53 @@
             }
             return initializeHash(lst, plt.baselib.hashes.makeEqualHashtable());
         });
+
+    installPrimitiveClosure(
+        'hash-ref',
+        makeList(2, 3),
+        function(M) {
+            var hash = checkHash(M, 'hash-ref', 0);
+            var key = checkAny(M, 'hash-ref', 1);
+            var thunk;
+            if (M.a === 3) {
+                thunk = checkProcedure(M, 'hash-ref', 2);
+            }
+            if (hash.containsKey(key)) {
+                finalizeClosureCall(M, hash.get(key));
+            } else {
+                if (M.a === 2) {
+                    raiseContractError(
+                        plt.baselib.format("hash-ref: no value found for key: ~e",
+                                           [key]));
+                } else {                    
+                    M.p = thunk;
+                    M.e.length -= M.a;
+                    M.a = 0;
+                    baselib.functions.rawApply();
+                }
+            }
+        });
+
+    installPrimitiveProcedure(
+        'hash-set!',
+        3,
+        function(M){ 
+            var hash = checkHash(M, 'hash-set!', 0);
+            var key = checkAny(M, 'hash-set!', 1);
+            var value = checkAny(M, 'hash-set!', 2);
+            hash.put(key, value);
+            return VOID;
+        });
+
+    installPrimitiveProcedure(
+        'hash-has-key?',
+        2,
+        function(M){
+            var hash = checkHash(M, 'hash-set!', 0);
+            var key = checkAny(M, 'hash-set!', 1);
+            return hash.containsKey(key);
+        });
+
 
     exports['Primitives'] = Primitives;
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;

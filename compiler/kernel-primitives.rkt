@@ -88,6 +88,12 @@
                                     'raise-type-error
                                     'struct:exn:fail
                                     'prop:exn:srclocs
+
+                                    'hash?
+                                    'make-hash
+                                    'make-hasheqv
+                                    'make-hasheq
+                                    
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

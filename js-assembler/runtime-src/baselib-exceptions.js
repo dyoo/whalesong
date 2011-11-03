@@ -79,6 +79,11 @@
     };
 
 
+    var raiseContractError = function(MACHINE, msg) {
+        var contMarks = MACHINE.captureContinuationMarks();
+        raise(MACHINE, ExnFailContract.constructor(msg, contMarks));
+    };
+
 
 
     var raiseUnboundToplevelError = function(MACHINE, name) {
@@ -224,6 +229,7 @@
 
 
     exceptions.raise = raise;
+    exceptions.raiseContractError = raiseContractError;
     exceptions.raiseUnboundToplevelError = raiseUnboundToplevelError;
     exceptions.raiseArgumentTypeError = raiseArgumentTypeError;
     exceptions.raiseContextExpectedValuesError = raiseContextExpectedValuesError;

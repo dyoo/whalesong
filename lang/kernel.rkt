@@ -149,7 +149,10 @@
          let/cc
 	 with-continuation-mark
 
-
+         hash?
+         make-hash
+         make-hasheqv
+         make-hasheq
          
 
 

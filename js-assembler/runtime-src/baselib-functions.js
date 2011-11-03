@@ -21,13 +21,6 @@
 
 
 
-    var isPrimitiveProcedure = function (x) {
-        return typeof (x) === 'function';
-    };
-
-
-
-
 
 
 
@@ -207,9 +200,7 @@
     // It assumes that it must begin its own trampoline.
     var asJavaScriptFunction = function (v, MACHINE) {
         MACHINE = MACHINE || plt.runtime.currentMachine;
-        if (isPrimitiveProcedure(v)) {
-            return coersePrimitiveToJavaScript(v, MACHINE);
-        } else if (isClosure(v)) {
+        if (isClosure(v)) {
             return coerseClosureToJavaScript(v, MACHINE);
         } else {
             baselib.exceptions.raise(MACHINE,
@@ -234,18 +225,7 @@
                                                                     MACHINE.captureContinuationMarks()));
         }
 
-        if (isPrimitiveProcedure(proc)) {
-            oldArgcount = MACHINE.a;
-            MACHINE.a = arguments.length - 4;
-            for (i = 0; i < arguments.length - 4; i++) {
-                MACHINE.e.push(arguments[arguments.length - 1 - i]);
-            }
-            var result = proc(MACHINE);
-            for (i = 0; i < arguments.length - 4; i++) {
-                MACHINE.e.pop();
-            }
-            success(result);
-        } else if (isClosure(proc)) {
+        if (isClosure(proc)) {
             oldVal = MACHINE.v;
             oldArgcount = MACHINE.a;
             oldProc = MACHINE.p;
@@ -339,19 +319,23 @@
 
 
     var renameProcedure = function (f, name) {
-        if (isPrimitiveProcedure(f)) {
-            return makePrimitiveProcedure(
-                name,
-                f.racketArity,
-                function (MACHINE) {
-                    return f(MACHINE);
-                });
-        } else {
-            return makeClosure(name, f.racketArity, f.label, f.closedVals);
-        }
+        return makeClosure(name, f.racketArity, f.label, f.closedVals);
     };
 
 
+
+    // Applying a procedure.
+    // Assumptions: the procedure register has been assigned, as has
+    // the argcount and environment.
+    // Must be running in the context of a trampoline.
+    var rawApply = function(M) {
+        M.cbt--;
+        if (baselib.arity.isArityMatching(M.p.racketArity, M.a)) {
+            return M.p.label(M);
+        } else {
+            baselib.exceptions.raiseArityMismatchError(M, M.p, M.a);
+        }
+    };
 
 
 
@@ -363,7 +347,6 @@
     exports.makePrimitiveProcedure = makePrimitiveProcedure;
     exports.makeClosure = makeClosure;
 
-    exports.isPrimitiveProcedure = isPrimitiveProcedure;
     exports.isClosure = isClosure;
 
     exports.isProcedure = isProcedure;
@@ -371,7 +354,8 @@
 
     exports.renameProcedure = renameProcedure;
 
-
     exports.asJavaScriptFunction = asJavaScriptFunction;
+    exports.rawApply = rawApply;
+
 
 }(this.plt.baselib, this.plt));

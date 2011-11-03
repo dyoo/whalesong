@@ -14,6 +14,7 @@ git archive --format=tar --prefix=$PROJNAME/ HEAD | (cd tmp && tar xf -)
 rm -rf $OLDDIR/tmp/whalesong/experiments
 rm -rf $OLDDIR/tmp/whalesong/notes
 rm -rf $OLDDIR/tmp/whalesong/simulator
+rm -rf $OLDDIR/tmp/whalesong/sandbox
 rm -rf $OLDDIR/tmp/whalesong/tests
 
 

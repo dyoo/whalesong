@@ -20,6 +20,7 @@
 (define homepage "http://hashcollision.org/whalesong")
 (define scribblings '(("scribblings/manual.scrbl")))
 (define compile-omit-paths '("tests"
+                             "sandbox"
                              "examples"
                              "experiments"
                              "simulator"

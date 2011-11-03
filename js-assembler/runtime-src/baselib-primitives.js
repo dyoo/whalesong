@@ -24,6 +24,7 @@
     var isNatural = baselib.numbers.isNatural;
     var isPair = baselib.lists.isPair;
     var isList = baselib.lists.isList;
+    var isChar = baselib.chars.isChar;
     var isVector = baselib.vectors.isVector;
     var isString = baselib.strings.isString;
     var isSymbol = baselib.symbols.isSymbol;
@@ -104,8 +105,8 @@
 	},
 	'cadrable value');
     var checkList = baselib.check.checkList;
-    var checkListofChars = baselib.check.makeCheckListofArgumentType(baselib.chars.isChar,
-                                                                     'character');
+    var checkListofChars = baselib.check.makeCheckListofArgumentType(isChar, 'character');
+    var checkListofPairs = baselib.check.makeCheckListofArgumentType(isPair, 'pair');
     var checkVector = baselib.check.checkVector;
     var checkBox = baselib.check.checkBox;
     var checkMutableBox = baselib.check.checkMutableBox;
@@ -1090,7 +1091,7 @@
         'char?',
         1,
         function(M) {
-            return baselib.chars.isChar(M.e[M.e.length -1 ]);
+            return isChar(M.e[M.e.length -1 ]);
         });
 
 
@@ -2489,6 +2490,49 @@
         0,
         function() {
             return Math.floor( (new Date()).getTime() / 1000 );
+        });
+
+
+    // initializeHash: (listof pair) WhalesongHashtable -> WhalesongHashtable
+    var initializeHash = function(lst, hash) {
+	while (lst !== NULL) {
+	    hash.put(lst.first.first, lst.first.rest);
+	    lst = lst.rest;
+	}
+	return hash;
+    };
+
+    installPrimitiveProcedure(
+        'make-hasheq',
+        makeList(0, 1),
+        function(M) {
+            var lst = NULL;
+            if (M.a === 1) {
+                lst = checkListofPairs(M, 'make-hasheq', 0);
+            }
+            return initializeHash(lst, plt.baselib.hashes.makeEqHashtable());
+        });
+
+    installPrimitiveProcedure(
+        'make-hasheqv',
+        makeList(0, 1),
+        function(M) {
+            var lst = NULL;
+            if (M.a === 1) {
+                lst = checkListofPairs(M, 'make-hasheqv', 0);
+            }
+            return initializeHash(lst, plt.baselib.hashes.makeEqvHashtable());
+        });
+
+    installPrimitiveProcedure(
+        'make-hash',
+        makeList(0, 1),
+        function(M) {
+            var lst = NULL;
+            if (M.a === 1) {
+                lst = checkListofPairs(M, 'make-hash', 0);
+            }
+            return initializeHash(lst, plt.baselib.hashes.makeEqualHashtable());
         });
 
     exports['Primitives'] = Primitives;

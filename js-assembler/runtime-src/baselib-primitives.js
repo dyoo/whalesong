@@ -61,6 +61,7 @@
 
     // Exceptions and error handling.
     var raise = baselib.exceptions.raise;
+    var raiseContractError = baselib.exceptions.raiseContractError;
     var raiseArgumentTypeError = baselib.exceptions.raiseArgumentTypeError;
     var raiseArityMismatchError = baselib.exceptions.raiseArityMismatchError;
 
@@ -2558,13 +2559,14 @@
             } else {
                 if (M.a === 2) {
                     raiseContractError(
-                        plt.baselib.format("hash-ref: no value found for key: ~e",
+                        M,
+                        baselib.format.format("hash-ref: no value found for key: ~e",
                                            [key]));
                 } else {                    
                     M.p = thunk;
                     M.e.length -= M.a;
                     M.a = 0;
-                    baselib.functions.rawApply();
+                    baselib.functions.rawApply(M);
                 }
             }
         });

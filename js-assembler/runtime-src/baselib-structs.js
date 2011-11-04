@@ -60,6 +60,18 @@
         return true;
     };
 
+    Struct.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode(this.name);
+        var i;
+        k = baselib.hashes.hashMix(k);
+        for (i = 0; i < this._fields.length; i++) {
+            k += baselib.hashes.getEqualHashCode(this._fields[i]);
+            k = baselib.hashes.hashMix(k);
+        }
+        return k;
+    };
+
+
     Struct.prototype.type = Struct;
 
 
@@ -101,6 +113,13 @@
         return this === other;
     };
 
+    StructType.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode("StructType");
+        k = baselib.hashes.hashMix(k);
+        k += baselib.hashes.getEqualHashCode(this.name);
+        k = baselib.hashes.hashMix(k);
+        return k;
+    };
 
 
 

@@ -67,7 +67,12 @@
         return other instanceof Char && this.val == other.val;
     };
 
-
+    Char.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode('Char');
+        k += this.val.charCodeAt(0);
+        k = baselib.hashes.hashMix(k);
+        return k;
+    };
 
 
     exports.Char = Char;

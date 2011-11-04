@@ -59,6 +59,15 @@
         return ((other instanceof Box) &&
 	        baselib.equality.equals(this.val, other.val, aUnionFind));
     };
+
+    Box.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode("Box");
+        k = baselib.hashes.hashMix(k);
+        k += baselib.hashes.getEqualHashCode(this.val, depth);
+        k = baselib.hashes.hashMix(k);
+        return k;
+    };
+
     
     var makeBox = function(x) { 
         return new Box(x, true); 

@@ -20,6 +20,11 @@
         return other instanceof Empty;
     };
 
+    Empty.prototype.hashCode = function(depth) {
+        return baselib.hashes.getEqualHashCode("empty");
+    };
+
+
     Empty.prototype.reverse = function () {
         return this;
     };
@@ -84,6 +89,16 @@
         return (baselib.equality.equals(this.first, other.first, aUnionFind) &&
                 baselib.equality.equals(this.rest, other.rest, aUnionFind));
     };
+
+    Cons.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode("Cons");
+        k += baselib.hashes.getEqualHashCode(this.first);
+        k = baselib.hashes.hashMix(k);
+        k += baselib.hashes.getEqualHashCode(this.rest);
+        k = baselib.hashes.hashMix(k);
+        return k;
+    };
+
 
 
     // Cons.append: (listof X) -> (listof X)

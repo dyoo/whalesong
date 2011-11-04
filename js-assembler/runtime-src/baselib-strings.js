@@ -107,6 +107,10 @@
 	return this.toString() === other.toString();
     };
 
+    Str.prototype.hashCode = function(depth) {
+        return baselib.hashes.getEqualHashCode(this.toString());
+    };
+
 
     Str.prototype.set = function (i, c) {
 	this.chars[i] = c;

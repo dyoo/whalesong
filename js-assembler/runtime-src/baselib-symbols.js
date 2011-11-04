@@ -30,6 +30,14 @@
         return other instanceof Symbol &&
             this.val === other.val;
     };
+
+    Symbol.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode("Symbol");
+        k = baselib.hashes.hashMix(k);
+        k += baselib.hashes.getEqualHashCode(this.val);
+        k = baselib.hashes.hashMix(k);
+        return k;
+    };
     
 
     Symbol.prototype.toString = function (cache) {

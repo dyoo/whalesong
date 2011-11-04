@@ -93,7 +93,8 @@
                                     'make-hash
                                     'make-hasheqv
                                     'make-hasheq
-                                    
+                                    'hash-ref
+                                    'hash-set!
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

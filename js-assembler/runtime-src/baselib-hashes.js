@@ -61,7 +61,7 @@
         return new WhalesongHashtable(
             "hash",
             function (x) {
-                return baselib.format.toWrittenString(x); 
+                return getEqualHashCode(x); 
             },
             function (x, y) {
                 return baselib.equality.equals(x, y, new baselib.UnionFind()); 
@@ -72,7 +72,7 @@
         return new WhalesongHashtable(
             "hasheqv",
             function (x) {
-                return baselib.format.toWrittenString(x); 
+                return getEqHashCode(x);
             },
             baselib.equality.eqv);
     };
@@ -134,7 +134,14 @@
         return true;
     };
 
-
+    WhalesongHashtable.prototype.hashCode = function(depth) {
+        var k = getEqualHashCode(this.type);
+        var keys = this.hash.keys(), i;
+        for (i = 0; i < keys.length; i++) {
+            k += hashMix(getEqualHashCode(this.hash.get(keys[i]), depth));
+        }
+        return hashMix(k);
+    };
 
 
 
@@ -159,9 +166,63 @@
     };
 
 
+
+
+
+
+
+
+    // Arbitrary magic number.  We have to cut off the hashing at some point.
+    var MAX_HASH_DEPTH = 128;
+
+    // Returns a JavaScript number.
+    var getEqualHashCode = function (x, depth) {
+        var i, t, k = 0;
+        if (depth === undefined) { depth = 0; }
+
+        if (depth > MAX_HASH_DEPTH) { return 0; }
+
+        if (baselib.numbers.isNumber(x)) {
+            return hashMix(baselib.numbers.toFixnum(x));
+        }
+
+        if (baselib.strings.isString(x)) {
+            t = x.toString();
+            for (i = 0; i < t.length; i++) {
+                k += t.charCodeAt(i);
+                k = hashMix(k);
+            }
+            return k;
+        }
+
+        if (x === undefined || x === null) {
+            return 1;
+        }
+
+        if (typeof (x) === 'object' && typeof (y) === 'object' &&
+            typeof(x.hashCode) === 'function') {
+            return x.hashCode(depth + 1);
+        }
+        return 0;
+    };
+
+
+    // Does some weird math on k.  Grabbed from Racket's implementation of hashes.
+    // References to: http://www.burtleburtle.net/bob/hash/doobs.html
+    var hashMix = function(k) {
+        k += (k << 10);
+        k ^= (k >> 6);
+        return k;
+    };
+
+
+
     //////////////////////////////////////////////////////////////////////
 
     exports.getEqHashCode = getEqHashCode;
+    exports.getEqualHashCode = getEqualHashCode;
+    exports.hashMix = hashMix;
+
     exports.makeEqHashCode = makeEqHashCode;
     exports.makeLowLevelEqHash = makeLowLevelEqHash;
 

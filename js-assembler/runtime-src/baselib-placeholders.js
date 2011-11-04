@@ -43,6 +43,12 @@
                 baselib.equality.equals(this.val, other.val, aUnionFind));
     };
 
+    Placeholder.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.hashCode("Placeholder");
+        k += baselib.hashes.hashCode(this.val, depth);
+        return baselib.hashes.hashMix(k);
+    };
+
 
     var makePlaceholder = function(v) {
         return new Placeholder(v);

@@ -27,6 +27,13 @@
         return other instanceof Keyword &&
             this.val === other.val;
     };
+
+    Keyword.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode("Keyword");
+        k += baselib.hashes.getEqualHashCode(this.val, depth);
+        k = baselib.hashes.hashMix(k);
+        return k;
+    };
     
 
     Keyword.prototype.toString = function (cache) {

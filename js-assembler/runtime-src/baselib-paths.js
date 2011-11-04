@@ -16,6 +16,20 @@
         return "#<path:" + String(this.path) + ">";
     };
 
+
+    Path.prototype.equals = function(other, aUnionFind) {
+        return (other instanceof Path &&
+                this.path === other.path);
+    };
+
+    Path.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode("path");
+        k += baselib.hashes.getEqualHashCode(this.path, depth);
+        k = baselib.hashes.hashMix(k);
+        return k;
+    };
+
+
     //////////////////////////////////////////////////////////////////////
 
     var makePath = function (p) {

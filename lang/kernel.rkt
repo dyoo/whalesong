@@ -153,7 +153,8 @@
          make-hash
          make-hasheqv
          make-hasheq
-         
+         hash-ref
+         hash-set!
 
 
          ;; Kernel inlinable

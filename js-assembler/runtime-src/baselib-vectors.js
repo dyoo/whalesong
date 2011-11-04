@@ -56,6 +56,17 @@
         }
     };
 
+    Vector.prototype.hashCode = function(depth) {
+        var k = baselib.hashes.getEqualHashCode("Vector");
+        var i;
+        k = baselib.hashes.hashMix(k);
+        for (i = 0; i < this.elts.length; i++) {
+            k += baselib.hashes.getEqualHashCode(this.elts[i], depth);
+            k = baselib.hashes.hashMix(k);
+        }
+        return k;
+    };
+
     Vector.prototype.toList = function () {
         var ret = baselib.lists.EMPTY, i;
         for (i = this.length() - 1; i >= 0; i--) {

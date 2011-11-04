@@ -48,12 +48,12 @@
 (equal-hash-code (make-thing "danny" 32))
 (equal-hash-code (shared ([a (make-thing a a)]) a))
 
-;; symbols
-"symbols"
-(equal-hash-code 'hello)
-(equal-hash-code 'world)
+;; ;; symbols
+;; "symbols"
+;; (equal-hash-code 'hello)
+;; (equal-hash-code 'world)
 
-;; vectors
-"vectors"
-(equal-hash-code #(1 2 3 4 5))
-(equal-hash-code (shared ([v (vector 1 2 v 3 v)]) v))
+;; ;; vectors
+;; "vectors"
+;; (equal-hash-code #(1 2 3 4 5))
+;; (equal-hash-code (shared ([v (vector 1 2 v 3 v)]) v))

@@ -65,7 +65,7 @@
         var i;
         k = baselib.hashes.hashMix(k);
         for (i = 0; i < this._fields.length; i++) {
-            k += baselib.hashes.getEqualHashCode(this._fields[i]);
+            k += baselib.hashes.getEqualHashCode(this._fields[i], depth);
             k = baselib.hashes.hashMix(k);
         }
         return k;

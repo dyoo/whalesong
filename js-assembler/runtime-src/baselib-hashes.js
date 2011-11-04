@@ -199,7 +199,7 @@
             return 1;
         }
 
-        if (typeof (x) === 'object' && typeof (y) === 'object' &&
+        if (typeof(x) === 'object' &&
             typeof(x.hashCode) === 'function') {
             return x.hashCode(depth + 1);
         }

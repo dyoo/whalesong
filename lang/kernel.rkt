@@ -155,6 +155,8 @@
          make-hasheq
          hash-ref
          hash-set!
+         equal-hash-code
+         
 
 
          ;; Kernel inlinable

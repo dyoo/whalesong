@@ -2591,6 +2591,15 @@
             return hash.containsKey(key);
         });
 
+    installPrimitiveProcedure(
+        'equal-hash-code',
+        1,
+        function(M) {
+            return baselib.hashes.getEqualHashCode(checkAny(M, 'equal-hash-code', 0));
+        });
+
+
+
 
     exports['Primitives'] = Primitives;
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;

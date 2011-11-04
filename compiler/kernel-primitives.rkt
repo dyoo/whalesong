@@ -95,6 +95,8 @@
                                     'make-hasheq
                                     'hash-ref
                                     'hash-set!
+                                    'equal-hash-code
+                                    
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

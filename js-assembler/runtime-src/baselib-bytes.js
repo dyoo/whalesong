@@ -63,7 +63,7 @@
     Bytes.prototype.hashCode = function(depth) {
         var i;
         var k = baselib.hashes.getEqualHashCode('Bytes');
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < this.bytes.length; i++) {
             k += this.bytes[i];
             k = baselib.hashes.hashMix(k);
         }

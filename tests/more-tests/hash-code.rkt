@@ -46,7 +46,7 @@
 "structs"
 (define-struct thing (name age) #:mutable)
 (equal-hash-code (make-thing "danny" 32))
-(equal-hash-code (shared ([a (make-thing a a)]) a))
+(void (equal-hash-code (shared ([a (make-thing a a)]) a)))
 
 ;; ;; symbols
 ;; "symbols"

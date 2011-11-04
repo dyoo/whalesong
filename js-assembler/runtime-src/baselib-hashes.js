@@ -178,9 +178,9 @@
     // Returns a JavaScript number.
     var getEqualHashCode = function (x, depth) {
         var i, t, k = 0;
-        if (depth === undefined) { depth = 0; }
+        if (depth === undefined) { depth = [0]; }
 
-        if (depth > MAX_HASH_DEPTH) { return 0; }
+        if (depth[0] > MAX_HASH_DEPTH) { return 0; }
 
         if (baselib.numbers.isNumber(x)) {
             return hashMix(baselib.numbers.toFixnum(x));
@@ -201,7 +201,8 @@
 
         if (typeof(x) === 'object' &&
             typeof(x.hashCode) === 'function') {
-            return x.hashCode(depth + 1);
+            depth[0] = depth[0] + 1;
+            return x.hashCode(depth);
         }
         return 0;
     };

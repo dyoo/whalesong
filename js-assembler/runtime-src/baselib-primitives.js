@@ -2516,6 +2516,19 @@
         function(M) {
             return baselib.hashes.isHash(checkAny(M, 'hash?', 0));
         });
+    installPrimitiveProcedure(
+        'hash-eq?',
+        1,
+        function(M) {
+            return baselib.hashes.isHashEq(checkAny(M, 'hash-eq?', 0));
+        });
+    installPrimitiveProcedure(
+        'hash-eqv?',
+        1,
+        function(M) {
+            return baselib.hashes.isHashEqv(checkAny(M, 'hash-eqv?', 0));
+        });
+
 
     installPrimitiveProcedure(
         'make-hasheq',

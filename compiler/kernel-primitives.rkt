@@ -90,6 +90,8 @@
                                     'prop:exn:srclocs
 
                                     'hash?
+                                    'hash-eq?
+                                    'hash-eqv?
                                     'make-hash
                                     'make-hasheqv
                                     'make-hasheq

@@ -349,11 +349,11 @@
     };
 
     var isHashEqv = function (x) { 
-        return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'eqv';
+        return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'hasheqv';
     };
 
     var isHashEq = function (x) { 
-        return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'eq';
+        return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'hasheq';
     };
 
 

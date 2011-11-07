@@ -64,6 +64,15 @@
 (hash-ref ht "test!")
 
 
+(hash? (make-immutable-hash))
+(hash? (make-immutable-hasheq))
+(hash? (make-immutable-hasheqv))
+(hash-eq? (make-immutable-hash))
+(hash-eq? (make-immutable-hasheq))
+(hash-eq? (make-immutable-hasheqv))
+(hash-eqv? (make-immutable-hash))
+(hash-eqv? (make-immutable-hasheq))
+(hash-eqv? (make-immutable-hasheqv))
 (let* ([ht (make-immutable-hash)]
        [ht (hash-set ht 'name "danny")]
        [ht (hash-set ht 'email "dyoo@hashcollision.org")])

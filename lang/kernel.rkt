@@ -150,6 +150,8 @@
 	 with-continuation-mark
 
          hash?
+         hash-eq?
+         hash-eqv?
          make-hash
          make-hasheqv
          make-hasheq

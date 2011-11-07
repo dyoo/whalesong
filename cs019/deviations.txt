@@ -1,7 +1,5 @@
 Misc
 ===
-current-milliseconds
-current-seconds
 string-copy
 exit
 sleep

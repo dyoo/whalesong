@@ -31,7 +31,7 @@ test-earley:
 test-conform: 
 	racket tests/test-conform.rkt
 
-test-more: 
+test-more: bump-version 
 	racket tests/run-more-tests.rkt
 
 doc:

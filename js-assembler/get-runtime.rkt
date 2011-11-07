@@ -59,7 +59,7 @@
 
                 hashes-header.js
                 jshashtable-2.1_src.js
-                avltree.js
+                llrbtree.js
                 baselib-hashes.js
                 hashes-footer.js
 

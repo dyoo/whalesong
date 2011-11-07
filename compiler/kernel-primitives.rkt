@@ -108,6 +108,8 @@
                                     'hash-remove!
                                     'hash-remove
                                     'equal-hash-code
+
+                                    'string-copy
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

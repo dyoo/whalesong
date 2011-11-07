@@ -431,6 +431,7 @@ box?
   string-ci<=?
   string-ci>=?
 
+  string-copy
   substring
   string-append
   string->list

@@ -14,6 +14,8 @@
 (substring "hello world" 3 4)
 (substring "hello world" 3 5)
 
+(string-copy "hello world")
+
 
 (list->string '())
 (list->string '(#\h #\e #\l #\l #\o))

@@ -96,7 +96,7 @@
     };
 
     Str.prototype.replace = function (expr, newStr) {
-	return Str.fromString( this.toString().replace(expr, newStr) );
+	return Str.fromString(this.toString().replace(expr, newStr) );
     };
 
 
@@ -117,11 +117,11 @@
     };
 
     Str.prototype.toUpperCase = function () {
-	return Str.fromString( this.chars.join("").toUpperCase() );
+	return Str.fromString(this.chars.join("").toUpperCase() );
     };
 
     Str.prototype.toLowerCase = function () {
-	return Str.fromString( this.chars.join("").toLowerCase() );
+	return Str.fromString(this.chars.join("").toLowerCase() );
     };
 
     Str.prototype.match = function (regexpr) {

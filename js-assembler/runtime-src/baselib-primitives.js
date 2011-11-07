@@ -791,7 +791,15 @@
             if (M.a === 3) {
                 end = baselib.numbers.toFixnum(checkNatural(M, 'substring', 2));
             }
-            return str.substring(start, end);
+            return baselib.strings.makeMutableString((str.substring(start, end)).split(""));
+        });
+
+    installPrimitiveProcedure(
+        'string-copy',
+        1,
+        function(M) {
+            var str = checkString(M, 'substring', 0).toString();
+            return baselib.strings.makeMutableString(str.substring(0, str.length).split(""));
         });
 
 

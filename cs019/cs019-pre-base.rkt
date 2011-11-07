@@ -14,7 +14,8 @@
          cs019-unless
          cs019-set!
          cs019-case
-         cs019-local)
+         cs019-local
+         cs019-dots)
 
 (define-syntax cs019-define advanced-define/proc)
 (define-syntax cs019-lambda advanced-lambda/proc)
@@ -22,3 +23,4 @@
 (define-syntax cs019-set! advanced-set!/proc)
 (define-syntax cs019-case advanced-case/proc)
 (define-syntax cs019-local intermediate-local/proc)
+(define-syntax cs019-dots beginner-dots/proc)

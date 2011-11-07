@@ -14,7 +14,14 @@
                      [cs019-when when]
                      [cs019-unless unless]
                      [cs019-case case]
-                     [cs019-local local]))
+                     [cs019-local local]
+
+                     [cs019-dots ..]
+                     [cs019-dots ...]
+                     [cs019-dots ....]
+                     [cs019-dots .....]
+                     [cs019-dots ......]
+                     ))
 
 (define-syntax λ (make-rename-transformer #'cs019-lambda))
 

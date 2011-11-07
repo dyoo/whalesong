@@ -119,3 +119,9 @@
 (hash-has-key? (make-hash '((1 . one))) 1)
 (hash-has-key? (make-immutable-hash) 1)
 (hash-has-key? (make-immutable-hash '((1 . one))) 1)
+
+(newline)
+(hash 1 'one 2 'two)
+(hasheqv 1 'one 2 'two)
+(hasheq 1 'one 2 'two)
+

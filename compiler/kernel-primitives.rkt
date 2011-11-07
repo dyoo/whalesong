@@ -92,6 +92,9 @@
                                     'hash?
                                     'hash-eq?
                                     'hash-eqv?
+                                    'hash
+                                    'hasheqv
+                                    'hasheq
                                     'make-hash
                                     'make-hasheqv
                                     'make-hasheq

@@ -2563,6 +2563,67 @@
             return initializeHash(lst, plt.baselib.hashes.makeEqualHashtable());
         });
 
+
+    installPrimitiveProcedure(
+        'hash',
+        baselib.arity.makeArityAtLeast(0),
+        function(M) {
+            var lst = NULL, i;
+            for(i = 0; i < M.a; i+=2) {
+                if (i+1 < M.a) {
+                    lst = makePair(makePair(checkAny(M, 'hash', i), checkAny(M, 'hash', i + 1)),
+                                   lst);
+                } else {
+                    raiseContractError(
+                        M,
+                        baselib.format.format(
+                            "hash: key does not have a value (i.e., an odd number of arguments were provided): ~e",
+                            [checkAny(M, 'hash', i)]));
+                }
+            }
+            return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqualHashtable());
+        });
+
+    installPrimitiveProcedure(
+        'hasheq',
+        baselib.arity.makeArityAtLeast(0),
+        function(M) {
+            var lst = NULL, i;
+            for(i = 0; i < M.a; i+=2) {
+                if (i+1 < M.a) {
+                    lst = makePair(makePair(checkAny(M, 'hasheq', i), checkAny(M, 'hasheq', i + 1)),
+                                   lst);
+                } else {
+                    raiseContractError(
+                        M,
+                        baselib.format.format(
+                            "hasheq: key does not have a value (i.e., an odd number of arguments were provided): ~e",
+                            [checkAny(M, 'hasheq', i)]));
+                }
+            }
+            return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqHashtable());
+        });
+
+    installPrimitiveProcedure(
+        'hasheqv',
+        baselib.arity.makeArityAtLeast(0),
+        function(M) {
+            var lst = NULL, i;
+            for(i = 0; i < M.a; i+=2) {
+                if (i+1 < M.a) {
+                    lst = makePair(makePair(checkAny(M, 'hasheqv', i), checkAny(M, 'hasheqv', i + 1)),
+                                   lst);
+                } else {
+                    raiseContractError(
+                        M,
+                        baselib.format.format(
+                            "hasheqv: key does not have a value (i.e., an odd number of arguments were provided): ~e",
+                            [checkAny(M, 'hasheqv', i)]));
+                }
+            }
+            return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqvHashtable());
+        });
+
     installPrimitiveProcedure(
         'make-immutable-hasheq',
         makeList(0, 1),

@@ -16,7 +16,9 @@
          advanced-unless/proc
          advanced-set!/proc advanced-set!-continue/proc
          advanced-case/proc
-         intermediate-local/proc)
+         intermediate-local/proc
+
+         beginner-dots/proc)
 
 
 
@@ -288,7 +290,32 @@
 
 
 
+    ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; dots (.. and ... and .... and ..... and ......)
+    ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+    ;; Syntax Identifier -> Expression
+    ;; Produces an expression which raises an error reporting unfinished code.
+    (define (dots-error stx name)
+      (quasisyntax/loc stx
+        (error (quote (unsyntax name))
+               "expected a finished expression, but found a template")))
+
+    ;; Expression -> Expression
+    ;; Transforms unfinished code (... and the like) to code
+    ;; raising an appropriate error.
+    (define beginner-dots/proc
+      (make-set!-transformer
+       (lambda (stx)
+         
+         ;; this ensures that coverage happens; it lifts a constant
+         ;; expression to the top level, but one that has the source location of the dots expression
+         (syntax-local-lift-expression (datum->syntax #'here 1 stx))
+         
+         (syntax-case stx (set!)
+           [(set! form expr) (dots-error stx (syntax form))]
+           [(form . rest) (dots-error stx (syntax form))]
+           [form (dots-error stx stx)]))))
 
 
 

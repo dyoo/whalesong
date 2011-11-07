@@ -92,3 +92,30 @@
   (displayln (hash-ref ht 'name "unknown"))
   (displayln (hash-ref ht 'email "unknown"))
   (displayln (hash-ref ht 'phone "unknown")))
+
+
+
+(let ([ht (make-hash '((1 . one)
+                       (2 . two)))])
+  (hash-remove! ht 1)
+  (displayln (hash-ref ht 1 'not-there))
+  (displayln (hash-ref ht 2 'not-there)))
+
+(let* ([ht (make-immutable-hash '((1 . one)
+                                 (2 . two)))])
+  (hash-remove ht 1)
+  (displayln (hash-ref ht 1 'not-there))
+  (displayln (hash-ref ht 2 'not-there)))
+
+(let* ([ht (make-immutable-hash '((1 . one)
+                                 (2 . two)))]
+       [ht (hash-remove ht 1)])
+  (displayln (hash-ref ht 1 'not-there))
+  (displayln (hash-ref ht 2 'not-there)))
+
+(newline)
+"hash-has-key"
+(hash-has-key? (make-hash) 1)
+(hash-has-key? (make-hash '((1 . one))) 1)
+(hash-has-key? (make-immutable-hash) 1)
+(hash-has-key? (make-immutable-hash '((1 . one))) 1)

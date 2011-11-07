@@ -161,6 +161,8 @@
          hash-ref
          hash-set!
          hash-set
+         hash-remove!
+         hash-remove
          equal-hash-code
          
 
@@ -497,7 +499,11 @@ symbol->string
   placeholder-set!
 
   eof-object?
-  read-byte)
+  read-byte
+
+
+  hash-has-key?
+  )
 
 
 

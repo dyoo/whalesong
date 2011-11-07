@@ -99,8 +99,11 @@
                                     'make-immutable-hasheqv
                                     'make-immutable-hasheq
                                     'hash-ref
+                                    'hash-has-key?
                                     'hash-set!
                                     'hash-set
+                                    'hash-remove!
+                                    'hash-remove
                                     'equal-hash-code
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)

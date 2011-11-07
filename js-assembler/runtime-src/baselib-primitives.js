@@ -2628,6 +2628,15 @@
         });
 
     installPrimitiveProcedure(
+        'hash-has-key?',
+        2,
+        function(M) {
+            var hash = checkHash(M, 'hash-ref', 0);
+            var key = checkAny(M, 'hash-ref', 1);
+            return hash.containsKey(key);
+        });
+
+    installPrimitiveProcedure(
         'hash-set!',
         3,
         function(M){ 
@@ -2647,6 +2656,28 @@
             var value = checkAny(M, 'hash-set', 2);
             return hash.functionalPut(key, value);
         });
+
+
+    installPrimitiveProcedure(
+        'hash-remove!',
+        2,
+        function(M){ 
+            var hash = checkMutableHash(M, 'hash-remove!', 0);
+            var key = checkAny(M, 'hash-remove!', 1);
+            hash.remove(key);
+            return VOID;
+        });
+
+
+    installPrimitiveProcedure(
+        'hash-remove',
+        2,
+        function(M){ 
+            var hash = checkImmutableHash(M, 'hash-remove', 0);
+            var key = checkAny(M, 'hash-remove', 1);
+            return hash.functionalRemove(key);
+        });
+
 
     installPrimitiveProcedure(
         'hash-has-key?',

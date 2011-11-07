@@ -51,10 +51,17 @@
     };
 
 
+    var eq = function (x, y) { return x === y; };
+    var eqv = baselib.equality.eqv;
+    var equal = function (x, y) {
+        return baselib.equality.equals(x, y, new baselib.UnionFind()); 
+    };
+
+
     // Creates a low-level hashtable, following the interface of 
     // http://www.timdown.co.uk/jshashtable/
     var makeLowLevelEqHash = function () {
-        return new Hashtable(function (x) { return getEqHashCode(x); },
+        return new Hashtable(getEqHashCode,
                              function (x, y) { return x === y; });
     };
 
@@ -63,17 +70,17 @@
     var makeEqHashtable = function() { 
         return new WhalesongHashtable(
             "hasheq",
-            function (x) { return getEqHashCode(x); },
-            function (x, y) { return x === y; });
+            getEqHashCode,
+            eq,
+            new Hashtable(getEqHashCode, eq));
     };
 
     var makeEqualHashtable = function() {
         return new WhalesongHashtable(
             "hash",
             getEqualHashCode,
-            function (x, y) {
-                return baselib.equality.equals(x, y, new baselib.UnionFind()); 
-            })
+            equal,
+            new Hashtable(getEqualHashCode, equal));
     };
     
     
@@ -81,7 +88,8 @@
         return new WhalesongHashtable(
             "hasheqv",
             getEqvHashCode,
-            baselib.equality.eqv);
+            baselib.equality.eqv,
+            new Hashtable(getEqvHashCode, baselib.equality.eqv));
     };
 
 
@@ -92,7 +100,7 @@
             if (hx < hy) { return -1; }
             if (hx > hy) { return 1; }
             
-            if eq(x, y) { return 0; }
+            if (eq(x, y)) { return 0; }
 
             hx = getEqHashCode(x);
             hy = getEqHashCode(y);
@@ -109,11 +117,11 @@
     //////////////////////////////////////////////////////////////////////
     // Whalesong's Hashtables are a thin wrapper around the mutable Hashtable
     // class to make it printable and equatable.
-    var WhalesongHashtable = function (type, hash_function, equality_function) {
+    var WhalesongHashtable = function (type, hash_function, equality_function, hash) {
         this.type = type;
         this.hash_function = hash_function;
         this.equality_function = equality_function;
-        this.hash = new Hashtable(hash_function, equality_function);
+        this.hash = hash;
     };
 
     WhalesongHashtable.prototype.toWrittenString = function (cache) {
@@ -272,15 +280,22 @@
     };
 
     WhalesongImmutableHashtable.prototype.put = function(key, value) {
-        // this.hash.put(key, value);
+        throw new Error();
+    };
+
+    WhalesongImmutableHashtable.prototype.functionalPut = function(key, value) {
     };
 
     WhalesongImmutableHashtable.prototype.remove = function(key) {
+        throw new Error();
+    };
+
+    WhalesongImmutableHashtable.prototype.functionalRemove = function(key) {
         // this.hash.remove(key);
     };
 
     WhalesongImmutableHashtable.prototype.containsKey = function(key) {
-        // return this.hash.containsKey(key);
+        return this.map.contains(key);
     };
 
     WhalesongImmutableHashtable.prototype.isImmutable = function() { 
@@ -307,11 +322,6 @@
     var isHashEq = function (x) { 
         return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'eq';
     };
-
-
-
-
-
 
 
 

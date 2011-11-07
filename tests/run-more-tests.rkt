@@ -32,7 +32,8 @@
 (test "more-tests/earley.rkt")
 (test "more-tests/view.rkt")
 (test "more-tests/weird-cc.rkt")
-
+(test "more-tests/hashes.rkt")
+(test "more-tests/hash-code.rkt")
 
 (test "more-tests/booleans-cs019.rkt")
 (test "more-tests/checking-cs019.rkt")

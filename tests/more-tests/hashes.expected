@@ -1,0 +1,23 @@
+false
+false
+true
+true
+true
+true
+true
+true
+#hash()
+#hasheqv()
+#hasheq()
+#hash((4 . four) (3 . three) (2 . two) (1 . one))
+#hasheqv((4 . four) (3 . three) (2 . two) (1 . one))
+#hasheq((4 . four) (3 . three) (2 . two) (1 . one))
+one
+not-found
+1
+2
+2
+1
+1
+1
+1

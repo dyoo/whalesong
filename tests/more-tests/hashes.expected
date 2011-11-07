@@ -21,6 +21,9 @@ not-found
 1
 1
 1
+#hash((1 . one) (2 . two) (3 . three) (4 . four))
+#hasheqv((1 . one) (2 . two) (3 . three) (4 . four))
+#hasheq((1 . one) (2 . two) (3 . three) (4 . four))
 true
 true
 true

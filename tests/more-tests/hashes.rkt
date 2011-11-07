@@ -64,6 +64,19 @@
 (hash-ref ht "test!")
 
 
+
+(make-immutable-hash '((1 . one)
+                       (2 . two)
+                       (3 . three)
+                       (4 . four)))
+(make-immutable-hasheqv '((1 . one)
+                          (2 . two)
+                          (3 . three)
+                          (4 . four)))
+(make-immutable-hasheq '((1 . one)
+                         (2 . two)
+                         (3 . three)
+                         (4 . four)))
 (hash? (make-immutable-hash))
 (hash? (make-immutable-hasheq))
 (hash? (make-immutable-hasheqv))

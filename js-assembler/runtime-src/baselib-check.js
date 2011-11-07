@@ -258,6 +258,23 @@
     var checkHash = makeCheckArgumentType(
         baselib.hashes.isHash,
         'hash');
+    var checkHasheq = makeCheckArgumentType(
+        baselib.hashes.isHasheq,
+        'hash');
+    var checkHasheqv = makeCheckArgumentType(
+        baselib.hashes.isHasheqv,
+        'hash');
+    var checkMutableHash = makeCheckArgumentType(
+        function(x) { return baselib.hashes.isHash(x) && ! x.isImmutable()},
+        'mutable hash');
+    var checkImmutableHash = makeCheckArgumentType(
+        function(x) { return baselib.hashes.isHash(x) && x.isImmutable()},
+        'immutable hash');
+
+
+
+
+
 
     //////////////////////////////////////////////////////////////////////
 
@@ -298,5 +315,7 @@
     exports.checkContinuationPromptTag = checkContinuationPromptTag;
     exports.checkExn = checkExn;
     exports.checkHash = checkHash;
+    exports.checkImmutableHash = checkImmutableHash;
+    exports.checkMutableHash = checkMutableHash;
 
 }(this.plt.baselib));

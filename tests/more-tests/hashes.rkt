@@ -62,3 +62,11 @@
 (hash-ref ht "that")
 (hash-ref ht "only")
 (hash-ref ht "test!")
+
+
+(let* ([ht (make-immutable-hash)]
+       [ht (hash-set ht 'name "danny")]
+       [ht (hash-set ht 'email "dyoo@hashcollision.org")])
+  (displayln (hash-ref ht 'name "unknown"))
+  (displayln (hash-ref ht 'email "unknown"))
+  (displayln (hash-ref ht 'phone "unknown")))

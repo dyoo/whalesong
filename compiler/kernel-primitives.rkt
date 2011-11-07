@@ -93,10 +93,13 @@
                                     'make-hash
                                     'make-hasheqv
                                     'make-hasheq
+                                    'make-immutable-hash
+                                    'make-immutable-hasheqv
+                                    'make-immutable-hasheq
                                     'hash-ref
                                     'hash-set!
+                                    'hash-set
                                     'equal-hash-code
-                                    
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

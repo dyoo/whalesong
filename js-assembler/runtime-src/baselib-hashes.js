@@ -66,7 +66,6 @@
     };
 
 
-
     var makeEqHashtable = function() { 
         return new WhalesongHashtable(
             "hasheq",
@@ -88,8 +87,21 @@
         return new WhalesongHashtable(
             "hasheqv",
             getEqvHashCode,
-            baselib.equality.eqv,
-            new Hashtable(getEqvHashCode, baselib.equality.eqv));
+            eqv,
+            new Hashtable(getEqvHashCode, eqv));
+    };
+
+
+    var makeImmutableEqHashtable = function() { 
+        return makeEqHashtable().toImmutable();
+    };
+
+    var makeImmutableEqualHashtable = function() {
+        return makeEqualHashtable().toImmutable();
+    };
+        
+    var makeImmutableEqvHashtable = function() {
+        return makeEqvHashtable().toImmutable();
     };
 
 
@@ -109,9 +121,6 @@
             return 0;
         }
     };
-
-
-
 
 
     //////////////////////////////////////////////////////////////////////
@@ -187,8 +196,16 @@
         this.hash.put(key, value);
     };
 
+    WhalesongHashtable.prototype.functionalPut = function(key, value) {
+        return this.toImmutable().functionalPut(key, value);
+    };
+
     WhalesongHashtable.prototype.remove = function(key) {
         this.hash.remove(key);
+    };
+
+    WhalesongHashtable.prototype.functionalRemove = function(key) {
+        return this.toImmutable().functionalRemove(key);
     };
 
     WhalesongHashtable.prototype.containsKey = function(key) {
@@ -199,6 +216,20 @@
         return false;
     };
 
+    WhalesongHashtable.prototype.toImmutable = function() {
+        var keycmp = makeComparator(this.hash_function, this.equality_function)
+        var immutable = new WhalesongImmutableHashtable(
+            this.type,
+            this.hash_function,
+            this.equality_function,
+            LLRBTree.makeMap(keycmp));
+        var keys = this.hash.keys();
+        var i;
+        for (i = 0; i < keys.length; i++) {
+            immutable = immutable.functionalPut(keys[i], this.hash.get(keys[i]));
+        }
+        return immutable;
+    };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -206,12 +237,14 @@
     // Whalesong's immutable hashtables are a thin wrapper around the
     // llrbtree class to make it printable and equatable.
     // llrbtree comes from: https://github.com/dyoo/js-llrbtree
-    var WhalesongImmutableHashtable = function (type, hash_function, equality_function) {
+    var WhalesongImmutableHashtable = function (type,
+                                                hash_function,
+                                                equality_function,
+                                                map) {
         this.type = type;
         this.hash_function = hash_function;
         this.equality_function = equality_function;
-        this.keycmp = makeComparator(hash_function, equality_function);
-        this.map = LLRBTree.makeMap(keycmp);
+        this.map = map;
     };
 
     WhalesongImmutableHashtable.prototype.toWrittenString = function (cache) {
@@ -249,7 +282,6 @@
         if (litems.length !== ritems.length) { 
             return false;
         }
-
         var i;
         for (i = 0; i < litems.length; i++) {
             if (!(baselib.equality.equals(litems[i][0], ritems[i][0], aUnionFind))) {
@@ -284,6 +316,10 @@
     };
 
     WhalesongImmutableHashtable.prototype.functionalPut = function(key, value) {
+        return new WhalesongImmutableHashtable(this.type,
+                                               this.hash_function,
+                                               this.equality_function,
+                                               this.map.put(key, value));
     };
 
     WhalesongImmutableHashtable.prototype.remove = function(key) {
@@ -291,7 +327,10 @@
     };
 
     WhalesongImmutableHashtable.prototype.functionalRemove = function(key) {
-        // this.hash.remove(key);
+        return new WhalesongImmutableHashtable(this.type,
+                                               this.hash_function,
+                                               this.equality_function,
+                                               this.map.remove(key));
     };
 
     WhalesongImmutableHashtable.prototype.containsKey = function(key) {
@@ -302,12 +341,6 @@
         return true;
     };
     //////////////////////////////////////////////////////////////////////    
-
-
-
-
-
-
 
 
 
@@ -322,8 +355,6 @@
     var isHashEq = function (x) { 
         return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'eq';
     };
-
-
 
 
 
@@ -377,6 +408,8 @@
 
     exports.getEqHashCode = getEqHashCode;
     exports.getEqualHashCode = getEqualHashCode;
+    exports.getEqvHashCode = getEqvHashCode;
+
     exports.hashMix = hashMix;
 
     exports.makeEqHashCode = makeEqHashCode;
@@ -386,9 +419,11 @@
     exports.makeEqvHashtable = makeEqvHashtable;
     exports.makeEqualHashtable = makeEqualHashtable;
 
+    exports.makeImmutableEqHashtable = makeImmutableEqHashtable;
+    exports.makeImmutableEqvHashtable = makeImmutableEqvHashtable;
+    exports.makeImmutableEqualHashtable = makeImmutableEqualHashtable;
+
     exports.isHash = isHash;
     exports.isHashEqv = isHashEqv;
     exports.isHashEq = isHashEq;
-
-
 }(window.plt.baselib, Hashtable));

@@ -15,6 +15,7 @@
     // show up outside this section!
     var isNumber = baselib.numbers.isNumber;
 
+    var isProcedure = baselib.functions.isProcedure;
     var isReal = baselib.numbers.isReal;
     var isInexact = baselib.numbers.isInexact;
     var isComplex = baselib.numbers.isComplex;
@@ -118,16 +119,12 @@
     var checkContinuationMarkSet = baselib.check.checkContinuationMarkSet;
     var checkExn = baselib.check.checkExn;
     var checkHash = baselib.check.checkHash;
+    var checkMutableHash = baselib.check.checkMutableHash;
+    var checkImmutableHash = baselib.check.checkImmutableHash;
     var checkAny = baselib.check.makeCheckArgumentType(
         function(x) { return true; },
         'any');
     //////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
 
 
 
@@ -1385,7 +1382,7 @@
         'procedure?',
         1,
         function (M) {
-            return baselib.functions.isProcedure(M.e[M.e.length - 1]);
+            return isProcedure(M.e[M.e.length - 1]);
         });
 
     installPrimitiveProcedure(
@@ -2504,6 +2501,15 @@
 	return hash;
     };
 
+    var initializeImmutableHash = function(lst, hash) {
+	while (lst !== NULL) {
+	    hash = hash.functionalPut(lst.first.first, lst.first.rest);
+	    lst = lst.rest;
+	}
+	return hash;
+    };
+
+
     installPrimitiveProcedure(
         'hash?',
         1,
@@ -2544,15 +2550,48 @@
             return initializeHash(lst, plt.baselib.hashes.makeEqualHashtable());
         });
 
+    installPrimitiveProcedure(
+        'make-immutable-hasheq',
+        makeList(0, 1),
+        function(M) {
+            var lst = NULL;
+            if (M.a === 1) {
+                lst = checkListofPairs(M, 'make-hasheq', 0);
+            }
+            return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqHashtable());
+        });
+
+    installPrimitiveProcedure(
+        'make-immutable-hasheqv',
+        makeList(0, 1),
+        function(M) {
+            var lst = NULL;
+            if (M.a === 1) {
+                lst = checkListofPairs(M, 'make-hasheqv', 0);
+            }
+            return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqvHashtable());
+        });
+
+    installPrimitiveProcedure(
+        'make-immutable-hash',
+        makeList(0, 1),
+        function(M) {
+            var lst = NULL;
+            if (M.a === 1) {
+                lst = checkListofPairs(M, 'make-hash', 0);
+            }
+            return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqualHashtable());
+        });
+
     installPrimitiveClosure(
         'hash-ref',
         makeList(2, 3),
         function(M) {
             var hash = checkHash(M, 'hash-ref', 0);
             var key = checkAny(M, 'hash-ref', 1);
-            var thunk;
+            var thunkOrFailVal;
             if (M.a === 3) {
-                thunk = checkProcedure(M, 'hash-ref', 2);
+                thunkOrFailVal = checkAny(M, 'hash-ref', 2);
             }
             if (hash.containsKey(key)) {
                 finalizeClosureCall(M, hash.get(key));
@@ -2562,11 +2601,15 @@
                         M,
                         baselib.format.format("hash-ref: no value found for key: ~e",
                                            [key]));
-                } else {                    
-                    M.p = thunk;
-                    M.e.length -= M.a;
-                    M.a = 0;
-                    baselib.functions.rawApply(M);
+                } else {
+                    if (isProcedure(thunkOrFailVal)) {
+                        M.p = thunkOrFailVal;
+                        M.e.length -= M.a;
+                        M.a = 0;
+                        baselib.functions.rawApply(M);
+                    } else {
+                        finalizeClosureCall(M, thunkOrFailVal);
+                    }
                 }
             }
         });
@@ -2575,11 +2618,21 @@
         'hash-set!',
         3,
         function(M){ 
-            var hash = checkHash(M, 'hash-set!', 0);
+            var hash = checkMutableHash(M, 'hash-set!', 0);
             var key = checkAny(M, 'hash-set!', 1);
             var value = checkAny(M, 'hash-set!', 2);
             hash.put(key, value);
             return VOID;
+        });
+
+    installPrimitiveProcedure(
+        'hash-set',
+        3,
+        function(M){ 
+            var hash = checkImmutableHash(M, 'hash-set', 0);
+            var key = checkAny(M, 'hash-set', 1);
+            var value = checkAny(M, 'hash-set', 2);
+            return hash.functionalPut(key, value);
         });
 
     installPrimitiveProcedure(

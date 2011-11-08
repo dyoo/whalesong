@@ -11,6 +11,7 @@
          "resource/structs.rkt"
          "logger.rkt"
          "parameters.rkt"
+         planet/version
          (for-syntax racket/base))
 
 (provide (all-defined-out))
@@ -257,3 +258,7 @@
                (make-MainModuleSource 
                 (normalize-path (build-path filename))))
               (current-output-port)))))
+
+
+(define (print-version)
+  (printf "~a\n" (this-package-version)))

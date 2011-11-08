@@ -996,7 +996,9 @@
                 this.id = navigator.geolocation.watchPosition(
                     success,
                     onFailSwitchoverToCoerse,
-                    { enableHighAccuracy : true }); 
+                    { enableHighAccuracy : true,
+                      // Try every ten seconds
+                      maximumAge : 10000}); 
             }
         }
     };

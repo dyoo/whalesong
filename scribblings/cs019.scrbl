@@ -71,6 +71,14 @@ dependencies, and its documentation.  When it finally finishes,
 you should see a @filepath{whalesong} launcher in the current
 directory.
 
+If you see the following error message during installation:
+@verbatim|{
+raco setup: error: during Building docs for ...scribblings/manual.scrbl
+raco setup:   require: unknown module: 'program
+}|
+please ignore it: it is due to a bug in Racket's documentation
+generator.
+
 
 
 @section{Examples}

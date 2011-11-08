@@ -1264,5 +1264,6 @@ and suggesting improvements.
    "Gregor Kiczales"
    "Cristina Teodoropol"
    "Matthew Flatt"
+   "Keith Decker"
 ) string<?))
 )

@@ -133,6 +133,10 @@
         this.hash = hash;
     };
 
+    WhalesongHashtable.prototype.clone = function() {
+        return new WhalesongHashtable(this.type, this.hash_function, this.equality_function, this.hash.clone());
+    };
+
     WhalesongHashtable.prototype.toWrittenString = function (cache) {
         var keys = this.hash.keys();
         var ret = [], i;

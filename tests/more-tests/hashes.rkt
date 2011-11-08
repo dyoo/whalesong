@@ -125,3 +125,10 @@
 (hasheqv 1 'one 2 'two)
 (hasheq 1 'one 2 'two)
 
+
+(newline)
+(let* ([h1 (make-hash '((a . "A")))]
+       [h2 (hash-copy h1)])
+  (hash-set! h2 'a "alphabet")
+  (displayln (hash-ref h1 'a))
+  (displayln (hash-ref h2 'a)))

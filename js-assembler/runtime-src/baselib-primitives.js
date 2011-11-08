@@ -2571,6 +2571,13 @@
             return initializeHash(lst, plt.baselib.hashes.makeEqualHashtable());
         });
 
+    installPrimitiveProcedure(
+        'hash-copy',
+        1,
+        function(M) {
+            var hash = checkMutableHash(M, 'hash-copy', 0);
+            return hash.clone();
+        });
 
     installPrimitiveProcedure(
         'hash',

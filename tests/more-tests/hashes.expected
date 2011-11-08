@@ -52,3 +52,6 @@ true
 #hash((1 . one) (2 . two))
 #hasheqv((1 . one) (2 . two))
 #hasheq((1 . one) (2 . two))
+
+A
+alphabet

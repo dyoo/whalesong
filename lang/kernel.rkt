@@ -161,6 +161,7 @@
          make-immutable-hash
          make-immutable-hasheqv
          make-immutable-hasheq
+         hash-copy
          hash-ref
          hash-set!
          hash-set

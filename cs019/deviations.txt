@@ -1,6 +1,5 @@
 Misc
 ===
-string-copy
 exit
 sleep
 delay
@@ -12,10 +11,6 @@ state
 match
 Char
 name
-......
-....
-..
-...
 module-begin
 define-datatype
 recur
@@ -62,32 +57,13 @@ pretty-print
 
 Hashes
 ===
-make-hasheq
-make-hasheqv
-make-hash
-make-immutable-hash
-make-immutable-hasheq
-make-immutable-hasheqv
-hash
-hash?
-hash-eq?
-hash-eqv?
-hash-copy
-hash-count
-hash-equal?
-hash-remove!
-hash-ref
-hash-set
-hash-set!
 hash-for-each
 hash-iterate-first
 hash-map
-hash-remove
 hash-iterate-key
 hash-iterate-next
 hash-iterate-value
 hash-update
-hash-has-key?
 hash-ref!
 hash-update!
 

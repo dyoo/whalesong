@@ -8,8 +8,24 @@
 (car (cdr infinite-ones))
 (car (cdr (cdr infinite-ones)))
 
+(newline)
+(equal? (shared ([a (cons 1 (cons 2 a))])
+                a)
+        (shared ([a (cons 1 b)]
+                 [b (cons 2 c)]
+                 [c (cons 1 b)])
+                a))
+(equal? (shared ([a (cons 1 (cons 2 a))])
+                a)
+        (shared ([a (cons 1 b)]
+                 [b (cons 2 b)])
+                a))
 
 
+
+
+
+(newline)
 (define 1-and-2 (shared ([a (cons 1 b)]
                          [b (cons 2 a)])
                         a))

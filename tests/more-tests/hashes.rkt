@@ -132,3 +132,9 @@
   (hash-set! h2 'a "alphabet")
   (displayln (hash-ref h1 'a))
   (displayln (hash-ref h2 'a)))
+
+
+(newline)
+(hash-count (make-hash '((a . a))))
+(hash-count (make-immutable-hash '((b . b)
+                                   (c . d))))

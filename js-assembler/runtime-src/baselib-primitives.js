@@ -2578,6 +2578,13 @@
             var hash = checkMutableHash(M, 'hash-copy', 0);
             return hash.clone();
         });
+    
+    installPrimitiveProcedure(
+        'hash-count',
+        1,
+        function(M) {
+            return checkHash(M, 'hash-count', 0).size();
+        });
 
     installPrimitiveProcedure(
         'hash',

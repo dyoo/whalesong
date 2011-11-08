@@ -168,6 +168,7 @@
          hash-remove!
          hash-remove
          equal-hash-code
+         hash-count
          
 
 

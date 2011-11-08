@@ -137,6 +137,10 @@
         return new WhalesongHashtable(this.type, this.hash_function, this.equality_function, this.hash.clone());
     };
 
+    WhalesongHashtable.prototype.size = function() {
+        return this.hash.size();
+    };
+
     WhalesongHashtable.prototype.toWrittenString = function (cache) {
         var keys = this.hash.keys();
         var ret = [], i;
@@ -250,6 +254,11 @@
         this.equality_function = equality_function;
         this.map = map;
     };
+
+    WhalesongImmutableHashtable.prototype.size = function() {
+        return this.map.items().length;
+    };
+
 
     WhalesongImmutableHashtable.prototype.toWrittenString = function (cache) {
         var items = this.map.items();

@@ -150,6 +150,7 @@
 	 with-continuation-mark
 
          hash?
+         hash-equal?
          hash-eq?
          hash-eqv?
          hash

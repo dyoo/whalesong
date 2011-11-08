@@ -361,6 +361,10 @@
         return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable);
     };
 
+    var isHashEqual = function (x) { 
+        return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'hash';
+    };
+
     var isHashEqv = function (x) { 
         return (x instanceof WhalesongHashtable || x instanceof WhalesongImmutableHashtable) && x.type === 'hasheqv';
     };
@@ -437,6 +441,8 @@
     exports.makeImmutableEqualHashtable = makeImmutableEqualHashtable;
 
     exports.isHash = isHash;
+
+    exports.isHashEqual = isHashEqual;
     exports.isHashEqv = isHashEqv;
     exports.isHashEq = isHashEq;
 }(window.plt.baselib, Hashtable));

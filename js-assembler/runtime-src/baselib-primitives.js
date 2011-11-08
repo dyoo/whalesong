@@ -2525,6 +2525,12 @@
             return baselib.hashes.isHash(checkAny(M, 'hash?', 0));
         });
     installPrimitiveProcedure(
+        'hash-equal?',
+        1,
+        function(M) {
+            return baselib.hashes.isHashEqual(checkAny(M, 'hash-equal?', 0));
+        });
+    installPrimitiveProcedure(
         'hash-eq?',
         1,
         function(M) {

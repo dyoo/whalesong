@@ -90,6 +90,7 @@
                                     'prop:exn:srclocs
 
                                     'hash?
+                                    'hash-equal?
                                     'hash-eq?
                                     'hash-eqv?
                                     'hash

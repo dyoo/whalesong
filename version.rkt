@@ -6,4 +6,4 @@
 
 (provide version)
 (: version String)
-(define version "1.71")
+(define version "1.72")

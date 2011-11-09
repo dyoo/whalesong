@@ -438,9 +438,9 @@ box?
   string-append
   string->list
   list->string
-;;  string-copy
-string->symbol
-symbol->string
+  string->symbol
+  symbol->string
+  
   format
   printf
   fprintf

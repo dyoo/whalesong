@@ -195,6 +195,18 @@
             return VOID;
         });
 
+    installPrimitiveProcedure(
+        'write',
+        makeList(1, 2),
+        function (M) {
+            var firstArg = M.e[M.e.length - 1];
+            var outputPort = M.params.currentOutputPort;
+            if (M.a === 2) {
+                outputPort = checkOutputPort(M, 'write', 1);
+            }
+            outputPort.writeDomNode(M, toDomNode(firstArg, 'write'));
+            return VOID;
+        });
 
     installPrimitiveProcedure(
         'write-byte',

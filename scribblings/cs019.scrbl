@@ -32,7 +32,8 @@
                                 symbol? symbol=?
                                 current-output-port
                                 lambda
-                                true false)))
+                                true false
+                                ...)))
 
 @(define-runtime-path whalesong-path "..")
 
@@ -64,12 +65,20 @@ Run the following to create the @filepath{whalesong} launcher program in
 your current directory.
 @codeblock|{
 #lang racket/base
-(require (planet dyoo/whalesong:1:5/make-launcher))
+(require (planet dyoo/whalesong:1:6/make-launcher))
 }|
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,
 you should see a @filepath{whalesong} launcher in the current
 directory.
+
+If you see the following error message during installation:
+@verbatim|{
+raco setup: error: during Building docs for ...scribblings/manual.scrbl
+raco setup:   require: unknown module: 'program
+}|
+please ignore it: it is due to a bug in Racket's documentation
+generator.
 
 
 
@@ -118,7 +127,7 @@ However, it can also be packaged with @filepath{whalesong}.
     $ ls -l hello.html
     -rw-r--r-- 1 dyoo dyoo 3817 2011-09-10 15:02 hello.html
     $ ls -l hello.js
-    -rw-r--r-- 1 dyoo dyoo 2129028 2011-09-10 15:02 hello.js
+    -rw-r--r-- 1 dyoo dyoo 1146428 2011-09-10 15:02 hello.js
 }|
 
 Running @tt{whalesong build} will produce @filepath{.html} and

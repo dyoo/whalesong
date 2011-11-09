@@ -195,7 +195,7 @@ If you want to use Whalesong off of PLaneT, run the following to create
 the @filepath{whalesong} launcher:
 @codeblock|{
 #lang racket/base
-(require (planet dyoo/whalesong:1:5/make-launcher))
+(require (planet dyoo/whalesong:1:6/make-launcher))
 }|
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,
@@ -261,7 +261,7 @@ However, it can also be packaged with @filepath{whalesong}.
     $ ls -l hello.html
     -rw-r--r-- 1 dyoo dyoo 3817 2011-09-10 15:02 hello.html
     $ ls -l hello.js
-    -rw-r--r-- 1 dyoo dyoo 2129028 2011-09-10 15:02 hello.js
+    -rw-r--r-- 1 dyoo dyoo 841948 2011-09-10 15:02 hello.js
 
 }|
 
@@ -331,12 +331,12 @@ function and define it in a module called @filepath{fact.rkt}:
 
 @margin-note{
 The files can also be downloaded here: 
-@itemlist[@item{@link["http://hashcollision.org/whalesong/examples/fact/fact.rkt"]{fact.rkt}} 
-@item{@link["http://hashcollision.org/whalesong/examples/fact/index.html"]{index.html}}]
+@itemlist[@item{@link["http://hashcollision.org/whalesong/fact-example/fact.rkt"]{fact.rkt}} 
+@item{@link["http://hashcollision.org/whalesong/fact-example/index.html"]{index.html}}]
 with generated JavaScript binaries here:
 @itemlist[
-@item{@link["http://hashcollision.org/whalesong/examples/fact/fact.js"]{fact.js}}
-@item{@link["http://hashcollision.org/whalesong/examples/fact/runtime.js"]{runtime.js}}
+@item{@link["http://hashcollision.org/whalesong/fact-example/fact.js"]{fact.js}}
+@item{@link["http://hashcollision.org/whalesong/fact-example/runtime.js"]{runtime.js}}
 ]
 }
 
@@ -415,7 +415,7 @@ The factorial of 10000 is <span id="answer">being computed</span>.
 }|
 }
 
-@margin-note{See: @link["http://hashcollision.org/whalesong/examples/fact/bad-index.html"]{bad-index.html}.}
+@margin-note{See: @link["http://hashcollision.org/whalesong/fact-example/bad-index.html"]{bad-index.html}.}
 Replacing the @racket[10000] with @racket["one-billion-dollars"] should
 reliably produce a proper error message.
 

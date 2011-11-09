@@ -2,8 +2,8 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Minor update: bug fix to prevent crashes on iOS 5.")))
-(define version "1.6")
+(define release-notes '((p "Added primitives: hash-keys, hash-values, hash-for-each, hash-map, write")))
+(define version "1.7")
 (define categories '(devtools))
 (define repositories '("4.x"))
 (define required-core-version "5.1.1")

@@ -139,7 +139,7 @@ There are several other files generated as part of the application
 besides the main @filepath{.html} and the @filepath{.js}.  Several of
 these files provide Internet Explorer compatibility and should be
 included during distribution.  The @filepath{.appcache} file, too,
-should be included, as it catalog the files in the application, and is
+should be included, as it catalogs the files in the application, and is
 used to enable offline
 @link["http://www.w3.org/TR/html5/offline.html"]{HTML application
 support}.

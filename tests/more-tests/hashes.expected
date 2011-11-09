@@ -76,6 +76,8 @@ true
 (author name)
 (graham-knuth-patashnik concrete-mathematics)
 (graham-knuth-patashnik concrete-mathematics)
+((graham-knuth-patashnik author) (concrete-mathematics name))
+((graham-knuth-patashnik author) (concrete-mathematics name))
 "author"
 "name"
 "graham-knuth-patashnik"

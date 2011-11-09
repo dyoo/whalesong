@@ -127,59 +127,10 @@
 
 
 
-    // This value will be dynamically determined.
-    // See findStackLimit later in this file.
-    var STACK_LIMIT_ESTIMATE = 100;
-
-    // Approximately find the stack limit.
-    // This function assumes, on average, five variables or
-    // temporaries per stack frame.
-    // This will never report a number greater than MAXIMUM_CAP.
-    var findStackLimit = function(after) {
-	var MAXIMUM_CAP = 32768;
-	var n = 1;
-	var limitDiscovered = false;
-	setTimeout(
-	    function() {
-		if(! limitDiscovered) {
-		    limitDiscovered = true;
-		    after(n);
-		}
-	    },
-	    0);
-        var loop1, loop2;
-	loop1 = function loop1(x, y, z, w, k) {
-	    // Ensure termination, just in case JavaScript ever
-	    // does eliminate stack limits.
-	    if (n >= MAXIMUM_CAP) { return; }
-	    n++;
-	    return 1 + loop2(y, z, w, k, x);
-	};
-	loop2 = function loop2(x, y, z, w, k) {
-	    n++;
-	    return 1 + loop1(y, z, w, k, x);
-	};
-	try {
-	    findStackLimit.dontCare = 1 + loop1(2, "seven", [1], {number: 8}, 2);
-	} catch (e) {
-	    // ignore exceptions.
-	}
-	if (! limitDiscovered) { 
-	    limitDiscovered = true;
-	    after(n);
-	}
-    };
-
-
-    // Schedule a stack limit estimation.  If it fails, no harm, no
-    // foul (hopefully!)
-    setTimeout(function() {
-	findStackLimit(function(v) {
-	    // Trying to be a little conservative.
-	    STACK_LIMIT_ESTIMATE = Math.floor(v / 10);
-	});
-    },
-	       0);
+    // This value used to be dynamically determined, but something on iOS5
+    // breaks badly when I try this.
+    // We're very conservative now.
+     var STACK_LIMIT_ESTIMATE = 200;
 
 
 

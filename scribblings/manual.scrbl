@@ -331,12 +331,12 @@ function and define it in a module called @filepath{fact.rkt}:
 
 @margin-note{
 The files can also be downloaded here: 
-@itemlist[@item{@link["http://hashcollision.org/whalesong/examples/fact/fact.rkt"]{fact.rkt}} 
-@item{@link["http://hashcollision.org/whalesong/examples/fact/index.html"]{index.html}}]
+@itemlist[@item{@link["http://hashcollision.org/whalesong/fact-example/fact.rkt"]{fact.rkt}} 
+@item{@link["http://hashcollision.org/whalesong/fact-example/index.html"]{index.html}}]
 with generated JavaScript binaries here:
 @itemlist[
-@item{@link["http://hashcollision.org/whalesong/examples/fact/fact.js"]{fact.js}}
-@item{@link["http://hashcollision.org/whalesong/examples/fact/runtime.js"]{runtime.js}}
+@item{@link["http://hashcollision.org/whalesong/fact-example/fact.js"]{fact.js}}
+@item{@link["http://hashcollision.org/whalesong/fact-example/runtime.js"]{runtime.js}}
 ]
 }
 
@@ -415,7 +415,7 @@ The factorial of 10000 is <span id="answer">being computed</span>.
 }|
 }
 
-@margin-note{See: @link["http://hashcollision.org/whalesong/examples/fact/bad-index.html"]{bad-index.html}.}
+@margin-note{See: @link["http://hashcollision.org/whalesong/fact-example/bad-index.html"]{bad-index.html}.}
 Replacing the @racket[10000] with @racket["one-billion-dollars"] should
 reliably produce a proper error message.
 

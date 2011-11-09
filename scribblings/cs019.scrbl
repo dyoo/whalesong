@@ -141,7 +141,7 @@ these files provide Internet Explorer compatibility and should be
 included during distribution.  The @filepath{.appcache} file, too,
 should be included, as it catalog the files in the application, and is
 used to enable offline
-@link["http://diveintohtml5.org/offline.html"]{HTML application
+@link["http://www.w3.org/TR/html5/offline.html"]{HTML application
 support}.
 
 

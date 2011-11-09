@@ -32,7 +32,8 @@
                                 symbol? symbol=?
                                 current-output-port
                                 lambda
-                                true false)))
+                                true false
+                                ...)))
 
 @(define-runtime-path whalesong-path "..")
 

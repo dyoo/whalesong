@@ -29,7 +29,8 @@
                                 number?
                                 newline
                                 current-output-port
-                                display))
+                                display
+                                ...))
           (for-label (this-package-in resource)
           (for-label (this-package-in web-world))))
 

@@ -891,9 +891,160 @@ even if the id does not currently exist on the page.
 
 
 
-@section{Known bugs}
+@section{Known bugs and deviations}
 
 Whalesong's compiler doesn't know how to compile programs with
 embedded image snips.  You can work around this by using
 @racket[define-resource], and save an image file in the same directory
 as your source.
+
+@subsection{Deviations from the regular cs019 language}
+
+Most of the basic cs019 forms have been implemented in Whalesong's
+implementation, but some functions and syntax have not yet been
+implemented.  Here is the complete list of deviations:
+@verbatim|{
+Misc
+===
+exit
+sleep
+delay
+promise
+force
+time
+identity
+state
+match
+Char
+name
+module-begin
+define-datatype
+recur
+
+
+Testing
+===
+check-range
+check-error
+check-within
+check-member-of
+check-property
+check-with
+equal~?
+cons-of
+=~
+
+Lists
+===
+caaar
+caadr
+cdar
+cddr
+cadar
+cdaar
+cdadr
+cddar
+cadddr
+caddr
+cdddr
+sort
+quicksort
+
+IO
+===
+with-output-to-file
+with-input-from-file
+with-output-from-string
+with-output-to-string
+read
+print
+pretty-print
+
+
+Hashes
+===
+hash-iterate-first
+hash-iterate-key
+hash-iterate-next
+hash-iterate-value
+hash-update
+hash-ref!
+hash-update!
+
+
+Images & Universe
+===
+register
+universe
+animate
+run-simulation
+run-movie
+LOCALHOST
+on-receive
+on-mouse
+on-new
+on-msg
+on-disconnect
+on-key
+on-release
+stop-with
+on-draw
+make-bundle
+iworld-name
+iworld?
+make-package
+package?
+bundle?
+mail?
+iworld=?
+make-mail
+iworld1
+iworld2
+iworld3
+sexp?
+launch-many-worlds
+mouse-event?
+record?
+bitmap
+key-event?
+key=?
+Key$
+image=?
+pen
+pen-color
+pen-style
+pen-cap
+pen-join
+make-pen
+pen-width
+color-list->bitmap
+pinhole-x
+pinhole-y
+center-pinhole
+put-pinthole
+clear-pinhole
+freeze
+save-image
+overlay/pinhole
+underlay/pinhole
+overlay/offset
+overlay/align/offset
+underlay/align/offset
+underlay/offset
+pen-cap?
+real-valued-posn?
+pen-join?
+pen-style?
+scene+curve
+triangle/asa
+triangle/sas
+triangle/aas
+triangle/ssa
+triangle/ass
+triangle/sss
+triangle/saa
+polygon
+empty-image
+add-curve
+to-string
+}|

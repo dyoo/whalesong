@@ -57,9 +57,7 @@ pretty-print
 
 Hashes
 ===
-hash-for-each
 hash-iterate-first
-hash-map
 hash-iterate-key
 hash-iterate-next
 hash-iterate-value

@@ -170,8 +170,6 @@
          hash-remove
          equal-hash-code
          hash-count
-         hash-keys
-         hash-values
 
 
          ;; Kernel inlinable
@@ -511,6 +509,8 @@ symbol->string
 
 
   hash-has-key?
+  hash-keys
+  hash-values
   )
 
 

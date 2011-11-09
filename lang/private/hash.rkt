@@ -11,7 +11,7 @@
     (if (null? keys)
         '()
         (cons (f (car keys) (hash-ref a-hash (car keys)))
-              (loop (rest keys))))))
+              (loop (cdr keys))))))
 
 
 (define (hash-for-each a-hash f)
@@ -24,6 +24,6 @@
         (void)
         (begin
           (f (car keys) (hash-ref a-hash (car keys)))
-          (loop (rest keys))))))
+          (loop (cdr keys))))))
 
 

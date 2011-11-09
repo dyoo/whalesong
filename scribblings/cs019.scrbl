@@ -369,14 +369,18 @@ require those particular libraries.
 
 @declare-exporting/this-package[cs019/cs019]
 
+The majority of the functions and forms provided in the cs019 language
+should be those of the official @link["http://www.cs.brown.edu/courses/csci0190/2011/software/doc"]{cs019} language.  There are a few deviations documented in @secref["bugs"].
+
+
 For the purposes of tour-guide, we'll be focusing on the
 @racketmodname/this-package[web-world] library in Whalesong.
 
-Like the big-bang in regular world, the callbacks are world-to-world
-functions.  One difference introduced by the web is the web page
-itself: because the page itself is a source of state, it too will be
-passed to callbacks.  This library presents a
-functional version of the DOM in the form of a @tech{view}.
+Like the big-bang in regular world, the callbacks in web-world are
+world-to-world functions.  One difference introduced by the web is the
+web page itself: because the page itself is a source of state, it too
+will be passed to callbacks.  This library presents a functional
+version of the DOM in the form of a @tech{view}.
 
 The world-updating callbacks may optionally take an @tech{event} object, which 
 provides additional information about the event that triggered the callback.
@@ -913,7 +917,7 @@ may be useful when deploying a finished program.
 
 
 
-@section{Known bugs and deviations}
+@section[#:tag "bugs"]{Known bugs and deviations}
 
 Whalesong's compiler doesn't know how to compile programs with
 embedded image snips.  You can work around this by using

@@ -2,8 +2,8 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Corrected bug that would cause Whalesong to fail on Windows, reduced size of generated JS files, added hash tables, and other bug fixes.")))
-(define version "1.5")
+(define release-notes '((p "Minor update: bug fix to prevent crashes on iOS 5.")))
+(define version "1.6")
 (define categories '(devtools))
 (define repositories '("4.x"))
 (define required-core-version "5.1.1")

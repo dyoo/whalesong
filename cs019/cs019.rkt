@@ -9,6 +9,8 @@
 
 
 (require "cs019-pre-base.rkt")
+
+
 (provide (rename-out [cs019-lambda lambda]
                      [cs019-define define]
                      [cs019-when when]
@@ -48,16 +50,30 @@
                            real-name]
                           [else
                            #f]))
-                      (all-from-out "../lang/whalesong.rkt"))
-                     if
-                     cond
-                     case
-                     member
-                     define
-                     lambda
-                     unless
-                     when
-                     local)
+                      (except-out (all-from-out "../lang/whalesong.rkt")
+                                  
+                                  whalesong:if
+                                  whalesong:cond
+                                  whalesong:case
+                                  whalesong:member
+                                  whalesong:define
+                                  whalesong:lambda
+                                  whalesong:unless
+                                  whalesong:when
+                                  whalesong:local
+
+
+                                  whalesong:first
+                                  whalesong:rest
+                                  whalesong:second
+                                  whalesong:third
+                                  whalesong:fourth
+                                  whalesong:fifth
+                                  whalesong:sixth
+                                  whalesong:seventh
+                                  whalesong:eighth
+                                  whalesong:ninth
+                                  )))
 
          string-ith
          replicate
@@ -70,7 +86,9 @@
          string-whitespace?
          string-upper-case?
          string-lower-case?)
-                     
+
+(require "lists.rkt")
+(provide (all-from-out "lists.rkt"))
 
 (require "../image.rkt")
 (provide (all-from-out "../image.rkt"))

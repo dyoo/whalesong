@@ -40,3 +40,4 @@
 (test "more-tests/sharing-cs019.rkt")
 (test "more-tests/basics-cs019.rkt")
 (test "more-tests/sigs-cs019.rkt")
+(test "more-tests/lists-cs019.rkt")

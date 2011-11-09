@@ -111,6 +111,8 @@
                                     'hash-remove
                                     'equal-hash-code
                                     'hash-count
+                                    'hash-keys
+                                    'hash-values
                                     
                                     'string-copy
                                     ))

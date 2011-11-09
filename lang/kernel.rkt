@@ -170,7 +170,8 @@
          hash-remove
          equal-hash-code
          hash-count
-         
+         hash-keys
+         hash-values
 
 
          ;; Kernel inlinable

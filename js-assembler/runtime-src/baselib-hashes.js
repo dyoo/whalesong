@@ -163,6 +163,15 @@
         return ('#' + this.type + '(' + ret.join(' ') + ')');
     };
 
+    WhalesongHashtable.prototype.keys = function() {
+        return this.hash.keys();
+    };
+
+    WhalesongHashtable.prototype.values = function() {
+        return this.hash.values();
+    };
+
+
     WhalesongHashtable.prototype.equals = function (other, aUnionFind) {
         if (!(other instanceof WhalesongHashtable)) {
             return false; 
@@ -280,6 +289,14 @@
             ret.push('(' + keyStr + ' . ' + valStr + ')');
         }
         return ('#' + this.type + '(' + ret.join(' ') + ')');
+    };
+
+    WhalesongImmutableHashtable.prototype.keys = function() {
+        return this.map.keys();
+    };
+
+    WhalesongImmutableHashtable.prototype.values = function() {
+        return this.map.values();
     };
 
     WhalesongImmutableHashtable.prototype.equals = function (other, aUnionFind) {

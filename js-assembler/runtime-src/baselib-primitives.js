@@ -2767,6 +2767,21 @@
             return hash.functionalRemove(key);
         });
 
+    installPrimitiveProcedure(
+        'hash-keys',
+        1,
+        function(M) {
+            var hash = checkHash(M, 'hash-keys', 0);
+            return baselib.lists.arrayToList(hash.keys());
+        });
+
+    installPrimitiveProcedure(
+        'hash-values',
+        1,
+        function(M) {
+            var hash = checkHash(M, 'hash-keys', 0);
+            return baselib.lists.arrayToList(hash.values());
+        });
 
     installPrimitiveProcedure(
         'hash-has-key?',

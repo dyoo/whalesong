@@ -238,6 +238,15 @@
     };
 
 
+    var arrayToList = function (arr) {
+        var result = EMPTY, i;
+        for (i = arr.length -1; i >= 0; i--) {
+            result = makePair(arr[i], result);
+        }
+        return result;
+    };
+
+
     // Coerse a list back into a JavaScript array.
     var listToArray = function (lst) {
         var result = [];
@@ -311,5 +320,6 @@
     exports.length = length;
     exports.listRef = listRef;
     exports.listToArray = listToArray;
+    exports.arrayToList = arrayToList;
 
 }(this.plt.baselib));

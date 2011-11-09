@@ -261,7 +261,7 @@ However, it can also be packaged with @filepath{whalesong}.
     $ ls -l hello.html
     -rw-r--r-- 1 dyoo dyoo 3817 2011-09-10 15:02 hello.html
     $ ls -l hello.js
-    -rw-r--r-- 1 dyoo dyoo 2129028 2011-09-10 15:02 hello.js
+    -rw-r--r-- 1 dyoo dyoo 841948 2011-09-10 15:02 hello.js
 
 }|
 

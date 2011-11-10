@@ -25,6 +25,9 @@
  (list "Number$")
  (list 17))
 
+(define smallvec (vector 0))
+(define: vd : Void$ (vector-set! smallvec 0 1))
+(check-expect (vector-ref smallvec 0) 1)
 
 (define: (g2 [x : Number$]) -> String$ 'not-a-string)
 #;(check-error (g2 "10"))

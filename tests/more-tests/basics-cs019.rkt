@@ -6,6 +6,11 @@
 (check-expect (make-g 1 2) (make-g 1 2))
 (check-expect (make-g 'b empty) (make-g 'b empty))
 
+(check-expect (cond
+                [(memq 'x (list 'a 'x 'b)) 1]
+                [else 2])
+              1)
+
 (define i (open-image-url "http://racket-lang.org/logo.png"))
 (check-expect (image-height i) 85)
 (check-expect (image-width i) 88)

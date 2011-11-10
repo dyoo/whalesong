@@ -56,6 +56,7 @@
                                   whalesong:cond
                                   whalesong:case
                                   whalesong:member
+                                  whalesong:memq
                                   whalesong:define
                                   whalesong:lambda
                                   whalesong:unless
@@ -425,6 +426,16 @@
     [(eq? (member x L) #f) #f]
     [else #t]))
 
+
+;; as does memq
+(define (-memq x L)
+  (cond
+    [(eq? (memq x L) #f) #f]
+    [else #t]))
+
+
+
 (provide (rename-out [-member member]
-                     [-member member?]))
+                     [-member member?]
+                     [-memq memq]))
 

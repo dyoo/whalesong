@@ -19,6 +19,12 @@
      (require "parse-bytecode-5.1.2.rkt")
      (provide (except-out (all-from-out "parse-bytecode-5.1.2.rkt")
                           parse-bytecode)))]
+  [(version<= "5.2" (version))
+   (begin
+     (log-debug "Using 5.2 bytecode parser")
+     (require "parse-bytecode-5.2.rkt")
+     (provide (except-out (all-from-out "parse-bytecode-5.2.rkt")
+                          parse-bytecode)))]
   [else
    (error 'parse-bytecode "Whalesong doesn't have a compatible parser for Racket ~a" (version))])
 

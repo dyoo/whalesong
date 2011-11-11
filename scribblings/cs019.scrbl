@@ -33,6 +33,7 @@
                                 current-output-port
                                 lambda
                                 true false
+                                check-expect
                                 ...)))
 
 @(define-runtime-path whalesong-path "..")
@@ -677,6 +678,17 @@ can accept the event as an argument.
 
 
 @defstruct[event ([kvpairs (listof (list symbol (or/c string number)))])]{}
+
+You can construct events for testing purposes by using @racket[make-event].
+@codeblock|{
+#lang planet dyoo/whalesong/cs019
+;; Synthesizing a location event
+(define my-event (make-event '((latitude 41) 
+                               (longitude -71))))
+(check-expect (event-ref my-event "latitude") 41)
+(check-expect (event-ref my-event "longitude") -71)
+}|
+
 
 @defthing[Event$ sig]{The signature for an event.}
 

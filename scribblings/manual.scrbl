@@ -191,7 +191,7 @@ Pacman.}
 
 @subsection{Installing Whalesong}
 
-If you want to use Whalesong off of PLaneT, run the following to create
+If you want to use Whalesong, run the following to create
 the @filepath{whalesong} launcher:
 @codeblock|{
 #lang racket/base

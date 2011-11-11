@@ -919,10 +919,20 @@ may be useful when deploying a finished program.
 
 @section[#:tag "bugs"]{Known bugs and deviations}
 
-Whalesong's compiler doesn't know how to compile programs with
+@itemize[
+@item{Whalesong's compiler doesn't know how to compile programs with
 embedded image snips.  You can work around this by using
 @racket[define-resource], and save an image file in the same directory
-as your source.
+as your source.}
+
+
+@item{The printing of @racket[shared] structures currently doesn't use
+the same syntax as in the standard cs019 language.  For example,
+@racket[(shared ([a (cons 1 a)]) a)] prints in Whalesong as @litchar{#0=(cons 1 #0#)}.}
+
+]
+
+
 
 @subsection{Deviations from the regular cs019 language}
 

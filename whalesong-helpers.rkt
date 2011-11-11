@@ -233,7 +233,9 @@
                                  (for [(js-name (map file-name-from-path (reverse written-js-paths)))]
                                       (fprintf op "~a\n" js-name))
                                  (for [(resource-name written-resources)]
-                                      (fprintf op "~a\n" resource-name)))
+                                      (fprintf op "~a\n" resource-name))
+                                 (fprintf op "\n# All other resources (e.g. sites) require the user to be online.\nNETWORK:\n*\n"))
+                               
                                #:exists 'replace)
        (define stop-time (current-inexact-milliseconds))
 

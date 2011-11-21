@@ -2,8 +2,8 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Added primitives: hash-keys, hash-values, hash-for-each, hash-map, write.  Merges some changes to support sk's cs019 language level.")))
-(define version "1.7")
+(define release-notes '((p "")))
+(define version "1.8")
 (define categories '(devtools))
 (define repositories '("4.x"))
 (define required-core-version "5.1.1")

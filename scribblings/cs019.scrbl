@@ -82,6 +82,56 @@ please ignore it: it is due to a bug in Racket's documentation
 generator.
 
 
+Finally, try executing the launcher.  If it is in the current directory, 
+@verbatim|{
+$ ./whalesong 
+Usage: whalesong <subcommand> [option ...] <arg ...>
+  where any unambiguous prefix can be used for a subcommand
+
+The Whalesong command-line tool for compiling Racket to JavaScript
+
+For help on a particular subcommand, use 'whalesong <subcommand> --help'
+  whalesong version           Print the current version
+  whalesong build             build a standalone html and javascript package
+  whalesong get-runtime       print the runtime library to standard output
+  whalesong get-javascript    Gets just the JavaScript code and prints it to standard output
+}|
+It should only take a few seconds to execute.
+
+
+@subsection{Troubleshooting a slow launcher} 
+
+A few students have been reporting that it takes minutes for Whalesong
+to run.  This is unusually slow: it should only take a few seconds
+(5-10 seconds) to perform any command.
+
+There are two things that might factor into this kind of performance:
+@itemize[
+ @item{The network file system might be performing sluggishly.}
+
+ @item{The Whalesong installation may not have completed successfully,
+which would mean the launcher has to recompile Whalesong on each run.}
+]
+
+It's difficult to control the network file system.  The second
+possibility, though, should never happen in an ideal world.  Still, if
+installation was cancelled halfway in the process (by pressing
+Control-C, for example), or if one of Whalesong's dependencies did not
+finish compiling, it may account for Whalesong's slow performance.
+
+If you are observing unusual slowness, please do the following at the
+command line:
+
+@verbatim|{
+$ raco setup
+}|
+
+You will see a lot of stuff fly by the screen. The command forces a
+re-installation of Whalesong and its dependencies, as well as any
+other libraries in your Racket installation.  After this completes,
+try using Whalesong again.
+
+
 
 @section{Examples}
 

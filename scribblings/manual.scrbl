@@ -885,7 +885,7 @@ Get the attribute @racket[name] at the focus.
 }
 
 @defproc[(update-view-attr [v view] [name String] [value String]) view]{
-Update the attribute @racket[n] with the value @racket[v] at the focus.
+Update the attribute @racket[name] with the value @racket[value] at the focus.
 }
 
 @defproc[(view-css [v view] [name String]) view]{

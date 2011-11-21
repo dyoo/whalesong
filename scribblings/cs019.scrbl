@@ -147,6 +147,18 @@ support}.
 
 
 
+@subsection{Using the appcache}
+
+The applications generated with Whalesong are intended to work even
+when you're not connected to a network.  When uploading your app with
+the @tt{cs019-upload} script, don't forget to upload the
+@filepath{appcache} file along with the other files.  Once you visit
+the application's page on your phone, the application files will be
+cached locally.  Bookmark the page, turn off Wi-Fi, and revisit the
+page again: the application should continue to work.
+
+
+
 
 @subsection{Tick tock}
 
@@ -610,7 +622,7 @@ Get the attribute @racket[name] at the focus.
 }
 
 @defproc[(update-view-attr [v view] [name String] [value String]) view]{
-Update the attribute @racket[n] with the value @racket[v] at the focus.
+Update the attribute @racket[name] with the value @racket[value] at the focus.
 }
 
 

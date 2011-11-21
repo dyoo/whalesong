@@ -28,6 +28,10 @@ var TreeCursor = (function() {
         this.atomicF = atomicF;
     };
 
+    TreeCursor.prototype.isOnAtomicElement = function() {
+        return this.atomicF(this.node);
+    };
+
     TreeCursor.prototype.canDown = function() {
         return (!(this.atomicF(this.node)) &&
                 this.openF(this.node).length !== 0);

@@ -1562,6 +1562,11 @@
     var checkMockView = plt.baselib.check.makeCheckArgumentType(
         isMockView, 'view');
 
+    var checkMockViewOnElement = plt.baselib.check.makeCheckArgumentType(
+        function(x) {
+            return isMockView(x) && (!(x.cursor.isOnAtomicElement()));
+        },
+        'element-focused view');
 
 
     var checkSelector = plt.baselib.check.makeCheckArgumentType(
@@ -1719,7 +1724,13 @@
         1,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-left', 0);
-            return view.left();
+            try {
+                return view.left();
+            } catch (e) {
+                plt.baselib.exceptions.raise(
+                    MACHINE, 
+                    new Error("unable to focus left"));
+            }
         });
 
     EXPORTS['view-right'] = makePrimitiveProcedure(
@@ -1727,7 +1738,13 @@
         1,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-right', 0);
-            return view.right();
+            try {
+                return view.right();
+            } catch (e) {
+                plt.baselib.exceptions.raise(
+                    MACHINE, 
+                    new Error("unable to focus right"));                
+            }
         });
 
     EXPORTS['view-up'] = makePrimitiveProcedure(
@@ -1735,7 +1752,13 @@
         1,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-up', 0);
-            return view.up();
+            try {
+                return view.up();
+            } catch (e) {
+                plt.baselib.exceptions.raise(
+                    MACHINE, 
+                    new Error("unable to focus up"));
+            }
         });
 
     EXPORTS['view-down'] = makePrimitiveProcedure(
@@ -1743,7 +1766,13 @@
         1,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-down', 0);
-            return view.down();
+            try {
+                return view.down();
+            } catch(e) {
+                plt.baselib.exceptions.raise(
+                    MACHINE, 
+                    new Error("unable to focus down"));
+            }
         });
 
     EXPORTS['view-forward'] = makePrimitiveProcedure(
@@ -1751,7 +1780,13 @@
         1,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-forward', 0);
-            return view.forward();
+            try {
+                return view.forward();
+            } catch(e) {
+                plt.baselib.exceptions.raise(
+                    MACHINE, 
+                    new Error("unable to focus forward"));                
+            } 
         });
 
     EXPORTS['view-backward'] = makePrimitiveProcedure(
@@ -1759,7 +1794,13 @@
         1,
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-backward', 0);
-            return view.backward();
+            try {
+                return view.backward();
+            } catch(e) {
+                plt.baselib.exceptions.raise(
+                    MACHINE, 
+                    new Error("unable to focus backward"));
+            }
         });
 
 
@@ -1946,7 +1987,7 @@
         'view-append-child',
         2,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-append-child', 0);
+            var view = checkMockViewOnElement(MACHINE, 'view-append-child', 0);
             var x = MACHINE.e[MACHINE.e.length - 2];
             PAUSE(function(restart) {
                 coerseToDomNode(x,

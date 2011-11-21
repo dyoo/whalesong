@@ -1855,11 +1855,6 @@
 
 
 
-
-
-
-
-
     EXPORTS['view-text'] = makePrimitiveProcedure(
         'view-text',
         1,
@@ -1885,7 +1880,7 @@
         'view-attr',
         2,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-attr', 0);
+            var view = checkMockViewOnElement(MACHINE, 'view-attr', 0);
             var name = checkSymbolOrString(MACHINE, 'view-attr', 1).toString();
             return view.getAttr(name);
         });
@@ -1895,7 +1890,7 @@
         'update-view-attr',
         3,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'update-view-attr', 0);
+            var view = checkMockViewOnElement(MACHINE, 'update-view-attr', 0);
             var name = checkSymbolOrString(MACHINE, 'update-view-attr', 1).toString();
             var value = checkSymbolOrString(MACHINE, 'update-view-attr', 2).toString();
             return view.updateAttr(name, value);
@@ -1906,7 +1901,7 @@
         'view-css',
         2,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-css', 0);
+            var view = checkMockViewOnElement(MACHINE, 'view-css', 0);
             var name = checkSymbolOrString(MACHINE, 'view-css', 1).toString();
             return view.getCss(name);
         });
@@ -1916,21 +1911,18 @@
         'update-view-css',
         3,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'update-view-css', 0);
+            var view = checkMockViewOnElement(MACHINE, 'update-view-css', 0);
             var name = checkSymbolOrString(MACHINE, 'update-view-css', 1).toString();
             var value = checkSymbolOrString(MACHINE, 'update-view-css', 2).toString();
             return view.updateCss(name, value);
         });
 
 
-
-
-
     EXPORTS['view-bind'] = makePrimitiveProcedure(
         'view-bind',
         3,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-bind', 0);
+            var view = checkMockViewOnElement(MACHINE, 'view-bind', 0);
             var name = checkSymbolOrString(MACHINE, 'view-bind', 1);
             var worldF = wrapFunction(checkProcedure(MACHINE, 'view-bind', 2));
             return view.bind(name, worldF);
@@ -1941,7 +1933,7 @@
         'view-form-value',
         1,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-form-value', 0);
+            var view = checkMockViewOnElement(MACHINE, 'view-form-value', 0);
             return view.getFormValue();
         });
 
@@ -1950,7 +1942,7 @@
         'update-view-form-value',
         2,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'update-view-form-value', 0);
+            var view = checkMockViewOnElement(MACHINE, 'update-view-form-value', 0);
             var value = checkSymbolOrString(MACHINE, 'update-view-form-value', 1).toString();
             return view.updateFormValue(value);
         });
@@ -2074,7 +2066,7 @@
         'view-id',
         1,
         function(MACHINE) {
-            var view = checkMockView(MACHINE, 'view-hide', 0);
+            var view = checkMockViewOnElement(MACHINE, 'view-hide', 0);
             return view.id();
         });
 

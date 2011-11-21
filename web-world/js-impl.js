@@ -980,6 +980,9 @@
                                               'longitude' : Number(position.coords.longitude) }));
                 }
             };
+            var fail = function(err) {
+                // Quiet failure
+            };
             // If we fail while trying to watch the position
             // using high accuracy, switch over to the coarse one.
             var onFailSwitchoverToCoerse = function() {
@@ -987,9 +990,6 @@
                 that.id = navigator.geolocation.watchPosition(
                     success,
                     fail);
-            };
-            var fail = function(err) {
-                // Quiet failure
             };
             if (!!(navigator.geolocation)) {
                 navigator.geolocation.getCurrentPosition(success, fail);
@@ -1353,6 +1353,27 @@
 
 
 
+    // We keep a cache of valid element names.  The only keys here are
+    // those elements whose names are valid.  We don't record invalid
+    // ones, since there's an unbound number of those.
+    var validElementNames = {};  
+    var isValidElementName = function(name) {
+        if (! (validElementNames.hasOwnProperty(name))) {
+            // Permissive parsing: see that the name is a valid
+            // element type.
+            // Is there a nicer way to do this besides exception
+            // handling?
+            try {
+                document.createElement(name);
+                validElementNames[name] = true;
+            } catch(e) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+
     // An xexp is one of the following:
     // xexp :== (name (@ (key value) ...) xexp ...)
     //      :== (name xexp ...)
@@ -1367,6 +1388,10 @@
         }
         if (isList(x) && !(isEmpty(x))) {
             if (isSymbol(x.first)) {
+                if (! isValidElementName(x.first.val)) {
+                    return false;
+                }
+
                 children = x.rest;
                 // Check the rest of the children.  The first is special.
                 if (isEmpty(children)) {

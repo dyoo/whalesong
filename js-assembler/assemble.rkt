@@ -220,7 +220,7 @@ EOF
              (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)
              (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))]
    [else
-    (fprintf op "var ~a=function(M){--M.cbt<0;\n"
+    (fprintf op "var ~a=function(M){\n"
              (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))])
   (assemble-block-statements (BasicBlock-name a-basic-block)
                              (BasicBlock-stmts a-basic-block)

@@ -300,7 +300,7 @@
         var proc = makeClosure(name,
                                arity,
                                function(M) {
-                                   --M.cbt;
+                                   M.cbt--;
                                    M.v = f(M);
                                    M.e.length -= M.a;
                                    return M.c.pop().label(M);

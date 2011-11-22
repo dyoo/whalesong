@@ -66,7 +66,7 @@ Run the following to create the @filepath{whalesong} launcher program in
 your current directory.
 @codeblock|{
 #lang racket/base
-(require (planet dyoo/whalesong:1:8/make-launcher))
+(require (planet dyoo/whalesong:1:9/make-launcher))
 }|
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,

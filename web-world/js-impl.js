@@ -628,11 +628,21 @@
 
 
 
+    var rscript = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
+    // We have to do some kludgery to support the android browser,
+    // which does not properly parse <link ...>.
+    var rlink = /<link\b[^\/>]* \/>(.*?)/gi;
 
     var parseStringAsHtml = function(str) {
         var div = document.createElement("div");
-        div.innerHTML = str;
+        // inject the contents of the document in, removing the scripts
+	// to avoid any 'Permission Denied' errors in IE
+        div.innerHTML = str.replace(rscript, "").replace(rlink, "");
+        var linkMatches = str.match(rlink);
+        for (var i = 0; i < linkMatches.length; i++) {
+            $(div).append($(linkMatches[i]));
+        }
         return $(div);
     };
 

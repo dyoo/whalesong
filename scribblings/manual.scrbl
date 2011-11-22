@@ -199,6 +199,17 @@ Pacman.}
 
 @subsection{Installing Whalesong}
 
+
+
+Before you begin, if you are using DrRacket,
+@itemize[#:style 'ordered
+        @item{Please go to the Racket submenu.}
+        @item{Select the Limit Memory item.}
+        @item{Change the setting to Unlimited.}]
+This is to avoid an installation-time issue that prevents
+Whalesong from fully compiling.
+
+
 If you want to use Whalesong, run the following to create
 the @filepath{whalesong} launcher:
 @codeblock|{

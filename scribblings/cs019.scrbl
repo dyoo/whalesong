@@ -62,6 +62,16 @@ by the time you read this.
 
 
 
+Before you begin, if you are using DrRacket,
+@itemize[#:style 'ordered
+        @item{Please go to the Racket submenu.}
+        @item{Select the Limit Memory item.}
+        @item{Change the setting to Unlimited.}]
+This is to avoid an installation-time issue that has been preventing
+Whalesong from fully compiling.
+
+
+
 Run the following to create the @filepath{whalesong} launcher program in
 your current directory.
 @codeblock|{

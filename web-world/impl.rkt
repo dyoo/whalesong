@@ -65,6 +65,7 @@
                     view-hide
                     
                     view-attr
+                    view-has-attr?
                     update-view-attr
                     remove-view-attr
 

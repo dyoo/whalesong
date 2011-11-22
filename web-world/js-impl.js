@@ -216,6 +216,10 @@
         return $(this.cursor.node[0]).attr(name);
     };
 
+    MockView.prototype.hasAttr = function(name) {        
+        return $(this.cursor.node[0]).attr(name) !== undefined;
+    };
+
 
     MockView.prototype.updateAttr = function(name, value) {
         return this.act(
@@ -1923,6 +1927,14 @@
             return view.getAttr(name);
         });
 
+    EXPORTS['view-has-attr?'] = makePrimitiveProcedure(
+        'view-has-attr?',
+        2,
+        function(MACHINE) {
+            var view = checkMockViewOnElement(MACHINE, 'view-has-attr?', 0);
+            var name = checkSymbolOrString(MACHINE, 'view-has-attr?', 1).toString();
+            return view.hasAttr(name);
+        });
 
     EXPORTS['update-view-attr'] = makePrimitiveProcedure(
         'update-view-attr',

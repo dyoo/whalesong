@@ -995,9 +995,6 @@ may be useful when deploying a finished program.
 
 @itemize[
 
-@item{@racket[image-url] doesn't currently work with offline app
-support.  Use @racket[define-resource] instead.}
-
 @item{Whalesong's compiler doesn't know how to compile programs with
 embedded image snips.  You can work around this by using
 @racket[define-resource], and save an image file in the same directory

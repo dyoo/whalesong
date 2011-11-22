@@ -44,6 +44,15 @@
 
     var shallowCloneNode = function(node) {
         var result = node.cloneNode(false);
+        var i;
+        // copy over the attributes as well
+        if (node.attributes) {
+            for (i = 0; i < node.attributes.length; i++) {
+                console.log('copying: ', node.attributes[i]);
+                $(result).attr(node.attributes[i].name,
+                               node.attributes[i].value);
+            }
+        }
         $(result).data($(node).data());
         return result;
     };
@@ -204,7 +213,7 @@
     };
 
     MockView.prototype.getAttr = function(name) {        
-        return this.cursor.node[0].getAttribute(name);
+        return $(this.cursor.node[0]).attr(name);
     };
 
 
@@ -594,7 +603,7 @@
        $(document.head).append($(this.top).children("title").clone(true));
        $(document.head).append($(this.top).children("link").clone(true));
        
-       $(top).append($(this.top).clone(true));
+       $(top).append($(this.top));
 
        // The snip here is meant to accomodate weirdness with canvas dom
        // elements.  cloning a canvas doesn't preserve how it draws.

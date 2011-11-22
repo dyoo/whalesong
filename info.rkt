@@ -2,7 +2,7 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Some improved error trapping on the view-navigation methods.  Bug fix on appcache manifest to allow network communication.  Replaced 'not a closure' messages with the application error instead.")))
+(define release-notes '((p "Bug fix to allow --compress-javascript to work again.  Some improved error trapping on the view-navigation methods.  Bug fix on appcache manifest to allow network communication.  Replaced 'not a closure' messages with the application error instead.")))
 (define version "1.8")
 (define categories '(devtools))
 (define repositories '("4.x"))

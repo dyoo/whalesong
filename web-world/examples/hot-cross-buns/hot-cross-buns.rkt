@@ -4,6 +4,9 @@
 
 (define base-view (->view index.html))
 
+(define WORDS (list "hot" "cross" "buns"))
+
+
 (define (remove-all x elts)
   (cond
    [(empty? elts)
@@ -25,7 +28,7 @@
                          [else
                           (remove-all name world)]))))
          base-view
-         '("hot" "cross" "buns")))
+         WORDS))
 
 (define view-with-buttons-and-reset
   (view-bind (view-focus view-with-buttons "reset")
@@ -34,10 +37,25 @@
                empty)))
 
 
-(define (draw w v)
-  (update-view-text (view-focus v "mydiv")
-                    (format "~s" w)))
+(define (draw world v)
+  (local ([define view-with-updated-message
+            (update-view-text (view-focus v "mydiv")
+                              (format "~s" world))])
+     (foldl (lambda (word a-view)
+              (local [(define view-on-word
+                        (view-focus a-view word))]
+                 (cond
+                  [(and (view-has-attr? view-on-word "checked")
+                        (not (member word world)))
+                   (remove-view-attr view-on-word "checked")]
+                  [(and (not (view-has-attr? view-on-word "checked"))
+                        (member word world))
+                   (update-view-attr view-on-word "checked" "checked")]
+                  [else
+                   a-view])))
+            view-with-updated-message
+            WORDS)))
 
 (big-bang '()
-          (initial-view view-with-buttons)
+          (initial-view view-with-buttons-and-reset)
           (to-draw draw))

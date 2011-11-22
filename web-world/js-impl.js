@@ -569,16 +569,16 @@
     var defaultToRender = function(){};
  
    View.prototype.initialRender = function(top) {
-        $(top).empty();
-        // Special case: if this.top is an html, we merge into the
-        // existing page.
-        if ($(this.top).children("title").length !== 0) {
-             $(document.head).find('title').remove();
-        }
-        $(document.head).append($(this.top).children("title"));
-        $(document.head).append($(this.top).children("link"));
-
-        $(top).append(this.top);
+       $(top).empty();
+       // Special case: if this.top is an html, we merge into the
+       // existing page.
+       if ($(this.top).children("title").length !== 0) {
+           $(document.head).find('title').remove();
+       }
+       $(document.head).append($(this.top).children("title").clone(true));
+       $(document.head).append($(this.top).children("link").clone(true));
+       
+       $(top).append($(this.top).clone(true));
 
        // The snip here is meant to accomodate weirdness with canvas dom
        // elements.  cloning a canvas doesn't preserve how it draws.
@@ -631,8 +631,9 @@
 
 
     var parseStringAsHtml = function(str) {
-        var dom = $('<div/>').append($(str));
-        return dom;
+        var div = document.createElement("div");
+        div.innerHTML = str;
+        return $(div);
     };
 
  

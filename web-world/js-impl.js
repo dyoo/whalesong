@@ -48,7 +48,6 @@
         // copy over the attributes as well
         if (node.attributes) {
             for (i = 0; i < node.attributes.length; i++) {
-                console.log('copying: ', node.attributes[i]);
                 $(result).attr(node.attributes[i].name,
                                node.attributes[i].value);
             }

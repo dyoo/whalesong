@@ -2,7 +2,7 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Bug fix to allow --compress-javascript to work again.  Some improved error trapping on the view-navigation methods.  Bug fix on appcache manifest to allow network communication.  Replaced 'not a closure' messages with the application error instead.")))
+(define release-notes '((p "Added view-has-attr? and remove-view-attr.  Added example with checkboxes.  Improved compatibility with web-world and the Android web browser: external css style sheets should now work.  Miscellaneous bug fixes.")))
 (define version "1.8")
 (define categories '(devtools))
 (define repositories '("4.x"))

@@ -223,6 +223,22 @@
             });
     };
 
+    MockView.prototype.removeAttr = function(name) {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode([$(shallowCloneNode(cursor.node[0]))
+                                           .removeAttr(name).get(0)]
+                                          .concat(cursor.node.slice(1)));
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                $(view.focus).removeAttr(name);
+            });
+    };
+
+
 
 
 
@@ -1907,6 +1923,14 @@
             return view.updateAttr(name, value);
         });
 
+    EXPORTS['remove-view-attr'] = makePrimitiveProcedure(
+        'remove-view-attr',
+        2,
+        function(MACHINE) {
+            var view = checkMockViewOnElement(MACHINE, 'remove-view-attr', 0);
+            var name = checkSymbolOrString(MACHINE, 'remove-view-attr', 1).toString();
+            return view.removeAttr(name);
+        });
 
     EXPORTS['view-css'] = makePrimitiveProcedure(
         'view-css',

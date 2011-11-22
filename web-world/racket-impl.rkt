@@ -18,7 +18,7 @@
          view-backward
          
          view-text update-view-text
-         view-attr update-view-attr
+         view-attr update-view-attr remove-view-attr
          view-css update-view-css
          view-id
 
@@ -150,6 +150,9 @@
 
 (define (update-view-attr v attr-name value)
   (error 'update-view-attr "Please run in JavaScript context."))
+
+(define (remove-view-attr v attr-name)
+  (error 'remove-view-attr "Please run in JavaScript context."))
 
 
 

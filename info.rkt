@@ -3,7 +3,7 @@
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
 (define release-notes '((p "Added view-has-attr? and remove-view-attr.  Added example with checkboxes.  Improved compatibility with web-world and the Android web browser: external css style sheets should now work.  Miscellaneous bug fixes.")))
-(define version "1.8")
+(define version "1.9")
 (define categories '(devtools))
 (define repositories '("4.x"))
 (define required-core-version "5.1.1")

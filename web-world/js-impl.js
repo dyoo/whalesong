@@ -656,8 +656,10 @@
 	// to avoid any 'Permission Denied' errors in IE
         div.innerHTML = str.replace(rscript, "").replace(rlink, "");
         var linkMatches = str.match(rlink);
-        for (var i = 0; i < linkMatches.length; i++) {
-            $(div).append($(linkMatches[i]));
+        if (linkMatches) {
+            for (var i = 0; i < linkMatches.length; i++) {
+                $(div).append($(linkMatches[i]));
+            }
         }
         return $(div);
     };

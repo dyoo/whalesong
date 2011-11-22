@@ -145,13 +145,6 @@
               ExnFailContract.constructor(message, contMarks));
     };
 
-    var raiseOperatorIsNotClosure = function(MACHINE, operator) {
-        var message = baselib.format.format("not a closure: ~e",
-                                            [operator]);
-        var contMarks = MACHINE.captureContinuationMarks();
-        raise(MACHINE,
-              ExnFailContract.constructor(message, contMarks));
-    };
 
     var raiseOperatorIsNotPrimitiveProcedure = function(MACHINE, operator) {
         var message = baselib.format.format("not a primitive procedure: ~e",
@@ -235,7 +228,6 @@
     exceptions.raiseContextExpectedValuesError = raiseContextExpectedValuesError;
     exceptions.raiseArityMismatchError = raiseArityMismatchError;
     exceptions.raiseOperatorApplicationError = raiseOperatorApplicationError;
-    exceptions.raiseOperatorIsNotClosure = raiseOperatorIsNotClosure;
     exceptions.raiseOperatorIsNotPrimitiveProcedure = raiseOperatorIsNotPrimitiveProcedure;
     exceptions.raiseUnimplementedPrimitiveError = raiseUnimplementedPrimitiveError;
 

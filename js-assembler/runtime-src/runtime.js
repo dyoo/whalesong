@@ -108,7 +108,6 @@
     var raiseArityMismatchError = baselib.exceptions.raiseArityMismatchError;
     var raiseOperatorApplicationError = baselib.exceptions.raiseOperatorApplicationError;
     var raiseOperatorIsNotPrimitiveProcedure = baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
-    var raiseOperatorIsNotClosure = baselib.exceptions.raiseOperatorIsNotClosure;
     var raiseUnimplementedPrimitiveError = baselib.exceptions.raiseUnimplementedPrimitiveError;
 
 
@@ -635,7 +634,7 @@
 
     var checkClosureAndArity = function(M) {
         if(!(M.p instanceof Closure)){
-            raiseOperatorIsNotClosure(M,M.p);
+            raiseOperatorApplicationError(M,M.p);
         }
         if(!isArityMatching(M.p.racketArity,M.a)) {
             raiseArityMismatchError(M,M.p,M.a);
@@ -722,7 +721,6 @@
     exports['raiseArityMismatchError'] = raiseArityMismatchError;
     exports['raiseOperatorApplicationError'] = raiseOperatorApplicationError;
     exports['raiseOperatorIsNotPrimitiveProcedure'] = raiseOperatorIsNotPrimitiveProcedure;
-    exports['raiseOperatorIsNotClosure'] = raiseOperatorIsNotClosure;
     exports['raiseUnimplementedPrimitiveError'] = raiseUnimplementedPrimitiveError;
 
 

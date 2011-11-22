@@ -162,6 +162,14 @@ A simple TODO list manager.
 [@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}]
 Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
 }
+
+
+@item{@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.html"]{hot-cross-buns.html}
+[@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.rkt"]{src}]
+Demonstrates use of checkboxes.  Uses @racket[view-has-attr?] to see if a checkbox has been
+checked, and @racket[remove-view-attr] to change the @emph{checked} attribute when the user
+wants to reset the page.
+}
 ]
 
 

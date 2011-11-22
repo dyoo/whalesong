@@ -884,8 +884,16 @@ Hide the element at the focus.
 Get the attribute @racket[name] at the focus.
 }
 
+@defproc[(view-has-attr? [v view] [name String]) boolean]{
+Returns true if the element at the focus has an attribute @racket[name].
+}
+
 @defproc[(update-view-attr [v view] [name String] [value String]) view]{
 Update the attribute @racket[name] with the value @racket[value] at the focus.
+}
+
+@defproc[(remove-view-attr [v view] [name String]) view]{
+Remove the attribute @racket[name] at the focus.
 }
 
 @defproc[(view-css [v view] [name String]) view]{

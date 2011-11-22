@@ -1911,7 +1911,7 @@
         'update-view-css',
         3,
         function(MACHINE) {
-            var view = checkMockViewOnElement(MACHINE, 'update-view-css', 0);
+            var view = checkMockView(MACHINE, 'update-view-css', 0);
             var name = checkSymbolOrString(MACHINE, 'update-view-css', 1).toString();
             var value = checkSymbolOrString(MACHINE, 'update-view-css', 2).toString();
             return view.updateCss(name, value);

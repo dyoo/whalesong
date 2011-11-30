@@ -7,13 +7,19 @@
                     body
                     call-method
                     $
-
+                    
+                    window
+                    
                     get-attr
                     set-attr!
 
                     js-string?
                     string->js-string
                     js-string->string
+
+                    js-number?
+                    number->js-number
+                    js-number->number
                     
                     viewport-width
                     viewport-height

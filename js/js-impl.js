@@ -8,8 +8,19 @@
     var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
     var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
     var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
+    var checkString = plt.baselib.check.checkString;
     var checkAny = makeCheckArgumentType(function(x) { return true; },
                                          "any");
+
+    var isJsString = function(x) { return typeof(x) === 'string'; };
+    var checkJsString = makeCheckArgumentType(isJsString, 'JavaScript string');
+
+
+
+    var isJsNumber = function(x) { return typeof(x) === 'number'; };
+    var checkNumber = plt.baselib.check.checkNumber;
+    var checkJsNumber = makeCheckArgumentType(isJsNumber, 'JavaScript number');
+
 
     EXPORTS['alert'] =
         makePrimitiveProcedure(
@@ -104,6 +115,31 @@
 
 
 
+
+    EXPORTS['js-number?'] = 
+        makePrimitiveProcedure(
+            'js-number?',
+            1,
+            function(MACHINE) {
+                return isJsNumber(checkAny(MACHINE, 'js-string?', 0));
+            });    
+    EXPORTS['js-number->number'] = 
+        makePrimitiveProcedure(
+            'js-number->number',
+            1,
+            function(MACHINE) {
+                return plt.baselib.numbers.makeFloat(checkJsNumber(MACHINE, 'js-string?', 0));
+            });    
+
+    EXPORTS['number->js-number'] = 
+        makePrimitiveProcedure(
+            'number->js-number',
+            1,
+            function(MACHINE) {
+                return plt.baselib.numbers.toFixnum(checkNumber(MACHINE, 'js-string?', 0));
+            });    
+
+    
 
 
 

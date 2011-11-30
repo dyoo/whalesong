@@ -44,6 +44,7 @@ cs019-doc:
 
 
 setup:
+
 	raco setup --no-docs -P dyoo whalesong.plt 1 10
 
 

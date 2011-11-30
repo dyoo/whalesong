@@ -44,6 +44,14 @@
 
     var shallowCloneNode = function(node) {
         var result = node.cloneNode(false);
+        var i;
+        // copy over the attributes as well
+        if (node.attributes) {
+            for (i = 0; i < node.attributes.length; i++) {
+                $(result).attr(node.attributes[i].name,
+                               node.attributes[i].value);
+            }
+        }
         $(result).data($(node).data());
         return result;
     };
@@ -204,7 +212,11 @@
     };
 
     MockView.prototype.getAttr = function(name) {        
-        return this.cursor.node[0].getAttribute(name);
+        return $(this.cursor.node[0]).attr(name);
+    };
+
+    MockView.prototype.hasAttr = function(name) {        
+        return $(this.cursor.node[0]).attr(name) !== undefined;
     };
 
 
@@ -222,6 +234,22 @@
                 $(view.focus).attr(name, value);
             });
     };
+
+    MockView.prototype.removeAttr = function(name) {
+        return this.act(
+            function(cursor) {
+                return cursor.replaceNode([$(shallowCloneNode(cursor.node[0]))
+                                           .removeAttr(name).get(0)]
+                                          .concat(cursor.node.slice(1)));
+            },
+            function(eventHandlers) {
+                return eventHandlers;
+            },
+            function(view) {
+                $(view.focus).removeAttr(name);
+            });
+    };
+
 
 
 
@@ -569,16 +597,16 @@
     var defaultToRender = function(){};
  
    View.prototype.initialRender = function(top) {
-        $(top).empty();
-        // Special case: if this.top is an html, we merge into the
-        // existing page.
-        if ($(this.top).children("title").length !== 0) {
-             $(document.head).find('title').remove();
-        }
-        $(document.head).append($(this.top).children("title"));
-        $(document.head).append($(this.top).children("link"));
-
-        $(top).append(this.top);
+       $(top).empty();
+       // Special case: if this.top is an html, we merge into the
+       // existing page.
+       if ($(this.top).children("title").length !== 0) {
+           $(document.head).find('title').remove();
+       }
+       $(document.head).append($(this.top).children("title").clone(true));
+       $(document.head).append($(this.top).children("link").clone(true));
+       
+       $(top).append($(this.top));
 
        // The snip here is meant to accomodate weirdness with canvas dom
        // elements.  cloning a canvas doesn't preserve how it draws.
@@ -628,11 +656,24 @@
 
 
 
+    var rscript = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
+    // We have to do some kludgery to support the android browser,
+    // which does not properly parse <link ...>.
+    var rlink = /<link\b[^\/>]* \/>(.*?)/gi;
 
     var parseStringAsHtml = function(str) {
-        var dom = $('<div/>').append($(str));
-        return dom;
+        var div = document.createElement("div");
+        // inject the contents of the document in, removing the scripts
+	// to avoid any 'Permission Denied' errors in IE
+        div.innerHTML = str.replace(rscript, "").replace(rlink, "");
+        var linkMatches = str.match(rlink);
+        if (linkMatches) {
+            for (var i = 0; i < linkMatches.length; i++) {
+                $(div).append($(linkMatches[i]));
+            }
+        }
+        return $(div);
     };
 
  
@@ -1885,6 +1926,14 @@
             return view.getAttr(name);
         });
 
+    EXPORTS['view-has-attr?'] = makePrimitiveProcedure(
+        'view-has-attr?',
+        2,
+        function(MACHINE) {
+            var view = checkMockViewOnElement(MACHINE, 'view-has-attr?', 0);
+            var name = checkSymbolOrString(MACHINE, 'view-has-attr?', 1).toString();
+            return view.hasAttr(name);
+        });
 
     EXPORTS['update-view-attr'] = makePrimitiveProcedure(
         'update-view-attr',
@@ -1896,6 +1945,14 @@
             return view.updateAttr(name, value);
         });
 
+    EXPORTS['remove-view-attr'] = makePrimitiveProcedure(
+        'remove-view-attr',
+        2,
+        function(MACHINE) {
+            var view = checkMockViewOnElement(MACHINE, 'remove-view-attr', 0);
+            var name = checkSymbolOrString(MACHINE, 'remove-view-attr', 1).toString();
+            return view.removeAttr(name);
+        });
 
     EXPORTS['view-css'] = makePrimitiveProcedure(
         'view-css',

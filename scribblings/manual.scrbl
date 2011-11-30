@@ -162,6 +162,14 @@ A simple TODO list manager.
 [@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}]
 Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
 }
+
+
+@item{@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.html"]{hot-cross-buns.html}
+[@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.rkt"]{src}]
+Demonstrates use of checkboxes.  Uses @racket[view-has-attr?] to see if a checkbox has been
+checked, and @racket[remove-view-attr] to change the @emph{checked} attribute when the user
+wants to reset the page.
+}
 ]
 
 
@@ -195,7 +203,7 @@ If you want to use Whalesong, run the following to create
 the @filepath{whalesong} launcher:
 @codeblock|{
 #lang racket/base
-(require (planet dyoo/whalesong:1:8/make-launcher))
+(require (planet dyoo/whalesong:1:9/make-launcher))
 }|
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,
@@ -884,8 +892,16 @@ Hide the element at the focus.
 Get the attribute @racket[name] at the focus.
 }
 
+@defproc[(view-has-attr? [v view] [name String]) boolean]{
+Returns true if the element at the focus has an attribute @racket[name].
+}
+
 @defproc[(update-view-attr [v view] [name String] [value String]) view]{
 Update the attribute @racket[name] with the value @racket[value] at the focus.
+}
+
+@defproc[(remove-view-attr [v view] [name String]) view]{
+Remove the attribute @racket[name] at the focus.
 }
 
 @defproc[(view-css [v view] [name String]) view]{

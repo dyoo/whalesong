@@ -23,8 +23,10 @@
   (js-string->string (call-method localStorage "key" (number->js-number i))))
 
 (define (storage-ref name)
-  (js-string->string
-   (call-method localStorage "getItem" (string->js-string name))))
+  (define val (call-method localStorage "getItem" (string->js-string name)))
+  (if (js-null? val)
+      #f
+      (js-string->string val)))
 
 (define (storage-set! name value)
   (void (call-method localStorage "setItem"

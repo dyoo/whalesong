@@ -139,7 +139,16 @@
                 return plt.baselib.numbers.toFixnum(checkNumber(MACHINE, 'js-string?', 0));
             });    
 
-    
+
+    EXPORTS['js-null?'] = 
+        makePrimitiveProcedure(
+            'js-null?',
+            1,
+            function(MACHINE) {
+                return checkAny(MACHINE, 'js-null?', 0) === null;
+            });    
+
+    EXPORTS['js-null'] = null;
 
 
 

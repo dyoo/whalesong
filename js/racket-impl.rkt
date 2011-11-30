@@ -14,6 +14,9 @@
          js-number?
          number->js-number
          js-number->number
+
+         js-null?
+         js-null
          )
 
 (define (alert x)
@@ -53,6 +56,13 @@
   (error 'number->js-number "Not available outside JavaScript context"))
 (define (js-number->number x)
   (error 'js-number->number "Not available outside JavaScript context"))
+
+
+
+(define (js-null? x)
+  (error 'js-null? "Not available outside JavaScript context"))
+
+(define js-null 'not-done-yet)
 
 
 

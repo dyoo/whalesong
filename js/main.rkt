@@ -24,4 +24,7 @@
                     viewport-width
                     viewport-height
                     in-javascript-context?
+
+                    js-null?
+                    js-null
                     ))

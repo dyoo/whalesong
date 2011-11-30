@@ -18,6 +18,23 @@
   'not-done-yet)
 
 
+(define (get-attr object attr . other-attrs)
+  (error 'get-attr "Not available outside JavaScript context"))
+
+
+(define (set-attr! obj attr value)
+  (error 'set-attr! "Not available outside JavaScript context"))
+
+
+
+(define (js-string? x)
+  (error 'js-string? "Not available outside JavaScript context"))
+(define (string->js-string x)
+  (error 'string->js-string "Not available outside JavaScript context"))
+(define (js-string->string x)
+  (error 'js-string->string "Not available outside JavaScript context"))
+
+
 
 
 ;; in-javascript-context: -> boolean

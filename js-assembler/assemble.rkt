@@ -110,12 +110,13 @@ EOF
        (define next-to-visit (first queue))
        (cond
          [(set-contains? visited next-to-visit)
-          (unless (set-contains? entry-points next-to-visit)
+          #;(unless (set-contains? entry-points next-to-visit)
             (log-debug (format "Promoting ~a to an entry point" next-to-visit))
             (set-insert! entry-points next-to-visit))
           (loop (rest queue))]
          [else
           (set-insert! visited next-to-visit)
+          (set-insert! entry-points next-to-visit)
           (loop (list-union (basic-block-out-edges (hash-ref blockht next-to-visit))
                             (rest queue)))])]))
 

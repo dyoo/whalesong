@@ -3,7 +3,21 @@
 (provide alert body call-method $
          in-javascript-context?
          viewport-width
-         viewport-height)
+         viewport-height
+
+         window
+         get-attr
+         set-attr!
+         js-string?
+         string->js-string
+         js-string->string
+         js-number?
+         number->js-number
+         js-number->number
+
+         js-null?
+         js-null
+         )
 
 (define (alert x)
   (display x)
@@ -16,6 +30,40 @@
 
 (define ($ name)
   'not-done-yet)
+
+(define window 'not-available-outside-JavaScript-context)
+
+
+(define (get-attr object attr . other-attrs)
+  (error 'get-attr "Not available outside JavaScript context"))
+
+
+(define (set-attr! obj attr value)
+  (error 'set-attr! "Not available outside JavaScript context"))
+
+
+
+(define (js-string? x)
+  (error 'js-string? "Not available outside JavaScript context"))
+(define (string->js-string x)
+  (error 'string->js-string "Not available outside JavaScript context"))
+(define (js-string->string x)
+  (error 'js-string->string "Not available outside JavaScript context"))
+
+(define (js-number? x)
+  (error 'js-number? "Not available outside JavaScript context"))
+(define (number->js-number x)
+  (error 'number->js-number "Not available outside JavaScript context"))
+(define (js-number->number x)
+  (error 'js-number->number "Not available outside JavaScript context"))
+
+
+
+(define (js-null? x)
+  (error 'js-null? "Not available outside JavaScript context"))
+
+(define js-null 'not-done-yet)
+
 
 
 

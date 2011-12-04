@@ -161,6 +161,69 @@
 	defaultCurrentPrintImplementation);
 
 
+
+    //////////////////////////////////////////////////////////////////////
+
+    // Exclusive Locks.  Even though JavaScript is a single-threaded
+    // evaluator, we still have a need to create exclusive regions
+    // of evaluation, since we might inadvertantly access some state
+    // with two computations, with use of setTimeout.
+    var ExclusiveLock = function() {
+        this.locked = false;  // (U false string)
+        this.waiters = [];
+    };
+
+    // makeRandomNonce: -> string
+    // Creates a randomly-generated nonce.
+    ExclusiveLock.makeRandomNonce = function() {
+        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+        var LEN = 32;
+        var result = [];
+        var i;
+        for (i = 0; i < LEN; i++) {
+            result.push(chars.charAt(Math.floor(Math.random() * chars.length)));
+        }
+        return result.join('');
+    };
+
+    ExclusiveLock.prototype.acquire = function(id, onAcquire) {
+        var that = this;
+        if (id === undefined) {
+            id = ExclusiveLock.makeRandomNonce();
+        }
+        // Allow for re-entrancy if the id is the same as the
+        // entity who is locking.
+        if (this.locked === false || this.locked === id) {
+            this.locked = id;
+            onAcquire.call(
+                this,
+                // NOTE: the caller must release the lock or else deadlock.
+                function() {
+                    setTimeout(
+                        function() {
+                            var waiter;
+                            if (that.locked === false) {
+                                throw new Error(
+                                    "Internal error: trying to unlock the lock, but already unlocked");
+                            }
+                            that.locked = false;
+                            if (that.waiters.length > 0) {
+                                waiter = that.waiters.shift();
+                                that.acquire(waiter.id, waiter.onAcquire);
+                            },
+                            0);
+                });
+        } else {
+            this.waiters.push({ id: id, 
+                                onAcquire: onAcquire } );
+        }
+    };
+    //////////////////////////////////////////////////////////////////////
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////]
     // The MACHINE
 
@@ -229,8 +292,9 @@
 
 	};
 	this.primitives = Primitives;
+        this.exclusiveLock = new ExclusiveLock();
     };
-    
+
 
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
@@ -379,6 +443,8 @@
     var scheduleTrampoline = function(MACHINE, f) {
         setTimeout(
 	    function() { 
+ 
+               // FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 return MACHINE.trampoline(f); 
             },
 	    0);
@@ -415,6 +481,13 @@
     };
 
 
+    // WARNING WARNING WARNING
+    //
+    // Make sure to get an exclusive lock before jumping into trampoline.
+    // Otherwise, Bad Things will happen.
+    //
+    // e.g. machine.lock.acquire(function() { machine.trampoline... machine.lock.release();});
+    
     Machine.prototype.trampoline = function(initialJump, noJumpingOff) {
 	var thunk = initialJump;
 	var startTime = (new Date()).valueOf();

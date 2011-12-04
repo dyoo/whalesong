@@ -1368,7 +1368,7 @@
     // implementation of apply in the boostrapped-primitives.rkt,
     // since it provides nicer error handling.
     var applyImplementation = function (M) {
-        if(--M.callsBeforeTrampoline < 0) {
+        if(--M.cbt < 0) {
             throw applyImplementation;
         }
         var proc = checkProcedure(M, 'apply', 0);

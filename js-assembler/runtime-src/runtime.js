@@ -210,8 +210,9 @@
                             if (that.waiters.length > 0) {
                                 waiter = that.waiters.shift();
                                 that.acquire(waiter.id, waiter.onAcquire);
-                            },
-                            0);
+                            }
+                        },
+                        0);
                 });
         } else {
             this.waiters.push({ id: id, 

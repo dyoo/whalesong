@@ -195,11 +195,11 @@
         // entity who is locking.
         if (this.locked === false || this.locked === id) {
             this.locked = id;
-            onAcquire.call(
-                this,
-                // NOTE: the caller must release the lock or else deadlock!
+            setTimeout(
                 function() {
-                    setTimeout(
+                    onAcquire.call(
+                        that,
+                        // NOTE: the caller must release the lock or else deadlock!
                         function() {
                             var waiter;
                             if (that.locked === false) {
@@ -211,9 +211,9 @@
                                 waiter = that.waiters.shift();
                                 that.acquire(waiter.id, waiter.onAcquire);
                             }
-                        },
-                        0);
-                });
+                        });
+                },
+                0);
         } else {
             this.waiters.push({ id: id, 
                                 onAcquire: onAcquire } );
@@ -442,16 +442,16 @@
     var recomputeMaxNumBouncesBeforeYield;
 
     var scheduleTrampoline = function(MACHINE, f) {
-        MACHINE.exclusiveLock.acquire(
-            'scheduleTrampoline',
-            function(release) {
-                setTimeout(
-	            function() { 
+        setTimeout(
+	    function() { 
+                MACHINE.exclusiveLock.acquire(
+                    'scheduleTrampoline',
+                    function(release) {                        
                         release();
-                        return MACHINE.trampoline(f); 
-                    },
-	            0);
-            });
+                        MACHINE.trampoline(f); 
+                    });
+            },
+            0);
     };
 
     // Creates a restarting function, that reschedules f in a context

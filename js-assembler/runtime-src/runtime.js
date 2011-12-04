@@ -197,7 +197,7 @@
             this.locked = id;
             onAcquire.call(
                 this,
-                // NOTE: the caller must release the lock or else deadlock.
+                // NOTE: the caller must release the lock or else deadlock!
                 function() {
                     setTimeout(
                         function() {
@@ -441,13 +441,16 @@
     var recomputeMaxNumBouncesBeforeYield;
 
     var scheduleTrampoline = function(MACHINE, f) {
-        setTimeout(
-	    function() { 
- 
-               // FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                return MACHINE.trampoline(f); 
-            },
-	    0);
+        MACHINE.exclusiveLock.acquire(
+            'scheduleTrampoline',
+            function(release) {
+                setTimeout(
+	            function() { 
+                        release();
+                        return MACHINE.trampoline(f); 
+                    },
+	            0);
+            });
     };
 
     // Creates a restarting function, that reschedules f in a context
@@ -486,7 +489,7 @@
     // Make sure to get an exclusive lock before jumping into trampoline.
     // Otherwise, Bad Things will happen.
     //
-    // e.g. machine.lock.acquire(function() { machine.trampoline... machine.lock.release();});
+    // e.g. machine.lock.acquire('id', function(release) { machine.trampoline... release();});
     
     Machine.prototype.trampoline = function(initialJump, noJumpingOff) {
 	var thunk = initialJump;

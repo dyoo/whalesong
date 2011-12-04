@@ -144,8 +144,8 @@
             var oldVal = MACHINE.v;
             var oldArgcount = MACHINE.a;
             var oldProc = MACHINE.p;
-
             var oldErrorHandler = MACHINE.params['currentErrorHandler'];
+
             var afterGoodInvoke = function (MACHINE) { 
                 plt.runtime.PAUSE(
                     function (restart) {
@@ -186,8 +186,15 @@
                 MACHINE.a = oldArgcount;
                 MACHINE.p = oldProc;
                 fail(e);
+
             };
-            MACHINE.trampoline(v.label);
+
+            MACHINE.exclusiveLock.acquire(
+                "js-as-closure",
+                function(releaseLock) {
+                    releaseLock();
+                    MACHINE.trampoline(v.label);
+                });
         };
         return f;
     };
@@ -270,6 +277,7 @@
                 MACHINE.p = oldProc;
                 fail(e);
             };
+
             MACHINE.trampoline(proc.label);
         } else {
             fail(baselib.exceptions.makeExnFail(

@@ -138,14 +138,12 @@
                 "js-as-closure",
                 function(releaseLock) {
                     succ = succ || function () {};
-                    fail = fail || function () {};
-
-                    releaseLock();
-                    
+                    fail = fail || function () {};                    
                     if (!(baselib.arity.isArityMatching(v.racketArity, args.length - 2))) {
                         var msg = baselib.format.format(
                             "arity mismatch: ~s expected ~s argument(s) but received ~s",
                             [v.displayName, v.racketArity, args.length - 2]);
+                        releaseLock();
                         return fail(new baselib.exceptions.RacketError(
                             msg,
                             baselib.exceptions.makeExnFailContractArity(msg,
@@ -197,8 +195,8 @@
                         MACHINE.a = oldArgcount;
                         MACHINE.p = oldProc;
                         fail(e);
-                        
-                    };                    
+                    };  
+                    releaseLock();                  
                     MACHINE.trampoline(v.label);
                 });
         };
@@ -234,17 +232,17 @@
         for (i = 0; i < arguments.length; i++) {
             args.push(arguments[i]);
         }
-       MACHINE.exclusiveLock.acquire(
+        MACHINE.exclusiveLock.acquire(
             "internal call during pause",
             function(releaseLock) {
-                releaseLock();
                 var i;
                 var oldArgcount, oldVal, oldProc, oldErrorHandler;
                 if (! baselib.arity.isArityMatching(proc.racketArity, args.length - 4)) {
                     var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
                                                     [proc.displayName, proc.racketArity, args.length - 4]);
-                    return fail(baselib.exceptions.makeExnFailContractArity(msg,
-                                                                            MACHINE.captureContinuationMarks()));
+                    releaseLock();
+                    fail(baselib.exceptions.makeExnFailContractArity(msg,
+                                                                     MACHINE.captureContinuationMarks()));
                 }
 
                 if (isClosure(proc)) {
@@ -292,10 +290,11 @@
                         MACHINE.p = oldProc;
                         fail(e);
                     };
-
+                    releaseLock();
                     MACHINE.trampoline(proc.label);
                     
                 } else {
+                    releaseLock();
                     fail(baselib.exceptions.makeExnFail(
                         baselib.format.format(
                             "Not a procedure: ~e",

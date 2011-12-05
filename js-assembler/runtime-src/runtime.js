@@ -202,24 +202,25 @@
                 that,
                 // releaseLock
                 function() {
-                    setTimeout(
-                        function() {
-                            var waiter;
-                            if (alreadyReleased) {
-                                throw new Error(
-                                    "Internal error: trying to release the lock, but already released");
-                            }
-                            if (that.locked === false) {
-                                throw new Error(
-                                    "Internal error: trying to unlock the lock, but already unlocked");
-                            }
-                            that.locked = false;
-                            alreadyReleased = true;
-                            if (that.waiters.length > 0) {
-                                waiter = that.waiters.shift();
+                    var waiter;
+                    if (alreadyReleased) {
+                        throw new Error(
+                            "Internal error: trying to release the lock, but already released");
+                    }
+                    if (that.locked === false) {
+                        throw new Error(
+                            "Internal error: trying to unlock the lock, but already unlocked");
+                    }
+                    that.locked = false;
+                    alreadyReleased = true;
+                    if (that.waiters.length > 0) {
+                        waiter = that.waiters.shift();
+                        setTimeout(
+                            function() {
                                 that.acquire(waiter.id, waiter.onAcquire);
-                            }
-                        }, 0);
+                            },
+                            0);
+                    }
                 });
         } else {
             this.waiters.push({ id: id, 

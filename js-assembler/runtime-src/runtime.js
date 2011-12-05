@@ -191,29 +191,36 @@
         if (id === undefined) {
             id = ExclusiveLock.makeRandomNonce();
         }
+
+        var alreadyReleased = false;
+
         // Allow for re-entrancy if the id is the same as the
         // entity who is locking.
         if (this.locked === false || this.locked === id) {
             this.locked = id;
-            setTimeout(
+            onAcquire.call(
+                that,
+                // releaseLock
                 function() {
-                    onAcquire.call(
-                        that,
-                        // NOTE: the caller must release the lock or else deadlock!
+                    setTimeout(
                         function() {
                             var waiter;
+                            if (alreadyReleased) {
+                                throw new Error(
+                                    "Internal error: trying to release the lock, but already released");
+                            }
                             if (that.locked === false) {
                                 throw new Error(
                                     "Internal error: trying to unlock the lock, but already unlocked");
                             }
                             that.locked = false;
+                            alreadyReleased = true;
                             if (that.waiters.length > 0) {
                                 waiter = that.waiters.shift();
                                 that.acquire(waiter.id, waiter.onAcquire);
                             }
-                        });
-                },
-                0);
+                        }, 0);
+                });
         } else {
             this.waiters.push({ id: id, 
                                 onAcquire: onAcquire } );

@@ -377,11 +377,15 @@
     var recomputeMaxNumBouncesBeforeYield;
 
     var scheduleTrampoline = function(MACHINE, f) {
-        setTimeout(
-	    function() { 
-                return MACHINE.trampoline(f); 
-            },
-	    0);
+        // FIXME: at the moment, the setTimeout is breaking when we get
+        // a rapid set of events from web-world.  We are running into
+        // a very ugly re-entrancy bug.  https://github.com/dyoo/whalesong/issues/70
+
+        // setTimeout(
+	//     function() { 
+        return MACHINE.trampoline(f); 
+        // },
+	// 0);
     };
 
     // Creates a restarting function, that reschedules f in a context

@@ -441,13 +441,14 @@
     //
     var recomputeMaxNumBouncesBeforeYield;
 
-    var scheduleTrampoline = function(MACHINE, f) {
+    var scheduleTrampoline = function(MACHINE, f, before) {
         setTimeout(
 	    function() { 
                 MACHINE.exclusiveLock.acquire(
                     'scheduleTrampoline',
                     function(release) {                        
                         release();
+                        if (before) { before(); }
                         MACHINE.trampoline(f); 
                     });
             },
@@ -460,8 +461,7 @@
     var makeRestartFunction = function(MACHINE) {
         var oldArgcount = MACHINE.a;
         return function(f) { 
-            MACHINE.a = oldArgcount;
-            return scheduleTrampoline(MACHINE, f);
+            return scheduleTrampoline(MACHINE, f, function() { MACHINE.a = oldArgcount; });
         };
     };
 

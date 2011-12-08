@@ -1646,11 +1646,11 @@
                              },
                              function(exn) {
                                  restart(function(MACHINE) {
-                                     plt.baselib.exceptions.raise(
+                                     plt.baselib.exceptions.raiseFailure(
                                          MACHINE, 
-                                         new Error(plt.baselib.format.format(
+                                         plt.baselib.format.format(
                                              "unable to translate ~s to view: ~a",
-                                             [viewable, exn.message])));
+                                             [viewable, exn.message]));
                                  });
                              });
             });
@@ -1678,11 +1678,11 @@
                                  },
                                  function(exn) {
                                      restart(function(MACHINE) {
-                                         plt.baselib.exceptions.raise(
+                                         plt.baselib.exceptions.raiseFailure(
                                              MACHINE, 
-                                             new Error(plt.baselib.format.format(
+                                             plt.baselib.format.format(
                                                  "unable to translate ~s to view: ~a",
-                                                 [viewable, exn.message])));
+                                                 [viewable, exn.message]));
                                      });
                                  });
             });
@@ -1751,11 +1751,11 @@
             try {
                 return view.updateFocus(selector);
             } catch (e) {
-                plt.baselib.exceptions.raise(
+                plt.baselib.exceptions.raiseFailure(
                     MACHINE, 
-                    new Error(plt.baselib.format.format(
+                    plt.baselib.format.format(
                         "unable to focus to ~s: ~s",
-                        [selector, e.message])));
+                        [selector, e.message]));
             }
         });
 
@@ -1768,9 +1768,9 @@
             try {
                 return view.left();
             } catch (e) {
-                plt.baselib.exceptions.raise(
+                plt.baselib.exceptions.raiseFailure(
                     MACHINE, 
-                    new Error("unable to focus left"));
+                    "unable to focus left");
             }
         });
 
@@ -1782,9 +1782,9 @@
             try {
                 return view.right();
             } catch (e) {
-                plt.baselib.exceptions.raise(
+                plt.baselib.exceptions.raiseFailure(
                     MACHINE, 
-                    new Error("unable to focus right"));                
+                    "unable to focus right");
             }
         });
 
@@ -1796,9 +1796,9 @@
             try {
                 return view.up();
             } catch (e) {
-                plt.baselib.exceptions.raise(
+                plt.baselib.exceptions.raiseFailure(
                     MACHINE, 
-                    new Error("unable to focus up"));
+                    "unable to focus up");
             }
         });
 
@@ -1810,9 +1810,9 @@
             try {
                 return view.down();
             } catch(e) {
-                plt.baselib.exceptions.raise(
+                plt.baselib.exceptions.raiseFailure(
                     MACHINE, 
-                    new Error("unable to focus down"));
+                    "unable to focus down");
             }
         });
 
@@ -1824,9 +1824,9 @@
             try {
                 return view.forward();
             } catch(e) {
-                plt.baselib.exceptions.raise(
+                plt.baselib.exceptions.raiseFailure(
                     MACHINE, 
-                    new Error("unable to focus forward"));                
+                    "unable to focus forward");
             } 
         });
 
@@ -1838,9 +1838,9 @@
             try {
                 return view.backward();
             } catch(e) {
-                plt.baselib.exceptions.raise(
+                plt.baselib.exceptions.raiseFailure(
                     MACHINE, 
-                    new Error("unable to focus backward"));
+                    "unable to focus backward");
             }
         });
 
@@ -2048,11 +2048,11 @@
                                 },
                                 function(err) {
                                     restart(function(MACHINE) {
-                                         plt.baselib.exceptions.raise(
+                                         plt.baselib.exceptions.raiseFailure(
                                              MACHINE, 
-                                             new Error(plt.baselib.format.format(
+                                             plt.baselib.format.format(
                                                  "unable to translate ~s to dom node: ~a",
-                                                 [x, err.message])));
+                                                 [x, err.message]));
                                         
                                     });
                                 });
@@ -2076,11 +2076,11 @@
                                 },
                                 function(err) {
                                     restart(function(MACHINE) {
-                                         plt.baselib.exceptions.raise(
+                                         plt.baselib.exceptions.raiseFailure(
                                              MACHINE, 
-                                             new Error(plt.baselib.format.format(
+                                             plt.baselib.format.format(
                                                  "unable to translate ~s to dom node: ~a",
-                                                 [x, err.message])));
+                                                 [x, err.message]));
                                         
                                     });
                                 });
@@ -2106,11 +2106,11 @@
                                 },
                                 function(err) {
                                     restart(function(MACHINE) {
-                                         plt.baselib.exceptions.raise(
+                                         plt.baselib.exceptions.raiseFailure(
                                              MACHINE, 
-                                             new Error(plt.baselib.format.format(
+                                             plt.baselib.format.format(
                                                  "unable to translate ~s to dom node: ~a",
-                                                 [x, err.message])));
+                                                 [x, err.message]));
                                         
                                     });
                                 });

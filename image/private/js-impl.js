@@ -299,12 +299,12 @@ EXPORTS['bitmap/url'] =
                     };
                     rawImage.onerror = function(e) {
                         restart(function(MACHINE) {
-                            plt.baselib.exceptions.raise(
+                            plt.baselib.exceptions.raiseFailure(
                                 MACHINE, 
-                                new Error(plt.baselib.format.format(
+                                plt.baselib.format.format(
                                     "unable to load ~a: ~a",
                                     [url,
-                                     e.message])));
+                                     e.message]));
                         });
                     }
                     rawImage.src = url.toString();

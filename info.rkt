@@ -2,7 +2,7 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Improving stack traces for the web-world view functions.")))
+(define release-notes '((p "Improving stack traces for the web-world view functions.  To improve error trapping, web-world now syntactically restricts the use of web-world handlers to an enclosing big-bang.")))
 (define version "1.12")
 (define categories '(devtools))
 (define repositories '("4.x"))

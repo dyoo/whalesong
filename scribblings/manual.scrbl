@@ -706,6 +706,7 @@ to a web page.
 (big-bang ...
           (initial-view page1.html))
 }|
+@racket[initial-view] should only be used in the lexical context of a @racket[big-bang].
 }
 
 
@@ -723,6 +724,7 @@ Tells @racket[big-bang] when to stop.
 (big-bang ...
           (stop-when stop?))
 }|
+@racket[stop-when] should only be used in the lexical context of a @racket[big-bang].
 }
 
 
@@ -741,6 +743,7 @@ given @racket[delay], it will use that instead.
 (big-bang ...
           (on-tick tick 5)) ;; tick every five seconds
 }|
+@racket[on-tick] should only be used in the lexical context of a @racket[big-bang].
 }
 
 
@@ -763,6 +766,7 @@ The optional @tech{event} argument will contain numbers for
 (big-bang ...
           (on-mock-location-change move))
 }|
+@racket[on-mock-location-change] should only be used in the lexical context of a @racket[big-bang].
 }
 
 
@@ -783,6 +787,7 @@ The optional @tech{event} argument will contain numbers for
 (big-bang ...
           (on-location-change move))
 }|
+@racket[on-location-change] should only be used in the lexical context of a @racket[big-bang].
 }
 
 
@@ -804,6 +809,7 @@ function will be called every time an event occurs.
 (big-bang ...
           (to-draw draw))
 }|
+@racket[to-draw] should only be used in the lexical context of a @racket[big-bang].
 }
 
 

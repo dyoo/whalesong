@@ -765,7 +765,7 @@ EXPORTS['add-line'] =
 				     jsnums.toFixnum(y2-y1),
 				     c,
 				     true);
-	    return makeOverlayImage(line, img, "middle", "middle");
+	    return makeOverlayImage(line, img, x1, y1);
         });
 
 

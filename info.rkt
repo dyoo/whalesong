@@ -2,8 +2,8 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Bug patch: under rare situations, the scheduler can incorrectly allow  multiple computations to run.  For now, Whalesong's will not release control to the browser during long-running computations.  Program output may be a little bit more delayed as a result.")))
-(define version "1.11")
+(define release-notes '((p "Improving stack traces for the web-world view functions.")))
+(define version "1.12")
 (define categories '(devtools))
 (define repositories '("4.x"))
 (define required-core-version "5.1.1")

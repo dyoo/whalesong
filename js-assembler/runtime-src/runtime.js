@@ -114,7 +114,7 @@
     var ArityAtLeast = baselib.arity.ArityAtLeast;
     var makeArityAtLeast = baselib.arity.makeArityAtLeast;
     var isArityMatching = baselib.arity.isArityMatching;
-    
+
 
     var testArgument = baselib.check.testArgument;
     var testArity = baselib.check.testArity;
@@ -138,17 +138,17 @@
 
 
     var defaultCurrentPrintImplementation = function (MACHINE) {
-        if(--MACHINE.cbt < 0) { 
-            throw defaultCurrentPrintImplementation; 
+        if(--MACHINE.cbt < 0) {
+            throw defaultCurrentPrintImplementation;
         }
         var oldArgcount = MACHINE.a;
 
 	var elt = MACHINE.e[MACHINE.e.length - 1];
-	var outputPort = 
+	var outputPort =
 	    MACHINE.params.currentOutputPort;
 	if (elt !== VOID) {
 	    outputPort.writeDomNode(
-                MACHINE, 
+                MACHINE,
                 toDomNode(elt, MACHINE.params['print-mode']));
 	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
 	}
@@ -223,7 +223,7 @@
                     }
                 });
         } else {
-            this.waiters.push({ id: id, 
+            this.waiters.push({ id: id,
                                 onAcquire: onAcquire } );
         }
     };
@@ -260,7 +260,7 @@
 	    'currentDisplayer': function(MACHINE, domNode) {
 		$(domNode).appendTo(document.body);
 	    },
-	    
+
 	    // currentErrorDisplayer: DomNode -> Void
 	    // currentErrorDisplayer is responsible for displaying errors to the browser.
 	    'currentErrorDisplayer': function(MACHINE, domNode) {
@@ -268,7 +268,7 @@
 	    },
 
             'currentInspector': baselib.inspectors.DEFAULT_INSPECTOR,
-	    
+
 	    'currentOutputPort': new StandardOutputPort(),
 	    'currentErrorPort': new StandardErrorPort(),
             'currentInputPort': new StandardInputPort(),
@@ -278,9 +278,9 @@
                     MACHINE,
                     toDomNode(exn, MACHINE.params['print-mode']));
             },
-	    
+
 	    'currentNamespace': {},
-	    
+
 	    // These parameters control how often
 	    // control yields back to the browser
 	    // for response.  The implementation is a
@@ -333,7 +333,7 @@
 		return MACHINE.c.slice(i + 1,
 					     MACHINE.c.length - skip);
 	    }
-	} 
+	}
 	raise(MACHINE, new Error("captureControl: unable to find tag " + tag));
     };
 
@@ -341,20 +341,20 @@
 
     // restoreControl clears the control stack (up to, but not including the
     // prompt tagged by tag), and then appends the rest of the control frames.
-    // At the moment, the rest of the control frames is assumed to be in the 
+    // At the moment, the rest of the control frames is assumed to be in the
     // top of the environment.
     Machine.prototype.restoreControl = function(tag) {
 	var MACHINE = this;
 	var i;
 	for (i = MACHINE.c.length - 1; i >= 0; i--) {
 	    if (MACHINE.c[i].tag === tag) {
-		MACHINE.c = 
+		MACHINE.c =
 		    MACHINE.c.slice(0, i+1).concat(
 			MACHINE.e[MACHINE.e.length - 1]);
 		return;
 	    }
 	}
-	raise(MACHINE, new Error("restoreControl: unable to find tag " + tag));     
+	raise(MACHINE, new Error("restoreControl: unable to find tag " + tag));
 
     };
 
@@ -382,11 +382,11 @@
 	var lst = NULL;
 	var i;
 	for (i = 0; i < length; i++) {
-	    lst = makePair(MACHINE.e[MACHINE.e.length - depth - length + i], 
+	    lst = makePair(MACHINE.e[MACHINE.e.length - depth - length + i],
                            lst);
 	}
 	MACHINE.e.splice(MACHINE.e.length - depth - length,
-			   length, 
+			   length,
 			   lst);
 	MACHINE.a = MACHINE.a - length + 1;
     };
@@ -420,8 +420,8 @@
             if (control[i].marks.length !== 0) {
                 kvLists.push(control[i].marks);
             }
-            
-            if (tracedCalleeKey !== null && 
+
+            if (tracedCalleeKey !== null &&
                 control[i] instanceof CallFrame &&
                 control[i].p !== null) {
                 kvLists.push([[tracedCalleeKey, control[i].p]]);
@@ -429,7 +429,7 @@
         }
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
     };
-    
+
 
 
 
@@ -451,24 +451,24 @@
 
     var scheduleTrampoline = function(MACHINE, f, before) {
         setTimeout(
-	    function() { 
+	    function() {
                 MACHINE.exclusiveLock.acquire(
                     'scheduleTrampoline',
-                    function(release) {                        
+                    function(release) {
                         release();
                         if (before) { before(); }
-                        MACHINE.trampoline(f); 
+                        MACHINE.trampoline(f);
                     });
             },
             0);
     };
 
     // Creates a restarting function, that reschedules f in a context
-    // with the old argcount in place. 
+    // with the old argcount in place.
     // Meant to be used only by the trampoline.
     var makeRestartFunction = function(MACHINE) {
         var oldArgcount = MACHINE.a;
-        return function(f) { 
+        return function(f) {
             return scheduleTrampoline(MACHINE, f, function() { MACHINE.a = oldArgcount; });
         };
     };
@@ -499,79 +499,88 @@
     // Otherwise, Bad Things will happen.
     //
     // e.g. machine.lock.acquire('id', function(release) { machine.trampoline... release();});
-    
     Machine.prototype.trampoline = function(initialJump, noJumpingOff) {
-	var thunk = initialJump;
-	var startTime = (new Date()).valueOf();
-	this.cbt = STACK_LIMIT_ESTIMATE;
-	this.params.numBouncesBeforeYield = 
-	    this.params.maxNumBouncesBeforeYield;
-	this.running = true;
-
-	while(true) {
-            try {
-		thunk(this);
-		break;
-            } catch (e) {
-                // There are a few kinds of things that can get thrown
-                // during racket evaluation:
-                //
-                // functions: this gets thrown if the Racket code
-                // realizes that the number of bounces has grown too
-                // large.  The thrown function represents a restarter
-                // function.  The running flag remains true.
-                //
-                // Pause: causes the machine evaluation to pause, with
-                // the expectation that it will restart momentarily.
-                // The running flag on the machine will remain true.
-                //
-                // HaltError: causes evaluation to immediately halt.
-                // We schedule the onHalt function of the HaltError to
-                // call afterwards.  The running flag on the machine
-                // is set to false.
-                //
-                // Everything else: otherwise, we send the exception value
-                // to the current error handler and exit.
-                // The running flag is set to false.
-		if (typeof(e) === 'function') {
-                    thunk = e;
-                    this.cbt = STACK_LIMIT_ESTIMATE;
-
-
-                    // If we're running an a model that prohibits
-                    // jumping off the trampoline, continue.
-                    if (noJumpingOff) {
-                        continue;
-                    }
-
-		    if (this.params.numBouncesBeforeYield-- < 0) {
-			recomputeMaxNumBouncesBeforeYield(
-			    this,
-			    (new Date()).valueOf() - startTime);
-			scheduleTrampoline(this, thunk);
-			return;
-		    }
-		} else if (e instanceof Pause) {
-                    var restart = makeRestartFunction(this);
-                    e.onPause(restart);
-                    return;
-                } else if (e instanceof HaltError) {
-		    this.running = false;
-                    e.onHalt(this);
-                    return;
-                } else {
-		    // General error condition: just exit out
-		    // of the trampoline and call the current error handler.
-		    this.running = false;
-                    this.params.currentErrorHandler(this, e);
-	            return;
-		}
-            }
-	}
-	this.running = false;
         var that = this;
-        this.params.currentSuccessHandler(this);
-	return;
+
+        that.exclusiveLock.acquire(
+            'trampoline',
+            function(release) {
+                var thunk = initialJump;
+                var startTime = (new Date()).valueOf();
+                that.cbt = STACK_LIMIT_ESTIMATE;
+                that.params.numBouncesBeforeYield =
+                    that.params.maxNumBouncesBeforeYield;
+                that.running = true;
+
+                while(true) {
+                    try {
+                        thunk(that);
+                        break;
+                    } catch (e) {
+                        // There are a few kinds of things that can get thrown
+                        // during racket evaluation:
+                        //
+                        // functions: this gets thrown if the Racket code
+                        // realizes that the number of bounces has grown too
+                        // large.  The thrown function represents a restarter
+                        // function.  The running flag remains true.
+                        //
+                        // Pause: causes the machine evaluation to pause, with
+                        // the expectation that it will restart momentarily.
+                        // The running flag on the machine will remain true.
+                        //
+                        // HaltError: causes evaluation to immediately halt.
+                        // We schedule the onHalt function of the HaltError to
+                        // call afterwards.  The running flag on the machine
+                        // is set to false.
+                        //
+                        // Everything else: otherwise, we send the exception value
+                        // to the current error handler and exit.
+                        // The running flag is set to false.
+                        if (typeof(e) === 'function') {
+                            thunk = e;
+                            that.cbt = STACK_LIMIT_ESTIMATE;
+
+
+                            // If we're running an a model that prohibits
+                            // jumping off the trampoline, continue.
+                            if (noJumpingOff) {
+                                continue;
+                            }
+
+                            if (that.params.numBouncesBeforeYield-- < 0) {
+                                recomputeMaxNumBouncesBeforeYield(
+                                    that,
+                                    (new Date()).valueOf() - startTime);
+                                scheduleTrampoline(that, thunk);
+                                release();
+                                return;
+                            }
+                        } else if (e instanceof Pause) {
+                            var restart = makeRestartFunction(that);
+                            e.onPause(restart);
+                            release();
+                            return;
+                        } else if (e instanceof HaltError) {
+                            that.running = false;
+                            e.onHalt(that);
+                            release();
+                            return;
+                        } else {
+                            // General error condition: just exit out
+                            // of the trampoline and call the current error handler.
+                            that.running = false;
+                            that.params.currentErrorHandler(that, e);
+                            release();
+                            return;
+                        }
+                    }
+                }
+                that.running = false;
+                that.params.currentSuccessHandler(that);
+                release();
+                return;
+            });
     };
 
     // recomputeGas: state number -> number
@@ -579,13 +588,13 @@
 	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
 	// that we get MACHINE.params.desiredYieldsPerSecond bounces per
 	// second.
-	var DESIRED_DELAY_BETWEEN_BOUNCES = 
+	var DESIRED_DELAY_BETWEEN_BOUNCES =
 	    (1000 / MACHINE.params.desiredYieldsPerSecond);
 	var ALPHA = 50;
 	var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
-			       observedDelay) / 
+			       observedDelay) /
 			      DESIRED_DELAY_BETWEEN_BOUNCES));
-	MACHINE.params.maxNumBouncesBeforeYield = 
+	MACHINE.params.maxNumBouncesBeforeYield =
             Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
                      1);
     };
@@ -619,7 +628,7 @@
 
 
 
-    
+
 
 
 
@@ -765,7 +774,7 @@
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;
     exports['makePrimitiveProcedure'] = makePrimitiveProcedure;
     exports['Primitives'] = Primitives;
-    
+
     exports['ready'] = ready;
     // Private: the runtime library will set this flag to true when
     // the library has finished loading.
@@ -780,7 +789,7 @@
     exports['ModuleRecord'] = ModuleRecord;
     exports['VariableReference'] = VariableReference;
     exports['ContinuationPromptTag'] = ContinuationPromptTag;
-    exports['DEFAULT_CONTINUATION_PROMPT_TAG'] = 
+    exports['DEFAULT_CONTINUATION_PROMPT_TAG'] =
 	DEFAULT_CONTINUATION_PROMPT_TAG;
     exports['NULL'] = NULL;
     exports['VOID'] = VOID;

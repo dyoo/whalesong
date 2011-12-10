@@ -461,11 +461,13 @@
     var makeRestartFunction = function(MACHINE, release, pauseLock) {
         var oldArgcount = MACHINE.a;
         return function(f) {
-            pauseLock.acquire(function(pauseReleaseLock) {
-                MACHINE.a = oldArgcount;
-                MACHINE._trampoline(f, false, release);
-                pauseReleaseLock();
-            });
+            pauseLock.acquire(
+                undefined,
+                function(pauseReleaseLock) {
+                    MACHINE.a = oldArgcount;
+                    MACHINE._trampoline(f, false, release);
+                    pauseReleaseLock();
+                });
         };
     };
 
@@ -562,14 +564,17 @@
                     var oldArgcount = that.a;
                     var restarted = false;
                     var restart = function(f) {
-                        pauseLock.acquire(function(releasePauseLock) {
-                            restarted = true;
-                            that.a = oldArgcount;
-                            that._trampoline(f, false, release);
-                            releasePauseLock();
-                        });
+                        pauseLock.acquire(
+                            undefined,
+                            function(releasePauseLock) {
+                                restarted = true;
+                                that.a = oldArgcount;
+                                that._trampoline(f, false, release);
+                                releasePauseLock();
+                            });
                     };
                     var internalCall = function(proc, success, fail) {
+                        var i;
                         if (restarted) {
                             return;
                         }
@@ -577,18 +582,20 @@
                         for (i = 3; i < arguments.length; i++) {
                             args.push(arguments[i]);
                         }
-                        pauseLock.acquire(function(release) {
-                            var newSuccess = function() {
-                                success.apply(null, arguments);
-                                release();
-                            };
-                            var newFail = function() {
-                                fail.apply(null, arguments);
-                                release();
-                            };
-                            baselib.functions.internalCallDuringPause.apply(
-                                null, [that, proc, newSuccess, newFail].concat(args));
-                        });
+                        pauseLock.acquire(
+                            undefined,
+                            function(release) {
+                                var newSuccess = function() {
+                                    success.apply(null, arguments);
+                                    release();
+                                };
+                                var newFail = function() {
+                                    fail.apply(null, arguments);
+                                    release();
+                                };
+                                baselib.functions.internalCallDuringPause.apply(
+                                    null, [that, proc, newSuccess, newFail].concat(args));
+                            });
                     };
                     e.onPause(restart, internalCall);
                     return;

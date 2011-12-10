@@ -236,7 +236,7 @@
         }
 
         var i;
-        var oldArgcount, oldVal, oldProc, oldErrorHandler;
+        var oldArgcount, oldVal, oldProc, oldErrorHandler, oldControlLength, oldEnvLength;
         if (! baselib.arity.isArityMatching(proc.racketArity, args.length - 4)) {
             var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
                                             [proc.displayName, proc.racketArity, args.length - 4]);
@@ -256,6 +256,8 @@
         oldVal = MACHINE.v;
         oldArgcount = MACHINE.a;
         oldProc = MACHINE.p;
+        oldControlLength = MACHINE.c.length;
+        oldEnvLength = MACHINE.e.length;
 
         oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function (MACHINE) { 
@@ -295,6 +297,8 @@
             MACHINE.v = oldVal;
             MACHINE.a = oldArgcount;
             MACHINE.p = oldProc;
+            MACHINE.c.length = oldControlLength;
+            MACHINE.e.length = oldEnvLength;
             fail(e);
         };
         MACHINE._trampoline(proc.label, 

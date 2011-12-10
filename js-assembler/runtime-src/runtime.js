@@ -194,9 +194,7 @@
 
         var alreadyReleased = false;
 
-        // Allow for re-entrancy if the id is the same as the
-        // entity who is locking.
-        if (this.locked === false || this.locked === id) {
+        if (this.locked === false) {
             this.locked = id;
             onAcquire.call(
                 that,
@@ -455,9 +453,8 @@
                 MACHINE.exclusiveLock.acquire(
                     'scheduleTrampoline',
                     function(release) {
-                        release();
                         if (before) { before(); }
-                        MACHINE.trampoline(f);
+                        MACHINE._trampoline(f, false, release);
                     });
             },
             0);
@@ -468,8 +465,16 @@
     // Meant to be used only by the trampoline.
     var makeRestartFunction = function(MACHINE) {
         var oldArgcount = MACHINE.a;
+        var oldEnv = MACHINE.e.slice();
+        var oldControl = MACHINE.c.slice();
         return function(f) {
-            return scheduleTrampoline(MACHINE, f, function() { MACHINE.a = oldArgcount; });
+            MACHINE.exclusiveLock.acquire(undefined,
+              function(release) {
+                  MACHINE.a = oldArgcount;
+                  MACHINE.e = oldEnv;
+                  MACHINE.c = oldControl;
+                  MACHINE._trampoline(f, false, release);
+            });
         };
     };
 
@@ -505,83 +510,90 @@
         that.exclusiveLock.acquire(
             'trampoline',
             function(release) {
-                var thunk = initialJump;
-                var startTime = (new Date()).valueOf();
-                that.cbt = STACK_LIMIT_ESTIMATE;
-                that.params.numBouncesBeforeYield =
-                    that.params.maxNumBouncesBeforeYield;
-                that.running = true;
-
-                while(true) {
-                    try {
-                        thunk(that);
-                        break;
-                    } catch (e) {
-                        // There are a few kinds of things that can get thrown
-                        // during racket evaluation:
-                        //
-                        // functions: this gets thrown if the Racket code
-                        // realizes that the number of bounces has grown too
-                        // large.  The thrown function represents a restarter
-                        // function.  The running flag remains true.
-                        //
-                        // Pause: causes the machine evaluation to pause, with
-                        // the expectation that it will restart momentarily.
-                        // The running flag on the machine will remain true.
-                        //
-                        // HaltError: causes evaluation to immediately halt.
-                        // We schedule the onHalt function of the HaltError to
-                        // call afterwards.  The running flag on the machine
-                        // is set to false.
-                        //
-                        // Everything else: otherwise, we send the exception value
-                        // to the current error handler and exit.
-                        // The running flag is set to false.
-                        if (typeof(e) === 'function') {
-                            thunk = e;
-                            that.cbt = STACK_LIMIT_ESTIMATE;
-
-
-                            // If we're running an a model that prohibits
-                            // jumping off the trampoline, continue.
-                            if (noJumpingOff) {
-                                continue;
-                            }
-
-                            if (that.params.numBouncesBeforeYield-- < 0) {
-                                recomputeMaxNumBouncesBeforeYield(
-                                    that,
-                                    (new Date()).valueOf() - startTime);
-                                scheduleTrampoline(that, thunk);
-                                release();
-                                return;
-                            }
-                        } else if (e instanceof Pause) {
-                            var restart = makeRestartFunction(that);
-                            e.onPause(restart);
-                            release();
-                            return;
-                        } else if (e instanceof HaltError) {
-                            that.running = false;
-                            e.onHalt(that);
-                            release();
-                            return;
-                        } else {
-                            // General error condition: just exit out
-                            // of the trampoline and call the current error handler.
-                            that.running = false;
-                            that.params.currentErrorHandler(that, e);
-                            release();
-                            return;
-                        }
-                    }
-                }
-                that.running = false;
-                that.params.currentSuccessHandler(that);
-                release();
-                return;
+                that._trampoline(initialJump, noJumpingOff, release);
             });
     };
+
+    Machine.prototype._trampoline = function(initialJump, noJumpingOff, release) {
+        var that = this;
+        var thunk = initialJump;
+        var startTime = (new Date()).valueOf();
+        that.cbt = STACK_LIMIT_ESTIMATE;
+        that.params.numBouncesBeforeYield =
+            that.params.maxNumBouncesBeforeYield;
+        that.running = true;
+
+        while(true) {
+            try {
+                thunk(that);
+                break;
+            } catch (e) {
+                // There are a few kinds of things that can get thrown
+                // during racket evaluation:
+                //
+                // functions: this gets thrown if the Racket code
+                // realizes that the number of bounces has grown too
+                // large.  The thrown function represents a restarter
+                // function.  The running flag remains true.
+                //
+                // Pause: causes the machine evaluation to pause, with
+                // the expectation that it will restart momentarily.
+                // The running flag on the machine will remain true.
+                //
+                // HaltError: causes evaluation to immediately halt.
+                // We schedule the onHalt function of the HaltError to
+                // call afterwards.  The running flag on the machine
+                // is set to false.
+                //
+                // Everything else: otherwise, we send the exception value
+                // to the current error handler and exit.
+                // The running flag is set to false.
+                if (typeof(e) === 'function') {
+                    thunk = e;
+                    that.cbt = STACK_LIMIT_ESTIMATE;
+
+
+                    // If we're running an a model that prohibits
+                    // jumping off the trampoline, continue.
+                    if (noJumpingOff) {
+                        continue;
+                    }
+
+                    if (that.params.numBouncesBeforeYield-- < 0) {
+                        recomputeMaxNumBouncesBeforeYield(
+                            that,
+                            (new Date()).valueOf() - startTime);
+                        scheduleTrampoline(that, thunk);
+                        release();
+                        return;
+                    }
+                } else if (e instanceof Pause) {
+                    var restart = makeRestartFunction(that);
+                    e.onPause(restart);
+                    release();
+                    return;
+                } else if (e instanceof HaltError) {
+                    that.running = false;
+                    e.onHalt(that);
+                    release();
+                    return;
+                } else {
+                    // General error condition: just exit out
+                    // of the trampoline and call the current error handler.
+                    that.running = false;
+                    that.params.currentErrorHandler(that, e);
+                    release();
+                    return;
+                }
+            }
+        }
+        that.running = false;
+        that.params.currentSuccessHandler(that);
+        release();
+        return;
+
+    };
+
 
     // recomputeGas: state number -> number
     recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {

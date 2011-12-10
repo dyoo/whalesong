@@ -1171,7 +1171,7 @@
             MACHINE.params.currentOutputPort = find(handlers, isWithOutputToHandler).outputPort;
         }
 
-        PAUSE(function(restart) {
+        PAUSE(function(restart, internalCall) {
             var onCleanRestart, onMessyRestart, 
             startEventHandlers, stopEventHandlers, 
             startEventHandler, stopEventHandler,
@@ -1260,7 +1260,7 @@
                     var onGoodWorldUpdate = 
                         function(newWorld) {
                             world = newWorld;
-                            stopWhen(MACHINE,
+                            stopWhen(internalCall,
                                      world,
                                      mockView,
                                      function(shouldStop) {
@@ -1274,14 +1274,14 @@
                                      fail);
                         };
                     if (plt.baselib.arity.isArityMatching(racketWorldCallback.racketArity, 3)) {
-                        racketWorldCallback(MACHINE, 
+                        racketWorldCallback(internalCall, 
                                             world,
                                             mockView,
                                             data,
                                             onGoodWorldUpdate,
                                             fail);
                     } else {
-                        racketWorldCallback(MACHINE, 
+                        racketWorldCallback(internalCall, 
                                             world,
                                             mockView,
                                             onGoodWorldUpdate,
@@ -1299,7 +1299,7 @@
                 // update, and have to do it from scratch.
                 var nonce = Math.random();
                 var originalMockView = view.getMockAndResetFocus(nonce);
-                toDraw(MACHINE, 
+                toDraw(internalCall, 
                        world,
                        originalMockView,
                        function(newMockView) {
@@ -1334,15 +1334,14 @@
     };
 
     var wrapFunction = function(proc) {
-        var f = function(MACHINE) {
+        var f = function(internalCall) {
             var success = arguments[arguments.length - 2];
             var fail = arguments[arguments.length - 1];
             var args = [].slice.call(arguments, 1, arguments.length - 2);
-            return plt.baselib.functions.internalCallDuringPause.apply(null,
-                                                                       [MACHINE,
-                                                                        proc,
-                                                                        success,
-                                                                        fail].concat(args));
+            return internalCall.apply(null,
+                                      [proc,
+                                       success,
+                                       fail].concat(args));
         };
         f.racketArity = proc.racketArity;
         return f;

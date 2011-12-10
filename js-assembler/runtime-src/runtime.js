@@ -458,11 +458,14 @@
     // Creates a restarting function, that reschedules f in a context
     // with the old argcount in place.
     // Meant to be used only by the trampoline.
-    var makeRestartFunction = function(MACHINE, release) {
+    var makeRestartFunction = function(MACHINE, release, pauseLock) {
         var oldArgcount = MACHINE.a;
         return function(f) {
-            MACHINE.a = oldArgcount;
-            MACHINE._trampoline(f, false, release);
+            pauseLock.acquire(function(pauseReleaseLock) {
+                MACHINE.a = oldArgcount;
+                MACHINE._trampoline(f, false, release);
+                pauseReleaseLock();
+            });
         };
     };
 
@@ -555,8 +558,39 @@
                         return;
                     }
                 } else if (e instanceof Pause) {
-                    var restart = makeRestartFunction(that, release);
-                    e.onPause(restart);
+                    var pauseLock = new ExclusiveLock();
+                    var oldArgcount = that.a;
+                    var restarted = false;
+                    var restart = function(f) {
+                        pauseLock.acquire(function(releasePauseLock) {
+                            restarted = true;
+                            that.a = oldArgcount;
+                            that._trampoline(f, false, release);
+                            releasePauseLock();
+                        });
+                    };
+                    var internalCall = function(proc, success, fail) {
+                        if (restarted) {
+                            return;
+                        }
+                        var args = [];
+                        for (i = 3; i < arguments.length; i++) {
+                            args.push(arguments[i]);
+                        }
+                        pauseLock.acquire(function(release) {
+                            var newSuccess = function() {
+                                success.apply(null, arguments);
+                                release();
+                            };
+                            var newFail = function() {
+                                fail.apply(null, arguments);
+                                release();
+                            };
+                            baselib.functions.internalCallDuringPause.apply(
+                                null, [that, proc, newSuccess, newFail].concat(args));
+                        });
+                    };
+                    e.onPause(restart, internalCall);
                     return;
                 } else if (e instanceof HaltError) {
                     that.running = false;

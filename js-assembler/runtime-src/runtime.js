@@ -447,15 +447,10 @@
     //
     var recomputeMaxNumBouncesBeforeYield;
 
-    var scheduleTrampoline = function(MACHINE, f, before) {
+    var scheduleTrampoline = function(MACHINE, f, release) {
         setTimeout(
 	    function() {
-                MACHINE.exclusiveLock.acquire(
-                    'scheduleTrampoline',
-                    function(release) {
-                        if (before) { before(); }
-                        MACHINE._trampoline(f, false, release);
-                    });
+                MACHINE._trampoline(f, false, release);
             },
             0);
     };
@@ -463,18 +458,11 @@
     // Creates a restarting function, that reschedules f in a context
     // with the old argcount in place.
     // Meant to be used only by the trampoline.
-    var makeRestartFunction = function(MACHINE) {
+    var makeRestartFunction = function(MACHINE, release) {
         var oldArgcount = MACHINE.a;
-        var oldEnv = MACHINE.e.slice();
-        var oldControl = MACHINE.c.slice();
         return function(f) {
-            MACHINE.exclusiveLock.acquire(undefined,
-              function(release) {
-                  MACHINE.a = oldArgcount;
-                  MACHINE.e = oldEnv;
-                  MACHINE.c = oldControl;
-                  MACHINE._trampoline(f, false, release);
-            });
+            MACHINE.a = oldArgcount;
+            MACHINE._trampoline(f, false, release);
         };
     };
 
@@ -563,14 +551,12 @@
                         recomputeMaxNumBouncesBeforeYield(
                             that,
                             (new Date()).valueOf() - startTime);
-                        scheduleTrampoline(that, thunk);
-                        release();
+                        scheduleTrampoline(that, thunk, release);
                         return;
                     }
                 } else if (e instanceof Pause) {
-                    var restart = makeRestartFunction(that);
+                    var restart = makeRestartFunction(that, release);
                     e.onPause(restart);
-                    release();
                     return;
                 } else if (e instanceof HaltError) {
                     that.running = false;

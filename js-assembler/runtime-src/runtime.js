@@ -188,7 +188,7 @@
 
     ExclusiveLock.prototype.acquire = function(id, onAcquire) {
         var that = this;
-        if (id === undefined) {
+        if (!id) {
             id = ExclusiveLock.makeRandomNonce();
         }
 

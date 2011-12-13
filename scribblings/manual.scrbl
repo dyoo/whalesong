@@ -154,7 +154,8 @@ Switches out one view entirely in place of another.  Different views can corresp
 
 
 @item{@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html}
-[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/tick-tock/index.html"]{index.html}]
 Uses @racket[on-tick] to show a timer counting up.
 }
 

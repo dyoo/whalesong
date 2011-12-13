@@ -128,66 +128,77 @@
 
     var coerseClosureToJavaScript = function (v, MACHINE) {
         var f = function (succ, fail) {
-            succ = succ || function () {};
-            fail = fail || function () {};
-
-            if (!(baselib.arity.isArityMatching(v.racketArity, arguments.length - 2))) {
-                var msg = baselib.format.format(
-                    "arity mismatch: ~s expected ~s argument(s) but received ~s",
-                    [v.displayName, v.racketArity, arguments.length - 2]);
-                return fail(new baselib.exceptions.RacketError(
-                    msg,
-                    baselib.exceptions.makeExnFailContractArity(msg,
-                                                                MACHINE.captureContinuationMarks())));
-            }
-
-            var oldVal = MACHINE.v;
-            var oldArgcount = MACHINE.a;
-            var oldProc = MACHINE.p;
-
-            var oldErrorHandler = MACHINE.params['currentErrorHandler'];
-            var afterGoodInvoke = function (MACHINE) { 
-                plt.runtime.PAUSE(
-                    function (restart) {
-                        MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                        var returnValue = MACHINE.v;
-                        MACHINE.v = oldVal;
-                        MACHINE.a = oldArgcount;
-                        MACHINE.p = oldProc;
-                        succ(returnValue);
-                    });
-            };
-            afterGoodInvoke.mvr = function (MACHINE) {
-                plt.runtime.PAUSE(
-                    function (restart) {
-                        MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                        var returnValues = [MACHINE.v], i;
-                        for (i = 0; i < MACHINE.a - 1; i++) {
-                            returnValues.push(MACHINE.e.pop());
-                        }
-                        MACHINE.v = oldVal;
-                        MACHINE.a = oldArgcount;
-                        MACHINE.p = oldProc;
-                        succ.apply(null, returnValues);
-                    });
-            };
-
-            MACHINE.c.push(
-                new baselib.frames.CallFrame(afterGoodInvoke, v));
-            MACHINE.a = arguments.length - 2;
+            var args = [];
             var i;
-            for (i = 0; i < arguments.length - 2; i++) {
-                MACHINE.e.push(arguments[arguments.length - 1 - i]);
+            for (i = 0; i < arguments.length; i++) {
+                args.push(arguments[i]);
             }
-            MACHINE.p = v;
-            MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
-                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                MACHINE.v = oldVal;
-                MACHINE.a = oldArgcount;
-                MACHINE.p = oldProc;
-                fail(e);
-            };
-            MACHINE.trampoline(v.label);
+
+            MACHINE.exclusiveLock.acquire(
+                "js-as-closure",
+                function(releaseLock) {
+                    succ = succ || function () {};
+                    fail = fail || function () {};                    
+                    if (!(baselib.arity.isArityMatching(v.racketArity, args.length - 2))) {
+                        var msg = baselib.format.format(
+                            "arity mismatch: ~s expected ~s argument(s) but received ~s",
+                            [v.displayName, v.racketArity, args.length - 2]);
+                        releaseLock();
+                        return fail(new baselib.exceptions.RacketError(
+                            msg,
+                            baselib.exceptions.makeExnFailContractArity(msg,
+                                                                        MACHINE.captureContinuationMarks())));
+                    }
+
+                    var oldVal = MACHINE.v;
+                    var oldArgcount = MACHINE.a;
+                    var oldProc = MACHINE.p;
+                    var oldErrorHandler = MACHINE.params['currentErrorHandler'];
+
+                    var afterGoodInvoke = function (MACHINE) { 
+                        plt.runtime.PAUSE(
+                            function (restart) {
+                                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                                var returnValue = MACHINE.v;
+                                MACHINE.v = oldVal;
+                                MACHINE.a = oldArgcount;
+                                MACHINE.p = oldProc;
+                                succ(returnValue);
+                            });
+                    };
+                    afterGoodInvoke.mvr = function (MACHINE) {
+                        plt.runtime.PAUSE(
+                            function (restart) {
+                                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                                var returnValues = [MACHINE.v], i;
+                                for (i = 0; i < MACHINE.a - 1; i++) {
+                                    returnValues.push(MACHINE.e.pop());
+                                }
+                                MACHINE.v = oldVal;
+                                MACHINE.a = oldArgcount;
+                                MACHINE.p = oldProc;
+                                succ.apply(null, returnValues);
+                            });
+                    };
+
+                    MACHINE.c.push(
+                        new baselib.frames.CallFrame(afterGoodInvoke, v));
+                    MACHINE.a = args.length - 2;
+                    var i;
+                    for (i = 0; i < args.length - 2; i++) {
+                        MACHINE.e.push(args[args.length - 1 - i]);
+                    }
+                    MACHINE.p = v;
+                    MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
+                        MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                        MACHINE.v = oldVal;
+                        MACHINE.a = oldArgcount;
+                        MACHINE.p = oldProc;
+                        fail(e);
+                    };  
+
+                    MACHINE._trampoline(v.label, false, releaseLock);
+                });
         };
         return f;
     };
@@ -214,72 +225,89 @@
 
 
     // internallCallDuringPause: call a Racket procedure and get its results.
-    // The use assumes the machine is in a running-but-paused state.
+    // The use assumes the machine is in a running-but-paused state, where the
+    // lock is still in effect.  The lock will continue to be in effect
+    // after coming back from the internal call.
     var internalCallDuringPause = function (MACHINE, proc, success, fail) {
+        var args = [];
         var i;
-        var oldArgcount, oldVal, oldProc, oldErrorHandler;
-        if (! baselib.arity.isArityMatching(proc.racketArity, arguments.length - 4)) {
-            var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
-                                            [proc.displayName, proc.racketArity, arguments.length - 4]);
-            return fail(baselib.exceptions.makeExnFailContractArity(msg,
-                                                                    MACHINE.captureContinuationMarks()));
+        for (i = 0; i < arguments.length; i++) {
+            args.push(arguments[i]);
         }
 
-        if (isClosure(proc)) {
-            oldVal = MACHINE.v;
-            oldArgcount = MACHINE.a;
-            oldProc = MACHINE.p;
+        var i;
+        var oldArgcount, oldVal, oldProc, oldErrorHandler, oldControlLength, oldEnvLength;
+        if (! baselib.arity.isArityMatching(proc.racketArity, args.length - 4)) {
+            var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
+                                            [proc.displayName, proc.racketArity, args.length - 4]);
+            fail(baselib.exceptions.makeExnFailContractArity(msg,
+                                                             MACHINE.captureContinuationMarks()));
+        }
 
-            oldErrorHandler = MACHINE.params['currentErrorHandler'];
-            var afterGoodInvoke = function (MACHINE) { 
-                plt.runtime.PAUSE(function (restart) {
-                    MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                    var returnValue = MACHINE.v;
-                    MACHINE.v = oldVal;
-                    MACHINE.a = oldArgcount;
-                    MACHINE.p = oldProc;
-                    success(returnValue);
-                });
-            };
-            afterGoodInvoke.mvr = function (MACHINE) {
-                plt.runtime.PAUSE(function (restart) {
-                    MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                    var returnValues = [MACHINE.v];
-                    var i;
-                    for (i = 0; i < MACHINE.a - 1; i++) {
-                        returnValues.push(MACHINE.e.pop());
-                    }
-                    MACHINE.v = oldVal;
-                    MACHINE.a = oldArgcount;
-                    MACHINE.p = oldProc;
-                    success.apply(null, returnValues);
-                });
-            };
-
-            MACHINE.c.push(
-                new baselib.frames.CallFrame(afterGoodInvoke, proc));
-            MACHINE.a = arguments.length - 4;
-            for (i = 0; i < arguments.length - 4; i++) {
-                MACHINE.e.push(arguments[arguments.length - 1 - i]);
-            }
-            MACHINE.p = proc;
-            MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
-                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                MACHINE.v = oldVal;
-                MACHINE.a = oldArgcount;
-                MACHINE.p = oldProc;
-                fail(e);
-            };
-            MACHINE.trampoline(proc.label);
-        } else {
+        if (! isClosure(proc)) {
             fail(baselib.exceptions.makeExnFail(
                 baselib.format.format(
                     "Not a procedure: ~e",
                     proc),
                 MACHINE.captureContinuationMarks()));
-        }
-    };
 
+        }
+
+        oldVal = MACHINE.v;
+        oldArgcount = MACHINE.a;
+        oldProc = MACHINE.p;
+        oldControlLength = MACHINE.c.length;
+        oldEnvLength = MACHINE.e.length;
+
+        oldErrorHandler = MACHINE.params['currentErrorHandler'];
+        var afterGoodInvoke = function (MACHINE) { 
+            plt.runtime.PAUSE(function (restart) {
+                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                var returnValue = MACHINE.v;
+                MACHINE.v = oldVal;
+                MACHINE.a = oldArgcount;
+                MACHINE.p = oldProc;
+                success(returnValue);
+            });
+        };
+        afterGoodInvoke.mvr = function (MACHINE) {
+            plt.runtime.PAUSE(function (restart) {
+                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                var returnValues = [MACHINE.v];
+                var i;
+                for (i = 0; i < MACHINE.a - 1; i++) {
+                    returnValues.push(MACHINE.e.pop());
+                }
+                MACHINE.v = oldVal;
+                MACHINE.a = oldArgcount;
+                MACHINE.p = oldProc;
+                success.apply(null, returnValues);
+            });
+        };
+
+        MACHINE.c.push(
+            new baselib.frames.CallFrame(afterGoodInvoke, proc));
+        MACHINE.a = args.length - 4;
+        for (i = 0; i < args.length - 4; i++) {
+            MACHINE.e.push(args[args.length - 1 - i]);
+        }
+        MACHINE.p = proc;
+        MACHINE.params['currentErrorHandler'] = function (MACHINE, e) {
+            MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+            MACHINE.v = oldVal;
+            MACHINE.a = oldArgcount;
+            MACHINE.p = oldProc;
+            MACHINE.c.length = oldControlLength;
+            MACHINE.e.length = oldEnvLength;
+            fail(e);
+        };
+        MACHINE._trampoline(proc.label, 
+                            false, 
+                            function() {
+                                // The lock should still being held, so we don't
+                                // automatically unlock control.
+                            });
+    };
 
 
 

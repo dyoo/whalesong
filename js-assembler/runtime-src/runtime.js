@@ -114,7 +114,7 @@
     var ArityAtLeast = baselib.arity.ArityAtLeast;
     var makeArityAtLeast = baselib.arity.makeArityAtLeast;
     var isArityMatching = baselib.arity.isArityMatching;
-    
+
 
     var testArgument = baselib.check.testArgument;
     var testArity = baselib.check.testArity;
@@ -138,17 +138,17 @@
 
 
     var defaultCurrentPrintImplementation = function (MACHINE) {
-        if(--MACHINE.cbt < 0) { 
-            throw defaultCurrentPrintImplementation; 
+        if(--MACHINE.cbt < 0) {
+            throw defaultCurrentPrintImplementation;
         }
         var oldArgcount = MACHINE.a;
 
 	var elt = MACHINE.e[MACHINE.e.length - 1];
-	var outputPort = 
+	var outputPort =
 	    MACHINE.params.currentOutputPort;
 	if (elt !== VOID) {
 	    outputPort.writeDomNode(
-                MACHINE, 
+                MACHINE,
                 toDomNode(elt, MACHINE.params['print-mode']));
 	    outputPort.writeDomNode(MACHINE, toDomNode("\n", 'display'));
 	}
@@ -159,6 +159,76 @@
 	"default-printer",
 	1,
 	defaultCurrentPrintImplementation);
+
+
+
+    //////////////////////////////////////////////////////////////////////
+
+    // Exclusive Locks.  Even though JavaScript is a single-threaded
+    // evaluator, we still have a need to create exclusive regions
+    // of evaluation, since we might inadvertantly access some state
+    // with two computations, with use of setTimeout.
+    var ExclusiveLock = function() {
+        this.locked = false;  // (U false string)
+        this.waiters = [];
+    };
+
+    // makeRandomNonce: -> string
+    // Creates a randomly-generated nonce.
+    ExclusiveLock.makeRandomNonce = function() {
+        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+        var LEN = 32;
+        var result = [];
+        var i;
+        for (i = 0; i < LEN; i++) {
+            result.push(chars.charAt(Math.floor(Math.random() * chars.length)));
+        }
+        return result.join('');
+    };
+
+    ExclusiveLock.prototype.acquire = function(id, onAcquire) {
+        var that = this;
+        if (!id) {
+            id = ExclusiveLock.makeRandomNonce();
+        }
+
+        var alreadyReleased = false;
+
+        if (this.locked === false) {
+            this.locked = id;
+            onAcquire.call(
+                that,
+                // releaseLock
+                function() {
+                    var waiter;
+                    if (alreadyReleased) {
+                        throw new Error(
+                            "Internal error: trying to release the lock, but already released");
+                    }
+                    if (that.locked === false) {
+                        throw new Error(
+                            "Internal error: trying to unlock the lock, but already unlocked");
+                    }
+                    that.locked = false;
+                    alreadyReleased = true;
+                    if (that.waiters.length > 0) {
+                        waiter = that.waiters.shift();
+                        setTimeout(
+                            function() {
+                                that.acquire(waiter.id, waiter.onAcquire);
+                            },
+                            0);
+                    }
+                });
+        } else {
+            this.waiters.push({ id: id,
+                                onAcquire: onAcquire } );
+        }
+    };
+    //////////////////////////////////////////////////////////////////////
+
+
+
 
 
     //////////////////////////////////////////////////////////////////////]
@@ -188,7 +258,7 @@
 	    'currentDisplayer': function(MACHINE, domNode) {
 		$(domNode).appendTo(document.body);
 	    },
-	    
+
 	    // currentErrorDisplayer: DomNode -> Void
 	    // currentErrorDisplayer is responsible for displaying errors to the browser.
 	    'currentErrorDisplayer': function(MACHINE, domNode) {
@@ -196,7 +266,7 @@
 	    },
 
             'currentInspector': baselib.inspectors.DEFAULT_INSPECTOR,
-	    
+
 	    'currentOutputPort': new StandardOutputPort(),
 	    'currentErrorPort': new StandardErrorPort(),
             'currentInputPort': new StandardInputPort(),
@@ -206,9 +276,9 @@
                     MACHINE,
                     toDomNode(exn, MACHINE.params['print-mode']));
             },
-	    
+
 	    'currentNamespace': {},
-	    
+
 	    // These parameters control how often
 	    // control yields back to the browser
 	    // for response.  The implementation is a
@@ -229,8 +299,9 @@
 
 	};
 	this.primitives = Primitives;
+        this.exclusiveLock = new ExclusiveLock();
     };
-    
+
 
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
@@ -260,7 +331,7 @@
 		return MACHINE.c.slice(i + 1,
 					     MACHINE.c.length - skip);
 	    }
-	} 
+	}
 	raise(MACHINE, new Error("captureControl: unable to find tag " + tag));
     };
 
@@ -268,20 +339,20 @@
 
     // restoreControl clears the control stack (up to, but not including the
     // prompt tagged by tag), and then appends the rest of the control frames.
-    // At the moment, the rest of the control frames is assumed to be in the 
+    // At the moment, the rest of the control frames is assumed to be in the
     // top of the environment.
     Machine.prototype.restoreControl = function(tag) {
 	var MACHINE = this;
 	var i;
 	for (i = MACHINE.c.length - 1; i >= 0; i--) {
 	    if (MACHINE.c[i].tag === tag) {
-		MACHINE.c = 
+		MACHINE.c =
 		    MACHINE.c.slice(0, i+1).concat(
 			MACHINE.e[MACHINE.e.length - 1]);
 		return;
 	    }
 	}
-	raise(MACHINE, new Error("restoreControl: unable to find tag " + tag));     
+	raise(MACHINE, new Error("restoreControl: unable to find tag " + tag));
 
     };
 
@@ -309,11 +380,11 @@
 	var lst = NULL;
 	var i;
 	for (i = 0; i < length; i++) {
-	    lst = makePair(MACHINE.e[MACHINE.e.length - depth - length + i], 
+	    lst = makePair(MACHINE.e[MACHINE.e.length - depth - length + i],
                            lst);
 	}
 	MACHINE.e.splice(MACHINE.e.length - depth - length,
-			   length, 
+			   length,
 			   lst);
 	MACHINE.a = MACHINE.a - length + 1;
     };
@@ -347,8 +418,8 @@
             if (control[i].marks.length !== 0) {
                 kvLists.push(control[i].marks);
             }
-            
-            if (tracedCalleeKey !== null && 
+
+            if (tracedCalleeKey !== null &&
                 control[i] instanceof CallFrame &&
                 control[i].p !== null) {
                 kvLists.push([[tracedCalleeKey, control[i].p]]);
@@ -356,7 +427,7 @@
         }
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
     };
-    
+
 
 
 
@@ -376,26 +447,27 @@
     //
     var recomputeMaxNumBouncesBeforeYield;
 
-    var scheduleTrampoline = function(MACHINE, f) {
-        // FIXME: at the moment, the setTimeout is breaking when we get
-        // a rapid set of events from web-world.  We are running into
-        // a very ugly re-entrancy bug.  https://github.com/dyoo/whalesong/issues/70
-
-        // setTimeout(
-	//     function() { 
-        return MACHINE.trampoline(f); 
-        // },
-	// 0);
+    var scheduleTrampoline = function(MACHINE, f, release) {
+        setTimeout(
+	    function() {
+                MACHINE._trampoline(f, false, release);
+            },
+            0);
     };
 
     // Creates a restarting function, that reschedules f in a context
-    // with the old argcount in place. 
+    // with the old argcount in place.
     // Meant to be used only by the trampoline.
-    var makeRestartFunction = function(MACHINE) {
+    var makeRestartFunction = function(MACHINE, release, pauseLock) {
         var oldArgcount = MACHINE.a;
-        return function(f) { 
-            MACHINE.a = oldArgcount;
-            return scheduleTrampoline(MACHINE, f);
+        return function(f) {
+            pauseLock.acquire(
+                undefined,
+                function(pauseReleaseLock) {
+                    MACHINE.a = oldArgcount;
+                    MACHINE._trampoline(f, false, release);
+                    pauseReleaseLock();
+                });
         };
     };
 
@@ -419,18 +491,35 @@
     };
 
 
+    // WARNING WARNING WARNING
+    //
+    // Make sure to get an exclusive lock before jumping into trampoline.
+    // Otherwise, Bad Things will happen.
+    //
+    // e.g. machine.lock.acquire('id', function(release) { machine.trampoline... release();});
     Machine.prototype.trampoline = function(initialJump, noJumpingOff) {
-	var thunk = initialJump;
-	var startTime = (new Date()).valueOf();
-	this.cbt = STACK_LIMIT_ESTIMATE;
-	this.params.numBouncesBeforeYield = 
-	    this.params.maxNumBouncesBeforeYield;
-	this.running = true;
+        var that = this;
 
-	while(true) {
+        that.exclusiveLock.acquire(
+            'trampoline',
+            function(release) {
+                that._trampoline(initialJump, noJumpingOff, release);
+            });
+    };
+
+    Machine.prototype._trampoline = function(initialJump, noJumpingOff, release) {
+        var that = this;
+        var thunk = initialJump;
+        var startTime = (new Date()).valueOf();
+        that.cbt = STACK_LIMIT_ESTIMATE;
+        that.params.numBouncesBeforeYield =
+            that.params.maxNumBouncesBeforeYield;
+        that.running = true;
+
+        while(true) {
             try {
-		thunk(this);
-		break;
+                thunk(that);
+                break;
             } catch (e) {
                 // There are a few kinds of things that can get thrown
                 // during racket evaluation:
@@ -452,9 +541,9 @@
                 // Everything else: otherwise, we send the exception value
                 // to the current error handler and exit.
                 // The running flag is set to false.
-		if (typeof(e) === 'function') {
+                if (typeof(e) === 'function') {
                     thunk = e;
-                    this.cbt = STACK_LIMIT_ESTIMATE;
+                    that.cbt = STACK_LIMIT_ESTIMATE;
 
 
                     // If we're running an a model that prohibits
@@ -463,48 +552,88 @@
                         continue;
                     }
 
-		    if (this.params.numBouncesBeforeYield-- < 0) {
-			recomputeMaxNumBouncesBeforeYield(
-			    this,
-			    (new Date()).valueOf() - startTime);
-			scheduleTrampoline(this, thunk);
-			return;
-		    }
-		} else if (e instanceof Pause) {
-                    var restart = makeRestartFunction(this);
-                    e.onPause(restart);
+                    if (that.params.numBouncesBeforeYield-- < 0) {
+                        recomputeMaxNumBouncesBeforeYield(
+                            that,
+                            (new Date()).valueOf() - startTime);
+                        scheduleTrampoline(that, thunk, release);
+                        return;
+                    }
+                } else if (e instanceof Pause) {
+                    var pauseLock = new ExclusiveLock();
+                    var oldArgcount = that.a;
+                    var restarted = false;
+                    var restart = function(f) {
+                        pauseLock.acquire(
+                            undefined,
+                            function(releasePauseLock) {
+                                restarted = true;
+                                that.a = oldArgcount;
+                                that._trampoline(f, false, release);
+                                releasePauseLock();
+                            });
+                    };
+                    var internalCall = function(proc, success, fail) {
+                        var i;
+                        if (restarted) {
+                            return;
+                        }
+                        var args = [];
+                        for (i = 3; i < arguments.length; i++) {
+                            args.push(arguments[i]);
+                        }
+                        pauseLock.acquire(
+                            undefined,
+                            function(release) {
+                                var newSuccess = function() {
+                                    success.apply(null, arguments);
+                                    release();
+                                };
+                                var newFail = function() {
+                                    fail.apply(null, arguments);
+                                    release();
+                                };
+                                baselib.functions.internalCallDuringPause.apply(
+                                    null, [that, proc, newSuccess, newFail].concat(args));
+                            });
+                    };
+                    e.onPause(restart, internalCall);
                     return;
                 } else if (e instanceof HaltError) {
-		    this.running = false;
-                    e.onHalt(this);
+                    that.running = false;
+                    e.onHalt(that);
+                    release();
                     return;
                 } else {
-		    // General error condition: just exit out
-		    // of the trampoline and call the current error handler.
-		    this.running = false;
-                    this.params.currentErrorHandler(this, e);
-	            return;
-		}
+                    // General error condition: just exit out
+                    // of the trampoline and call the current error handler.
+                    that.running = false;
+                    that.params.currentErrorHandler(that, e);
+                    release();
+                    return;
+                }
             }
-	}
-	this.running = false;
-        var that = this;
-        this.params.currentSuccessHandler(this);
-	return;
+        }
+        that.running = false;
+        that.params.currentSuccessHandler(that);
+        release();
+        return;
+
     };
+
 
     // recomputeGas: state number -> number
     recomputeMaxNumBouncesBeforeYield = function(MACHINE, observedDelay) {
 	// We'd like to see a delay of DESIRED_DELAY_BETWEEN_BOUNCES so
 	// that we get MACHINE.params.desiredYieldsPerSecond bounces per
 	// second.
-	var DESIRED_DELAY_BETWEEN_BOUNCES = 
+	var DESIRED_DELAY_BETWEEN_BOUNCES =
 	    (1000 / MACHINE.params.desiredYieldsPerSecond);
 	var ALPHA = 50;
 	var delta = (ALPHA * ((DESIRED_DELAY_BETWEEN_BOUNCES -
-			       observedDelay) / 
+			       observedDelay) /
 			      DESIRED_DELAY_BETWEEN_BOUNCES));
-	MACHINE.params.maxNumBouncesBeforeYield = 
+	MACHINE.params.maxNumBouncesBeforeYield =
             Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
                      1);
     };
@@ -538,7 +667,7 @@
 
 
 
-    
+
 
 
 
@@ -684,7 +813,7 @@
     exports['installPrimitiveProcedure'] = installPrimitiveProcedure;
     exports['makePrimitiveProcedure'] = makePrimitiveProcedure;
     exports['Primitives'] = Primitives;
-    
+
     exports['ready'] = ready;
     // Private: the runtime library will set this flag to true when
     // the library has finished loading.
@@ -699,7 +828,7 @@
     exports['ModuleRecord'] = ModuleRecord;
     exports['VariableReference'] = VariableReference;
     exports['ContinuationPromptTag'] = ContinuationPromptTag;
-    exports['DEFAULT_CONTINUATION_PROMPT_TAG'] = 
+    exports['DEFAULT_CONTINUATION_PROMPT_TAG'] =
 	DEFAULT_CONTINUATION_PROMPT_TAG;
     exports['NULL'] = NULL;
     exports['VOID'] = VOID;

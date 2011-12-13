@@ -114,58 +114,74 @@ Prerequisites: at least @link["http://racket-lang.org/"]{Racket
 Here are a collection of programs that use the @emph{web-world} library described
 later in this document:
 @itemize[
-@item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src}]  Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
+@item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} 
+[@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src} 
+ @link["http://hashcollision.org/whalesong/examples/attr-animation/index.html"]{index.html}
+ @link["http://hashcollision.org/whalesong/examples/attr-animation/style.css"]{style.css}]
+Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
 
 
-@item{@link["http://hashcollision.org/whalesong/examples/boid/boid.html"]{boid.html} [@link["http://hashcollision.org/whalesong/examples/boid/boid.rkt"]{src}]  Uses @racket[update-view-css] and @racket[on-tick] to perform an animation of a flock of @link["http://en.wikipedia.org/wiki/Boids"]{boids}.}
+@item{@link["http://hashcollision.org/whalesong/examples/boid/boid.html"]{boid.html} 
+[@link["http://hashcollision.org/whalesong/examples/boid/boid.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/boid/index.html"]{index.html}]  Uses @racket[update-view-css] and @racket[on-tick] to perform an animation of a flock of @link["http://en.wikipedia.org/wiki/Boids"]{boids}.}
 
 
 @item{@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.html"]{dwarves.html}
-[@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/dwarves/index.html"]{index.html}]
 Uses @racket[view-show] and @racket[view-hide] to manipulate a view.  Click on a dwarf to make them hide.
   }
 
 @item{@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.html"]{dwarves-with-remove.html}
-[@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/index.html"]{index.html}]
 Uses @racket[view-focus?] and @racket[view-remove] to see if a dwarf should be removed from the view.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/field/field.html"]{field.html}
-[@link["http://hashcollision.org/whalesong/examples/field/field.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/field/field.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/field/index.html"]{index.html}]
 Uses @racket[view-bind] to read a text field, and @racket[update-view-text] to change
 the text content of an element.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/phases/phases.html"]{phases.html}
-[@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}
+@link["http://hashcollision.org/whalesong/examples/phases/index1.html"]{index1.html}
+@link["http://hashcollision.org/whalesong/examples/phases/index2.html"]{index2.html}]
 Switches out one view entirely in place of another.  Different views can correspond to phases in a program.
 }
 
 
 @item{@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html}
-[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/tick-tock/index.html"]{index.html}]
 Uses @racket[on-tick] to show a timer counting up.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/redirected/redirected.html"]{redirected.html}
-[@link["http://hashcollision.org/whalesong/examples/redirected/redirected.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/redirected/redirected.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/redirected/index.html"]{index.html}]
 Uses @racket[on-tick] to show a timer counting up, and also uses @racket[open-output-element] to
 pipe side-effecting @racket[printf]s to a hidden @tt{div}.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/todo/todo.html"]{todo.html}
-[@link["http://hashcollision.org/whalesong/examples/todo/todo.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/todo/todo.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/todo/index.html"]{index.html}]
 A simple TODO list manager.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.html"]{where-am-i.html}
-[@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/where-am-i/index.html"]{index.html}]
 Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
 }
 
 
 @item{@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.html"]{hot-cross-buns.html}
-[@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.rkt"]{src}]
+[@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/hot-cross-buns/index.html"]{index.html}]
 Demonstrates use of checkboxes.  Uses @racket[view-has-attr?] to see if a checkbox has been
 checked, and @racket[remove-view-attr] to change the @emph{checked} attribute when the user
 wants to reset the page.

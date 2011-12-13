@@ -62,19 +62,28 @@
         if (this.isInvoked) {
             succ();
         } else {
-            MACHINE.params['currentErrorHandler'] = function (MACHINE, anError) {
-                MACHINE.params['currentErrorHandler'] = oldErrorHandler;
-                fail(MACHINE, anError);
-            };
-            MACHINE.c.push(new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
             if (isInternal) {
+                MACHINE.params['currentErrorHandler'] = function (MACHINE, anError) {
+                    MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                    fail(MACHINE, anError);
+                };
+                MACHINE.c.push(new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
                 throw that.label;
             } else {
-                MACHINE.trampoline(that.label);
+                MACHINE.exclusiveLock.acquire(
+                    undefined,
+                    function(release) {
+                        MACHINE.params['currentErrorHandler'] = function (MACHINE, anError) {
+                            MACHINE.params['currentErrorHandler'] = oldErrorHandler;
+                            fail(MACHINE, anError);
+                        };
+                        MACHINE.c.push(new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
+                        MACHINE._trampoline(that.label, false, release);
+                    });
             }
         }
     };
-
+    
 
 
     exports.ModuleRecord = ModuleRecord;

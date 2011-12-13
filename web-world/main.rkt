@@ -19,7 +19,8 @@
          (all-from-out "helpers.rkt")
          (all-from-out "event.rkt"))
 
-(provide view-bind*)
+(provide view-bind-many
+         view-bind-many*)
 
 (provide (rename-out [internal-big-bang big-bang]
                      [big-bang big-bang/f]
@@ -82,10 +83,10 @@
 
 
 ;; A syntactic form to make it more convenient to focus and bind multiple things
-;; (view-bind* a-view
+;; (view-bind-many a-view
 ;;             [id type function]
 ;;             [id type function] ...)
-(define-syntax (view-bind* stx)
+(define-syntax (view-bind-many stx)
   (syntax-case stx ()
     [(_ a-view [a-selector a-type a-function] ...)
      (foldl (lambda (a-selector a-type a-function a-view-stx)
@@ -96,3 +97,29 @@
             (syntax->list #'(a-selector ...))
             (syntax->list #'(a-type ...))
             (syntax->list #'(a-function ...)))]))
+
+
+;; We also provide a function to do the same thing, just in case.
+(define (view-bind-many* a-view listof-id+type+function)
+
+  (define (string-or-symbol? x)
+    (or (string? x)
+        (symbol? x)))
+
+  (unless (list? listof-id+type+function)
+    (raise-type-error 'view-bind-many*
+                      "(listof (list id-string event-type-string world-updater))"
+                      listof-id+type+function))
+  (foldl (lambda (id+type+function a-view)
+           (unless (and (list? id+type+function)
+                        (string-or-symbol? (first id+type+function))
+                        (string-or-symbol? (second id+type+function))
+                        (procedure? (third id+type+function)))
+             (raise-type-error 'view-bind-many*
+                               "(list id-string event-type-string world-updater)"
+                               id+type+function))
+           (view-bind (view-focus a-view (first id+type+function))
+                      (second id+type+function)
+                      (third id+type+function)))
+         a-view
+         listof-id+type+function))

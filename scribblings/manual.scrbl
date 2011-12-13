@@ -914,6 +914,64 @@ event.
 
 Common event types include @racket["click"], @racket["mouseenter"], @racket["change"].}
 
+
+A view may have many elements to bind, and it's a common pattern to
+focus and view.  As a convenience the API provides some syntactic support to
+bind multiple handlers at once:
+@defform[(view-bind-many a-view [id type world-updater] ...)]{
+Composes the use of @racket[view-focus] and @racket[view-bind] to conveniently bind
+multiple handlers at once.
+
+As an example:
+@codeblock|{
+(define (click-handler w v) ...)
+
+(define (change-handler w v) ...)
+
+(define-resource index.html)
+
+(define my-static-view (->view index.html))
+
+(define connected-view
+  (view-bind-many my-static-view 
+                  ["id1" "click" click-handler]
+                  ["id2" "click" click-handler]
+                  ["id3" "change" change-handler]))
+...
+}|
+}
+
+If the collection of ids, types, and handlers can't be represented as a static list, then
+@racket[view-bind-many*] is an alternate helper function that may be helpful to bind
+a bulk number of handlers to a view.
+@defproc[(view-bind-many* [v view] [id+type+updater-list (listof (list string string world-updater))]) view]{
+A functional version of @racket[view-bind-many].  Composes the use of
+@racket[view-focus] and @racket[view-bind] to conveniently bind
+multiple handlers at once.
+
+
+As an example:
+@codeblock|{
+(define (click-handler w v) ...)
+
+(define (change-handler w v) ...)
+
+(define-resource index.html)
+
+(define my-static-view (->view index.html))
+
+(define connected-view
+  (view-bind-many* my-static-view 
+                  `(["id1" "click" ,click-handler]
+                    ["id2" "click" ,click-handler]
+                    ["id3" "change" ,change-handler])))
+...
+}|
+}
+
+
+
+
 @defproc[(view-show [v view]) view]{
 Show the element at the focus.
 }

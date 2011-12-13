@@ -1,0 +1,32 @@
+.openedDoor {
+    color: green;
+    display: inline;
+
+    padding: 20px;
+}
+
+.closedDoor {
+    color: blue;
+    display: inline;
+
+    padding: 20px;
+}
+
+#doors {
+    border: 1px solid black;
+}
+
+#message1 {
+    opacity: 0.4;
+}
+
+#switch {
+    opacity: 0.4;
+}
+
+#message2 {
+    opacity: 0.4;
+}
+
+#restart {
+}

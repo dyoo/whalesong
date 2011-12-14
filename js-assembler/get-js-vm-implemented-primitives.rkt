@@ -6,7 +6,7 @@
          racket/list)
 ;; Get the list of primitives implemented in js-vm-primitives.js
 
-(define-runtime-path js-vm-primitives.js "runtime-src/js-vm-primitives.js")
+;; (define-runtime-path js-vm-primitives.js "runtime-src/js-vm-primitives.js")
 
 (define-runtime-path whalesong-primitives.js "runtime-src/baselib-primitives.js")
 
@@ -19,16 +19,16 @@
             name)
           string<?)))
         
-;; primitive-names: (listof symbol)
-(define js-vm-primitive-names
-  (map string->symbol
-       (sort&unique
-        (map (lambda (a-str)
-               (substring a-str
-                          (string-length "PRIMITIVES['")
-                          (- (string-length a-str) (string-length "']"))))
-             (let ([contents (file->string js-vm-primitives.js)])
-               (regexp-match* #px"PRIMITIVES\\[('|\")[^\\]]*('|\")\\]" contents))))))
+;; ;; primitive-names: (listof symbol)
+;; (define js-vm-primitive-names
+;;   (map string->symbol
+;;        (sort&unique
+;;         (map (lambda (a-str)
+;;                (substring a-str
+;;                           (string-length "PRIMITIVES['")
+;;                           (- (string-length a-str) (string-length "']"))))
+;;              (let ([contents (file->string js-vm-primitives.js)])
+;;                (regexp-match* #px"PRIMITIVES\\[('|\")[^\\]]*('|\")\\]" contents))))))
 
 
 
@@ -43,5 +43,5 @@
                (regexp-match* #px"installPrimitiveProcedure\\(\\s+('|\")[^\\']*('|\")" contents))))))
 
      
-(provide/contract [js-vm-primitive-names (listof symbol?)]
+(provide/contract ;[js-vm-primitive-names (listof symbol?)]
                   [whalesong-primitive-names (listof symbol?)])

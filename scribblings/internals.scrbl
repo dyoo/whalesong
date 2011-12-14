@@ -226,6 +226,79 @@ they're finished.
 
 
 
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@subsection{A manual run through components}
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Let's try to use some of the modules in Whalesong manually and see
+what comes out.  For example, we'd like to see what the compiler produces when
+we compile the following code:
+@filebox["factorial.rkt"]{
+@codeblock|{
+#lang planet dyoo/whalesong
+(define (f x)
+  (if (= x 0)
+      1
+      (* x (f (sub1 x)))))
+
+(provide f)
+}|
+}
+
+First, we can use the internal module
+@racketmodname/this-package[get-module-bytecode] and
+@racketmodname/this-package[parser/parse-bytecode] to read
+@filepath{factorial.rkt} into an AST.
+
+@interaction[#:eval my-evaluator
+(require (planet dyoo/whalesong/get-module-bytecode)
+         (planet dyoo/whalesong/parser/parse-bytecode))
+
+(define bytecode 
+  (get-module-bytecode 
+   (open-input-string 
+    (string-append "#lang planet dyoo/whalesong\n"
+                   "(define (f x)\n"
+                   "  (if (= x 0)\n"
+                   "      1\n"
+                   "      (* x (f (sub1 x)))))\n\n"
+                   "(provide f)"))))
+
+(define ast (parse-bytecode (open-input-bytes bytecode)))
+ast                    
+                    ]
+
+At this point, we have an ast, using the structures defined in
+@racketmodname/this-package[compiler/expression-structs] and
+@racketmodname/this-package[compiler/lexical-structs].  This AST
+should be similar to the one described by
+@racketmodname[compiler/zo-parse] library, though the one in Whalesong
+is intended to be independent of the Racket version.
+
+We can now compile the AST into intermediate form.
+
+@interaction[#:eval my-evaluator
+(require (planet dyoo/whalesong/compiler/compiler)
+         (planet dyoo/whalesong/compiler/compiler-structs))
+
+(define stmts (compile ast 'val next-linkage/drop-multiple))
+]
+
+The compilation process translates the AST into a linear sequence of
+intermediate-level statements.  Finally, we can assemble this sequence
+into JavaScript by using @racketmodname/this-package[js-assembler/assemble].
+@interaction[#:eval my-evaluator
+(require (planet dyoo/whalesong/js-assembler/assemble))
+
+(define op (open-output-string))
+(assemble/write-invoke stmts op)
+(define js-code (get-output-string op))
+js-code
+]
+The ugly string stored in @racket[js-code] is the final result
+of the compilation.
+
+
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @subsection{Values}
@@ -428,6 +501,8 @@ browser for testing output.
 
 
 
+
+
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @subsection{What's in @tt{js-vm} that's missing from Whalesong?}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -468,22 +543,6 @@ We need to bring around the following types previously defined in @tt{js-vm}:
 @item{readerGraph}
 ]
 
-
-
-@(define missing-primitives
-   (let ([in-whalesong-ht (make-hash)])
-     (for ([name whalesong-primitive-names])
-          (hash-set! in-whalesong-ht name #t))
-     (filter (lambda (name)
-               (not (hash-has-key? in-whalesong-ht name)))
-             js-vm-primitive-names))))
-
-
-What are the list of primitives in @filepath{js-vm-primitives.js} that we
-haven't yet exposed in whalesong?  We're missing @(number->string (length missing-primitives)):
-   @(apply itemlist (map (lambda (name)
-                           (item (symbol->string name)))
-                         missing-primitives))
         
 
 
@@ -659,3 +718,7 @@ language.
 @defform[(vector->list ...)]{}
 @defform[(list->vector ...)]{}
 
+
+
+@section{Writing Extensions in JavaScript}
+[FIXME]

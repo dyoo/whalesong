@@ -21,4 +21,4 @@
 
 (define op (open-output-string))
 (assemble/write-invoke stmts op)
-(get-output-string op)
+(define js-code (get-output-string op))

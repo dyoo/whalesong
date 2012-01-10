@@ -115,6 +115,9 @@
                                     'hash-values
                                     
                                     'string-copy
+
+                                    'unsafe-car
+                                    'unsafe-cdr
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

@@ -587,6 +587,13 @@
             return baselib.lists.listRef(lst, baselib.numbers.toFixnum(index));
         });
 
+    installPrimitiveProcedure(
+        'unsafe-car',
+        1,
+        function (M) {
+            var firstArg = checkAny(M, 'unsafe-car', 0);
+            return firstArg.first;
+        });
 
     installPrimitiveProcedure(
         'car',
@@ -610,6 +617,15 @@
             var firstArg = checkCadrPair(M, 'cadr', 0);
             return firstArg.first.rest;
         });
+
+    installPrimitiveProcedure(
+        'unsafe-cdr',
+        1,
+        function (M) {
+            var firstArg = checkAny(M, 'unsafe-cdr', 0);
+            return firstArg.rest;
+        });
+
     installPrimitiveProcedure(
         'cdr',
         1,

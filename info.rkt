@@ -2,8 +2,8 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Improving stack traces for the web-world view functions.  To improve error trapping, web-world now syntactically restricts the use of web-world handlers to an enclosing big-bang.")))
-(define version "1.12")
+(define release-notes '((p "Intermediate release to support the upcoming Racket 5.2.1.")))
+(define version "1.13")
 (define categories '(devtools))
 (define repositories '("4.x"))
 (define required-core-version "5.1.1")

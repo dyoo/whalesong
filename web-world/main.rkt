@@ -20,7 +20,9 @@
          (all-from-out "event.rkt"))
 
 (provide view-bind-many
-         view-bind-many*)
+         view-bind-many*
+         view-prepend-child)
+
 
 (provide (rename-out [internal-big-bang big-bang]
                      [big-bang big-bang/f]
@@ -123,3 +125,16 @@
                       (third id+type+function)))
          a-view
          listof-id+type+function))
+
+
+
+(define (view-prepend-child a-view c)
+  (unless (view? a-view)
+    (raise-type-error 'view-prepend-child
+                      "view"
+                      a-view))
+  (cond
+   [(view-down? a-view)
+    (view-insert-left (view-down a-view) c)]
+   [else
+    (view-append-child a-view c)]))

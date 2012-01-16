@@ -5,6 +5,7 @@
          "../compiler/lexical-structs.rkt"
          "../compiler/arity-structs.rkt"
          "assemble-structs.rkt"
+         "assemble-parameters.rkt"
          racket/list
          racket/string
          racket/match)
@@ -121,7 +122,8 @@
 (define (assemble-const stmt)
   (let: loop : String ([val : const-value (Const-const stmt)])
         (cond [(symbol? val)
-               (format "RT.makeSymbol(~s)" (symbol->string val))]
+               (format "RT.makeSymbol(S[~a])" 
+                       (lookup-string-table (symbol->string val)))]
               [(pair? val)
                (format "RT.makePair(~a,~a)" 
                        (loop (car val))
@@ -135,7 +137,7 @@
               [(number? val)
                (assemble-numeric-constant val)]
               [(string? val)
-               (format "~s" val)]
+               (format "S[~a]" (lookup-string-table val))]
               [(char? val)
                (format "RT.makeChar(~s)" (string val))]
               [(bytes? val)
@@ -147,8 +149,8 @@
                                       (number->string a-byte))
                                     ","))]
               [(path? val)
-               (format "RT.makePath(~s)"
-                       (path->string val))]
+               (format "RT.makePath(S[~a])"
+                       (lookup-string-table (path->string val)))]
               [(vector? val)
                (format "RT.makeVector(~a,[~a])"
                        (vector-length val)

@@ -8,10 +8,12 @@
          "assemble-helpers.rkt"
          "assemble-expression.rkt"
          "assemble-perform-statement.rkt"
+         "assemble-parameters.rkt"
          "fracture.rkt"
          "../compiler/il-structs.rkt"
          "../sets.rkt"
          "../helpers.rkt"
+         racket/port
          racket/string
          racket/list
          racket/match)
@@ -37,42 +39,59 @@
 ;; What's emitted is a function expression that, when invoked, runs the
 ;; statements.
 (define (assemble/write-invoke stmts op)
-  (display "(function(M, success, fail, params) {\n" op)
-  (display "var param;\n" op)
-  (display "var RT = plt.runtime;\n" op)
-  
-  (define-values (basic-blocks entry-points) (fracture stmts))
-
-  (define function-entry-and-exit-names
-    (list->set (get-function-entry-and-exit-names stmts)))
-
-  (: blockht : Blockht)
-  (define blockht (make-hash))
-  
-  (for ([b basic-blocks])
-    (hash-set! blockht (BasicBlock-name b) b))
-
-  (write-blocks basic-blocks
-                blockht
-                (list->set entry-points)
-                function-entry-and-exit-names
-                op)
-  
-  (write-linked-label-attributes stmts blockht op)
-  
-  (display "M.params.currentErrorHandler = fail;\n" op)
-  (display "M.params.currentSuccessHandler = success;\n" op)
-  (display  #<<EOF
+  (with-fresh-string-table
+   (display "(function(M, success, fail, params) {\n" op)
+   (display "var param;\n" op)
+   (display "var RT = plt.runtime;\n" op)
+   (display "var S=[];\n" op) ;; string table
+   
+   (define temp-op (open-output-string))
+   
+   ;; Write the rest temporarily to temp-op.  We'll be recording
+   ;; elements into the string table.
+   (let ([op temp-op])
+     (define-values (basic-blocks entry-points) (fracture stmts))
+     
+     (define function-entry-and-exit-names
+       (list->set (get-function-entry-and-exit-names stmts)))
+     
+     (: blockht : Blockht)
+     (define blockht (make-hash))
+     
+     (for ([b basic-blocks])
+       (hash-set! blockht (BasicBlock-name b) b))
+     
+     (write-blocks basic-blocks
+                   blockht
+                   (list->set entry-points)
+                   function-entry-and-exit-names
+                   op)
+     
+     (write-linked-label-attributes stmts blockht op)
+     
+     (display "M.params.currentErrorHandler = fail;\n" op)
+     (display "M.params.currentSuccessHandler = success;\n" op)
+     (display  #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {
         M.params[param] = params[param];
     }
 }
 EOF
-           op)
-  (fprintf op "M.trampoline(~a, true); })"
-           (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))
-                           blockht)))
+               op)
+     (fprintf op "M.trampoline(~a, true); })"
+              (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))
+                              blockht)))
+   
+   ;; By this point, we want to write out the string table.
+   (hash-for-each (string-table)
+                  (lambda: ([str : String] [index : Natural])
+                    (fprintf op "S[~a]=~s;" index str)))
+                  
+   
+   ;;; Followed by code that depends on the string table.
+   (copy-port (open-input-string (get-output-string temp-op))
+              op)))
 
 
 

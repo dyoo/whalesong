@@ -317,7 +317,7 @@ Visit @link["http://hashcollision.org/whalesong/examples/dom-play/dom-play.html"
 #lang planet dyoo/whalesong
 
 ;; Uses the JavaScript FFI, which provides bindings for:
-;; $ and call
+;; $ and call-method
 (require (planet dyoo/whalesong/js))
 
 ;; insert-break: -> void
@@ -349,7 +349,7 @@ Visit @link["http://hashcollision.org/whalesong/examples/dom-play/dom-play.html"
 }|}
 This program uses the @link["http:/jquery.com"]{JQuery} API provided by @racketmodname[(planet dyoo/whalesong/js)],
 as well as the native JavaScript FFI to produce output on the browser.
-If w run Whalesong on this program, and view the resulting @filepath{dom-play.html} in your
+If we run Whalesong on this program, and view the resulting @filepath{dom-play.html} in our
 web browser, we should see a pale, green page with some output.
 
 

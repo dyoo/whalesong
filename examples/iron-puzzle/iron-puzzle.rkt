@@ -1,15 +1,21 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong-resource))
+#lang planet dyoo/whalesong/base
+(require (planet dyoo/whalesong/resource)
+         (planet dyoo/whalesong/image))
+
 ;; The Iron Image Puzzle
 ;; Part of the Nifty Assignments page by Nick Parlante.
 ;; http://nifty.stanford.edu/2011/parlante-image-puzzle/
+
+;; To run this program locally on your machine under Google Chrome, you'll
+;; probably need to use --allow-file-access-from-files to get around
+;; the same-origin policy.  The program should run normally if served on
+;; a web server
 
 (define-resource iron-puzzle.png)
 
  
 ;; First, grab the image by its url.
-(define distorted-image
-  (scale 1/4 iron-puzzle.png))
+(define distorted-image iron-puzzle.png)
 
 
 distorted-image              

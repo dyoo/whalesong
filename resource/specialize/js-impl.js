@@ -31,10 +31,10 @@ var isImagePath = function(s) {
 
 
 // A lot of this comes from image/private/kernel.js
-var injectImageMethods = function(r, img) {
+var injectImageMethods = function(r, img, after) {
     r.img = img;
-    r.getHeight = function() { return img.width; };
-    r.getWidth = function() { return img.height; };
+    r.getWidth = function() { return img.width; };
+    r.getHeight = function() { return img.height; };
     r.getBaseline = function() { return img.height; };
     r.updatePinhole = function() {
         var aCopy = plt.baselib.clone(this);
@@ -43,20 +43,29 @@ var injectImageMethods = function(r, img) {
         return aCopy;
     };
     r.render = function(ctx, x, y) {
-        installHackToSupportAnimatedGifs(r);
         ctx.drawImage(r.animationHackImg, x, y);
     };
     r.toDomNode = function(params) {
         return img.cloneNode(true);
     };
+
+    installHackToSupportAnimatedGifs(r, after);
 };
 
-var installHackToSupportAnimatedGifs = function(r) {
-    if (r.animationHackImg) { return; }
+var installHackToSupportAnimatedGifs = function(r, after) {
     r.animationHackImg = r.img.cloneNode(true);
     document.body.appendChild(r.animationHackImg);
     r.animationHackImg.width = 0;
     r.animationHackImg.height = 0;
+    
+    if (r.animationHackImg.complete) {
+        after();
+    } else {
+        r.animationHackImg.onload = function() {
+            delete (r.animationHackImg.onload);
+            after();
+        };
+    }
 };
 
 
@@ -79,10 +88,12 @@ EXPORTS['specialize!'] = makeClosure(
                     rawImage.onload = function() {
                         delete(rawImage.onload);
                         delete(rawImage.onerror);
-                        injectImageMethods(resource, rawImage);
-                        restart(function(MACHINE) {
-                            return finalizeClosureCall(MACHINE, resource);
-                        });
+                        var after = function() {
+                            restart(function(MACHINE) {
+                                return finalizeClosureCall(MACHINE, resource);
+                            });
+                        };
+                        injectImageMethods(resource, rawImage, after);
                     };
                     rawImage.onerror = function(e) {
                         delete(rawImage.onload);

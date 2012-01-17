@@ -19,6 +19,8 @@
 
 
 distorted-image              
+(image-width distorted-image)
+(image-height distorted-image)
 
 ;; We will want to decompose the image into its individual pixels.  We can use
 ;; image->color-list to do this.
@@ -60,3 +62,5 @@ dark-image
 ;; the landmark.
 
 red-eye-image
+(image-width red-eye-image)
+(image-height red-eye-image)

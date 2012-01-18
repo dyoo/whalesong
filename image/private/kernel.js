@@ -1437,7 +1437,7 @@ var imageToColorList = function(img) {
 	a = data[i+3];
 	colors.push(makeColor(r, g, b, a));
     }
-    return plt.baselib.lists.makeList.apply(null, colors);
+    return plt.baselib.lists.arrayToList(colors);
 }
 
 

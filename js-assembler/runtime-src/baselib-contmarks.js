@@ -43,7 +43,7 @@
                 }
             }
         }
-        return baselib.lists.makeList.apply(null, result);
+        return baselib.lists.arrayToList(result);
     };
 
     // Returns an approximate stack trace.

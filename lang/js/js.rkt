@@ -28,7 +28,8 @@
           [impl
            (map (compose resolve-implementation-path syntax-e)
                 (syntax->list #'(javascript-module-name ...)))]
-          [(internal-name ...) (generate-temporaries #'(provided-name ...))])
+          [(internal-name ...) (generate-temporaries #'(provided-name ...))]
+          [(set-internal-name! ...) (generate-temporaries #'(provided-name ...))])
        (syntax/loc stx
          (begin
            
@@ -47,7 +48,13 @@
                ))
 
            (require racket-module-name)
-           (define internal-name provided-name) ...
+           (begin
+             (define internal-name provided-name)
+             ;; Discouraging constant folding via set! to address issue 74
+             ;; https://github.com/dyoo/whalesong/issues/74
+             (define (set-internal-name! x)
+               (set! internal-name x)))
+           ...
            (provide (rename-out [internal-name provided-name] ...)))))]))
 
 

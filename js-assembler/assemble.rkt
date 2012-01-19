@@ -86,7 +86,7 @@ EOF
    ;; By this point, we want to write out the string table.
    (hash-for-each (string-table)
                   (lambda: ([str : String] [index : Natural])
-                    (fprintf op "S[~a]=~s;" index str)))
+                    (fprintf op "S[~a]=RT.makeSymbol(~s);\n" index str)))
                   
    
    ;;; Followed by code that depends on the string table.

@@ -122,7 +122,7 @@
 (define (assemble-const stmt)
   (let: loop : String ([val : const-value (Const-const stmt)])
         (cond [(symbol? val)
-               (format "RT.makeSymbol(S[~a])" 
+               (format "S[~a]" 
                        (lookup-string-table (symbol->string val)))]
               [(pair? val)
                (format "RT.makePair(~a,~a)" 
@@ -137,7 +137,7 @@
               [(number? val)
                (assemble-numeric-constant val)]
               [(string? val)
-               (format "S[~a]" (lookup-string-table val))]
+               (format "S[~a].val" (lookup-string-table val))]
               [(char? val)
                (format "RT.makeChar(~s)" (string val))]
               [(bytes? val)
@@ -149,7 +149,7 @@
                                       (number->string a-byte))
                                     ","))]
               [(path? val)
-               (format "RT.makePath(S[~a])"
+               (format "RT.makePath(S[~a].val)"
                        (lookup-string-table (path->string val)))]
               [(vector? val)
                (format "RT.makeVector(~a,[~a])"

@@ -2249,12 +2249,8 @@
                             constructorName,
                             initFieldCount + (superType ? superType.numberOfArgs : 0),
                             function (M) {
-                                var args = [];
-				var i;
-                                for(i = 0; i < M.a; i++) {
-                                    args.push(M.e[M.e.length - 1 - i]);
-                                }
-                                return structType.constructor.apply(null, args);
+                                var args = M.e.slice(M.e.length - M.a).reverse();
+                                return structType.constructor(args);
                             });
 
                     var predicateValue =

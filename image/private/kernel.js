@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].namespace;
 var colorStruct = colorNamespace['struct:color'];
-var makeColor = colorStruct.constructor;
+var makeColor = function(r,g,b,a) { return colorStruct.constructor([r,g,b,a]); };
 var isColor = colorStruct.predicate;
 var colorRed = function(c) { return colorStruct.accessor(c, 0); };
 var colorGreen = function(c) { return colorStruct.accessor(c, 1); };
@@ -1437,7 +1437,7 @@ var imageToColorList = function(img) {
 	a = data[i+3];
 	colors.push(makeColor(r, g, b, a));
     }
-    return plt.baselib.lists.makeList.apply(null, colors);
+    return plt.baselib.lists.arrayToList(colors);
 }
 
 

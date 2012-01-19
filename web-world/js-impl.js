@@ -891,7 +891,7 @@
                 }                         
             }
         }
-        return eventStructType.constructor(result);
+        return eventStructType.constructor([result]);
     };
 
 

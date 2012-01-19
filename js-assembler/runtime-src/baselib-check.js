@@ -120,10 +120,10 @@
             baselib.exceptions.raise(
                 MACHINE, 
                 baselib.exceptions.ExnFailContractArity.constructor(
-                    callerName + ": expected at least " + minimum
-                        + " arguments "
-                        + " but received " + observed,
-                    MACHINE.captureContinuationMarks()));
+                    [callerName + ": expected at least " + minimum
+                     + " arguments "
+                     + " but received " + observed,
+                     MACHINE.captureContinuationMarks()]));
         }
     };
 

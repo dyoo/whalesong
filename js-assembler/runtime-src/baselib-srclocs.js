@@ -9,7 +9,10 @@
     var srcloc = baselib.structs.makeStructureType(
         'srcloc', false, 5, 0, false, false);
     
-    var makeSrcloc = srcloc.constructor;
+    var makeSrcloc = function() { 
+        var args = [].slice.call(arguments);
+        return srcloc.constructor(args);
+    };
 
     var isSrcloc = srcloc.predicate;
     var srclocSource = function(x) { return srcloc.accessor(x, 0); };

@@ -179,10 +179,16 @@
         };
         RawConstructor.prototype = baselib.heir(parentType.type.prototype);
 
-
+        var theNameSymbol = 
+            baselib.symbols.Symbol.makeInstance(theName);
 
         // Set type, necessary for equality checking
         RawConstructor.prototype.type = RawConstructor;
+
+
+        var constructAfterGuard =  function (res) { 
+            return new RawConstructor(theName, res, newType); 
+        };
 
         // The structure type consists of the name, its constructor, a
         // record of how many argument it and its parent type contains,
@@ -206,13 +212,11 @@
                              });
             },
             // constructor
-            function () {
-                var args = [].slice.call(arguments);
+            function (args) {
                 return newType.applyGuard(
                     args,
-                    baselib.symbols.Symbol.makeInstance(theName),
-                    function (res) { 
-                        return new RawConstructor(theName, res, newType); });
+                    theNameSymbol,
+                    constructAfterGuard);
             },
 
             // predicate

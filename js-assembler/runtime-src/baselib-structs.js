@@ -179,7 +179,8 @@
         };
         RawConstructor.prototype = baselib.heir(parentType.type.prototype);
 
-
+        var theNameSymbol = 
+            baselib.symbols.Symbol.makeInstance(theName);
 
         // Set type, necessary for equality checking
         RawConstructor.prototype.type = RawConstructor;
@@ -214,7 +215,7 @@
             function (args) {
                 return newType.applyGuard(
                     args,
-                    baselib.symbols.Symbol.makeInstance(theName),
+                    theNameSymbol,
                     constructAfterGuard);
             },
 

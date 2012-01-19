@@ -38,7 +38,7 @@
 
 	// When we're in the middle of computing with-cont-mark, we
 	// stash the key in here temporarily.
-	this.pendingContinuationMarkKey = undefined;
+	// this.pendingContinuationMarkKey = undefined;
     };
     CallFrame.prototype = baselib.heir(Frame.prototype);
 
@@ -55,7 +55,7 @@
 
 	// When we're in the middle of computing with-cont-mark, we
 	// stash the key in here temporarily.
-	this.pendingContinuationMarkKey = undefined;	
+	// this.pendingContinuationMarkKey = undefined;	
     };
     PromptFrame.prototype = baselib.heir(Frame.prototype);
 

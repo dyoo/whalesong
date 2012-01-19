@@ -2250,7 +2250,7 @@
                             initFieldCount + (superType ? superType.numberOfArgs : 0),
                             function (M) {
                                 var args = M.e.slice(M.e.length - M.a).reverse();
-                                return structType.constructor.apply(null, args);
+                                return structType.constructor(args);
                             });
 
                     var predicateValue =

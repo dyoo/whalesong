@@ -57,7 +57,10 @@
     //////////////////////////////////////////////////////////////////////
 
     exports.ArityAtLeast = ArityAtLeast;
-    exports.makeArityAtLeast = ArityAtLeast.constructor;
+    exports.makeArityAtLeast = function() { 
+        var args = [].slice.call(arguments);
+        return ArityAtLeast.constructor(args);
+    };
     exports.isArityAtLeast = isArityAtLeast;
     exports.isArityMatching = isArityMatching;
     exports.arityAtLeastValue = arityAtLeastValue;

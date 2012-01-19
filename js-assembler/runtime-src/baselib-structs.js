@@ -184,6 +184,11 @@
         // Set type, necessary for equality checking
         RawConstructor.prototype.type = RawConstructor;
 
+
+        var constructAfterGuard =  function (res) { 
+            return new RawConstructor(theName, res, newType); 
+        };
+
         // The structure type consists of the name, its constructor, a
         // record of how many argument it and its parent type contains,
         // the list of autofields, the guard, and functions corresponding
@@ -206,13 +211,11 @@
                              });
             },
             // constructor
-            function () {
-                var args = [].slice.call(arguments);
+            function (args) {
                 return newType.applyGuard(
                     args,
                     baselib.symbols.Symbol.makeInstance(theName),
-                    function (res) { 
-                        return new RawConstructor(theName, res, newType); });
+                    constructAfterGuard);
             },
 
             // predicate

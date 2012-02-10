@@ -525,13 +525,13 @@
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a conditional branch.
 (define (compile-branch exp cenv target linkage)
-  (let: ([f-branch : Symbol (make-label 'falseBranch)]
-         [after-if : Symbol (make-label 'afterIf)])
+  (let: ([f-branch: : Symbol (make-label 'falseBranch)]
+         [after-if: : Symbol (make-label 'afterIf)])
     (let ([consequent-linkage
            (cond
              [(NextLinkage? linkage)
               (let ([context (NextLinkage-context linkage)])
-                (make-LabelLinkage after-if context))]
+                (make-LabelLinkage after-if: context))]
              [(ReturnLinkage? linkage)
               linkage]
              [(LabelLinkage? linkage)
@@ -542,11 +542,12 @@
         (append-instruction-sequences 
          p-code
          (make-TestAndJumpStatement (make-TestFalse (make-Reg 'val))
-                                    f-branch)
+                                    f-branch:)
          c-code
-         f-branch
-         a-code
-         after-if)))))
+         f-branch: a-code
+         (if (NextLinkage? linkage)
+             after-if:
+             empty-instruction-sequence))))))
 
 
 (: compile-sequence ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))

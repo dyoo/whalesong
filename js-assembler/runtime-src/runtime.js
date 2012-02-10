@@ -790,10 +790,16 @@
     };
     var si_context_expected_1 = function(M) { raiseContextExpectedValuesError(M, 1); }
 
-
-
-
-
+    // A block that omits the multiple values returned on the stack and
+    // continues on with the target function f.
+    var si_pop_multiple_values_and_continue = function(target) {
+        var f = function(M) {
+            if(--M.cbt<0) { throw f; }
+            M.e.length -= (M.a-1);
+            return target(M);
+        };
+        return f;
+    };
 
 
 

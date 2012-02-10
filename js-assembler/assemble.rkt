@@ -208,6 +208,13 @@ EOF
                  (munge-label-name (make-Label (BasicBlock-name a-basic-block)))
                  expected)
         'ok]))]
+
+   [(block-looks-like-pop-multiple-values-and-continue? a-basic-block)
+    =>
+    (lambda (target)
+      (fprintf op "~a=RT.si_pop_multiple-values-and-continue(~a);"
+               (munge-label-name (make-Label (BasicBlock-name a-basic-block)))
+               target))]
    [else
     (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)]))
 

@@ -30,7 +30,8 @@
 	 assemble-location
          assemble-numeric-constant
 
-         block-looks-like-context-expected-values?)
+         block-looks-like-context-expected-values?
+         block-looks-like-pop-multiple-values-and-continue?)
 
 (require/typed typed/racket/base
                [regexp-split (Regexp String -> (Listof String))])
@@ -427,6 +428,13 @@
      expected]
     [else
      #f]))
+
+
+(: block-looks-like-pop-multiple-values-and-continue? (BasicBlock -> (U False)))
+(define (block-looks-like-pop-multiple-values-and-continue? a-block)
+  ;; FIXME!
+  #f)
+
 
 
 

@@ -263,10 +263,16 @@
     var isList = function (x) {
         var tortoise, hare;
         tortoise = hare = x;
-        if (hare === EMPTY) { return true; }
+        if (hare === EMPTY) { 
+            tortoise._isList = true;
+            return true; 
+        }
         while (true) {
             if (!(hare instanceof Cons)) { return false; }
-            if (tortoise instanceof Cons) { tortoise = tortoise.rest; }
+            if (tortoise instanceof Cons) { 
+                if (tortoise._isList === true) { return true; }
+                tortoise = tortoise.rest; 
+            }
             hare = hare.rest;
             if (hare instanceof Cons) { hare = hare.rest; }
             if (hare === EMPTY) { return true; }

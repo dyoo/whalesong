@@ -10,6 +10,7 @@
 
     var EMPTY = baselib.lists.EMPTY;
     var isPair = baselib.lists.isPair;
+    var isList = baselib.lists.isList;
     var makeLowLevelEqHash = baselib.hashes.makeLowLevelEqHash;
 
 
@@ -75,26 +76,14 @@
 
     var makeCheckListofArgumentType = function (predicate, predicateName) {
         var listPredicate = function (x) {
-            var seen = makeLowLevelEqHash();
+            if (! isList(x)) { return false; }
             while (true) {
                 if (x === EMPTY){
                     return true;
                 }
-
-                if (!isPair(x)) {
-                    return false;
-                }
-
-                if(seen.containsKey(x)) {
-                    // raise an error? we've got a cycle!
-                    return false;
-                }
-
                 if (! predicate(x.first)) {
                     return false;
                 }
-                
-                seen.put(x, true);
                 x = x.rest;
             }
         };
@@ -210,7 +199,7 @@
         'pair');
 
     var checkList = makeCheckArgumentType(
-        baselib.lists.isList,
+        isList,
         'list');
 
     var checkVector = makeCheckArgumentType(

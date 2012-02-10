@@ -22,7 +22,7 @@
 
         if (baselib.vectors.isVector(x)) {
             var len = x.length();
-            var aVector = baselib.vectors.makeVector(len, x.elts);
+            var aVector = baselib.vectors.makeVector(x.elts.slice(0));
             objectHash.put(x, aVector); 
             for (i = 0; i < len; i++) {
                 aVector.elts[i] = readerGraph(aVector.elts[i], objectHash, n + 1);

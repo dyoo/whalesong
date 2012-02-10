@@ -707,7 +707,7 @@
             for (i = 0; i < M.a; i++) {
                 result.push(M.e[M.e.length-1-i]);
             }
-            var newVector = makeVector(result.length, result);
+            var newVector = makeVector(result);
             return newVector;
         });
 
@@ -727,7 +727,7 @@
             for(i = 0; i < length; i++) {
                 arr[i] = value;
             }
-            return makeVector(arr.length, arr);
+            return makeVector(arr);
         });
 
     installPrimitiveProcedure(
@@ -753,7 +753,7 @@
                 result.push(firstArg.first);
                 firstArg = firstArg.rest;
             }
-            return makeVector(result.length, result);
+            return makeVector(result);
         });
 
 

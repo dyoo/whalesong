@@ -15,10 +15,6 @@
             for (i = 0; i < n; i++) {
                 this.elts[i] = initialElements[i];
             }
-        } else {
-            for (i = 0; i < n; i++) {
-                this.elts[i] = undefined;
-            }
         }
         this.mutable = true;
     };

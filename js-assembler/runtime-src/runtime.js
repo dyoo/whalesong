@@ -395,7 +395,8 @@
         var frame = this.c[this.c.length - 1];
         var marks = frame.marks;
         var i;
-        for (i = 0; i < marks.length; i++) {
+        var l = marks.length;
+        for (i = 0; i < l; i++) {
             if (key === marks[i][0]) {
                 marks[i][1] = value;
                 return;

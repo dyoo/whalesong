@@ -264,18 +264,26 @@
         var tortoise, hare;
         tortoise = hare = x;
         if (hare === EMPTY) { 
-            tortoise._isList = true;
             return true; 
         }
         while (true) {
             if (!(hare instanceof Cons)) { return false; }
             if (tortoise instanceof Cons) { 
-                if (tortoise._isList === true) { return true; }
                 tortoise = tortoise.rest; 
             }
             hare = hare.rest;
-            if (hare instanceof Cons) { hare = hare.rest; }
-            if (hare === EMPTY) { return true; }
+            if (hare instanceof Cons) { 
+                // optimization to get amortized linear time isList:
+                if (hare._isList) { tortoise._isList = true; return true; }
+                hare = hare.rest; 
+                // optimization to get amortized linear time isList:
+                if (hare instanceof Cons && hare._isList) { tortoise._isList = true; return true; }
+            }
+            if (hare === EMPTY) { 
+                // optimization to get amortized linear time isList:
+                tortoise._isList = true;
+                return true; 
+            }
             if (tortoise === hare) { return false; }
         }
     };

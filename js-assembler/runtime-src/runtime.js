@@ -48,6 +48,7 @@
     var makeSymbol = baselib.symbols.makeSymbol;
     var makePath = baselib.paths.makePath;
     var makeBytes = baselib.bytes.makeBytes;
+    var makeBytesFromBase64 = baselib.bytes.makeBytesFromBase64;
 
     var makeBox = baselib.boxes.makeBox;
     var isBox = baselib.boxes.isBox;
@@ -885,6 +886,7 @@
     exports['makeSymbol'] = makeSymbol;
     exports['makePath'] = makePath;
     exports['makeBytes'] = makeBytes;
+    exports['makeBytesFromBase64'] = makeBytesFromBase64;
 
 
     exports['checkPair'] = baselib.check.checkPair;

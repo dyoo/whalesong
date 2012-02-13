@@ -10,7 +10,8 @@
          racket/match)
 
 
-
+(require/typed net/base64
+               [base64-encode (Bytes -> Bytes)])
 
 (provide assemble-oparg
          assemble-target
@@ -143,10 +144,8 @@
                ;; This needs to be an array, because this may contain
                ;; a LOT of elements, and certain JS evaluators will break
                ;; otherewise.
-               (format "RT.makeBytes([~a])"
-                       (string-join (for/list ([a-byte val])
-                                      (number->string a-byte))
-                                    ","))]
+               (format "RT.makeBytesFromBase64(~s)"
+                       (bytes->string/utf-8 (base64-encode val)))]
               [(path? val)
                (format "RT.makePath(~s)"
                        (path->string val))]

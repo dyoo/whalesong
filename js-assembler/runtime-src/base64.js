@@ -6,6 +6,10 @@
  *
  *  dyoo: modified to work with arrays of bytes rather than assume
  *  the bytes are strings.
+ * 
+ *  Provides a Base64 object with two methods:
+ *  Base64.encode: string -> string
+ *  Base64.decode: string -> string
  **/
 var Base64 = (function() {
     'use strict';
@@ -71,7 +75,7 @@ var Base64 = (function() {
 		    outputBytes.push(chr3);
 	        }
 	    }
-	    return outputBytes;            
+	    return outputBytes.join('');
         }
     };
     return Base64;

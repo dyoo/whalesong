@@ -119,11 +119,17 @@
         return new Bytes(chars);
     };
 
+    var makeBytesFromBase64 = function(byteString) {
+        return new Bytes(Base64.decode(byteString).split(''));
+    };
+
+
     var isBytes = baselib.makeClassPredicate(Bytes);
 
 
     exports.Bytes = Bytes;
     exports.makeBytes = makeBytes;
+    exports.makeBytesFromBase64 = makeBytesFromBase64;
     exports.isBytes = isBytes;
 
 

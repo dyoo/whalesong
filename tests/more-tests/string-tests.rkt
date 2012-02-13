@@ -170,3 +170,4 @@
 (string-ci=? "ba" "baa")
 (string-ci=? "baaa" "baa")
 
+#"hello"

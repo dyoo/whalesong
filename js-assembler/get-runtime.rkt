@@ -39,6 +39,7 @@
                 jquery-protect-footer.js
                 
                 js-numbers.js
+                base64.js
                 
                 baselib.js
 

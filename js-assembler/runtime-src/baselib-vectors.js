@@ -8,7 +8,6 @@
 
 
     var Vector = function (initialElements) {
-        var i;
         this.elts = initialElements;
         this.mutable = true;
     };
@@ -109,9 +108,7 @@
     var isVector = function (x) { return x instanceof Vector; };
 
     // makeVector: x ... -> vector
-    var makeVector = function (elts) {
-        return Vector.makeInstance(elts);
-    };
+    var makeVector = Vector.makeInstance;
 
     var makeVectorImmutable = function (elts) {
         var v = Vector.makeInstance(elts);

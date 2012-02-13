@@ -95,7 +95,7 @@
               #`(view-bind (view-focus #,a-view-stx #,a-selector)
                            #,a-type
                            #,a-function))
-            #'a-view
+            #'(->view a-view)
             (syntax->list #'(a-selector ...))
             (syntax->list #'(a-type ...))
             (syntax->list #'(a-function ...)))]))
@@ -123,7 +123,7 @@
            (view-bind (view-focus a-view (first id+type+function))
                       (second id+type+function)
                       (third id+type+function)))
-         a-view
+         (->view a-view)
          listof-id+type+function))
 
 

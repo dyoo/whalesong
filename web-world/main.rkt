@@ -92,7 +92,7 @@
   (syntax-case stx ()
     [(_ a-view [a-selector a-type a-function] ...)
      (foldl (lambda (a-selector a-type a-function a-view-stx)
-              #'(view-bind (view-focus #,a-view-stx #,a-selector)
+              #`(view-bind (view-focus #,a-view-stx #,a-selector)
                            #,a-type
                            #,a-function))
             #'a-view

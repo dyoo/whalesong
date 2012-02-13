@@ -963,6 +963,7 @@ Common event types include @racket["click"], @racket["mouseenter"], or
 @racket["change"].}  Note that the name of each event should not
 include an @racket["on"] prefix.
 
+
 As an example:
 @codeblock|{
 (define (click-handler w v) ...)

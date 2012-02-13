@@ -43,12 +43,10 @@
 ;; The first view consists of index.html.  We attach event handlers
 ;; to each name here.
 (define my-view
-  (foldl (lambda (name view)
-           (view-bind (view-focus view name)
-                      "click"
-                      hide-on-click))
-         (->view index.html)
-         dwarf-names))
+  (view-bind-many* (->view index.html)
+                   (map (lambda (name)
+                          (list name "click" hide-on-click))
+                        dwarf-names)))
 
 
 (big-bang dwarf-names

@@ -8,8 +8,8 @@
  *  the bytes are strings.
  * 
  *  Provides a Base64 object with two methods:
- *  Base64.encode: string -> string
- *  Base64.decode: string -> string
+ *  Base64.encode: [arrayof int] -> string
+ *  Base64.decode: string -> [arrayof int]
  **/
 var Base64 = (function() {
     'use strict';
@@ -75,7 +75,7 @@ var Base64 = (function() {
 		    outputBytes.push(chr3);
 	        }
 	    }
-	    return outputBytes.join('');
+	    return outputBytes;
         }
     };
     return Base64;

@@ -120,7 +120,7 @@
     };
 
     var makeBytesFromBase64 = function(byteString) {
-        return new Bytes(Base64.decode(byteString).split(''));
+        return new Bytes(Base64.decode(byteString));
     };
 
 

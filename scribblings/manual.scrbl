@@ -912,7 +912,9 @@ Attach a world-updating event to the focus.  When the world-updater is
 called, the view will be focused on the element that triggered the
 event.
 
-Common event types include @racket["click"], @racket["mouseenter"], @racket["change"].}
+Common event types include @racket["click"], @racket["mouseenter"],
+@racket["change"].}  Note that the name of the event should not
+include an @racket["on"] prefix.
 
 
 A view may have many elements to bind, and it's a common pattern to
@@ -921,6 +923,10 @@ bind multiple handlers at once:
 @defform[(view-bind-many a-view [id type world-updater] ...)]{
 Composes the use of @racket[view-focus] and @racket[view-bind] to conveniently bind
 multiple handlers at once.
+
+Common event types include @racket["click"], @racket["mouseenter"], or
+@racket["change"].}  Note that the name of each event should not
+include an @racket["on"] prefix.
 
 As an example:
 @codeblock|{
@@ -941,14 +947,21 @@ As an example:
 }|
 }
 
+
+
 If the collection of ids, types, and handlers can't be represented as a static list, then
 @racket[view-bind-many*] is an alternate helper function that may be helpful to bind
 a bulk number of handlers to a view.
+
+
 @defproc[(view-bind-many* [v view] [id+type+updater-list (listof (list string string world-updater))]) view]{
 A functional version of @racket[view-bind-many].  Composes the use of
 @racket[view-focus] and @racket[view-bind] to conveniently bind
 multiple handlers at once.
 
+Common event types include @racket["click"], @racket["mouseenter"], or
+@racket["change"].}  Note that the name of each event should not
+include an @racket["on"] prefix.
 
 As an example:
 @codeblock|{

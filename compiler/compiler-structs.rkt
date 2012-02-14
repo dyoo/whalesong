@@ -15,7 +15,7 @@
 
 
 ;; Linkage
-(define-struct: NextLinkage ([context : ValuesContext]))
+(define-struct: NextLinkage ([context : ValuesContext]) #:transparent)
 (define next-linkage/drop-multiple (make-NextLinkage 'drop-multiple))
 (define next-linkage/expects-single (make-NextLinkage 1))
 (define next-linkage/keep-multiple-on-stack (make-NextLinkage 'keep-multiple))
@@ -24,14 +24,14 @@
 
 ;; LabelLinkage is a labeled GOTO.
 (define-struct: LabelLinkage ([label : Symbol]
-			      [context : ValuesContext]))
+			      [context : ValuesContext]) #:transparent)
 
 
 
 ;; Both ReturnLinkage and ReturnLinkage/NonTail deal with multiple
 ;; values indirectly, through the alternative multiple-value-return
 ;; address in the LinkedLabel of their call frame.
-(define-struct: ReturnLinkage ([tail? : Boolean]))
+(define-struct: ReturnLinkage ([tail? : Boolean]) #:transparent)
 (define return-linkage (make-ReturnLinkage #t))
 (define return-linkage/nontail (make-ReturnLinkage #f))
 

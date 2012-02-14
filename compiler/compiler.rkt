@@ -1999,6 +1999,7 @@
 
 (: compile-with-cont-mark (WithContMark CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-with-cont-mark exp cenv target linkage)
+  (printf "compile-with-cont-mark: ~e\n" exp)
   
   (: in-return-context (-> InstructionSequence))
   (define (in-return-context)
@@ -2013,23 +2014,26 @@
   
   (: in-other-context ((U NextLinkage LabelLinkage) -> InstructionSequence))
   (define (in-other-context linkage)
-    (let ([body-next-linkage (cond [(NextLinkage? linkage)
-                                    linkage]
-                                   [(LabelLinkage? linkage)
-                                    (make-NextLinkage (LabelLinkage-context linkage))])])
+    (let* ([on-return-multiple (make-label 'onReturnMultiple)]
+           [on-return (make-LinkedLabel (make-label 'onReturn)
+                                        on-return-multiple)])
       (end-with-linkage 
        linkage cenv
        (append-instruction-sequences
-        ;; Making a continuation frame; isn't really used for anything
-        ;; but recording the key/value data.
-        (make-PushControlFrame/Generic)
         (compile (WithContMark-key exp) cenv 'val next-linkage/expects-single)
         (make-AssignImmediateStatement (make-ControlFrameTemporary 'pendingContinuationMarkKey)
                                        (make-Reg 'val))
         (compile (WithContMark-value exp) cenv 'val next-linkage/expects-single)
         (make-PerformStatement (make-InstallContinuationMarkEntry!))
-        (compile (WithContMark-body exp) cenv target body-next-linkage)
-        (make-PopControlFrame)))))
+        (make-PushControlFrame/Call on-return)
+        (compile (WithContMark-body exp) cenv target return-linkage)
+        on-return-multiple
+        ;; fixme: we need to look at this linkage's context to figure out what
+        ;; to do with multiple values here.
+        (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
+                                              (make-Const 1))
+                             (make-Const 0))
+        on-return))))
   
   (cond
     [(ReturnLinkage? linkage)

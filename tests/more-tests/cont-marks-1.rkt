@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang planet dyoo/whalesong/base
 
 (define (puzzle n)
   (if (= n 0)
@@ -10,4 +10,4 @@
 (continuation-mark-set->list (current-continuation-marks) 'secret)
 
 (with-continuation-mark 'secret 1
-  (puzzle 10))
+  (puzzle 3))

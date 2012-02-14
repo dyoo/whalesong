@@ -1550,15 +1550,7 @@
                  entry-point]
                 [(eq? entry-point 'dynamic)
                  (make-CompiledProcedureEntry (make-Reg 'proc))])]
-         
-         ;; If the target isn't val, migrate the value from val into it.
-         [maybe-migrate-val-to-target
-          (cond
-            [(eq? target 'val)
-             empty-instruction-sequence]
-            [else
-             (make-AssignImmediateStatement target (make-Reg 'val))])]
-         
+       
          [on-return/multiple (make-label 'procReturnMultiple)]
          
          [on-return (make-LinkedLabel (make-label 'procReturn)
@@ -1609,6 +1601,14 @@
                   [check-values-context-on-procedure-return
                    (emit-values-context-check-on-procedure-return context on-return/multiple on-return)]
                   
+                  ;; If the target isn't val, migrate the value from val into it.
+                  [maybe-migrate-val-to-target
+                   (cond
+                    [(eq? target 'val)
+                     empty-instruction-sequence]
+                    [else
+                     (make-AssignImmediateStatement target (make-Reg 'val))])]
+
                   [maybe-jump-to-label
                    (if (LabelLinkage? linkage)
                        (make-GotoStatement (make-Label (LabelLinkage-label linkage)))
@@ -1999,7 +1999,6 @@
 
 (: compile-with-cont-mark (WithContMark CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-with-cont-mark exp cenv target linkage)
-  (printf "compile-with-cont-mark: ~e\n" exp)
   
   (: in-return-context (-> InstructionSequence))
   (define (in-return-context)
@@ -2016,24 +2015,28 @@
   (define (in-other-context linkage)
     (let* ([on-return-multiple (make-label 'onReturnMultiple)]
            [on-return (make-LinkedLabel (make-label 'onReturn)
-                                        on-return-multiple)])
+                                        on-return-multiple)]
+           [check-values-context-on-procedure-return
+            (emit-values-context-check-on-procedure-return (linkage-context linkage)
+                                                           on-return-multiple on-return)]
+           [maybe-migrate-val-to-target
+            (cond
+             [(eq? target 'val)
+              empty-instruction-sequence]
+             [else
+              (make-AssignImmediateStatement target (make-Reg 'val))])])
       (end-with-linkage 
        linkage cenv
        (append-instruction-sequences
+        (make-PushControlFrame/Call on-return)
         (compile (WithContMark-key exp) cenv 'val next-linkage/expects-single)
         (make-AssignImmediateStatement (make-ControlFrameTemporary 'pendingContinuationMarkKey)
                                        (make-Reg 'val))
         (compile (WithContMark-value exp) cenv 'val next-linkage/expects-single)
         (make-PerformStatement (make-InstallContinuationMarkEntry!))
-        (make-PushControlFrame/Call on-return)
-        (compile (WithContMark-body exp) cenv target return-linkage)
-        on-return-multiple
-        ;; fixme: we need to look at this linkage's context to figure out what
-        ;; to do with multiple values here.
-        (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                              (make-Const 1))
-                             (make-Const 0))
-        on-return))))
+        (compile (WithContMark-body exp) cenv target return-linkage/nontail)
+        check-values-context-on-procedure-return
+        maybe-migrate-val-to-target))))
   
   (cond
     [(ReturnLinkage? linkage)

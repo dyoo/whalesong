@@ -427,7 +427,6 @@
                 kvLists.push([{ key: tracedCalleeKey, value : control[i].p}]);
             }
         }
-        console.log("capturing marks: ", kvLists);
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
     };
 

@@ -1585,9 +1585,11 @@
                  ;; caller, but where we are not in tail position, so
                  ;; we shouldn't pop the environment.
                  (make-GotoStatement entry-point-target)])]
-             
              [else
-              (error 'compile "return linkage, target not val: ~s" target)])]
+              (cond [(ReturnLinkage-tail? linkage)
+                     (error 'compile "return linkage, target not val: ~s" target)]
+                    [else
+                     (make-GotoStatement entry-point-target)])])]
           
           
           [(or (NextLinkage? linkage) (LabelLinkage? linkage))

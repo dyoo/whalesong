@@ -398,12 +398,14 @@
         var i;
         var l = marks.length;
         for (i = 0; i < l; i++) {
-            if (key === marks[i][0]) {
-                marks[i][1] = value;
+            if (key === marks[i].key) {
+                console.log("rewriting mark", key, value);
+                marks[i].value = value;
                 return;
             }
         }
-        marks.push([key, value]);
+        console.log("adding new mark", key, value);
+        marks.push({key : key, value: value});
     };
 
 
@@ -424,9 +426,10 @@
             if (tracedCalleeKey !== null &&
                 control[i] instanceof CallFrame &&
                 control[i].p !== null) {
-                kvLists.push([[tracedCalleeKey, control[i].p]]);
+                kvLists.push([{ key: tracedCalleeKey, value : control[i].p}]);
             }
         }
+        console.log("capturing marks: ", kvLists);
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
     };
 

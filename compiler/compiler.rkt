@@ -1581,15 +1581,10 @@
                     (make-GotoStatement entry-point-target)))]
                 
                 [else	    
-                 ;; This case happens when we should be returning to a caller, but where
-                 ;; we are not in tail position.
-                 (append-instruction-sequences
-                  nontail-jump-into-procedure
-                  on-return/multiple
-                  (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                                        (make-Const 1))
-                                       (make-Const 0))
-                  on-return)])]
+                 ;; This case happens when we should be returning to a
+                 ;; caller, but where we are not in tail position, so
+                 ;; we shouldn't pop the environment.
+                 (make-GotoStatement entry-point-target)])]
              
              [else
               (error 'compile "return linkage, target not val: ~s" target)])]

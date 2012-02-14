@@ -39,8 +39,8 @@
         for (i = 0; i < this.kvlists.length; i++) {
             kvlist = this.kvlists[i];
             for (j = 0; j < kvlist.length; j++) {
-                if (baselib.equality.equals(kvlist[j][0], key)) {
-                    result.push(kvlist[j][1]);
+                if (baselib.equality.equals(kvlist[j].key, key)) {
+                    result.push(kvlist[j].value);
                 }
             }
         }
@@ -61,11 +61,11 @@
         for (i = 0; i < this.kvlists.length; i++) {
             kvlist = this.kvlists[i];
             for (j = 0; j < kvlist.length; j++) {
-                if (kvlist[j][0] === tracedAppKey) {
-                    locationVector = kvlist[j][1];
+                if (kvlist[j].key === tracedAppKey) {
+                    locationVector = kvlist[j].value;
                     result.push(locationVector);
-                } else if (kvlist[j][0] === tracedCalleeKey) {
-                    proc = kvlist[j][1];
+                } else if (kvlist[j].key === tracedCalleeKey) {
+                    proc = kvlist[j].value;
                     if (proc !== null) {
                         result.push(proc);
                     }

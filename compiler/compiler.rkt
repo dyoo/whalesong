@@ -51,7 +51,8 @@
                                      before-pop-prompt)
        (compile exp '() 'val return-linkage/nontail)
        before-pop-prompt-multiple
-       (make-PopEnvironment (make-Reg 'argcount) (make-Const 0))
+       (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount) (make-Const 1))
+                            (make-Const 0))
        before-pop-prompt
        (if (eq? target 'val)
            empty-instruction-sequence
@@ -1554,14 +1555,7 @@
          [on-return/multiple (make-label 'procReturnMultiple)]
          
          [on-return (make-LinkedLabel (make-label 'procReturn)
-                                      on-return/multiple)]
-         
-         ;; This code does the initial jump into the procedure.  Clients of this code
-         ;; are expected to generate the proc-return-multiple and proc-return code afterwards.
-         [nontail-jump-into-procedure
-          (append-instruction-sequences 
-           (make-PushControlFrame/Call on-return)
-           (make-GotoStatement entry-point-target))])
+                                      on-return/multiple)])
     
     (cond [(ReturnLinkage? linkage)
            (cond
@@ -1586,8 +1580,9 @@
                  ;; we shouldn't pop the environment.
                  (make-GotoStatement entry-point-target)])]
              [else
-              (cond [(ReturnLinkage-tail? linkage)
-                     (error 'compile "return linkage, target not val: ~s" target)]
+              (error 'compile "return linkage, target not val: ~s" target)
+              #;(cond [(ReturnLinkage-tail? linkage)
+                     ]
                     [else
                      (make-GotoStatement entry-point-target)])])]
           
@@ -1595,9 +1590,16 @@
           [(or (NextLinkage? linkage) (LabelLinkage? linkage))
            (let* ([context (linkage-context linkage)]
                   
+                  ;; This code does the initial jump into the procedure.  Clients of this code
+                  ;; are expected to generate the proc-return-multiple and proc-return code afterwards.
+                  [nontail-jump-into-procedure
+                   (append-instruction-sequences 
+                    (make-PushControlFrame/Call on-return)
+                    (make-GotoStatement entry-point-target))]
+                  
                   [check-values-context-on-procedure-return
                    (emit-values-context-check-on-procedure-return context on-return/multiple on-return)]
-                  
+
                   ;; If the target isn't val, migrate the value from val into it.
                   [maybe-migrate-val-to-target
                    (cond

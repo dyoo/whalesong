@@ -257,7 +257,8 @@
 
  
  current-continuation-marks
-
+ continuation-mark-set->list
+ 
 ;;  continuation-mark-set?
 ;;  continuation-mark-set->list
 

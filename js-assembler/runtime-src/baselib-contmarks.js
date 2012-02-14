@@ -31,7 +31,8 @@
         return '#<continuation-mark-set>';
     };
 
-    ContinuationMarkSet.prototype.ref = function(key) {
+    ContinuationMarkSet.prototype.ref = function(key, promptTag) {
+        // FIXME: ref needs to watch the promptTag as well and capture up to it.
         var i, j;
         var result = [];
         var kvlist;

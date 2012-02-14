@@ -2206,6 +2206,21 @@
             return contMarks;
         });
 
+    installPrimitiveProcedure(
+        'continuation-mark-set->list',
+        makeList(2, 3),
+        function(M) {
+            var marks = checkContinuationMarkSet(M, 'continuation-mark-set->list', 0);
+            var key = checkAny(M, 'continuation-mark-set->list', 1);
+            var promptTag;
+            if (M.a === 3) {
+                promptTag = checkContinuationPromptTag(M, 'current-continuation-marks', 2);
+            }
+            return marks.ref(key, promptTag);
+        });
+
+
+
     installPrimitiveClosure(
         'make-struct-type',
         makeList(4, 5, 6, 7, 8, 9, 10, 11),

@@ -7,5 +7,7 @@
         (* n (first (continuation-mark-set->list (current-continuation-marks) 'secret)))
         (puzzle (sub1 n)))))
 
+(continuation-mark-set->list (current-continuation-marks) 'secret)
+
 (with-continuation-mark 'secret 1
   (puzzle 10))

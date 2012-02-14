@@ -2202,7 +2202,7 @@
             var contMarks = M.captureContinuationMarks(promptTag);
             // The continuation marks shouldn't capture the record of the call to
             // current-continuation-marks itself.
-            contMarks.shift();
+            // contMarks.shift();
             return contMarks;
         });
 
@@ -2216,6 +2216,7 @@
             if (M.a === 3) {
                 promptTag = checkContinuationPromptTag(M, 'current-continuation-marks', 2);
             }
+            console.log("continuation-mark-set->list is looking at", marks, "for", key);
             return marks.ref(key, promptTag);
         });
 

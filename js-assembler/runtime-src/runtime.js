@@ -309,14 +309,14 @@
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
             return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'];
         }
-        return undefined;
+        return 'traced-app-key';
     };
 
     var getTracedCalleeKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
             return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'];
         }
-        return undefined;
+        return 'traced-callee-key';
     };
 
 

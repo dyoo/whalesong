@@ -399,12 +399,10 @@
         var l = marks.length;
         for (i = 0; i < l; i++) {
             if (key === marks[i].key) {
-                console.log("rewriting mark", key, value);
                 marks[i].value = value;
                 return;
             }
         }
-        console.log("adding new mark", key, value);
         marks.push({key : key, value: value});
     };
 

@@ -36,10 +36,8 @@
         var i, j;
         var result = [];
         var kvlist;
-        console.log("ref: I see ", this.kvlists.length, "lists to walk");
         for (i = 0; i < this.kvlists.length; i++) {
             kvlist = this.kvlists[i];
-            console.log('comparing on ', kvlist);
             for (j = 0; j < kvlist.length; j++) {
                 if (baselib.equality.equals(kvlist[j].key, key)) {
                     result.push(kvlist[j].value);

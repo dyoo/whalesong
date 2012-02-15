@@ -804,6 +804,21 @@
     };
 
 
+    //////////////////////////////////////////////////////////////////////
+    var checkedAdd1 = function(M, n) {
+        return plt.baselib.numbers.add(
+            testArgument(M, 'number', isNumber, n, 0, 'add1'),
+            1);
+    };
+
+    var checkedSub1 = function(M, n) {
+        return plt.baselib.numbers.subtract(
+            testArgument(M, 'number', isNumber, n, 0, 'add1'),
+            1);
+    };
+
+
+
 
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
@@ -940,4 +955,6 @@
     exports['checkClosureAndArity'] = checkClosureAndArity;
     exports['checkPrimitiveArity'] = checkPrimitiveArity;
 
+    exports['checkedAdd1'] = checkedAdd1;
+    exports['checkedSub1'] = checkedSub1;
 }(this.plt, this.plt.baselib));

@@ -52,11 +52,21 @@
            (assemble-binop-chain "plt.baselib.numbers.divide" checked-operands)]
 
           [(add1)
-           (assemble-binop-chain "plt.baselib.numbers.add" (cons "1" checked-operands))]
+           (string-append
+            (format "(typeof(~a)==='number'&&(~a)<9E15?(~a)+1"
+                    (first operands) (first operands) (first operands))
+            ":"
+            (format "RT.checkedAdd1(M, ~a)" (first operands))
+            ")")]
+
           
           [(sub1)
-           (assemble-binop-chain "plt.baselib.numbers.subtract" (append checked-operands (list "1")))]
-
+           (string-append
+            (format "(typeof(~a)==='number'&&(~a)>-9E15?(~a)-1"
+                    (first operands) (first operands) (first operands))
+            ":"
+            (format "RT.checkedSub1(M, ~a)" (first operands))
+            ")")]
           [(<)
            (assemble-boolean-chain "plt.baselib.numbers.lessThan" checked-operands)]
 

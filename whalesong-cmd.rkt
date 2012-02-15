@@ -82,6 +82,9 @@
             [("--without-ie")
              ("Disable IE legacy support")
              (current-with-legacy-ie-support? #f)]
+            [("--with-cache")
+             ("Turn on the internal compilation cache")
+             (current-with-cache? #t)]
             [("--without-cache")
              ("Turn off the internal compilation cache")
              (current-with-cache? #f)]
@@ -124,6 +127,9 @@
                   [("--without-ie")
                    ("Disable IE legacy support")
                    (current-with-legacy-ie-support? #f)]
+                  [("--with-cache")
+                   ("Turn on the internal compilation cache")
+                   (current-with-cache? #t)]
                   [("--without-cache")
                    ("Turn off the internal compilation cache")
                    (current-with-cache? #f)]
@@ -153,6 +159,9 @@
                      [("--without-ie")
                       ("Disable IE legacy support")
                       (current-with-legacy-ie-support? #f)]
+                     [("--with-cache")
+                      ("Turn on the internal compilation cache")
+                      (current-with-cache? #t)]
                      [("--without-cache")
                       ("Turn off the internal compilation cache")
                       (current-with-cache? #f)]

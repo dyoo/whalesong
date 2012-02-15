@@ -378,7 +378,7 @@
                   (and m (cdr m)))))
     ;; Normal launcher:
     (make-embedding-executable
-     dest (eq? kind 'mred) #f null null null flags aux #t variant)
+      (string-append dest ".exe") (eq? kind 'mred) #f null null null flags aux #t variant)
     ;; Independent launcher (needed for Setup PLT):
     (begin
       (install-template dest kind "mzstart.exe" "mrstart.exe")

@@ -394,7 +394,7 @@
     // Save the continuation mark on the top control frame.
     Machine.prototype.installContinuationMarkEntry = function(key, value) {
         var frame = this.c[this.c.length - 1];
-        var marks = frame.marks;
+        var marks = frame.getMarks();
         var i;
         var l = marks.length;
         for (i = 0; i < l; i++) {
@@ -417,8 +417,8 @@
                 control[i] instanceof PromptFrame && control[i].tag === promptTag) {
                 break;
             }
-            if (control[i].marks.length !== 0) {
-                kvLists.push(control[i].marks);
+            if (control[i].getMarks().length !== 0) {
+                kvLists.push(control[i].getMarks());
             }
 
             if (tracedCalleeKey !== null &&

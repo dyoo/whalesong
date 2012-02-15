@@ -806,16 +806,28 @@
 
     //////////////////////////////////////////////////////////////////////
     var checkedAdd1 = function(M, n) {
+        if (typeof(n) === 'number' && n < 9e15) { return n+1; }
         return plt.baselib.numbers.add(
             testArgument(M, 'number', isNumber, n, 0, 'add1'),
             1);
     };
 
     var checkedSub1 = function(M, n) {
+        if (typeof(n) === 'number' && n > -9e15) { return n-1; }
         return plt.baselib.numbers.subtract(
             testArgument(M, 'number', isNumber, n, 0, 'add1'),
             1);
     };
+    var checkedCar = function(M, v) {
+        if (isPair(v)) { return v.first; }
+        raiseArgumentTypeError(M, 'car', 'pair', 0, v);
+    };
+
+    var checkedCdr = function(M, v) {
+        if (isPair(v)) { return v.rest; }
+        raiseArgumentTypeError(M, 'cdr', 'pair', 0, v);
+    };
+
 
 
 
@@ -957,4 +969,6 @@
 
     exports['checkedAdd1'] = checkedAdd1;
     exports['checkedSub1'] = checkedSub1;
+    exports['checkedCar'] = checkedCar;
+    exports['checkedCdr'] = checkedCdr;
 }(this.plt, this.plt.baselib));

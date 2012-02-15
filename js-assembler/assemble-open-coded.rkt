@@ -52,21 +52,11 @@
            (assemble-binop-chain "plt.baselib.numbers.divide" checked-operands)]
 
           [(add1)
-           (string-append
-            (format "(typeof(~a)==='number'&&(~a)<9E15?(~a)+1"
-                    (first operands) (first operands) (first operands))
-            ":"
-            (format "RT.checkedAdd1(M, ~a)" (first operands))
-            ")")]
-
+           (format "RT.checkedAdd1(M, ~a)" (first operands))]
           
           [(sub1)
-           (string-append
-            (format "(typeof(~a)==='number'&&(~a)>-9E15?(~a)-1"
-                    (first operands) (first operands) (first operands))
-            ":"
-            (format "RT.checkedSub1(M, ~a)" (first operands))
-            ")")]
+           (format "RT.checkedSub1(M, ~a)" (first operands))]
+
           [(<)
            (assemble-boolean-chain "plt.baselib.numbers.lessThan" checked-operands)]
 
@@ -88,13 +78,13 @@
                    (second checked-operands))]
 
           [(car)
-           (format "(~a).first" (first checked-operands))]
+           (format "RT.checkedCar(M, ~a)" (first operands))]
 
           [(caar)
            (format "(~a).first.first" (first checked-operands))]
           
           [(cdr)
-           (format "(~a).rest" (first checked-operands))]
+           (format "RT.checkedCdr(M, ~a)" (first operands))]
           
           [(list)
            (let loop ([checked-operands checked-operands])

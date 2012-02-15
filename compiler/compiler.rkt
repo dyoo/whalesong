@@ -51,7 +51,8 @@
                                      before-pop-prompt)
        (compile exp '() 'val return-linkage/nontail)
        before-pop-prompt-multiple
-       (make-PopEnvironment (make-Reg 'argcount) (make-Const 0))
+       (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
+                            (make-Const 0))
        before-pop-prompt
        (if (eq? target 'val)
            empty-instruction-sequence
@@ -422,6 +423,8 @@
 ;; value by assigning to the argcount register.
 (define (emit-singular-context linkage)
   (cond [(ReturnLinkage? linkage)
+         ;; Callers who use ReturnLinkage are responsible for doing
+         ;; runtime checks for the singular context.
          empty-instruction-sequence]
         [(or (NextLinkage? linkage)
              (LabelLinkage? linkage))
@@ -1444,7 +1447,7 @@
      (cond [(ReturnLinkage-tail? linkage)
             'tail]
            [else
-            'drop-multiple])]
+            'keep-multiple])]
     [(NextLinkage? linkage)
      (NextLinkage-context linkage)]
     [(LabelLinkage? linkage)
@@ -1591,13 +1594,7 @@
                 [else	    
                  ;; This case happens when we should be returning to a caller, but where
                  ;; we are not in tail position.
-                 (append-instruction-sequences
-                  nontail-jump-into-procedure
-                  on-return/multiple
-                  (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                                        (make-Const 1))
-                                       (make-Const 0))
-                  on-return)])]
+                 (make-GotoStatement entry-point-target)])]
              
              [else
               (error 'compile "return linkage, target not val: ~s" target)])]
@@ -1677,10 +1674,10 @@
 ;; We should do more here eventually, including things like type inference or flow analysis, so that
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
-  (log-debug (format "Trying to discover information about ~s" exp))
+  ;(log-debug (format "Trying to discover information about ~s" exp))
   (cond
     [(Lam? exp)
-     (log-debug "known to be a lambda")
+     ;(log-debug "known to be a lambda")
      (make-StaticallyKnownLam (Lam-name exp)
                               (Lam-entry-label exp)
                               (if (Lam-rest? exp)
@@ -1689,24 +1686,24 @@
     [(and (LocalRef? exp) 
           (not (LocalRef-unbox? exp)))
      (let ([entry (list-ref cenv (LocalRef-depth exp))])
-       (log-debug (format "known to be ~s" entry))
+       ;(log-debug (format "known to be ~s" entry))
        entry)]
     
     [(ToplevelRef? exp)
-     (log-debug (format "toplevel reference of ~a" exp))
-     (when (ToplevelRef-constant? exp)
-       (log-debug (format "toplevel reference ~a should be known constant" exp)))
+     ;(log-debug (format "toplevel reference of ~a" exp))
+     ;(when (ToplevelRef-constant? exp)
+     ;  (log-debug (format "toplevel reference ~a should be known constant" exp)))
      (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
                   (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
                             (ToplevelRef-pos exp))])
        (cond
          [(ModuleVariable? name)
-          (log-debug (format "toplevel reference is to ~s" name))
+          ;(log-debug (format "toplevel reference is to ~s" name))
           name]
          [(GlobalBucket? name)
           '?]
          [else
-          (log-debug (format "nothing statically known about ~s" exp))
+          ;(log-debug (format "nothing statically known about ~s" exp))
           '?]))]
     
     [(Constant? exp)
@@ -1716,7 +1713,7 @@
      exp]
     
     [else
-     (log-debug (format "nothing statically known about ~s" exp))
+     ;(log-debug (format "nothing statically known about ~s" exp))
      '?]))
 
 
@@ -2015,41 +2012,40 @@
   (define (in-other-context linkage)
     (let* ([on-return/multiple: (make-label 'procReturnMultiple)]          
            [on-return: (make-LinkedLabel (make-label 'procReturn) on-return/multiple:)]
+           [context (linkage-context linkage)]
            [check-values-context-on-procedure-return
-            (emit-values-context-check-on-procedure-return (linkage-context linkage)
-                                                           on-return/multiple: on-return:)]
+            (emit-values-context-check-on-procedure-return
+             context on-return/multiple: on-return:)]
            [maybe-migrate-val-to-target
             (cond
              [(eq? target 'val)
               empty-instruction-sequence]
              [else
               (make-AssignImmediateStatement target (make-Reg 'val))])])
-      (end-with-linkage 
-       linkage cenv
-       (append-instruction-sequences
-        (make-PushControlFrame/Call on-return:)
-        (compile (WithContMark-key exp) cenv 'val next-linkage/expects-single)
-        (make-AssignImmediateStatement (make-ControlFrameTemporary 'pendingContinuationMarkKey)
-                                       (make-Reg 'val))
-        (compile (WithContMark-value exp) cenv 'val next-linkage/expects-single)
-        (make-PerformStatement (make-InstallContinuationMarkEntry!))
-        (compile (WithContMark-body exp) cenv 'val return-linkage/nontail)
-        check-values-context-on-procedure-return
-        maybe-migrate-val-to-target
-        ))))
-  
+      (append-instruction-sequences
+       (make-PushControlFrame/Call on-return:)
+       (compile (WithContMark-key exp) cenv 'val next-linkage/expects-single)
+       (make-AssignImmediateStatement (make-ControlFrameTemporary 'pendingContinuationMarkKey)
+                                      (make-Reg 'val))
+       (compile (WithContMark-value exp) cenv 'val next-linkage/expects-single)
+       (make-PerformStatement (make-InstallContinuationMarkEntry!))
+       (compile (WithContMark-body exp) cenv 'val return-linkage/nontail)
+       check-values-context-on-procedure-return
+       maybe-migrate-val-to-target)))
   (cond
     [(ReturnLinkage? linkage)
      (in-return-context)]
     [(NextLinkage? linkage) 
      (in-other-context linkage)]
     [(LabelLinkage? linkage)
-     (in-other-context linkage)]))
+     (append-instruction-sequences
+      (in-other-context linkage)
+      (make-GotoStatement (make-Label (LabelLinkage-label linkage))))]))
 
 
 (: compile-apply-values (ApplyValues CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-apply-values exp cenv target linkage)
-  (log-debug (format "apply values ~a" exp))
+  ;(log-debug (format "apply values ~a" exp))
   (let ([on-zero (make-label 'onZero)]
         [after-args-evaluated (make-label 'afterArgsEvaluated)]
         [consumer-info

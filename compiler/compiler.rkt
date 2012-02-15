@@ -2013,23 +2013,30 @@
   
   (: in-other-context ((U NextLinkage LabelLinkage) -> InstructionSequence))
   (define (in-other-context linkage)
-    (let ([body-next-linkage (cond [(NextLinkage? linkage)
-                                    linkage]
-                                   [(LabelLinkage? linkage)
-                                    (make-NextLinkage (LabelLinkage-context linkage))])])
+    (let* ([on-return/multiple: (make-label 'procReturnMultiple)]          
+           [on-return: (make-LinkedLabel (make-label 'procReturn) on-return/multiple:)]
+           [check-values-context-on-procedure-return
+            (emit-values-context-check-on-procedure-return (linkage-context linkage)
+                                                           on-return/multiple: on-return:)]
+           [maybe-migrate-val-to-target
+            (cond
+             [(eq? target 'val)
+              empty-instruction-sequence]
+             [else
+              (make-AssignImmediateStatement target (make-Reg 'val))])])
       (end-with-linkage 
        linkage cenv
        (append-instruction-sequences
-        ;; Making a continuation frame; isn't really used for anything
-        ;; but recording the key/value data.
-        (make-PushControlFrame/Generic)
+        (make-PushControlFrame/Call on-return:)
         (compile (WithContMark-key exp) cenv 'val next-linkage/expects-single)
         (make-AssignImmediateStatement (make-ControlFrameTemporary 'pendingContinuationMarkKey)
                                        (make-Reg 'val))
         (compile (WithContMark-value exp) cenv 'val next-linkage/expects-single)
         (make-PerformStatement (make-InstallContinuationMarkEntry!))
-        (compile (WithContMark-body exp) cenv target body-next-linkage)
-        (make-PopControlFrame)))))
+        (compile (WithContMark-body exp) cenv 'val return-linkage/nontail)
+        check-values-context-on-procedure-return
+        maybe-migrate-val-to-target
+        ))))
   
   (cond
     [(ReturnLinkage? linkage)

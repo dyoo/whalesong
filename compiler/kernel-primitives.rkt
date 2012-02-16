@@ -18,6 +18,7 @@
                                     '-
                                     '*
                                     '/
+                                    'zero?
                                     'add1
                                     'sub1
 				    'abs
@@ -127,6 +128,7 @@
                                            '-
                                            '*
                                            '/
+                                           'zero?
                                            'add1
                                            'sub1
                                            '<
@@ -175,6 +177,12 @@
     [(eq? prim '/)
      (cond [(> arity 0)
             (build-list arity (lambda (i) 'number))]
+           [else
+            (make-IncorrectArity (make-ArityAtLeast 1))])]
+
+    [(eq? prim 'zero?)
+     (cond [(= arity 1)
+            (list 'number)]
            [else
             (make-IncorrectArity (make-ArityAtLeast 1))])]
 

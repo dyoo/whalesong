@@ -805,6 +805,13 @@
 
 
     //////////////////////////////////////////////////////////////////////
+    var checkedIsZero = function(M, n) {
+        if (typeof(n) === 'number') { return n===0; }
+        return plt.baselib.numbers.equals(
+            testArgument(M, 'number', isNumber, n, 0, 'zero?'),
+            0);
+    };
+
     var checkedAdd1 = function(M, n) {
         if (typeof(n) === 'number' && n < 9e15) { return n+1; }
         return plt.baselib.numbers.add(
@@ -815,9 +822,17 @@
     var checkedSub1 = function(M, n) {
         if (typeof(n) === 'number' && n > -9e15) { return n-1; }
         return plt.baselib.numbers.subtract(
-            testArgument(M, 'number', isNumber, n, 0, 'add1'),
+            testArgument(M, 'number', isNumber, n, 0, 'sub1'),
             1);
     };
+
+    var checkedNegate = function(M, n) {
+        if (typeof(n) === 'number') { return -n; }
+        return plt.baselib.numbers.subtract(
+            0,
+            testArgument(M, 'number', isNumber, n, 0, '-'));
+    };
+
     var checkedCar = function(M, v) {
         if (isPair(v)) { return v.first; }
         raiseArgumentTypeError(M, 'car', 'pair', 0, v);
@@ -827,9 +842,6 @@
         if (isPair(v)) { return v.rest; }
         raiseArgumentTypeError(M, 'cdr', 'pair', 0, v);
     };
-
-
-
 
 
     //////////////////////////////////////////////////////////////////////
@@ -967,8 +979,10 @@
     exports['checkClosureAndArity'] = checkClosureAndArity;
     exports['checkPrimitiveArity'] = checkPrimitiveArity;
 
+    exports['checkedIsZero'] = checkedIsZero;
     exports['checkedAdd1'] = checkedAdd1;
     exports['checkedSub1'] = checkedSub1;
+    exports['checkedNegate'] = checkedNegate;
     exports['checkedCar'] = checkedCar;
     exports['checkedCdr'] = checkedCdr;
 }(this.plt, this.plt.baselib));

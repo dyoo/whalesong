@@ -38,7 +38,7 @@
           
           [(-)
            (cond [(empty? (rest checked-operands))
-                  (assemble-binop-chain "plt.baselib.numbers.subtract" (cons "0" checked-operands))]
+                  (format "RT.checkedNegate(M, ~a)" (first operands))]
                  [else
                   (assemble-binop-chain "plt.baselib.numbers.subtract" checked-operands)])]
           
@@ -50,6 +50,9 @@
 
           [(/)
            (assemble-binop-chain "plt.baselib.numbers.divide" checked-operands)]
+
+          [(zero?)
+           (format "RT.checkedIsZero(M, ~a)" (first operands))]
 
           [(add1)
            (format "RT.checkedAdd1(M, ~a)" (first operands))]

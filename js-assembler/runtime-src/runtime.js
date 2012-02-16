@@ -307,14 +307,14 @@
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'];
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'] || 'traced-app-key';
         }
         return undefined;
     };
 
     var getTracedCalleeKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'];
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'] || 'traced-callee-key';
         }
         return undefined;
     };

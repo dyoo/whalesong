@@ -2195,14 +2195,11 @@
         'current-continuation-marks',
         makeList(0, 1),
         function(M) {
-            var promptTag;
+            var promptTag = baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
             if (M.a === 1) {
                 promptTag = checkContinuationPromptTag(M, 'current-continuation-marks', 0);
             }
             var contMarks = M.captureContinuationMarks(promptTag);
-            // The continuation marks shouldn't capture the record of the call to
-            // current-continuation-marks itself.
-            contMarks.shift();
             return contMarks;
         });
 
@@ -2212,7 +2209,7 @@
         function(M) {
             var marks = checkContinuationMarkSet(M, 'continuation-mark-set->list', 0);
             var key = checkAny(M, 'continuation-mark-set->list', 1);
-            var promptTag;
+            var promptTag = baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
             if (M.a === 3) {
                 promptTag = checkContinuationPromptTag(M, 'current-continuation-marks', 2);
             }

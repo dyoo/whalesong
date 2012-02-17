@@ -156,8 +156,8 @@ the text content of an element.
 
 @item{@link["http://hashcollision.org/whalesong/examples/phases/phases.html"]{phases.html}
 [@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}
-@link["http://hashcollision.org/whalesong/examples/phases/index1.html"]{index1.html}
-@link["http://hashcollision.org/whalesong/examples/phases/index2.html"]{index2.html}]
+@link["http://hashcollision.org/whalesong/examples/phases/view1.html"]{view1.html}
+@link["http://hashcollision.org/whalesong/examples/phases/view2.html"]{view2.html}]
 Switches out one view entirely in place of another.  Different views can correspond to phases in a program.
 }
 

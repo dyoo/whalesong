@@ -59,7 +59,7 @@
 		   [(ModuleLocator? maybe-module-locator)
 		    (append (my-force stmts)
 			    ;; Set the main module name
-			    (list (make-PerformStatement
+			    (list (make-Perform
 				   (make-AliasModuleAsMain!
 				    maybe-module-locator))))]
 		   [else

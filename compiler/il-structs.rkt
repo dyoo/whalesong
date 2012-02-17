@@ -163,9 +163,9 @@
                                     DebugPrint
                                     Comment
                                     
-                                    AssignImmediateStatement
-                                    AssignPrimOpStatement
-                                    PerformStatement
+                                    AssignImmediate
+                                    AssignPrimOp
+                                    Perform
                                     
                                     PopEnvironment
                                     PushEnvironment
@@ -176,7 +176,7 @@
                                     PushControlFrame/Prompt
                                     PopControlFrame))
 
-(define-type BranchingStatement (U GotoStatement TestAndJumpStatement))
+(define-type BranchingStatement (U Goto TestAndJump))
                                  
 
 ;; instruction sequences
@@ -201,10 +201,10 @@
   #:transparent)
 
 
-(define-struct: AssignImmediateStatement ([target : Target]
+(define-struct: AssignImmediate ([target : Target]
                                           [value : OpArg])
   #:transparent)
-(define-struct: AssignPrimOpStatement ([target : Target]
+(define-struct: AssignPrimOp ([target : Target]
                                        [op : PrimitiveOperator])
   #:transparent)
 
@@ -252,18 +252,18 @@
 
 
 
-(define-struct: GotoStatement ([target : (U Label 
+(define-struct: Goto ([target : (U Label 
                                             Reg
                                             ModuleEntry
                                             CompiledProcedureEntry)]) 
   #:transparent)
 
-(define-struct: PerformStatement ([op : PrimitiveCommand])
+(define-struct: Perform ([op : PrimitiveCommand])
   #:transparent)
 
 
 
-(define-struct: TestAndJumpStatement ([op : PrimitiveTest]
+(define-struct: TestAndJump ([op : PrimitiveTest]
                                       [label : Symbol])
   #:transparent)
 

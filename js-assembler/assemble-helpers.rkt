@@ -421,7 +421,7 @@
 (: block-looks-like-context-expected-values? (BasicBlock -> (U Natural False)))
 (define (block-looks-like-context-expected-values? a-block)
   (match (BasicBlock-stmts a-block)
-    [(list (struct PerformStatement ((struct RaiseContextExpectedValuesError! (expected))))
+    [(list (struct Perform ((struct RaiseContextExpectedValuesError! (expected))))
            stmts ...)
      expected]
     [else

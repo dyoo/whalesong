@@ -162,15 +162,15 @@ EOF
           (next)]
          [(DebugPrint? stmt)
           (next)]
-         [(AssignImmediateStatement? stmt)
+         [(AssignImmediate? stmt)
           (next)]
-         [(AssignPrimOpStatement? stmt)
+         [(AssignPrimOp? stmt)
           (next)]
-         [(PerformStatement? stmt)
+         [(Perform? stmt)
           (next)]
-         [(TestAndJumpStatement? stmt)
+         [(TestAndJump? stmt)
           (next)]
-         [(GotoStatement? stmt)
+         [(Goto? stmt)
           (next)]
          [(PushEnvironment? stmt)
           (next)]
@@ -247,7 +247,7 @@ EOF
   (: default (UnlabeledStatement -> 'ok))
   (define (default stmt)
     (when (and (empty? (rest stmts))
-               (not (GotoStatement? stmt)))
+               (not (Goto? stmt)))
       (log-debug (format "Last statement of the block ~a is not a goto" name)))
 
     (display (assemble-statement stmt blockht) op)
@@ -266,17 +266,17 @@ EOF
            [(DebugPrint? stmt)
             (default stmt)]
            
-           [(AssignImmediateStatement? stmt)
+           [(AssignImmediate? stmt)
             (default stmt)]
            
-           [(AssignPrimOpStatement? stmt)
+           [(AssignPrimOp? stmt)
             (default stmt)]
            
-           [(PerformStatement? stmt)
+           [(Perform? stmt)
             (default stmt)]
            
-           [(TestAndJumpStatement? stmt)
-            (define test (TestAndJumpStatement-op stmt))
+           [(TestAndJump? stmt)
+            (define test (TestAndJump-op stmt))
             
             (: test-code String)
             (define test-code (cond
@@ -306,14 +306,14 @@ EOF
                (display test-code op)
                (display "{" op)
                (cond
-                [(set-contains? entry-points (TestAndJumpStatement-label stmt))
-                 (display (assemble-jump (make-Label (TestAndJumpStatement-label stmt))
+                [(set-contains? entry-points (TestAndJump-label stmt))
+                 (display (assemble-jump (make-Label (TestAndJump-label stmt))
                                          blockht) op)]
                 [else
                  (assemble-block-statements (BasicBlock-name
-                                             (hash-ref blockht (TestAndJumpStatement-label stmt)))
+                                             (hash-ref blockht (TestAndJump-label stmt)))
                                             (BasicBlock-stmts 
-                                             (hash-ref blockht (TestAndJumpStatement-label stmt)))
+                                             (hash-ref blockht (TestAndJump-label stmt)))
                                             blockht
                                             entry-points
                                             op)])
@@ -322,9 +322,9 @@ EOF
                (display "}" op)
                'ok]
            
-           [(GotoStatement? stmt)
+           [(Goto? stmt)
             (let loop ([stmt stmt])
-              (define target (GotoStatement-target stmt))
+              (define target (Goto-target stmt))
               (cond
                [(Label? target)
                 (define target-block (hash-ref blockht (Label-name target)))
@@ -335,7 +335,7 @@ EOF
                  ;; inline and follow the goto.
                  [(and (not (empty? target-statements))
                        (= 1 (length target-statements))
-                       (GotoStatement? (first target-statements)))
+                       (Goto? (first target-statements)))
                   (loop (first target-statements))]
                  [(set-contains? entry-points (Label-name target))
                   (display (assemble-statement stmt blockht) op)
@@ -403,21 +403,21 @@ EOF
              [(DebugPrint? stmt)
               (default)]
              
-             [(AssignImmediateStatement? stmt)
+             [(AssignImmediate? stmt)
               (default)]
              
-             [(AssignPrimOpStatement? stmt)
+             [(AssignPrimOp? stmt)
               (default)]
              
-             [(PerformStatement? stmt)
+             [(Perform? stmt)
               (default)]
              
-             [(TestAndJumpStatement? stmt)
-              (cons (TestAndJumpStatement-label stmt)
+             [(TestAndJump? stmt)
+              (cons (TestAndJump-label stmt)
                     (loop (rest stmts)))]
              
-             [(GotoStatement? stmt)
-              (define target (GotoStatement-target stmt))
+             [(Goto? stmt)
+              (define target (Goto-target stmt))
               (cond
                 [(Label? target)
                  (cons (Label-name target)
@@ -470,23 +470,23 @@ EOF
       (format "M.params.currentOutputPort.writeDomNode(M, $('<span/>').text(~a));"
               (assemble-oparg (DebugPrint-value stmt)
                               blockht))]
-     [(AssignImmediateStatement? stmt)
-      (let: ([t : (String -> String) (assemble-target (AssignImmediateStatement-target stmt))]
-             [v : OpArg (AssignImmediateStatement-value stmt)])
+     [(AssignImmediate? stmt)
+      (let: ([t : (String -> String) (assemble-target (AssignImmediate-target stmt))]
+             [v : OpArg (AssignImmediate-value stmt)])
         (t (assemble-oparg v blockht)))]
      
-     [(AssignPrimOpStatement? stmt)
-      ((assemble-target (AssignPrimOpStatement-target stmt))
-       (assemble-op-expression (AssignPrimOpStatement-op stmt)
+     [(AssignPrimOp? stmt)
+      ((assemble-target (AssignPrimOp-target stmt))
+       (assemble-op-expression (AssignPrimOp-op stmt)
                                blockht))]
      
-     [(PerformStatement? stmt)
-      (assemble-op-statement (PerformStatement-op stmt) blockht)]
+     [(Perform? stmt)
+      (assemble-op-statement (Perform-op stmt) blockht)]
      
-     [(TestAndJumpStatement? stmt)
-      (let*: ([test : PrimitiveTest (TestAndJumpStatement-op stmt)]
+     [(TestAndJump? stmt)
+      (let*: ([test : PrimitiveTest (TestAndJump-op stmt)]
               [jump : String (assemble-jump 
-                              (make-Label (TestAndJumpStatement-label stmt))
+                              (make-Label (TestAndJump-label stmt))
                               blockht)])
         ;; to help localize type checks, we add a type annotation here.
         (ann (cond
@@ -519,8 +519,8 @@ EOF
                         jump)])
              String))]
      
-     [(GotoStatement? stmt)
-      (assemble-jump (GotoStatement-target stmt)
+     [(Goto? stmt)
+      (assemble-jump (Goto-target stmt)
                      blockht)]
      
      [(PushControlFrame/Generic? stmt)
@@ -632,8 +632,8 @@ EOF
       (cons (LinkedLabel-label first-stmt)
             (cons (LinkedLabel-linked-to first-stmt)
                   (get-function-entry-and-exit-names (rest stmts))))]
-     [(AssignPrimOpStatement? first-stmt)
-      (define op (AssignPrimOpStatement-op first-stmt))
+     [(AssignPrimOp? first-stmt)
+      (define op (AssignPrimOp-op first-stmt))
       (cond
        [(MakeCompiledProcedure? op)
         (cons (MakeCompiledProcedure-label op)

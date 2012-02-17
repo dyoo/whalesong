@@ -71,7 +71,7 @@
     ;; abandon the current continuation, initialize the control and environment, and then jump.
     call/cc-closure-entry
     (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
-    (make-Perform (make-InstallClosureValues!))
+    (make-Perform (make-InstallClosureValues! 2))
     (make-Perform (make-RestoreControl! default-continuation-prompt-tag))
     (make-Perform (make-RestoreEnvironment!))
     (make-AssignImmediate 'proc (make-ControlStackLabel))

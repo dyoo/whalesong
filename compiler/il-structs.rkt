@@ -387,7 +387,7 @@
 
 ;; Adjusts the environment by pushing the values in the
 ;; closure (held in the proc register) into itself.
-(define-struct: InstallClosureValues! ()
+(define-struct: InstallClosureValues! ([n : Natural])
   #:transparent)
 
 

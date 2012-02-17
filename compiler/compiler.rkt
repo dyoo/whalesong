@@ -855,7 +855,8 @@
                                        (if (not (empty? (Lam-closure-map exp)))
                                            (append-instruction-sequences
                                             (make-Comment (format "installing closure for ~s" (Lam-name exp)))
-                                            (make-Perform (make-InstallClosureValues!)))
+                                            (make-Perform (make-InstallClosureValues!
+                                                           (length (Lam-closure-map exp)))))
                                            empty-instruction-sequence)]
          [lam-body-code : InstructionSequence
                         (compile (Lam-body exp)

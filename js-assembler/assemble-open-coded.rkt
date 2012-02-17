@@ -74,7 +74,11 @@
            (assemble-boolean-chain "plt.baselib.numbers.lessThanOrEqual" checked-operands)]
           
           [(=)
-           (assemble-boolean-chain "plt.baselib.numbers.equals" checked-operands)]
+           (cond
+            [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+             (format "RT.checkedNumEquals(M, ~a)" (string-join operands ","))]
+            [else
+             (format "RT.checkedNumEqualsSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(>)
            (assemble-boolean-chain "plt.baselib.numbers.greaterThan" checked-operands)]

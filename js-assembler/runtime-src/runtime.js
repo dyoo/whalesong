@@ -896,6 +896,39 @@
         return sum;
     };
 
+    var checkedNumEquals = function(M) {
+        // Assumption: at least two arguments to compare
+        var i;
+        if (typeof(arguments[1]) !== 'number') {
+            return checkedNumEqualsSlowPath(M, Array.prototype.slice.call(arguments, 1));
+        }
+        var n = arguments[1];
+        for (i = 2; i < arguments.length; i++) {
+            if (typeof(arguments[i] === 'number')) {
+                if (n !== arguments[i]) { return false; }
+            } else {
+                return checkedNumEqualsSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return true;
+    };
+
+    var checkedNumEqualsSlowPath = function(M, args) {
+        var i;
+        if (! isNumber(args[0])) {
+            raiseArgumentTypeError(M, '=', 'number', 0, args[0]);
+        }
+        var n = args[0];
+        for (i = 1; i < args.length; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '=', 'number', i, args[i]);
+            }
+            if (! plt.baselib.numbers.equals(n, args[i])) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     var checkedCar = function(M, v) {
         if (isPair(v)) { return v.first; }
@@ -1051,6 +1084,8 @@
     exports['checkedAddSlowPath'] = checkedAddSlowPath;
     exports['checkedSub'] = checkedSub;
     exports['checkedSubSlowPath'] = checkedSubSlowPath;
+    exports['checkedNumEquals'] = checkedNumEquals;
+    exports['checkedNumEqualsSlowPath'] = checkedNumEqualsSlowPath;
     exports['checkedCar'] = checkedCar;
     exports['checkedCdr'] = checkedCdr;
 }(this.plt, this.plt.baselib));

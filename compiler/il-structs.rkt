@@ -201,11 +201,15 @@
   #:transparent)
 
 
+;; FIXME: it would be nice if I can reduce AssignImmediate and
+;; AssignPrimOp into a single Assign statement, but I run into major
+;; issues with Typed Racket taking minutes to compile.  So we're
+;; running into some kind of degenerate behavior.
 (define-struct: AssignImmediate ([target : Target]
-                                          [value : OpArg])
+                                 [value : OpArg])
   #:transparent)
 (define-struct: AssignPrimOp ([target : Target]
-                                       [op : PrimitiveOperator])
+                              [op : PrimitiveOperator])
   #:transparent)
 
 
@@ -326,8 +330,6 @@
 
 
 (define-struct: ApplyPrimitiveProcedure () #:transparent)
-
-
 
 
 (define-struct: MakeBoxedEnvironmentValue ([depth : Natural])

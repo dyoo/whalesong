@@ -833,6 +833,70 @@
             testArgument(M, 'number', isNumber, n, 0, '-'));
     };
 
+    var checkedAdd = function(M) {
+        var i;
+        var sum = 0;
+        for (i = 1; i < arguments.length; i++) {
+            if (typeof(arguments[i] === 'number')) {
+                sum += arguments[i];
+                if (sum < -9e15 || sum > 9e15) {
+                    return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+            } else {
+                return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return sum;
+    };
+
+    var checkedAddSlowPath = function(M, args) {
+        var i;
+        var sum = 0;
+        for (i = 0; i < args.length; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '+', 'number', i, args[i]);
+            }
+            sum = plt.baselib.numbers.add(sum, args[i]);
+        }
+        return sum;
+    };
+
+    var checkedSub = function(M) {
+        // Assumption: at least two arguments to subtract.
+        var i;
+        if (typeof(arguments[1]) !== 'number') {
+            return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
+        }
+        var sum = arguments[1];
+        for (i = 2; i < arguments.length; i++) {
+            if (typeof(arguments[i] === 'number')) {
+                sum -= arguments[i];
+                if (sum < -9e15 || sum > 9e15) {
+                    return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+            } else {
+                return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return sum;
+    };
+
+    var checkedSubSlowPath = function(M, args) {
+        var i;
+        if (! isNumber(args[0])) {
+            raiseArgumentTypeError(M, '-', 'number', 0, args[0]);
+        }
+        var sum = args[0];
+        for (i = 1; i < args.length; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '-', 'number', i, args[i]);
+            }
+            sum = plt.baselib.numbers.sub(sum, args[i]);
+        }
+        return sum;
+    };
+
+
     var checkedCar = function(M, v) {
         if (isPair(v)) { return v.first; }
         raiseArgumentTypeError(M, 'car', 'pair', 0, v);
@@ -983,6 +1047,10 @@
     exports['checkedAdd1'] = checkedAdd1;
     exports['checkedSub1'] = checkedSub1;
     exports['checkedNegate'] = checkedNegate;
+    exports['checkedAdd'] = checkedAdd;
+    exports['checkedAddSlowPath'] = checkedAddSlowPath;
+    exports['checkedSub'] = checkedSub;
+    exports['checkedSubSlowPath'] = checkedSubSlowPath;
     exports['checkedCar'] = checkedCar;
     exports['checkedCdr'] = checkedCdr;
 }(this.plt, this.plt.baselib));

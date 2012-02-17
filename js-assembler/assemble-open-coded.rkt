@@ -11,6 +11,9 @@
 
 (provide open-code-kernel-primitive-procedure)
 
+;; Conservative estimate: JavaScript evaluators don't like to eat
+;; more than some number of arguments at once.
+(define MAX-JAVASCRIPT-ARGS-AT-ONCE 100)
 
 
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure Blockht -> String))
@@ -33,14 +36,18 @@
           [(+)
            (cond [(empty? checked-operands)
                   (assemble-numeric-constant 0)]
+                 [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+                  (format "RT.checkedAdd(M, ~a)" (string-join operands ","))]
                  [else
-                  (assemble-binop-chain "plt.baselib.numbers.add" checked-operands)])]
+                  (format "RT.checkedAddSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(-)
            (cond [(empty? (rest checked-operands))
                   (format "RT.checkedNegate(M, ~a)" (first operands))]
+                 [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+                  (format "RT.checkedSub(M, ~a)" (string-join operands ","))]
                  [else
-                  (assemble-binop-chain "plt.baselib.numbers.subtract" checked-operands)])]
+                  (format "RT.checkedSubSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(*)
            (cond [(empty? checked-operands)
@@ -129,8 +136,6 @@
               "plt.baselib.numbers.add(plt.baselib.numbers.add(3, 4), 5)")
 (check-equal? (assemble-binop-chain "plt.baselib.numbers.subtract" '("0" "42"))
               "plt.baselib.numbers.subtract(0, 42)")
-
-
 
 
 

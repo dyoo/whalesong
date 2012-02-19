@@ -615,7 +615,7 @@
         1,
         function (M) {
             var firstArg = checkCadrPair(M, 'cadr', 0);
-            return firstArg.first.rest;
+            return firstArg.rest.first;
         });
 
     installPrimitiveProcedure(

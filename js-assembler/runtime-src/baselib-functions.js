@@ -137,14 +137,20 @@
             MACHINE.exclusiveLock.acquire(
                 "js-as-closure",
                 function(releaseLock) {
-                    succ = succ || function () {};
-                    fail = fail || function () {};                    
+                    var wrappedSucc = function() { 
+                        releaseLock(); 
+                        (succ || function () {}).apply(null, arguments); 
+                    };
+                    var wrappedFail = function(err) {
+                        releaseLock(); 
+                        (fail || function () {})(err); 
+                    };
                     if (!(baselib.arity.isArityMatching(v.racketArity, args.length - 2))) {
                         var msg = baselib.format.format(
                             "arity mismatch: ~s expected ~s argument(s) but received ~s",
                             [v.displayName, v.racketArity, args.length - 2]);
                         releaseLock();
-                        return fail(new baselib.exceptions.RacketError(
+                        return wrappedFail(new baselib.exceptions.RacketError(
                             msg,
                             baselib.exceptions.makeExnFailContractArity(msg,
                                                                         MACHINE.captureContinuationMarks())));
@@ -163,7 +169,7 @@
                                 MACHINE.v = oldVal;
                                 MACHINE.a = oldArgcount;
                                 MACHINE.p = oldProc;
-                                succ(returnValue);
+                                wrappedSucc(returnValue);
                             });
                     };
                     afterGoodInvoke.mvr = function (MACHINE) {
@@ -177,7 +183,7 @@
                                 MACHINE.v = oldVal;
                                 MACHINE.a = oldArgcount;
                                 MACHINE.p = oldProc;
-                                succ.apply(null, returnValues);
+                                wrappedSucc.apply(null, returnValues);
                             });
                     };
 
@@ -194,7 +200,7 @@
                         MACHINE.v = oldVal;
                         MACHINE.a = oldArgcount;
                         MACHINE.p = oldProc;
-                        fail(e);
+                        wrappedFail(e);
                     };  
 
                     MACHINE._trampoline(v.label, false, releaseLock);
@@ -217,8 +223,8 @@
             baselib.exceptions.raise(MACHINE,
                                      baselib.exceptions.makeExnFailContract(
                                          baselib.format.format(
-                                             "Not a procedure: ~e",
-                                             v),
+                                             "not a procedure: ~e",
+                                             [v]),
                                          MACHINE.captureContinuationMarks()));
         }
     };
@@ -248,7 +254,7 @@
             fail(baselib.exceptions.makeExnFail(
                 baselib.format.format(
                     "Not a procedure: ~e",
-                    proc),
+                    [proc]),
                 MACHINE.captureContinuationMarks()));
 
         }

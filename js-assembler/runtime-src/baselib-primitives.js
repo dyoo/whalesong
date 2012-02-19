@@ -103,7 +103,7 @@
 	'caarable value');
     var checkCadrPair = baselib.check.makeCheckArgumentType(
 	function(x) {
-	    return isPair(x) && isPair(x.first);
+	    return isPair(x) && isPair(x.rest);
 	},
 	'cadrable value');
     var checkList = baselib.check.checkList;
@@ -615,7 +615,7 @@
         1,
         function (M) {
             var firstArg = checkCadrPair(M, 'cadr', 0);
-            return firstArg.first.rest;
+            return firstArg.rest.first;
         });
 
     installPrimitiveProcedure(

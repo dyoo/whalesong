@@ -217,8 +217,8 @@
             baselib.exceptions.raise(MACHINE,
                                      baselib.exceptions.makeExnFailContract(
                                          baselib.format.format(
-                                             "Not a procedure: ~e",
-                                             v),
+                                             "not a procedure: ~e",
+                                             [v]),
                                          MACHINE.captureContinuationMarks()));
         }
     };
@@ -248,7 +248,7 @@
             fail(baselib.exceptions.makeExnFail(
                 baselib.format.format(
                     "Not a procedure: ~e",
-                    proc),
+                    [proc]),
                 MACHINE.captureContinuationMarks()));
 
         }

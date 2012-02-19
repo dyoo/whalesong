@@ -118,7 +118,8 @@
 	 or
 	 when
 	 unless
-	 require
+         do
+         require
 	 for-syntax
          for-template
 	 define-for-syntax

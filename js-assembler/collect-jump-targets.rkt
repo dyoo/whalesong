@@ -25,17 +25,17 @@
              (LinkedLabel-linked-to stmt))]
       [(DebugPrint? stmt)
        empty]
-      [(AssignImmediateStatement? stmt)
-       (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
+      [(AssignImmediate? stmt)
+       (let: ([v : OpArg (AssignImmediate-value stmt)])
          (collect-input v))]
-      [(AssignPrimOpStatement? stmt)
-       (collect-primitive-operator (AssignPrimOpStatement-op stmt))]
-      [(PerformStatement? stmt)
-       (collect-primitive-command (PerformStatement-op stmt))]
-      [(TestAndJumpStatement? stmt)
-       (list (TestAndJumpStatement-label stmt))]
-      [(GotoStatement? stmt)
-       (collect-input (GotoStatement-target stmt))]
+      [(AssignPrimOp? stmt)
+       (collect-primitive-operator (AssignPrimOp-op stmt))]
+      [(Perform? stmt)
+       (collect-primitive-command (Perform-op stmt))]
+      [(TestAndJump? stmt)
+       (list (TestAndJump-label stmt))]
+      [(Goto? stmt)
+       (collect-input (Goto-target stmt))]
       [(PushEnvironment? stmt)
        empty]
       [(PopEnvironment? stmt)
@@ -172,16 +172,16 @@
              (LinkedLabel-linked-to stmt))]
       [(DebugPrint? stmt)
        empty]
-      [(AssignImmediateStatement? stmt)
-       (let: ([v : OpArg (AssignImmediateStatement-value stmt)])
+      [(AssignImmediate? stmt)
+       (let: ([v : OpArg (AssignImmediate-value stmt)])
          (collect-input v))]
-      [(AssignPrimOpStatement? stmt)
-       (collect-primitive-operator (AssignPrimOpStatement-op stmt))]
-      [(PerformStatement? stmt)
-       (collect-primitive-command (PerformStatement-op stmt))]
-      [(TestAndJumpStatement? stmt)
+      [(AssignPrimOp? stmt)
+       (collect-primitive-operator (AssignPrimOp-op stmt))]
+      [(Perform? stmt)
+       (collect-primitive-command (Perform-op stmt))]
+      [(TestAndJump? stmt)
        empty]
-      [(GotoStatement? stmt)
+      [(Goto? stmt)
        empty]
       [(PushEnvironment? stmt)
        empty]

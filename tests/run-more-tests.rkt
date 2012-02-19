@@ -17,6 +17,7 @@
 (test "more-tests/printing.rkt")
 (test "more-tests/simple-functions.rkt")
 (test "more-tests/cont-marks-1.rkt")
+(test "more-tests/cont-marks-2.rkt")
 (test "more-tests/map.rkt")
 (test "more-tests/quasi.rkt")
 (test "more-tests/sk-generator.rkt")

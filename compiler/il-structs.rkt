@@ -163,9 +163,9 @@
                                     DebugPrint
                                     Comment
                                     
-                                    AssignImmediateStatement
-                                    AssignPrimOpStatement
-                                    PerformStatement
+                                    AssignImmediate
+                                    AssignPrimOp
+                                    Perform
                                     
                                     PopEnvironment
                                     PushEnvironment
@@ -176,7 +176,7 @@
                                     PushControlFrame/Prompt
                                     PopControlFrame))
 
-(define-type BranchingStatement (U GotoStatement TestAndJumpStatement))
+(define-type BranchingStatement (U Goto TestAndJump))
                                  
 
 ;; instruction sequences
@@ -201,11 +201,15 @@
   #:transparent)
 
 
-(define-struct: AssignImmediateStatement ([target : Target]
-                                          [value : OpArg])
+;; FIXME: it would be nice if I can reduce AssignImmediate and
+;; AssignPrimOp into a single Assign statement, but I run into major
+;; issues with Typed Racket taking minutes to compile.  So we're
+;; running into some kind of degenerate behavior.
+(define-struct: AssignImmediate ([target : Target]
+                                 [value : OpArg])
   #:transparent)
-(define-struct: AssignPrimOpStatement ([target : Target]
-                                       [op : PrimitiveOperator])
+(define-struct: AssignPrimOp ([target : Target]
+                              [op : PrimitiveOperator])
   #:transparent)
 
 
@@ -252,18 +256,18 @@
 
 
 
-(define-struct: GotoStatement ([target : (U Label 
+(define-struct: Goto ([target : (U Label 
                                             Reg
                                             ModuleEntry
                                             CompiledProcedureEntry)]) 
   #:transparent)
 
-(define-struct: PerformStatement ([op : PrimitiveCommand])
+(define-struct: Perform ([op : PrimitiveCommand])
   #:transparent)
 
 
 
-(define-struct: TestAndJumpStatement ([op : PrimitiveTest]
+(define-struct: TestAndJump ([op : PrimitiveTest]
                                       [label : Symbol])
   #:transparent)
 
@@ -328,8 +332,6 @@
 (define-struct: ApplyPrimitiveProcedure () #:transparent)
 
 
-
-
 (define-struct: MakeBoxedEnvironmentValue ([depth : Natural])
   #:transparent)
 
@@ -385,7 +387,7 @@
 
 ;; Adjusts the environment by pushing the values in the
 ;; closure (held in the proc register) into itself.
-(define-struct: InstallClosureValues! ()
+(define-struct: InstallClosureValues! ([n : Natural])
   #:transparent)
 
 

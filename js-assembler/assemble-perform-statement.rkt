@@ -74,7 +74,11 @@
                                 ",")))]
     
     [(InstallClosureValues!? op)
-     "M.e.push.apply(M.e,M.p.closedVals);"]
+     (format "M.e.push(~a);"
+             (string-join (build-list (InstallClosureValues!-n op)
+                                      (lambda: ([i : Natural])
+                                               (format "M.p.closedVals[~a]" i)))
+                          ","))]
     
     [(RestoreEnvironment!? op)
      "M.e=M.e[M.e.length-2].slice(0);"]

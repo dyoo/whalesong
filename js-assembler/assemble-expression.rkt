@@ -17,19 +17,29 @@
      "M.p.label"]
     
     [(MakeCompiledProcedure? op)
-     (format "new RT.Closure(~a,~a,[~a],~a)"
-             (assemble-label (make-Label (MakeCompiledProcedure-label op))
-                             blockht)
-             (assemble-arity (MakeCompiledProcedure-arity op))
-             (string-join (map
-			   assemble-env-reference/closure-capture 
-                               ;; The closure values are in reverse order
-                               ;; to make it easier to push, in bulk, into
-                               ;; the environment (which is also in reversed order)
-                               ;; during install-closure-values.
-                               (reverse (MakeCompiledProcedure-closed-vals op)))
-                          ",")
-             (assemble-display-name (MakeCompiledProcedure-display-name op)))]
+     (cond
+      ;; Small optimization: try to avoid creating the array if we know up front
+      ;; that the closure has no closed values.
+      [(null? (MakeCompiledProcedure-closed-vals op))
+       (format "new RT.Closure(~a,~a,undefined,~a)"
+               (assemble-label (make-Label (MakeCompiledProcedure-label op))
+                               blockht)
+               (assemble-arity (MakeCompiledProcedure-arity op))
+               (assemble-display-name (MakeCompiledProcedure-display-name op)))]
+      [else
+       (format "new RT.Closure(~a,~a,[~a],~a)"
+               (assemble-label (make-Label (MakeCompiledProcedure-label op))
+                               blockht)
+               (assemble-arity (MakeCompiledProcedure-arity op))
+               (string-join (map
+                             assemble-env-reference/closure-capture 
+                             ;; The closure values are in reverse order
+                             ;; to make it easier to push, in bulk, into
+                             ;; the environment (which is also in reversed order)
+                             ;; during install-closure-values.
+                             (reverse (MakeCompiledProcedure-closed-vals op)))
+                            ",")
+               (assemble-display-name (MakeCompiledProcedure-display-name op)))])]
     
     [(MakeCompiledProcedureShell? op)
      (format "new RT.Closure(~a,~a,undefined,~a)"

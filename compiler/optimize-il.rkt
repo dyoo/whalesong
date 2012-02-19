@@ -50,8 +50,8 @@
          
          ;; If there's a label, immediately followed by a direct Goto jump,
          ;; just equate the label and the jump.
-         [(and (symbol? last-stmt) (GotoStatement? next-stmt))
-          (define goto-target (GotoStatement-target next-stmt))
+         [(and (symbol? last-stmt) (Goto? next-stmt))
+          (define goto-target (Goto-target next-stmt))
           (cond
             [(Label? goto-target)
              (log-debug (format "merging label ~a and ~a" last-stmt (Label-name goto-target)))
@@ -192,18 +192,18 @@
           ;(cons a-stmt (loop (rest stmts)))
           ]
          
-         [(AssignImmediateStatement? a-stmt)
-          (cons (make-AssignImmediateStatement (rewrite-target (AssignImmediateStatement-target a-stmt))
-                                               (rewrite-oparg (AssignImmediateStatement-value a-stmt)))
+         [(AssignImmediate? a-stmt)
+          (cons (make-AssignImmediate (rewrite-target (AssignImmediate-target a-stmt))
+                                               (rewrite-oparg (AssignImmediate-value a-stmt)))
                 (loop (rest stmts)))]
 
-         [(AssignPrimOpStatement? a-stmt)
-          (cons (make-AssignPrimOpStatement (rewrite-target (AssignPrimOpStatement-target a-stmt))
-                                            (rewrite-primop (AssignPrimOpStatement-op a-stmt)))
+         [(AssignPrimOp? a-stmt)
+          (cons (make-AssignPrimOp (rewrite-target (AssignPrimOp-target a-stmt))
+                                            (rewrite-primop (AssignPrimOp-op a-stmt)))
                 (loop (rest stmts)))]
 
-         [(PerformStatement? a-stmt)
-          (cons (make-PerformStatement (rewrite-primcmd (PerformStatement-op a-stmt)))
+         [(Perform? a-stmt)
+          (cons (make-Perform (rewrite-primcmd (Perform-op a-stmt)))
                 (loop (rest stmts)))]
          
          [(PopEnvironment? a-stmt)
@@ -242,19 +242,19 @@
          [(PopControlFrame? a-stmt)
           (cons a-stmt (loop (rest stmts)))]
 
-         [(GotoStatement? a-stmt)
-          (define target (GotoStatement-target a-stmt))
+         [(Goto? a-stmt)
+          (define target (Goto-target a-stmt))
           (cond
            [(Label? target)
-            (cons (make-GotoStatement (make-Label (ref (Label-name target))))
+            (cons (make-Goto (make-Label (ref (Label-name target))))
                   (loop (rest stmts)))]
            [else
             (cons a-stmt (loop (rest stmts)))])]
 
 
-         [(TestAndJumpStatement? a-stmt)
-          (cons (make-TestAndJumpStatement (rewrite-primtest (TestAndJumpStatement-op a-stmt))
-                                           (ref (TestAndJumpStatement-label a-stmt)))
+         [(TestAndJump? a-stmt)
+          (cons (make-TestAndJump (rewrite-primtest (TestAndJump-op a-stmt))
+                                           (ref (TestAndJump-label a-stmt)))
                 (loop (rest stmts)))])]))]))
     
 
@@ -283,13 +283,13 @@
                ;; instruction.
                [(and (PushEnvironment? first-stmt)
                      (equal? first-stmt (make-PushEnvironment 1 #f))
-                     (AssignImmediateStatement? second-stmt))
-                (let ([target (AssignImmediateStatement-target second-stmt)])
+                     (AssignImmediate? second-stmt))
+                (let ([target (AssignImmediate-target second-stmt)])
                   (cond
                    [(equal? target (make-EnvLexicalReference 0 #f))
                     (loop (cons (make-PushImmediateOntoEnvironment 
                                  (adjust-oparg-depth 
-                                  (AssignImmediateStatement-value second-stmt) -1)
+                                  (AssignImmediate-value second-stmt) -1)
                                  #f)
                                 (rest (rest statements))))]
                    [else
@@ -342,20 +342,20 @@
      ;#f
      #t]
     
-    [(AssignImmediateStatement? stmt)
-     (equal? (AssignImmediateStatement-target stmt)
-             (AssignImmediateStatement-value stmt))]
+    [(AssignImmediate? stmt)
+     (equal? (AssignImmediate-target stmt)
+             (AssignImmediate-value stmt))]
 
-    [(AssignPrimOpStatement? stmt)
+    [(AssignPrimOp? stmt)
      #f]
     
-    [(PerformStatement? stmt)
+    [(Perform? stmt)
      #f]
     
-    [(GotoStatement? stmt)
+    [(Goto? stmt)
      #f]
     
-    [(TestAndJumpStatement? stmt)
+    [(TestAndJump? stmt)
      #f]
     
     [(PopEnvironment? stmt)

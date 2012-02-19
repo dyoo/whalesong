@@ -73,7 +73,7 @@
                              name  
                              (if last-stmt-goto? 
                                  (reverse acc)
-                                 (reverse (cons (make-GotoStatement (make-Label label-name))
+                                 (reverse (cons (make-Goto (make-Label label-name))
                                                 acc))))
                             basic-blocks)
                       (cdr stmts)
@@ -94,7 +94,7 @@
                     (cons first-stmt acc)
                     basic-blocks
                     (cdr stmts)
-                    (GotoStatement? (car stmts)))]))]))))
+                    (Goto? (car stmts)))]))]))))
 
   (define end-time (current-inexact-milliseconds))
   (fprintf (current-timing-port) "  assemble fracture: ~a milliseconds\n" (- end-time start-time))

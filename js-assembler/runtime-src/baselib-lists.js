@@ -266,25 +266,36 @@
         if (hare === EMPTY) { 
             return true; 
         }
+        if (!(hare instanceof Cons)) { return false; }
         while (true) {
-            if (!(hare instanceof Cons)) { return false; }
-            if (tortoise instanceof Cons) { 
-                tortoise = tortoise.rest; 
-            }
+            // Loop invariant: at the beginning of the loop, both tortoise
+            // and hare should be pointing to a cons cell.
+            tortoise = tortoise.rest; 
             hare = hare.rest;
             if (hare instanceof Cons) { 
                 // optimization to get amortized linear time isList:
-                if (hare._isList) { tortoise._isList = true; return true; }
+                if (hare._isList !== undefined) { 
+                    tortoise._isList = hare._isList; return hare._isList; 
+                }
                 hare = hare.rest; 
                 // optimization to get amortized linear time isList:
-                if (hare instanceof Cons && hare._isList) { tortoise._isList = true; return true; }
+                if (hare instanceof Cons && hare._isList !== undefined) { 
+                    tortoise._isList = hare._isList; return hare._isList; 
+                }
             }
             if (hare === EMPTY) { 
                 // optimization to get amortized linear time isList:
                 tortoise._isList = true;
                 return true; 
             }
-            if (tortoise === hare) { return false; }
+            if (tortoise === hare) {
+                tortoise._isList = false;
+                return false; 
+            }
+            if (!(hare instanceof Cons)) { 
+                tortoise._isList = false;
+                return false; 
+            }
         }
     };
 

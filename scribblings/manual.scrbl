@@ -116,72 +116,81 @@ later in this document:
 @itemize[
 @item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} 
 [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src} 
- @link["http://hashcollision.org/whalesong/examples/attr-animation/index.html"]{index.html}
+ @link["http://hashcollision.org/whalesong/examples/attr-animation/view.html"]{view.html}
  @link["http://hashcollision.org/whalesong/examples/attr-animation/style.css"]{style.css}]
 Uses @racket[update-view-attr] and @racket[on-tick] to perform a simple color animation.}
 
 
+@item{
+@link["http://hashcollision.org/whalesong/examples/color-buttons/color-buttons.html"]{color-buttons.html}
+[@link["http://hashcollision.org/whalesong/examples/color-buttons/color-buttons.rkt"]{src}
+ @link["http://hashcollision.org/whalesong/examples/color-buttons/view.html"]{view.html}]
+Uses @racket[view-bind-many] to bind several events at once.  Clicking on a button should
+change the color of the header by adjusting its CSS @tt{color} attribute.
+}
+
+
 @item{@link["http://hashcollision.org/whalesong/examples/boid/boid.html"]{boid.html} 
 [@link["http://hashcollision.org/whalesong/examples/boid/boid.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/boid/index.html"]{index.html}]  Uses @racket[update-view-css] and @racket[on-tick] to perform an animation of a flock of @link["http://en.wikipedia.org/wiki/Boids"]{boids}.}
+ @link["http://hashcollision.org/whalesong/examples/boid/view.html"]{view.html}]  Uses @racket[update-view-css] and @racket[on-tick] to perform an animation of a flock of @link["http://en.wikipedia.org/wiki/Boids"]{boids}.}
 
 
 @item{@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.html"]{dwarves.html}
 [@link["http://hashcollision.org/whalesong/examples/dwarves/dwarves.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/dwarves/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/dwarves/view.html"]{view.html}]
 Uses @racket[view-show] and @racket[view-hide] to manipulate a view.  Click on a dwarf to make them hide.
   }
 
 @item{@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.html"]{dwarves-with-remove.html}
 [@link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/dwarves-with-remove.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/dwarves-with-remove/view.html"]{view.html}]
 Uses @racket[view-focus?] and @racket[view-remove] to see if a dwarf should be removed from the view.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/field/field.html"]{field.html}
 [@link["http://hashcollision.org/whalesong/examples/field/field.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/field/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/field/view.html"]{view.html}]
 Uses @racket[view-bind] to read a text field, and @racket[update-view-text] to change
 the text content of an element.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/phases/phases.html"]{phases.html}
 [@link["http://hashcollision.org/whalesong/examples/phases/phases.rkt"]{src}
-@link["http://hashcollision.org/whalesong/examples/phases/index1.html"]{index1.html}
-@link["http://hashcollision.org/whalesong/examples/phases/index2.html"]{index2.html}]
+@link["http://hashcollision.org/whalesong/examples/phases/view1.html"]{view1.html}
+@link["http://hashcollision.org/whalesong/examples/phases/view2.html"]{view2.html}]
 Switches out one view entirely in place of another.  Different views can correspond to phases in a program.
 }
 
 
 @item{@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.html"]{tick-tock.html}
 [@link["http://hashcollision.org/whalesong/examples/tick-tock/tick-tock.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/tick-tock/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/tick-tock/view.html"]{view.html}]
 Uses @racket[on-tick] to show a timer counting up.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/redirected/redirected.html"]{redirected.html}
 [@link["http://hashcollision.org/whalesong/examples/redirected/redirected.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/redirected/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/redirected/view.html"]{view.html}]
 Uses @racket[on-tick] to show a timer counting up, and also uses @racket[open-output-element] to
 pipe side-effecting @racket[printf]s to a hidden @tt{div}.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/todo/todo.html"]{todo.html}
 [@link["http://hashcollision.org/whalesong/examples/todo/todo.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/todo/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/todo/view.html"]{view.html}]
 A simple TODO list manager.
 }
 
 @item{@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.html"]{where-am-i.html}
 [@link["http://hashcollision.org/whalesong/examples/where-am-i/where-am-i.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/where-am-i/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/where-am-i/view.html"]{view.html}]
 Uses @racket[on-location-change] and @racket[on-mock-location-change] to demonstrate location services.
 }
 
 
 @item{@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.html"]{hot-cross-buns.html}
 [@link["http://hashcollision.org/whalesong/examples/hot-cross-buns/hot-cross-buns.rkt"]{src}
- @link["http://hashcollision.org/whalesong/examples/hot-cross-buns/index.html"]{index.html}]
+ @link["http://hashcollision.org/whalesong/examples/hot-cross-buns/view.html"]{view.html}]
 Demonstrates use of checkboxes.  Uses @racket[view-has-attr?] to see if a checkbox has been
 checked, and @racket[remove-view-attr] to change the @emph{checked} attribute when the user
 wants to reset the page.
@@ -230,7 +239,7 @@ If you want to use Whalesong, run the following to create
 the @filepath{whalesong} launcher:
 @codeblock|{
 #lang racket/base
-(require (planet dyoo/whalesong:1:14/make-launcher))
+(require (planet dyoo/whalesong:1:15/make-launcher))
 }|
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,
@@ -641,7 +650,7 @@ Let's demonstrate this by creating a basic ticker that counts on the
 screen every second.
 
 The first thing we can do is mock up a web page with a user interface, like this.
-@filebox["index.html"]{
+@filebox["view.html"]{
 @verbatim|{
 <html>
   <head><title>My simple program</title></head>
@@ -661,7 +670,7 @@ Write a file called @filepath{tick-tock.rkt} with the following content.
 (require (planet dyoo/whalesong/web-world)
          (planet dyoo/whalesong/resource))
 
-(define-resource index.html)
+(define-resource view.html)
 
 ;; draw: world view -> view
 (define (draw world dom)
@@ -678,7 +687,7 @@ Write a file called @filepath{tick-tock.rkt} with the following content.
   (> world 10))
 
 (big-bang 0
-          (initial-view index.html)
+          (initial-view view.html)
           (to-draw draw)
           (on-tick tick 1)
           (stop-when stop?))
@@ -693,7 +702,7 @@ behavior; in particular, @racketmodname/this-package[web-world] to let
 us write event-driven web-based programs, and @racketmodname/this-package[resource]
 to give us access to external @tech{resource}s.}
 
-@item{We use @racket[define-resource] to refer to external files, like @filepath{index.html} that
+@item{We use @racket[define-resource] to refer to external files, like @filepath{view.html} that
 we'd like to include in our program.}
 
 @item{We use @racket[big-bang] to start up a computation that
@@ -934,9 +943,9 @@ As an example:
 
 (define (change-handler w v) ...)
 
-(define-resource index.html)
+(define-resource view.html)
 
-(define my-static-view (->view index.html))
+(define my-static-view (->view view.html))
 
 (define connected-view
   (view-bind-many my-static-view 
@@ -945,7 +954,6 @@ As an example:
                   ["id3" "change" change-handler]))
 ...
 }|
-}
 
 
 
@@ -970,9 +978,9 @@ As an example:
 
 (define (change-handler w v) ...)
 
-(define-resource index.html)
+(define-resource view.html)
 
-(define my-static-view (->view index.html))
+(define my-static-view (->view view.html))
 
 (define connected-view
   (view-bind-many* my-static-view 
@@ -981,7 +989,7 @@ As an example:
                     ["id3" "change" ,change-handler])))
 ...
 }|
-}
+
 
 
 
@@ -1352,8 +1360,7 @@ Whalesong uses code and utilities from the following external projects:
 @item{JSON (@url{http://www.json.org/js.html})}
 @item{jquery (@url{http://jquery.com/})}
 @item{Google Closure Compiler (@url{http://code.google.com/p/closure-compiler/})}
-@item{Google Closure Library (@url{http://code.google.com/closure/library/}) (avltree.js)}
-
+@item{Base64 encode (@url{http://www.webtoolkit.info/})}
 
 @item{excanvas (@url{http://excanvas.sourceforge.net/})}
 @item{canvas-text (@url{http://code.google.com/p/canvas-text/source/browse/trunk})} 

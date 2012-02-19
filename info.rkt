@@ -2,8 +2,8 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Bug fix: corrected issue 73 and 74.  (https://github.com/dyoo/whalesong/issues/73).  Some micro-optimizations to improve speed of struct construction.")))
-(define version "1.14")
+(define release-notes '((p "Corrected list? to be amortized constant time.  Implemented bug fixes for issues 79 (view-bind-many), 80 (docs for view-bind-many*), 81 (with-cont-mark).  Optimized to reduce some superfluous object allocations.")))
+(define version "1.15")
 (define primary-file "make-launcher.rkt")
 (define categories '(devtools))
 (define repositories '("4.x"))

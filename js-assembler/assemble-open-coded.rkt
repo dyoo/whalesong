@@ -11,6 +11,9 @@
 
 (provide open-code-kernel-primitive-procedure)
 
+;; Conservative estimate: JavaScript evaluators don't like to eat
+;; more than some number of arguments at once.
+(define MAX-JAVASCRIPT-ARGS-AT-ONCE 100)
 
 
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure Blockht -> String))
@@ -33,14 +36,18 @@
           [(+)
            (cond [(empty? checked-operands)
                   (assemble-numeric-constant 0)]
+                 [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+                  (format "RT.checkedAdd(M, ~a)" (string-join operands ","))]
                  [else
-                  (assemble-binop-chain "plt.baselib.numbers.add" checked-operands)])]
+                  (format "RT.checkedAddSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(-)
            (cond [(empty? (rest checked-operands))
-                  (assemble-binop-chain "plt.baselib.numbers.subtract" (cons "0" checked-operands))]
+                  (format "RT.checkedNegate(M, ~a)" (first operands))]
+                 [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+                  (format "RT.checkedSub(M, ~a)" (string-join operands ","))]
                  [else
-                  (assemble-binop-chain "plt.baselib.numbers.subtract" checked-operands)])]
+                  (format "RT.checkedSubSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(*)
            (cond [(empty? checked-operands)
@@ -50,6 +57,9 @@
 
           [(/)
            (assemble-binop-chain "plt.baselib.numbers.divide" checked-operands)]
+
+          [(zero?)
+           (format "RT.checkedIsZero(M, ~a)" (first operands))]
 
           [(add1)
            (format "RT.checkedAdd1(M, ~a)" (first operands))]
@@ -64,7 +74,11 @@
            (assemble-boolean-chain "plt.baselib.numbers.lessThanOrEqual" checked-operands)]
           
           [(=)
-           (assemble-boolean-chain "plt.baselib.numbers.equals" checked-operands)]
+           (cond
+            [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+             (format "RT.checkedNumEquals(M, ~a)" (string-join operands ","))]
+            [else
+             (format "RT.checkedNumEqualsSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(>)
            (assemble-boolean-chain "plt.baselib.numbers.greaterThan" checked-operands)]
@@ -126,8 +140,6 @@
               "plt.baselib.numbers.add(plt.baselib.numbers.add(3, 4), 5)")
 (check-equal? (assemble-binop-chain "plt.baselib.numbers.subtract" '("0" "42"))
               "plt.baselib.numbers.subtract(0, 42)")
-
-
 
 
 

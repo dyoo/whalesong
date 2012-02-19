@@ -307,14 +307,14 @@
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'];
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'] || 'traced-app-key';
         }
         return undefined;
     };
 
     var getTracedCalleeKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'];
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'] || 'traced-callee-key';
         }
         return undefined;
     };
@@ -805,6 +805,13 @@
 
 
     //////////////////////////////////////////////////////////////////////
+    var checkedIsZero = function(M, n) {
+        if (typeof(n) === 'number') { return n===0; }
+        return plt.baselib.numbers.equals(
+            testArgument(M, 'number', isNumber, n, 0, 'zero?'),
+            0);
+    };
+
     var checkedAdd1 = function(M, n) {
         if (typeof(n) === 'number' && n < 9e15) { return n+1; }
         return plt.baselib.numbers.add(
@@ -815,9 +822,114 @@
     var checkedSub1 = function(M, n) {
         if (typeof(n) === 'number' && n > -9e15) { return n-1; }
         return plt.baselib.numbers.subtract(
-            testArgument(M, 'number', isNumber, n, 0, 'add1'),
+            testArgument(M, 'number', isNumber, n, 0, 'sub1'),
             1);
     };
+
+    var checkedNegate = function(M, n) {
+        if (typeof(n) === 'number') { return -n; }
+        return plt.baselib.numbers.subtract(
+            0,
+            testArgument(M, 'number', isNumber, n, 0, '-'));
+    };
+
+    var checkedAdd = function(M) {
+        var i;
+        var sum = 0;
+        for (i = 1; i < arguments.length; i++) {
+            if (typeof(arguments[i] === 'number')) {
+                sum += arguments[i];
+                if (sum < -9e15 || sum > 9e15) {
+                    return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+            } else {
+                return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return sum;
+    };
+
+    var checkedAddSlowPath = function(M, args) {
+        var i;
+        var sum = 0;
+        for (i = 0; i < args.length; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '+', 'number', i, args[i]);
+            }
+            sum = plt.baselib.numbers.add(sum, args[i]);
+        }
+        return sum;
+    };
+
+    var checkedSub = function(M) {
+        // Assumption: at least two arguments to subtract.
+        var i;
+        if (typeof(arguments[1]) !== 'number') {
+            return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
+        }
+        var sum = arguments[1];
+        for (i = 2; i < arguments.length; i++) {
+            if (typeof(arguments[i] === 'number')) {
+                sum -= arguments[i];
+                if (sum < -9e15 || sum > 9e15) {
+                    return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+            } else {
+                return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return sum;
+    };
+
+    var checkedSubSlowPath = function(M, args) {
+        var i;
+        if (! isNumber(args[0])) {
+            raiseArgumentTypeError(M, '-', 'number', 0, args[0]);
+        }
+        var sum = args[0];
+        for (i = 1; i < args.length; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '-', 'number', i, args[i]);
+            }
+            sum = plt.baselib.numbers.sub(sum, args[i]);
+        }
+        return sum;
+    };
+
+    var checkedNumEquals = function(M) {
+        // Assumption: at least two arguments to compare
+        var i;
+        if (typeof(arguments[1]) !== 'number') {
+            return checkedNumEqualsSlowPath(M, Array.prototype.slice.call(arguments, 1));
+        }
+        var n = arguments[1];
+        for (i = 2; i < arguments.length; i++) {
+            if (typeof(arguments[i] === 'number')) {
+                if (n !== arguments[i]) { return false; }
+            } else {
+                return checkedNumEqualsSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return true;
+    };
+
+    var checkedNumEqualsSlowPath = function(M, args) {
+        var i;
+        if (! isNumber(args[0])) {
+            raiseArgumentTypeError(M, '=', 'number', 0, args[0]);
+        }
+        var n = args[0];
+        for (i = 1; i < args.length; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '=', 'number', i, args[i]);
+            }
+            if (! plt.baselib.numbers.equals(n, args[i])) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     var checkedCar = function(M, v) {
         if (isPair(v)) { return v.first; }
         raiseArgumentTypeError(M, 'car', 'pair', 0, v);
@@ -827,9 +939,6 @@
         if (isPair(v)) { return v.rest; }
         raiseArgumentTypeError(M, 'cdr', 'pair', 0, v);
     };
-
-
-
 
 
     //////////////////////////////////////////////////////////////////////
@@ -967,8 +1076,16 @@
     exports['checkClosureAndArity'] = checkClosureAndArity;
     exports['checkPrimitiveArity'] = checkPrimitiveArity;
 
+    exports['checkedIsZero'] = checkedIsZero;
     exports['checkedAdd1'] = checkedAdd1;
     exports['checkedSub1'] = checkedSub1;
+    exports['checkedNegate'] = checkedNegate;
+    exports['checkedAdd'] = checkedAdd;
+    exports['checkedAddSlowPath'] = checkedAddSlowPath;
+    exports['checkedSub'] = checkedSub;
+    exports['checkedSubSlowPath'] = checkedSubSlowPath;
+    exports['checkedNumEquals'] = checkedNumEquals;
+    exports['checkedNumEqualsSlowPath'] = checkedNumEqualsSlowPath;
     exports['checkedCar'] = checkedCar;
     exports['checkedCdr'] = checkedCdr;
 }(this.plt, this.plt.baselib));

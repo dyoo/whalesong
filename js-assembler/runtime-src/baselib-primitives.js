@@ -103,7 +103,7 @@
 	'caarable value');
     var checkCadrPair = baselib.check.makeCheckArgumentType(
 	function(x) {
-	    return isPair(x) && isPair(x.first);
+	    return isPair(x) && isPair(x.rest);
 	},
 	'cadrable value');
     var checkList = baselib.check.checkList;

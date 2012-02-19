@@ -100,6 +100,7 @@
          if
 	 cond
 	 else
+         =>
 	 case
 	 quote
 	 unquote

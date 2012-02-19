@@ -44,6 +44,9 @@
                                     'make-vector
                                     'equal?
                                     'member
+                                    'memq
+                                    'memv
+                                    'memf
                                     'append
                                     'reverse
                                     'length

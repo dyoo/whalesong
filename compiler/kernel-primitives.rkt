@@ -30,9 +30,14 @@
                                     'cons
                                     'car
 				    'caar
+                                    'cdar
                                     'cdr
 				    'cadr
+                                    'cddr
 				    'caddr
+                                    'caadr
+                                    'cdddr
+                                    'cdadr
                                     'list
                                     'list?
                                     'list*

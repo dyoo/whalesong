@@ -380,17 +380,18 @@ box?
   eqv?
 
   caar
+  cdar
   cadr
 ;;  cdar
-;;  cddr
+  cddr
 ;;  caaar
-;;  caadr
+  caadr
 ;;  cadar
 ;;  cdaar
-;;  cdadr
+  cdadr
 ;;  cddar
-;;  caddr
-;;  cdddr
+  caddr
+  cdddr
 ;;  cadddr
   length
   list*

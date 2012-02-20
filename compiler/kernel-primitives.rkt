@@ -30,25 +30,39 @@
                                     'cons
                                     'car
                                     'cdr
-				    'caar
-				    'cadr
+
+                                    
+                                    'caar
                                     'cdar
+                                    'cadr
                                     'cddr
                                     'caaar
-                                    'caadr
-                                    'cadar
-				    'caddr
                                     'cdaar
-                                    'cdadr
+                                    'cadar
                                     'cddar
+                                    'caadr
+                                    'cdadr
+                                    'caddr
                                     'cdddr
                                     'caaaar
-                                    'caaadr
+                                    'cdaaar
+                                    'cadaar
+                                    'cddaar
                                     'caadar
-                                    'caaddr
-				    'cadddr
+                                    'cdadar
                                     'caddar
-                                    'list
+                                    'cdddar
+                                    'caaadr
+                                    'cdaadr
+                                    'cadadr
+                                    'cddadr
+                                    'caaddr
+                                    'cdaddr
+                                    'cadddr
+                                    'cddddr
+
+                                    
+				    'list
                                     'list?
                                     'list*
                                     'list->vector

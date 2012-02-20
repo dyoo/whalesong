@@ -378,26 +378,36 @@ box?
 
   equal?
   eqv?
-
+  
   caar
   cdar
   cadr
-;;  cdar
   cddr
   caaar
-  caadr
-  cadar
   cdaar
-  cdadr
+  cadar
   cddar
+  caadr
+  cdadr
   caddr
   cdddr
-  cadddr
   caaaar
-  caaadr
+  cdaaar
+  cadaar
+  cddaar
   caadar
-  caaddr
+  cdadar
   caddar
+  cdddar
+  caaadr
+  cdaadr
+  cadadr
+  cddadr
+  caaddr
+  cdaddr
+  cadddr
+  cddddr
+  
   length
   list*
   list-ref

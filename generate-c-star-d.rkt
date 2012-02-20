@@ -7,7 +7,7 @@
 (define (make-c*r (n 4))
   (define template #<<EOF
 installPrimitiveProcedure(
-  ~s,
+  '~a',
    1,
    function(M) {
        var x = M.e[M.e.length-1];
@@ -38,15 +38,18 @@ EOF
 
 
 (define (combinations n)
-  (let loop ([n n])
-    (cond
-      [(= n 2)
-       (list "aa" "ad" "da" "dd")]
-      [else
-       (define sub-answers (loop (sub1 n)))
-       (append sub-answers
-               (map (lambda (x) (string-append x "a")) sub-answers)
-               (map (lambda (x) (string-append x "d")) sub-answers))])))
+  (define (helper n)
+    (let loop ([n n])
+      (cond
+        [(= n 1)
+         (list "a" "d")]
+        [else
+         (define sub-answers (loop (sub1 n)))
+         (append (map (lambda (x) (string-append x "a")) sub-answers)
+                 (map (lambda (x) (string-append x "d")) sub-answers))])))
+  (apply append (for/list ([n (in-range 2 (add1 n))])
+                  (helper n))))
+  
  
 (define (accessor s)
   (string-join 

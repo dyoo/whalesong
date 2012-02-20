@@ -631,11 +631,13 @@ var invokeMainModule = function() {
                                     .css('whitespace', 'pre')
                                     .appendTo(subcontextDiv);
                         } else if (plt.runtime.isProcedure(context[i])) {
-                            $('<div/>').text('in ' + context[i].displayName)
-                                    .addClass('stacktrace')
-                                    .css('margin-left', '10px')
-                                    .css('whitespace', 'pre')
-                                    .appendTo(subcontextDiv);
+                            if (context[i].displayName) {
+                                $('<div/>').text('in ' + context[i].displayName)
+                                        .addClass('stacktrace')
+                                        .css('margin-left', '10px')
+                                        .css('whitespace', 'pre')
+                                        .appendTo(subcontextDiv);
+                            }
                         }                                     
                     }
                 }

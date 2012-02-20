@@ -81,18 +81,10 @@
 
 
     var isProcedure = function (x) {
-        return (typeof (x) === 'function' ||
-                x instanceof Closure);
+        return (typeof (x) === 'function' || x instanceof Closure);
     };
 
 
-
-
-
-
-
-
-  
     var coersePrimitiveToJavaScript = function (v, MACHINE) {
         return function (succ, fail) {
             try {

@@ -603,7 +603,7 @@
         'list*',
         baselib.arity.makeArityAtLeast(1),
         function (M) {
-            var result = checkList(M, 'list*', M.a - 1), i;
+            var result = checkAny(M, 'list*', M.a - 1), i;
             for (i = M.a - 2; i >= 0; i--) {
                 result = makePair(M.e[M.e.length - 1 - i],
                                   result);

@@ -837,7 +837,7 @@
         var i;
         var sum = 0;
         for (i = 1; i < arguments.length; i++) {
-            if (typeof(arguments[i] === 'number')) {
+            if (typeof(arguments[i]) === 'number') {
                 sum += arguments[i];
                 if (sum < -9e15 || sum > 9e15) {
                     return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
@@ -869,7 +869,7 @@
         }
         var sum = arguments[1];
         for (i = 2; i < arguments.length; i++) {
-            if (typeof(arguments[i] === 'number')) {
+            if (typeof(arguments[i]) === 'number') {
                 sum -= arguments[i];
                 if (sum < -9e15 || sum > 9e15) {
                     return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
@@ -891,7 +891,7 @@
             if (! isNumber(args[i])) {
                 raiseArgumentTypeError(M, '-', 'number', i, args[i]);
             }
-            sum = plt.baselib.numbers.sub(sum, args[i]);
+            sum = plt.baselib.numbers.subtract(sum, args[i]);
         }
         return sum;
     };
@@ -904,7 +904,7 @@
         }
         var n = arguments[1];
         for (i = 2; i < arguments.length; i++) {
-            if (typeof(arguments[i] === 'number')) {
+            if (typeof(arguments[i]) === 'number') {
                 if (n !== arguments[i]) { return false; }
             } else {
                 return checkedNumEqualsSlowPath(M, Array.prototype.slice.call(arguments, 1));

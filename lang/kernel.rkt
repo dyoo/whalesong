@@ -384,15 +384,20 @@ box?
   cadr
 ;;  cdar
   cddr
-;;  caaar
+  caaar
   caadr
-;;  cadar
-;;  cdaar
+  cadar
+  cdaar
   cdadr
-;;  cddar
+  cddar
   caddr
   cdddr
   cadddr
+  caaaar
+  caaadr
+  caadar
+  caaddr
+  caddar
   length
   list*
   list-ref

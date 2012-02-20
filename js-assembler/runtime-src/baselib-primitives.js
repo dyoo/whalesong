@@ -121,7 +121,47 @@
 	    return isPair(x) && isPair(x.rest) && isPair(x.rest.rest);
 	},
 	'caddrable value');
-    var checkCadddrPair = baselib.check.makeCheckArgumentType(
+   var checkCaaarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first) && isPair(x.first.first);
+	},
+       'caaarable value'); 
+   var checkCdaarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first) && isPair(x.first.first);
+	},
+       'cdaarable value'); 
+   var checkCddarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first) && isPair(x.first.rest);
+	},
+       'cddarable value'); 
+   var checkCadarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first) && isPair(x.first.rest);
+	},
+       'cadarable value'); 
+   var checkCaaaarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first) && isPair(x.first.first) && isPair(x.first.first.first);
+	},
+	'caaaarable value');
+   var checkCaadarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first) && isPair(x.first.rest) && isPair(x.first.rest.first);
+	},
+	'caadarable value');
+   var checkCaaddrPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.rest) && isPair(x.rest.rest) && isPair(x.rest.rest.first);
+	},
+	'caaddrable value');
+   var checkCaaadrPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.rest) && isPair(x.rest.first) && isPair(x.rest.first.first);
+	},
+	'caaadrable value');
+   var checkCadddrPair = baselib.check.makeCheckArgumentType(
 	function(x) {
 	    return isPair(x) && isPair(x.rest) && isPair(x.rest.rest) && isPair(x.rest.rest.rest);
 	},
@@ -141,6 +181,12 @@
 	    return isPair(x) && isPair(x.rest) && isPair(x.rest.first);
 	},
 	'cdadrable value');
+    var checkCaddarPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.first) && isPair(x.first.rest) && isPair(x.first.rest.rest);
+	},
+	'caddarable value');
+
     var checkList = baselib.check.checkList;
     var checkListofChars = baselib.check.makeCheckListofArgumentType(isChar, 'character');
     var checkListofPairs = baselib.check.makeCheckListofArgumentType(isPair, 'pair');
@@ -686,6 +732,34 @@
             return firstArg.rest.rest.first;
         });
     installPrimitiveProcedure(
+        'caaar',
+        1,
+        function (M) {
+            var firstArg = checkCaaarPair(M, 'caaar', 0);
+            return firstArg.first.first.first;
+        });
+    installPrimitiveProcedure(
+        'cdaar',
+        1,
+        function (M) {
+            var firstArg = checkCdaarPair(M, 'cdaar', 0);
+            return firstArg.first.first.rest;
+        });
+    installPrimitiveProcedure(
+        'cddar',
+        1,
+        function (M) {
+            var firstArg = checkCddarPair(M, 'cddar', 0);
+            return firstArg.first.rest.rest;
+        });
+    installPrimitiveProcedure(
+        'cadar',
+        1,
+        function (M) {
+            var firstArg = checkCadarPair(M, 'cadar', 0);
+            return firstArg.first.rest.first;
+        });
+    installPrimitiveProcedure(
         'caadr',
         1,
         function (M) {
@@ -707,11 +781,46 @@
             return firstArg.rest.first.rest;
         });
     installPrimitiveProcedure(
+        'caaaar',
+        1,
+        function (M) {
+            var firstArg = checkCaaaarPair(M, 'caaaar', 0);
+            return firstArg.first.first.first.first;
+        });
+    installPrimitiveProcedure(
+        'caaadr',
+        1,
+        function (M) {
+            var firstArg = checkCaaadrPair(M, 'caaadr', 0);
+            return firstArg.rest.first.first.first;
+        });
+    installPrimitiveProcedure(
+        'caadar',
+        1,
+        function (M) {
+            var firstArg = checkCaadarPair(M, 'caadar', 0);
+            return firstArg.first.rest.first.first;
+        });
+    installPrimitiveProcedure(
+        'caaddr',
+        1,
+        function (M) {
+            var firstArg = checkCaaddrPair(M, 'caaddr', 0);
+            return firstArg.rest.rest.first.first;
+        });
+    installPrimitiveProcedure(
         'cadddr',
         1,
         function (M) {
             var firstArg = checkCadddrPair(M, 'cadddr', 0);
             return firstArg.rest.rest.rest.first;
+        });
+    installPrimitiveProcedure(
+        'caddar',
+        1,
+        function (M) {
+            var firstArg = checkCaddarPair(M, 'caddar', 0);
+            return firstArg.first.rest.rest.first;
         });
     installPrimitiveProcedure(
         'pair?',

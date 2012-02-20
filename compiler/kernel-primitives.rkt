@@ -29,16 +29,25 @@
                                     '>=
                                     'cons
                                     'car
-				    'caar
-                                    'cdar
                                     'cdr
+				    'caar
 				    'cadr
+                                    'cdar
                                     'cddr
-				    'caddr
+                                    'caaar
                                     'caadr
-                                    'cdddr
+                                    'cadar
+				    'caddr
+                                    'cdaar
                                     'cdadr
+                                    'cddar
+                                    'cdddr
+                                    'caaaar
+                                    'caaadr
+                                    'caadar
+                                    'caaddr
 				    'cadddr
+                                    'caddar
                                     'list
                                     'list?
                                     'list*

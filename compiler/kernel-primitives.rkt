@@ -38,6 +38,7 @@
                                     'caadr
                                     'cdddr
                                     'cdadr
+				    'cadddr
                                     'list
                                     'list?
                                     'list*

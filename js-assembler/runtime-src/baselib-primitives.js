@@ -121,6 +121,11 @@
 	    return isPair(x) && isPair(x.rest) && isPair(x.rest.rest);
 	},
 	'caddrable value');
+    var checkCadddrPair = baselib.check.makeCheckArgumentType(
+	function(x) {
+	    return isPair(x) && isPair(x.rest) && isPair(x.rest.rest) && isPair(x.rest.rest.rest);
+	},
+	'cadddrable value');
     var checkCaadrPair = baselib.check.makeCheckArgumentType(
 	function(x) {
 	    return isPair(x) && isPair(x.rest) && isPair(x.rest.first);
@@ -700,6 +705,13 @@
         function (M) {
             var firstArg = checkCdadrPair(M, 'cdadr', 0);
             return firstArg.rest.first.rest;
+        });
+    installPrimitiveProcedure(
+        'cadddr',
+        1,
+        function (M) {
+            var firstArg = checkCadddrPair(M, 'cadddr', 0);
+            return firstArg.rest.rest.rest.first;
         });
     installPrimitiveProcedure(
         'pair?',

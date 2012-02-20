@@ -392,7 +392,7 @@ box?
 ;;  cddar
   caddr
   cdddr
-;;  cadddr
+  cadddr
   length
   list*
   list-ref

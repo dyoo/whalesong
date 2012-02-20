@@ -46,3 +46,4 @@
 (test "more-tests/lists-cs019.rkt")
 
 (test "more-tests/fft.rkt")
+(test "more-tests/graphs.rkt")

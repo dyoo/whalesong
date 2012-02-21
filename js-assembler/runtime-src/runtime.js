@@ -873,7 +873,7 @@
     };
 
     var checkedMul = function(M, x, y) {
-        var prod;
+        var prod, i;
         // fast path optimization: binop addition on fixnums
         if (arguments.length === 3) {
             if (typeof(x) === 'number' && typeof(y) === 'number') {

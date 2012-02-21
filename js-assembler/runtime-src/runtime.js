@@ -834,7 +834,7 @@
     };
 
     var checkedAdd = function(M, x, y) {
-        var sum;
+        var sum, i;
         // fast path optimization: binop addition on fixnums
         if (arguments.length === 3) {
             if (typeof(x) === 'number' && typeof(y) === 'number') {

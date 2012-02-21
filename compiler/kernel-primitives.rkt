@@ -6,6 +6,7 @@
          "../type-helpers.rkt")
 (define-type OperandDomain (U 'number
                               'string
+                              'vector
                               'box
                               'list
                               'pair
@@ -178,6 +179,8 @@
                                            'null?
                                            'not
                                            'eq?
+                                           'vector-ref
+                                           'vector-set!
                                            ))
 
 (ensure-type-subsetof KernelPrimitiveName/Inline KernelPrimitiveName)
@@ -288,4 +291,10 @@
      (list 'any)]
 
     [(eq? prim 'eq?)
-     (list 'any 'any)]))
+     (list 'any 'any)]
+
+    [(eq? prim 'vector-ref)
+     (list 'vector 'number)]
+
+    [(eq? prim 'vector-set!)
+     (list 'vector 'number 'any)]))

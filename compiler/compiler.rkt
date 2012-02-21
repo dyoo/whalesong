@@ -1303,6 +1303,8 @@
                (box? (Const-const knowledge))]
               [(list)
                (list? (Const-const knowledge))]
+              [(vector)
+               (vector? (Const-const knowledge))]
               [(pair)
                (pair? (Const-const knowledge))]
               [(caarpair)

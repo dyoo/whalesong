@@ -860,6 +860,34 @@
         return sum;
     };
 
+    var checkedMul = function(M, x, y) {
+        var prod;
+        // fast path optimization: binop addition on fixnums
+        if (arguments.length === 3) {
+            if (typeof(x) === 'number' && typeof(y) === 'number') {
+                prod = x * y;
+                if (prod < -9e15 || prod > 9e15) {
+                    return checkedMulSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+                return prod;
+            }
+        }
+        return checkedMulSlowPath(M, Array.prototype.slice.call(arguments, 1));
+    };
+
+    var checkedMulSlowPath = function(M, args) {
+        var i;
+        var prod = 1;
+        for (i = 0; i < args.length; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '*', 'number', i, args[i]);
+            }
+            prod = plt.baselib.numbers.multiply(prod, args[i]);
+        }
+        return prod;
+    };
+
+
     var checkedSub = function(M, x, y) {
         // Assumption: at least two arguments to subtract.
         var sum;
@@ -967,6 +995,51 @@
     var checkedCdr = function(M, v) {
         if (isPair(v)) { return v.rest; }
         raiseArgumentTypeError(M, 'cdr', 'pair', 0, v);
+    };
+
+    var checkedVectorRef = function(M, vec, i) {
+        var expectedTypeName;
+        if (isVector(vec)) {
+            if (typeof(i) === 'number') {
+                if (i >= 0 && i < vec.elts.length) {
+                    return vec.elts[i];
+                }                
+            } else if (isNumber(i)) {
+                i = baselib.numbers.toFixnum(i);
+                if (i >= 0 && i < vec.elts.length) {
+                    return vec.elts[i];
+                }
+            }
+            expectedTypeName = baselib.format.format('natural between 0 and ~a', 
+                                                     [vec.elts.length]);
+            raiseArgumentTypeError(M, 'vector-ref', expectedTypeName, 1, i);
+        } else {
+            raiseArgumentTypeError(M, 'vector-ref', 'vector', 0, vec);
+        }
+    };
+
+
+    var checkedVectorSet = function(M, vec, i, val) {
+        var expectedTypeName;
+        if (isVector(vec)) {
+            if (typeof(i) === 'number') {
+                if (i >= 0 && i < vec.elts.length) {
+                    vec.elts[i] = val;
+                    return VOID;
+                }                
+            } else if (isNumber(i)) {
+                i = baselib.numbers.toFixnum(i);
+                if (i >= 0 && i < vec.elts.length) {
+                    vec.elts[i] = val;
+                    return VOID;
+                }
+            }
+            expectedTypeName = baselib.format.format('natural between 0 and ~a', 
+                                                     [vec.elts.length]);
+            raiseArgumentTypeError(M, 'vector-set!', expectedTypeName, 1, i);
+        } else {
+            raiseArgumentTypeError(M, 'vector-set!', 'vector', 0, vec);
+        }
     };
 
 
@@ -1111,6 +1184,8 @@
     exports['checkedNegate'] = checkedNegate;
     exports['checkedAdd'] = checkedAdd;
     exports['checkedAddSlowPath'] = checkedAddSlowPath;
+    exports['checkedMul'] = checkedMul;
+    exports['checkedMulSlowPath'] = checkedMulSlowPath;
     exports['checkedSub'] = checkedSub;
     exports['checkedSubSlowPath'] = checkedSubSlowPath;
     exports['checkedNumEquals'] = checkedNumEquals;
@@ -1119,4 +1194,6 @@
     exports['checkedGreaterThanSlowPath'] = checkedGreaterThanSlowPath;
     exports['checkedCar'] = checkedCar;
     exports['checkedCdr'] = checkedCdr;
+    exports['checkedVectorRef'] = checkedVectorRef;
+    exports['checkedVectorSet'] = checkedVectorSet;
 }(this.plt, this.plt.baselib));

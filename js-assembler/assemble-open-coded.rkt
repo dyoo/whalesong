@@ -52,8 +52,10 @@
           [(*)
            (cond [(empty? checked-operands)
                   (assemble-numeric-constant 1)]
+                 [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+                  (format "RT.checkedMul(M, ~a)" (string-join operands ","))]
                  [else
-                  (assemble-binop-chain "plt.baselib.numbers.multiply" checked-operands)])]
+                  (format "RT.checkedMulSlowPath(M, [~a])" (string-join operands ","))])]
 
           [(/)
            (assemble-binop-chain "plt.baselib.numbers.divide" checked-operands)]
@@ -111,6 +113,14 @@
           [(list?)
            (format "RT.isList(~a)"
                    (first checked-operands))]
+
+          [(vector-ref)
+           (format "RT.checkedVectorRef(M, ~a)"
+                   (string-join operands ","))]
+
+          [(vector-set!)
+           (format "RT.checkedVectorSet(M, ~a)"
+                   (string-join operands ","))]
           
           [(pair?)
            (format "RT.isPair(~a)"
@@ -186,7 +196,9 @@
                            [(caarpair)
                             (format "RT.isCaarPair")]
                            [(box)
-                            (format "RT.isBox")])])
+                            (format "RT.isBox")]
+                           [(vector)
+                            (format "RT.isVector")])])
            (format "RT.testArgument(M,~s,~a,~a,~a,~s)"
                    (symbol->string domain)
                    predicate

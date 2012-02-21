@@ -1057,7 +1057,8 @@
         2,
         function (M) {
             var elts = checkVector(M, 'vector-ref', 0).elts;
-            var index = M.e[M.e.length-2];
+            var index = baselib.numbers.toFixnum(
+                checkNaturalInRange(M, 'vector-ref', 1, 0, elts.length));
             return elts[index];
         });
 

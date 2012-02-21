@@ -51,27 +51,6 @@
         };
     };
 
-    var makeCheckParameterizedArgumentType = function (parameterizedPredicate, 
-                                                       parameterizedPredicateName) {
-        return function (MACHINE, callerName, position) {
-            var args = [], i;
-            for (i = 3; i < arguments.length; i++) {
-                args.push(arguments[i]);
-            }
-            return testArgument(
-                MACHINE,
-                function () { return parameterizedPredicateName.apply(null, args); },
-                function (x) {
-                    return parameterizedPredicate.apply(null, [x].concat(args));
-                },
-                MACHINE.e[MACHINE.e.length - 1 - position],
-                position,
-                callerName);
-        };
-    };
-
-
-
 
 
     var makeCheckListofArgumentType = function (predicate, predicateName) {
@@ -172,15 +151,36 @@
         baselib.bytes.isBytes,
         'bytes');
 
-    var checkNaturalInRange = makeCheckParameterizedArgumentType(
-        function (x, a, b) {
-            if (! baselib.numbers.isNatural(x)) { return false; }
-            return (baselib.numbers.lessThanOrEqual(a, x) &&
-                    baselib.numbers.lessThan(x, b));
-        },
-        function (a, b) {
-            return baselib.format.format('natural between ~a and ~a', [a, b]);
-        });
+    var checkNaturalInRange = function(M, callerName, index, a, b) {
+        var expectedTypeName;
+        var x = M.e[M.e.length - 1 - index];
+        // fast path: if a, b, and x are numbers
+        if (typeof(x) === 'number' && typeof(a) === 'number' && typeof(b) === 'number') {
+            if (a <= x && x < b) { 
+                return x; 
+            }
+            else {
+                expectedTypeName = baselib.format.format('natural between ~a and ~a', [a, b]);
+                return baselib.exceptions.raiseArgumentTypeError(m, 
+                                                                 callerName,
+                                                                 expectedTypeName,
+                                                                 index,
+                                                                 x);
+            }
+        } else {
+            if (baselib.numbers.lessThanOrEqual(a, x) && baselib.numbers.lessThan(x, b)) {
+                return x;
+            } else {
+                expectedTypeName = baselib.format.format('natural between ~a and ~a', [a, b]);
+                return baselib.exceptions.raiseArgumentTypeError(m, 
+                                                                 callerName,
+                                                                 expectedTypeName,
+                                                                 index,
+                                                                 x);
+            }
+        }
+    };
+
 
     var checkInteger = makeCheckArgumentType(
         baselib.numbers.isInteger,
@@ -271,7 +271,6 @@
     exports.testArgument = testArgument;
     exports.testArity = testArity;
     exports.makeCheckArgumentType = makeCheckArgumentType;
-    exports.makeCheckParameterizedArgumentType = makeCheckParameterizedArgumentType;
     exports.makeCheckListofArgumentType = makeCheckListofArgumentType;
     exports.checkOutputPort = checkOutputPort;
     exports.checkInputPort = checkInputPort;

@@ -81,10 +81,11 @@
              (format "RT.checkedNumEqualsSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(>)
-           (format "RT.checkedGreaterThan(M, ~a)"
-                   (string-join operands ","))
-           ;; (assemble-boolean-chain "plt.baselib.numbers.greaterThan" checked-operands)
-           ]
+           (cond
+            [(< (length operands) MAX-JAVASCRIPT-ARGS-AT-ONCE)
+             (format "RT.checkedGreaterThan(M, ~a)" (string-join operands ","))]
+            [else
+             (format "RT.checkedGreaterThanSlowPath(M, [~a])" (string-join operands ","))])]
           
           [(>=)
            (assemble-boolean-chain "plt.baselib.numbers.greaterThanOrEqual" checked-operands)]

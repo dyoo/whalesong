@@ -834,12 +834,10 @@
     };
 
     var checkedAdd = function(M, x, y) {
-        var i;
         var sum;
         // fast path optimization: binop addition on fixnums
         if (arguments.length === 3) {
-            if (typeof(x) === 'number' &&
-                typeof(y) === 'number') {
+            if (typeof(x) === 'number' && typeof(y) === 'number') {
                 sum = x + y;
                 if (sum < -9e15 || sum > 9e15) {
                     return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
@@ -847,19 +845,7 @@
                 return sum;
             }
         }
-
-        sum = 0;
-        for (i = 1; i < arguments.length; i++) {
-            if (typeof(arguments[i]) === 'number') {
-                sum += arguments[i];
-                if (sum < -9e15 || sum > 9e15) {
-                    return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
-                }
-            } else {
-                return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
-            }
-        }
-        return sum;
+        return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
     };
 
     var checkedAddSlowPath = function(M, args) {
@@ -874,24 +860,20 @@
         return sum;
     };
 
-    var checkedSub = function(M) {
+    var checkedSub = function(M, x, y) {
         // Assumption: at least two arguments to subtract.
-        var i;
-        if (typeof(arguments[1]) !== 'number') {
-            return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
-        }
-        var sum = arguments[1];
-        for (i = 2; i < arguments.length; i++) {
-            if (typeof(arguments[i]) === 'number') {
-                sum -= arguments[i];
+        var sum;
+        // fast path optimization: binop subtraction on fixnums
+        if (arguments.length === 3) {
+            if (typeof(x) === 'number' && typeof(y) === 'number') {
+                sum = x - y;
                 if (sum < -9e15 || sum > 9e15) {
                     return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
                 }
-            } else {
-                return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                return sum;
             }
         }
-        return sum;
+        return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
     };
 
     var checkedSubSlowPath = function(M, args) {
@@ -917,27 +899,35 @@
                 return x > y;
             }
         }
+        return checkedGreaterThanSlowPath(M, Array.prototype.slice.call(arguments, 1));
+    };
 
-        // Slow path.
-        if (! isNumber(arguments[1])) {
-            raiseArgumentTypeError(M, '>', 'number', 0, arguments[1]);
+    var checkedGreaterThanSlowPath = function(M, args) {
+        if (! isNumber(args[0])) {
+            raiseArgumentTypeError(M, '>', 'number', 0, args[0]);
         }
-
-        for (i = 2; i < arguments.length ; i++) {
-            if (! isNumber(arguments[i])) {
-                raiseArgumentTypeError(M, '>', 'number', i-1, arguments[i]);
+        for (i = 1; i < args.length ; i++) {
+            if (! isNumber(args[i])) {
+                raiseArgumentTypeError(M, '>', 'number', i, args[i]);
             }
-            if (! plt.baselib.numbers.greaterThan(arguments[i-1],
-                                                  arugments[i])) {
+            if (! plt.baselib.numbers.greaterThan(args[i-1], args[i])) {
                 return false;
             }
         }
         return true;
     };
 
-    var checkedNumEquals = function(M) {
+
+    var checkedNumEquals = function(M, x, y) {
         // Assumption: at least two arguments to compare
         var i;
+
+        // fast path optimization: binop comparison on fixnums
+        if (arguments.length === 3) {
+            if (typeof(x) === 'number' && typeof(y) === 'number') {
+                return x === y;
+            }
+        }
         if (typeof(arguments[1]) !== 'number') {
             return checkedNumEqualsSlowPath(M, Array.prototype.slice.call(arguments, 1));
         }
@@ -1126,6 +1116,7 @@
     exports['checkedNumEquals'] = checkedNumEquals;
     exports['checkedNumEqualsSlowPath'] = checkedNumEqualsSlowPath;
     exports['checkedGreaterThan'] = checkedGreaterThan;
+    exports['checkedGreaterThanSlowPath'] = checkedGreaterThanSlowPath;
     exports['checkedCar'] = checkedCar;
     exports['checkedCdr'] = checkedCdr;
 }(this.plt, this.plt.baselib));

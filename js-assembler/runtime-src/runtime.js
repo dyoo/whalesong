@@ -833,9 +833,22 @@
             testArgument(M, 'number', isNumber, n, 0, '-'));
     };
 
-    var checkedAdd = function(M) {
+    var checkedAdd = function(M, x, y) {
         var i;
-        var sum = 0;
+        var sum;
+        // fast path optimization: binop addition on fixnums
+        if (arguments.length === 3) {
+            if (typeof(x) === 'number' &&
+                typeof(y) === 'number') {
+                sum = x + y;
+                if (sum < -9e15 || sum > 9e15) {
+                    return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+                return sum;
+            }
+        }
+
+        sum = 0;
         for (i = 1; i < arguments.length; i++) {
             if (typeof(arguments[i]) === 'number') {
                 sum += arguments[i];
@@ -894,6 +907,32 @@
             sum = plt.baselib.numbers.subtract(sum, args[i]);
         }
         return sum;
+    };
+
+    var checkedGreaterThan = function(M, x, y) {
+        var i;
+        // fast path optimization: binop comparison on fixnums
+        if (arguments.length === 3) {
+            if (typeof(x) === 'number' && typeof(y) === 'number') {
+                return x > y;
+            }
+        }
+
+        // Slow path.
+        if (! isNumber(arguments[1])) {
+            raiseArgumentTypeError(M, '>', 'number', 0, arguments[1]);
+        }
+
+        for (i = 2; i < arguments.length ; i++) {
+            if (! isNumber(arguments[i])) {
+                raiseArgumentTypeError(M, '>', 'number', i-1, arguments[i]);
+            }
+            if (! plt.baselib.numbers.greaterThan(arguments[i-1],
+                                                  arugments[i])) {
+                return false;
+            }
+        }
+        return true;
     };
 
     var checkedNumEquals = function(M) {
@@ -1086,6 +1125,7 @@
     exports['checkedSubSlowPath'] = checkedSubSlowPath;
     exports['checkedNumEquals'] = checkedNumEquals;
     exports['checkedNumEqualsSlowPath'] = checkedNumEqualsSlowPath;
+    exports['checkedGreaterThan'] = checkedGreaterThan;
     exports['checkedCar'] = checkedCar;
     exports['checkedCdr'] = checkedCdr;
 }(this.plt, this.plt.baselib));

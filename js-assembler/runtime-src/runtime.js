@@ -845,7 +845,19 @@
                 return sum;
             }
         }
-        return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+        // Secondary path: if everything is a fixnum...
+        sum = 0;
+        for (i = 1; i < arguments.length; i++) {
+            if (typeof(arguments[i]) === 'number') {
+                sum += arguments[i];
+                if (sum < -9e15 || sum > 9e15) {
+                    return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+            } else {
+                return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return sum;
     };
 
     var checkedAddSlowPath = function(M, args) {
@@ -872,7 +884,19 @@
                 return prod;
             }
         }
-        return checkedMulSlowPath(M, Array.prototype.slice.call(arguments, 1));
+        // Secondary path: if everything is a fixnum...
+        prod = 1;
+        for (i = 1; i < arguments.length; i++) {
+            if (typeof(arguments[i]) === 'number') {
+                prod *= arguments[i];
+                if (prod < -9e15 || prod > 9e15) {
+                    return checkedMulSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                }
+            } else {
+                return checkedMulSlowPath(M, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return prod;
     };
 
     var checkedMulSlowPath = function(M, args) {

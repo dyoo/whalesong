@@ -47,3 +47,5 @@
 
 (test "more-tests/fft.rkt")
 (test "more-tests/graphs.rkt")
+(test "more-tests/scheme-whalesong.rkt")
+(test "more-tests/nestedloop.rkt")

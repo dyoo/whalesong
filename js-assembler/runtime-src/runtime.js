@@ -944,7 +944,6 @@
     };
 
     var checkedGreaterThan = function(M, x, y) {
-        var i;
         // fast path optimization: binop comparison on fixnums
         if (arguments.length === 3) {
             if (typeof(x) === 'number' && typeof(y) === 'number') {
@@ -955,6 +954,7 @@
     };
 
     var checkedGreaterThanSlowPath = function(M, args) {
+        var i;
         if (! isNumber(args[0])) {
             raiseArgumentTypeError(M, '>', 'number', 0, args[0]);
         }

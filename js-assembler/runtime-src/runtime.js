@@ -843,6 +843,8 @@
                     return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
                 }
                 return sum;
+            } else {
+                return plt.baselib.numbers.add(x, y);
             }
         }
         // Secondary path: if everything is a fixnum...
@@ -900,9 +902,12 @@
     };
 
     var checkedMulSlowPath = function(M, args) {
-        var i;
-        var prod = 1;
-        for (i = 0; i < args.length; i++) {
+        var i, prod;
+        if (! isNumber(args[0])) {
+            raiseArgumentTypeError(M, '*', 'number', 0, args[0]);
+        }
+        var prod = args[0];
+        for (i = 1; i < args.length; i++) {
             if (! isNumber(args[i])) {
                 raiseArgumentTypeError(M, '*', 'number', i, args[i]);
             }

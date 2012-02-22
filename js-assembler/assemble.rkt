@@ -224,7 +224,7 @@ EOF
 (define (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
   (cond
    [(set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
-    (fprintf op "var ~a=function(M){if(--M.cbt<0){throw ~a;}\n"
+    (fprintf op "var ~a=function(M){if(--M.cbt<0){return RT.bounce(~a);}\n"
              (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)
              (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))]
    [else

@@ -1681,7 +1681,7 @@
     // since it provides nicer error handling.
     var applyImplementation = function (M) {
         if(--M.cbt < 0) {
-            throw applyImplementation;
+            return plt.runtime.bounce(applyImplementation);
         }
         var proc = checkProcedure(M, 'apply', 0);
         M.e.pop();

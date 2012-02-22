@@ -140,7 +140,7 @@
 
     var defaultCurrentPrintImplementation = function (MACHINE) {
         if(--MACHINE.cbt < 0) {
-            throw defaultCurrentPrintImplementation;
+            return bounce(defaultCurrentPrintImplementation);
         }
         var oldArgcount = MACHINE.a;
 
@@ -509,6 +509,21 @@
             });
     };
 
+    var BOUNCED = false;
+    var bounce = function(t) { throw t; };
+    // // Under Firefox, with its tracing evaluator, bouncing off the trampoline
+    // // with an exception is costly, so we use a return value instead.
+    // if (false) /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent)){
+    //     bounce = function(t) {
+    //         BOUNCED = true;
+    //         return t;
+    //     };
+    // } else {
+    //     bounce = function(t) {
+    //         throw t;
+    //   };
+    //  }
+
     Machine.prototype._trampoline = function(initialJump, noJumpingOff, release) {
         var that = this;
         var thunk = initialJump;
@@ -520,8 +535,26 @@
 
         while(true) {
             try {
-                thunk(that);
-                break;
+                thunk = thunk(that);
+                // One way to bounce might be through the Firefox way.
+                // The other way is via throwing a function as an exception.
+                if (BOUNCED) {
+                    BOUNCED = false;
+                    // If we're running an a model that prohibits
+                    // jumping off the trampoline, continue.
+                    if (noJumpingOff) {
+                        continue;
+                    }
+                    if (that.params.numBouncesBeforeYield-- < 0) {
+                        recomputeMaxNumBouncesBeforeYield(
+                            that,
+                            (new Date()).valueOf() - startTime);
+                        scheduleTrampoline(that, thunk, release);
+                        return;
+                    }
+                } else {
+                    break;
+                }
             } catch (e) {
                 // There are a few kinds of things that can get thrown
                 // during racket evaluation:
@@ -546,7 +579,6 @@
                 if (typeof(e) === 'function') {
                     thunk = e;
                     that.cbt = STACK_LIMIT_ESTIMATE;
-
 
                     // If we're running an a model that prohibits
                     // jumping off the trampoline, continue.
@@ -636,7 +668,7 @@
 			       observedDelay) /
 			      DESIRED_DELAY_BETWEEN_BOUNCES));
 	MACHINE.params.maxNumBouncesBeforeYield =
-            Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
+            Math.max(Math.floor(MACHINE.params.maxNumBouncesBeforeYield + delta),
                      1);
     };
 
@@ -796,7 +828,7 @@
     // continues on with the target function f.
     var si_pop_multiple_values_and_continue = function(target) {
         var f = function(M) {
-            if(--M.cbt<0) { throw f; }
+            if(--M.cbt<0) { return bounce(f); }
             M.e.length -= (M.a-1);
             return target(M);
         };
@@ -1090,6 +1122,8 @@
     exports['currentMachine'] = new Machine();
     exports['invokeMains'] = invokeMains;
     exports['lookupInMains'] = lookupInMains;
+
+    exports['bounce'] = bounce;
 
 
     // installing new primitives

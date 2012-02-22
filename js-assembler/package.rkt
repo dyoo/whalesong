@@ -194,7 +194,7 @@
 		       module-requires))
       (let ([module-body-text
 	     (format "
-             if(--M.cbt<0) { throw arguments.callee; }
+             if(--M.cbt<0) {return RT.bounce(arguments.callee); }
              var modrec = M.modules[~s];
              var exports = {};
              modrec.isInvoked = true;

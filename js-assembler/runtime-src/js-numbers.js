@@ -240,7 +240,21 @@ if (typeof(exports) !== 'undefined') {
 
 
     // add: scheme-number scheme-number -> scheme-number
-    var add = makeNumericBinop(
+    var add = function(x, y) {
+        var sum;
+        if (typeof(x) === 'number' && typeof(y) === 'number') {
+            sum = x + y;
+            if (isOverflow(sum)) {
+		return (makeBignum(x)).add(makeBignum(y));
+            }
+        }
+        if (x instanceof FloatPoint && y instanceof FloatPoint) {
+            return x.add(y);
+        }
+        return addSlow(x, y);        
+    };
+
+    var addSlow = makeNumericBinop(
 	function(x, y) {
 	    var sum = x + y;
 	    if (isOverflow(sum)) {
@@ -284,7 +298,22 @@ if (typeof(exports) !== 'undefined') {
 
 
     // mulitply: scheme-number scheme-number -> scheme-number
-    var multiply = makeNumericBinop(
+    var multiply = function(x, y) {
+        var prod;
+        if (typeof(x) === 'number' && typeof(y) === 'number') {
+	    prod = x * y;
+	    if (isOverflow(prod)) {
+		return (makeBignum(x)).multiply(makeBignum(y));
+            } else {
+                return prod;
+            }
+        }
+        if (x instanceof FloatPoint && y instanceof FloatPoint) {
+            return x.multiply(y);
+        }
+        return multiplySlow(x, y);
+    };
+    var multiplySlow = makeNumericBinop(
 	function(x, y) {
 	    var prod = x * y;
 	    if (isOverflow(prod)) {

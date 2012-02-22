@@ -840,7 +840,7 @@
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 sum = x + y;
                 if (sum < -9e15 || sum > 9e15) {
-                    return checkedAddSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                    return plt.baselib.numbers.add(x, y);
                 }
                 return sum;
             } else {
@@ -881,7 +881,7 @@
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 prod = x * y;
                 if (prod < -9e15 || prod > 9e15) {
-                    return checkedMulSlowPath(M, Array.prototype.slice.call(arguments, 1));
+                    return plt.baselib.numbers.multiply(x, y);
                 }
                 return prod;
             } else {

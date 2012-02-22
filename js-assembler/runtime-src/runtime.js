@@ -957,6 +957,8 @@
         if (arguments.length === 3) {
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 return x > y;
+            } else {
+                return plt.baselib.numbers.greaterThan(x, y);
             }
         }
         return checkedGreaterThanSlowPath(M, Array.prototype.slice.call(arguments, 1));
@@ -987,6 +989,8 @@
         if (arguments.length === 3) {
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 return x === y;
+            } else {
+                return plt.baselib.numbers.equals(x, y);
             }
         }
         if (typeof(arguments[1]) !== 'number') {

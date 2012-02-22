@@ -636,7 +636,7 @@
 			       observedDelay) /
 			      DESIRED_DELAY_BETWEEN_BOUNCES));
 	MACHINE.params.maxNumBouncesBeforeYield =
-            Math.max(MACHINE.params.maxNumBouncesBeforeYield + delta,
+            Math.max(Math.floor(MACHINE.params.maxNumBouncesBeforeYield + delta),
                      1);
     };
 

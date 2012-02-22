@@ -884,6 +884,8 @@
                     return checkedMulSlowPath(M, Array.prototype.slice.call(arguments, 1));
                 }
                 return prod;
+            } else {
+                return plt.baselib.numbers.multiply(x, y);
             }
         }
         // Secondary path: if everything is a fixnum...
@@ -928,6 +930,8 @@
                     return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));
                 }
                 return sum;
+            } else {
+                return plt.baselib.numbers.subtract(x, y);
             }
         }
         return checkedSubSlowPath(M, Array.prototype.slice.call(arguments, 1));

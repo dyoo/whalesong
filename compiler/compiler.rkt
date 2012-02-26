@@ -489,6 +489,9 @@
 (: compile-toplevel-reference (ToplevelRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles toplevel references.
 (define (compile-toplevel-reference exp cenv target linkage)
+  (define prefix (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
+  (define prefix-element (list-ref (Prefix-names prefix) (ToplevelRef-pos exp)))
+  
   (let ([singular-context-check (emit-singular-context linkage)])
     (end-with-linkage linkage
                       cenv

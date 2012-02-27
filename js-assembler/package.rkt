@@ -171,9 +171,9 @@
            (for/list ([modprovide (get-provided-names bytecode)]
                       [i (in-naturals)])
              (string-append
-              (format "modrec.getNamespace().set(~s,exports[~s]);\n"
-                      (symbol->string (ModuleProvide-internal-name modprovide))
-                      (symbol->string (ModuleProvide-external-name modprovide)))
+;              (format "modrec.getNamespace().set(~s,exports[~s]);\n"
+;                      (symbol->string (ModuleProvide-internal-name modprovide))
+;                      (symbol->string (ModuleProvide-external-name modprovide)))
               (format "modrec.prefix[~a]=exports[~s];\n"
                       i
                       (symbol->string (ModuleProvide-external-name modprovide)))))))

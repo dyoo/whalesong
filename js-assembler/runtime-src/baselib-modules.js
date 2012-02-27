@@ -88,7 +88,6 @@
     };
 
     ModuleRecord.prototype.finalizeModuleInvokation = function () {
-        var i, len = this.prefix.names.length;
         this.namespace.refreshPrefixMapping();
     };
     

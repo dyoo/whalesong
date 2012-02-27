@@ -2,8 +2,8 @@
 // JavaScript land...
 
 
-var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].namespace;
-var colorStruct = colorNamespace['struct:color'];
+var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].getNamespace();
+var colorStruct = colorNamespace.get('struct:color');
 var makeColor = function(r,g,b,a) { return colorStruct.constructor([r,g,b,a]); };
 
 

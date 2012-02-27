@@ -34,7 +34,7 @@
                    (string-join (map
                                  (lambda: ([n : (U Symbol False GlobalBucket ModuleVariable)])
                                           (cond [(symbol? n)
-                                                 (format "M.params.currentNamespace[~s]||M.primitives[~s]"
+                                                 (format "M.params.currentNamespace.get(~s)||M.primitives[~s]"
                                                          (symbol->string n) 
                                                          (symbol->string n))]
                                                 [(eq? n #f)
@@ -52,7 +52,8 @@
                                                    (format "M.primitives[~s]"
                                                            (symbol->string (ModuleVariable-name n)))]
                                                   [else
-                                                   (format "M.modules[~s].namespace[~s]"
+                                                   "'blah'"
+                                                   #;(format "M.modules[~s].getNamespace().get(~s)"
                                                            (symbol->string
                                                             (ModuleLocator-name
                                                              (ModuleVariable-module-name n)))

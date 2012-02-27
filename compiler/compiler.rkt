@@ -312,9 +312,6 @@
 ;; Generates code to write out the top prefix, evaluate the rest of the body,
 ;; and then pop the top prefix off.
 (define (compile-module mod cenv target linkage)
-  ;; fixme: this is not right yet.  This should instead install a module record
-  ;; that has not yet been invoked.
-  ;; fixme: This also needs to generate code for the requires and provides.
   (match mod
     [(struct Module (name path prefix requires provides code))
      (let*: ([after-module-body (make-label 'afterModuleBody)]
@@ -341,8 +338,8 @@
          (make-Perform (make-ExtendEnvironment/Prefix! names))
          
          (make-AssignImmediate (make-ModulePrefixTarget path)
-                                        (make-EnvWholePrefixReference 0))
-         ;; TODO: we need to sequester the prefix of the module with the record.
+                               (make-EnvWholePrefixReference 0))
+
          (compile (Module-code mod) 
                   (cons (Module-prefix mod) module-cenv)
                   'val
@@ -353,7 +350,7 @@
          (make-AssignImmediate 'proc (make-ControlStackLabel))
          (make-PopControlFrame)
          
-         
+         ;; We sequester the prefix of the module with the record.
          (make-Perform (make-FinalizeModuleInvokation! path))
          (make-Goto (make-Reg 'proc))
          
@@ -381,9 +378,8 @@
             [on-return (make-LinkedLabel (make-label 'onReturn)
                                          on-return-multiple)])
        (append-instruction-sequences
-        (make-TestAndJump (make-TestTrue
-                                    (make-IsModuleLinked a-module-name))
-                                   linked)
+        (make-TestAndJump (make-TestTrue (make-ModulePredicate a-module-name 'linked?))
+                          linked)
         ;; TODO: raise an exception here that says that the module hasn't been
         ;; linked yet.
         (make-DebugPrint (make-Const 
@@ -392,8 +388,8 @@
         (make-Goto (make-Label (LinkedLabel-label on-return)))
         linked
         (make-TestAndJump (make-TestTrue 
-                                    (make-IsModuleInvoked a-module-name))
-                                   (LinkedLabel-label on-return))
+                           (make-ModulePredicate a-module-name 'invoked?))
+                          (LinkedLabel-label on-return))
         (make-PushControlFrame/Call on-return)
         (make-Goto (ModuleEntry a-module-name))
         on-return-multiple
@@ -407,6 +403,18 @@
 ;; Produces true if the module is hardcoded.
 (define (kernel-module-name? name)
   ((current-kernel-module-locator?) name))
+
+
+;; (: kernel-module-locator? (ModuleLocator -> Boolean))
+;; ;; Produces true if the ModuleLocator is pointing to a module that's marked
+;; ;; as kernel.
+;; (define (kernel-module-locator? a-module-locator)
+;;   (or (symbol=? (ModuleLocator-name
+;;                  a-module-locator)
+;;                 '#%kernel)
+;;       (symbol=? (ModuleLocator-name
+;;                  a-module-locator)
+;;                 'whalesong/lang/kernel.rkt)))
 
 
 
@@ -495,18 +503,28 @@
     (end-with-linkage linkage
                       cenv
                       (append-instruction-sequences
-                       
-                       (if (ToplevelRef-check-defined? exp)
-                           (make-Perform (make-CheckToplevelBound!
-                                                   (ToplevelRef-depth exp)
-                                                   (ToplevelRef-pos exp)))
-                           empty-instruction-sequence)
-                       
-                       (make-AssignImmediate 
-                        target
-                        (make-EnvPrefixReference (ToplevelRef-depth exp)
-                                                 (ToplevelRef-pos exp)))
-                       singular-context-check))))
+
+                       ;; If it's a module variable, we need to look there.
+                       (cond
+                        [(ModuleVariable? prefix-element)
+                         (cond [(kernel-module-name? (ModuleVariable-module-name prefix-element))
+                                (make-AssignPrimOp target
+                                                   (make-PrimitivesReference
+                                                    (ModuleVariable-name prefix-element)))]
+                               [else
+                                (make-AssignPrimOp target prefix-element)])]
+                        [else
+                         (append-instruction-sequences
+                          (if (ToplevelRef-check-defined? exp)
+                              (make-Perform (make-CheckToplevelBound!
+                                             (ToplevelRef-depth exp)
+                                             (ToplevelRef-pos exp)))
+                              empty-instruction-sequence)
+                          (make-AssignImmediate
+                           target
+                           (make-EnvPrefixReference (ToplevelRef-depth exp)
+                                                    (ToplevelRef-pos exp))))])
+                        singular-context-check))))
 
 
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -518,8 +536,13 @@
   (let ([lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
                                               (ToplevelSet-pos exp))])
     (let ([get-value-code
-           (compile (ToplevelSet-value exp) cenv lexical-pos
-                    next-linkage/expects-single)]
+           (cond
+            [(ModuleVariable? prefix-element)
+             (compile (ToplevelSet-value exp) cenv prefix-element
+                      next-linkage/expects-single)]
+            [else
+             (compile (ToplevelSet-value exp) cenv lexical-pos
+                      next-linkage/expects-single)])]
           [singular-context-check (emit-singular-context linkage)])
       (end-with-linkage
        linkage
@@ -991,7 +1014,7 @@
            id)]
         [(ModuleVariable? op-knowledge)
          (cond
-           [(kernel-module-locator? (ModuleVariable-module-name op-knowledge))
+           [(kernel-module-name? (ModuleVariable-module-name op-knowledge))
             (ModuleVariable-name op-knowledge)]
            [else
             #f])]
@@ -1000,16 +1023,6 @@
 
 
 
-(: kernel-module-locator? (ModuleLocator -> Boolean))
-;; Produces true if the ModuleLocator is pointing to a module that's marked
-;; as kernel.
-(define (kernel-module-locator? a-module-locator)
-  (or (symbol=? (ModuleLocator-name
-                 a-module-locator)
-                '#%kernel)
-      (symbol=? (ModuleLocator-name
-                 a-module-locator)
-                'whalesong/lang/kernel.rkt)))
 
   
   
@@ -1168,7 +1181,8 @@
                  [operand-poss
                   (simple-operands->opargs (map (lambda: ([op : Expression])
                                                   (adjust-expression-depth op n n))
-                                                (App-operands exp)))])
+                                                (App-operands exp))
+                                           operand-knowledge)])
             (end-with-linkage
              linkage cenv
              (append-instruction-sequences
@@ -1205,11 +1219,13 @@
                                                                  (length constant-operands)
                                                                  n))
                                       rest-operands))]
-                        
+                        [(constant-operand-knowledge)
+                         (map (lambda: ([arg : Expression])
+                                       (extract-static-knowledge arg extended-cenv))
+                              constant-operands)]
+                                 
                         [(operand-knowledge)
-                         (append (map (lambda: ([arg : Expression])
-                                        (extract-static-knowledge arg extended-cenv))
-                                      constant-operands)
+                         (append constant-operand-knowledge
                                  (map (lambda: ([arg : Expression])
                                         (extract-static-knowledge arg extended-cenv))
                                       rest-operands))]
@@ -1229,7 +1245,7 @@
                                               (make-Const 0))]
                         
                         [(constant-operand-poss)
-                         (simple-operands->opargs constant-operands)]
+                         (simple-operands->opargs constant-operands constant-operand-knowledge)]
                         
                         [(rest-operand-poss)
                          (build-list (length rest-operands)
@@ -1252,11 +1268,11 @@
               stack-pushing-code
               rest-operand-code
               (make-AssignPrimOp (adjust-target-depth target (length rest-operands))
-                                          (make-CallKernelPrimitiveProcedure 
-                                           kernel-op 
-                                           (append constant-operand-poss rest-operand-poss)
-                                           expected-operand-types
-                                           typechecks?))
+                                 (make-CallKernelPrimitiveProcedure 
+                                  kernel-op 
+                                  (append constant-operand-poss rest-operand-poss)
+                                  expected-operand-types
+                                  typechecks?))
               stack-popping-code
               singular-context-check)))])])))
 
@@ -1267,15 +1283,17 @@
 (define (ensure-simple-expression e)
   (if (or (Constant? e)
           (LocalRef? e)
-          (ToplevelRef? e))
+          (ToplevelRef? e)
+          )
       e
       (error 'ensure-simple-expression)))
 
 
-(: simple-operands->opargs ((Listof Expression) -> (Listof OpArg)))
-;; Produces a list of OpArgs if all the operands are particularly simple, and false therwise.
-(define (simple-operands->opargs rands)
-  (map (lambda: ([e : Expression])
+(: simple-operands->opargs ((Listof Expression) (Listof CompileTimeEnvironmentEntry) -> (Listof (U OpArg ModuleVariable))))
+;; Produces a list of OpArgs if all the operands are particularly simple, and false otherwise.
+(define (simple-operands->opargs rands knowledge)
+  (map (lambda: ([e : Expression]
+                 [k : CompileTimeEnvironmentEntry])
          (cond
            [(Constant? e)
             (make-Const (ensure-const-value (Constant-v e)))]
@@ -1283,11 +1301,15 @@
             (make-EnvLexicalReference (LocalRef-depth e)
                                       (LocalRef-unbox? e))]
            [(ToplevelRef? e)
-            (make-EnvPrefixReference (ToplevelRef-depth e)
-                                     (ToplevelRef-pos e))]
+            (cond
+             [(ModuleVariable? k)
+              k]
+             [else
+              (make-EnvPrefixReference (ToplevelRef-depth e) (ToplevelRef-pos e))])]
            [else 
             (error 'all-operands-are-constant "Impossible")]))
-       rands))
+       rands
+       knowledge))
 
 
 
@@ -2212,6 +2234,8 @@
     [(ControlFrameTemporary? target)
      target]
     [(ModulePrefixTarget? target)
+     target]
+    [(ModuleVariable? target)
      target]))
 
 

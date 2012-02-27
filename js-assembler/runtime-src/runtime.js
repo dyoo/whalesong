@@ -278,7 +278,10 @@
                     toDomNode(exn, MACHINE.params['print-mode']));
             },
 
-	    'currentNamespace': {},
+	    'currentNamespace': { get: function() {}, 
+                                  set : function() {}, 
+                                  hasKey : function() { return false; }
+                                },
 
 	    // These parameters control how often
 	    // control yields back to the browser
@@ -307,14 +310,14 @@
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'] || 'traced-app-key';
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-app-key') || 'traced-app-key';
         }
         return undefined;
     };
 
     var getTracedCalleeKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'] || 'traced-callee-key';
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-callee-key') || 'traced-callee-key';
         }
         return undefined;
     };
@@ -759,8 +762,8 @@
         machine = machine || runtime.currentMachine;
         for (i = 0; i < machine.mainModules.length; i++) {
             var ns = machine.mainModules[i].getNamespace();
-            if(ns.hasOwnProperty(name)) {
-                return ns[name];
+            if(ns.hasKey(name)) {
+                return ns.get(name);
             }
         }
     };

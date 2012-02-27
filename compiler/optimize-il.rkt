@@ -102,9 +102,7 @@
         oparg]
        [(ModuleEntry? oparg)
         oparg]
-       [(IsModuleInvoked? oparg)
-        oparg]
-       [(IsModuleLinked? oparg)
+       [(ModulePredicate? oparg)
         oparg]
        [(PrimitiveKernelValue? oparg)
         oparg]
@@ -142,7 +140,14 @@
         op]
        
        [(ApplyPrimitiveProcedure? op)
-        op]))
+        op]
+
+       [(ModuleVariable? op)
+        op]
+       
+       [(PrimitivesReference? op)
+        op]
+       ))
 
 
     (: rewrite-primcmd (PrimitiveCommand -> PrimitiveCommand))
@@ -421,9 +426,7 @@
      oparg]
     [(ModuleEntry? oparg)
      oparg]
-    [(IsModuleInvoked? oparg)
-     oparg]
-    [(IsModuleLinked? oparg)
+    [(ModulePredicate? oparg)
      oparg]
     [(VariableReference? oparg)
      (let ([t (VariableReference-toplevel oparg)])

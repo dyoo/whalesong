@@ -8,6 +8,7 @@
 
 (test "more-tests/simple.rkt")
 (test "more-tests/booleans.rkt")
+(test "more-tests/module-scoping.rkt")
 (test "more-tests/checking.rkt")
 (test "more-tests/string-tests.rkt")
 (test "more-tests/chars.rkt")

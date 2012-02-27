@@ -3,6 +3,7 @@
 (require "assemble-structs.rkt"
          "assemble-helpers.rkt"
          "assemble-open-coded.rkt"
+         "../compiler/lexical-structs.rkt"
          "../compiler/il-structs.rkt"
          racket/string)
 
@@ -69,5 +70,16 @@
 
     [(CallKernelPrimitiveProcedure? op)
      (open-code-kernel-primitive-procedure op blockht)]
+
     [(ApplyPrimitiveProcedure? op)
-     "M.p._i(M)"]))
+     "M.p._i(M)"]
+
+    [(ModuleVariable? op)
+     (format "M.modules[~s].getNamespace().get(~s)"
+             (symbol->string
+              (ModuleLocator-name
+               (ModuleVariable-module-name op)))
+             (symbol->string (ModuleVariable-name op)))]
+
+    [(PrimitivesReference? op)
+     (format "M.primitives[~s]" (symbol->string (PrimitivesReference-name op)))]))

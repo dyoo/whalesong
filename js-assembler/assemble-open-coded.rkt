@@ -19,8 +19,12 @@
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure Blockht -> String))
 (define (open-code-kernel-primitive-procedure op blockht)
   (let*: ([operator : KernelPrimitiveName/Inline (CallKernelPrimitiveProcedure-operator op)]
-          [operands : (Listof String) (map (lambda: ([op : OpArg])
-                                                    (assemble-oparg op blockht))
+          [operands : (Listof String) (map (lambda: ([op : (U OpArg ModuleVariable)])
+                                                    (cond
+                                                     [(OpArg? op)
+                                                      (assemble-oparg op blockht)]
+                                                     [(ModuleVariable? op)
+                                                      (assemble-module-variable-ref op)]))
                                            (CallKernelPrimitiveProcedure-operands op))]
           [checked-operands : (Listof String)
                             (map (lambda: ([dom : OperandDomain]

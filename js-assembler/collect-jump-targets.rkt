@@ -87,9 +87,7 @@
        empty]
       [(ModuleEntry? an-input)
        empty]
-      [(IsModuleInvoked? an-input)
-       empty]
-      [(IsModuleLinked? an-input)
+      [(ModulePredicate? an-input)
        empty]
       [(VariableReference? an-input)
        empty]))
@@ -121,6 +119,10 @@
       [(MakeBoxedEnvironmentValue? op)
        empty]
       [(CallKernelPrimitiveProcedure? op)
+       empty]
+      [(ModuleVariable? op)
+       empty]
+      [(PrimitivesReference? op)
        empty]))
 
   
@@ -234,9 +236,7 @@
        empty]
       [(ModuleEntry? an-input)
        empty]
-      [(IsModuleInvoked? an-input)
-       empty]
-      [(IsModuleLinked? an-input)
+      [(ModulePredicate? an-input)
        empty]
       [(VariableReference? an-input)
        empty]))
@@ -268,6 +268,10 @@
       [(MakeBoxedEnvironmentValue? op)
        empty]
       [(CallKernelPrimitiveProcedure? op)
+       empty]
+      [(ModuleVariable? op)
+       empty]
+      [(PrimitivesReference? op)
        empty]))
   
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))

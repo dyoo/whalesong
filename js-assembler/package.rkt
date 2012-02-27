@@ -170,7 +170,7 @@
       [(struct Top [_ (struct Module (name path prefix requires provides code))])
        (apply string-append
               (map (lambda (p)
-                     (format "modrec.namespace[~s] = exports[~s];\n"
+                     (format "modrec.getNamespace().set(~s,exports[~s]);\n"
                              (symbol->string (ModuleProvide-internal-name p))
                              (symbol->string (ModuleProvide-external-name p))))
                    provides))]

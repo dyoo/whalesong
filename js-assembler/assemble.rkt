@@ -588,10 +588,19 @@ EOF
                   (format "M.e.length-=~a;"
                           (assemble-oparg (PopEnvironment-n stmt) blockht))])]
           [else
-           (format "M.e.splice(M.e.length-(~a+~a),~a);"
-                   (assemble-oparg (PopEnvironment-skip stmt) blockht)
-                   (assemble-oparg (PopEnvironment-n stmt) blockht)
-                   (assemble-oparg (PopEnvironment-n stmt) blockht))]))]
+           (define skip (PopEnvironment-skip stmt))
+           (define n (PopEnvironment-n stmt))
+           (cond
+            [(and (Const? skip) (Const? n))
+             (format "M.e.splice(M.e.length-~a,~a);"
+                     (+ (ensure-natural (Const-const skip))
+                        (ensure-natural (Const-const n)))
+                     (Const-const n))]
+            [else
+             (format "M.e.splice(M.e.length-(~a+~a),~a);"
+                     (assemble-oparg skip blockht)
+                     (assemble-oparg n blockht)
+                     (assemble-oparg n blockht))])]))]
      
      [(PushImmediateOntoEnvironment? stmt)
       (format "M.e.push(~a);"

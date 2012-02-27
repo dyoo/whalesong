@@ -1,0 +1,10 @@
+#lang planet dyoo/whalesong
+(require (for-syntax racket/base))
+(provide x x++ x=0)
+(define x 0)
+(define (set-x v)
+  (set! x v))
+(define-syntax (x++ stx)
+  #'(set-x (add1 x)))
+(define-syntax (x=0 stx)
+  #'(set-x 0))

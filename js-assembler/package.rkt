@@ -176,7 +176,7 @@
                       (symbol->string (ModuleProvide-external-name modprovide)))
               (format "modrec.prefix[~a]=exports[~s];\n"
                       i
-                      (symbol->string (ModuleProvide-internal-name modprovide)))))))
+                      (symbol->string (ModuleProvide-external-name modprovide)))))))
 
   (define (get-prefix-code bytecode)
     (format "modrec.prefix=[~a];modrec.prefix.names=[~a];modrec.prefix.internalNames=[~a];"
@@ -185,12 +185,12 @@
                          ",")
             (string-join (map (lambda (n)
                                 (format "~s" (symbol->string
-                                              (ModuleProvide-external-name n))))
+                                              (ModuleProvide-internal-name n))))
                               (get-provided-names bytecode))
                          ",")
             (string-join (map (lambda (n)
                                 (format "~s" (symbol->string
-                                              (ModuleProvide-internal-name n))))
+                                              (ModuleProvide-external-name n))))
                               (get-provided-names bytecode))
                          ",")))
 

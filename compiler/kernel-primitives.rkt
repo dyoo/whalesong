@@ -3,7 +3,59 @@
 (provide (all-defined-out))
 
 (require "arity-structs.rkt"
+         "lexical-structs.rkt"
          "../type-helpers.rkt")
+
+
+
+
+(: kernel-module-name? (ModuleLocator -> Boolean))
+;; Produces true if the module is hardcoded.
+(define (kernel-module-name? name)
+
+  
+  (: kernel-locator? (ModuleLocator -> Boolean))
+  (define (kernel-locator? locator)
+    (or (and (eq? (ModuleLocator-name locator) '#%kernel)
+             (eq? (ModuleLocator-real-path locator) '#%kernel))
+        (eq? (ModuleLocator-name locator)
+             'whalesong/lang/kernel.rkt)))
+
+
+  (: paramz-locator? (ModuleLocator -> Boolean))
+  (define (paramz-locator? locator)
+    (or (and (eq? (ModuleLocator-name locator) '#%paramz)
+             (eq? (ModuleLocator-real-path locator) '#%paramz))))
+
+
+  (: kernel-module-locator? (ModuleLocator -> Boolean))
+  ;; Produces true if the given module locator should be treated as a primitive root one
+  ;; that is implemented by us.
+  (define (kernel-module-locator? locator)
+    (or (kernel-locator? locator)
+        (paramz-locator? locator)))
+
+  
+  (kernel-module-locator? name))
+
+
+
+;; Given a kernel-labeled ModuleVariable, returns the kernel name for it.
+(: kernel-module-variable->primitive-name (ModuleVariable -> Symbol))
+(define (kernel-module-variable->primitive-name a-modvar)
+  ;; FIXME: remap if the module is something else like whalesong/unsafe/ops
+
+  (ModuleVariable-name a-modvar))
+
+
+
+
+
+
+
+
+
+
 (define-type OperandDomain (U 'number
                               'string
                               'vector

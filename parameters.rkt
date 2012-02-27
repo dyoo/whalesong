@@ -17,7 +17,6 @@
          current-warn-unimplemented-kernel-primitive
          current-seen-unimplemented-kernel-primitives
 
-         current-kernel-module-locator?
 
          current-primitive-identifier?
          
@@ -53,27 +52,6 @@
                      id)))))
 
 
-(: current-kernel-module-locator? (Parameterof (ModuleLocator -> Boolean)))
-;; Produces true if the given module locator should be treated as a primitive root one
-;; that is implemented by us.
-(define current-kernel-module-locator?
-  (make-parameter
-   (lambda: ([locator : ModuleLocator])
-            (or (kernel-locator? locator)
-                (paramz-locator? locator)))))
-
-(: kernel-locator? (ModuleLocator -> Boolean))
-(define (kernel-locator? locator)
-  (or (and (eq? (ModuleLocator-name locator) '#%kernel)
-           (eq? (ModuleLocator-real-path locator) '#%kernel))
-      (eq? (ModuleLocator-name locator)
-           'whalesong/lang/kernel.rkt)))
-
-
-(: paramz-locator? (ModuleLocator -> Boolean))
-(define (paramz-locator? locator)
-  (or (and (eq? (ModuleLocator-name locator) '#%paramz)
-           (eq? (ModuleLocator-real-path locator) '#%paramz))))
 
 
 

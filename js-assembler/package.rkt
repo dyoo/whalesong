@@ -168,12 +168,31 @@
   
   (define (get-provided-name-code bytecode)
     (apply string-append
-           (map (lambda (p)
-                  (format "modrec.getNamespace().set(~s,exports[~s]);\n"
-                          (symbol->string (ModuleProvide-internal-name p))
-                          (symbol->string (ModuleProvide-external-name p))))
-                (get-provided-names bytecode))))
+           (for/list ([modprovide (get-provided-names bytecode)]
+                      [i (in-naturals)])
+             (string-append
+              (format "modrec.getNamespace().set(~s,exports[~s]);\n"
+                      (symbol->string (ModuleProvide-internal-name modprovide))
+                      (symbol->string (ModuleProvide-external-name modprovide)))
+              (format "modrec.prefix[~a]=exports[~s];\n"
+                      i
+                      (symbol->string (ModuleProvide-internal-name modprovide)))))))
 
+  (define (get-prefix-code bytecode)
+    (format "modrec.prefix=[~a];modrec.prefix.names=[~a];modrec.prefix.internalNames=[~a];"
+            (string-join (map (lambda (n) "void(0)")
+                              (get-provided-names bytecode))
+                         ",")
+            (string-join (map (lambda (n)
+                                (format "~s" (symbol->string
+                                              (ModuleProvide-external-name n))))
+                              (get-provided-names bytecode))
+                         ",")
+            (string-join (map (lambda (n)
+                                (format "~s" (symbol->string
+                                              (ModuleProvide-internal-name n))))
+                              (get-provided-names bytecode))
+                         ",")))
 
   (define (get-implementation-from-path path)
     (let* ([name (rewrite-path path)]
@@ -193,13 +212,16 @@
 	     (format "
              if(--M.cbt<0) { throw arguments.callee; }
              var modrec = M.modules[~s];
+             ~a
              var exports = {};
              modrec.isInvoked = true;
              (function(MACHINE, EXPORTS){~a})(M, exports);
              ~a
              modrec.privateExports = exports;
+             modrec.finalizeModuleInvokation();
              return M.c.pop().label(M);"
 		     (symbol->string name)
+                     (get-prefix-code bytecode)
 		     text
 		     (get-provided-name-code bytecode))])
 	

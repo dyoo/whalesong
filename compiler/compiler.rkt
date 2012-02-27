@@ -21,6 +21,10 @@
                [ensure-const-value (Any -> const-value)])
 
 
+(require/typed "../parser/modprovide.rkt"
+               [get-provided-names (Expression -> (Listof ModuleProvide))])
+
+
 (provide (rename-out [-compile compile])
          compile-general-procedure-call)
 
@@ -334,18 +338,17 @@
          (apply append-instruction-sequences
                 (map compile-module-invoke (Module-requires mod)))
          
-         ;; 2.  Next, evaluate the module body.
+         ;; 2.  Store the prefix:
          (make-Perform (make-ExtendEnvironment/Prefix! names))
-         
          (make-AssignImmediate (make-ModulePrefixTarget path)
                                (make-EnvWholePrefixReference 0))
-
+         ;; 3.  Next, evaluate the module body.
          (compile (Module-code mod) 
                   (cons (Module-prefix mod) module-cenv)
                   'val
                   next-linkage/drop-multiple)
          
-         ;; 3. Finally, cleanup and return.
+         ;; 4. Finally, cleanup and return.
          (make-PopEnvironment (make-Const 1) (make-Const 0))
          (make-AssignImmediate 'proc (make-ControlStackLabel))
          (make-PopControlFrame)
@@ -399,22 +402,6 @@
         on-return))]))
 
 
-(: kernel-module-name? (ModuleLocator -> Boolean))
-;; Produces true if the module is hardcoded.
-(define (kernel-module-name? name)
-  ((current-kernel-module-locator?) name))
-
-
-;; (: kernel-module-locator? (ModuleLocator -> Boolean))
-;; ;; Produces true if the ModuleLocator is pointing to a module that's marked
-;; ;; as kernel.
-;; (define (kernel-module-locator? a-module-locator)
-;;   (or (symbol=? (ModuleLocator-name
-;;                  a-module-locator)
-;;                 '#%kernel)
-;;       (symbol=? (ModuleLocator-name
-;;                  a-module-locator)
-;;                 'whalesong/lang/kernel.rkt)))
 
 
 
@@ -510,7 +497,9 @@
                          (cond [(kernel-module-name? (ModuleVariable-module-name prefix-element))
                                 (make-AssignPrimOp target
                                                    (make-PrimitivesReference
-                                                    (ModuleVariable-name prefix-element)))]
+                                                    (kernel-module-variable->primitive-name
+                                                     prefix-element)
+                                                    ))]
                                [else
                                 (make-AssignPrimOp target prefix-element)])]
                         [else
@@ -525,6 +514,10 @@
                            (make-EnvPrefixReference (ToplevelRef-depth exp)
                                                     (ToplevelRef-pos exp))))])
                         singular-context-check))))
+
+
+
+
 
 
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -1015,7 +1008,7 @@
         [(ModuleVariable? op-knowledge)
          (cond
            [(kernel-module-name? (ModuleVariable-module-name op-knowledge))
-            (ModuleVariable-name op-knowledge)]
+            (kernel-module-variable->primitive-name op-knowledge)]
            [else
             #f])]
         [else

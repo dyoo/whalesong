@@ -2,6 +2,7 @@
 (require "assemble-helpers.rkt"
          "../compiler/il-structs.rkt"
 	 "../compiler/lexical-structs.rkt"
+         "../compiler/kernel-primitives.rkt"
          "../parameters.rkt"
          "assemble-structs.rkt"
 	 racket/string)
@@ -47,13 +48,12 @@
                                                 ;; the value here!  It shouldn't be looking into Primitives...
                                                 [(ModuleVariable? n)
                                                  (cond
-                                                  [((current-kernel-module-locator?)
-                                                    (ModuleVariable-module-name n))
+                                                  [(kernel-module-name? (ModuleVariable-module-name n))
                                                    (format "M.primitives[~s]"
-                                                           (symbol->string (ModuleVariable-name n)))]
+                                                           (symbol->string
+                                                            (kernel-module-variable->primitive-name n)))]
                                                   [else
-                                                   "'blah'"
-                                                   #;(format "M.modules[~s].getNamespace().get(~s)"
+                                                   (format "{moduleName:~s,name:~s}"
                                                            (symbol->string
                                                             (ModuleLocator-name
                                                              (ModuleVariable-module-name n)))

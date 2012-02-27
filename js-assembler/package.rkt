@@ -444,7 +444,7 @@ M.modules[~s] =
 
 ;; package-standalone-xhtml: X output-port -> void
 (define (package-standalone-xhtml source-code op)
-  (display *header* op)
+  (display (get-header) op)
   (display (quote-cdata
             (string-append (get-runtime)
                            (get-inert-code source-code
@@ -513,11 +513,18 @@ M.modules[~s] =
   (force *the-runtime*))
 
 
+(define (append-text-files paths)
+  (string-join (map (λ (p) (if (file-exists? p)
+                               (bytes->string/utf-8 (call-with-input-file p port->bytes))
+                               ""))
+                    paths)
+               "\n"))
 
 
 
-;; *header* : string
-(define *header*
+;; get-header : -> string
+(define (get-header)  
+    (format
   #<<EOF
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
@@ -525,11 +532,12 @@ M.modules[~s] =
     <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta charset="utf-8"/>
     <title></title>
+    ~a
   </head>
   <script>
 
 EOF
-  )
+  (append-text-files (current-header-scripts))))
 
 
 ;; get-html-template: (listof string) (#:manifest path) -> string
@@ -548,6 +556,7 @@ EOF
     <meta charset="utf-8"/>
     <title>~a</title>
 ~a
+~a
   <script>
   ~a
   </script>
@@ -561,6 +570,7 @@ EOF
       "<meta http-equiv='X-UA-Compatible' content='IE=7,chrome=1'><!--[if lt IE 9]><script src='excanvas.js' type='text/javascript'></script><script src='canvas.text.js'></script><script src='optimer-normal-normal.js'></script><![endif]-->"
       "")
   title
+  (append-text-files (current-header-scripts))
   (string-join (map (lambda (js)
                       (format "  <script src='~a'></script>\n" js))
                     js-files)

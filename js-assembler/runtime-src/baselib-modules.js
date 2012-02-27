@@ -9,27 +9,20 @@
 
     var Namespace = function(modrec) {
         this.modrec = modrec;
+
         // string -> integer
         // Returns the position within the prefix that we should be looking.
         this.mapping = {}; 
+        this.prefix = void(0);
         this.extra = {};
     };
 
     Namespace.prototype.get = function(name) {
-        var i;
         if (this.mapping.hasOwnProperty(name)) {
-            return this.modrec.prefix[this.mapping[name]];
+            return this.prefix[this.mapping[name]];
         }
         if (this.extra.hasOwnProperty(name)) {
             return this.extra[name];
-        }
-        if (this.modrec.prefix) {
-            for (i = 0; i < len; i++) {
-                if (this.modrec.prefix.names[i] === name) {
-                    this.mapping[name] = i;
-                    return this.modrec.prefix[this.mapping[name]];
-                }
-            }
         }
         return void(0);
     };
@@ -46,6 +39,7 @@
                 delete this.extra[name];
             }
         }
+        this.prefix = prefix;
     };
 
     Namespace.prototype.hasKey = function(name) {
@@ -53,23 +47,13 @@
     };
 
     Namespace.prototype.set = function(name, value) {
-        var i;
         if (this.mapping.hasOwnProperty(name)) {
-            this.modrec.prefix[this.mapping[name]] = value;
+            this.prefix[this.mapping[name]] = value;
             return;
         };
         if (this.extra.hasOwnProperty(name)) {
             this.extra[name] = value;
             return;
-        }
-        if (this.modrec.prefix) {
-            for (i = 0; i < len; i++) {
-                if (this.modrec.prefix.names[i] === name) {
-                    this.mapping[name] = i;
-                    this.modrec.prefix[this.mapping[name]] = value;
-                    return;
-                }
-            }
         }
         this.extra[name] = value;
         return;

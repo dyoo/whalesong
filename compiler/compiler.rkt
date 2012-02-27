@@ -1395,29 +1395,21 @@
 (: compile-statically-known-lam-application 
    (StaticallyKnownLam App CompileTimeEnvironment Target Linkage 
                        -> InstructionSequence))
-(define (compile-statically-known-lam-application static-knowledge exp cenv target linkage)
+(define (compile-statically-known-lam-application static-operator-knowledge exp cenv target linkage)
   (let ([arity-check
-         (cond [(arity-matches? (StaticallyKnownLam-arity static-knowledge)
+         (cond [(arity-matches? (StaticallyKnownLam-arity static-operator-knowledge)
                                 (length (App-operands exp)))
                 empty-instruction-sequence]
                [else
                 (make-Perform
                  (make-RaiseArityMismatchError! 
                   (make-Reg 'proc)
-                  (StaticallyKnownLam-arity static-knowledge)
+                  (StaticallyKnownLam-arity static-operator-knowledge)
                   (make-Const (length (App-operands exp)))))])])
     (let* ([extended-cenv 
             (extend-compile-time-environment/scratch-space 
              cenv 
              (length (App-operands exp)))]
-           [proc-code (compile (App-operator exp)
-                               extended-cenv 
-                               (if (empty? (App-operands exp))
-                                   'proc
-                                   (make-EnvLexicalReference 
-                                    (ensure-natural (sub1 (length (App-operands exp))))
-                                    #f))
-                               next-linkage/expects-single)]
            [operand-codes (map (lambda: ([operand : Expression]
                                          [target : Target])
                                  (compile operand 
@@ -1427,16 +1419,18 @@
                                (App-operands exp)
                                (build-list (length (App-operands exp))
                                            (lambda: ([i : Natural])
-                                             (if (< i (sub1 (length (App-operands exp))))
-                                                 (make-EnvLexicalReference i #f)
-                                                 'val))))])    
+                                             (make-EnvLexicalReference i #f))))]
+           [proc-code (compile (App-operator exp)
+                               extended-cenv 
+                               'proc
+                               next-linkage/expects-single)])    
       (append-instruction-sequences
        (make-Comment "scratch space for statically known lambda application")
        (make-PushEnvironment (length (App-operands exp)) #f)
+       (apply append-instruction-sequences operand-codes)
        proc-code
-       (juggle-operands operand-codes)
        arity-check
-       (compile-procedure-call/statically-known-lam static-knowledge 
+       (compile-procedure-call/statically-known-lam static-operator-knowledge 
                                                     cenv
                                                     extended-cenv 
                                                     (length (App-operands exp))
@@ -1537,7 +1531,7 @@
 
 (: compile-procedure-call/statically-known-lam 
    (StaticallyKnownLam CompileTimeEnvironment CompileTimeEnvironment Natural Target Linkage -> InstructionSequence))
-(define (compile-procedure-call/statically-known-lam static-knowledge cenv extended-cenv n target linkage)
+(define (compile-procedure-call/statically-known-lam static-operator-knowledge cenv extended-cenv n target linkage)
   (let*: ([after-call : Symbol (make-label 'afterCall)]
           [compiled-linkage : Linkage (if (and (ReturnLinkage? linkage)
                                                (ReturnLinkage-tail? linkage))
@@ -1551,7 +1545,7 @@
      (compile-compiled-procedure-application cenv
                                              (make-Const n)
                                              (make-Label 
-                                              (StaticallyKnownLam-entry-point static-knowledge))
+                                              (StaticallyKnownLam-entry-point static-operator-knowledge))
                                              target
                                              compiled-linkage)
      (end-with-linkage

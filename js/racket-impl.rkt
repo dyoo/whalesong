@@ -17,11 +17,16 @@
 
          js-null?
          js-null
+         
+         js-eval
          )
 
 (define (alert x)
   (display x)
   (newline))
+
+(define (js-eval x)
+  (error 'js-eval "Not available outside JavaScript context"))
 
 (define body 'blah)
 

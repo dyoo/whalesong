@@ -491,7 +491,6 @@
 (define (compile-toplevel-reference exp cenv target linkage)
   (define prefix (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
   (define prefix-element (list-ref (Prefix-names prefix) (ToplevelRef-pos exp)))
-  
   (let ([singular-context-check (emit-singular-context linkage)])
     (end-with-linkage linkage
                       cenv
@@ -513,6 +512,9 @@
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a toplevel mutation.
 (define (compile-toplevel-set exp cenv target linkage)
+  (define prefix (ensure-prefix (list-ref cenv (ToplevelSet-depth exp))))
+  (define prefix-element (list-ref (Prefix-names prefix) (ToplevelSet-pos exp)))
+
   (let ([lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
                                               (ToplevelSet-pos exp))])
     (let ([get-value-code

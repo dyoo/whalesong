@@ -71,6 +71,17 @@
         this.privateExports = {};
     };
 
+    // Returns the offset into the prefix in which the value will be stored.
+    ModuleRecord.prototype.getPrefixOffset = function(externalName) {
+        var i;
+        for (i = 0; i < this.prefix.names; i++) {
+            if (this.prefix.names[i] === externalName) {
+                return i;
+            }
+        }
+        return void(0);
+    };
+
     // Returns access to the names defined in the module.
     ModuleRecord.prototype.getNamespace = function () {
         return this.namespace;

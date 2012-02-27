@@ -6,7 +6,10 @@
 ; This is a small demonstration of the Javascript
 ; graphics library Raphael from http://raphaeljs.com/ .
 
-; This example draws a Lissajous curve.
+; Include the small script in raphael-script.js to load Rapahel (old version 1.5.2).
+;    racket ../../whalesong.rkt build --include-script raphael-script.js raphael-demo.rkt
+
+; The example below the bindings draws a Lissajous curve.
 
 
 ;;;

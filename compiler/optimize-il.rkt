@@ -404,7 +404,8 @@
                                (EnvLexicalReference-unbox? oparg))]
     [(EnvPrefixReference? oparg)
      (make-EnvPrefixReference (ensure-natural (+ n (EnvPrefixReference-depth oparg)))
-                              (EnvPrefixReference-pos oparg))]
+                              (EnvPrefixReference-pos oparg)
+                              (EnvPrefixReference-modvar? oparg))]
     [(EnvWholePrefixReference? oparg)
      (make-EnvWholePrefixReference (ensure-natural (+ n (EnvWholePrefixReference-depth oparg))))]
     [(SubtractArg? oparg)

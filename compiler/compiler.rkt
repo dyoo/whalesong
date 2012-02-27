@@ -501,7 +501,11 @@
                                                      prefix-element)
                                                     ))]
                                [else
-                                (make-AssignPrimOp target prefix-element)])]
+                                (make-AssignImmediate
+                                 target
+                                 (make-EnvPrefixReference (ToplevelRef-depth exp)
+                                                          (ToplevelRef-pos exp)
+                                                          #t))])]
                         [else
                          (append-instruction-sequences
                           (if (ToplevelRef-check-defined? exp)
@@ -512,7 +516,8 @@
                           (make-AssignImmediate
                            target
                            (make-EnvPrefixReference (ToplevelRef-depth exp)
-                                                    (ToplevelRef-pos exp))))])
+                                                    (ToplevelRef-pos exp)
+                                                    #f)))])
                         singular-context-check))))
 
 
@@ -525,25 +530,30 @@
 (define (compile-toplevel-set exp cenv target linkage)
   (define prefix (ensure-prefix (list-ref cenv (ToplevelSet-depth exp))))
   (define prefix-element (list-ref (Prefix-names prefix) (ToplevelSet-pos exp)))
-
-  (let ([lexical-pos (make-EnvPrefixReference (ToplevelSet-depth exp)
-                                              (ToplevelSet-pos exp))])
-    (let ([get-value-code
-           (cond
-            [(ModuleVariable? prefix-element)
-             (compile (ToplevelSet-value exp) cenv prefix-element
-                      next-linkage/expects-single)]
-            [else
-             (compile (ToplevelSet-value exp) cenv lexical-pos
-                      next-linkage/expects-single)])]
-          [singular-context-check (emit-singular-context linkage)])
-      (end-with-linkage
-       linkage
-       cenv
-       (append-instruction-sequences
-        get-value-code
-        (make-AssignImmediate target (make-Const (void)))
-        singular-context-check)))))
+  (let ([get-value-code
+         (cond
+          [(ModuleVariable? prefix-element)
+           (compile (ToplevelSet-value exp)
+                    cenv
+                    (make-EnvPrefixReference (ToplevelSet-depth exp)
+                                             (ToplevelSet-pos exp)
+                                             #t)
+                    next-linkage/expects-single)]
+          [else
+           (compile (ToplevelSet-value exp)
+                    cenv
+                    (make-EnvPrefixReference (ToplevelSet-depth exp)
+                                             (ToplevelSet-pos exp)
+                                             #f)
+                    next-linkage/expects-single)])]
+        [singular-context-check (emit-singular-context linkage)])
+    (end-with-linkage
+     linkage
+     cenv
+     (append-instruction-sequences
+      get-value-code
+      (make-AssignImmediate target (make-Const (void)))
+      singular-context-check))))
 
 
 (: compile-branch (Branch CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -1296,9 +1306,10 @@
            [(ToplevelRef? e)
             (cond
              [(ModuleVariable? k)
-              k]
+              (make-EnvPrefixReference (ToplevelRef-depth e) (ToplevelRef-pos e) #t)]
+
              [else
-              (make-EnvPrefixReference (ToplevelRef-depth e) (ToplevelRef-pos e))])]
+              (make-EnvPrefixReference (ToplevelRef-depth e) (ToplevelRef-pos e) #f)])]
            [else 
             (error 'all-operands-are-constant "Impossible")]))
        rands
@@ -2128,7 +2139,8 @@
                          ;; there may be additional values that are currently there.
                          (make-EnvPrefixReference (+ (ensure-natural (sub1 n))
                                                      (ToplevelRef-depth id))
-                                                  (ToplevelRef-pos id))
+                                                  (ToplevelRef-pos id)
+                                                  #f)
                          from))
                       ids
                       (if (> n 0) 
@@ -2215,7 +2227,8 @@
                                (EnvLexicalReference-unbox? target))]
     [(EnvPrefixReference? target)
      (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
-                              (EnvPrefixReference-pos target))]
+                              (EnvPrefixReference-pos target)
+                              (EnvPrefixReference-modvar? target))]
     [(PrimitivesReference? target)
      target]
     [(ControlFrameTemporary? target)

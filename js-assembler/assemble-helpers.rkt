@@ -249,26 +249,6 @@
                    ")")]))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (if (EnvLexicalReference-unbox? a-lex-ref)
@@ -277,11 +257,20 @@
       (format "M.e[M.e.length-~a]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))))
 
+
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)
-  (format "M.e[M.e.length-~a][~a]"
-          (add1 (EnvPrefixReference-depth a-ref))
-          (EnvPrefixReference-pos a-ref)))
+  (cond
+   [(EnvPrefixReference-modvar? a-ref)
+    (format "M.e[M.e.length-~a][~a].prefix[M.e[M.e.length-~a][~a].offset]"
+            (add1 (EnvPrefixReference-depth a-ref))
+            (EnvPrefixReference-pos a-ref)
+            (add1 (EnvPrefixReference-depth a-ref))
+            (EnvPrefixReference-pos a-ref))]
+   [else
+    (format "M.e[M.e.length-~a][~a]"
+            (add1 (EnvPrefixReference-depth a-ref))
+            (EnvPrefixReference-pos a-ref))]))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)

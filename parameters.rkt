@@ -25,7 +25,7 @@
          current-one-module-per-file?
          current-with-cache?
          current-with-legacy-ie-support?
-         
+         current-header-scripts         
          
          current-report-port
          current-timing-port
@@ -103,6 +103,9 @@
 (define current-with-legacy-ie-support? (make-parameter #t))
 
 
+;; Keeps list of Javascript files to be included in the header.
+(: current-header-scripts (Parameterof (Listof Path)))
+(define current-header-scripts (make-parameter '()))
 
 
 (: current-report-port (Parameterof Output-Port))

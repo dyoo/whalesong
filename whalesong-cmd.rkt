@@ -105,6 +105,12 @@
             [("--as-standalone-xhtml")
              ("Write single standalone xhtml file")
              (as-standalone-html? #t)]
+            #:multi
+            [("--include-script")
+             script-path
+             ("Include a Javascript file in the header.")
+             (current-header-scripts (cons (string->path script-path) (current-header-scripts)))]
+
             #:args (path)
 
             (maybe-with-profiling

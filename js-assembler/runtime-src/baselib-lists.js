@@ -274,12 +274,12 @@
             hare = hare.rest;
             if (hare instanceof Cons) { 
                 // optimization to get amortized linear time isList:
-                if (hare._isList !== undefined) { 
+                if (hare._isList !== void(0)) { 
                     tortoise._isList = hare._isList; return hare._isList; 
                 }
                 hare = hare.rest; 
                 // optimization to get amortized linear time isList:
-                if (hare instanceof Cons && hare._isList !== undefined) { 
+                if (hare instanceof Cons && hare._isList !== void(0)) { 
                     tortoise._isList = hare._isList; return hare._isList; 
                 }
             }

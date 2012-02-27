@@ -60,7 +60,7 @@
                 return "...";
             }
         }
-        if (x === undefined) {
+        if (x === void(0)) {
             return "#<undefined>";
         }
         if (typeof(x) === 'string') {
@@ -103,7 +103,7 @@
                 return "...";
             }
         }
-        if (x === undefined || x === null) {
+        if (x === void(0) || x === null) {
             return "#<undefined>";
         }
         if (typeof(x) === 'string') {
@@ -208,16 +208,16 @@
                 this[k] = params[k];
             }
         }
-        if (this.cache === undefined) {
+        if (this.cache === void(0)) {
             this.cache = baselib.hashes.makeLowLevelEqHash();
         }
-        if (this.cycles === undefined) {
+        if (this.cycles === void(0)) {
             this.cycles = baselib.hashes.makeLowLevelEqHash();
         }
-        if (this.depth === undefined) {
+        if (this.depth === void(0)) {
             this.depth = 0;
         }
-        if (this.objectCounter === undefined) {
+        if (this.objectCounter === void(0)) {
             this.objectCounter = 0;
         }
     };
@@ -374,7 +374,7 @@
             return node;
         }
 
-        if (x === undefined) {
+        if (x === void(0)) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode("#<undefined>"));
             $(node).addClass("undefined");

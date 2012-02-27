@@ -20,7 +20,7 @@
 	// this.pendingBegin0Values = undefined;
     };
     Frame.prototype.getMarks = function() {
-        if (this.marks === undefined) { this.marks = []; }
+        if (this.marks === void(0)) { this.marks = []; }
         return this.marks;
     };
 

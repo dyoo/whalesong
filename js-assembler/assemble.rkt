@@ -567,10 +567,16 @@ EOF
              (format "M.e.push(~a);" (string-join
                                       (build-list (PushEnvironment-n stmt) 
                                                   (lambda: ([i : Natural])
-                                                               "[undefined]"))
-                                      ", "))]
+                                                               "[void(0)]"))
+                                      ","))]
             [else
-             (format "M.e.length+=~a;" (PushEnvironment-n stmt))])]
+             (format "M.e.push(~a);" (string-join
+                                      (build-list (PushEnvironment-n stmt) 
+                                                  (lambda: ([i : Natural])
+                                                               "void(0)"))
+                                      ","))
+             ;(format "M.e.length+=~a;" (PushEnvironment-n stmt))
+             ])]
      [(PopEnvironment? stmt)
       (let: ([skip : OpArg (PopEnvironment-skip stmt)])
         (cond
@@ -603,7 +609,7 @@ EOF
   (cond
    #;[(current-emit-debug-trace?)
     (string-append 
-     (format "if(typeof(window.console)!=='undefined'&&typeof(window.console.log)==='function'){window.console.log(~s);\n}"
+     (format "if(window.console!==void(0)&&typeof(window.console.log)==='function'){window.console.log(~s);\n}"
                (format "~a" stmt))
      assembled)]
    [else

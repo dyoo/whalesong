@@ -269,7 +269,7 @@
     var lookupStructureTypeProperty = function(structType, property) {
         var propertiesList = structType.propertiesList;
         if (! propertiesList) {
-            return undefined;
+            return void(0);
         }
         while (propertiesList !== baselib.lists.EMPTY) {
             if (propertiesList.first.first === property) {
@@ -277,7 +277,7 @@
             }
             propertiesList = propertiesList.rest;
         }
-        return undefined;
+        return void(0);
     };
 
 

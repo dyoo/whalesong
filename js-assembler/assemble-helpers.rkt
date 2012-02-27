@@ -494,7 +494,7 @@
             (symbol->string (ModuleLocator-name modname)))]
 
    [(eq? pred 'linked?)
-    (format "(M.modules[~s]!==undefined)"
+    (format "(M.modules[~s]!==void(0))"
             (symbol->string (ModuleLocator-name modname)))]))
 
 

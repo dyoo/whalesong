@@ -22,7 +22,7 @@
       ;; Small optimization: try to avoid creating the array if we know up front
       ;; that the closure has no closed values.
       [(null? (MakeCompiledProcedure-closed-vals op))
-       (format "new RT.Closure(~a,~a,undefined,~a)"
+       (format "new RT.Closure(~a,~a,void(0),~a)"
                (assemble-label (make-Label (MakeCompiledProcedure-label op))
                                blockht)
                (assemble-arity (MakeCompiledProcedure-arity op))
@@ -43,7 +43,7 @@
                (assemble-display-name (MakeCompiledProcedure-display-name op)))])]
     
     [(MakeCompiledProcedureShell? op)
-     (format "new RT.Closure(~a,~a,undefined,~a)"
+     (format "new RT.Closure(~a,~a,void(0),~a)"
              (assemble-label (make-Label (MakeCompiledProcedureShell-label op))
                              blockht)
              (assemble-arity (MakeCompiledProcedureShell-arity op))

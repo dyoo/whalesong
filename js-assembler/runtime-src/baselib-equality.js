@@ -38,13 +38,13 @@
             return x.toString() === y.toString();
         }
 
-        if (x === undefined || x === null) {
-            return (y === undefined || y === null);
+        if (x === void(0) || x === null) {
+            return (y === void(0) || y === null);
         }
 
         if (typeof (x) === 'object' && typeof (y) === 'object' &&
             x.equals && y.equals) {
-            if (typeof (aUnionFind) === 'undefined') {
+            if (aUnionFind === void(0)) {
                 aUnionFind = new baselib.UnionFind();
             }
 

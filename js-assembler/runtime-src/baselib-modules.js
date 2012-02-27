@@ -31,7 +31,7 @@
                 }
             }
         }
-        return undefined;
+        return void(0);
     };
 
     Namespace.prototype.refreshPrefixMapping = function() {
@@ -136,7 +136,7 @@
                 throw that.label;
             } else {
                 MACHINE.exclusiveLock.acquire(
-                    undefined,
+                    void(0),
                     function(release) {
                         MACHINE.params['currentErrorHandler'] = function (MACHINE, anError) {
                             MACHINE.params['currentErrorHandler'] = oldErrorHandler;

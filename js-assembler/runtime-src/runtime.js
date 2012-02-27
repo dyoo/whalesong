@@ -237,9 +237,9 @@
 
     var Machine = function() {
 	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
-	this.v = undefined;         // value register
-	this.p = undefined;        // procedure register
-	this.a = undefined;           // argument count
+	this.v = void(0);         // value register
+	this.p = void(0);        // procedure register
+	this.a = void(0);           // argument count
 	this.e = [];                // environment
 	this.c = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
@@ -312,14 +312,14 @@
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
             return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-app-key') || 'traced-app-key';
         }
-        return undefined;
+        return void(0);
     };
 
     var getTracedCalleeKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
             return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-callee-key') || 'traced-callee-key';
         }
-        return undefined;
+        return void(0);
     };
 
 
@@ -467,7 +467,7 @@
         var oldArgcount = MACHINE.a;
         return function(f) {
             pauseLock.acquire(
-                undefined,
+                void(0),
                 function(pauseReleaseLock) {
                     MACHINE.a = oldArgcount;
                     MACHINE._trampoline(f, false, release);
@@ -570,7 +570,7 @@
                     var restarted = false;
                     var restart = function(f) {
                         pauseLock.acquire(
-                            undefined,
+                            void(0),
                             function(releasePauseLock) {
                                 restarted = true;
                                 that.a = oldArgcount;
@@ -588,7 +588,7 @@
                             args.push(arguments[i]);
                         }
                         pauseLock.acquire(
-                            undefined,
+                            void(0),
                             function(release) {
                                 var newSuccess = function() {
                                     success.apply(null, arguments);

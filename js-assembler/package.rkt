@@ -9,6 +9,7 @@
          "../compiler/expression-structs.rkt"
          "../parser/path-rewriter.rkt"
          "../parser/parse-bytecode.rkt"
+         "../parser/modprovide.rkt"
          "../resource/structs.rkt"
 	 "../promise.rkt"
          "check-valid-module-source.rkt"
@@ -166,16 +167,12 @@
 (define (get-javascript-implementation src)
   
   (define (get-provided-name-code bytecode)
-    (match bytecode
-      [(struct Top [_ (struct Module (name path prefix requires provides code))])
-       (apply string-append
-              (map (lambda (p)
-                     (format "modrec.getNamespace().set(~s,exports[~s]);\n"
-                             (symbol->string (ModuleProvide-internal-name p))
-                             (symbol->string (ModuleProvide-external-name p))))
-                   provides))]
-      [else
-       ""]))
+    (apply string-append
+           (map (lambda (p)
+                  (format "modrec.getNamespace().set(~s,exports[~s]);\n"
+                          (symbol->string (ModuleProvide-internal-name p))
+                          (symbol->string (ModuleProvide-external-name p))))
+                (get-provided-names bytecode))))
 
 
   (define (get-implementation-from-path path)

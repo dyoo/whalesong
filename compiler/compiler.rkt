@@ -1286,13 +1286,12 @@
 (define (ensure-simple-expression e)
   (if (or (Constant? e)
           (LocalRef? e)
-          (ToplevelRef? e)
-          )
+          (ToplevelRef? e))
       e
       (error 'ensure-simple-expression)))
 
 
-(: simple-operands->opargs ((Listof Expression) (Listof CompileTimeEnvironmentEntry) -> (Listof (U OpArg ModuleVariable))))
+(: simple-operands->opargs ((Listof Expression) (Listof CompileTimeEnvironmentEntry) -> (Listof OpArg)))
 ;; Produces a list of OpArgs if all the operands are particularly simple, and false otherwise.
 (define (simple-operands->opargs rands knowledge)
   (map (lambda: ([e : Expression]

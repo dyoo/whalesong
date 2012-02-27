@@ -48,7 +48,6 @@
                        PrimitivesReference                   
                        ControlFrameTemporary
                        ModulePrefixTarget
-                       ModuleVariable
                        ))
 
 (define-struct: ModuleVariableThing () #:transparent)

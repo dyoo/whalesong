@@ -6,13 +6,14 @@
 ; This is a small demonstration of the Javascript
 ; graphics library Raphael from http://raphaeljs.com/ .
 
+; Include the small script in raphael-script.js to load Rapahel (old version 1.5.2).
+;    racket ../../whalesong.rkt build --include-script raphael-script.js raphael-demo.rkt
 
 ; The example below the bindings draws a Lissajous curve.
 
 
 ;;;
 ;;; Whalesong binding of Raphael
-(load-script "http://yandex.st/raphael/1.5.2/raphael.js")
 ;;;
 
 (define paper #f)
@@ -21,7 +22,7 @@
   (unless paper    
     (set! paper
           (js-eval 
-           (format "Raphael(~s, ~a, ~a)"
+           (format "Raphael(~a, ~a, ~a)"
                    id width height)))))
 
 (define (raphael-rect x1 y1 x2 y2 . more)
@@ -127,6 +128,10 @@
 
 (define SECONDS-PER-ORBIT 20)
 
+(define STAR-PATH
+  "M16,22.375L7.116,28.83l3.396-10.438l-8.883-6.458l10.979,0.002L16.002,
+   1.5l3.391,10.434h10.981l-8.886,6.457l3.396,10.439L16,22.375L16,22.375z")
+
 (define (count->time c)
   (let ([seconds (/ (remainder c (* SECONDS-PER-ORBIT FRAMES-PER-SECOND)) FRAMES-PER-SECOND)])
     (* 2 pi (/ seconds SECONDS-PER-ORBIT))))
@@ -145,12 +150,13 @@
              [y (min y XMAX)])
         (/ (* (- (- y) YMIN) HEIGHT) dy)))))
 
-(define-struct world (count dot))
+(define-struct world (count star))
 
 ;;; See http://en.wikipedia.org/wiki/Lissajous_curve for
 ;;; other values of a and b to try.
 (define a 5)
 (define b 4)
+(define c 3)
 
 (define (x t)
   (* 0.8 (sin (* a t))))
@@ -161,7 +167,7 @@
 ;; tick: world view -> world
 (define (tick world view)
   (let* ([c (world-count world)]
-         [d (world-dot world)]
+         [s (world-star world)]
          [t (count->time c)]
          [t2 (count->time (sub1 c))])
     (cond
@@ -169,18 +175,28 @@
        (raphael-init "raphael_area" WIDTH HEIGHT)       
        (make-world 1 (raphael-circle (screen-x (x t)) (screen-y (y t)) 3))]
       [else
-       (raphael-remove d)
-       (raphael-line (screen-x (x t2)) (screen-y (y t2)) (screen-x (x t)) (screen-y (y t)))
-       (make-world (add1 c) (raphael-circle (screen-x (x t)) (screen-y (y t)) 3))])))
+       (raphael-remove s)
+       (let ([color (format "rgb(~a%, ~a%, ~a%)" 
+                            (* 100 (/ (+ 1.0 (x t)) 2.0))
+                            (* 100 (/ (+ 1.0 (y t)) 2.0))
+                            50)])
+         (raphael-attr (raphael-line (screen-x (x t2)) (screen-y (y t2)) 
+                                     (screen-x (x t)) (screen-y (y t)))
+                       "stroke" color)
+         (make-world (add1 c)
+                     (let* ([s (raphael-path STAR-PATH)]
+                            [s (raphael-translate s 
+                                                  (- (screen-x (x t)) 15)
+                                                  (- (screen-y (y t)) 15))]
+                            [s (raphael-attr s "fill" color)]
+                            [s (raphael-rotate s c)]
+                            [scale (+ 3 (* 20 (/ (+ 1.0 (sin (* 5 t))) 2)))]
+                            [s (raphael-scale s scale scale)])
+                       (raphael-attr s "stroke" "black"))))])))
 
 ;; draw: world view -> view
 (define (draw world view)
-  (let ([c (world-count world)]
-        [r (world-dot world)])
-    (cond
-      [(zero? c)  'skip]
-      [else       'skip])
-    view))
+  view)
 
 (big-bang 
  (make-world 0 #f)

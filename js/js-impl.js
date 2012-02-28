@@ -116,7 +116,7 @@
                                     plt.baselib.format.format(
                                         "unable to load ~a: ~a",
                                         [url,
-                                         e.message]));
+                                         ((e && e.message) ? e.message : "unknown error")]));
                             });
                         };
                         loadScript(url.toString(),

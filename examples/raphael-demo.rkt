@@ -21,7 +21,7 @@
   (unless paper    
     (set! paper
           (js-eval 
-           (format "Raphael(~a, ~a, ~a)"
+           (format "Raphael(~s, ~a, ~a)"
                    id width height)))))
 
 (define (raphael-rect x1 y1 x2 y2 . more)

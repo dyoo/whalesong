@@ -6,7 +6,8 @@
 
 
 (version-case
-  [(version<= "5.1.1.900" (version))
+  [(and (version<= "5.1.1.900" (version))
+        (version< (version) "5.2"))
 
 
 

@@ -847,6 +847,12 @@
                 }
                 return sum;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '+', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '+', 'number', 1, y);
+                }
                 return plt.baselib.numbers.add(x, y);
             }
         }
@@ -888,6 +894,12 @@
                 }
                 return prod;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '*', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '*', 'number', 1, y);
+                }
                 return plt.baselib.numbers.multiply(x, y);
             }
         }
@@ -934,6 +946,12 @@
                 }
                 return sum;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '-', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '-', 'number', 1, y);
+                }
                 return plt.baselib.numbers.subtract(x, y);
             }
         }
@@ -961,6 +979,12 @@
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 return x > y;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '>', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '>', 'number', 1, y);
+                }
                 return plt.baselib.numbers.greaterThan(x, y);
             }
         }
@@ -993,6 +1017,12 @@
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 return x === y;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '=', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '=', 'number', 1, y);
+                }
                 return plt.baselib.numbers.equals(x, y);
             }
         }

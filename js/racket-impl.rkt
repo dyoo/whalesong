@@ -19,6 +19,8 @@
          js-null
          
          js-eval
+         
+         load-script
          )
 
 (define (alert x)
@@ -89,4 +91,11 @@
 ;; The viewport height in pixels.
 (define (viewport-height)
   (error 'viewport-width "Not available outside JavaScript context."))
+
+
+
+;; load-script: string -> void
+;; Load the url as a script.
+(define (load-script url)
+  (error 'load-script "Not available outside JavaScript context."))
 

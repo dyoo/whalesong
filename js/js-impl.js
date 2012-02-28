@@ -5,7 +5,9 @@
     "use strict";
 
     var VOID = plt.baselib.constants.VOID_VALUE;
+    var PAUSE = plt.runtime.PAUSE;
     var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
+    var makeClosure = plt.baselib.functions.makeClosure;
     var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
     var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
     var checkString = plt.baselib.check.checkString;
@@ -20,6 +22,56 @@
     var isJsNumber = function(x) { return typeof(x) === 'number'; };
     var checkNumber = plt.baselib.check.checkNumber;
     var checkJsNumber = makeCheckArgumentType(isJsNumber, 'JavaScript number');
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    /* Lesser General Public License for more details.
+     *
+     * You should have received a copy of the GNU Lesser General Public
+     * License along with this library; if not, write to the Free Software
+     * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+     *
+     * Contact information:
+     *   Dao Gottwald  <dao at design-noir.de>
+     *
+     * @version  1.6
+     * @url      http://design-noir.de/webdev/JS/loadScript/
+     */
+    var _loadScriptQueue = {};
+    var loadScript = function(url, callback, onError) {
+        var queue = _loadScriptQueue;
+        if (url in queue) { // script is already in the document
+	    if (callback) {
+	        if (queue[url]) // still loading
+		    queue[url].push(callback);
+	        else // loaded
+		    callback();
+	    }
+	    return;
+        }
+        queue[url] = callback ? [callback] : [];
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.onload = script.onreadystatechange = function() {
+	    if (script.readyState && script.readyState != "loaded" && script.readyState != "complete")
+	        return;
+	    script.onreadystatechange = script.onload = null;
+	    document.getElementsByTagName("head")[0].removeChild(script);
+	    var work = queue[url];
+	    delete(queue[url]);
+	    while (work.length)
+	        work.shift()();
+        };
+        script.onerror = function() {
+	    script.onreadystatechange = script.onload = null;
+	    document.getElementsByTagName("head")[0].removeChild(script);
+            onError();
+        };
+        script.src = url;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    };
+
 
 
     EXPORTS['alert'] =
@@ -41,6 +93,41 @@
                 var obj = eval(String(elt));
                 return obj;
             });
+
+    EXPORTS['load-script'] =
+        makeClosure(
+            'load-script',
+            1,
+            function(MACHINE) {
+                var url = checkString(MACHINE, 'load-string', 0);
+                PAUSE(
+                    function(restart) {
+                        var onload = function() {
+                            restart(function(MACHINE) {
+                                plt.runtime.finalizeClosureCall(
+                                    MACHINE, 
+                                    VOID);
+                            });
+                        };
+                        var onerror = function(e) {
+                            restart(function(MACHINE) {
+                                plt.baselib.exceptions.raiseFailure(
+                                    MACHINE, 
+                                    plt.baselib.format.format(
+                                        "unable to load ~a: ~a",
+                                        [url,
+                                         e.message]));
+                            });
+                        };
+                        loadScript(url.toString(),
+                                   onload,
+                                   onerror);
+                    }
+                );                
+            },
+            void(0));
+            
+
 
     EXPORTS['body'] = $(document.body);
 

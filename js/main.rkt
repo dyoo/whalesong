@@ -29,4 +29,6 @@
                     js-null
                     
                     js-eval
+
+                    load-script
                     ))

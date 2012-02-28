@@ -32,6 +32,15 @@
                 return VOID;
             });
 
+    EXPORTS['js-eval'] =
+        makePrimitiveProcedure(
+            'myalert',
+            1,
+            function(MACHINE) {
+                var elt = MACHINE.e[MACHINE.e.length - 1];
+                var obj = eval(String(elt));
+                return obj;
+            });
 
     EXPORTS['body'] = $(document.body);
 

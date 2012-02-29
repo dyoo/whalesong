@@ -33,7 +33,11 @@
          assemble-module-variable-ref
          
          block-looks-like-context-expected-values?
-         block-looks-like-pop-multiple-values-and-continue?)
+         block-looks-like-pop-multiple-values-and-continue?
+
+         current-interned-symbol-table
+         assemble-current-interned-symbol-table
+         )
 
 (require/typed typed/racket/base
                [regexp-split (Regexp String -> (Listof String))])
@@ -124,12 +128,36 @@
   (format "M.c[M.c.length-1].~a"
           (ControlFrameTemporary-name t)))
 
+
+(: current-interned-symbol-table (Parameterof (HashTable Symbol Symbol)))
+(define current-interned-symbol-table
+  (make-parameter ((inst make-hasheq Symbol Symbol))))
+
+
+(: assemble-current-interned-symbol-table (-> String))
+(define (assemble-current-interned-symbol-table)
+  (string-join (hash-map
+                  (current-interned-symbol-table)
+                  (lambda: ([a-symbol : Symbol] [variable-name : Symbol]) 
+                    (format "var ~a=RT.makeSymbol(~s);"
+                            variable-name
+                            (symbol->string a-symbol))))
+                 "\n"))
+  
 ;; fixme: use js->string
 (: assemble-const (Const -> String))
 (define (assemble-const stmt)
   (let: loop : String ([val : const-value (Const-const stmt)])
         (cond [(symbol? val)
-               (format "RT.makeSymbol(~s)" (symbol->string val))]
+               (define intern-var (hash-ref (current-interned-symbol-table)
+                                            val
+                                            (lambda ()
+                                              (define fresh (gensym 'sym))
+                                              (hash-set! (current-interned-symbol-table) val fresh)
+                                              fresh)))
+               (symbol->string intern-var)
+               ;;(format "RT.makeSymbol(~s)" (symbol->string val))
+               ]
               [(pair? val)
                (format "RT.makePair(~a,~a)" 
                        (loop (car val))

@@ -36,6 +36,7 @@
 ;; What's emitted is a function expression that, when invoked, runs the
 ;; statements.
 (define (assemble/write-invoke stmts op)
+  (parameterize ([current-interned-symbol-table ((inst make-hash Symbol Symbol))])
   (display "(function(M, success, fail, params) {\n" op)
   (display "var param;\n" op)
   (display "var RT = plt.runtime;\n" op)
@@ -56,8 +57,8 @@
                 (list->set entry-points)
                 function-entry-and-exit-names
                 op)
-  
   (write-linked-label-attributes stmts blockht op)
+  (display (assemble-current-interned-symbol-table) op)
   
   (display "M.params.currentErrorHandler = fail;\n" op)
   (display "M.params.currentSuccessHandler = success;\n" op)
@@ -71,7 +72,7 @@ EOF
             op)
   (fprintf op "M.trampoline(~a, true); })"
            (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))
-                           blockht)))
+                           blockht))))
 
 
 

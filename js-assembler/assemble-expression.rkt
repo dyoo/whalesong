@@ -72,7 +72,7 @@
      (open-code-kernel-primitive-procedure op blockht)]
 
     [(ApplyPrimitiveProcedure? op)
-     "M.p._i(M)"]
+     (format "M.primitives[~s]._i(M)" (symbol->string (ApplyPrimitiveProcedure-name op)))]
 
     [(ModuleVariable? op)
      (format "M.modules[~s].getNamespace().get(~s)"

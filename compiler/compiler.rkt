@@ -1086,7 +1086,6 @@
           (extend-compile-time-environment/scratch-space 
            cenv 
            (length (App-operands exp)))]
-         [proc-code (compile (App-operator exp) extended-cenv 'proc next-linkage/expects-single)]
          [operand-codes (map (lambda: ([operand : Expression]
                                        [target : Target])
                                (compile operand
@@ -1100,7 +1099,6 @@
     (append-instruction-sequences
      (make-PushEnvironment (length (App-operands exp)) #f)
      (apply append-instruction-sequences operand-codes)
-     proc-code
      (make-AssignImmediate 'argcount (make-Const (length (App-operands exp))))
      (if (arity-matches? expected-arity (length (App-operands exp)))
          (compile-primitive-procedure-call primitive-name
@@ -1117,7 +1115,8 @@
 ;; If we know the procedure is implemented as a primitive (as opposed to a general closure),
 ;; we can do a little less work.
 ;; We don't need to check arity (as that's already been checked statically).
-;; Assumes 1. the procedure value is loaded into proc,
+;; Assumes 1. the procedure value is NOT loaded into proc.  We know statically what the
+;;            procedure is supposed to be.
 ;;         2. number-of-arguments has been written into the argcount register,
 ; ;        3. the number-of-arguments values are on the stack.
 (: compile-primitive-procedure-call (Symbol CompileTimeEnvironment OpArg Target Linkage -> InstructionSequence))

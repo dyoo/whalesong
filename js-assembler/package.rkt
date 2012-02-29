@@ -59,15 +59,15 @@
 
 
 
-(define primitive-identifiers-set
-  (list->set primitive-ids))
+(define primitive-identifiers-ht
+  (make-hash primitive-ids))
 
 ;; Sets up the compiler parameters we need to do javascript-specific compilation.
 (define (with-compiler-params thunk)
   (parameterize ([compile-context-preservation-enabled #t]
                  [current-primitive-identifier?
                   (lambda (a-name)
-                    (set-member? primitive-identifiers-set a-name))])
+                    (hash-ref primitive-identifiers-ht a-name #f))])
     (thunk)))
 
 

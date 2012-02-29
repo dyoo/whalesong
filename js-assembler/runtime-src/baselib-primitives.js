@@ -1635,7 +1635,7 @@
 
     installPrimitiveProcedure(
         'random',
-        baselib.lists.makeList(0, 1),
+        makeList(0, 1),
         function (M) {
             if (M.a === 0) {
                 return makeFloat(Math.random());

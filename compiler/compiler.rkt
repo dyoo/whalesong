@@ -1000,7 +1000,8 @@
              [(KernelPrimitiveName/Inline? id)
               (compile-open-codeable-application id exp cenv target linkage)]
              [((current-primitive-identifier?) id)
-              (compile-primitive-application exp cenv target linkage)]
+              => (lambda (expected-arity)
+                   (compile-primitive-application exp cenv target linkage id expected-arity))]
              [else
               (default)]))]
         [(StaticallyKnownLam? op-knowledge)
@@ -1079,8 +1080,8 @@
 
 
 
-(: compile-primitive-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
-(define (compile-primitive-application exp cenv target linkage)
+(: compile-primitive-application (App CompileTimeEnvironment Target Linkage Symbol Arity -> InstructionSequence))
+(define (compile-primitive-application exp cenv target linkage primitive-name expected-arity)
   (let* ([extended-cenv
           (extend-compile-time-environment/scratch-space 
            cenv 
@@ -1101,10 +1102,39 @@
      (apply append-instruction-sequences operand-codes)
      proc-code
      (make-AssignImmediate 'argcount (make-Const (length (App-operands exp))))
-     (compile-primitive-procedure-call cenv 
-                                       (make-Const (length (App-operands exp)))
-                                       target
-                                       linkage))))
+     (if (arity-matches? expected-arity (length (App-operands exp)))
+         (compile-primitive-procedure-call primitive-name
+                                           cenv 
+                                           (make-Const (length (App-operands exp)))
+                                           target
+                                           linkage)
+         (make-Perform (make-RaiseArityMismatchError! 
+                       (make-Reg 'proc)
+                       expected-arity
+                       (make-Const (length (App-operands exp)))))))))
+
+
+;; If we know the procedure is implemented as a primitive (as opposed to a general closure),
+;; we can do a little less work.
+;; We don't need to check arity (as that's already been checked statically).
+;; Assumes 1. the procedure value is loaded into proc,
+;;         2. number-of-arguments has been written into the argcount register,
+; ;        3. the number-of-arguments values are on the stack.
+(: compile-primitive-procedure-call (Symbol CompileTimeEnvironment OpArg Target Linkage -> InstructionSequence))
+(define (compile-primitive-procedure-call primitive-name cenv number-of-arguments target linkage)
+  (end-with-linkage
+   linkage
+   cenv
+   (append-instruction-sequences
+    (make-AssignPrimOp 'val (make-ApplyPrimitiveProcedure primitive-name))
+    (make-PopEnvironment number-of-arguments (make-Const 0))
+    (if (eq? target 'val)
+        empty-instruction-sequence
+        (make-AssignImmediate target (make-Reg 'val)))
+    (emit-singular-context linkage))))
+
+
+
 
 
 
@@ -1508,29 +1538,6 @@
                                             'dynamic
                                             target
                                             linkage))))
-
-
-
-;; If we know the procedure is implemented as a primitive (as opposed to a general closure),
-;; we can do a little less work.
-;; Assumes 1. the procedure value is loaded into proc,
-;;         2. number-of-arguments has been written into the argcount register,
-; ;        3. the number-of-arguments values are on the stack.
-(: compile-primitive-procedure-call (CompileTimeEnvironment OpArg Target Linkage 
-                                                            -> InstructionSequence))
-(define (compile-primitive-procedure-call cenv number-of-arguments target linkage)
-  (end-with-linkage
-   linkage
-   cenv
-   (append-instruction-sequences
-    (make-Perform (make-CheckPrimitiveArity!))
-    (make-AssignPrimOp 'val (make-ApplyPrimitiveProcedure))
-    (make-PopEnvironment number-of-arguments (make-Const 0))
-    (if (eq? target 'val)
-        empty-instruction-sequence
-        (make-AssignImmediate target (make-Reg 'val)))
-    (emit-singular-context linkage))))
-
 
 
 

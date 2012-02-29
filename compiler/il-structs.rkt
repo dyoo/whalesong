@@ -339,7 +339,7 @@
   #:transparent)
 
 
-(define-struct: ApplyPrimitiveProcedure () #:transparent)
+(define-struct: ApplyPrimitiveProcedure ([name : Symbol]) #:transparent)
 
 
 (define-struct: MakeBoxedEnvironmentValue ([depth : Natural])

@@ -2,6 +2,7 @@
 
 (require "compiler/expression-structs.rkt"
          "compiler/lexical-structs.rkt"
+         "compiler/arity-structs.rkt"
          "sets.rkt"
          racket/path
          racket/port)
@@ -55,7 +56,7 @@
 
 
 
-(: current-primitive-identifier? (Parameterof (Symbol -> Boolean)))
+(: current-primitive-identifier? (Parameterof (Symbol -> (U False Arity))))
 (define current-primitive-identifier? (make-parameter (lambda: ([name : Symbol]) #f)))
 
 

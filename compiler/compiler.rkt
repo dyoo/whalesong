@@ -980,7 +980,7 @@
     
     (define (default)
       (compile-general-application exp cenv target linkage))
-    
+
     (let: ([op-knowledge : CompileTimeEnvironmentEntry
                          (extract-static-knowledge (App-operator exp)
                                                    extended-cenv)])
@@ -1716,6 +1716,12 @@
        ;(log-debug (format "known to be ~s" entry))
        entry)]
     
+    [(EmptyClosureReference? exp)
+     (make-StaticallyKnownLam (EmptyClosureReference-name exp)
+                              (EmptyClosureReference-entry-label exp)
+                              (if (EmptyClosureReference-rest? exp)
+                                  (make-ArityAtLeast (EmptyClosureReference-num-parameters exp))
+                                  (EmptyClosureReference-num-parameters exp)))]
     [(ToplevelRef? exp)
      ;(log-debug (format "toplevel reference of ~a" exp))
      ;(when (ToplevelRef-constant? exp)

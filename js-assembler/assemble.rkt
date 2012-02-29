@@ -222,19 +222,41 @@ EOF
 
 (: default-assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
 (define (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
+  (fprintf op "var ~a=function(M){"
+           (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))
+  (define is-self-looping?
+    (let ()
+      (cond [(not (empty? (BasicBlock-stmts a-basic-block)))
+             (define last-stmt
+               (last (BasicBlock-stmts a-basic-block)))
+             (cond
+              [(Goto? last-stmt)
+               (define target (Goto-target last-stmt))
+               (equal? target (make-Label (BasicBlock-name a-basic-block)))]
+              [else #f])]
+            [else #f])))
   (cond
-   [(set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
-    (fprintf op "var ~a=function(M){if(--M.cbt<0){throw ~a;}\n"
-             (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)
-             (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))]
+   [is-self-looping?
+    (fprintf op "while(true){")
+    (when (set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
+      (fprintf op "if(--M.cbt<0){throw ~a;}\n"
+               (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)))
+
+    (assemble-block-statements (BasicBlock-name a-basic-block)
+                               (drop-right (BasicBlock-stmts a-basic-block) 1)
+                               blockht
+                               entry-points
+                               op)
+    (fprintf op "}")]
    [else
-    (fprintf op "var ~a=function(M){\n"
-             (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))])
-  (assemble-block-statements (BasicBlock-name a-basic-block)
-                             (BasicBlock-stmts a-basic-block)
-                             blockht
-                             entry-points
-                             op)
+    (when (set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
+      (fprintf op "if(--M.cbt<0){throw ~a;}\n"
+               (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)))
+    (assemble-block-statements (BasicBlock-name a-basic-block)
+                               (BasicBlock-stmts a-basic-block)
+                               blockht
+                               entry-points
+                               op)])
   (display "};\n" op)
   'ok)
 
@@ -246,9 +268,9 @@ EOF
   
   (: default (UnlabeledStatement -> 'ok))
   (define (default stmt)
-    (when (and (empty? (rest stmts))
-               (not (Goto? stmt)))
-      (log-debug (format "Last statement of the block ~a is not a goto" name)))
+    ;(when (and (empty? (rest stmts))
+    ;           (not (Goto? stmt)))
+    ;  (log-debug (format "Last statement of the block ~a is not a goto" name)))
 
     (display (assemble-statement stmt blockht) op)
     (newline op)

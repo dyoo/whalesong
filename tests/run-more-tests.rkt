@@ -7,6 +7,7 @@
 ;; type replaced with .expected.
 
 (test "more-tests/simple.rkt")
+(test "more-tests/simple-loop.rkt")
 (test "more-tests/booleans.rkt")
 (test "more-tests/module-scoping.rkt")
 (test "more-tests/checking.rkt")

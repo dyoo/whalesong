@@ -180,7 +180,7 @@
         RawConstructor.prototype = baselib.heir(parentType.type.prototype);
 
         var theNameSymbol = 
-            baselib.symbols.Symbol.makeInstance(theName);
+            baselib.symbols.makeSymbol(theName);
 
         // Set type, necessary for equality checking
         RawConstructor.prototype.type = RawConstructor;

@@ -1099,17 +1099,26 @@
     (append-instruction-sequences
      (make-PushEnvironment (length (App-operands exp)) #f)
      (apply append-instruction-sequences operand-codes)
-     (make-AssignImmediate 'argcount (make-Const (length (App-operands exp))))
+
+     ;; Optimization: if the expected arity is a known constant, we don't
+     ;; need to touch argcount either.  If it's variable, we emit the argcount, since
+     ;; it's something we need at runtime.
+     (if (number? expected-arity)
+         empty-instruction-sequence
+         (make-AssignImmediate 'argcount (make-Const (length (App-operands exp)))))
+
      (if (arity-matches? expected-arity (length (App-operands exp)))
          (compile-primitive-procedure-call primitive-name
                                            cenv 
                                            (make-Const (length (App-operands exp)))
                                            target
                                            linkage)
-         (make-Perform (make-RaiseArityMismatchError! 
-                       (make-Reg 'proc)
-                       expected-arity
-                       (make-Const (length (App-operands exp)))))))))
+         (append-instruction-sequences
+          (compile (App-operator exp) extended-cenv 'proc next-linkage/expects-single)
+          (make-Perform (make-RaiseArityMismatchError! 
+                         (make-Reg 'proc)
+                         expected-arity
+                         (make-Const (length (App-operands exp))))))))))
 
 
 ;; If we know the procedure is implemented as a primitive (as opposed to a general closure),
@@ -1117,7 +1126,7 @@
 ;; We don't need to check arity (as that's already been checked statically).
 ;; Assumes 1. the procedure value is NOT loaded into proc.  We know statically what the
 ;;            procedure is supposed to be.
-;;         2. number-of-arguments has been written into the argcount register,
+;;         2. (OPTIONAL) number-of-arguments has been conditionally written into the argcount register,
 ; ;        3. the number-of-arguments values are on the stack.
 (: compile-primitive-procedure-call (Symbol CompileTimeEnvironment OpArg Target Linkage -> InstructionSequence))
 (define (compile-primitive-procedure-call primitive-name cenv number-of-arguments target linkage)

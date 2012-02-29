@@ -262,7 +262,7 @@
 (define (assemble-prefix-reference a-ref)
   (cond
    [(EnvPrefixReference-modvar? a-ref)
-    (format "M.e[M.e.length-~a][~a].prefix[M.e[M.e.length-~a][~a].offset]"
+    (format "M.e[M.e.length-~a][~a][0][M.e[M.e.length-~a][~a][1]]"
             (add1 (EnvPrefixReference-depth a-ref))
             (EnvPrefixReference-pos a-ref)
             (add1 (EnvPrefixReference-depth a-ref))

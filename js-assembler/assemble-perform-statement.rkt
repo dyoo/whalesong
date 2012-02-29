@@ -57,10 +57,10 @@
                                                      (symbol->string
                                                             (ModuleLocator-name
                                                              (ModuleVariable-module-name n))))
-                                                   (format "{moduleName:~s,name:~s,prefix:M.modules[~s].prefix,offset:M.modules[~s].getPrefixOffset(~s)}"
+                                                   (format "[M.modules[~s].prefix,M.modules[~s].getPrefixOffset(~s),{moduleName:~s,name:~s}]"
+                                                           module-name
                                                            module-name
                                                            (symbol->string (ModuleVariable-name n))
-                                                           module-name
                                                            module-name
                                                            (symbol->string (ModuleVariable-name n)))])]))
                                  names)

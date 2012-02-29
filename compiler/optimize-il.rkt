@@ -193,8 +193,8 @@
           ]
 
          [(Comment? a-stmt)
-          (loop (rest stmts))
-          ;(cons a-stmt (loop (rest stmts)))
+          ;(loop (rest stmts))
+          (cons a-stmt (loop (rest stmts)))
           ]
          
          [(AssignImmediate? a-stmt)
@@ -386,7 +386,7 @@
     [(PopControlFrame? stmt)
      #f]
     [(Comment? stmt)
-     #t]))
+     #f]))
 
 
 

@@ -1243,7 +1243,8 @@
                  
                  [operand-poss
                   (simple-operands->opargs (map (lambda: ([op : Expression])
-                                                  (adjust-expression-depth op n n))
+                                                  (ensure-simple-expression
+                                                   (adjust-expression-depth op n n)))
                                                 (App-operands exp))
                                            operand-knowledge)])
             (end-with-linkage
@@ -1342,11 +1343,12 @@
 
 
 
-(: ensure-simple-expression (Expression -> (U Constant ToplevelRef LocalRef)))
+(: ensure-simple-expression (Expression -> (U Constant ToplevelRef LocalRef PrimitiveKernelValue)))
 (define (ensure-simple-expression e)
   (if (or (Constant? e)
           (LocalRef? e)
-          (ToplevelRef? e))
+          (ToplevelRef? e)
+          (PrimitiveKernelValue? e))
       e
       (error 'ensure-simple-expression)))
 
@@ -1359,13 +1361,16 @@
 (define (simple-expression? e)
   (or (Constant? e)
       (LocalRef? e)
-      (ToplevelRef? e)))
+      (ToplevelRef? e)
+      (PrimitiveKernelValue? e)))
 
 
-(: simple-operands->opargs ((Listof Expression) (Listof CompileTimeEnvironmentEntry) -> (Listof OpArg)))
-;; Produces a list of OpArgs if all the operands are particularly simple, and false otherwise.
+(: simple-operands->opargs ((Listof (U Constant LocalRef ToplevelRef PrimitiveKernelValue))
+                            (Listof CompileTimeEnvironmentEntry)
+                            -> (Listof OpArg)))
+;; Produces a list of OpArgs if all the operands are particularly simple.
 (define (simple-operands->opargs rands knowledge)
-  (map (lambda: ([e : Expression]
+  (map (lambda: ([e : (U Constant LocalRef ToplevelRef PrimitiveKernelValue)]
                  [k : CompileTimeEnvironmentEntry])
          (cond
            [(Constant? e)
@@ -1380,8 +1385,8 @@
               
               [else
                (make-EnvPrefixReference (ToplevelRef-depth e) (ToplevelRef-pos e) #f)])]
-           [else 
-            (error 'all-operands-are-constant "Impossible")]))
+           [(PrimitiveKernelValue? e)
+            e]))
        rands
        knowledge))
 

@@ -1039,41 +1039,63 @@
 
 (: compile-general-application (App CompileTimeEnvironment Target Linkage -> InstructionSequence))
 (define (compile-general-application exp cenv target linkage)
-  (let* ([extended-cenv
-          (extend-compile-time-environment/scratch-space 
-           cenv 
-           (length (App-operands exp)))]
-         [proc-code (compile (App-operator exp)
-                             extended-cenv 
-                             (if (empty? (App-operands exp))
-                                 'proc
-                                 (make-EnvLexicalReference 
-                                  (ensure-natural (sub1 (length (App-operands exp))))
-                                  #f))
-                             next-linkage/expects-single)]
-         [operand-codes (map (lambda: ([operand : Expression]
-                                       [target : Target])
-                               (compile operand
-                                        extended-cenv
-                                        target
-                                        next-linkage/expects-single))
-                             (App-operands exp)
-                             (build-list (length (App-operands exp))
-                                         (lambda: ([i : Natural])
-                                           (if (< i (sub1 (length (App-operands exp))))
-                                               (make-EnvLexicalReference i #f)
-                                               'val))))])    
+  (define n (length (App-operands exp)))
+  (define extended-cenv (extend-compile-time-environment/scratch-space 
+                         cenv 
+                         (length (App-operands exp))))
+  (define proc+operands-code
+    (cond
+     ;; Optimization: if the operand and operands are all simple, we don't need to
+     ;; juggle.
+     [(andmap simple-expression? (cons (App-operator exp) (App-operands exp)))
+      (define proc-code (compile (App-operator exp) extended-cenv 'proc next-linkage/expects-single))
+      (define operand-codes (map (lambda: ([operand : Expression]
+                                           [target : Target])
+                                          (compile operand
+                                                   extended-cenv
+                                                   target
+                                                   next-linkage/expects-single))
+                                 (App-operands exp)
+                                 (build-list (length (App-operands exp))
+                                             (lambda: ([i : Natural])
+                                                      (make-EnvLexicalReference i #f)))))
+      (apply append-instruction-sequences proc-code operand-codes)]
+   [else
+    ;; Otherwise, we need to juggle a little.
+    (define proc-code
+      (compile (App-operator exp)
+               extended-cenv 
+               (if (empty? (App-operands exp))
+                   'proc
+                   (make-EnvLexicalReference 
+                    (ensure-natural (sub1 (length (App-operands exp))))
+                    #f))
+               next-linkage/expects-single))
+    (define operand-codes
+      (map (lambda: ([operand : Expression]
+                     [target : Target])
+                    (compile operand
+                             extended-cenv
+                             target
+                             next-linkage/expects-single))
+           (App-operands exp)
+           (build-list (length (App-operands exp))
+                       (lambda: ([i : Natural])
+                                (if (< i (sub1 (length (App-operands exp))))
+                                    (make-EnvLexicalReference i #f)
+                                    'val)))))
     (append-instruction-sequences
-     
-     (make-PushEnvironment (length (App-operands exp)) #f)
      proc-code
-     (juggle-operands operand-codes)
-     (make-AssignImmediate 'argcount
-                           (make-Const (length (App-operands exp))))
-     (compile-general-procedure-call cenv 
-                                     (make-Const (length (App-operands exp)))
-                                     target
-                                     linkage))))
+     (juggle-operands operand-codes))]))
+  
+  (append-instruction-sequences
+   (make-PushEnvironment (length (App-operands exp)) #f)
+   proc+operands-code
+   (make-AssignImmediate 'argcount (make-Const (length (App-operands exp))))
+   (compile-general-procedure-call cenv
+                                   (make-Const (length (App-operands exp)))
+                                   target
+                                   linkage)))
 
 
 
@@ -1203,12 +1225,7 @@
        (cond
          ;; If all the arguments are primitive enough (all constants, localrefs, or toplevelrefs),
          ;; then application requires no stack space at all, and application is especially simple.
-         [(andmap (lambda (op) 
-                    ;; TODO: as long as the operand contains no applications?
-                    (or (Constant? op)
-                        (ToplevelRef? op)
-                        (LocalRef? op)))
-                  (App-operands exp))
+         [(andmap simple-expression? (App-operands exp))
           (let* ([operand-knowledge
                   (map (lambda: ([arg : Expression])
                          (extract-static-knowledge 
@@ -1332,6 +1349,17 @@
           (ToplevelRef? e))
       e
       (error 'ensure-simple-expression)))
+
+
+(: simple-expression? (Expression -> Boolean))
+;; Produces true if the expression is simple and constant.
+;; TODO: generalize this so that it checks that the expression is
+;; side-effect free.  If it's side-effect free, then we can compute
+;; the expressions in any order.
+(define (simple-expression? e)
+  (or (Constant? e)
+      (LocalRef? e)
+      (ToplevelRef? e)))
 
 
 (: simple-operands->opargs ((Listof Expression) (Listof CompileTimeEnvironmentEntry) -> (Listof OpArg)))

@@ -513,6 +513,10 @@
                                               (ToplevelRef-depth exp)
                                               (ToplevelRef-pos exp)))
                                empty-instruction-sequence)
+                           (if (ToplevelRef-constant? exp)
+                               (make-Comment (format "Constant toplevel ref: ~s"
+                                                     (extract-static-knowledge exp cenv)))
+                               empty-instruction-sequence)
                            (make-AssignImmediate
                             target
                             (make-EnvPrefixReference (ToplevelRef-depth exp)

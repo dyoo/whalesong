@@ -36,7 +36,8 @@
 ;; What's emitted is a function expression that, when invoked, runs the
 ;; statements.
 (define (assemble/write-invoke stmts op)
-  (parameterize ([current-interned-symbol-table ((inst make-hash Symbol Symbol))])
+  (parameterize ([current-interned-symbol-table ((inst make-hash Symbol Symbol))]
+                 [current-interned-constant-closure-table ((inst make-hash Symbol MakeCompiledProcedure))])
   (display "(function(M, success, fail, params) {\n" op)
   (display "var param;\n" op)
   (display "var RT = plt.runtime;\n" op)
@@ -59,6 +60,7 @@
                 op)
   (write-linked-label-attributes stmts blockht op)
   (display (assemble-current-interned-symbol-table) op)
+  (display (assemble-current-interned-constant-closure-table) op)
   
   (display "M.params.currentErrorHandler = fail;\n" op)
   (display "M.params.currentSuccessHandler = success;\n" op)
@@ -71,8 +73,7 @@ for (param in params) {
 EOF
             op)
   (fprintf op "M.trampoline(~a, true); })"
-           (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))
-                           blockht))))
+           (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))))
 
 
 
@@ -158,7 +159,7 @@ EOF
             [else
              (fprintf op "~a.mvr=~a;\n" 
                       (munge-label-name (make-Label (LinkedLabel-label stmt)))
-                      (assemble-label (make-Label (LinkedLabel-linked-to stmt)) blockht))])
+                      (assemble-label (make-Label (LinkedLabel-linked-to stmt))))])
           (next)]
          [(DebugPrint? stmt)
           (next)]
@@ -223,7 +224,7 @@ EOF
 (: default-assemble-basic-block (BasicBlock Blockht (Setof Symbol) (Setof Symbol) Output-Port -> 'ok))
 (define (default-assemble-basic-block a-basic-block blockht entry-points function-entry-and-exit-names op)
   (fprintf op "var ~a=function(M){"
-           (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht))
+           (assemble-label (make-Label (BasicBlock-name a-basic-block))))
   (define is-self-looping?
     (let ()
       (cond [(not (empty? (BasicBlock-stmts a-basic-block)))
@@ -240,7 +241,7 @@ EOF
      (fprintf op "while(true){")
      (when (set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
        (fprintf op "if(--M.cbt<0){throw ~a;}\n"
-                (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)))
+                (assemble-label (make-Label (BasicBlock-name a-basic-block)))))
      
      (assemble-block-statements (BasicBlock-name a-basic-block)
                                 (drop-right (BasicBlock-stmts a-basic-block) 1)
@@ -251,7 +252,7 @@ EOF
     [else
      (when (set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
        (fprintf op "if(--M.cbt<0){throw ~a;}\n"
-                (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)))
+                (assemble-label (make-Label (BasicBlock-name a-basic-block)))))
      (assemble-block-statements (BasicBlock-name a-basic-block)
                                 (BasicBlock-stmts a-basic-block)
                                 blockht
@@ -553,11 +554,9 @@ EOF
                (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Call-label stmt)])
                  (cond
                    [(symbol? label) 
-                    (assemble-label (make-Label label)
-                                    blockht)]
+                    (assemble-label (make-Label label))]
                    [(LinkedLabel? label) 
-                    (assemble-label (make-Label (LinkedLabel-label label))
-                                    blockht)])))]
+                    (assemble-label (make-Label (LinkedLabel-label label)))])))]
       
       [(PushControlFrame/Prompt? stmt)
        ;; fixme: use a different frame structure
@@ -565,11 +564,9 @@ EOF
                (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                  (cond
                    [(symbol? label) 
-                    (assemble-label (make-Label label)
-                                    blockht)]
+                    (assemble-label (make-Label label))]
                    [(LinkedLabel? label) 
-                    (assemble-label (make-Label (LinkedLabel-label label))
-                                    blockht)]))
+                    (assemble-label (make-Label (LinkedLabel-label label)))]))
                
                (let: ([tag : (U DefaultContinuationPromptTag OpArg)
                            (PushControlFrame/Prompt-tag stmt)])

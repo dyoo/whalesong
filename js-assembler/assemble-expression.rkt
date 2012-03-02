@@ -7,8 +7,29 @@
          "../compiler/il-structs.rkt"
          racket/string)
 
-(provide assemble-op-expression)
+(provide assemble-op-expression
+         current-interned-constant-closure-table
+         assemble-current-interned-constant-closure-table)
 
+
+
+
+(: current-interned-constant-closure-table (Parameterof (HashTable Symbol MakeCompiledProcedure)))
+(define current-interned-constant-closure-table
+  (make-parameter ((inst make-hasheq Symbol MakeCompiledProcedure))))
+
+
+(: assemble-current-interned-constant-closure-table (-> String))
+(define (assemble-current-interned-constant-closure-table)
+  (string-join (hash-map
+                  (current-interned-constant-closure-table)
+                  (lambda: ([a-label : Symbol] [a-shell : MakeCompiledProcedure]) 
+                           (format "var ~a_c=new RT.Closure(~a,~a,void(0),~a);"
+                                   (assemble-label (make-Label (MakeCompiledProcedure-label a-shell)))
+                                   (assemble-label (make-Label (MakeCompiledProcedure-label a-shell)))
+                                   (assemble-arity (MakeCompiledProcedure-arity a-shell))
+                                   (assemble-display-name (MakeCompiledProcedure-display-name a-shell)))))
+                 "\n"))
 
 
 (: assemble-op-expression (PrimitiveOperator Blockht -> String))
@@ -20,17 +41,17 @@
     [(MakeCompiledProcedure? op)
      (cond
       ;; Small optimization: try to avoid creating the array if we know up front
-      ;; that the closure has no closed values.
+      ;; that the closure has no closed values.  It's a constant that we lift up to the toplevel.
       [(null? (MakeCompiledProcedure-closed-vals op))
-       (format "new RT.Closure(~a,~a,void(0),~a)"
-               (assemble-label (make-Label (MakeCompiledProcedure-label op))
-                               blockht)
-               (assemble-arity (MakeCompiledProcedure-arity op))
-               (assemble-display-name (MakeCompiledProcedure-display-name op)))]
+       (define assembled-label (assemble-label (make-Label (MakeCompiledProcedure-label op))))
+       (unless (hash-has-key? (current-interned-constant-closure-table) (MakeCompiledProcedure-label op))
+         (hash-set! (current-interned-constant-closure-table)
+                    (MakeCompiledProcedure-label op)
+                    op))
+       (format "~a_c" assembled-label)]
       [else
        (format "new RT.Closure(~a,~a,[~a],~a)"
-               (assemble-label (make-Label (MakeCompiledProcedure-label op))
-                               blockht)
+               (assemble-label (make-Label (MakeCompiledProcedure-label op)))
                (assemble-arity (MakeCompiledProcedure-arity op))
                (string-join (map
                              assemble-env-reference/closure-capture 
@@ -44,8 +65,7 @@
     
     [(MakeCompiledProcedureShell? op)
      (format "new RT.Closure(~a,~a,void(0),~a)"
-             (assemble-label (make-Label (MakeCompiledProcedureShell-label op))
-                             blockht)
+             (assemble-label (make-Label (MakeCompiledProcedureShell-label op)))
              (assemble-arity (MakeCompiledProcedureShell-arity op))
              (assemble-display-name (MakeCompiledProcedureShell-display-name op)))]
     

@@ -49,7 +49,7 @@
     [(Reg? v)
      (assemble-reg v)]
     [(Label? v)
-     (assemble-label v blockht)]
+     (assemble-label v)]
     [(Const? v)
      (assemble-const v)]
     [(EnvLexicalReference? v)
@@ -335,8 +335,8 @@
 
 
 
-(: assemble-label (Label Blockht -> String))
-(define (assemble-label a-label Blockht)
+(: assemble-label (Label -> String))
+(define (assemble-label a-label)
   (munge-label-name a-label))
 
 
@@ -479,7 +479,7 @@
      [(Reg? a-location)
       (assemble-reg a-location)]
      [(Label? a-location)
-      (assemble-label a-location blockht)]))
+      (assemble-label a-location)]))
 
 
 (: assemble-primitive-kernel-value (PrimitiveKernelValue -> String))

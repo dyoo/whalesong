@@ -156,8 +156,7 @@
      (format "M.modules[~s]=new RT.ModuleRecord(~s,~a);"
              (symbol->string (ModuleLocator-name (InstallModuleEntry!-path op)))
              (symbol->string (InstallModuleEntry!-name op))
-             (assemble-label (make-Label (InstallModuleEntry!-entry-point op))
-                             blockht))]
+             (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]
 
     [(MarkModuleInvoked!? op)
      (format "M.modules[~s].isInvoked=true;"

@@ -127,7 +127,7 @@
                     fail(MACHINE, anError);
                 };
                 MACHINE.c.push(new plt.baselib.frames.CallFrame(afterGoodInvoke, null));
-                throw that.label;
+                plt.runtime.bnc(that.label);
             } else {
                 MACHINE.exclusiveLock.acquire(
                     void(0),

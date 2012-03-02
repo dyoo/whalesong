@@ -491,8 +491,10 @@
         this.onPause = onPause || function(MACHINE) {};
     };
 
+    var PAUSED = false;
     var PAUSE = function(onPause) {
-        throw(new Pause(onPause));
+        PAUSED = new Pause(onPause);
+        return;
     };
 
 
@@ -548,48 +550,9 @@
                         scheduleTrampoline(that, thunk, release);
                         return;
                     }
-                } else {
-                    break;
-                }
-            } catch (e) {
-                // There are a few kinds of things that can get thrown
-                // during racket evaluation:
-                //
-                // functions: this gets thrown if the Racket code
-                // realizes that the number of bounces has grown too
-                // large.  The thrown function represents a restarter
-                // function.  The running flag remains true.
-                //
-                // Pause: causes the machine evaluation to pause, with
-                // the expectation that it will restart momentarily.
-                // The running flag on the machine will remain true.
-                //
-                // HaltError: causes evaluation to immediately halt.
-                // We schedule the onHalt function of the HaltError to
-                // call afterwards.  The running flag on the machine
-                // is set to false.
-                //
-                // Everything else: otherwise, we send the exception value
-                // to the current error handler and exit.
-                // The running flag is set to false.
-                if (typeof(e) === 'function') {
-                    thunk = e;
-                    that.cbt = STACK_LIMIT_ESTIMATE;
-
-                    // If we're running an a model that prohibits
-                    // jumping off the trampoline, continue.
-                    if (noJumpingOff) {
-                        continue;
-                    }
-
-                    if (that.params.numBouncesBeforeYield-- < 0) {
-                        recomputeMaxNumBouncesBeforeYield(
-                            that,
-                            (new Date()).valueOf() - startTime);
-                        scheduleTrampoline(that, thunk, release);
-                        return;
-                    }
-                } else if (e instanceof Pause) {
+                } else if (PAUSED) {
+                    var mypause = PAUSED;
+                    PAUSED = false;
                     var pauseLock = new ExclusiveLock();
                     var oldArgcount = that.a;
                     var restarted = false;
@@ -627,9 +590,91 @@
                                     null, [that, proc, newSuccess, newFail].concat(args));
                             });
                     };
-                    e.onPause(restart, internalCall);
+                    mypause.onPause(restart, internalCall);
                     return;
-                } else if (e instanceof HaltError) {
+                } else {
+                    break;
+                }
+            } catch (e) {
+                // There are a few kinds of things that can get thrown
+                // during racket evaluation:
+                //
+                // functions: this gets thrown if the Racket code
+                // realizes that the number of bounces has grown too
+                // large.  The thrown function represents a restarter
+                // function.  The running flag remains true.
+                //
+                // Pause: causes the machine evaluation to pause, with
+                // the expectation that it will restart momentarily.
+                // The running flag on the machine will remain true.
+                //
+                // HaltError: causes evaluation to immediately halt.
+                // We schedule the onHalt function of the HaltError to
+                // call afterwards.  The running flag on the machine
+                // is set to false.
+                //
+                // Everything else: otherwise, we send the exception value
+                // to the current error handler and exit.
+                // The running flag is set to false.
+                // if (typeof(e) === 'function') {
+                //     thunk = e;
+                //     that.cbt = STACK_LIMIT_ESTIMATE;
+
+                //     // If we're running an a model that prohibits
+                //     // jumping off the trampoline, continue.
+                //     if (noJumpingOff) {
+                //         continue;
+                //     }
+
+                //     if (that.params.numBouncesBeforeYield-- < 0) {
+                //         recomputeMaxNumBouncesBeforeYield(
+                //             that,
+                //             (new Date()).valueOf() - startTime);
+                //         scheduleTrampoline(that, thunk, release);
+                //         return;
+                //     }
+                // } else if (e instanceof Pause) {
+                //     var pauseLock = new ExclusiveLock();
+                //     var oldArgcount = that.a;
+                //     var restarted = false;
+                //     var restart = function(f) {
+                //         pauseLock.acquire(
+                //             void(0),
+                //             function(releasePauseLock) {
+                //                 restarted = true;
+                //                 that.a = oldArgcount;
+                //                 that._trampoline(f, false, release);
+                //                 releasePauseLock();
+                //             });
+                //     };
+                //     var internalCall = function(proc, success, fail) {
+                //         var i;
+                //         if (restarted) {
+                //             return;
+                //         }
+                //         var args = [];
+                //         for (i = 3; i < arguments.length; i++) {
+                //             args.push(arguments[i]);
+                //         }
+                //         pauseLock.acquire(
+                //             void(0),
+                //             function(release) {
+                //                 var newSuccess = function() {
+                //                     success.apply(null, arguments);
+                //                     release();
+                //                 };
+                //                 var newFail = function() {
+                //                     fail.apply(null, arguments);
+                //                     release();
+                //                 };
+                //                 baselib.functions.internalCallDuringPause.apply(
+                //                     null, [that, proc, newSuccess, newFail].concat(args));
+                //             });
+                //     };
+                //     e.onPause(restart, internalCall);
+                //     return;
+                // }
+                if (e instanceof HaltError) {
                     that.running = false;
                     e.onHalt(that);
                     release();

@@ -398,7 +398,7 @@
     // Returns a JavaScript number.
     var getEqualHashCode = function (x, depth) {
         var i, t, k = 0;
-        if (depth === undefined) { depth = [0]; }
+        if (depth === void(0)) { depth = [0]; }
 
         if (depth[0] > MAX_HASH_DEPTH) { return 0; }
 
@@ -415,7 +415,7 @@
             return k;
         }
 
-        if (x === undefined || x === null) {
+        if (x === void(0) || x === null) {
             return 1;
         }
 

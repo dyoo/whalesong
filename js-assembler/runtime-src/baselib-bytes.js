@@ -12,7 +12,7 @@
     var Bytes = function(bts, mutable) {
         // bytes: arrayof [0-255]
         this.bytes = bts;
-        this.mutable = (mutable === undefined) ? false : mutable;
+        this.mutable = (mutable === void(0)) ? false : mutable;
     };
 
     Bytes.prototype.get = function(i) {
@@ -34,7 +34,7 @@
     };
 
     Bytes.prototype.subbytes = function(start, end) {
-	if (end === null || end === undefined) {
+	if (end === null || end === void(0)) {
 	    end = this.bytes.length;
 	}
 	return new Bytes( this.bytes.slice(start, end), true );

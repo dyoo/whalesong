@@ -2,7 +2,7 @@
 
 (require racket/contract
          racket/runtime-path
-         racket/gui/base
+         ;; racket/gui/base
          syntax/modresolve)
 
 
@@ -16,7 +16,7 @@
                   [lookup-module-requires (path? . -> . (listof path?))])
 
 (define-runtime-path record.rkt "record.rkt")
-(define ns (make-gui-namespace))
+(define ns (make-base-namespace))
 
 
 (define (my-resolve-module-path a-module-path)

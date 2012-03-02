@@ -1635,7 +1635,7 @@
 
     installPrimitiveProcedure(
         'random',
-        baselib.lists.makeList(0, 1),
+        makeList(0, 1),
         function (M) {
             if (M.a === 0) {
                 return makeFloat(Math.random());
@@ -2390,7 +2390,7 @@
                 raiseArgumentTypeError(M,
                                        name,
                                        expected,
-                                       undefined,
+                                       void(0),
                                        M.e[M.e.length - 1 - 2]);
             } else {
                 raiseArgumentTypeError(M,
@@ -2797,7 +2797,7 @@
                 sym = checkSymbol(M, "make-continuation-prompt-tag", 0);
                 return new baselib.contmarks.ContinuationPromptTag(sym.toString());
             }
-            return new baselib.contmarks.ContinuationPromptTag(undefined);
+            return new baselib.contmarks.ContinuationPromptTag(void(0));
         });
 
     installPrimitiveProcedure(

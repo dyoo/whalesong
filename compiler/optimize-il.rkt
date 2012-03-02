@@ -102,9 +102,7 @@
         oparg]
        [(ModuleEntry? oparg)
         oparg]
-       [(IsModuleInvoked? oparg)
-        oparg]
-       [(IsModuleLinked? oparg)
+       [(ModulePredicate? oparg)
         oparg]
        [(PrimitiveKernelValue? oparg)
         oparg]
@@ -142,7 +140,14 @@
         op]
        
        [(ApplyPrimitiveProcedure? op)
-        op]))
+        op]
+
+       [(ModuleVariable? op)
+        op]
+       
+       [(PrimitivesReference? op)
+        op]
+       ))
 
 
     (: rewrite-primcmd (PrimitiveCommand -> PrimitiveCommand))
@@ -188,8 +193,8 @@
           ]
 
          [(Comment? a-stmt)
-          (loop (rest stmts))
-          ;(cons a-stmt (loop (rest stmts)))
+          ;(loop (rest stmts))
+          (cons a-stmt (loop (rest stmts)))
           ]
          
          [(AssignImmediate? a-stmt)
@@ -381,7 +386,7 @@
     [(PopControlFrame? stmt)
      #f]
     [(Comment? stmt)
-     #t]))
+     #f]))
 
 
 
@@ -399,7 +404,8 @@
                                (EnvLexicalReference-unbox? oparg))]
     [(EnvPrefixReference? oparg)
      (make-EnvPrefixReference (ensure-natural (+ n (EnvPrefixReference-depth oparg)))
-                              (EnvPrefixReference-pos oparg))]
+                              (EnvPrefixReference-pos oparg)
+                              (EnvPrefixReference-modvar? oparg))]
     [(EnvWholePrefixReference? oparg)
      (make-EnvWholePrefixReference (ensure-natural (+ n (EnvWholePrefixReference-depth oparg))))]
     [(SubtractArg? oparg)
@@ -421,9 +427,7 @@
      oparg]
     [(ModuleEntry? oparg)
      oparg]
-    [(IsModuleInvoked? oparg)
-     oparg]
-    [(IsModuleLinked? oparg)
+    [(ModulePredicate? oparg)
      oparg]
     [(VariableReference? oparg)
      (let ([t (VariableReference-toplevel oparg)])

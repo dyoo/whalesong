@@ -48,11 +48,11 @@
                                  (let: ([n : (U False Symbol GlobalBucket ModuleVariable) (first names)])
                                        (cond
                                          [(and (symbol? n) (eq? name n))
-                                          (make-EnvPrefixReference depth pos)]
+                                          (make-EnvPrefixReference depth pos #f)]
                                          [(and (ModuleVariable? n) (eq? name (ModuleVariable-name n)))
-                                          (make-EnvPrefixReference depth pos)]
+                                          (make-EnvPrefixReference depth pos #t)]
                                          [(and (GlobalBucket? n) (eq? name (GlobalBucket-name n)))
-                                          (make-EnvPrefixReference depth pos)]
+                                          (make-EnvPrefixReference depth pos #f)]
                                          [else
                                           (prefix-loop (rest names) (add1 pos))]))]))]
                    
@@ -218,7 +218,8 @@
                                (EnvLexicalReference-unbox? target))]
     [(EnvPrefixReference? target)
      (make-EnvPrefixReference (+ n (EnvPrefixReference-depth target))
-                              (EnvPrefixReference-pos target))]
+                              (EnvPrefixReference-pos target)
+                              (EnvPrefixReference-modvar? target))]
     [(EnvWholePrefixReference? target)
      (make-EnvWholePrefixReference (+ n (EnvWholePrefixReference-depth target)))]))
 

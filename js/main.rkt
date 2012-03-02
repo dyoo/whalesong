@@ -27,4 +27,8 @@
 
                     js-null?
                     js-null
+                    
+                    js-eval
+
+                    load-script
                     ))

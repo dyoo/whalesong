@@ -33,10 +33,10 @@
 
 
     var resourceStructType = 
-        MACHINE.modules['whalesong/resource/structs.rkt'].namespace['struct:resource'];
+        MACHINE.modules['whalesong/resource/structs.rkt'].getNamespace().get('struct:resource');
 
     var eventStructType = 
-        MACHINE.modules['whalesong/web-world/event.rkt'].namespace['struct:event'];
+        MACHINE.modules['whalesong/web-world/event.rkt'].getNamespace().get('struct:event');
 
 
 
@@ -140,7 +140,8 @@
     // includes a cursor to the currently focused dom, the pending
     // actions to perform on the actual view, and a nonce to detect
     // freshness of the MockView.
-    var MockView = function(cursor, pendingActions, eventHandlers, nonce) {
+    var MockView = function(lazyCursor, cursor, pendingActions, eventHandlers, nonce) {
+        this.lazyCursor = lazyCursor;
         this.cursor = cursor;
 
         // (listof (view -> void))
@@ -151,6 +152,13 @@
     };
 
     var isMockView = plt.baselib.makeClassPredicate(MockView);
+
+    MockView.prototype.getCursor = function() {
+        if (this.cursor === void(0)) {
+            this.cursor = this.lazyCursor();
+        }
+        return this.cursor;
+    };
 
     MockView.prototype.toString = function() {
         return "<#view>";
@@ -163,7 +171,8 @@
 
     MockView.prototype.act = function(actionForCursor, actionForEventHandlers, actionForReal) {
         if (arguments.length !== 3) { throw new Error("act: insufficient arguments"); }
-        return new MockView(actionForCursor(this.cursor),
+        return new MockView(undefined,
+                            actionForCursor(this.getCursor()),
                             plt.baselib.lists.makePair(actionForReal, this.pendingActions),
                             actionForEventHandlers(this.eventHandlers),
                             this.nonce);
@@ -194,7 +203,7 @@
     };
 
     MockView.prototype.getText = function() {        
-        var tree = this.cursor.node;
+        var tree = this.getCursor().node;
         return treeText(tree);
     };
 
@@ -212,11 +221,11 @@
     };
 
     MockView.prototype.getAttr = function(name) {        
-        return $(this.cursor.node[0]).attr(name);
+        return $(this.getCursor().node[0]).attr(name);
     };
 
     MockView.prototype.hasAttr = function(name) {        
-        return $(this.cursor.node[0]).attr(name) !== undefined;
+        return $(this.getCursor().node[0]).attr(name) !== undefined;
     };
 
 
@@ -256,7 +265,7 @@
 
 
     MockView.prototype.getCss = function(name) {        
-        return $(this.cursor.node[0]).css(name);
+        return $(this.getCursor().node[0]).css(name);
     };
 
 
@@ -278,7 +287,7 @@
 
 
     MockView.prototype.getFormValue = function() {        
-        return $(this.cursor.node[0]).val();
+        return $(this.getCursor().node[0]).val();
     };
 
     MockView.prototype.updateFormValue = function(value) {        
@@ -412,8 +421,8 @@
 
         // HACK: every node that is bound needs to have an id.  We
         // enforce this by mutating the node.
-        if (! this.cursor.node[0].id) {
-            this.cursor.node[0].id = ("__webWorldId_" + mockViewIdGensym++);
+        if (! this.getCursor().node[0].id) {
+            this.getCursor().node[0].id = ("__webWorldId_" + mockViewIdGensym++);
         }   
         return this.act(
             function(cursor) {
@@ -423,7 +432,7 @@
                 var handler = new EventHandler(name,
                                                new DomEventSource(
                                                    name,
-                                                   that.cursor.node[0].id),
+                                                   that.getCursor().node[0].id),
                                                worldF);
                 var newHandlers = eventHandlers.concat([handler]);
                 return newHandlers;
@@ -548,31 +557,31 @@
 
 
     MockView.prototype.id = function() {
-        return this.cursor.node[0].id;
+        return this.getCursor().node[0].id;
     };
 
     MockView.prototype.isUpMovementOk = function() {
-        return this.cursor.canUp();
+        return this.getCursor().canUp();
     };
 
     MockView.prototype.isDownMovementOk = function() {
-        return this.cursor.canDown();
+        return this.getCursor().canDown();
     };
 
     MockView.prototype.isLeftMovementOk = function() {
-        return this.cursor.canLeft();
+        return this.getCursor().canLeft();
     };
 
     MockView.prototype.isRightMovementOk = function() {
-        return this.cursor.canRight();
+        return this.getCursor().canRight();
     };
 
     MockView.prototype.isForwardMovementOk = function() {
-        return this.cursor.canSucc();
+        return this.getCursor().canSucc();
     };
 
     MockView.prototype.isBackwardMovementOk = function() {
-        return this.cursor.canPred();
+        return this.getCursor().canPred();
     };
 
 
@@ -636,7 +645,9 @@
 
     View.prototype.getMockAndResetFocus = function(nonce) {
         this.focus = this.top;
-        return new MockView(domToArrayTreeCursor($(this.top).get(0)),
+        var that = this;
+        return new MockView(function() { return domToArrayTreeCursor($(that.top).get(0)); },
+                            undefined,
                             EMPTY_PENDING_ACTIONS,
                             this.eventHandlers.slice(0),
                             nonce);
@@ -695,7 +706,7 @@
             }
             return onSuccess(new View(dom.get(0), []));
         } else if (isMockView(x)) {
-            return onSuccess(new View(arrayTreeToDomNode(x.cursor.top().node),
+            return onSuccess(new View(arrayTreeToDomNode(x.getCursor().top().node),
                                       x.eventHandlers.slice(0)));
         } else {
             try {
@@ -721,7 +732,8 @@
             } catch (exn1) {
                 return onFail(exn1);
             }
-            return onSuccess(new MockView(domToArrayTreeCursor(dom.get(0)),
+            return onSuccess(new MockView(undefined,
+                                          domToArrayTreeCursor(dom.get(0)),
                                           EMPTY_PENDING_ACTIONS,
                                           [], 
                                           undefined));
@@ -731,7 +743,8 @@
             } catch (exn2) {
                 return onFail(exn2);
             }
-            return onSuccess(new MockView(domToArrayTreeCursor(dom), 
+            return onSuccess(new MockView(undefined,
+                                          domToArrayTreeCursor(dom), 
                                           EMPTY_PENDING_ACTIONS, 
                                           [],
                                           undefined));
@@ -759,7 +772,7 @@
             }
             return onSuccess(dom.get(0));
         } else if (isMockView(x)) {
-            return onSuccess(arrayTreeToDomNode(x.cursor.top().node));
+            return onSuccess(arrayTreeToDomNode(x.getCursor().top().node));
         } else {
             try {
                 dom = plt.baselib.format.toDomNode(x);
@@ -1310,7 +1323,7 @@
                                    actions[i](view);
                                }
                            } else {
-                               view.top = arrayTreeToDomNode(newMockView.cursor.top().node);
+                               view.top = arrayTreeToDomNode(newMockView.getCursor().top().node);
                                view.initialRender(top);
                                eventHandlers = newMockView.eventHandlers.slice(0);
                                view.eventHandlers = eventHandlers;
@@ -1604,7 +1617,7 @@
 
     var checkMockViewOnElement = plt.baselib.check.makeCheckArgumentType(
         function(x) {
-            return isMockView(x) && (!(x.cursor.isOnAtomicElement()));
+            return isMockView(x) && (!(x.getCursor().isOnAtomicElement()));
         },
         'element-focused view');
 
@@ -2182,7 +2195,7 @@
         1,
         function(MACHINE) {
             var mockView = checkMockView(MACHINE, 'view-hide', 0);
-            var domNode = arrayTreeToDomNode(mockView.cursor.top().node);
+            var domNode = arrayTreeToDomNode(mockView.getCursor().top().node);
             return domToXexp(domNode);
         });
 

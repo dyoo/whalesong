@@ -30,9 +30,14 @@
 	 assemble-display-name
 	 assemble-location
          assemble-numeric-constant
-
+         assemble-module-variable-ref
+         
          block-looks-like-context-expected-values?
-         block-looks-like-pop-multiple-values-and-continue?)
+         block-looks-like-pop-multiple-values-and-continue?
+
+         current-interned-symbol-table
+         assemble-current-interned-symbol-table
+         )
 
 (require/typed typed/racket/base
                [regexp-split (Regexp String -> (Listof String))])
@@ -69,10 +74,8 @@
      (assemble-primitive-kernel-value v)]
     [(ModuleEntry? v)
      (assemble-module-entry v)]
-    [(IsModuleInvoked? v)
-     (assemble-is-module-invoked v)]
-    [(IsModuleLinked? v)
-     (assemble-is-module-linked v)]
+    [(ModulePredicate? v)
+     (assemble-module-predicate v)]
     [(VariableReference? v)
      (assemble-variable-reference v)]))
 
@@ -90,25 +93,32 @@
                      (symbol->string (PrimitivesReference-name target))
                      (symbol->string (PrimitivesReference-name target))
                      rhs))]
+   [(ModuleVariable? target)
+    (lambda: ([rhs : String])
+             (format "M.modules[~s].getNamespace().set(~s,~s);"
+                     (symbol->string (ModuleLocator-name (ModuleVariable-module-name target)))
+                     (symbol->string (ModuleVariable-name target))
+                     rhs))]
    [else
     (lambda: ([rhs : String])
              (format "~a=~a;"
-                     (cond
-                      [(eq? target 'proc)
-                       "M.p"]
-                      [(eq? target 'val)
-                       "M.v"]
-                      [(eq? target 'argcount)
-                       "M.a"]
-                      [(EnvLexicalReference? target)
-                       (assemble-lexical-reference target)]
-                      [(EnvPrefixReference? target)
-                       (assemble-prefix-reference target)]
-                      [(ControlFrameTemporary? target)
-                       (assemble-control-frame-temporary target)]
-                      [(ModulePrefixTarget? target)
-                       (format "M.modules[~s].prefix"
-                               (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))])
+                     (ann (cond
+                            [(eq? target 'proc)
+                             "M.p"]
+                            [(eq? target 'val)
+                             "M.v"]
+                            [(eq? target 'argcount)
+                             "M.a"]
+                            [(EnvLexicalReference? target)
+                             (assemble-lexical-reference target)]
+                            [(EnvPrefixReference? target)
+                             (assemble-prefix-reference target)]
+                            [(ControlFrameTemporary? target)
+                             (assemble-control-frame-temporary target)]
+                            [(ModulePrefixTarget? target)
+                             (format "M.modules[~s].prefix"
+                                     (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))])
+                           String)
                      rhs))]))
 
 
@@ -118,12 +128,36 @@
   (format "M.c[M.c.length-1].~a"
           (ControlFrameTemporary-name t)))
 
+
+(: current-interned-symbol-table (Parameterof (HashTable Symbol Symbol)))
+(define current-interned-symbol-table
+  (make-parameter ((inst make-hasheq Symbol Symbol))))
+
+
+(: assemble-current-interned-symbol-table (-> String))
+(define (assemble-current-interned-symbol-table)
+  (string-join (hash-map
+                  (current-interned-symbol-table)
+                  (lambda: ([a-symbol : Symbol] [variable-name : Symbol]) 
+                    (format "var ~a=RT.makeSymbol(~s);"
+                            variable-name
+                            (symbol->string a-symbol))))
+                 "\n"))
+  
 ;; fixme: use js->string
 (: assemble-const (Const -> String))
 (define (assemble-const stmt)
   (let: loop : String ([val : const-value (Const-const stmt)])
         (cond [(symbol? val)
-               (format "RT.makeSymbol(~s)" (symbol->string val))]
+               (define intern-var (hash-ref (current-interned-symbol-table)
+                                            val
+                                            (lambda ()
+                                              (define fresh (gensym 'sym))
+                                              (hash-set! (current-interned-symbol-table) val fresh)
+                                              fresh)))
+               (symbol->string intern-var)
+               ;;(format "RT.makeSymbol(~s)" (symbol->string val))
+               ]
               [(pair? val)
                (format "RT.makePair(~a,~a)" 
                        (loop (car val))
@@ -243,26 +277,6 @@
                    ")")]))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
 (: assemble-lexical-reference (EnvLexicalReference -> String))
 (define (assemble-lexical-reference a-lex-ref)
   (if (EnvLexicalReference-unbox? a-lex-ref)
@@ -271,11 +285,20 @@
       (format "M.e[M.e.length-~a]"
               (add1 (EnvLexicalReference-depth a-lex-ref)))))
 
+
 (: assemble-prefix-reference (EnvPrefixReference -> String))
 (define (assemble-prefix-reference a-ref)
-  (format "M.e[M.e.length-~a][~a]"
-          (add1 (EnvPrefixReference-depth a-ref))
-          (EnvPrefixReference-pos a-ref)))
+  (cond
+   [(EnvPrefixReference-modvar? a-ref)
+    (format "M.e[M.e.length-~a][~a][0][M.e[M.e.length-~a][~a][1]]"
+            (add1 (EnvPrefixReference-depth a-ref))
+            (EnvPrefixReference-pos a-ref)
+            (add1 (EnvPrefixReference-depth a-ref))
+            (EnvPrefixReference-pos a-ref))]
+   [else
+    (format "M.e[M.e.length-~a][~a]"
+            (add1 (EnvPrefixReference-depth a-ref))
+            (EnvPrefixReference-pos a-ref))]))
 
 (: assemble-whole-prefix-reference (EnvWholePrefixReference -> String))
 (define (assemble-whole-prefix-reference a-prefix-ref)
@@ -471,17 +494,25 @@
           (symbol->string (ModuleLocator-name (ModuleEntry-name entry)))))
 
 
-(: assemble-is-module-invoked (IsModuleInvoked -> String))
-(define (assemble-is-module-invoked entry)
-  (format "M.modules[~s].isInvoked"
-          (symbol->string (ModuleLocator-name (IsModuleInvoked-name entry)))))
+(: assemble-module-variable-ref (ModuleVariable -> String))
+(define (assemble-module-variable-ref var)
+  (format "M.modules[~s].getNamespace().get(~s)"
+          (symbol->string (ModuleLocator-name (ModuleVariable-module-name var)))
+          (symbol->string (ModuleVariable-name var))))
 
 
-(: assemble-is-module-linked (IsModuleLinked -> String))
-(define (assemble-is-module-linked entry)
-  (format "(M.modules[~s]!==undefined)"
-          (symbol->string (ModuleLocator-name (IsModuleLinked-name entry)))))
+(: assemble-module-predicate (ModulePredicate -> String))
+(define (assemble-module-predicate entry)
+  (define modname (ModulePredicate-module-name entry))
+  (define pred (ModulePredicate-pred entry))
+  (cond
+   [(eq? pred 'invoked?)
+    (format "M.modules[~s].isInvoked"
+            (symbol->string (ModuleLocator-name modname)))]
 
+   [(eq? pred 'linked?)
+    (format "(M.modules[~s]!==void(0))"
+            (symbol->string (ModuleLocator-name modname)))]))
 
 
 (: assemble-variable-reference (VariableReference -> String))

@@ -14,7 +14,7 @@
      (provide (except-out (all-from-out "parse-bytecode-5.1.1.rkt")
                           parse-bytecode)))]
   [(and (version<= "5.1.1.900" (version))
-        (version< (version) "5.1.2"))
+        (version< (version) "5.2"))
    (begin
      (log-debug "Using 5.1.2 bytecode parser")
      (require "parse-bytecode-5.1.2.rkt")

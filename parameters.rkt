@@ -2,6 +2,7 @@
 
 (require "compiler/expression-structs.rkt"
          "compiler/lexical-structs.rkt"
+         "compiler/arity-structs.rkt"
          "sets.rkt"
          racket/path
          racket/port)
@@ -17,7 +18,6 @@
          current-warn-unimplemented-kernel-primitive
          current-seen-unimplemented-kernel-primitives
 
-         current-kernel-module-locator?
 
          current-primitive-identifier?
          
@@ -25,7 +25,7 @@
          current-one-module-per-file?
          current-with-cache?
          current-with-legacy-ie-support?
-         
+         current-header-scripts         
          
          current-report-port
          current-timing-port
@@ -53,31 +53,10 @@
                      id)))))
 
 
-(: current-kernel-module-locator? (Parameterof (ModuleLocator -> Boolean)))
-;; Produces true if the given module locator should be treated as a primitive root one
-;; that is implemented by us.
-(define current-kernel-module-locator?
-  (make-parameter
-   (lambda: ([locator : ModuleLocator])
-            (or (kernel-locator? locator)
-                (paramz-locator? locator)))))
-
-(: kernel-locator? (ModuleLocator -> Boolean))
-(define (kernel-locator? locator)
-  (or (and (eq? (ModuleLocator-name locator) '#%kernel)
-           (eq? (ModuleLocator-real-path locator) '#%kernel))
-      (eq? (ModuleLocator-name locator)
-           'whalesong/lang/kernel.rkt)))
-
-
-(: paramz-locator? (ModuleLocator -> Boolean))
-(define (paramz-locator? locator)
-  (or (and (eq? (ModuleLocator-name locator) '#%paramz)
-           (eq? (ModuleLocator-real-path locator) '#%paramz))))
 
 
 
-(: current-primitive-identifier? (Parameterof (Symbol -> Boolean)))
+(: current-primitive-identifier? (Parameterof (Symbol -> (U False Arity))))
 (define current-primitive-identifier? (make-parameter (lambda: ([name : Symbol]) #f)))
 
 
@@ -103,6 +82,9 @@
 (define current-with-legacy-ie-support? (make-parameter #t))
 
 
+;; Keeps list of Javascript files to be included in the header.
+(: current-header-scripts (Parameterof (Listof Path)))
+(define current-header-scripts (make-parameter '()))
 
 
 (: current-report-port (Parameterof Output-Port))

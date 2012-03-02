@@ -180,7 +180,7 @@
         RawConstructor.prototype = baselib.heir(parentType.type.prototype);
 
         var theNameSymbol = 
-            baselib.symbols.Symbol.makeInstance(theName);
+            baselib.symbols.makeSymbol(theName);
 
         // Set type, necessary for equality checking
         RawConstructor.prototype.type = RawConstructor;
@@ -269,7 +269,7 @@
     var lookupStructureTypeProperty = function(structType, property) {
         var propertiesList = structType.propertiesList;
         if (! propertiesList) {
-            return undefined;
+            return void(0);
         }
         while (propertiesList !== baselib.lists.EMPTY) {
             if (propertiesList.first.first === property) {
@@ -277,7 +277,7 @@
             }
             propertiesList = propertiesList.rest;
         }
-        return undefined;
+        return void(0);
     };
 
 

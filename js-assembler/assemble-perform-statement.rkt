@@ -2,6 +2,7 @@
 (require "assemble-helpers.rkt"
          "../compiler/il-structs.rkt"
 	 "../compiler/lexical-structs.rkt"
+         "../compiler/kernel-primitives.rkt"
          "../parameters.rkt"
          "assemble-structs.rkt"
 	 racket/string)
@@ -15,7 +16,7 @@
   (cond 
     
     [(CheckToplevelBound!? op)
-     (format "if (M.e[M.e.length-~a][~a]===undefined){ RT.raiseUnboundToplevelError(M,M.e[M.e.length-~a].names[~a]); }"
+     (format "if (M.e[M.e.length-~a][~a]===void(0)){ RT.raiseUnboundToplevelError(M,M.e[M.e.length-~a].names[~a]); }"
              (add1 (CheckToplevelBound!-depth op))
              (CheckToplevelBound!-pos op)
              (add1 (CheckToplevelBound!-depth op))
@@ -34,7 +35,7 @@
                    (string-join (map
                                  (lambda: ([n : (U Symbol False GlobalBucket ModuleVariable)])
                                           (cond [(symbol? n)
-                                                 (format "M.params.currentNamespace[~s]||M.primitives[~s]"
+                                                 (format "M.params.currentNamespace.get(~s)||M.primitives[~s]"
                                                          (symbol->string n) 
                                                          (symbol->string n))]
                                                 [(eq? n #f)
@@ -47,15 +48,20 @@
                                                 ;; the value here!  It shouldn't be looking into Primitives...
                                                 [(ModuleVariable? n)
                                                  (cond
-                                                  [((current-kernel-module-locator?)
-                                                    (ModuleVariable-module-name n))
+                                                  [(kernel-module-name? (ModuleVariable-module-name n))
                                                    (format "M.primitives[~s]"
-                                                           (symbol->string (ModuleVariable-name n)))]
-                                                  [else
-                                                   (format "M.modules[~s].namespace[~s]"
                                                            (symbol->string
+                                                            (kernel-module-variable->primitive-name n)))]
+                                                  [else
+                                                   (define module-name
+                                                     (symbol->string
                                                             (ModuleLocator-name
-                                                             (ModuleVariable-module-name n)))
+                                                             (ModuleVariable-module-name n))))
+                                                   (format "[M.modules[~s].prefix,M.modules[~s].getPrefixOffset(~s),{moduleName:~s,name:~s}]"
+                                                           module-name
+                                                           module-name
+                                                           (symbol->string (ModuleVariable-name n))
+                                                           module-name
                                                            (symbol->string (ModuleVariable-name n)))])]))
                                  names)
                                 ",")

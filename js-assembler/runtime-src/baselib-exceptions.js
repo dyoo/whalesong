@@ -69,10 +69,10 @@
             e = new RacketError(Exn.accessor(e, 0), e);
         }
 
-        if (typeof(window.console) !== 'undefined' &&
-            typeof(window.console['log']) === 'function') {
+        if (window.console !== void(0) &&
+            typeof(window.console.log) === 'function') {
             window.console.log(MACHINE);
-            if (e['stack']) { window.console.log(e['stack']); }
+            if (e.stack) { window.console.log(e.stack); }
             else { window.console.log(e); }
         } 
         throw e; 
@@ -108,7 +108,7 @@
                                           actualValue) {
         var message;
         var contMarks = MACHINE.captureContinuationMarks();
-        if (argumentOffset !== undefined) {
+        if (argumentOffset !== void(0)) {
             message = baselib.format.format(
                           "~a: expected ~a as argument ~e but received ~e",
                           [callerName,

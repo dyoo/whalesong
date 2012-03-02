@@ -53,7 +53,8 @@
   #:transparent)
 
 (define-struct: EnvPrefixReference ([depth : Natural]
-                                    [pos : Natural])
+                                    [pos : Natural]
+                                    [modvar? : Boolean])
   #:transparent)
 
 (define-struct: EnvWholePrefixReference ([depth : Natural])

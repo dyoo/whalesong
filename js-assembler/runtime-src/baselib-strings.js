@@ -81,7 +81,7 @@
     };
 
     Str.prototype.substring = function (start, end) {
-	if (end === null || end === undefined) {
+	if (end === null || end === void(0)) {
 	    end = this.length;
 	}
 	return Str.makeInstance( this.chars.slice(start, end) );

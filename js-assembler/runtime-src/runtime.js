@@ -237,9 +237,9 @@
 
     var Machine = function() {
 	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
-	this.v = undefined;         // value register
-	this.p = undefined;        // procedure register
-	this.a = undefined;           // argument count
+	this.v = void(0);         // value register
+	this.p = void(0);        // procedure register
+	this.a = void(0);           // argument count
 	this.e = [];                // environment
 	this.c = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
@@ -278,7 +278,10 @@
                     toDomNode(exn, MACHINE.params['print-mode']));
             },
 
-	    'currentNamespace': {},
+	    'currentNamespace': { get: function() {}, 
+                                  set : function() {}, 
+                                  hasKey : function() { return false; }
+                                },
 
 	    // These parameters control how often
 	    // control yields back to the browser
@@ -307,16 +310,16 @@
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-app-key'] || 'traced-app-key';
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-app-key') || 'traced-app-key';
         }
-        return undefined;
+        return void(0);
     };
 
     var getTracedCalleeKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].namespace['traced-callee-key'] || 'traced-callee-key';
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-callee-key') || 'traced-callee-key';
         }
-        return undefined;
+        return void(0);
     };
 
 
@@ -464,7 +467,7 @@
         var oldArgcount = MACHINE.a;
         return function(f) {
             pauseLock.acquire(
-                undefined,
+                void(0),
                 function(pauseReleaseLock) {
                     MACHINE.a = oldArgcount;
                     MACHINE._trampoline(f, false, release);
@@ -599,7 +602,7 @@
                     var restarted = false;
                     var restart = function(f) {
                         pauseLock.acquire(
-                            undefined,
+                            void(0),
                             function(releasePauseLock) {
                                 restarted = true;
                                 that.a = oldArgcount;
@@ -617,7 +620,7 @@
                             args.push(arguments[i]);
                         }
                         pauseLock.acquire(
-                            undefined,
+                            void(0),
                             function(release) {
                                 var newSuccess = function() {
                                     success.apply(null, arguments);
@@ -791,8 +794,8 @@
         machine = machine || runtime.currentMachine;
         for (i = 0; i < machine.mainModules.length; i++) {
             var ns = machine.mainModules[i].getNamespace();
-            if(ns.hasOwnProperty(name)) {
-                return ns[name];
+            if(ns.hasKey(name)) {
+                return ns.get(name);
             }
         }
     };
@@ -876,6 +879,12 @@
                 }
                 return sum;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '+', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '+', 'number', 1, y);
+                }
                 return plt.baselib.numbers.add(x, y);
             }
         }
@@ -917,6 +926,12 @@
                 }
                 return prod;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '*', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '*', 'number', 1, y);
+                }
                 return plt.baselib.numbers.multiply(x, y);
             }
         }
@@ -963,6 +978,12 @@
                 }
                 return sum;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '-', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '-', 'number', 1, y);
+                }
                 return plt.baselib.numbers.subtract(x, y);
             }
         }
@@ -990,6 +1011,12 @@
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 return x > y;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '>', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '>', 'number', 1, y);
+                }
                 return plt.baselib.numbers.greaterThan(x, y);
             }
         }
@@ -1022,6 +1049,12 @@
             if (typeof(x) === 'number' && typeof(y) === 'number') {
                 return x === y;
             } else {
+                if (! isNumber(x)) {
+                    raiseArgumentTypeError(M, '=', 'number', 0, x);
+                }
+                if (! isNumber(y)) {
+                    raiseArgumentTypeError(M, '=', 'number', 1, y);
+                }
                 return plt.baselib.numbers.equals(x, y);
             }
         }

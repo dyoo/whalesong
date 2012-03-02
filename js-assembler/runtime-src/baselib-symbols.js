@@ -17,8 +17,9 @@
 
     var symbolCache = {};
     
-    // makeInstance: string -> Symbol.
-    Symbol.makeInstance = function (val) {
+    // makeSymbol: string -> Symbol.
+    // Interns a symbol.
+    var makeSymbol = function (val) {
         // To ensure that we can eq? symbols with equal values.
         if (!(symbolCache.hasOwnProperty(val))) {
             symbolCache[val] = new Symbol(val);
@@ -77,7 +78,6 @@
 
     var isSymbol = function (x) { return x instanceof Symbol; };
 
-    var makeSymbol = function (s) { return Symbol.makeInstance(s); };
 
 
 

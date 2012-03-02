@@ -6,6 +6,10 @@
          racket/port
          racket/date
          racket/runtime-path
+         racket/pretty
+         "parser/parse-bytecode.rkt"
+         "compiler/compiler.rkt"
+         "compiler/compiler-structs.rkt"
          "make/make-structs.rkt"
          "js-assembler/package.rkt"
          "resource/structs.rkt"
@@ -260,6 +264,17 @@
                (make-MainModuleSource 
                 (normalize-path (build-path filename))))
               (current-output-port)))))
+
+
+(define (print-il filename)
+  (with-catchall-exception-handler
+   (lambda ()
+     (turn-on-logger!)
+     (define path (normalize-path (build-path filename)))
+     (define bytecode (parse-bytecode path))
+     (define translation (compile bytecode 'val return-linkage))
+     (pretty-print translation))))
+
 
 
 (define (print-version)

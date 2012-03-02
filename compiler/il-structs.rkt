@@ -35,10 +35,10 @@
                       CompiledProcedureEntry
                       CompiledProcedureClosureReference
                       ModuleEntry
-                      IsModuleInvoked
-		      IsModuleLinked
+                      ModulePredicate
                       PrimitiveKernelValue
-                      VariableReference))
+                      VariableReference
+                      ))
 
 
 ;; Targets: these are the allowable lhs's for a targetted assignment.
@@ -47,7 +47,10 @@
                        EnvPrefixReference
                        PrimitivesReference                   
                        ControlFrameTemporary
-                       ModulePrefixTarget))
+                       ModulePrefixTarget
+                       ))
+
+(define-struct: ModuleVariableThing () #:transparent)
 
 
 ;; When we need to store a value temporarily in the top control frame, we can use this as a target.
@@ -62,6 +65,11 @@
 ;; Targetting the prefix attribute of a module.
 (define-struct: ModulePrefixTarget ([path : ModuleLocator])
   #:transparent)
+
+(define-struct: ModuleVariableReference ([name : Symbol]
+                                         [module-name : ModuleLocator])
+  #:transparent)
+
 
 
 (define-type const-value
@@ -148,12 +156,9 @@
 (define-struct: ModuleEntry ([name : ModuleLocator])
   #:transparent)
 
-;; Produces true if the module has already been invoked
-(define-struct: IsModuleInvoked ([name : ModuleLocator])
-  #:transparent)
 
-;; Produces true if the module has been loaded into the machine
-(define-struct: IsModuleLinked ([name : ModuleLocator])
+(define-struct: ModulePredicate ([module-name : ModuleLocator]
+                                 [pred : (U 'invoked? 'linked?)])
   #:transparent)
 
 
@@ -281,11 +286,16 @@
 ;; Primitive Operators
 
 ;; The operators that return values, that are used in AssignPrimopStatement.
+;; The reason this is here is really to get around what looks like a Typed Racket issue.
+;; I would prefer to move these all to OpArgs, but if I do, Typed Racket takes much longer
+;; to type my program than I'd like.
 (define-type PrimitiveOperator (U GetCompiledProcedureEntry
                                   MakeCompiledProcedure
                                   MakeCompiledProcedureShell
-                                  
 
+                                  ModuleVariable
+                                  PrimitivesReference
+                                  
                                   MakeBoxedEnvironmentValue
 
                                   CaptureEnvironment
@@ -322,14 +332,14 @@
 
 (define-struct: CallKernelPrimitiveProcedure ([operator : KernelPrimitiveName/Inline]
 
-                                              [operands : (Listof OpArg)]
+                                              [operands : (Listof (U OpArg ModuleVariable))]
                                               [expected-operand-types : (Listof OperandDomain)]
                                               ;; For each operand, #t will add code to typecheck the operand
                                               [typechecks? : (Listof Boolean)])
   #:transparent)
 
 
-(define-struct: ApplyPrimitiveProcedure () #:transparent)
+(define-struct: ApplyPrimitiveProcedure ([name : Symbol]) #:transparent)
 
 
 (define-struct: MakeBoxedEnvironmentValue ([depth : Natural])

@@ -5,6 +5,7 @@
          "../compiler/lexical-structs.rkt"
          "../compiler/compiler-structs.rkt"
          "../compiler/expression-structs.rkt"
+         "../compiler/kernel-primitives.rkt"
          "../parameters.rkt"
          "../sets.rkt"
          "get-dependencies.rkt"
@@ -157,8 +158,7 @@
                                        (let ([rp [ModuleLocator-real-path mp]])
                                          (cond
                                           ;; Ignore modules that are implemented by Whalesong.
-                                          [((current-kernel-module-locator?)
-                                            mp)
+                                          [(kernel-module-name? mp)
                                            acc]
                                           [(path? rp)
                                            (cons (make-ModuleSource rp) acc)]

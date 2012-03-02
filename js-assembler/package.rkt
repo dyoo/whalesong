@@ -9,6 +9,7 @@
          "../compiler/expression-structs.rkt"
          "../parser/path-rewriter.rkt"
          "../parser/parse-bytecode.rkt"
+         "../parser/modprovide.rkt"
          "../resource/structs.rkt"
 	 "../promise.rkt"
          "check-valid-module-source.rkt"
@@ -58,15 +59,15 @@
 
 
 
-(define primitive-identifiers-set
-  (list->set primitive-ids))
+(define primitive-identifiers-ht
+  (make-hash primitive-ids))
 
 ;; Sets up the compiler parameters we need to do javascript-specific compilation.
 (define (with-compiler-params thunk)
   (parameterize ([compile-context-preservation-enabled #t]
                  [current-primitive-identifier?
                   (lambda (a-name)
-                    (set-member? primitive-identifiers-set a-name))])
+                    (hash-ref primitive-identifiers-ht a-name #f))])
     (thunk)))
 
 
@@ -166,17 +167,32 @@
 (define (get-javascript-implementation src)
   
   (define (get-provided-name-code bytecode)
-    (match bytecode
-      [(struct Top [_ (struct Module (name path prefix requires provides code))])
-       (apply string-append
-              (map (lambda (p)
-                     (format "modrec.namespace[~s] = exports[~s];\n"
-                             (symbol->string (ModuleProvide-internal-name p))
-                             (symbol->string (ModuleProvide-external-name p))))
-                   provides))]
-      [else
-       ""]))
+    (apply string-append
+           (for/list ([modprovide (get-provided-names bytecode)]
+                      [i (in-naturals)])
+             (string-append
+;              (format "modrec.getNamespace().set(~s,exports[~s]);\n"
+;                      (symbol->string (ModuleProvide-internal-name modprovide))
+;                      (symbol->string (ModuleProvide-external-name modprovide)))
+              (format "modrec.prefix[~a]=exports[~s];\n"
+                      i
+                      (symbol->string (ModuleProvide-external-name modprovide)))))))
 
+  (define (get-prefix-code bytecode)
+    (format "modrec.prefix=[~a];modrec.prefix.names=[~a];modrec.prefix.internalNames=[~a];"
+            (string-join (map (lambda (n) "void(0)")
+                              (get-provided-names bytecode))
+                         ",")
+            (string-join (map (lambda (n)
+                                (format "~s" (symbol->string
+                                              (ModuleProvide-internal-name n))))
+                              (get-provided-names bytecode))
+                         ",")
+            (string-join (map (lambda (n)
+                                (format "~s" (symbol->string
+                                              (ModuleProvide-external-name n))))
+                              (get-provided-names bytecode))
+                         ",")))
 
   (define (get-implementation-from-path path)
     (let* ([name (rewrite-path path)]
@@ -196,13 +212,16 @@
 	     (format "
              if(--M.cbt<0) {return RT.bounce(arguments.callee); }
              var modrec = M.modules[~s];
+             ~a
              var exports = {};
              modrec.isInvoked = true;
              (function(MACHINE, EXPORTS){~a})(M, exports);
              ~a
              modrec.privateExports = exports;
+             modrec.finalizeModuleInvokation();
              return M.c.pop().label(M);"
 		     (symbol->string name)
+                     (get-prefix-code bytecode)
 		     text
 		     (get-provided-name-code bytecode))])
 	
@@ -444,7 +463,7 @@ M.modules[~s] =
 
 ;; package-standalone-xhtml: X output-port -> void
 (define (package-standalone-xhtml source-code op)
-  (display *header* op)
+  (display (get-header) op)
   (display (quote-cdata
             (string-append (get-runtime)
                            (get-inert-code source-code
@@ -513,11 +532,18 @@ M.modules[~s] =
   (force *the-runtime*))
 
 
+(define (append-text-files paths)
+  (string-join (map (λ (p) (if (file-exists? p)
+                               (bytes->string/utf-8 (call-with-input-file p port->bytes))
+                               ""))
+                    paths)
+               "\n"))
 
 
 
-;; *header* : string
-(define *header*
+;; get-header : -> string
+(define (get-header)  
+    (format
   #<<EOF
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
@@ -525,11 +551,12 @@ M.modules[~s] =
     <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta charset="utf-8"/>
     <title></title>
+    ~a
   </head>
   <script>
 
 EOF
-  )
+  (append-text-files (current-header-scripts))))
 
 
 ;; get-html-template: (listof string) (#:manifest path) -> string
@@ -548,6 +575,7 @@ EOF
     <meta charset="utf-8"/>
     <title>~a</title>
 ~a
+~a
   <script>
   ~a
   </script>
@@ -561,6 +589,7 @@ EOF
       "<meta http-equiv='X-UA-Compatible' content='IE=7,chrome=1'><!--[if lt IE 9]><script src='excanvas.js' type='text/javascript'></script><script src='canvas.text.js'></script><script src='optimer-normal-normal.js'></script><![endif]-->"
       "")
   title
+  (append-text-files (current-header-scripts))
   (string-join (map (lambda (js)
                       (format "  <script src='~a'></script>\n" js))
                     js-files)

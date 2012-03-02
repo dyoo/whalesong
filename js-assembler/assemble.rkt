@@ -239,7 +239,7 @@ EOF
     [is-self-looping?
      (fprintf op "while(true){")
      (when (set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
-       (fprintf op "if(--M.cbt<0){return RT.bounce(~a);}\n"
+       (fprintf op "if(--M.cbt<0){return RT.bnc(~a);}\n"
                 (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)))
      
      (assemble-block-statements (BasicBlock-name a-basic-block)
@@ -250,7 +250,7 @@ EOF
      (fprintf op "}")]
     [else
      (when (set-contains? function-entry-and-exit-names (BasicBlock-name a-basic-block))
-       (fprintf op "if(--M.cbt<0){return RT.bounce(~a);}\n"
+       (fprintf op "if(--M.cbt<0){return RT.bnc(~a);}\n"
                 (assemble-label (make-Label (BasicBlock-name a-basic-block)) blockht)))
      (assemble-block-statements (BasicBlock-name a-basic-block)
                                 (BasicBlock-stmts a-basic-block)

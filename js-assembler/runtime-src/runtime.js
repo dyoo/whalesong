@@ -140,7 +140,7 @@
 
     var defaultCurrentPrintImplementation = function (MACHINE) {
         if(--MACHINE.cbt < 0) {
-            return bounce(defaultCurrentPrintImplementation);
+            return bnc(defaultCurrentPrintImplementation);
         }
         var oldArgcount = MACHINE.a;
 
@@ -513,19 +513,10 @@
     };
 
     var BOUNCED = false;
-    var bounce; //= function(t) { throw t; };
-    // // Under Firefox, with its tracing evaluator, bouncing off the trampoline
-    // // with an exception is costly, so we use a return value instead.
-    // if (false) /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent)){
-         bounce = function(t) {
-             BOUNCED = t;
-             return;
-         };
-    // } else {
-    //     bounce = function(t) {
-    //         throw t;
-    //   };
-    //  }
+    var bnc = function(t) {
+        BOUNCED = t;
+        return;
+    };
 
     Machine.prototype._trampoline = function(initialJump, noJumpingOff, release) {
         var that = this;
@@ -833,7 +824,7 @@
     // continues on with the target function f.
     var si_pop_multiple_values_and_continue = function(target) {
         var f = function(M) {
-            if(--M.cbt<0) { return bounce(f); }
+            if(--M.cbt<0) { return bnc(f); }
             M.e.length -= (M.a-1);
             return target(M);
         };
@@ -1158,7 +1149,7 @@
     exports['invokeMains'] = invokeMains;
     exports['lookupInMains'] = lookupInMains;
 
-    exports['bounce'] = bounce;
+    exports['bnc'] = bnc;
 
 
     // installing new primitives

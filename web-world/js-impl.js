@@ -1184,7 +1184,7 @@
             MACHINE.params.currentOutputPort = find(handlers, isWithOutputToHandler).outputPort;
         }
 
-        PAUSE(function(restart, internalCall) {
+        return PAUSE(function(restart, internalCall) {
             var onCleanRestart, onMessyRestart, 
             startEventHandlers, stopEventHandlers, 
             startEventHandler, stopEventHandler,
@@ -1648,7 +1648,7 @@
         1,
         function(MACHINE) {
             var viewable = MACHINE.e[MACHINE.e.length - 1];
-            PAUSE(function(restart) {
+            return PAUSE(function(restart) {
                 coerseToView(viewable,
                              function(v) {
                                  restart(function(MACHINE) {
@@ -1681,7 +1681,7 @@
         1,
         function(MACHINE) {
             var viewable = MACHINE.e[MACHINE.e.length - 1];
-            PAUSE(function(restart) {
+            return PAUSE(function(restart) {
                 coerseToMockView(viewable,
                                  function(v) {
                                      restart(function(MACHINE) {
@@ -2050,7 +2050,7 @@
         function(MACHINE) {
             var view = checkMockViewOnElement(MACHINE, 'view-append-child', 0);
             var x = MACHINE.e[MACHINE.e.length - 2];
-            PAUSE(function(restart) {
+            return PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
                                      restart(function(MACHINE) {
@@ -2078,7 +2078,7 @@
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-insert-right', 0);
             var x = MACHINE.e[MACHINE.e.length - 2];
-            PAUSE(function(restart) {
+            return PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
                                      restart(function(MACHINE) {
@@ -2108,7 +2108,7 @@
         function(MACHINE) {
             var view = checkMockView(MACHINE, 'view-insert-left', 0);
             var x = MACHINE.e[MACHINE.e.length - 2];
-            PAUSE(function(restart) {
+            return PAUSE(function(restart) {
                 coerseToDomNode(x,
                                 function(dom) {
                                      restart(function(MACHINE) {

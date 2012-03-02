@@ -47,7 +47,7 @@ var bigBang = function(MACHINE, initW, handlers) {
     }
 
 
-    PAUSE(function(restart) {
+    return PAUSE(function(restart) {
 
 	// var onBreak = function() {
 	//     bigBangController.breaker();

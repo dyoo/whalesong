@@ -286,7 +286,7 @@ EXPORTS['bitmap/url'] =
         1,
         function(MACHINE) {
             var url = checkString(MACHINE, 'bitmap/url', 0);
-            PAUSE(
+            return PAUSE(
                 function(restart) {
                     var rawImage = new Image();
                     rawImage.onload = function() {

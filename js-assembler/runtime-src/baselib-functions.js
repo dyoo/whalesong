@@ -154,7 +154,7 @@
                     var oldErrorHandler = MACHINE.params['currentErrorHandler'];
 
                     var afterGoodInvoke = function (MACHINE) { 
-                        plt.runtime.PAUSE(
+                        return plt.runtime.PAUSE(
                             function (restart) {
                                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                                 var returnValue = MACHINE.v;
@@ -165,7 +165,7 @@
                             });
                     };
                     afterGoodInvoke.mvr = function (MACHINE) {
-                        plt.runtime.PAUSE(
+                        return plt.runtime.PAUSE(
                             function (restart) {
                                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                                 var returnValues = [MACHINE.v], i;
@@ -259,7 +259,7 @@
 
         oldErrorHandler = MACHINE.params['currentErrorHandler'];
         var afterGoodInvoke = function (MACHINE) { 
-            plt.runtime.PAUSE(function (restart) {
+            return plt.runtime.PAUSE(function (restart) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                 var returnValue = MACHINE.v;
                 MACHINE.v = oldVal;
@@ -269,7 +269,7 @@
             });
         };
         afterGoodInvoke.mvr = function (MACHINE) {
-            plt.runtime.PAUSE(function (restart) {
+            return plt.runtime.PAUSE(function (restart) {
                 MACHINE.params['currentErrorHandler'] = oldErrorHandler;
                 var returnValues = [MACHINE.v];
                 var i;

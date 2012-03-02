@@ -365,7 +365,7 @@
             if (M.a === 1) {
                 inputPort = checkInputPort(M, 'read-byte', 0);
             }
-            plt.runtime.PAUSE(function(restart) {
+            return plt.runtime.PAUSE(function(restart) {
                 inputPort.callWhenReady(M, function() {
                     restart(function(MACHINE) {
                         plt.runtime.finalizeClosureCall(MACHINE,

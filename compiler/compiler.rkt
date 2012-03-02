@@ -1045,9 +1045,9 @@
                          (length (App-operands exp))))
   (define proc+operands-code
     (cond
-     ;; Optimization: if the operand and operands are all simple, we don't need to
+     ;; Optimization: if the operand and operands are all side-effect-free, we don't need to
      ;; juggle.
-     [(andmap simple-expression? (cons (App-operator exp) (App-operands exp)))
+     [(andmap side-effect-free-expression? (cons (App-operator exp) (App-operands exp)))
       (define proc-code (compile (App-operator exp) extended-cenv 'proc next-linkage/expects-single))
       (define operand-codes (map (lambda: ([operand : Expression]
                                            [target : Target])
@@ -1224,8 +1224,8 @@
       [else
        (cond
          ;; If all the arguments are primitive enough (all constants, localrefs, or toplevelrefs),
-         ;; then application requires no stack space at all, and application is especially simple.
-         [(andmap simple-expression? (App-operands exp))
+         ;; then application requires no stack space at all, and application is especially side-effect-free.
+         [(andmap side-effect-free-expression? (App-operands exp))
           (let* ([operand-knowledge
                   (map (lambda: ([arg : Expression])
                          (extract-static-knowledge 
@@ -1242,8 +1242,8 @@
                        operand-knowledge)]
                  
                  [operand-poss
-                  (simple-operands->opargs (map (lambda: ([op : Expression])
-                                                  (ensure-simple-expression
+                  (side-effect-free-operands->opargs (map (lambda: ([op : Expression])
+                                                  (ensure-side-effect-free-expression
                                                    (adjust-expression-depth op n n)))
                                                 (App-operands exp))
                                            operand-knowledge)])
@@ -1272,7 +1272,7 @@
                                   (length rest-operands))
                                  
                                  (map (lambda: ([constant-operand : Expression])
-                                        (ensure-simple-expression
+                                        (ensure-side-effect-free-expression
                                          (adjust-expression-depth constant-operand
                                                                   (length constant-operands)
                                                                   n)))
@@ -1309,7 +1309,7 @@
                                               (make-Const 0))]
                         
                         [(constant-operand-poss)
-                         (simple-operands->opargs constant-operands constant-operand-knowledge)]
+                         (side-effect-free-operands->opargs constant-operands constant-operand-knowledge)]
                         
                         [(rest-operand-poss)
                          (build-list (length rest-operands)
@@ -1343,33 +1343,33 @@
 
 
 
-(: ensure-simple-expression (Expression -> (U Constant ToplevelRef LocalRef PrimitiveKernelValue)))
-(define (ensure-simple-expression e)
+(: ensure-side-effect-free-expression (Expression -> (U Constant ToplevelRef LocalRef PrimitiveKernelValue)))
+(define (ensure-side-effect-free-expression e)
   (if (or (Constant? e)
           (LocalRef? e)
           (ToplevelRef? e)
           (PrimitiveKernelValue? e))
       e
-      (error 'ensure-simple-expression)))
+      (error 'ensure-side-effect-free-expression)))
 
 
-(: simple-expression? (Expression -> Boolean))
-;; Produces true if the expression is simple and constant.
+(: side-effect-free-expression? (Expression -> Boolean))
+;; Produces true if the expression is side-effect-free and constant.
 ;; TODO: generalize this so that it checks that the expression is
 ;; side-effect free.  If it's side-effect free, then we can compute
 ;; the expressions in any order.
-(define (simple-expression? e)
+(define (side-effect-free-expression? e)
   (or (Constant? e)
       (LocalRef? e)
       (ToplevelRef? e)
       (PrimitiveKernelValue? e)))
 
 
-(: simple-operands->opargs ((Listof (U Constant LocalRef ToplevelRef PrimitiveKernelValue))
+(: side-effect-free-operands->opargs ((Listof (U Constant LocalRef ToplevelRef PrimitiveKernelValue))
                             (Listof CompileTimeEnvironmentEntry)
                             -> (Listof OpArg)))
-;; Produces a list of OpArgs if all the operands are particularly simple.
-(define (simple-operands->opargs rands knowledge)
+;; Produces a list of OpArgs if all the operands are particularly side-effect-free.
+(define (side-effect-free-operands->opargs rands knowledge)
   (map (lambda: ([e : (U Constant LocalRef ToplevelRef PrimitiveKernelValue)]
                  [k : CompileTimeEnvironmentEntry])
          (cond
@@ -1423,22 +1423,21 @@
 
 (: split-operands-by-constants 
    ((Listof Expression)  -> 
-                         (values (Listof (U Constant LocalRef ToplevelRef))
+                         (values (Listof (U Constant))
                                  (Listof Expression))))
-;; Splits off the list of operations into two: a prefix of constant
-;; or simple expressions, and the remainder.
-;; TODO: if we can statically determine what arguments are immutable, regardless of
+;; Splits off the list of operations into two: a prefix of
+;; constant expressions, and the remainder.  TODO: if we can
+;; statically determine what arguments are immutable, regardless of
 ;; side effects, we can do a much better job here...
 (define (split-operands-by-constants rands)
-  (let: loop : (values (Listof (U Constant LocalRef ToplevelRef)) (Listof Expression))
+  (let: loop : (values (Listof (U Constant)) (Listof Expression))
     ([rands : (Listof Expression) rands]
-     [constants : (Listof (U Constant LocalRef ToplevelRef))
+     [constants : (Listof (U Constant))
                 empty])
     (cond [(empty? rands)
            (values (reverse constants) empty)]
           [else (let ([e (first rands)])
                   (if (or (Constant? e)
-                          
                           ;; These two are commented out because it's not sound otherwise.
                           #;(and (LocalRef? e) (not (LocalRef-unbox? e))) 
                           #;(and (ToplevelRef? e)

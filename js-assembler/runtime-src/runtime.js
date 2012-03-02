@@ -513,14 +513,14 @@
     };
 
     var BOUNCED = false;
-    var bounce = function(t) { throw t; };
+    var bounce; //= function(t) { throw t; };
     // // Under Firefox, with its tracing evaluator, bouncing off the trampoline
     // // with an exception is costly, so we use a return value instead.
     // if (false) /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent)){
-    //     bounce = function(t) {
-    //         BOUNCED = true;
-    //         return t;
-    //     };
+         bounce = function(t) {
+             BOUNCED = t;
+             return;
+         };
     // } else {
     //     bounce = function(t) {
     //         throw t;
@@ -538,11 +538,13 @@
 
         while(true) {
             try {
-                thunk = thunk(that);
+                thunk(that);
                 // One way to bounce might be through the Firefox way.
                 // The other way is via throwing a function as an exception.
                 if (BOUNCED) {
+                    thunk = BOUNCED;
                     BOUNCED = false;
+                    that.cbt = STACK_LIMIT_ESTIMATE;
                     // If we're running an a model that prohibits
                     // jumping off the trampoline, continue.
                     if (noJumpingOff) {

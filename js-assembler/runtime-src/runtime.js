@@ -488,12 +488,14 @@
 
     var Pause = function(onPause) {
         // onPause: MACHINE -> void
-        this.onPause = onPause || function(MACHINE) {};
+        this.onPause = onPause;
     };
 
     var PAUSED = false;
+    var THE_SINGLETON_PAUSE = new Pause();
     var PAUSE = function(onPause) {
-        PAUSED = new Pause(onPause);
+        PAUSED = THE_SINGLETON_PAUSE;
+        THE_SINGLETON_PAUSE.onPause = onPause;
         return;
     };
 

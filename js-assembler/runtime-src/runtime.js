@@ -488,11 +488,12 @@
 
     var Pause = function(onPause) {
         // onPause: MACHINE -> void
-        this.onPause = onPause || function(MACHINE) {};
+        this.onPause = onPause;
     };
-
+    var THE_SINGLETON_PAUSE = new Pause();
     var PAUSE = function(onPause) {
-        throw(new Pause(onPause));
+        THE_SINGLETON_PAUSE.onPause = onPause;
+        throw(THE_SINGLETON_PAUSE);
     };
 
 
@@ -564,7 +565,7 @@
                         scheduleTrampoline(that, thunk, release);
                         return;
                     }
-                } else if (e instanceof Pause) {
+                } else if (e === THE_SINGLETON_PAUSE) {
                     var pauseLock = new ExclusiveLock();
                     var oldArgcount = that.a;
                     var restarted = false;

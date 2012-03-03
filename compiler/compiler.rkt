@@ -77,9 +77,11 @@
     
     (cond
       [(Top? exp)
-       (loop (Top-code exp) (cons (Top-prefix exp) cenv))]
+       (loop (Top-code exp) (cons (prefix->augmented-prefix (Top-prefix exp))
+                                  cenv))]
       [(Module? exp)
-       (loop (Module-code exp) (cons (Module-prefix exp) cenv))]
+       (loop (Module-code exp) (cons (prefix->augmented-prefix (Module-prefix exp))
+                                     cenv))]
       [(Constant? exp)
        '()]
       [(LocalRef? exp)
@@ -295,13 +297,14 @@
 ;; Generates code to write out the top prefix, evaluate the rest of the body,
 ;; and then pop the top prefix off.
 (define (compile-top top cenv target linkage)
-  (let*: ([names : (Listof (U False Symbol GlobalBucket ModuleVariable)) (Prefix-names (Top-prefix top))])
+  (let*: ([names : (Listof (U False Symbol GlobalBucket ModuleVariable)) (AugmentedPrefix-names (Top-prefix top))])
     (end-with-linkage 
      linkage cenv
      (append-instruction-sequences
       (make-Perform (make-ExtendEnvironment/Prefix! names))
       (compile (Top-code top) 
-               (cons (Top-prefix top) cenv)
+               (cons (prefix->augmented-prefix (Top-prefix top))
+                     cenv)
                'val
                next-linkage/drop-multiple)
       (make-AssignImmediate target (make-Reg 'val))
@@ -321,8 +324,8 @@
      (let*: ([after-module-body (make-label 'afterModuleBody)]
              [module-entry (make-label 'module-entry)]
              [names : (Listof (U False Symbol GlobalBucket ModuleVariable))
-                    (Prefix-names prefix)]
-             [module-cenv : CompileTimeEnvironment (list prefix)])
+                    (AugmentedPrefix-names prefix)]
+             [module-cenv : CompileTimeEnvironment (list (prefix->augmented-prefix prefix))])
        
        (end-with-linkage 
         linkage cenv
@@ -344,7 +347,7 @@
                                (make-EnvWholePrefixReference 0))
          ;; 3.  Next, evaluate the module body.
          (compile (Module-code mod) 
-                  (cons (Module-prefix mod) module-cenv)
+                  (cons (prefix->augmented-prefix (Module-prefix mod)) module-cenv)
                   'val
                   next-linkage/drop-multiple)
          
@@ -484,8 +487,8 @@
 (: compile-toplevel-reference (ToplevelRef CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles toplevel references.
 (define (compile-toplevel-reference exp cenv target linkage)
-  (define prefix (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
-  (define prefix-element (list-ref (Prefix-names prefix) (ToplevelRef-pos exp)))
+  (define prefix (ensure-augmented-prefix (list-ref cenv (ToplevelRef-depth exp))))
+  (define prefix-element (list-ref (AugmentedPrefix-names prefix) (ToplevelRef-pos exp)))
   (let ([singular-context-check (emit-singular-context linkage)])
     (end-with-linkage linkage
                       cenv
@@ -532,8 +535,8 @@
 (: compile-toplevel-set (ToplevelSet CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Compiles a toplevel mutation.
 (define (compile-toplevel-set exp cenv target linkage)
-  (define prefix (ensure-prefix (list-ref cenv (ToplevelSet-depth exp))))
-  (define prefix-element (list-ref (Prefix-names prefix) (ToplevelSet-pos exp)))
+  (define prefix (ensure-augmented-prefix (list-ref cenv (ToplevelSet-depth exp))))
+  (define prefix-element (list-ref (AugmentedPrefix-names prefix) (ToplevelSet-pos exp)))
   (let ([get-value-code
          (cond
            [(ModuleVariable? prefix-element)
@@ -1010,15 +1013,15 @@
               (default)]))]
         [(StaticallyKnownLam? op-knowledge)
          (compile-statically-known-lam-application op-knowledge exp cenv target linkage)]
-        [(Prefix? op-knowledge)
+        #;[(Prefix? op-knowledge)
          (error 'impossible)]
         [(Const? op-knowledge)
          (append-instruction-sequences
           (make-AssignImmediate 'proc op-knowledge)
           (make-Perform
            (make-RaiseOperatorApplicationError! (make-Reg 'proc))))]
-        [else
-         (default)]))))
+        #;[else
+           (default)]))))
 
 
 (: operator-is-statically-known-identifier? (CompileTimeEnvironmentEntry -> (U False Symbol)))
@@ -1441,14 +1444,7 @@
     (cond [(empty? rands)
            (values (reverse constants) empty)]
           [else (let ([e (first rands)])
-                  (if (or (Constant? e)
-                          ;; These two are commented out because it's not sound otherwise.
-                          #;(and (LocalRef? e) (not (LocalRef-unbox? e))) 
-                          #;(and (ToplevelRef? e)
-                                 (let ([prefix (ensure-prefix 
-                                                (list-ref cenv (ToplevelRef-depth e)))])
-                                   (ModuleVariable? 
-                                    (list-ref prefix (ToplevelRef-pos e))))))
+                  (if (Constant? e)
                       (loop (rest rands) (cons e constants))
                       (values (reverse constants) rands)))])))
 
@@ -1782,7 +1778,7 @@
      ;(when (ToplevelRef-constant? exp)
      ;  (log-debug (format "toplevel reference ~a should be known constant" exp)))
      (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
-                  (list-ref (Prefix-names (ensure-prefix (list-ref cenv (ToplevelRef-depth exp))))
+                  (list-ref (AugmentedPrefix-names (ensure-augmented-prefix (list-ref cenv (ToplevelRef-depth exp))))
                             (ToplevelRef-pos exp))])
        (cond
          [(ModuleVariable? name)
@@ -2245,11 +2241,13 @@
       n
       (error 'ensure-natural "Not a natural: ~s\n" n)))
 
-(: ensure-prefix (CompileTimeEnvironmentEntry -> Prefix))
-(define (ensure-prefix x)
-  (if (Prefix? x)
+
+(: ensure-augmented-prefix (CompileTimeEnvironmentEntry -> AugmentedPrefix))
+(define (ensure-augmented-prefix x)
+  (if (AugmentedPrefix? x)
       x
-      (error 'ensure-prefix "Not a prefix: ~s" x)))
+      (error 'ensure-augmented-prefix "Not an augmented prefix: ~s" x)))
+
 
 (: ensure-lam (Any -> Lam))
 (define (ensure-lam x)

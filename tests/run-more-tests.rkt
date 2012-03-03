@@ -52,3 +52,4 @@
 (test "more-tests/scheme-whalesong.rkt")
 (test "more-tests/nestedloop.rkt")
 (test "more-tests/nucleic2.rkt")
+(test "more-tests/ramanujan-pi.rkt")

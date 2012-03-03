@@ -20,8 +20,8 @@
 (define-type CompileTimeEnvironment (Listof CompileTimeEnvironmentEntry))
 
 (define-type CompileTimeEnvironmentEntry 
-  (U '?          ;; no knowledge
-     AugmentedPrefix        ;; placeholder: necessary since the toplevel lives in the environment too
+  (U '?                     ;; no knowledge
+     AugmentedPrefix        ;; necessary since the toplevel lives in the environment too
      StaticallyKnownLam     ;; The value is a known lam
      ModuleVariable         ;; The value is a variable from a module
      PrimitiveKernelValue
@@ -29,6 +29,7 @@
      ))
 
 (define-type PrefixElement (U False Symbol GlobalBucket ModuleVariable))
+(define-predicate PrefixElement? PrefixElement)
 (define-struct: AugmentedPrefixElement ([val : PrefixElement]
                                         [static : (U StaticallyKnownLam PrimitiveKernelValue Const)]))
 
@@ -38,9 +39,6 @@
                                                      AugmentedPrefixElement))])
   #:transparent)
 
-(: prefix->augmented-prefix (Prefix -> AugmentedPrefix))
-(define (prefix->augmented-prefix p)
-  (make-AugmentedPrefix (Prefix-names p)))
 
 
 

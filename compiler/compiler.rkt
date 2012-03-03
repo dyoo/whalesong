@@ -63,13 +63,27 @@
            (make-AssignImmediate target (make-Reg 'val))))))))
 
 
+
+
+
+(: prefix->augmented-prefix (Prefix -> AugmentedPrefix))
+(define (prefix->augmented-prefix p)
+  (make-AugmentedPrefix (Prefix-names p)))
+
+
+
+
+
+
+
+
 (define-struct: lam+cenv ([lam : (U Lam CaseLam)]
                           [cenv : CompileTimeEnvironment]))
 
 
 
 (: collect-all-lambdas-with-bodies (Expression -> (Listof lam+cenv)))
-;; Finds all the lambdas in the expression.
+;; Finds all the lambdas in the expression along with their compile time environments.
 (define (collect-all-lambdas-with-bodies exp)
   (let: loop : (Listof lam+cenv)
     ([exp : Expression exp]
@@ -297,7 +311,13 @@
 ;; Generates code to write out the top prefix, evaluate the rest of the body,
 ;; and then pop the top prefix off.
 (define (compile-top top cenv target linkage)
-  (let*: ([names : (Listof (U False Symbol GlobalBucket ModuleVariable)) (AugmentedPrefix-names (Top-prefix top))])
+  (let*: ([names : (Listof PrefixElement) 
+                 (map (lambda: ([elt : (U PrefixElement AugmentedPrefixElement)])
+                        (cond
+                          [(PrefixElement? elt) elt]
+                          [(AugmentedPrefixElement? elt)
+                           (AugmentedPrefixElement-val elt)]))
+                      (AugmentedPrefix-names (prefix->augmented-prefix (Top-prefix top))))])
     (end-with-linkage 
      linkage cenv
      (append-instruction-sequences
@@ -323,8 +343,7 @@
     [(struct Module (name path prefix requires provides code))
      (let*: ([after-module-body (make-label 'afterModuleBody)]
              [module-entry (make-label 'module-entry)]
-             [names : (Listof (U False Symbol GlobalBucket ModuleVariable))
-                    (AugmentedPrefix-names prefix)]
+             [names : (Listof PrefixElement) (Prefix-names prefix)]
              [module-cenv : CompileTimeEnvironment (list (prefix->augmented-prefix prefix))])
        
        (end-with-linkage 
@@ -347,7 +366,7 @@
                                (make-EnvWholePrefixReference 0))
          ;; 3.  Next, evaluate the module body.
          (compile (Module-code mod) 
-                  (cons (prefix->augmented-prefix (Module-prefix mod)) module-cenv)
+                  module-cenv
                   'val
                   next-linkage/drop-multiple)
          
@@ -1000,21 +1019,25 @@
       (cond
         [(eq? op-knowledge '?)
          (default)]
-        [(operator-is-statically-known-identifier? op-knowledge)
-         => 
-         (lambda (id)
-           (cond
-             [(KernelPrimitiveName/Inline? id)
-              (compile-open-codeable-application id exp cenv target linkage)]
-             [((current-primitive-identifier?) id)
-              => (lambda (expected-arity)
-                   (compile-primitive-application exp cenv target linkage id expected-arity))]
-             [else
-              (default)]))]
+        [(AugmentedPrefix? op-knowledge)
+         (error 'impossible)]
+        [(or (PrimitiveKernelValue? op-knowledge)
+             (ModuleVariable? op-knowledge))
+         (cond [(operator-is-statically-known-identifier? op-knowledge)
+                => 
+                (lambda (id)
+                  (cond
+                    [(KernelPrimitiveName/Inline? id)
+                     (compile-open-codeable-application id exp cenv target linkage)]
+                    [((current-primitive-identifier?) id)
+                     => (lambda (expected-arity)
+                          (compile-primitive-application exp cenv target linkage id expected-arity))]
+                    [else
+                     (default)]))]
+               [else 
+                (default)])]
         [(StaticallyKnownLam? op-knowledge)
          (compile-statically-known-lam-application op-knowledge exp cenv target linkage)]
-        #;[(Prefix? op-knowledge)
-         (error 'impossible)]
         [(Const? op-knowledge)
          (append-instruction-sequences
           (make-AssignImmediate 'proc op-knowledge)
@@ -1777,10 +1800,12 @@
      ;(log-debug (format "toplevel reference of ~a" exp))
      ;(when (ToplevelRef-constant? exp)
      ;  (log-debug (format "toplevel reference ~a should be known constant" exp)))
-     (let: ([name : (U Symbol False GlobalBucket ModuleVariable)
+     (let: ([name : (U AugmentedPrefixElement PrefixElement)
                   (list-ref (AugmentedPrefix-names (ensure-augmented-prefix (list-ref cenv (ToplevelRef-depth exp))))
                             (ToplevelRef-pos exp))])
        (cond
+         [(AugmentedPrefixElement? name)
+          (AugmentedPrefixElement-static name)]
          [(ModuleVariable? name)
           ;(log-debug (format "toplevel reference is to ~s" name))
           name]

@@ -21,6 +21,9 @@
          js-eval
          
          load-script
+         
+         js-function
+         js-async-function
          )
 
 (define (alert x)

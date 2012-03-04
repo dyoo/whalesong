@@ -7,6 +7,9 @@
                     body
                     call-method
                     $
+
+                    js-function
+                    js-async-function
                     
                     window
                     

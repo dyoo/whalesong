@@ -99,3 +99,9 @@
 (define (load-script url)
   (error 'load-script "Not available outside JavaScript context."))
 
+
+(define (js-function f)
+    (error 'js-function "Not available outside JavaScript context."))
+
+(define (js-async-function f)
+    (error 'js-async-function "Not available outside JavaScript context."))

@@ -11,6 +11,8 @@
     var makeCheckArgumentType = plt.baselib.check.makeCheckArgumentType;
     var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
     var checkString = plt.baselib.check.checkString;
+    var checkJSFunction = makeCheckArgumentType(function(x) { return typeof(x) === 'function'; },
+                                                "js function");
     var checkAny = makeCheckArgumentType(function(x) { return true; },
                                          "any");
 
@@ -90,7 +92,7 @@
             1,
             function(MACHINE) {
                 var elt = MACHINE.e[MACHINE.e.length - 1];
-                var obj = eval(String(elt));
+                var obj = eval('(' + String(elt) + ')');
                 return obj;
             });
 
@@ -153,6 +155,64 @@
                 }
                 var result = obj[methodName].apply(obj, args);
                 return result;
+            });
+
+
+    // Lift JavaScript functions to Whalesong functions.
+    EXPORTS['js-function'] =
+        makePrimitiveProcedure(
+            'js-function',
+            1,
+            function(MACHINE) {
+                var f = checkJSFunction(MACHINE, 'js function', 0);
+                return makePrimitiveProcedure(
+                    'lifted js function',
+                    plt.baselib.arity.makeArityAtLeast(0),
+                    function(MACHINE) {
+                        var args = [], i;
+                        for (i = 0; i < MACHINE.a ; i = i+1) {
+                            args.push(MACHINE.e[MACHINE.e.length - 1 - i]);
+                        }
+                        return f.call(null, args);
+                    });
+            });
+
+    EXPORTS['js-async-function'] =
+        makePrimitiveProcedure(
+            'js-async-function',
+            1,
+            function(MACHINE) {
+                var f = checkJSFunction(MACHINE, 'js function', 0);
+                return makeClosure(
+                    'lifted asynchronous js function',
+                    plt.baselib.arity.makeArityAtLeast(0),
+                    function(MACHINE) {
+                        var args = [], i;
+                        for (i = 0; i < MACHINE.a ; i = i+1) {
+                            args.push(MACHINE.e[MACHINE.e.length - 1 - i]);
+                        }
+                        return plt.runtime.PAUSE(
+                            function(restart) {
+                                var onFail = function(e) {
+                                    restart(function(MACHINE) {
+                                        plt.baselib.exceptions.raiseFailure(
+                                            MACHINE, 
+                                            plt.baselib.format.format(
+                                                "~a",
+                                                [((e && e.message) ? e.message : "unknown error")]));
+                                        
+                                    });
+                                };
+                                var onSuccess = function(v) {
+                                    restart(function(MACHINE) {
+                                        plt.runtime.finalizeClosureCall(MACHINE, v);
+                                    });
+                                }
+                                args.unshift(onFail);
+                                args.unshift(onSuccess);
+                                return f.call(null, args);
+                            });
+                    });
             });
 
 

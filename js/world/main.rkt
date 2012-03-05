@@ -3,4 +3,4 @@
 (declare-implementation
  #:racket "racket-impl.rkt"
  #:javascript ("js-impl.js")
- #:provided-values ())
+ #:provided-values (make-js-world-event))

@@ -15,9 +15,10 @@
 
 
 ;; Let's attach the send-event function to a toplevel function on the window.
-(void ((js-function (js-eval "function(x) { window.sendTheTick = x; }"))
+(void ((js-function->procedure (js-eval "function(x) { window.sendTheTick = x; }"))
        send-event))
-;; js-function lifts JavaScript functions to regular function we can call.
+;; js-function->procedure lifts JavaScript functions to regular
+;; procedures that we can call.
 
 
 (define (tick w v)

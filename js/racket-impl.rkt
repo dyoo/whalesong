@@ -22,8 +22,8 @@
          
          load-script
          
-         js-function
-         js-async-function
+         js-function->procedure
+         js-async-function->procedure
          )
 
 (define (alert x)
@@ -103,8 +103,8 @@
   (error 'load-script "Not available outside JavaScript context."))
 
 
-(define (js-function f)
-    (error 'js-function "Not available outside JavaScript context."))
+(define (js-function->procedure f)
+    (error 'js-function->procedure "Not available outside JavaScript context."))
 
-(define (js-async-function f)
-    (error 'js-async-function "Not available outside JavaScript context."))
+(define (js-async-function->procedure f)
+    (error 'js-async-function->procedure "Not available outside JavaScript context."))

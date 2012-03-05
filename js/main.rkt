@@ -8,8 +8,8 @@
                     call-method
                     $
 
-                    js-function
-                    js-async-function
+                    js-function->procedure
+                    js-async-function->procedure
                     
                     window
                     

@@ -159,9 +159,9 @@
 
 
     // Lift JavaScript functions to Whalesong functions.
-    EXPORTS['js-function'] =
+    EXPORTS['js-function->procedure'] =
         makePrimitiveProcedure(
-            'js-function',
+            'js-function->procedure',
             1,
             function(MACHINE) {
                 var f = checkJSFunction(MACHINE, 'js function', 0);
@@ -177,9 +177,9 @@
                     });
             });
 
-    EXPORTS['js-async-function'] =
+    EXPORTS['js-async-function->procedure'] =
         makePrimitiveProcedure(
-            'js-async-function',
+            'js-async-function->procedure',
             1,
             function(MACHINE) {
                 var f = checkJSFunction(MACHINE, 'js function', 0);

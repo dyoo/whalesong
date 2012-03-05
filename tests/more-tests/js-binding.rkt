@@ -2,13 +2,13 @@
 (require (planet dyoo/whalesong/js))
 
 (define js-plus
-  (js-function (js-eval "function(x, y) { return x + y; }")))
+  (js-function->procedure "function(x, y) { return x + y; }"))
 
 (define js-minus
-  (js-function (js-eval "function(x, y) { return x - y; }")))
+  (js-function->procedure "function(x, y) { return x - y; }"))
 
 (define sleep
-  (js-async-function (js-eval "function(success, fail, n) { setTimeout(success, n) }")))
+  (js-async-function->procedure"function(success, fail, n) { setTimeout(success, n) }"))
 
 
 "plus: " (js-plus 3 4)
@@ -25,5 +25,5 @@
 ;; I need exception handling...
 ;;
 ;(define i-should-fail
-;  (js-async-function (js-eval "function(success, fail) { fail('I should fail'); }")))
+;  (js-async-function->procedure  "function(success, fail) { fail('I should fail'); }"))
 ;(i-should-fail)

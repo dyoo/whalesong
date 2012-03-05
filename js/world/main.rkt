@@ -1,6 +1,3 @@
-#lang s-exp "../../lang/js/js.rkt"
-(require "../../web-world.rkt")
-(declare-implementation
- #:racket "racket-impl.rkt"
- #:javascript ("js-impl.js")
- #:provided-values (make-js-world-event))
+#lang s-exp "../../lang/base.rkt"
+(require "make-js-world-event.rkt")
+(provide (all-from-out "make-js-world-event.rkt"))

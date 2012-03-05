@@ -19,12 +19,27 @@
        send))
 ;; js-function lifts JavaScript functions to regular function we can call.
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (get-message w v msg)
-  (cons msg w))
+;; With this infrastructure, we can make a world program that responds to window postMessage.  For example,
+;; we can present a log of all the messages we receive.
+
+(define-struct world (time messages))
+
+(define (read-message w v msg)
+  (make-world (world-time w)
+              (cons (format "at time ~a: ~s"
+                            (world-time w)
+                            msg)
+                    (world-messages w))))
+
+(define (tick w v)
+  (make-world (add1 (world-time w))
+              (world-messages w)))
 
 
 ;; Finally, let's use our big bang:
-(big-bang '("Initial")
-          (on-message get-message))    ;; Note the on-event here
+(big-bang (make-world 0 '())
+          (on-tick tick 1)
+          (on-message read-message))
 

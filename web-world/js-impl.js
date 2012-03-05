@@ -929,7 +929,6 @@
     EventSource.prototype.onStop = function() {
     };
 
-
     
 
     // TickEventSource sends tick events.
@@ -2200,5 +2199,10 @@
         });
 
 
+
+
+    // For private importers of the web-world library, like the FFI's js/world library.
+    Exports['EventSource'] = EventSource;
+    Exports['EventHandler'] = EventHandler;
     //////////////////////////////////////////////////////////////////////
 }());

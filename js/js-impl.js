@@ -173,7 +173,7 @@
                         for (i = 0; i < MACHINE.a ; i = i+1) {
                             args.push(MACHINE.e[MACHINE.e.length - 1 - i]);
                         }
-                        return f.call(null, args);
+                        return f.apply(null, args);
                     });
             });
 
@@ -199,7 +199,7 @@
                                             MACHINE, 
                                             plt.baselib.format.format(
                                                 "~a",
-                                                [((e && e.message) ? e.message : "unknown error")]));
+                                                [((e && e.message) ? e.message : e || "unknown error")]));
                                         
                                     });
                                 };
@@ -210,7 +210,7 @@
                                 }
                                 args.unshift(onFail);
                                 args.unshift(onSuccess);
-                                return f.call(null, args);
+                                return f.apply(null, args);
                             });
                     });
             });

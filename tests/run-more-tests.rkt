@@ -6,6 +6,7 @@
 ;; content vs. a text file with the same name, but with the .rkt file
 ;; type replaced with .expected.
 
+(test "more-tests/js-binding.rkt")
 (test "more-tests/simple.rkt")
 (test "more-tests/simple-loop.rkt")
 (test "more-tests/booleans.rkt")

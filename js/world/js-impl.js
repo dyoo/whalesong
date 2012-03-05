@@ -2,8 +2,13 @@
 (function() {
     "use strict";
 
-    var resourceStructType = 
-        MACHINE.modules['whalesong/web-world.rkt'].getNamespace().get('');
+    var WebWorld = 
+        MACHINE.modules['whalesong/web-world.rkt'].privateExports;
+    var EventSource = WebWorld.EventSource;
+    var EventHandler = WebWorld.EventHandler;
+
+    var makeClosure = plt.runtime.makeClosure;
+    var finalizeClosureCall = plt.runtime.finalizeClosureCall;
 
 
     /**
@@ -35,5 +40,17 @@
         return { eventSource: new JsEventSource(),
                  sender: sender };
     };
+
+
+    var makeJsWorldEvent = makeClosure(
+        'make-js-world-event',
+        0,
+        function(M) {
+            finalizeClosureCall(M, "first value", "second value");
+            
+        });
+
+
+    EXPORTS['make-js-world-event'] = makeJsWorldEvent;
 
 }());

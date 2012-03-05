@@ -6,9 +6,10 @@
         MACHINE.modules['whalesong/web-world/impl.rkt'].privateExports;
     var EventSource = WebWorld.EventSource;
     var EventHandler = WebWorld.EventHandler;
+    var wrapFunction = WebWorld.wrapFunction;
 
     var makeClosure = plt.baselib.functions.makeClosure;
-    var makePrimitive = plt.baselib.functions.makePrimitive;
+    var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
     var finalizeClosureCall = plt.runtime.finalizeClosureCall;
 
     var checkProcedure = plt.baselib.check.checkProcedure;
@@ -34,11 +35,9 @@
             fireEvent = void(0);
         };
 
-        var sender = function() {
+        var sender = function(v) {
             if (enabled) {
-                var args = Array.prototype.slice.call(arguments, 0);
-                args.unshift(void(0));
-                fireEvent.apply(null, args);
+                fireEvent(void(0), v);
             }
         };
         return { eventSource: new JsEventSource(),
@@ -52,16 +51,17 @@
         function(M) {
             var eventSourceRecord = makeJsEventSource();
             eventSourceRecord.eventSource
-            var makeHandler = makePrimitive('make-js-world-event',
-                                            1,
-                                            function(M) {
-                                                var onEvent = checkProcedure(M, 'js-world-event-handler', 0);
-                                                return new EventHandler('js-world-event',
-                                                                        eventSourceRecord.eventSource,
-                                                                        onEvent);
-                                            });
+            var makeHandler = makePrimitiveProcedure(
+                'make-js-world-event',
+                1,
+                function(M) {
+                    var onEvent = wrapFunction(checkProcedure(M, 'js-world-event-handler', 0));
+                    return new EventHandler('js-world-event',
+                                            eventSourceRecord.eventSource,
+                                            onEvent);
+                });
             finalizeClosureCall(M,
-                                "first value", 
+                                makeHandler, 
                                 eventSourceRecord.sender);
         });
 

@@ -2204,5 +2204,6 @@
     // For private importers of the web-world library, like the FFI's js/world library.
     EXPORTS['EventSource'] = EventSource;
     EXPORTS['EventHandler'] = EventHandler;
+    EXPORTS['wrapFunction'] = wrapFunction;
     //////////////////////////////////////////////////////////////////////
 }());

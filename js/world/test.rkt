@@ -1,12 +1,12 @@
 #lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/js/world))
+(require (planet dyoo/whalesong/js/world)
+         (planet dyoo/whalesong/js))
 
 (define-values (on-event send-event)
   (make-js-world-event))
 
 ((js-function (js-eval "function(x) { window.sendTheTick = x; }"))
  send-event)
-
 
 
 on-event

@@ -3,12 +3,16 @@
     "use strict";
 
     var WebWorld = 
-        MACHINE.modules['whalesong/web-world.rkt'].privateExports;
+        MACHINE.modules['whalesong/web-world/impl.rkt'].privateExports;
     var EventSource = WebWorld.EventSource;
     var EventHandler = WebWorld.EventHandler;
 
-    var makeClosure = plt.runtime.makeClosure;
+    var makeClosure = plt.baselib.functions.makeClosure;
+    var makePrimitive = plt.baselib.functions.makePrimitive;
     var finalizeClosureCall = plt.runtime.finalizeClosureCall;
+
+    var checkProcedure = plt.baselib.check.checkProcedure;
+
 
 
     /**
@@ -46,8 +50,19 @@
         'make-js-world-event',
         0,
         function(M) {
-            finalizeClosureCall(M, "first value", "second value");
-            
+            var eventSourceRecord = makeJsEventSource();
+            eventSourceRecord.eventSource
+            var makeHandler = makePrimitive('make-js-world-event',
+                                            1,
+                                            function(M) {
+                                                var onEvent = checkProcedure(M, 'js-world-event-handler', 0);
+                                                return new EventHandler('js-world-event',
+                                                                        eventSourceRecord.eventSource,
+                                                                        onEvent);
+                                            });
+            finalizeClosureCall(M,
+                                "first value", 
+                                eventSourceRecord.sender);
         });
 
 

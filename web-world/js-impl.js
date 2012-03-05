@@ -2202,7 +2202,7 @@
 
 
     // For private importers of the web-world library, like the FFI's js/world library.
-    Exports['EventSource'] = EventSource;
-    Exports['EventHandler'] = EventHandler;
+    EXPORTS['EventSource'] = EventSource;
+    EXPORTS['EventHandler'] = EventHandler;
     //////////////////////////////////////////////////////////////////////
 }());

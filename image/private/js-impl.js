@@ -4,6 +4,7 @@ var makeClosure = plt.baselib.functions.makeClosure;
 var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 var PAUSE = plt.runtime.PAUSE;
 
+var checkSymbolOrString = plt.baselib.check.checkSymbolOrString;
 
 var isString = plt.baselib.strings.isString;
 var isSymbol = plt.baselib.symbols.isSymbol;
@@ -1029,6 +1030,22 @@ EXPORTS['color-list->image'] =
                                     pinholeY);
         });
 
+EXPORTS['color-list->bitmap'] = 
+    makePrimitiveProcedure(
+        'color-list->image',
+        3,
+        function(MACHINE) {
+            var listOfColors = checkListofColor(MACHINE, 'color-list->image', 0);
+	    var width = checkNatural(MACHINE, 'color-list->image', 1);
+	    var height = checkNatural(MACHINE, 'color-list->image', 2);
+            return colorListToImage(listOfColors,
+                                    width,
+                                    height,
+                                    0,
+                                    0);
+        });
+
+
 EXPORTS['image-width'] = 
     makePrimitiveProcedure(
         'image-width',
@@ -1057,7 +1074,11 @@ EXPORTS['image-baseline'] =
         });
 
 
-
-
-
-
+EXPORTS['name->color'] = 
+    makePrimitiveProcedure(
+        'name->color',
+        1,
+        function(MACHINE) {
+            var name = checkSymbolOrString(MACHINE, 'name->color', 0);
+            return colorDb.get('' + name) || false;
+        });

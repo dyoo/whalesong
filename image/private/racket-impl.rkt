@@ -60,8 +60,16 @@
          ;; step-count?
 
          bitmap/url
+
+         name->color
          )
 
+
+(provide (rename-out (my-color-list->bitmap color-list->bitmap)))
+
+(define (my-color-list->bitmap x w h)
+  (color-list->bitmap x w h))
+(set! my-color-list->bitmap my-color-list->bitmap)
 
 
 (define-syntax (define-stubs stx)
@@ -76,6 +84,7 @@
 (define-stubs color-list->image)
 
 
+
   
 
 (define (my-step-count? x)
@@ -83,12 +92,12 @@
        (>= x 1)))
 
 
-(define (png-bytes->image bytes)
-  (error 'png-bytes->image "not implemented yet"))
-
-
 (define image-url (procedure-rename bitmap/url 'image-url))
 (define open-image-url (procedure-rename bitmap/url 'open-image-url))
+
+
+(define (name->color n)
+  (error 'name->color "not implemented yet"))
 
 
 (provide (rename-out [my-step-count? step-count?]

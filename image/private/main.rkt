@@ -54,6 +54,7 @@
                     rhombus
                     image->color-list
                     color-list->image
+                    color-list->bitmap
                     image-width
                     image-height
                     image-baseline
@@ -64,4 +65,7 @@
                     angle?
                     side-count?
                     step-count?
-                    image?))
+                    image?
+
+                    name->color
+                    ))

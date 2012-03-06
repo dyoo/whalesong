@@ -35,7 +35,6 @@
 
 (define (color-connected-points! imgvec width height start-color destination-color tolerance it)
   (let ((mycol (vector-ref imgvec it)))
-    (printf "~a ~a\n" mycol it)
     (when (and (not (color=? mycol destination-color))
                (color-near? mycol start-color tolerance))
       (begin
@@ -116,20 +115,8 @@
                                         ;(define D (overlay XDOG BG))
                                         ;(define CDOG (overlay (clipart/url DOGURL) BG))
                                         ;D
-(image-width DOG)
-(image-height DOG)
 
 
-(define colors (image->color-list DOG))
-(displayln (length colors))
-(andmap color? colors)
-(define vec (list->vector colors))
-(vector-length vec)
-(let loop ([i 0])
-  (when (< i (vector-length vec))
-    (unless (color? (vector-ref vec i))
-      (error 'something-went-wrong))
-    (loop (add1 i))))
 
 
 (define (repeat num thunk)

@@ -7,18 +7,23 @@
 (define js-minus
   (js-function->procedure "function(x, y) { return x - y; }"))
 
-(define sleep
-  (js-async-function->procedure"function(success, fail, n) { setTimeout(success, n) }"))
+(define raw-sleep
+  (js-async-function->procedure
+   "function(success, fail, n) { setTimeout(success, n); }"))
+(define (sleep n)
+  (unless (real? n)
+    (raise-type-error 'sleep "real" n))
+  (void (raw-sleep (inexact->exact (floor (* n 1000))))))
 
 
 "plus: " (js-plus 3 4)
-"wait for one second: " (sleep 1000)
+"wait for one second: " (sleep 1)
 "minus:" (js-minus 239748 23)
 
 
 (for-each (lambda (x)
             (display x)
-            (sleep 1000))
+            (sleep 1))
           '(hello world testing))
 
 

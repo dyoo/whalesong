@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang planet dyoo/whalesong/base
 (require (planet dyoo/whalesong/image)
          (planet dyoo/whalesong/resource))
 
@@ -110,7 +110,7 @@
 
 (define BG (rectangle 300 100 "solid" "green"))
 (define-resource dog.jpg)   ;;  "http://t3.gstatic.com/images?q=tbn:ANd9GcSiCx-eVMoU6wpH2WgfNzOTd_wZunA-S07ZZJsGtHiKNfOUp2chMKmvEVajtg")
-(define DOG (scale 1/2 dog.jpg))
+(define DOG dog.jpg)
                                         ;(define XDOG (time "(transparent-from-corners DOG 30)" (lambda () (transparent-from-corners DOG 30))))
                                         ;(define D (overlay XDOG BG))
                                         ;(define CDOG (overlay (clipart/url DOGURL) BG))

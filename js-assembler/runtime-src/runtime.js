@@ -1075,7 +1075,7 @@
                 if (i >= 0 && i < vec.elts.length) {
                     return vec.elts[i];
                 }                
-            } else if (isNumber(i)) {
+            } else if (isNatural(i)) {
                 i = baselib.numbers.toFixnum(i);
                 if (i >= 0 && i < vec.elts.length) {
                     return vec.elts[i];
@@ -1098,7 +1098,7 @@
                     vec.elts[i] = val;
                     return VOID;
                 }                
-            } else if (isNumber(i)) {
+            } else if (isNatural(i)) {
                 i = baselib.numbers.toFixnum(i);
                 if (i >= 0 && i < vec.elts.length) {
                     vec.elts[i] = val;

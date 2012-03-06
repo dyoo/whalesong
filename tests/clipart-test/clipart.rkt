@@ -35,6 +35,7 @@
 
 (define (color-connected-points! imgvec width height start-color destination-color tolerance it)
   (let ((mycol (vector-ref imgvec it)))
+    (printf "~a ~a\n" mycol it)
     (when (and (not (color=? mycol destination-color))
                (color-near? mycol start-color tolerance))
       (begin

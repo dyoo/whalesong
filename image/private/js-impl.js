@@ -1080,5 +1080,6 @@ EXPORTS['name->color'] =
         1,
         function(MACHINE) {
             var name = checkSymbolOrString(MACHINE, 'name->color', 0);
-            return colorDb.get('' + name) || false;
+            var result = colorDb.get('' + name) || false;
+            return result;
         });

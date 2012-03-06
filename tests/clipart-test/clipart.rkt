@@ -116,6 +116,18 @@
                                         ;(define CDOG (overlay (clipart/url DOGURL) BG))
                                         ;D
 
+(define colors (image->color-list DOG))
+(displayln (length colors))
+(andmap color? colors)
+(define vec (list->vector colors))
+(vector-length vec)
+(let loop ([i 0])
+  (when (< i (vector-length vec))
+    (unless (color? (vector-ref vec i))
+      (error 'something-went-wrong))
+    (loop (add1 i))))
+
+
 (define (repeat num thunk)
   (if (equal? num 0)
       (thunk)

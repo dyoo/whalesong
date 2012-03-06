@@ -619,8 +619,8 @@ var ScaleImage = function(xFactor, yFactor, img) {
 		   Math.floor((img.getHeight() * yFactor) / 2));
     
     this.img	= img;
-    this.width	= img.getWidth() * xFactor;
-    this.height = img.getHeight() * yFactor;
+    this.width	= Math.floor(img.getWidth() * xFactor);
+    this.height = Math.floor(img.getHeight() * yFactor);
     this.xFactor = xFactor;
     this.yFactor = yFactor;
 };

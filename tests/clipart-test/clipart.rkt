@@ -116,6 +116,9 @@
                                         ;(define D (overlay XDOG BG))
                                         ;(define CDOG (overlay (clipart/url DOGURL) BG))
                                         ;D
+(image-width DOG)
+(image-height DOG)
+
 
 (define colors (image->color-list DOG))
 (displayln (length colors))

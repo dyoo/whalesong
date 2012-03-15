@@ -205,12 +205,12 @@
         if (! baselib.arity.isArityMatching(proc.racketArity, args.length - 4)) {
             var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
                                             [proc.displayName, proc.racketArity, args.length - 4]);
-            fail(baselib.exceptions.makeExnFailContractArity(msg,
-                                                             MACHINE.captureContinuationMarks()));
+            return fail(baselib.exceptions.makeExnFailContractArity(msg,
+                                                                    MACHINE.captureContinuationMarks()));
         }
 
         if (! isClosure(proc)) {
-            fail(baselib.exceptions.makeExnFail(
+            return fail(baselib.exceptions.makeExnFail(
                 baselib.format.format(
                     "Not a procedure: ~e",
                     [proc]),
@@ -232,7 +232,7 @@
                 MACHINE.v = oldVal;
                 MACHINE.a = oldArgcount;
                 MACHINE.p = oldProc;
-                success(returnValue);
+                return success(returnValue);
             });
         };
         afterGoodInvoke.mvr = function (MACHINE) {
@@ -246,7 +246,7 @@
                 MACHINE.v = oldVal;
                 MACHINE.a = oldArgcount;
                 MACHINE.p = oldProc;
-                success.apply(null, returnValues);
+                return success.apply(null, returnValues);
             });
         };
 
@@ -264,7 +264,7 @@
             MACHINE.p = oldProc;
             MACHINE.c.length = oldControlLength;
             MACHINE.e.length = oldEnvLength;
-            fail(e);
+            return fail(e);
         };
         MACHINE._trampoline(proc.label, 
                             false, 

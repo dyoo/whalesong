@@ -1306,15 +1306,15 @@
                                             mockView,
                                             onGoodWorldUpdate,
                                             fail);
-                    } else if (isArityMatching(racketWorldCallback.racketArity, 2 + args.length)){
+                    } else { //if (isArityMatching(racketWorldCallback.racketArity, 2 + args.length)){
                         console.log("arity match 3");
                         args = ([internalCall, world, mockView]
                                 .concat(args)
                                 .concat([onGoodWorldUpdate, fail]));
                         racketWorldCallback.apply(null, args);
-                    } else {
-                        fail(makeArityMismatchError(MACHINE, racketWorldCallback, 2+args.length));
-                    }
+                    }//  else {
+                    //     fail(makeArityMismatchError(MACHINE, racketWorldCallback, 2+args.length));
+                    // }
                 } else {
                     console.log("dispatched all events");
                     dispatchingEvents = false;

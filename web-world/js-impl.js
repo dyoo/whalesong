@@ -252,9 +252,7 @@
                                            .attr(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 $(view.focus).attr(name, value);
             });
@@ -267,9 +265,7 @@
                                            .removeAttr(name).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 $(view.focus).removeAttr(name);
             });
@@ -292,9 +288,7 @@
                                            .css(name, value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 $(view.focus).css(name, value);
             });
@@ -313,9 +307,7 @@
                                            .val(value).get(0)]
                                           .concat(cursor.node.slice(1)));
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 $(view.focus).val(value);
             });
@@ -328,9 +320,7 @@
             function(cursor) {
                 return cursor.left();
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus = view.focus.previousSibling;
             });
@@ -341,9 +331,7 @@
             function(cursor) {
                 return cursor.right();
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus = view.focus.nextSibling;
             });
@@ -354,9 +342,7 @@
             function(cursor) {
                 return cursor.up();
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus = view.focus.parentNode;
             });
@@ -367,9 +353,7 @@
             function(cursor) {
                 return cursor.down();
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 view.focus = view.focus.firstChild;
             });
@@ -381,9 +365,7 @@
             function(cursor) {
                 return cursor.succ();
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 if (view.focus.firstChild) {
                     view.focus = view.focus.firstChild;
@@ -406,9 +388,7 @@
             function(cursor) {
                 return cursor.pred();
             },
-            function(eventHandlers) {
-                return eventHandlers;
-            },
+            function(eventHandlers) { return eventHandlers; },
             function(view) {
                 if (view.focus.previousSibling) {
                     view.focus = view.focus.previousSibling;
@@ -1350,9 +1330,13 @@
                            } else {
                                view.top = arrayTreeToDomNode(newMockView.getCursor().top().node);
                                view.initialRender(top);
+                               var oldEventHandlers = eventHandlers;
                                eventHandlers = newMockView.eventHandlers.slice(0);
-                               view.eventHandlers = eventHandlers;
-                               startEventHandlers(success);
+                               startEventHandlers(function() {
+                                   eventHandlers = eventHandlers.concat(oldEventHandlers);
+                                   view.eventHandlers = eventHandlers;
+                                   success();
+                               });
                            }
                        },
                        function(err) {

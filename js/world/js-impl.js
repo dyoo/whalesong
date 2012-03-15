@@ -36,6 +36,7 @@
         JsEventSource.prototype = plt.baselib.heir(EventSource.prototype);
         JsEventSource.prototype.onStart = function(_fireEvent, internalCall, k) {
             var that = this;
+            that.internalCall = internalCall;
             setupProcedure(internalCall,
                            sender, 
                            function(v) {
@@ -45,12 +46,10 @@
                                k();
                            },
                            function(err) {
-                               // FIXME: On error, silently fail?
-                               console.log(err);
                            });
         };
         JsEventSource.prototype.onStop = function(k) {
-            shutdownProcedure(internalCall,
+            shutdownProcedure(this.internalCall,
                               this.startupData,
                               function() {
                                   enabled = false;
@@ -58,10 +57,6 @@
                                   k();
                               },
                               function(err) {
-
-                                  // FIXME: On error, silently fail?
-                                  console.log(err);
-
                                   enabled = false;
                                   fireEvent = void(0);
                                   k();

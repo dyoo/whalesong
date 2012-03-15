@@ -56,6 +56,22 @@
         return result;
     };
 
+    
+    // CPS'd version of for-each, used on JavaScript arrays.
+    //
+    // Take care: elts can't be too large or else we'll stack
+    // overflow.
+    var forEachK = function(f, elts, k) {
+        var loop = function(i) {
+            if (i === elts.length) {
+                return k();
+            } else {
+                return f(elts[i], function() { loop(i+1); });
+            }
+        };
+        return loop(0);
+    };
+
 
 
     //////////////////////////////////////////////////////////////////////
@@ -449,7 +465,7 @@
                                                    view.focus.id),
                                                worldF);
                 view.addEventHandler(handler);
-                currentBigBangRecord.startEventHandler(handler);
+                currentBigBangRecord.startEventHandler(handler, function() {});
             });
     };
 

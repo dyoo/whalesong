@@ -9,6 +9,16 @@
 
 
 
+    // Set the numeric tower to raise errors through our mechanism.
+    jsnums.onThrowRuntimeError = function(msg, x, y) {
+        if (msg === '/: division by zero') {
+            baselib.exceptions.raiseDivisionByZeroError(plt.runtime.currentMachine, msg);
+        } else {
+            baselib.exceptions.raiseContractError(plt.runtime.currentMachine, msg);
+        }
+    };
+
+
     var isNumber = jsnums.isSchemeNumber;
     var isReal = jsnums.isReal;
     var isRational = jsnums.isRational;

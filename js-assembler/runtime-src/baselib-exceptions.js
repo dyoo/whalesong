@@ -69,12 +69,13 @@
             e = new RacketError(Exn.accessor(e, 0), e);
         }
 
-        if (window.console !== void(0) &&
-            typeof(window.console.log) === 'function') {
-            window.console.log(MACHINE);
-            if (e.stack) { window.console.log(e.stack); }
-            else { window.console.log(e); }
-        } 
+        // if (window.console !== void(0) &&
+        //     typeof(window.console.log) === 'function') {
+        //     window.console.log(MACHINE);
+        //     if (e.stack) { window.console.log(e.stack); }
+        //     else { window.console.log(e); }
+        // } 
+
         throw e; 
     };
 
@@ -89,6 +90,10 @@
         raise(MACHINE, ExnFailContract.constructor([msg, contMarks]));
     };
 
+    var raiseDivisionByZeroError = function(MACHINE, msg) {
+        var contMarks = MACHINE.captureContinuationMarks();
+        raise(MACHINE, ExnFailContractDivisionByZero.constructor([msg, contMarks]));
+    };
 
 
     var raiseUnboundToplevelError = function(MACHINE, name) {
@@ -234,6 +239,7 @@
     exceptions.raise = raise;
     exceptions.raiseFailure = raiseFailure;
     exceptions.raiseContractError = raiseContractError;
+    exceptions.raiseDivisionByZeroError = raiseDivisionByZeroError;
     exceptions.raiseUnboundToplevelError = raiseUnboundToplevelError;
     exceptions.raiseArgumentTypeError = raiseArgumentTypeError;
     exceptions.raiseContextExpectedValuesError = raiseContextExpectedValuesError;

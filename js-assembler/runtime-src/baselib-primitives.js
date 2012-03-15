@@ -63,8 +63,11 @@
     // Exceptions and error handling.
     var raise = baselib.exceptions.raise;
     var raiseContractError = baselib.exceptions.raiseContractError;
+    var raiseDivisionByZeroError = baselib.exceptions.raiseDivisionByZeroError;
     var raiseArgumentTypeError = baselib.exceptions.raiseArgumentTypeError;
     var raiseArityMismatchError = baselib.exceptions.raiseArityMismatchError;
+
+
 
     var testArgument = baselib.check.testArgument;
 

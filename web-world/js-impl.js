@@ -1198,7 +1198,6 @@
             dispatchEventsInQueue, refreshView;
 
             onCleanRestart = function() {
-                console.log('on clean restart');
                 running = false;
                 stopEventHandlers(
                     function() {
@@ -1211,16 +1210,12 @@
             };
 
             onMessyRestart = function(exn) {
-                console.log('on messy restart');
                 running = false;
-                console.log('stopping the event handlers');
                 stopEventHandlers(
                     function() {
-                        console.log('event handlers stopped');
                         restart(function(MACHINE) {
                             currentBigBangRecord = oldCurrentBigBangRecord;
                             MACHINE.params.currentOutputPort = oldOutputPort;
-                            console.log('about to raise');
                             plt.baselib.exceptions.raise(MACHINE, exn);
                         });
                     });
@@ -1257,7 +1252,6 @@
 
 
             dispatchEventsInQueue = function(success, fail) {
-                console.log("dispatchEventsInQueue");
                 // Apply all the events on the queue, call toDraw, and then stop.
                 // If the world ever satisfies stopWhen, stop immediately and quit.
                 var nextEvent;
@@ -1278,7 +1272,6 @@
                     args = nextEvent.data.slice(0);
                     var onGoodWorldUpdate = 
                         function (newWorld) {
-                            console.log("good world update");
                             world = newWorld;
                             stopWhen(internalCall,
                                      world,
@@ -1294,29 +1287,23 @@
                                      fail);
                         };
                     if (isArityMatching(racketWorldCallback.racketArity, 1)) {
-                        console.log("arity match 1");
                         racketWorldCallback(internalCall, 
                                             world,
                                             onGoodWorldUpdate,
                                             fail);
                     } else if (isArityMatching(racketWorldCallback.racketArity, 2)) {
-                        console.log("arity match 2");
                         racketWorldCallback(internalCall, 
                                             world,
                                             mockView,
                                             onGoodWorldUpdate,
                                             fail);
-                    } else { //if (isArityMatching(racketWorldCallback.racketArity, 2 + args.length)){
-                        console.log("arity match 3");
+                    } else { 
                         args = ([internalCall, world, mockView]
                                 .concat(args)
                                 .concat([onGoodWorldUpdate, fail]));
                         racketWorldCallback.apply(null, args);
-                    }//  else {
-                    //     fail(makeArityMismatchError(MACHINE, racketWorldCallback, 2+args.length));
-                    // }
+                    }
                 } else {
-                    console.log("dispatched all events");
                     dispatchingEvents = false;
                     success();
                 }

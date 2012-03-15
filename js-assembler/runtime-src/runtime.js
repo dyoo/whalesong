@@ -197,7 +197,6 @@
         this.alreadyReleased = false;
 
         if (this.locked === false) {
-            console.log("lock is clear.  Grabbing...");
             this.locked = id;
             onAcquire.call(
                 that,
@@ -218,14 +217,12 @@
                         waiter = that.waiters.shift();
                         setTimeout(
                             function() {
-                                console.log("trying to re-acquire lock...");
                                 that.acquire(waiter.id, waiter.onAcquire);
                             },
                             0);
                     }
                 });
         } else {
-            console.log("lock is currently in play.  Need to wait.");
             this.waiters.push({ id: id,
                                 onAcquire: onAcquire } );
         }
@@ -584,7 +581,6 @@
                             });
                     };
                     var internalCall = function(proc, success, fail) {
-                        console.log("internalCall");
                         var i;
                         if (restarted) {
                             return;
@@ -593,20 +589,15 @@
                         for (i = 3; i < arguments.length; i++) {
                             args.push(arguments[i]);
                         }
-                        console.log("acquiring lock...");
                         pauseLock.acquire(
                             void(0),
                             function(release) {
                                 var newSuccess = function() {
-                                    console.log('newSuccess', arguments, proc, success);
                                     success.apply(null, arguments);
-                                    console.log("releasing lock...");
                                     release();
                                 };
                                 var newFail = function() {
-                                    console.log('newFail', arguments, proc, fail);
                                     fail.apply(null, arguments);
-                                    console.log("releasing lock...");
                                     release();
                                 };
                                 baselib.functions.internalCallDuringPause.apply(
@@ -624,9 +615,7 @@
                     // General error condition: just exit out
                     // of the trampoline and call the current error handler.
                     that.running = false;
-                    console.log("calling current error handler", that.params.currentErrorHandler);
                     that.params.currentErrorHandler(that, e);
-                    console.log("releasing");
                     release();
                     return;
                 }

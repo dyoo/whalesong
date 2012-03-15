@@ -20,7 +20,7 @@
         navigator.geolocation.clearWatch(watchId); }"))
 
 
-;; The new event handler type for geolocation:
+;; A new event handler type for geolocation:
 ;;
 ;; Use it as any other world handler:
 ;;

@@ -1207,40 +1207,37 @@
 
             onCleanRestart = function() {
                 running = false;
-                stopEventHandlers();
-                restart(function(MACHINE) {
-                    MACHINE.params.currentOutputPort = oldOutputPort;
-                    currentBigBangRecord = oldCurrentBigBangRecord;
-                    finalizeClosureCall(MACHINE, world);
-                });
+                stopEventHandlers(
+                    function() {
+                        restart(function(MACHINE) {
+                            MACHINE.params.currentOutputPort = oldOutputPort;
+                            currentBigBangRecord = oldCurrentBigBangRecord;
+                            finalizeClosureCall(MACHINE, world);
+                        });
+                    });
             };
 
             onMessyRestart = function(exn) {
                 running = false;
-                stopEventHandlers();
-                restart(function(MACHINE) {
-                    currentBigBangRecord = oldCurrentBigBangRecord;
-                    MACHINE.params.currentOutputPort = oldOutputPort;
-                    plt.baselib.exceptions.raise(MACHINE, exn);
-                });
+                stopEventHandlers(
+                    function() {
+                        restart(function(MACHINE) {
+                            currentBigBangRecord = oldCurrentBigBangRecord;
+                            MACHINE.params.currentOutputPort = oldOutputPort;
+                            plt.baselib.exceptions.raise(MACHINE, exn);
+                        });
+                    });
             };
 
             startEventHandlers = function(k) {
-                var i;
-                for (i = 0; i < eventHandlers.length; i++) {
-                    startEventHandler(eventHandlers[i]);
-                }
-                k();
+                forEachK(startEventHandler, eventHandlers, k);
             };
 
-            stopEventHandlers = function() {
-                var i;
-                for (i = 0; i < eventHandlers.length; i++) {
-                    stopEventHandler(eventHandlers[i]);
-                }
+            stopEventHandlers = function(k) {
+                forEachK(stopEventHandler, eventHandlers, k);
             };
 
-            startEventHandler = function(handler) {
+            startEventHandler = function(handler, k) {
                 var fireEvent = function(who) {
                     if (! running) { return; }
                     var args = [].slice.call(arguments, 1);
@@ -1259,10 +1256,12 @@
                     }
                 };
                 handler.eventSource.onStart(fireEvent);
+                k();
             };
 
-            stopEventHandler = function(handler) {
+            stopEventHandler = function(handler, k) {
                 handler.eventSource.onStop();
+                k();
             };
 
 

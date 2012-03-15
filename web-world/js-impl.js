@@ -939,10 +939,12 @@
     */
 
     var EventSource = function() {};
-    EventSource.prototype.onStart = function(fireEvent) {
+    EventSource.prototype.onStart = function(fireEvent, k) {
+        k();
     };
 
-    EventSource.prototype.onStop = function() {
+    EventSource.prototype.onStop = function(k) {
+        k();
     };
 
     
@@ -958,7 +960,7 @@
 
     TickEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    TickEventSource.prototype.onStart = function(fireEvent) {
+    TickEventSource.prototype.onStart = function(fireEvent, k) {
         if (this.id === undefined) {
             this.id = setInterval(
                 function(evt) {
@@ -967,13 +969,15 @@
                 },
                 this.delay);
         }
+        k();
     };
 
-    TickEventSource.prototype.onStop = function() {
+    TickEventSource.prototype.onStop = function(k) {
         if (this.id !== undefined) {
             clearInterval(this.id);
             this.id = undefined;
         }
+        k();
     };
 
 
@@ -985,7 +989,7 @@
         this.elt = undefined;
     };
     MockLocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
-    MockLocationEventSource.prototype.onStart = function(fireEvent) {
+    MockLocationEventSource.prototype.onStart = function(fireEvent, k) {
         if (this.elt === undefined) {
             var mockLocationSetter = document.createElement("div");
 	    
@@ -1015,13 +1019,15 @@
 
             this.elt = mockLocationSetter;
         }
+        k();
     };
 
-    MockLocationEventSource.prototype.onStop = function() {
+    MockLocationEventSource.prototype.onStop = function(k) {
         if (this.elt !== undefined) { 
             document.body.removeChild(this.elt);
             this.elt = undefined;
         }
+        k();
     };
 
     
@@ -1035,7 +1041,7 @@
 
     LocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    LocationEventSource.prototype.onStart = function(fireEvent) {
+    LocationEventSource.prototype.onStart = function(fireEvent, k) {
         var that = this;
         if (this.id === undefined) {
             var success = function(position) {
@@ -1070,13 +1076,15 @@
                       maximumAge : 10000}); 
             }
         }
+        k();
     };
     
-    LocationEventSource.prototype.onStop = function() {
+    LocationEventSource.prototype.onStop = function(k) {
         if (this.id !== undefined) { 
             navigator.geolocation.clearWatch(this.id);
             this.id = undefined;
         }
+        k();
     };
 
 
@@ -1095,7 +1103,7 @@
 
     DomEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    DomEventSource.prototype.onStart = function(fireEvent) {
+    DomEventSource.prototype.onStart = function(fireEvent, k) {
         var element = this.elementOrId;
         if (typeof(this.elementOrId) === 'string') {
             element = document.getElementById(this.elementOrId);
@@ -1113,10 +1121,11 @@
             }
         };
         $(element).bind(this.type, this.handler);
+        k();
     };
 
 
-    DomEventSource.prototype.onStop = function() {
+    DomEventSource.prototype.onStop = function(k) {
         var element = this.elementOrId;
         if (typeof(this.elementOrId) === 'string') {
             element = document.getElementById(this.elementOrId);
@@ -1128,6 +1137,7 @@
             }
             this.handler = undefined;
         }
+        k();
     };
 
 
@@ -1255,13 +1265,11 @@
                             0);
                     }
                 };
-                handler.eventSource.onStart(fireEvent);
-                k();
+                handler.eventSource.onStart(fireEvent, k);
             };
 
             stopEventHandler = function(handler, k) {
-                handler.eventSource.onStop();
-                k();
+                handler.eventSource.onStop(k);
             };
 
 

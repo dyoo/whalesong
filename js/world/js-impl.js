@@ -20,52 +20,53 @@
      * Creates an event source coupled to a JavaScript function.  Calling the function
      * should cause the event source to fire.
      */
-    var makeJsEventSource = function() {
+    var makeJsEventSource = function(startupProcedure, shutdownProcedure) {
         var enabled = false;
         var fireEvent;
-
-        var JsEventSource = function() {};
-        JsEventSource.prototype = plt.baselib.heir(EventSource.prototype);
-        JsEventSource.prototype.onStart = function(_fireEvent) {
-            enabled = true;
-            fireEvent = _fireEvent;
-        };
-        JsEventSource.prototype.onStop = function() {
-            enabled = false;
-            fireEvent = void(0);
-        };
 
         var sender = function(v) {
             if (enabled) {
                 fireEvent(void(0), v);
             }
         };
-        return { eventSource: new JsEventSource(),
-                 sender: sender };
+
+        var JsEventSource = function() {
+            this.startupData = void(0);
+        };
+        JsEventSource.prototype = plt.baselib.heir(EventSource.prototype);
+        JsEventSource.prototype.onStart = function(_fireEvent) {
+            this.startupData = startupProcedure(sender);
+            enabled = true;
+            fireEvent = _fireEvent;
+        };
+        JsEventSource.prototype.onStop = function() {
+            shutdownProcedure(sender, this.startupData);
+            enabled = false;
+            fireEvent = void(0);
+        };
+
+        return new JsEventSource();
     };
 
 
-    var makeJsWorldEvent = makeClosure(
-        'make-js-world-event',
-        0,
+    var makeWorldEventHandler = makeClosure(
+        'make-world-event-handler',
+        2,
         function(M) {
-            var eventSourceRecord = makeJsEventSource();
-            eventSourceRecord.eventSource
+            var setupProcedure = checkProcedure(M, 'make-world-event-handler', 0);
+            var shutdownProcedure = checkProcedure(M, 'make-world-event-handler', 1);
+            var eventSource = makeJsEventSource(setupProcedure, shutdownProcedure);
             var makeHandler = makePrimitiveProcedure(
                 'make-js-world-event',
                 1,
                 function(M) {
                     var onEvent = wrapFunction(checkProcedure(M, 'js-world-event-handler', 0));
-                    return new EventHandler('js-world-event',
-                                            eventSourceRecord.eventSource,
-                                            onEvent);
+                    return new EventHandler('js-world-event', eventSource, onEvent);
                 });
-            finalizeClosureCall(M,
-                                makeHandler, 
-                                eventSourceRecord.sender);
+            finalizeClosureCall(M, makeHandler);
         });
 
 
-    EXPORTS['make-js-world-event'] = makeJsWorldEvent;
+    EXPORTS['make-world-event-handler'] = makeWorldEventHandler;
 
 }());

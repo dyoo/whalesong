@@ -2,5 +2,5 @@
 
 (provide make-js-world-event)
 
-(define (make-js-world-event)
-  (error 'make-js-world-event "Must be run under a JavaScript context."))
+(define (make-world-event-handler setup shutdown)
+  (error 'make-world-event-handler "Must be run under a JavaScript context."))

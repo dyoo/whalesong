@@ -85,39 +85,6 @@
     };
 
 
-    var coersePrimitiveToJavaScript = function (v, MACHINE) {
-        return function (succ, fail) {
-            try {
-                succ = succ || function () {};
-                fail = fail || function () {};
-
-                var oldArgcount = MACHINE.a, i;
-                MACHINE.a = arguments.length - 2;
-                for (i = 0; i < arguments.length - 2; i++) {
-                    MACHINE.e.push(arguments[arguments.length - 1 - i]);
-                }
-
-                if (!(baselib.arity.isArityMatching(v.racketArity, MACHINE.a))) {
-                    var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",
-                                                    [v.displayName, v.racketArity, MACHINE.a]);
-                    return fail(new baselib.exceptions.RacketError(
-                        msg,
-                        baselib.exceptions.makeExnFailContractArity(msg,
-                                                                    MACHINE.captureContinuationMarks())));
-                }
-
-                var result = v(MACHINE);
-                MACHINE.a = oldArgcount;
-                for (i = 0; i < arguments.length - 2; i++) { 
-                    MACHINE.e.pop();
-                }
-                succ(result);
-            } catch (e) {
-                fail(e);
-            }
-        };
-    };
-
     var coerseClosureToJavaScript = function (v, MACHINE) {
         var f = function (succ, fail) {
             var args = [];

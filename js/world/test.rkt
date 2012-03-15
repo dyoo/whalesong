@@ -5,20 +5,20 @@
 
 ;; Test of getting world events from arbitrary JavaScript function application.
 
-;; We first define a new event handler type, by using make-js-world-event:
-(define-values (on-event send-event)
-  (make-js-world-event))
 
-;; It gives us two values back:
-;; 1.  An event handler that can be passed to big-bang
-;; 2.  A raw JavaScript function that can fire events
-
-
-;; Let's attach the send-event function to a toplevel function on the window.
-(void ((js-function->procedure (js-eval "function(x) { window.sendTheTick = x; }"))
-       send-event))
 ;; js-function->procedure lifts JavaScript functions to regular
 ;; procedures that we can call.
+(define setup-timer
+  (js-function->procedure (js-eval "function(x) { window.sendTheTick = x; }")))
+
+(define shutdown-timer
+  (js-function->procedure (js-eval "function(_) { window.sendTheTick = void(0); }")))
+
+
+
+;; We first define a new event handler type, by using make-js-world-event:
+(define on-event (make-world-event-handler setup-timer shutdown-timer))
+
 
 
 (define (tick w v)

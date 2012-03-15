@@ -20,7 +20,7 @@
      * Creates an event source coupled to a JavaScript function.  Calling the function
      * should cause the event source to fire.
      */
-    var makeJsEventSource = function(startupProcedure, shutdownProcedure) {
+    var makeJsEventSource = function(setupProcedure, shutdownProcedure) {
         var enabled = false;
         var fireEvent;
 
@@ -34,15 +34,38 @@
             this.startupData = void(0);
         };
         JsEventSource.prototype = plt.baselib.heir(EventSource.prototype);
-        JsEventSource.prototype.onStart = function(_fireEvent) {
-            this.startupData = startupProcedure(sender);
-            enabled = true;
-            fireEvent = _fireEvent;
+        JsEventSource.prototype.onStart = function(_fireEvent, internalCall, k) {
+            var that = this;
+            setupProcedure(internalCall,
+                           sender, 
+                           function(v) {
+                               that.startupData = v;
+                               enabled = true;
+                               fireEvent = _fireEvent;
+                               k();
+                           },
+                           function(err) {
+                               // FIXME: On error, silently fail?
+                               console.log(err);
+                           });
         };
-        JsEventSource.prototype.onStop = function() {
-            shutdownProcedure(sender, this.startupData);
-            enabled = false;
-            fireEvent = void(0);
+        JsEventSource.prototype.onStop = function(k) {
+            shutdownProcedure(internalCall,
+                              this.startupData,
+                              function() {
+                                  enabled = false;
+                                  fireEvent = void(0);
+                                  k();
+                              },
+                              function(err) {
+
+                                  // FIXME: On error, silently fail?
+                                  console.log(err);
+
+                                  enabled = false;
+                                  fireEvent = void(0);
+                                  k();
+                              });
         };
 
         return new JsEventSource();
@@ -53,8 +76,8 @@
         'make-world-event-handler',
         2,
         function(M) {
-            var setupProcedure = checkProcedure(M, 'make-world-event-handler', 0);
-            var shutdownProcedure = checkProcedure(M, 'make-world-event-handler', 1);
+            var setupProcedure = wrapFunction(checkProcedure(M, 'make-world-event-handler', 0));
+            var shutdownProcedure = wrapFunction(checkProcedure(M, 'make-world-event-handler', 1));
             var eventSource = makeJsEventSource(setupProcedure, shutdownProcedure);
             var makeHandler = makePrimitiveProcedure(
                 'make-js-world-event',

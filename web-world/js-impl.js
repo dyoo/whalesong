@@ -465,7 +465,8 @@
                                                    view.focus.id),
                                                worldF);
                 view.addEventHandler(handler);
-                currentBigBangRecord.startEventHandler(handler, function() {});
+                currentBigBangRecord.startEventHandler(handler, 
+                                                       function() {});
             });
     };
 
@@ -939,7 +940,7 @@
     */
 
     var EventSource = function() {};
-    EventSource.prototype.onStart = function(fireEvent, k) {
+    EventSource.prototype.onStart = function(fireEvent, internalCall, k) {
         k();
     };
 
@@ -960,7 +961,7 @@
 
     TickEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    TickEventSource.prototype.onStart = function(fireEvent, k) {
+    TickEventSource.prototype.onStart = function(fireEvent, internalCall, k) {
         if (this.id === undefined) {
             this.id = setInterval(
                 function(evt) {
@@ -989,7 +990,7 @@
         this.elt = undefined;
     };
     MockLocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
-    MockLocationEventSource.prototype.onStart = function(fireEvent, k) {
+    MockLocationEventSource.prototype.onStart = function(fireEvent, internalCall, k) {
         if (this.elt === undefined) {
             var mockLocationSetter = document.createElement("div");
 	    
@@ -1041,7 +1042,7 @@
 
     LocationEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    LocationEventSource.prototype.onStart = function(fireEvent, k) {
+    LocationEventSource.prototype.onStart = function(fireEvent, internalCall, k) {
         var that = this;
         if (this.id === undefined) {
             var success = function(position) {
@@ -1103,7 +1104,7 @@
 
     DomEventSource.prototype = plt.baselib.heir(EventSource.prototype);
 
-    DomEventSource.prototype.onStart = function(fireEvent, k) {
+    DomEventSource.prototype.onStart = function(fireEvent, internalCall, k) {
         var element = this.elementOrId;
         if (typeof(this.elementOrId) === 'string') {
             element = document.getElementById(this.elementOrId);
@@ -1265,7 +1266,7 @@
                             0);
                     }
                 };
-                handler.eventSource.onStart(fireEvent, k);
+                handler.eventSource.onStart(fireEvent, internalCall, k);
             };
 
             stopEventHandler = function(handler, k) {
@@ -1364,9 +1365,10 @@
                                      startEventHandler : startEventHandler,
                                      stopEventHandler : stopEventHandler };
             view.initialRender(top);
-            startEventHandlers(function() {
-                refreshView(function() {}, onMessyRestart);
-            });
+            startEventHandlers(
+                function() {
+                    refreshView(function() {}, onMessyRestart);
+                });
 
         });
     };

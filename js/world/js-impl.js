@@ -24,9 +24,12 @@
         var enabled = false;
         var fireEvent;
 
-        var sender = function(v) {
+        var sender = function() {
+            var args;
             if (enabled) {
-                fireEvent(void(0), v);
+                args = Array.prototype.slice.call(arguments, 0);
+                args.unshift(void(0));
+                fireEvent.apply(void(0), args);
             }
         };
 
@@ -75,11 +78,11 @@
             var shutdownProcedure = wrapFunction(checkProcedure(M, 'make-world-event-handler', 1));
             var eventSource = makeJsEventSource(setupProcedure, shutdownProcedure);
             var makeHandler = makePrimitiveProcedure(
-                'make-js-world-event',
+                'world-event-handler',
                 1,
                 function(M) {
-                    var onEvent = wrapFunction(checkProcedure(M, 'js-world-event-handler', 0));
-                    return new EventHandler('js-world-event', eventSource, onEvent);
+                    var onEvent = wrapFunction(checkProcedure(M, 'world-event-handler', 0));
+                    return new EventHandler('world-event-handler', eventSource, onEvent);
                 });
             finalizeClosureCall(M, makeHandler);
         });

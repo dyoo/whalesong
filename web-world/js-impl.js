@@ -16,7 +16,7 @@
     var makeList = plt.baselib.lists.makeList;
     var makePair = plt.baselib.lists.makePair;
     var makeSymbol = plt.baselib.symbols.makeSymbol;
-
+    var isArityMatching = plt.baselib.arity.isArityMatching;
 
 
     // EventHandler and the other classes here will be defined below.
@@ -1258,7 +1258,7 @@
                 // Apply all the events on the queue, call toDraw, and then stop.
                 // If the world ever satisfies stopWhen, stop immediately and quit.
                 var nextEvent;
-                var data;
+                var args;
                 var racketWorldCallback;
                 var mockView;
                 dispatchingEvents = true;
@@ -1271,9 +1271,8 @@
                         mockView = mockView.updateFocus(nextEvent.who.id);
                     }
 
-                    // FIXME: deal with event data here
                     racketWorldCallback = nextEvent.handler.racketWorldCallback;
-                    data = nextEvent.data[0];
+                    args = nextEvent.data.slice(0);
                     var onGoodWorldUpdate = 
                         function(newWorld) {
                             world = newWorld;
@@ -1290,19 +1289,22 @@
                                      },
                                      fail);
                         };
-                    if (plt.baselib.arity.isArityMatching(racketWorldCallback.racketArity, 3)) {
+                    if (isArityMatching(racketWorldCallback.racketArity, 1)) {
+                        racketWorldCallback(internalCall, 
+                                            world,
+                                            onGoodWorldUpdate,
+                                            fail);
+                    } else if (isArityMatching(racketWorldCallback.racketArity, 2)) {
                         racketWorldCallback(internalCall, 
                                             world,
                                             mockView,
-                                            data,
                                             onGoodWorldUpdate,
                                             fail);
                     } else {
-                        racketWorldCallback(internalCall, 
-                                            world,
-                                            mockView,
-                                            onGoodWorldUpdate,
-                                            fail);
+                        args = ([internalCall, world, mockView]
+                                .concat(args)
+                                .concat([onGoodWorldUpdate, fail]));
+                        racketWorldCallback.apply(null, args);
                     }
                 } else {
                     dispatchingEvents = false;

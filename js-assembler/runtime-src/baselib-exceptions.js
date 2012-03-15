@@ -134,13 +134,18 @@
     };
 
     var raiseArityMismatchError = function(MACHINE, proc, received) {
+        raise(MACHINE, makeArityMismatchError(MACHINE, proc, received));
+    };
+
+    var makeArityMismatchError = function(MACHINE, proc, received) {
         var message = baselib.format.format("~a: expected ~e value(s), received ~e value(s)",
                                             [proc.displayName,
                                              proc.racketArity,
                                              received]);
         var contMarks = MACHINE.captureContinuationMarks();
-        raise(MACHINE, ExnFailContractArity.constructor([message, contMarks]));
+        return ExnFailContractArity.constructor([message, contMarks]);
     };
+
 
     var raiseOperatorApplicationError = function(MACHINE, operator) {
         var message = baselib.format.format("not a procedure: ~e",
@@ -233,6 +238,7 @@
     exceptions.raiseArgumentTypeError = raiseArgumentTypeError;
     exceptions.raiseContextExpectedValuesError = raiseContextExpectedValuesError;
     exceptions.raiseArityMismatchError = raiseArityMismatchError;
+    exceptions.makeArityMismatchError = makeArityMismatchError;
     exceptions.raiseOperatorApplicationError = raiseOperatorApplicationError;
     exceptions.raiseOperatorIsNotPrimitiveProcedure = raiseOperatorIsNotPrimitiveProcedure;
     exceptions.raiseUnimplementedPrimitiveError = raiseUnimplementedPrimitiveError;

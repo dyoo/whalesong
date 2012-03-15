@@ -5,5 +5,5 @@
 
 
 (big-bang (list 'undefined 'undefined)
-          (on-geo (lambda (w v lat lng)
-                    (list lat lng))))
+          (on-geo (lambda (w v lat #;lng)
+                    (list lat #;lng))))

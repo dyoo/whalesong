@@ -1209,11 +1209,12 @@
                 });
             };
 
-            startEventHandlers = function() {
+            startEventHandlers = function(k) {
                 var i;
                 for (i = 0; i < eventHandlers.length; i++) {
                     startEventHandler(eventHandlers[i]);
                 }
+                k();
             };
 
             stopEventHandlers = function() {
@@ -1321,14 +1322,14 @@
                                for (i = 0; i < actions.length; i++) {
                                    actions[i](view);
                                }
+                               success();
                            } else {
                                view.top = arrayTreeToDomNode(newMockView.getCursor().top().node);
                                view.initialRender(top);
                                eventHandlers = newMockView.eventHandlers.slice(0);
                                view.eventHandlers = eventHandlers;
-                               startEventHandlers();
+                               startEventHandlers(success);
                            }
-                           success();
                        },
                        function(err) {
                            failure(err);
@@ -1340,8 +1341,10 @@
                                      startEventHandler : startEventHandler,
                                      stopEventHandler : stopEventHandler };
             view.initialRender(top);
-            startEventHandlers();
-            refreshView(function() {}, onMessyRestart);
+            startEventHandlers(function() {
+                refreshView(function() {}, onMessyRestart);
+            });
+
         });
     };
 

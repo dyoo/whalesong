@@ -21,6 +21,13 @@
 
 
 ;; The new event handler type for geolocation:
+;;
+;; Use it as any other world handler:
+;;
+;; (big-bang ...
+;;           [on-geo (lambda (world view lat lng)
+;;                     ...)]
+;;
+;;           ...)
 (define on-geo (make-world-event-handler setup-geo shutdown-geo))
-
 

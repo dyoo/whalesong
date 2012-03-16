@@ -1242,7 +1242,7 @@ even if the id does not currently exist on the page.
 @defmodule/this-package[js]{
 
 
-This needs to describe what hooks we've got from the JavaScript side
+[[This needs to describe what hooks we've got from the JavaScript side
 of things.
 
 In particular, we need to talk about the plt namespace constructed by
@@ -1251,7 +1251,104 @@ the runtime, and the major, external bindings, like
 
 The contracts here are not quite right either.  I want to use JQuery
 as the type in several of the bindings here, but don't quite know how
-to teach Scribble about them yet.
+to teach Scribble about them yet.]]
+
+@defproc[(js-string? [x any]) boolean]{
+Returns @racket[#t] if the value is a primitive JavaScript string value.
+}
+
+@defproc[(string->js-string [str string]) js-string]{
+Coerses @racket[str] to a JavaScript string value.
+}
+
+@defproc[(js-string->string [js-str js-string]) string]{
+Coerses @racket[js-str] to a string value.
+}
+
+
+@defproc[(js-number? [x any]) boolean]{
+Returns @racket[#t] if @racket[x] is a primitive JavaScript number.
+}
+
+@defproc[(number->js-number [num number]) js-number]{
+Coerses @racket[num] to a JavaScript number.
+}
+
+@defproc[(js-number->number [js-num js-number]) number]{
+Coerses @racket[js-num] to a number.
+}
+
+@defproc[(js-null? [x any]) boolean]{
+Returns @racket[#t] if @racket[x] is @tt{null}.
+}
+
+@defthing[js-null js-value]{
+JavaScript's @tt{null} value.
+}
+
+
+
+
+@defproc[(get-attr [obj js-object] [key (or/c string symbol)]) js-value]{
+Looks up the attribute of a JavaScript object.
+}
+
+@defproc[(set-attr! [obj js-object] [key (or/c string symbol)] [value js-value]) js-value]{
+Sets the attribute of a JavaScript object.
+}
+
+
+@defproc[(load-script [url string?]) void]{
+Dynamically loads a script from the URL.
+}
+
+
+@defproc[(js-function->procedure [f (U string js-function)]) procedure]{
+Given either a string representation of a JavaScript function, or a javascript function
+object, returns a procedure that can be called.
+
+For example, the following shows how to lift a simple function:
+@racketblock[
+(define primitive-* 
+  (js-function->procedure
+   "function(x) { return x * x; }"))
+(primitive-* 42)
+]
+
+Caveats: the lifted function does no auto-coersion of values.
+}
+
+
+@defproc[(js-async-function->procedure [f (or/c string js-function)])
+procedure]{ Given either a string representation of a JavaScript
+function, or a javascript function object, returns a procedure that
+can be called.  The first two arguments to the function are special,
+representing the success and fail continuations that continue the rest
+of the computation.
+
+For example, the following shows how to lift a simple function:
+@racketblock[
+(define primitive-* 
+  (js-async-function->procedure
+   "function(success, fail, x) { success(x * x); }"))
+(primitive-* 42)
+]
+
+Note that, unlike @racket[js-function->procedure], the
+JavaScript implementation is expected to call the success or fail
+continuation explicitly.
+
+As another example that takes advantage of the explicit continuation style:
+@racketblock[
+(define js-sleep 
+  (js-async-function->procedure 
+   "function(success, fail, x) { setTimeout(success, x); }"))
+(js-sleep 1000)
+]
+
+Caveats: the lifted function does no auto-coersion of values.
+}
+
 
 
 
@@ -1260,9 +1357,12 @@ to teach Scribble about them yet.
 Displays an alert.  Currently implemented using JavaScript's
 @litchar{alert} function.}
 
+
+
 @defthing[body any/c]{
 A JQuery-wrapped value representing the body of the DOM.
 }
+
 
 @defproc[(call-method [object any/c] 
                       [method-name string?]
@@ -1291,12 +1391,7 @@ For example,
                           body)]
 will construct a @tt{h1} header, and append it to
 the document body.
-
-
 }
-
-
-
 
 
 @defproc[(in-javascript-context?) boolean]{Returns true if the running context

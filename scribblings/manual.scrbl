@@ -16,7 +16,8 @@
 @(define-runtime-path git-head-path "../.git/refs/heads/master")
 
 
-@(require (for-label (this-package-in js))
+@(require (for-label (this-package-in js)
+                     (this-package-in js/world))
           (for-label (except-in (this-package-in lang/base)
                                 string?
                                 printf
@@ -1410,6 +1411,77 @@ Returns the height of the viewport.
 }
 
 }
+
+
+
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@subsection{Adding new event handlers to world programs with the FFI}
+@defmodule/this-package[js/world]
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+The callback-driven asynchronous APIs in JavaScript can act as sources
+of World events.  The following function allows web-world programs to
+bind to these sources.
+
+@defproc[(make-world-event-handler [setup procedure] [shutdown procedure]) event-handler]{
+Creates a new handler type that can be used with @racket[big-bang].
+@racket[big-bang] calls the first argument at the beginning of the
+event-loop, and calls the second right before the event loop
+terminates.
+
+The @racket[setup] and @racket[shutdown] functions are usually
+constructed with @racket[js-function->procedure] in order to bind to
+native JavaScript APIs.
+
+The @racket[setup] function is called with an JavaScript function
+value that, when called, emits a new event into the world's event
+loop.  The return value of the @racket[setup] function will be saved,
+and when the @racket[shutdown] procedure calls, that value is passed
+to it, with the intent that shutting down a service will likely
+require information that's produced at setup-time.
+
+
+For example, we can reimplement some of the behavior of
+@racket[on-location-change] with the following:
+@codeblock|{
+#lang planet dyoo/whalesong
+(require (planet dyoo/whalesong/js)
+         (planet dyoo/whalesong/js/world))
+
+(define setup-geo
+  (js-function->procedure
+   "function (locationCallback) {
+        return navigator.geolocation.watchPosition(
+            function(evt) {
+                var coords = evt.coords;
+                locationCallback(plt.runtime.makeFloat(coords.latitude),
+                                 plt.runtime.makeFloat(coords.longitude)); })}"))
+
+(define shutdown-geo
+  (js-function->procedure
+   "function (watchId) {
+        navigator.geolocation.clearWatch(watchId); }"))
+
+;; We create a new event handler type here.
+(define on-geo (make-world-event-handler setup-geo shutdown-geo))
+
+
+;; Once defined, we can use on-geo as just another world-handler type.
+
+(define (move world view lat lng)
+  (list lat lng))
+
+(big-bang (list 'undefined 'undefined)
+          (on-geo move))
+}|
+}
+
+
+
+
+
+
+
 
 
 

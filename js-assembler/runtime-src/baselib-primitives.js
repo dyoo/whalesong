@@ -114,9 +114,19 @@
     var checkHash = baselib.check.checkHash;
     var checkMutableHash = baselib.check.checkMutableHash;
     var checkImmutableHash = baselib.check.checkImmutableHash;
-    var checkAny = baselib.check.makeCheckArgumentType(
-        function(x) { return true; },
-        'any');
+
+    // Just for consistency with the other names, we provide checkAny, which
+    // doesn't really do any checking.
+    var checkAny = function(M, name, offset) {
+        return M.e[M.e.length-1-offset];
+    };
+
+    var checkPromptTag = baselib.check.makeCheckArgumentType(
+        baselib.contmarks.isContinuationPromptTag,
+        'prompt tag');
+
+    var PromptFrame = baselib.frames.PromptFrame;
+
     //////////////////////////////////////////////////////////////////////
 
 
@@ -3132,6 +3142,45 @@
         1,
         function(M) {
             return baselib.hashes.getEqualHashCode(checkAny(M, 'equal-hash-code', 0));
+        });
+
+
+    installPrimitiveClosure(
+        'abort-current-continuation',
+        2, //baselib.arity.makeArityAtLeast(1),
+        function(M) {
+            var promptTag = checkPromptTag(M, 'abort-current-continuation', 0);
+            var vals = [];
+            var frame;
+            for(i = 1; i < M.a; i++) {
+                vals.push(M.e[M.e.length-1-i]);
+            }
+            
+            // First, find the continuation prompt.
+            while(true) {
+                frame = M.c.pop();
+                if (frame instanceof PromptFrame) {
+                    break;
+                }
+            }
+            // Shrink the environment to what was observed when the PromptFrame was installed.
+            M.e.length = frame.envLength;
+
+            // Default behavior:
+            // Re-establish the prompt frame and call the thunk.
+            // FIXME: generalize to different handlers!
+            M.e.push(c);
+            if (isProcedure(vals[0])) {
+                M.p = vals[0];
+                M.a = 0;
+                baselib.functions.rawApply(M);
+            } else {
+                raiseArgumentTypeError(M,
+                                       'abort-current-continuation',
+                                       'thunk',
+                                       1,
+                                       vals[0]);
+            }
         });
 
 

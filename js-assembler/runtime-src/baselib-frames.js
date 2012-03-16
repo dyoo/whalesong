@@ -40,11 +40,15 @@
 
 
 
-    // A prompt frame includes a return address, as well as a prompt tag
-    // for supporting delimited continuations.
-    var PromptFrame = function(label, tag) {
+    // A prompt frame includes a return address, as well as a prompt
+    // tag for supporting delimited continuations.  To support abort,
+    // we also keep the size of the environment, and the handler
+    // to call if an abort happens.
+    var PromptFrame = function(label, tag, envLength, handler) {
 	this.label = label;
 	this.tag = tag; // ContinuationPromptTag
+        this.envLength = envLength;
+        this.handler = handler;
     };
     PromptFrame.prototype = baselib.heir(Frame.prototype);
 

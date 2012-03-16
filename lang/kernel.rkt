@@ -228,6 +228,8 @@
          current-inexact-milliseconds
          current-seconds
          
+
+         abort-current-continuation
          
          ;; needed for cs019-local
          #%stratified-body

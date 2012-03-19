@@ -29,6 +29,28 @@ EOF
 ))
 
 
+(define raw-make-map-dom-and-map
+  (js-async-function->procedure
+   #<<EOF
+function(success, fail, lat, lng) {
+    var myOptions = {
+         center: new google.maps.LatLng(lat, lng),
+         zoom: 8,
+         mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    var domElement = document.createElement('div');
+    domElement.style.width = "100%";
+    domElement.style.height = "200px";
+    var map = new google.maps.Map(domElement, myOptions);
+    success(domElement, map);
+}
+EOF
+))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define (initialize-google-maps-api! key sensor)
   (unless (string? key)
     (raise-type-error 'initialize-google-maps-api! "string" 0 key))
@@ -36,9 +58,17 @@ EOF
     (raise-type-error 'initialize-google-maps-api! "boolean" 1 sensor))
   (void (raw-initialize-google-maps-api! key sensor)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;; This is dyoo's API key.
 (printf "Loading google maps api\n");
-(initialize-google-maps-api! "AIzaSyCRKQNI_nbyyN1286cssEy3taKj5IZcHN8" #t)
+(initialize-google-maps-api! "AIzaSyCRKQNI_nbyyN1286cssEy3taKj5IZcHN8" #f)
 (printf "google maps api loaded\n")
+
+
+
+(raw-make-map-dom-and-map (number->js-number -34.397)
+                          (number->js-number 150.644))
+
+"done"

@@ -163,6 +163,20 @@
 
 
 
+    // makeRandomNonce: -> string
+    // Creates a randomly-generated nonce.
+    var makeRandomNonce = function() {
+        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+        var LEN = 32;
+        var result = [];
+        var i;
+        for (i = 0; i < LEN; i++) {
+            result.push(chars.charAt(Math.floor(Math.random() * chars.length)));
+        }
+        return result.join('');
+    };
+
+
     //////////////////////////////////////////////////////////////////////
 
     // Exclusive Locks.  Even though JavaScript is a single-threaded
@@ -175,23 +189,11 @@
         this.waiters = [];
     };
 
-    // makeRandomNonce: -> string
-    // Creates a randomly-generated nonce.
-    ExclusiveLock.makeRandomNonce = function() {
-        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-        var LEN = 32;
-        var result = [];
-        var i;
-        for (i = 0; i < LEN; i++) {
-            result.push(chars.charAt(Math.floor(Math.random() * chars.length)));
-        }
-        return result.join('');
-    };
 
     ExclusiveLock.prototype.acquire = function(id, onAcquire) {
         var that = this;
         if (!id) {
-            id = ExclusiveLock.makeRandomNonce();
+            id = makeRandomNonce();
         }
 
         this.alreadyReleased = false;
@@ -1268,4 +1270,7 @@
     exports['checkedCdr'] = checkedCdr;
     exports['checkedVectorRef'] = checkedVectorRef;
     exports['checkedVectorSet'] = checkedVectorSet;
+
+
+    exports['makeRandomNonce'] = makeRandomNonce;
 }(this.plt, this.plt.baselib));

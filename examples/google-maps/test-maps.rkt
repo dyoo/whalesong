@@ -2,16 +2,16 @@
 (require (planet dyoo/whalesong/web-world)
          "maps.rkt")
 
-;; This is dyoo's API key.
-(printf "Loading google maps api\n");
+;; Note: this is dyoo's API key.  Please don't abuse this.  :)
 (initialize-google-maps-api! "AIzaSyCRKQNI_nbyyN1286cssEy3taKj5IZcHN8" #f)
-(printf "google maps api loaded\n")
+
 
 ;; We dynamically create a dom node for the presentation of the map,
 ;; and an auxiliary gmap value that we use to manage the internal
 ;; state of the map.
 (define-values (dom gmap)
   (make-dom-and-map 41.82706261971936 -71.39962630844116))
+
 
 ;; on-map-click: world handler
 ;; Creates an on-map-click associated to the gmap, ready to be used in
@@ -20,6 +20,9 @@
 (define on-map-click (make-on-map-click gmap))
 
 
+
+
+(xexp->dom '(h1 "Google Maps demonstration"))
 
 (big-bang "???"
           (initial-view

@@ -42,6 +42,15 @@
 
 
 
+    // Returns true if it is a DOM element.
+    // Comes from:
+    // http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
+    var isElement = function(o){
+        return (
+            typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+            o && typeof o === "object" && o.nodeType === 1 && typeof o.nodeName==="string"
+        );
+    };
 
     var shallowCloneNode = function(node) {
         var result = node.cloneNode(false);
@@ -1444,6 +1453,9 @@
     //      :== string
     var isXexp = function(x) {
         var children;
+        if (isElement(x)) {
+            return true;
+        }
         if (isString(x)) { 
             return true; 
         }
@@ -1514,6 +1526,9 @@
         var children;
         var name;
         var node;
+        if (isElement(x)) {
+            return x;
+        }
         if (isString(x)) { 
             return document.createTextNode(x); 
         }

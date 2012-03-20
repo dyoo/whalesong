@@ -8,8 +8,12 @@
 ;; 
 
 (require (planet dyoo/whalesong/js)
-         (planet dyoo/whalesong/js/world)
-         (planet dyoo/whalesong/web-world))
+         (planet dyoo/whalesong/js/world))
+
+(provide initialize-google-maps-api!
+         make-dom-and-map
+         make-on-map-click)
+
 
 
 ;; initialize-google-maps-api!: string boolean -> void
@@ -56,10 +60,9 @@ function(success, fail, lat, lng) {
 EOF
 ))
 
-
 ;; We can listen to certain events, like click.
 ;; https://developers.google.com/maps/documentation/javascript/events
-(define (make-on-map-click a-gmap)
+(define (raw-make-on-map-click a-gmap)
   ;; setup will add a listener associated to the given map.
   (define raw-setup
     (js-function->procedure #<<EOF
@@ -82,7 +85,6 @@ function(gmap, mapsListener) {
 EOF
 
 ))
-
   (define (setup callback)
     (raw-setup a-gmap callback))
 
@@ -102,35 +104,24 @@ EOF
     (raise-type-error 'initialize-google-maps-api! "boolean" 1 sensor))
   (raw-initialize-google-maps-api! key sensor))
 
+
+;; make-dom-and-map: number number -> (values dom-node gmap-object)
+;; Given a latitude and longitude, creates a dom node that presents a
+;; Google Map, along with the gmap-object that carries its map state.
+;; TODO: We may want to provide a higher-level abstraction that
+;; encapsulates the two into a structured value.
+(define (make-dom-and-map lat lng)
+  (unless (real? lat)
+    (raise-type-error 'make-dom-and-map "real" 0 lat))
+  (unless (real? lng)
+    (raise-type-error 'make-dom-and-map "real" 1 lng))
+  (raw-make-map-dom-and-map (number->js-number lat)
+                            (number->js-number lng)))
+
+
+;; make-on-map-click: gmap-object -> world-handler
+;; TODO: We may want to provide a higher-level abstraction that
+;; encapsulates the two into a structured value.
+(define make-on-map-click raw-make-on-map-click)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-
-;; This is dyoo's API key.
-(printf "Loading google maps api\n");
-(initialize-google-maps-api! "AIzaSyCRKQNI_nbyyN1286cssEy3taKj5IZcHN8" #f)
-(printf "google maps api loaded\n")
-
-
-;; We dynamically create a dom node for the presentation of the map,
-;; and an auxiliary gmap value that we use to manage the internal
-;; state of the map.
-(define-values (dom gmap)
-  (raw-make-map-dom-and-map (number->js-number -34.397)
-                            (number->js-number 150.644)))
-
-
-
-;; on-map-click: world handler
-;; Creates an on-map-click associated to the gmap, ready to be used in
-;; a big bang.
-;; It'll be used as an input device for our world program.
-(define on-map-click (make-on-map-click gmap))
-
-dom
-
-
-
-(big-bang 'nothing
-          (on-map-click (lambda (w v lat lng)
-                          (list lat lng))))

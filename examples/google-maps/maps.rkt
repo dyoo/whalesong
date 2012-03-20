@@ -8,7 +8,8 @@
 ;; 
 
 (require (planet dyoo/whalesong/js)
-         (planet dyoo/whalesong/js/world))
+         (planet dyoo/whalesong/js/world)
+         (planet dyoo/whalesong/web-world))
 
 
 ;; initialize-google-maps-api!: string boolean -> void
@@ -35,6 +36,8 @@ EOF
 ))
 
 
+;; raw-make-map-dom-and-map: js-number js-number -> (values dom-node gmap-object)
+;; Dynamically creates both a dom-node and a gmap object.
 (define raw-make-map-dom-and-map
   (js-async-function->procedure
    #<<EOF
@@ -56,7 +59,37 @@ EOF
 
 ;; We can listen to certain events, like click.
 ;; https://developers.google.com/maps/documentation/javascript/events
+(define (make-on-map-click a-gmap)
+  ;; setup will add a listener associated to the given map.
+  (define raw-setup
+    (js-function->procedure #<<EOF
+function(map, callback) {
+    var mapsListener =
+        google.maps.event.addListener(map, 'click', function(event) {
+            callback(plt.runtime.makeFloat(event.latLng.lat()),
+                     plt.runtime.makeFloat(event.latLng.lng()));
+        });
+   return mapsListener;
+}
+EOF
+))
+  ;; shutdown will remove the listener off the map.
+  (define raw-shutdown
+    (js-function->procedure #<<EOF
+function(gmap, mapsListener) {
+    google.maps.event.removeListener(gmap, mapsListener);
+}
+EOF
 
+))
+
+  (define (setup callback)
+    (raw-setup a-gmap callback))
+
+  (define (shutdown setup-data)
+    (raw-shutdown a-gmap setup-data))
+  
+  (make-world-event-handler setup shutdown))
 
 
 
@@ -79,8 +112,25 @@ EOF
 (printf "google maps api loaded\n")
 
 
+;; We dynamically create a dom node for the presentation of the map,
+;; and an auxiliary gmap value that we use to manage the internal
+;; state of the map.
+(define-values (dom gmap)
+  (raw-make-map-dom-and-map (number->js-number -34.397)
+                            (number->js-number 150.644)))
 
-(raw-make-map-dom-and-map (number->js-number -34.397)
-                          (number->js-number 150.644))
 
-"done"
+
+;; on-map-click: world handler
+;; Creates an on-map-click associated to the gmap, ready to be used in
+;; a big bang.
+;; It'll be used as an input device for our world program.
+(define on-map-click (make-on-map-click gmap))
+
+dom
+
+
+
+(big-bang 'nothing
+          (on-map-click (lambda (w v lat lng)
+                          (list lat lng))))

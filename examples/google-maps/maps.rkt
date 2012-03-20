@@ -1,8 +1,14 @@
 #lang planet dyoo/whalesong
 
 ;; A simple binding to Google Maps.
+;;
+;; Some of this comes from:
+;;
+;;     https://developers.google.com/maps/documentation/javascript/tutorial
+;; 
 
-(require (planet dyoo/whalesong/js))
+(require (planet dyoo/whalesong/js)
+         (planet dyoo/whalesong/js/world))
 
 
 ;; initialize-google-maps-api!: string boolean -> void
@@ -15,7 +21,7 @@ function(success, fail, key, sensor) {
     window[callbackName] = function() {
         delete(window[callbackName]);
         // At this point, we know the API has been instantiated ok.
-        success();
+        success(plt.runtime.VOID);
     };
 
     var script = document.createElement("script");
@@ -48,6 +54,11 @@ EOF
 ))
 
 
+;; We can listen to certain events, like click.
+;; https://developers.google.com/maps/documentation/javascript/events
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -56,9 +67,10 @@ EOF
     (raise-type-error 'initialize-google-maps-api! "string" 0 key))
   (unless (boolean? sensor)
     (raise-type-error 'initialize-google-maps-api! "boolean" 1 sensor))
-  (void (raw-initialize-google-maps-api! key sensor)))
+  (raw-initialize-google-maps-api! key sensor))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 ;; This is dyoo's API key.

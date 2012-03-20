@@ -191,6 +191,8 @@
                         for (i = 0; i < MACHINE.a ; i = i+1) {
                             args.push(MACHINE.e[MACHINE.e.length - 1 - i]);
                         }
+                        MACHINE.e.length -= MACHINE.a;
+                        MACHINE.a = 0;
                         return plt.runtime.PAUSE(
                             function(restart) {
                                 var onFail = function(e) {
@@ -204,9 +206,22 @@
                                     });
                                 };
                                 var onSuccess = function(v) {
-                                    restart(function(MACHINE) {
-                                        plt.runtime.finalizeClosureCall(MACHINE, v);
-                                    });
+                                    // Common case, return single argument
+                                    if (arguments.length === 1) {
+                                        restart(function(MACHINE) {
+                                            MACHINE.a = 0;
+                                            plt.runtime.finalizeClosureCall(MACHINE, v);
+                                        });
+                                    } else {
+                                        // General case: return multiple arguments
+                                        var args = Array.prototype.slice.call(arguments, 0);
+                                        args.unshift(MACHINE);
+                                        restart(function(MACHINE) {
+                                            MACHINE.a = 0;
+                                            plt.runtime.finalizeClosureCall.apply(
+                                                null, args);
+                                        });
+                                    }
                                 }
                                 args.unshift(onFail);
                                 args.unshift(onSuccess);

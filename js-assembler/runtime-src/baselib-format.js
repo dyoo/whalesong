@@ -389,7 +389,7 @@
 
         if (typeof(x) === 'string') {
             var wrapper = document.createElement("span");
-            wrapper.style["white-space"] = "pre";
+            wrapper.style.whiteSpace = "pre";
             if (params.getMode() === 'write' || params.getMode() === 'print' || params.getMode() === 'constructor') {
                 node = document.createTextNode(toWrittenString(x));
             } else {

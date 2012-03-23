@@ -29,6 +29,12 @@
          compile-general-procedure-call)
 
 
+;; We keep track of which lambda is currently being compiled for potential optimizations
+;; e.g. self tail calls.
+(: current-lambda-being-compiled (Parameterof (U #f Lam)))
+(define current-lambda-being-compiled (make-parameter #f))
+
+
 
 
 (: -compile (Expression Target Linkage -> (Listof Statement)))
@@ -63,6 +69,144 @@
            (make-AssignImmediate target (make-Reg 'val))))))))
 
 
+
+
+
+;; Given a lambda body, collect all the applications that exist within
+;; it.  We'll use this to determine what procedures can safely be
+;; transformed into primitives.
+(: collect-lam-applications (Lam CompileTimeEnvironment -> (Listof CompileTimeEnvironmentEntry)))
+(define (collect-lam-applications lam cenv)
+
+  (let: loop : (Listof CompileTimeEnvironmentEntry)
+    ([exp : Expression (Lam-body lam)]
+     [cenv : CompileTimeEnvironment cenv]
+     [acc : (Listof CompileTimeEnvironmentEntry) '()])
+    
+    (cond
+      [(Top? exp)
+       (loop (Top-code exp)
+             (cons (Top-prefix exp) cenv)
+             acc)]
+
+      [(Module? exp)
+       (loop (Module-code exp)
+             (cons (Module-prefix exp) cenv)
+             acc)]
+
+      [(Constant? exp)
+       acc]
+
+      [(LocalRef? exp)
+       acc]
+
+      [(ToplevelRef? exp)
+       acc]
+
+      [(ToplevelSet? exp)
+       (loop (ToplevelSet-value exp) cenv acc)]
+
+      [(Branch? exp)
+       (define acc-1 (loop (Branch-predicate exp) cenv acc))
+       (define acc-2 (loop (Branch-consequent exp) cenv acc-1))
+       (define acc-3 (loop (Branch-alternative exp) cenv acc-2))
+       acc-3]
+
+      [(Lam? exp)
+       acc]
+
+      [(CaseLam? exp)
+       acc]
+
+      [(EmptyClosureReference? exp)
+       acc]
+      
+      [(Seq? exp)
+       (foldl (lambda: ([e : Expression]
+                        [acc : (Listof CompileTimeEnvironmentEntry)])
+                 (loop e cenv acc))
+              acc
+              (Seq-actions exp))]
+
+      [(Splice? exp)
+       (foldl (lambda: ([e : Expression]
+                        [acc : (Listof CompileTimeEnvironmentEntry)])
+                 (loop e cenv acc))
+              acc
+              (Splice-actions exp))]
+
+      [(Begin0? exp)
+       (foldl (lambda: ([e : Expression]
+                        [acc : (Listof CompileTimeEnvironmentEntry)])
+                 (loop e cenv acc))
+              acc
+              (Begin0-actions exp))]
+
+      [(App? exp)
+       (define new-cenv
+         (append (build-list (length (App-operands exp)) (lambda: ([i : Natural]) '?))
+                 cenv))
+       (foldl (lambda: ([e : Expression]
+                        [acc : (Listof CompileTimeEnvironmentEntry)])
+                (loop e new-cenv acc))
+              (cons (extract-static-knowledge (App-operator exp) new-cenv)
+                    (loop (App-operator exp) new-cenv acc))
+              (App-operands exp))]
+
+      [(Let1? exp)
+       (define acc-1 (loop (Let1-rhs exp) (cons '? cenv) acc))
+       (define acc-2 (loop (Let1-body exp) 
+                           (cons (extract-static-knowledge (Let1-rhs exp) (cons '? cenv)) 
+                                 cenv)
+                           acc-1))
+       acc-2]
+
+      [(LetVoid? exp)
+       (loop (LetVoid-body exp) 
+             (append (build-list (LetVoid-count exp) (lambda: ([i : Natural]) '?))
+                     cenv)
+             acc)]
+      
+      [(InstallValue? exp)
+       (loop (InstallValue-body exp) cenv acc)]
+
+      [(BoxEnv? exp)
+       (loop (BoxEnv-body exp) cenv acc)]
+
+      [(LetRec? exp)
+       (let ([n (length (LetRec-procs exp))])
+         (let ([new-cenv (append (map (lambda: ([p : Lam]) 
+                                        (extract-static-knowledge 
+                                         p 
+                                         (append (build-list (length (LetRec-procs exp))
+                                                             (lambda: ([i : Natural]) '?))
+                                                 (drop cenv n))))
+                                      (LetRec-procs exp))
+                                 (drop cenv n))])
+           (loop (LetRec-body exp) new-cenv acc)))]
+      
+      [(WithContMark? exp)
+       (define acc-1 (loop (WithContMark-key exp) cenv acc))
+       (define acc-2 (loop (WithContMark-value exp) cenv acc-1))
+       (define acc-3 (loop (WithContMark-body exp) cenv acc-2))
+       acc-3]
+      
+      [(ApplyValues? exp)
+       (define acc-1 (loop (ApplyValues-proc exp) cenv acc))
+       (define acc-2 (loop (ApplyValues-args-expr exp) cenv acc-1))
+       acc-2]
+
+      [(DefValues? exp)
+       (loop (DefValues-rhs exp) cenv acc)]
+
+      [(PrimitiveKernelValue? exp)
+       acc]
+
+      [(VariableReference? exp)
+       (loop (VariableReference-toplevel exp) cenv acc)]
+
+      [(Require? exp)
+       acc])))
 
 
 
@@ -871,17 +1015,15 @@
 
 
 
-;; We keep track of which lambda is currently being compiled for potential optimizations
-;; e.g. self tail calls.
-(: current-lambda-body-being-compiled (Parameterof (U #f Lam)))
-(define current-lambda-body-being-compiled (make-parameter #f))
 
 
 (: compile-lambda-body (Lam CompileTimeEnvironment -> InstructionSequence))
 ;; Compiles the body of the lambda in the appropriate environment.
 ;; Closures will target their value to the 'val register, and use return linkage.
 (define (compile-lambda-body exp cenv)
-  (parameterize ([current-lambda-body-being-compiled exp])
+  (parameterize ([current-lambda-being-compiled exp])
+    (define all-applications (collect-lam-applications exp (extract-lambda-cenv exp cenv)))
+    
     (let: ([maybe-unsplice-rest-argument : InstructionSequence
                                          (if (Lam-rest? exp)
                                              (make-Perform 
@@ -954,8 +1096,7 @@
             [cenv : CompileTimeEnvironment (lam+cenv-cenv (first exps))])
        (cond
          [(Lam? lam)
-          (append-instruction-sequences (compile-lambda-body lam
-                                                             cenv)
+          (append-instruction-sequences (compile-lambda-body lam cenv)
                                         (compile-lambda-bodies (rest exps)))]
          [(CaseLam? lam)
           (append-instruction-sequences 
@@ -1754,7 +1895,6 @@
 ;; We should do more here eventually, including things like type inference or flow analysis, so that
 ;; we can generate better code.
 (define (extract-static-knowledge exp cenv)
-  ;(log-debug (format "Trying to discover information about ~s" exp))
   (cond
     [(Lam? exp)
      ;(log-debug "known to be a lambda")

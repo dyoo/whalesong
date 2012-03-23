@@ -9,11 +9,12 @@
 
 (define raw-sleep
   (js-async-function->procedure
-   "function(success, fail, n) { setTimeout(success, n); }"))
+   "function(success, fail, n) { setTimeout(function() { success(plt.runtime.VOID);}, n); }"))
 (define (sleep n)
   (unless (real? n)
     (raise-type-error 'sleep "real" n))
-  (void (raw-sleep (inexact->exact (floor (* n 1000))))))
+  (raw-sleep (inexact->exact (floor (* n 1000))))
+  (void))
 
 
 "plus: " (js-plus 3 4)

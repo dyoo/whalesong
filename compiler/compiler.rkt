@@ -235,7 +235,7 @@
                (loop (Branch-consequent exp) cenv)
                (loop (Branch-alternative exp) cenv))]
       [(Lam? exp)
-       (cons (make-lam+cenv exp cenv)
+       (cons (make-lam+cenv exp (extract-lambda-cenv exp cenv))
              (loop (Lam-body exp) 
                    (extract-lambda-cenv exp cenv)))]
       [(CaseLam? exp)
@@ -1022,7 +1022,7 @@
 ;; Closures will target their value to the 'val register, and use return linkage.
 (define (compile-lambda-body exp cenv)
   (parameterize ([current-lambda-being-compiled exp])
-    (define all-applications (collect-lam-applications exp (extract-lambda-cenv exp cenv)))
+    (define all-applications (collect-lam-applications exp cenv))
     
     (let: ([maybe-unsplice-rest-argument : InstructionSequence
                                          (if (Lam-rest? exp)
@@ -1040,7 +1040,7 @@
                                              empty-instruction-sequence)]
            [lam-body-code : InstructionSequence
                           (compile (Lam-body exp)
-                                   (extract-lambda-cenv exp cenv)
+                                   cenv
                                    'val
                                    return-linkage)])
       

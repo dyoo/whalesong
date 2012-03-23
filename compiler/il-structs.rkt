@@ -206,6 +206,18 @@
   #:transparent)
 
 
+;; Returns a pair of labels, the first being the mutiple-value-return
+;; label and the second its complementary single-value-return label.
+(: new-linked-labels (Symbol -> (Values Symbol LinkedLabel)))
+(define (new-linked-labels sym)
+  (define a-label-multiple (make-label (string->symbol (format "~aMultiple" sym))))
+  (define a-label (make-LinkedLabel (make-label sym) a-label-multiple))
+  (values a-label-multiple a-label))
+
+
+
+
+
 ;; FIXME: it would be nice if I can reduce AssignImmediate and
 ;; AssignPrimOp into a single Assign statement, but I run into major
 ;; issues with Typed Racket taking minutes to compile.  So we're

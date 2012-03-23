@@ -10,7 +10,6 @@
          "analyzer-structs.rkt"
          "../parameters.rkt"
          "../sets.rkt"
-         racket/bool
          racket/list
          racket/match)
 
@@ -42,31 +41,30 @@
 ;; Note: the toplevel generates the lambda body streams at the head, and then the
 ;; rest of the instruction stream.
 (define (-compile exp target linkage)
-  (let* ([after-lam-bodies (make-label 'afterLamBodies)]
-         [before-pop-prompt-multiple (make-label 'beforePopPromptMultiple)]
-         [before-pop-prompt (make-LinkedLabel
-                             (make-label 'beforePopPrompt)
-                             before-pop-prompt-multiple)])
-    (optimize-il
-     (statements
-      (append-instruction-sequences 
-       
-       ;; Layout the lambda bodies...
-       (make-Goto (make-Label after-lam-bodies))
-       (compile-lambda-bodies (collect-all-lambdas-with-bodies exp))
-       after-lam-bodies
-       
-       ;; Begin a prompted evaluation:
-       (make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                     before-pop-prompt)
-       (compile exp '() 'val return-linkage/nontail)
-       before-pop-prompt-multiple
-       (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
-                            (make-Const 0))
-       before-pop-prompt
-       (if (eq? target 'val)
-           empty-instruction-sequence
-           (make-AssignImmediate target (make-Reg 'val))))))))
+  (define lambda-bodies (collect-all-lambdas-with-bodies exp))
+  (define after-lam-bodies (make-label 'afterLamBodies))
+  (define-values (before-pop-prompt-multiple before-pop-prompt)
+    (new-linked-labels 'beforePopPrompt))
+  (optimize-il
+   (statements
+    (append-instruction-sequences 
+     
+     ;; Layout the lambda bodies...
+     (make-Goto (make-Label after-lam-bodies))
+     (compile-lambda-bodies lambda-bodies)
+     after-lam-bodies
+     
+     ;; Begin a prompted evaluation:
+     (make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                   before-pop-prompt)
+     (compile exp '() 'val return-linkage/nontail)
+     before-pop-prompt-multiple
+     (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
+                          (make-Const 0))
+     before-pop-prompt
+     (if (eq? target 'val)
+         empty-instruction-sequence
+         (make-AssignImmediate target (make-Reg 'val)))))))
 
 
 
@@ -77,7 +75,7 @@
 ;; transformed into primitives.
 (: collect-lam-applications (Lam CompileTimeEnvironment -> (Listof CompileTimeEnvironmentEntry)))
 (define (collect-lam-applications lam cenv)
-
+  
   (let: loop : (Listof CompileTimeEnvironmentEntry)
     ([exp : Expression (Lam-body lam)]
      [cenv : CompileTimeEnvironment cenv]
@@ -88,60 +86,60 @@
        (loop (Top-code exp)
              (cons (Top-prefix exp) cenv)
              acc)]
-
+      
       [(Module? exp)
        (loop (Module-code exp)
              (cons (Module-prefix exp) cenv)
              acc)]
-
+      
       [(Constant? exp)
        acc]
-
+      
       [(LocalRef? exp)
        acc]
-
+      
       [(ToplevelRef? exp)
        acc]
-
+      
       [(ToplevelSet? exp)
        (loop (ToplevelSet-value exp) cenv acc)]
-
+      
       [(Branch? exp)
        (define acc-1 (loop (Branch-predicate exp) cenv acc))
        (define acc-2 (loop (Branch-consequent exp) cenv acc-1))
        (define acc-3 (loop (Branch-alternative exp) cenv acc-2))
        acc-3]
-
+      
       [(Lam? exp)
        acc]
-
+      
       [(CaseLam? exp)
        acc]
-
+      
       [(EmptyClosureReference? exp)
        acc]
       
       [(Seq? exp)
        (foldl (lambda: ([e : Expression]
                         [acc : (Listof CompileTimeEnvironmentEntry)])
-                 (loop e cenv acc))
+                (loop e cenv acc))
               acc
               (Seq-actions exp))]
-
+      
       [(Splice? exp)
        (foldl (lambda: ([e : Expression]
                         [acc : (Listof CompileTimeEnvironmentEntry)])
-                 (loop e cenv acc))
+                (loop e cenv acc))
               acc
               (Splice-actions exp))]
-
+      
       [(Begin0? exp)
        (foldl (lambda: ([e : Expression]
                         [acc : (Listof CompileTimeEnvironmentEntry)])
-                 (loop e cenv acc))
+                (loop e cenv acc))
               acc
               (Begin0-actions exp))]
-
+      
       [(App? exp)
        (define new-cenv
          (append (build-list (length (App-operands exp)) (lambda: ([i : Natural]) '?))
@@ -152,7 +150,7 @@
               (cons (extract-static-knowledge (App-operator exp) new-cenv)
                     (loop (App-operator exp) new-cenv acc))
               (App-operands exp))]
-
+      
       [(Let1? exp)
        (define acc-1 (loop (Let1-rhs exp) (cons '? cenv) acc))
        (define acc-2 (loop (Let1-body exp) 
@@ -160,7 +158,7 @@
                                  cenv)
                            acc-1))
        acc-2]
-
+      
       [(LetVoid? exp)
        (loop (LetVoid-body exp) 
              (append (build-list (LetVoid-count exp) (lambda: ([i : Natural]) '?))
@@ -169,10 +167,10 @@
       
       [(InstallValue? exp)
        (loop (InstallValue-body exp) cenv acc)]
-
+      
       [(BoxEnv? exp)
        (loop (BoxEnv-body exp) cenv acc)]
-
+      
       [(LetRec? exp)
        (let ([n (length (LetRec-procs exp))])
          (let ([new-cenv (append (map (lambda: ([p : Lam]) 
@@ -195,16 +193,16 @@
        (define acc-1 (loop (ApplyValues-proc exp) cenv acc))
        (define acc-2 (loop (ApplyValues-args-expr exp) cenv acc-1))
        acc-2]
-
+      
       [(DefValues? exp)
        (loop (DefValues-rhs exp) cenv acc)]
-
+      
       [(PrimitiveKernelValue? exp)
        acc]
-
+      
       [(VariableReference? exp)
        (loop (VariableReference-toplevel exp) cenv acc)]
-
+      
       [(Require? exp)
        acc])))
 
@@ -518,30 +516,28 @@
     [(kernel-module-name? a-module-name)
      empty-instruction-sequence]
     [else
-     (let* ([linked (make-label 'linked)]
-            [on-return-multiple (make-label 'onReturnMultiple)]
-            [on-return (make-LinkedLabel (make-label 'onReturn)
-                                         on-return-multiple)])
-       (append-instruction-sequences
-        (make-TestAndJump (make-TestTrue (make-ModulePredicate a-module-name 'linked?))
-                          linked)
-        ;; TODO: raise an exception here that says that the module hasn't been
-        ;; linked yet.
-        (make-DebugPrint (make-Const 
-                          (format "DEBUG: the module ~a hasn't been linked in!!!"
-                                  (ModuleLocator-name a-module-name))))
-        (make-Goto (make-Label (LinkedLabel-label on-return)))
-        linked
-        (make-TestAndJump (make-TestTrue 
-                           (make-ModulePredicate a-module-name 'invoked?))
-                          (LinkedLabel-label on-return))
-        (make-PushControlFrame/Call on-return)
-        (make-Goto (ModuleEntry a-module-name))
-        on-return-multiple
-        (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                              (make-Const 1))
-                             (make-Const 0))
-        on-return))]))
+     (define linked (make-label 'linked))
+     (define-values (on-return-multiple on-return) (new-linked-labels 'onReturn))
+     (append-instruction-sequences
+      (make-TestAndJump (make-TestTrue (make-ModulePredicate a-module-name 'linked?))
+                        linked)
+      ;; TODO: raise an exception here that says that the module hasn't been
+      ;; linked yet.
+      (make-DebugPrint (make-Const 
+                        (format "DEBUG: the module ~a hasn't been linked in!!!"
+                                (ModuleLocator-name a-module-name))))
+      (make-Goto (make-Label (LinkedLabel-label on-return)))
+      linked
+      (make-TestAndJump (make-TestTrue 
+                         (make-ModulePredicate a-module-name 'invoked?))
+                        (LinkedLabel-label on-return))
+      (make-PushControlFrame/Call on-return)
+      (make-Goto (ModuleEntry a-module-name))
+      on-return-multiple
+      (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
+                                            (make-Const 1))
+                           (make-Const 0))
+      on-return)]))
 
 
 
@@ -752,35 +748,33 @@
   (cond [(empty? seq)
          (end-with-linkage linkage cenv empty-instruction-sequence)]
         [(empty? (rest seq))
-         (let* ([on-return/multiple (make-label 'beforePromptPopMultiple)]
-                [on-return (make-LinkedLabel (make-label 'beforePromptPop)
-                                             on-return/multiple)])
-           (end-with-linkage 
-            linkage
-            cenv
-            (append-instruction-sequences 
-             (make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                           on-return)
-             (compile (first seq) cenv 'val return-linkage/nontail)
-             (emit-values-context-check-on-procedure-return (linkage-context linkage)
-                                                            on-return/multiple
-                                                            on-return)
-             (make-AssignImmediate target (make-Reg 'val)))))]
+         (define-values (on-return/multiple on-return)
+           (new-linked-labels 'beforePromptPop))
+         (end-with-linkage 
+          linkage
+          cenv
+          (append-instruction-sequences 
+           (make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                         on-return)
+           (compile (first seq) cenv 'val return-linkage/nontail)
+           (emit-values-context-check-on-procedure-return (linkage-context linkage)
+                                                          on-return/multiple
+                                                          on-return)
+           (make-AssignImmediate target (make-Reg 'val))))]
         [else
-         (let* ([on-return/multiple (make-label 'beforePromptPopMultiple)]
-                [on-return (make-LinkedLabel (make-label 'beforePromptPop)
-                                             on-return/multiple)])
-           (append-instruction-sequences 
-            (make-PushControlFrame/Prompt (make-DefaultContinuationPromptTag)
-                                          on-return)
-            
-            (compile (first seq) cenv 'val return-linkage/nontail)
-            on-return/multiple
-            (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
-                                                  (make-Const 1))
-                                 (make-Const 0))
-            on-return
-            (compile-splice (rest seq) cenv target linkage)))]))
+         (define-values (on-return/multiple on-return)
+           (new-linked-labels 'beforePromptPop))
+         (append-instruction-sequences 
+          (make-PushControlFrame/Prompt (make-DefaultContinuationPromptTag)
+                                        on-return)
+          
+          (compile (first seq) cenv 'val return-linkage/nontail)
+          on-return/multiple
+          (make-PopEnvironment (new-SubtractArg (make-Reg 'argcount)
+                                                (make-Const 1))
+                               (make-Const 0))
+          on-return
+          (compile-splice (rest seq) cenv target linkage))]))
 
 
 (: compile-begin0 ((Listof Expression) CompileTimeEnvironment Target Linkage -> InstructionSequence))
@@ -1188,48 +1182,48 @@
                          (length (App-operands exp))))
   (define proc+operands-code
     (cond
-     ;; Optimization: if the operand and operands are all side-effect-free, we don't need to
-     ;; juggle.
-     [(andmap side-effect-free-expression? (cons (App-operator exp) (App-operands exp)))
-      (define proc-code (compile (App-operator exp) extended-cenv 'proc next-linkage/expects-single))
-      (define operand-codes (map (lambda: ([operand : Expression]
-                                           [target : Target])
-                                          (compile operand
-                                                   extended-cenv
-                                                   target
-                                                   next-linkage/expects-single))
-                                 (App-operands exp)
-                                 (build-list (length (App-operands exp))
-                                             (lambda: ([i : Natural])
-                                                      (make-EnvLexicalReference i #f)))))
-      (apply append-instruction-sequences proc-code operand-codes)]
-   [else
-    ;; Otherwise, we need to juggle a little.
-    (define proc-code
-      (compile (App-operator exp)
-               extended-cenv 
-               (if (empty? (App-operands exp))
-                   'proc
-                   (make-EnvLexicalReference 
-                    (ensure-natural (sub1 (length (App-operands exp))))
-                    #f))
-               next-linkage/expects-single))
-    (define operand-codes
-      (map (lambda: ([operand : Expression]
-                     [target : Target])
-                    (compile operand
-                             extended-cenv
-                             target
-                             next-linkage/expects-single))
-           (App-operands exp)
-           (build-list (length (App-operands exp))
-                       (lambda: ([i : Natural])
-                                (if (< i (sub1 (length (App-operands exp))))
-                                    (make-EnvLexicalReference i #f)
-                                    'val)))))
-    (append-instruction-sequences
-     proc-code
-     (juggle-operands operand-codes))]))
+      ;; Optimization: if the operand and operands are all side-effect-free, we don't need to
+      ;; juggle.
+      [(andmap side-effect-free-expression? (cons (App-operator exp) (App-operands exp)))
+       (define proc-code (compile (App-operator exp) extended-cenv 'proc next-linkage/expects-single))
+       (define operand-codes (map (lambda: ([operand : Expression]
+                                            [target : Target])
+                                    (compile operand
+                                             extended-cenv
+                                             target
+                                             next-linkage/expects-single))
+                                  (App-operands exp)
+                                  (build-list (length (App-operands exp))
+                                              (lambda: ([i : Natural])
+                                                (make-EnvLexicalReference i #f)))))
+       (apply append-instruction-sequences proc-code operand-codes)]
+      [else
+       ;; Otherwise, we need to juggle a little.
+       (define proc-code
+         (compile (App-operator exp)
+                  extended-cenv 
+                  (if (empty? (App-operands exp))
+                      'proc
+                      (make-EnvLexicalReference 
+                       (ensure-natural (sub1 (length (App-operands exp))))
+                       #f))
+                  next-linkage/expects-single))
+       (define operand-codes
+         (map (lambda: ([operand : Expression]
+                        [target : Target])
+                (compile operand
+                         extended-cenv
+                         target
+                         next-linkage/expects-single))
+              (App-operands exp)
+              (build-list (length (App-operands exp))
+                          (lambda: ([i : Natural])
+                            (if (< i (sub1 (length (App-operands exp))))
+                                (make-EnvLexicalReference i #f)
+                                'val)))))
+       (append-instruction-sequences
+        proc-code
+        (juggle-operands operand-codes))]))
   
   (append-instruction-sequences
    (make-PushEnvironment (length (App-operands exp)) #f)
@@ -1264,14 +1258,14 @@
     (append-instruction-sequences
      (make-PushEnvironment (length (App-operands exp)) #f)
      (apply append-instruction-sequences operand-codes)
-
+     
      ;; Optimization: if the expected arity is a known constant, we don't
      ;; need to touch argcount either.  If it's variable, we emit the argcount, since
      ;; it's something we need at runtime.
      (if (number? expected-arity)
          empty-instruction-sequence
          (make-AssignImmediate 'argcount (make-Const (length (App-operands exp)))))
-
+     
      (if (arity-matches? expected-arity (length (App-operands exp)))
          (compile-primitive-procedure-call primitive-name
                                            cenv 
@@ -1386,10 +1380,10 @@
                  
                  [operand-poss
                   (side-effect-free-operands->opargs (map (lambda: ([op : Expression])
-                                                  (ensure-side-effect-free-expression
-                                                   (adjust-expression-depth op n n)))
-                                                (App-operands exp))
-                                           operand-knowledge)])
+                                                            (ensure-side-effect-free-expression
+                                                             (adjust-expression-depth op n n)))
+                                                          (App-operands exp))
+                                                     operand-knowledge)])
             (end-with-linkage
              linkage cenv
              (append-instruction-sequences
@@ -1509,8 +1503,8 @@
 
 
 (: side-effect-free-operands->opargs ((Listof (U Constant LocalRef ToplevelRef PrimitiveKernelValue))
-                            (Listof CompileTimeEnvironmentEntry)
-                            -> (Listof OpArg)))
+                                      (Listof CompileTimeEnvironmentEntry)
+                                      -> (Listof OpArg)))
 ;; Produces a list of OpArgs if all the operands are particularly side-effect-free.
 (define (side-effect-free-operands->opargs rands knowledge)
   (map (lambda: ([e : (U Constant LocalRef ToplevelRef PrimitiveKernelValue)]
@@ -1767,76 +1761,73 @@
 ;;    2.  Non-tail calls (next/label linkage) that write to val
 ;;    3.  Calls in argument position (next/label linkage) that write to the stack.
 (define (compile-compiled-procedure-application cenv number-of-arguments entry-point target linkage)
-  (let* ([entry-point-target
-          ;; Optimization: if the entry-point is known to be a static label,
-          ;; use that.  Otherwise, grab the entry point from the proc register.
-          (cond [(Label? entry-point)
-                 entry-point]
-                [(eq? entry-point 'dynamic)
-                 (make-CompiledProcedureEntry (make-Reg 'proc))])]
-         
-         ;; If the target isn't val, migrate the value from val into it.
-         [maybe-migrate-val-to-target
-          (cond
-            [(eq? target 'val)
-             empty-instruction-sequence]
-            [else
-             (make-AssignImmediate target (make-Reg 'val))])]
-         
-         [on-return/multiple (make-label 'procReturnMultiple)]
-         
-         [on-return (make-LinkedLabel (make-label 'procReturn)
-                                      on-return/multiple)]
-         
-         ;; This code does the initial jump into the procedure.  Clients of this code
-         ;; are expected to generate the proc-return-multiple and proc-return code afterwards.
-         [nontail-jump-into-procedure
-          (append-instruction-sequences 
-           (make-PushControlFrame/Call on-return)
-           (make-Goto entry-point-target))])
-    
-    (cond [(ReturnLinkage? linkage)
-           (cond
-             [(eq? target 'val)
-              (cond
-                [(ReturnLinkage-tail? linkage)
-                 ;; This case happens when we're in tail position.
-                 ;; We clean up the stack right before the jump, and do not add
-                 ;; to the control stack.
-                 (let ([reuse-the-stack
-                        (make-PopEnvironment (make-Const (length cenv))
-                                             number-of-arguments)])
-                   (append-instruction-sequences
-                    reuse-the-stack
-                    ;; Assign the proc value of the existing call frame.
-                    (make-Perform (make-SetFrameCallee! (make-Reg 'proc)))
-                    (make-Goto entry-point-target)))]
+  (define entry-point-target
+    ;; Optimization: if the entry-point is known to be a static label,
+    ;; use that.  Otherwise, grab the entry point from the proc register.
+    (cond [(Label? entry-point)
+           entry-point]
+          [(eq? entry-point 'dynamic)
+           (make-CompiledProcedureEntry (make-Reg 'proc))]))
+  
+  ;; If the target isn't val, migrate the value from val into it.
+  (define maybe-migrate-val-to-target
+    (cond
+      [(eq? target 'val)
+       empty-instruction-sequence]
+      [else
+       (make-AssignImmediate target (make-Reg 'val))]))
+  
+  (define-values (on-return/multiple on-return) (new-linked-labels 'procReturn))
+  
+  ;; This code does the initial jump into the procedure.  Clients of this code
+  ;; are expected to generate the proc-return-multiple and proc-return code afterwards.
+  (define nontail-jump-into-procedure
+    (append-instruction-sequences 
+     (make-PushControlFrame/Call on-return)
+     (make-Goto entry-point-target)))
+  
+  (cond [(ReturnLinkage? linkage)
+         (cond
+           [(eq? target 'val)
+            (cond
+              [(ReturnLinkage-tail? linkage)
+               ;; This case happens when we're in tail position.
+               ;; We clean up the stack right before the jump, and do not add
+               ;; to the control stack.
+               (let ([reuse-the-stack
+                      (make-PopEnvironment (make-Const (length cenv))
+                                           number-of-arguments)])
+                 (append-instruction-sequences
+                  reuse-the-stack
+                  ;; Assign the proc value of the existing call frame.
+                  (make-Perform (make-SetFrameCallee! (make-Reg 'proc)))
+                  (make-Goto entry-point-target)))]
+              
+              [else	    
+               ;; This case happens when we should be returning to a caller, but where
+               ;; we are not in tail position.
+               (make-Goto entry-point-target)])]
+           
+           [else
+            (error 'compile "return linkage, target not val: ~s" target)])]
+        
+        
+        [(or (NextLinkage? linkage) (LabelLinkage? linkage))
+         (let* ([context (linkage-context linkage)]
                 
-                [else	    
-                 ;; This case happens when we should be returning to a caller, but where
-                 ;; we are not in tail position.
-                 (make-Goto entry-point-target)])]
-             
-             [else
-              (error 'compile "return linkage, target not val: ~s" target)])]
-          
-          
-          [(or (NextLinkage? linkage) (LabelLinkage? linkage))
-           (let* ([context (linkage-context linkage)]
-                  
-                  [check-values-context-on-procedure-return
-                   (emit-values-context-check-on-procedure-return context on-return/multiple on-return)]
-                  
-                  [maybe-jump-to-label
-                   (if (LabelLinkage? linkage)
-                       (make-Goto (make-Label (LabelLinkage-label linkage)))
-                       empty-instruction-sequence)])
-             
-             (append-instruction-sequences
-              nontail-jump-into-procedure
-              check-values-context-on-procedure-return
-              maybe-migrate-val-to-target
-              maybe-jump-to-label))])))
+                [check-values-context-on-procedure-return
+                 (emit-values-context-check-on-procedure-return context on-return/multiple on-return)]
+                
+                [maybe-jump-to-label
+                 (if (LabelLinkage? linkage)
+                     (make-Goto (make-Label (LabelLinkage-label linkage)))
+                     empty-instruction-sequence)])
+           
+           (append-instruction-sequences
+            nontail-jump-into-procedure
+            check-values-context-on-procedure-return
+            maybe-migrate-val-to-target
+            maybe-jump-to-label))]))
 
 
 
@@ -2228,28 +2219,28 @@
   
   (: in-other-context ((U NextLinkage LabelLinkage) -> InstructionSequence))
   (define (in-other-context linkage)
-    (let* ([on-return/multiple: (make-label 'procReturnMultiple)]          
-           [on-return: (make-LinkedLabel (make-label 'procReturn) on-return/multiple:)]
-           [context (linkage-context linkage)]
-           [check-values-context-on-procedure-return
-            (emit-values-context-check-on-procedure-return
-             context on-return/multiple: on-return:)]
-           [maybe-migrate-val-to-target
-            (cond
-              [(eq? target 'val)
-               empty-instruction-sequence]
-              [else
-               (make-AssignImmediate target (make-Reg 'val))])])
-      (append-instruction-sequences
-       (make-PushControlFrame/Call on-return:)
-       (compile (WithContMark-key exp) cenv 'val next-linkage/expects-single)
-       (make-AssignImmediate (make-ControlFrameTemporary 'pendingContinuationMarkKey)
-                             (make-Reg 'val))
-       (compile (WithContMark-value exp) cenv 'val next-linkage/expects-single)
-       (make-Perform (make-InstallContinuationMarkEntry!))
-       (compile (WithContMark-body exp) cenv 'val return-linkage/nontail)
-       check-values-context-on-procedure-return
-       maybe-migrate-val-to-target)))
+    (define-values (on-return/multiple: on-return:)
+      (new-linked-labels 'procReturn))
+    (define context (linkage-context linkage))
+    (define check-values-context-on-procedure-return
+      (emit-values-context-check-on-procedure-return
+       context on-return/multiple: on-return:))
+    (define maybe-migrate-val-to-target
+      (cond
+        [(eq? target 'val)
+         empty-instruction-sequence]
+        [else
+         (make-AssignImmediate target (make-Reg 'val))]))
+    (append-instruction-sequences
+     (make-PushControlFrame/Call on-return:)
+     (compile (WithContMark-key exp) cenv 'val next-linkage/expects-single)
+     (make-AssignImmediate (make-ControlFrameTemporary 'pendingContinuationMarkKey)
+                           (make-Reg 'val))
+     (compile (WithContMark-value exp) cenv 'val next-linkage/expects-single)
+     (make-Perform (make-InstallContinuationMarkEntry!))
+     (compile (WithContMark-body exp) cenv 'val return-linkage/nontail)
+     check-values-context-on-procedure-return
+     maybe-migrate-val-to-target))
   (cond
     [(ReturnLinkage? linkage)
      (in-return-context)]

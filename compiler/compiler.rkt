@@ -63,8 +63,6 @@
            (make-AssignImmediate target (make-Reg 'val))))))))
 
 
-(define-struct: lam+cenv ([lam : (U Lam CaseLam)]
-                          [cenv : CompileTimeEnvironment]))
 
 
 

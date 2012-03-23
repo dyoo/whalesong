@@ -1,4 +1,6 @@
 #lang typed/racket/base
+(require "expression-structs.rkt"
+         "analyzer-structs.rkt")
 
 
 (provide (all-defined-out))
@@ -38,3 +40,8 @@
 (define-type Linkage (U NextLinkage
                         LabelLinkage
                         ReturnLinkage))
+
+
+;; Lambda and compile-time environment
+(define-struct: lam+cenv ([lam : (U Lam CaseLam)]
+                          [cenv : CompileTimeEnvironment]))

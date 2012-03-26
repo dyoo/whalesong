@@ -95,7 +95,10 @@ framework to program the web in functional event-driven style.
 
 
 The GitHub source repository to Whalesong can be found at
-@url{https://github.com/dyoo/whalesong}.
+@url{https://github.com/dyoo/whalesong}.  If you have any questions or
+comments, please feel free to use the
+@link["http://lists.racket-lang.org/users/"]{Racket-users} mailing
+list.
 
 
 Prerequisites: at least @link["http://racket-lang.org/"]{Racket
@@ -115,6 +118,22 @@ Prerequisites: at least @link["http://racket-lang.org/"]{Racket
 Here are a collection of programs that use the @emph{web-world} library described
 later in this document:
 @itemize[
+
+@item{@link["http://hashcollision.org/whalesong/examples/raphael-demo/raphael-demo.html"]{raphael-demo.html}
+[@link["http://hashcollision.org/whalesong/examples/raphael-demo/raphael-demo.rkt"]{src}]
+Uses features of the JavaScript FFI to access the @link["http://raphaeljs.com/"]{RaphaelJS} vector graphics library.
+}
+
+@item{@link["http://hashcollision.org/whalesong/examples/google-maps/google-maps.html"]{google-maps.html}
+[@link["http://hashcollision.org/whalesong/examples/google-maps/google-maps.rkt"]{src}
+@link["http://hashcollision.org/whalesong/examples/google-maps/maps-lib.rkt"]{library src}]
+Uses features of the JavaScript FFI (@racket[js-function->procedure],
+@racket[js-async-function->procedure],
+@racket[make-world-event-handler]) to treat a Google Maps instance as a
+source of events for a World program.  Click on the map, and the coordinate stored in the world
+should synchronize with the clicked location.}
+
+
 @item{@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.html"]{attr-animation.html} 
 [@link["http://hashcollision.org/whalesong/examples/attr-animation/attr-animation.rkt"]{src} 
  @link["http://hashcollision.org/whalesong/examples/attr-animation/view.html"]{view.html}

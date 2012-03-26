@@ -771,7 +771,7 @@
 ;; Closures will target their value to the 'val register, and use return linkage.
 (define (compile-lambda-body exp cenv)
   (parameterize ([current-lambda-being-compiled exp])
-    (define all-applications (collect-lam-applications exp cenv))
+    ;; (define all-applications (collect-lam-applications exp cenv))
     
     (let: ([maybe-unsplice-rest-argument : InstructionSequence
                                          (if (Lam-rest? exp)

@@ -240,7 +240,7 @@ If you want to use Whalesong, run the following to create
 the @filepath{whalesong} launcher:
 @codeblock|{
 #lang racket/base
-(require (planet dyoo/whalesong:1:15/make-launcher))
+(require (planet dyoo/whalesong:1:16/make-launcher))
 }|
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,

@@ -371,32 +371,38 @@
      (match form
        [(struct mod (name srcname self-modidx prefix provides requires
                           body syntax-body unexported max-let-depth dummy lang-info
-                          internal-context))
-        (let ([self-path 
-               ((current-module-path-index-resolver)
-                self-modidx
-                (current-module-path))])
-          (cond
-           [(symbol? self-path)
-            (make-Module name
-                         (make-ModuleLocator self-path self-path)
-                         (parse-prefix prefix)
-                         (parse-mod-requires self-modidx requires)
-                         (parse-mod-provides self-modidx provides)
-                         (parse-mod-body body))]
-           [else
-            (let ([rewritten-path (rewrite-path self-path)])
-              (cond
-               [(symbol? rewritten-path)
-                (make-Module name
-                             (make-ModuleLocator rewritten-path 
-                                                 (normalize-path self-path))
-                             (parse-prefix prefix)
-                             (parse-mod-requires self-modidx requires)
-                             (parse-mod-provides self-modidx provides)
-                             (parse-mod-body body))]
-               [else
-                (error 'parse-mod "Internal error: unable to resolve module path ~s" self-path)]))]))]))
+                          internal-context pre-submodules post-submodules))
+        (cond
+         [(symbol? name)
+          ;; FIXME: no support for submodules yet.
+          (let ([self-path 
+                 ((current-module-path-index-resolver)
+                  self-modidx
+                  (current-module-path))])
+            (cond
+             [(symbol? self-path)
+              (make-Module name
+                           (make-ModuleLocator self-path self-path)
+                           (parse-prefix prefix)
+                           (parse-mod-requires self-modidx requires)
+                           (parse-mod-provides self-modidx provides)
+                           (parse-mod-body body))]
+             [else
+              (let ([rewritten-path (rewrite-path self-path)])
+                (cond
+                 [(symbol? rewritten-path)
+                  (make-Module name
+                               (make-ModuleLocator rewritten-path 
+                                                   (normalize-path self-path))
+                               (parse-prefix prefix)
+                               (parse-mod-requires self-modidx requires)
+                               (parse-mod-provides self-modidx provides)
+                               (parse-mod-body body))]
+                 [else
+                  (error 'parse-mod "Internal error: unable to resolve module path ~s" self-path)]))]))]
+         [else
+          (error 'parse-bytecode "Whalesong doesn't yet support submodules")])]))
+         
 
 
    ;; parse-mod-requires: module-path-index (listof (pair (U Integer #f) (listof module-path-index))) -> (listof ModuleLocator)

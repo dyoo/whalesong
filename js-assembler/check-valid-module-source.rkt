@@ -10,7 +10,7 @@
 
 
 (define (abort-abort)
-  (printf "Aborting compilation.\n")
+  (fprintf (current-report-port) "Aborting compilation.\n")
   (exit))
 
 
@@ -31,8 +31,8 @@
 (define (check-valid-module-source module-source-path)
   ;; Check that the file exists.
   (unless (file-exists? module-source-path)
-    (printf "ERROR: Can't read a Racket module from ~e.  The file does not appear to exist.\n"
-            module-source-path)
+    (fprintf (current-report-port) "ERROR: Can't read a Racket module from ~e.  The file does not appear to exist.\n"
+             module-source-path)
     (abort-abort))
 
 
@@ -40,7 +40,8 @@
   (cond [(rewrite-path module-source-path)
          (void)]
         [else
-         (printf "ERROR: The file ~e appears to be outside the root package directory ~e.  You may need to use --root-dir.\n"
+         (fprintf (current-report-port)
+                  "ERROR: The file ~e appears to be outside the root package directory ~e.  You may need to use --root-dir.\n"
                  module-source-path
                  (current-root-path))
          (abort-abort)])
@@ -49,7 +50,7 @@
   ;; Does it look like something out of moby or js-vm?  Abort early, because if we don't do
   ;; this up front, Racket will try to install the deprecated module, and that's bad.
   (when (looks-like-old-moby-or-js-vm? module-source-path)
-    (printf "ERROR: The program in ~e appears to be written using the deprecated project js-vm or Moby.\n\nPlease change the lang line to:\n\n    #lang planet dyoo/whalesong\n\ninstead.\n"
+    (fprintf (current-report-port) "ERROR: The program in ~e appears to be written using the deprecated project js-vm or Moby.\n\nPlease change the lang line to:\n\n    #lang planet dyoo/whalesong\n\ninstead.\n"
             module-source-path)
     (abort-abort))
     
@@ -60,10 +61,10 @@
                      (lambda (exn)
                        ;; We can't even get the bytecode for the file.
                        ;; Fail immediately.
-                       (printf "ERROR: Can't read a Racket module from ~e.  The file may be ill-formed or be written in a language that Whalesong doesn't recognize.\n"
+                       (fprintf (current-report-port) "ERROR: Can't read a Racket module from ~e.  The file may be ill-formed or be written in a language that Whalesong doesn't recognize.\n"
                                module-source-path)
-                       (printf "\nFor reference, the error message produced when trying to read ~e is:\n\n" module-source-path)
-                       (printf "~a\n" (exn-message exn))
+                       (fprintf (current-report-port) "\nFor reference, the error message produced when trying to read ~e is:\n\n" module-source-path)
+                       (fprintf (current-report-port) "~a\n" (exn-message exn))
                        (abort-abort))])
       (parameterize ([read-accept-reader #t])
         (call-with-input-file* module-source-path
@@ -76,7 +77,7 @@
       [(module name language body ...)
        #'language]
       [else
-       (printf "ERROR: Can't read a Racket module from ~e.  The file exists, but does not appear to be a Racket module.\n"
+       (fprintf (current-report-port) "ERROR: Can't read a Racket module from ~e.  The file exists, but does not appear to be a Racket module.\n"
                module-source-path)
        (abort-abort)]))
 
@@ -104,7 +105,7 @@
       ;; in a language that we, most likely, can't compile.
       ;;
       ;; Let's see if we can provide a good error message here
-      (printf "ERROR: The file ~e is a Racket module, but is written in the language ~a [~e], which Whalesong does not know how to compile.\n"
+      (fprintf (current-report-port) "ERROR: The file ~e is a Racket module, but is written in the language ~a [~e], which Whalesong does not know how to compile.\n"
               module-source-path
               (syntax->datum relative-language-stx)
               normalized-resolved-language-path)
@@ -115,10 +116,10 @@
   ;; check that the file compiles.
   (with-handlers ([exn:fail?
                    (lambda (exn)
-                     (printf "ERROR: the racket module ~e raises a compile-time error during compilation." module-source-path)
-                     (printf "\n\nFor reference, the error message produced during compilation is the following:\n\n")
-                     (printf "~a\n" (exn-message exn))
-                     (newline)
+                     (fprintf (current-report-port) "ERROR: the racket module ~e raises a compile-time error during compilation." module-source-path)
+                     (fprintf (current-report-port) "\n\nFor reference, the error message produced during compilation is the following:\n\n")
+                     (fprintf (current-report-port) "~a\n" (exn-message exn))
+                     (newline (current-report-port))
                      (abort-abort))])
     (parameterize ([current-namespace ns]
                    [current-load-relative-directory

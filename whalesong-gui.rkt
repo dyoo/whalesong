@@ -22,19 +22,19 @@
        [parent command-panel]
        [label "Build a package"]
        [callback (lambda (button event)
-                   (build-dialog))])
+                   (build-frame))])
   (void))
 
 
 (define NO-FILE-SELECTED "No file selected")
 
 
-(define (build-dialog)
+(define (build-frame)
   (define source-path #f)
   
-  (define dialog (new dialog% [label "Build a Whalesong package"]))
+  (define frame (new frame% [label "Build a Whalesong package"]))
   (define file-button (new button%
-                           [parent dialog]
+                           [parent frame]
                            [label "Choose file to build"]
                            [callback (lambda (button event)
                                        (set! source-path (get-file))
@@ -59,23 +59,23 @@
                                           (send source-path-message set-label
                                                 NO-FILE-SELECTED)
                                           (send build-button enabled #f)]))]))
-  (define source-path-message (new message% [parent dialog]
+  (define source-path-message (new message% [parent frame]
                                    [label NO-FILE-SELECTED]
                                    [auto-resize #t]))
-  (define dest-dir-message (new message% [parent dialog]
+  (define dest-dir-message (new message% [parent frame]
                                    [label ""]
                                    [auto-resize #t]))
   
   
   
   (define build-button (new button%
-                            [parent dialog]
+                            [parent frame]
                             [label "Build!"]
                             [enabled #f]
                             [callback (lambda (button event)
                                         (do-the-build source-path))]))
   (define options-panel (new group-box-panel%
-                             [parent dialog]
+                             [parent frame]
                              [label "Options"]))
   (new check-box% 
        [parent options-panel]
@@ -83,18 +83,22 @@
        [value (current-compress-javascript?)]
        [callback (lambda (c e) (current-compress-javascript? (send c get-value)))])
        
-  (send dialog show #t)
+  (send frame show #t)
   (void))
 
 
 (define (do-the-build source-path)
-  (build-html-and-javascript source-path)
-  (message-box "Whalesong" "Build complete."))
-
-
+  (define f (new frame% [label "Building..."]))
+  (define t (new text% [auto-wrap #t]))
+  (define c (new editor-canvas% [parent f] [editor t]))
+  (send f show #t)
+  (thread (lambda ()
+            (parameterize ([current-report-port (open-output-text-editor t)])
+              (build-html-and-javascript source-path)
+              (fprintf (current-report-port) "Build complete.")))))
 
 
 
 
 #;(main)
-(build-dialog)
+(build-frame)

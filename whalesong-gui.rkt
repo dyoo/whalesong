@@ -41,11 +41,18 @@
                                       
                                        (cond
                                          [source-path
-                                          (current-output-dir (path-only source-path))
+                                          (current-output-dir
+                                           (build-path (path-only source-path)
+                                                       (let-values ([(_1 name _2)
+                                                                     (split-path source-path)])
+                                                         (regexp-replace #px"\\.\\w+$" (path->string name) ""))))
                                           (send source-path-message set-label
                                                 (gui-utils:quote-literal-label
-                                                 (format "~s selected.  Output will be written to ~s."
-                                                         (path->string source-path)
+                                                 (format "~s selected."
+                                                         (path->string source-path))))
+                                          (send dest-dir-message set-label
+                                                (gui-utils:quote-literal-label
+                                                 (format "Output will be written to ~s."
                                                          (path->string (current-output-dir)))))
                                           (send build-button enable #t)]
                                          [else
@@ -54,6 +61,9 @@
                                           (send build-button enabled #f)]))]))
   (define source-path-message (new message% [parent dialog]
                                    [label NO-FILE-SELECTED]
+                                   [auto-resize #t]))
+  (define dest-dir-message (new message% [parent dialog]
+                                   [label ""]
                                    [auto-resize #t]))
   
   

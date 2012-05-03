@@ -56,8 +56,7 @@
                (fprintf (current-report-port) "------------------\n")
                (displayln (get-output-string op) (current-report-port))
                (fprintf (current-report-port) "------------------\n")
-               (fprintf (current-report-port) "\nAborting compilation.\n")
-               (exit)))]
+               (fprintf (current-report-port) "\nAborting compilation.\n")))]
     (thunk)))
 
 

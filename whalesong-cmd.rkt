@@ -51,8 +51,8 @@
 
 (define (set-root-path! root-path)
   (unless (directory-exists? root-path)
-    (printf "ERROR: root path ~a does not appear to exist.\n" root-path)
-    (printf "Aborting compilation.\n")
+    (fprintf (current-report-port) "ERROR: root path ~a does not appear to exist.\n" root-path)
+    (fprintf (current-report-port) "Aborting compilation.\n")
     (exit))
   (current-root-path (normalize-path root-path)))
 

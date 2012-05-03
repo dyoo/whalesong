@@ -48,15 +48,15 @@
 (define (with-catchall-exception-handler thunk)
   (with-handlers
       [(void (lambda (exn)
-               (printf "ERROR: Whalesong has encountered an internal error.\n\n")
-               (printf "Please send the following error report log to dyoo@hashcollision.org.\n\n")
+               (fprintf (current-report-port) "ERROR: Whalesong has encountered an internal error.\n\n")
+               (fprintf (current-report-port) "Please send the following error report log to dyoo@hashcollision.org.\n\n")
                (define op (open-output-string))
                (parameterize ([current-error-port op])
                  ((error-display-handler) (exn-message exn) exn))
-               (printf "------------------\n")
-               (displayln (get-output-string op))
-               (printf "------------------\n")
-               (printf "\nAborting compilation.\n")
+               (fprintf (current-report-port) "------------------\n")
+               (displayln (get-output-string op) (current-report-port))
+               (fprintf (current-report-port) "------------------\n")
+               (fprintf (current-report-port) "\nAborting compilation.\n")
                (exit)))]
     (thunk)))
 
@@ -80,8 +80,8 @@
                       (let ([msg (sync receiver)])
                         (match msg
                           [(vector level msg data)
-                           (fprintf (current-error-port)"~a: ~a\n" level msg)
-                           (flush-output (current-error-port))]))
+                           (fprintf (current-report-port)"~a: ~a\n" level msg)
+                           (flush-output (current-report-port))]))
                       (loop)))))))
 
 (define (build-standalone-xhtml f)
@@ -278,4 +278,4 @@
 
 
 (define (print-version)
-  (printf "~a\n" (this-package-version)))
+  (fprintf (current-report-port) "~a\n" (this-package-version)))

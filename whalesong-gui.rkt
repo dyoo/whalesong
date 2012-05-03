@@ -52,12 +52,12 @@
                                                          (path->string source-path))))
                                           (send dest-dir-message set-label
                                                 (gui-utils:quote-literal-label
-                                                 (format "Output will be written to ~s."
+                                                 (format "Output will be written to directory ~s."
                                                          (path->string (current-output-dir)))))
                                           (send build-button enable #t)]
                                          [else
                                           (send source-path-message set-label
-                                                (format NO-FILE-SELECTED source-path))
+                                                NO-FILE-SELECTED)
                                           (send build-button enabled #f)]))]))
   (define source-path-message (new message% [parent dialog]
                                    [label NO-FILE-SELECTED]

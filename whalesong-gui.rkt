@@ -2,6 +2,9 @@
 
 (require racket/gui/base
          racket/class
+         racket/path
+         "parameters.rkt"
+         "whalesong-helpers.rkt"
          framework/gui-utils)
 
 ;; A minimal GUI just so that people aren't forced to deal with the command line.
@@ -19,26 +22,32 @@
        [parent command-panel]
        [label "Build a package"]
        [callback (lambda (button event)
-                   (build-dialog))]))
+                   (build-dialog))])
+  (void))
 
 
 (define NO-FILE-SELECTED "No file selected")
 
 
 (define (build-dialog)
-  (define dialog (new dialog% [label "Build a package"]))
   (define source-path #f)
+  
+  (define dialog (new dialog% [label "Build a Whalesong package"]))
   (define file-button (new button%
                            [parent dialog]
                            [label "Choose file to build"]
                            [callback (lambda (button event)
                                        (set! source-path (get-file))
+                                      
                                        (cond
                                          [source-path
+                                          (current-output-dir (path-only source-path))
                                           (send source-path-message set-label
                                                 (gui-utils:quote-literal-label
-                                                 (format "~s selected" (path->string source-path))))
-                                          (send build-button enabled #t)]
+                                                 (format "~s selected.  Output will be written to ~s."
+                                                         (path->string source-path)
+                                                         (path->string (current-output-dir)))))
+                                          (send build-button enable #t)]
                                          [else
                                           (send source-path-message set-label
                                                 (format NO-FILE-SELECTED source-path))
@@ -47,26 +56,35 @@
                                    [label NO-FILE-SELECTED]
                                    [auto-resize #t]))
   
+  
+  
   (define build-button (new button%
                             [parent dialog]
                             [label "Build!"]
                             [enabled #f]
                             [callback (lambda (button event)
-                                        (do-the-build! #:source-file source-path))]))
-  (send dialog show #t))
-
-
-(define (do-the-build! #:source-file source-file)
+                                        (do-the-build source-path))]))
+  (define options-panel (new group-box-panel%
+                             [parent dialog]
+                             [label "Options"]))
+  (new check-box% 
+       [parent options-panel]
+       [label "Compress JavaScript?"]
+       [value (current-compress-javascript?)]
+       [callback (lambda (c e) (current-compress-javascript? (send c get-value)))])
+       
+  (send dialog show #t)
   (void))
 
 
+(define (do-the-build source-path)
+  (build-html-and-javascript source-path)
+  (message-box "Whalesong" "Build complete."))
 
 
 
 
 
 
-
-
-
-(main)
+#;(main)
+(build-dialog)

@@ -719,7 +719,11 @@
 (require racket/runtime-path)
 
 (define-runtime-path whalesong-path "whalesong.rkt")
+(define-runtime-path whalesong-gui-path "whalesong-gui.rkt")
 
 (make-racket-launcher (list (path->string whalesong-path))
                       "whalesong"
+                      '())
+(make-racket-launcher (list (path->string whalesong-path))
+                      "whalesong-gui"
                       '())

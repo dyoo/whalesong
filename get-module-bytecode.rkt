@@ -77,6 +77,7 @@
 (define (get-compiled-code-from-port ip)
   ;(printf "get-compiled-code-from-port\n")
   (parameterize ([read-accept-reader #t]
+                 [read-accept-lang #t]
                  ;; Note: we're trying to preserve the context, to avoid code expansion.
                  [compile-context-preservation-enabled #t]
                  [current-namespace base-namespace])

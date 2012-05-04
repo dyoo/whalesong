@@ -71,7 +71,8 @@
                        (fprintf (current-report-port) "\nFor reference, the error message produced when trying to read ~e is:\n\n" module-source-path)
                        (fprintf (current-report-port) "~a\n" (exn-message exn))
                        (abort-abort))])
-      (parameterize ([read-accept-reader #t])
+      (parameterize ([read-accept-reader #t]
+                     [read-accept-lang #t])
         (call-with-input-file* module-source-path
                                (lambda (ip)
                                  (port-count-lines! ip)

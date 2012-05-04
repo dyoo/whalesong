@@ -2,7 +2,7 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "The JavaScript FFI includes js-function->procedure and js-async-function->procedure to lift JavaScript functions to Racket.  New world event types can be introduced with make-world-event-handler.")))
+(define release-notes '((p "Added a preliminary gui for building Whalesong packages.")))
 (define version "1.17")
 (define primary-file "make-launcher.rkt")
 (define categories '(devtools))

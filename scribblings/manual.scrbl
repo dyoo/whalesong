@@ -261,10 +261,16 @@ the @filepath{whalesong} launcher:
 #lang racket/base
 (require (planet dyoo/whalesong:1:18/make-launcher))
 }|
+
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,
 you should see a @filepath{whalesong} launcher in the current
 directory.
+
+You should also see a @filepath{whalesong-gui} launcher that includes
+a minimal graphical user interface.
+
+
 
 
 

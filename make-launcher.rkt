@@ -724,6 +724,6 @@
 (make-racket-launcher (list (path->string whalesong-path))
                       "whalesong"
                       '())
-(make-racket-launcher (list (path->string whalesong-path))
+(make-racket-launcher (list (path->string whalesong-gui-path))
                       "whalesong-gui"
                       '())

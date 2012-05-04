@@ -35,7 +35,7 @@
   (define frame (new frame% [label "Build a Whalesong package"]))
   (define file-button (new button%
                            [parent frame]
-                           [label "Choose file to build"]
+                           [label "Choose .rkt file to build"]
                            [callback (lambda (button event)
                                        (set! source-path (get-file))
                                       
@@ -89,7 +89,7 @@
 
 (define (do-the-build source-path)
   (define f (new frame% [label "Building..."]))
-  (define t (new text% [auto-wrap #t]))
+  (define t (new text% [auto-wrap #f]))
   (define c (new editor-canvas% [parent f] [editor t]))
   (send f show #t)
   (thread (lambda ()

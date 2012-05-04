@@ -1,6 +1,7 @@
 #lang racket/base
 
-(provide check-valid-module-source)
+(provide check-valid-module-source
+         [struct-out exn:invalid-module-source])
 
 (require syntax/kerncase
          syntax/modresolve
@@ -9,9 +10,13 @@
          "../parser/path-rewriter.rkt")
 
 
-(define (abort-abort)
+(struct exn:invalid-module-source exn:fail ())
+
+
+(define (abort-abort #:reason (reason "Invalid module source"))
   (fprintf (current-report-port) "Aborting compilation.\n")
-  (exit))
+  (raise (exn:invalid-module-source reason
+                                    (current-continuation-marks))))
 
 
 (define ns (make-base-namespace))

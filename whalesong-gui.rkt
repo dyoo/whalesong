@@ -95,7 +95,7 @@
   (thread (lambda ()
             (parameterize ([current-report-port (open-output-text-editor t)])
               (build-html-and-javascript source-path)
-              (fprintf (current-report-port) "Build complete.")))))
+              (fprintf (current-report-port) "Done.\n")))))
 
 
 

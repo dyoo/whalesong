@@ -15,6 +15,7 @@
          "resource/structs.rkt"
          "logger.rkt"
          "parameters.rkt"
+         "js-assembler/check-valid-module-source.rkt"
          planet/version
          (for-syntax racket/base))
 
@@ -47,7 +48,13 @@
 
 (define (with-catchall-exception-handler thunk)
   (with-handlers
-      [(void (lambda (exn)
+      ([exn:invalid-module-source?
+        (lambda (exn)
+          (fprintf (current-report-port) "~a\n"
+                   (exn-message exn))
+          (fprintf (current-report-port) "------------------\n")
+          (fprintf (current-report-port) "\nAborting compilation.\n"))]
+       [void (lambda (exn)
                (fprintf (current-report-port) "ERROR: Whalesong has encountered an internal error.\n\n")
                (fprintf (current-report-port) "Please send the following error report log to dyoo@hashcollision.org.\n\n")
                (define op (open-output-string))
@@ -56,7 +63,7 @@
                (fprintf (current-report-port) "------------------\n")
                (displayln (get-output-string op) (current-report-port))
                (fprintf (current-report-port) "------------------\n")
-               (fprintf (current-report-port) "\nAborting compilation.\n")))]
+               (fprintf (current-report-port) "\nAborting compilation.\n"))])
     (thunk)))
 
 

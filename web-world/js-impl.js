@@ -66,6 +66,23 @@
         return result;
     };
 
+
+    // Deeply clones a dom node.  
+    //
+    // Note: we have to do a small hack to propagate the values of
+    // select forms.  See: https://github.com/dyoo/whalesong/issues/91
+    var deepClone = function(dom) {
+        var theClone = $(dom).clone(true).get(0);
+        var sourceSelects = $(dom).find("select");
+        var destSelects = $(theClone).find("select");
+        var i;
+        for (i = 0; i < sourceSelects.length; ++i) {
+            $(destSelects[i]).val($(sourceSelects[i]).val());
+        }
+        return theClone;
+    };
+
+
     
     // CPS'd version of for-each, used on JavaScript arrays.
     //
@@ -124,7 +141,7 @@
             function(tree) {
                 return tree[0].nodeType !== 1;
             };
-        return TreeCursor.adaptTreeCursor(domNodeToArrayTree($(dom).clone(true).get(0)),
+        return TreeCursor.adaptTreeCursor(domNodeToArrayTree(deepClone(dom)),
                                           domOpenF,
                                           domCloseF,
                                           domAtomicF);
@@ -526,7 +543,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                var clone = $(domNode).clone(true);
+                var clone = deepClone(domNode);
                 clone.appendTo($(view.focus));
                 view.focus = clone.get(0);
             }
@@ -540,7 +557,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                var clone = $(domNode).clone(true);
+                var clone = deepClone(domNode);
                 clone.insertAfter($(view.focus));
                 view.focus = clone.get(0);
             }
@@ -554,7 +571,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                var clone = $(domNode).clone(true);
+                var clone = deepClone(domNode);
                 clone.insertBefore($(view.focus));
                 view.focus = clone.get(0);
             }

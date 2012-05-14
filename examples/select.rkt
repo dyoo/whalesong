@@ -17,7 +17,6 @@
                             (span (@ (id "fill-me-in")))))))
 
 (define (when-select-changed w v)
-  (printf "I see: ~s\n" (view-form-value (view-focus v "my-select")))
   (view-form-value (view-focus v "my-select")))
    
 (define bound-view (view-bind-many view ["my-select" "change" when-select-changed]))

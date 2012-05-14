@@ -19,7 +19,8 @@
 (define (when-select-changed w v)
   (view-form-value (view-focus v "my-select")))
    
-(define bound-view (view-bind-many view ["my-select" "change" when-select-changed]))
+(define bound-view
+  (view-bind-many view ["my-select" "change" when-select-changed]))
 
 (big-bang "nothing yet"
           (initial-view bound-view)

@@ -307,6 +307,14 @@
         return $(this.getCursor().node[0]).css(name);
     };
 
+    MockView.prototype.getWidth = function(name) {        
+        return $(this.getCursor().node[0]).width();
+    };
+
+    MockView.prototype.getHeight = function(name) {        
+        return $(this.getCursor().node[0]).height();
+    };
+
 
     MockView.prototype.updateCss = function(name, value) {
         return this.act(
@@ -2018,6 +2026,20 @@
             return view.getCss(name);
         });
 
+    EXPORTS['view-width'] = makePrimitiveProcedure(
+        'view-width',
+        1,
+        function(MACHINE) {
+            var view = checkMockViewOnElement(MACHINE, 'view-width', 0);
+            return view.getWidth();
+        });
+    EXPORTS['view-height'] = makePrimitiveProcedure(
+        'view-height',
+        1,
+        function(MACHINE) {
+            var view = checkMockViewOnElement(MACHINE, 'view-height', 0);
+            return view.getHeight();
+        });
 
     EXPORTS['update-view-css'] = makePrimitiveProcedure(
         'update-view-css',

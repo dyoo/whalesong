@@ -8,11 +8,13 @@
 
 ;; A small drag-and-drop example using the web-world library.
 ;;
-;; The world consists of a set of boxes.
-;;
-;; A box has an id and a position.
+;; The world consists of a set of boxes.  It also has a reference
+;; to the currently dragged box, if one is being dragged.
+(define-struct world (boxes  ;; (listof box)
+                      dragged ;; (U box #f)
+                      ))
 
-(define-struct world (boxes))
+;; A box has an id and a position.
 (define-struct box (id x y))
 
 
@@ -21,10 +23,11 @@
 ;; Given a world, creates a new world within the boundaries of the playground.
 (define (add-fresh-box w v)
   (define-values (max-width max-height) (width-and-height "playground"))
-  (define new-world (cons (make-box (fresh-id)
-                                    (random max-width)
-                                    (random max-height))
-                          w))
+  (define new-world (make-world (cons (make-box (fresh-id)
+                                                (random max-width)
+                                                (random max-height))
+                                      (world-boxes w))
+                                (world-dragged w)))
   new-world)
 
 
@@ -49,14 +52,24 @@
                                                                    (box-y a-box))))
                                                  "box")))]))
          (view-focus v "playground")
-         w))
+         (world-boxes w)))
+
+
+;; When the mouse is down, we see if the event intersects any of our boxes.
+(define (mousedown w v evt)
+  ...)
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define the-view (view-bind-many view.html
-                                 ["add" "click" add-fresh-box]))
+                                 ["add" "click" add-fresh-box]
+                                 ["playground" "mousedown" mousedown]
+                                 ["playground" "mousemove" mousemove]
+                                 ["playground" "mouseup" mouseup]))
   
-(big-bang (list)
+(big-bang (make-world (list) #f)
           (initial-view the-view)
           (to-draw draw))
           

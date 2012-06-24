@@ -20,6 +20,7 @@
          view-text update-view-text
          view-attr view-has-attr? update-view-attr remove-view-attr
          view-css update-view-css
+         view-width view-height
          view-id
 
          view-bind
@@ -162,6 +163,12 @@
 
 (define (view-css v attr-name)
   (error 'view-css "Please run in JavaScript context."))
+
+(define (view-width v)
+  (error 'view-width "Please run in JavaScript context."))
+
+(define (view-height v)
+  (error 'view-height "Please run in JavaScript context."))
 
 (define (update-view-css v attr-name value)
   (error 'update-view-css "Please run in JavaScript context."))

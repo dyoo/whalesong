@@ -1043,6 +1043,14 @@ Update the attribute @racket[name] with the value @racket[value] at the focus.
 Remove the attribute @racket[name] at the focus.
 }
 
+@defproc[(view-width [v view]) number]{
+Get the width at the focus.
+}
+
+@defproc[(view-height [v view]) number]{
+Get the height at the focus.
+}
+
 @defproc[(view-css [v view] [name String]) view]{
 Get the css value @racket[name] at the focus.
 }

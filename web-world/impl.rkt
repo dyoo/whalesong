@@ -71,6 +71,9 @@
 
                     view-css
                     update-view-css
+
+                    view-width
+                    view-height
                     
                     view-id
                     

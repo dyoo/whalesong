@@ -1,6 +1,6 @@
 #!/bin/bash
 MAJOR=1
-MINOR=18
+MINOR=19
 PROJNAME=whalesong
 
 

@@ -543,7 +543,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                var clone = deepClone(domNode);
+                var clone = $(deepClone(domNode));
                 clone.appendTo($(view.focus));
                 view.focus = clone.get(0);
             }
@@ -557,7 +557,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                var clone = deepClone(domNode);
+                var clone = $(deepClone(domNode));
                 clone.insertAfter($(view.focus));
                 view.focus = clone.get(0);
             }
@@ -571,7 +571,7 @@
             },
             function(eventHandlers) { return eventHandlers; },
             function(view) {
-                var clone = deepClone(domNode);
+                var clone = $(deepClone(domNode));
                 clone.insertBefore($(view.focus));
                 view.focus = clone.get(0);
             }

@@ -1,17 +1,15 @@
-html {
-    width: 100%;
-    height: 100%;
-}
-
-body {
-    width: 100%;
-    height: 100%;
-}
 
 #playground {
     background-color: lightgray;
     border: 1px solid black;
-    width: 70%;
-    height: 70%;
+    width: 500px;
+    height: 500px;
     display: block;
+}
+
+
+.box {
+    position: relative;
+    background-color: orange;
+    border: 1px solid black;
 }

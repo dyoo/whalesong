@@ -1887,7 +1887,7 @@
                           (build-list count (lambda: ([i : Natural])
                                               (make-EnvLexicalReference (+ i 
                                                                            (InstallValue-depth exp)
-                                                                           (sub1 count))
+                                                                           (ensure-natural (sub1 count)))
                                                                         (InstallValue-box? exp))))
                           (cons (make-Reg 'val) 
                                 (build-list (sub1 count) (lambda: ([i : Natural])

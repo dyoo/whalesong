@@ -185,8 +185,7 @@
                        (path->string val))]
               [(vector? val)
                (format "RT.makeVector([~a])"
-                       (string-join (for/list ([elt (vector->list val)])
-                                       (loop elt))
+                       (string-join (map loop (vector->list val)) 
                                     ","))]
               [(box? val)
                (format "RT.makeBox(~s)"

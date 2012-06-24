@@ -44,10 +44,10 @@
              (view-append-child v
                                 (xexp->dom `(span (@ (class "box")
                                                     (id ,(box-id a-box))
-                                                    (style ,(format "position: relative; left: ~apx; top: ~apx"
+                                                    (style ,(format "position: absolute; left: ~apx; top: ~apx"
                                                                    (box-x a-box)
                                                                    (box-y a-box))))
-                                                 "I am a box")))]))
+                                                 "box")))]))
          (view-focus v "playground")
          w))
 

@@ -75,10 +75,21 @@
         var theClone = $(dom).clone(true).get(0);
         var sourceSelects = $(dom).find("select");
         var destSelects = $(theClone).find("select");
-        var i;
+        var i, w;
         for (i = 0; i < sourceSelects.length; ++i) {
             $(destSelects[i]).val($(sourceSelects[i]).val());
         }
+        var allSrcElts = $(dom).find("*");
+        var allDestElts = $(theClone).find("*");
+        for (i = 0; i < allSrcElts.length; i++) {
+            w = $(allSrcElts[i]).width();
+            if (w) {
+                $(allDestElts[i]).width(w);
+                $(allDestElts[i]).height($(allSrcElts[i]).height());
+            }
+        }
+
+
         return theClone;
     };
 

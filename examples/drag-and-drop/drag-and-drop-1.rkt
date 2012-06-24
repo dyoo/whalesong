@@ -18,7 +18,7 @@
 ;; add-fresh-box: world view -> world
 ;; Given a world, creates a new world within the boundaries of the playground.
 (define (add-fresh-box w v)
-  (define-values (max-width max-height) (width-and-height "playground"))
+  (define-values (max-width max-height) (width-and-height v "playground"))
   (define new-world (cons (make-box (fresh-id)
                                     (random max-width)
                                     (random max-height))
@@ -29,8 +29,11 @@
 
 ;; FIXME: do some javascript stuff here to get at this.
 ;;
-(define (width-and-height element-id)
-  (values 500 500))
+(define (width-and-height v element-id)
+  (define focused (view-focus v element-id))
+  (printf "width is: ~s\n" (view-width focused))
+  (values (view-width focused)
+          (view-height focused)))
 
 
 (define (draw w v)

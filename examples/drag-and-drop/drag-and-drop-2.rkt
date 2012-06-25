@@ -8,63 +8,93 @@
 
 ;; A small drag-and-drop example using the web-world library.
 ;;
-;; The world consists of a set of boxes.  It also has a reference
-;; to the currently dragged box, if one is being dragged.
-(define-struct world (boxes  ;; (listof box)
-                      dragged ;; (U box #f)
+;; The world consists of a set of shapes.  It also has a reference
+;; to the currently dragged shape, if one is being dragged.
+(define-struct world (shapes  ;; (listof shape)
+                      dragged ;; (U shape #f)
                       ))
 
-;; A box has an id and a position.
-(define-struct box (id x y))
+;; A shape has an id and a position.
+(define-struct shape (id x y))
 
 
 
-;; add-fresh-box: world view -> world
+;; add-fresh-shape: world view -> world
 ;; Given a world, creates a new world within the boundaries of the playground.
-(define (add-fresh-box w v)
-  (define-values (max-width max-height) (width-and-height "playground"))
-  (define new-world (make-world (cons (make-box (fresh-id)
+(define (add-fresh-shape w v)
+  (define-values (max-width max-height) (width-and-height v "playground"))
+  (define new-world (make-world (cons (make-shape (fresh-id)
                                                 (random max-width)
                                                 (random max-height))
-                                      (world-boxes w))
+                                      (world-shapes w))
                                 (world-dragged w)))
   new-world)
 
 
 
-;; FIXME: do some javascript stuff here to get at this.
-;;
-(define (width-and-height element-id)
-  (values 500 500))
+(define (width-and-height v element-id)
+  (define focused (view-focus v element-id))
+  (values (view-width focused)
+          (view-height focused)))
 
 
 (define (draw w v)
-  (foldl (lambda (a-box v)
+  (foldl (lambda (a-shape v)
            (cond
-            [(view-focus? v (box-id a-box))
-             v]
+            [(view-focus? v (shape-id a-shape))
+             (define focused (view-focus v (shape-id a-shape)))
+             (update-view-css (update-view-css focused "left" (format "~apx" (shape-x a-shape)))
+                              "top"
+                              (format "~apx" (shape-y a-shape)))]
             [else
              (view-append-child v
-                                (xexp->dom `(span (@ (class "box")
-                                                    (id ,(box-id a-box))
+                                (xexp->dom `(span (@ (class "shape")
+                                                    (id ,(shape-id a-shape))
                                                     (style ,(format "position: absolute; left: ~apx; top: ~apx"
-                                                                   (box-x a-box)
-                                                                   (box-y a-box))))
-                                                 "box")))]))
+                                                                   (shape-x a-shape)
+                                                                   (shape-y a-shape))))
+                                                 "shape")))]))
          (view-focus v "playground")
-         (world-boxes w)))
+         (if (shape? (world-dragged w))
+             (cons (world-dragged w) (world-shapes w))
+             (world-shapes w))))
 
 
-;; When the mouse is down, we see if the event intersects any of our boxes.
+;; When the mouse is down, should see if the event intersects any of our shapes.
 (define (mousedown w v evt)
-  ...)
+  (cond
+   [(empty? (world-shapes w))
+    w]
+   [else
+    (make-world (rest (world-shapes w))
+                (first (world-shapes w)))]))
+
+
+(define (mouseup w v evt)
+  (cond [(shape? (world-dragged w))
+         (make-world (cons (world-dragged w)
+                           (world-shapes w))
+                     #f)]
+        [else
+         w]))
+
+
+(define (mousemove w v evt)
+  (cond
+   [(shape? (world-dragged w))
+    (make-world (world-shapes w)
+                (make-shape (shape-id (world-dragged w))
+                            (event-ref evt "pageX")
+                            (event-ref evt "pageY")))]
+  [else
+   w]))
 
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define the-view (view-bind-many view.html
-                                 ["add" "click" add-fresh-box]
+                                 ["add" "click" add-fresh-shape]
                                  ["playground" "mousedown" mousedown]
                                  ["playground" "mousemove" mousemove]
                                  ["playground" "mouseup" mouseup]))

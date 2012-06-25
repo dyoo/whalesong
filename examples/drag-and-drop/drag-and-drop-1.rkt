@@ -8,56 +8,52 @@
 
 ;; A small drag-and-drop example using the web-world library.
 ;;
-;; The world consists of a set of boxes.
+;; The world consists of a set of shapes.
 ;;
-;; A box has an id and a position.
-(define-struct box (id x y))
+;; A shape has an id and a position.
+(define-struct shape (id x y))
 
 
 
-;; add-fresh-box: world view -> world
+;; add-fresh-shape: world view -> world
 ;; Given a world, creates a new world within the boundaries of the playground.
-(define (add-fresh-box w v)
+(define (add-fresh-shape w v)
   (define-values (max-width max-height) (width-and-height v "playground"))
-  (define new-world (cons (make-box (fresh-id)
-                                    (random max-width)
-                                    (random max-height))
+  (define new-world (cons (make-shape (fresh-id)
+                                      (random max-width)
+                                      (random max-height))
                           w))
   new-world)
 
 
 
-;; FIXME: do some javascript stuff here to get at this.
-;;
 (define (width-and-height v element-id)
   (define focused (view-focus v element-id))
-  (printf "width is: ~s\n" (view-width focused))
   (values (view-width focused)
           (view-height focused)))
 
 
 (define (draw w v)
-  (foldl (lambda (a-box v)
+  (foldl (lambda (a-shape v)
            (cond
-            [(view-focus? v (box-id a-box))
+            [(view-focus? v (shape-id a-shape))
              v]
             [else
              (view-append-child v
-                                (xexp->dom `(span (@ (class "box")
-                                                    (id ,(box-id a-box))
-                                                    (style ,(format "position: absolute; left: ~apx; top: ~apx"
-                                                                   (box-x a-box)
-                                                                   (box-y a-box))))
-                                                 "box")))]))
+                                (xexp->dom `(span (@ (class "shape")
+                                                     (id ,(shape-id a-shape))
+                                                     (style ,(format "position: absolute; left: ~apx; top: ~apx"
+                                                                     (shape-x a-shape)
+                                                                     (shape-y a-shape))))
+                                                  "shape")))]))
          (view-focus v "playground")
          w))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define the-view (view-bind-many view.html
-                                 ["add" "click" add-fresh-box]))
-  
+                                 ["add" "click" add-fresh-shape]))
+
 (big-bang (list)
           (initial-view the-view)
           (to-draw draw))
-          

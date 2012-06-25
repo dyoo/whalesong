@@ -78,17 +78,25 @@
         [else
          w]))
 
-
 (define (mousemove w v evt)
   (cond
    [(shape? (world-dragged w))
+    (define-values (left top) (normalize-mouse-event-coordinates v evt))
     (make-world (world-shapes w)
                 (make-shape (shape-id (world-dragged w))
-                            (event-ref evt "pageX")
-                            (event-ref evt "pageY")))]
+                            left
+                            top))]
   [else
    w]))
 
+(define (normalize-mouse-event-coordinates v evt)
+  (values (- (event-ref evt "pageX")
+             (string->number (trim-px (view-css v "left"))))
+          (- (event-ref evt "pageY")
+             (string->number (trim-px (view-css v "top"))))))
+
+(define (trim-px s)
+  (substring s 0 (- (string-length s) 2)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

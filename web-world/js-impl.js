@@ -75,7 +75,7 @@
         var theClone = $(dom).clone(true).get(0);
         var sourceSelects = $(dom).find("select");
         var destSelects = $(theClone).find("select");
-        var i, w;
+        var i, w, o;
         for (i = 0; i < sourceSelects.length; ++i) {
             $(destSelects[i]).val($(sourceSelects[i]).val());
         }
@@ -87,6 +87,8 @@
                 $(allDestElts[i]).width(w);
                 $(allDestElts[i]).height($(allSrcElts[i]).height());
             }
+
+            $(allDestElts[i]).offset($(allSrcElts[i]).offset());
         }
 
 

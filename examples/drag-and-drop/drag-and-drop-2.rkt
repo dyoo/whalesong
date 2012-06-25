@@ -79,6 +79,7 @@
 ;; Mouse handling.
 
 ;; When the mouse is down, select the shape being clicked.
+;; The shape being mousedowned is the one with focus.
 (define (mousedown w v evt)
   (define selected-shape (find-shape (world-shapes w) (view-id v)))
   (make-world (remove selected-shape (world-shapes w))

@@ -24,14 +24,14 @@
 (define (add-fresh-shape w v)
   (define-values (max-width max-height) (width-and-height v "playground"))
   (define new-world (make-world (cons (make-shape (fresh-id)
-                                                (random max-width)
-                                                (random max-height))
+                                                  (random max-width)
+                                                  (random max-height))
                                       (world-shapes w))
                                 (world-dragged w)))
   new-world)
 
 
-
+;; Helper: produces the width and height of the element with the given id.
 (define (width-and-height v element-id)
   (define focused (view-focus v element-id))
   (values (view-width focused)
@@ -103,8 +103,8 @@
                 (make-shape (shape-id (world-dragged w))
                             left
                             top))]
-  [else
-   w]))
+   [else
+    w]))
 
 (define (normalize-mouse-event-coordinates v evt)
   (values (- (event-ref evt "pageX")
@@ -122,8 +122,7 @@
                                  ["add" "click" add-fresh-shape]
                                  ["playground" "mousemove" mousemove]
                                  ["playground" "mouseup" mouseup]))
-  
+
 (big-bang (make-world (list) #f)
           (initial-view the-view)
           (to-draw draw))
-          

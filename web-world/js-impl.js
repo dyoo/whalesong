@@ -1148,6 +1148,8 @@
             if (element !== undefined) {
                 fireEvent(element, objectToEvent(evt));
             }
+            evt.stopPropagation();
+            evt.preventDefault();
         };
         $(element).bind(this.type, this.handler);
         k();

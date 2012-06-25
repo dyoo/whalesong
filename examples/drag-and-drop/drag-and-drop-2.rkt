@@ -47,27 +47,43 @@
                               "top"
                               (format "~apx" (shape-y a-shape)))]
             [else
-             (view-append-child v
-                                (xexp->dom `(span (@ (class "shape")
-                                                    (id ,(shape-id a-shape))
-                                                    (style ,(format "position: absolute; left: ~apx; top: ~apx"
-                                                                   (shape-x a-shape)
-                                                                   (shape-y a-shape))))
-                                                 "shape")))]))
+             (view-bind-many
+              (view-append-child v
+                                 (xexp->dom `(span (@ (class "shape")
+                                                      (id ,(shape-id a-shape))
+                                                      (style ,(format "position: absolute; left: ~apx; top: ~apx"
+                                                                      (shape-x a-shape)
+                                                                      (shape-y a-shape))))
+                                                   "shape")))
+              [(shape-id a-shape) "mousedown" mousedown])]))
          (view-focus v "playground")
          (if (shape? (world-dragged w))
              (cons (world-dragged w) (world-shapes w))
              (world-shapes w))))
 
 
-;; When the mouse is down, should see if the event intersects any of our shapes.
-(define (mousedown w v evt)
+;; find-shape: (listof shape) string -> (U #f shape)
+(define (find-shape los id)
   (cond
-   [(empty? (world-shapes w))
-    w]
+   [(empty? los)
+    #f]
+   [(string=? (shape-id (first los)) id)
+    (first los)]
    [else
-    (make-world (rest (world-shapes w))
-                (first (world-shapes w)))]))
+    (find-shape (rest los) id)]))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mouse handling.
+
+;; When the mouse is down, select the shape being clicked.
+(define (mousedown w v evt)
+  (define selected-shape (find-shape (world-shapes w) (view-id v)))
+  (make-world (remove selected-shape (world-shapes w))
+              selected-shape))
+
 
 
 (define (mouseup w v evt)
@@ -103,7 +119,6 @@
 
 (define the-view (view-bind-many view.html
                                  ["add" "click" add-fresh-shape]
-                                 ["playground" "mousedown" mousedown]
                                  ["playground" "mousemove" mousemove]
                                  ["playground" "mouseup" mouseup]))
   

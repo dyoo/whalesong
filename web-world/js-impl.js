@@ -565,8 +565,8 @@
             function(eventHandlers) { return eventHandlers; },
             function(view) {
                 var clone = $(deepClone(domNode));
-                clone.appendTo($(view.focus));
-                view.focus = clone.get(0);
+                $(clone).appendTo($(view.focus));
+                view.focus = $(clone).get(0);
             }
         );
     };

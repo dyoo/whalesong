@@ -28,13 +28,13 @@
      (provide (except-out (all-from-out "parse-bytecode-5.2.rkt")
                           parse-bytecode)))]
   [(and (version<= "5.2.0.900" (version))
-        (version< (version) "5.2.901"))
+        (version< (version) "5.2.900"))
    (begin
      (log-debug "Using 5.2.1 bytecode parser")
      (require "parse-bytecode-5.2.1.rkt")
      (provide (except-out (all-from-out "parse-bytecode-5.2.1.rkt")
                           parse-bytecode)))]
-  [(and (version<= "5.2.901" (version))
+  [(and (version<= "5.2.900" (version))
         ;;(version< (version) "5.3")
         )
    (begin

@@ -7,7 +7,7 @@
 
 (version-case
   [(and (version<= "5.2.0.900" (version))
-        (version< (version) "5.2.901"))
+        (version< (version) "5.2.900"))
 
    ;; Parsing Racket 5.1.2 bytecode structures into our own structures.
    (require "path-rewriter.rkt"

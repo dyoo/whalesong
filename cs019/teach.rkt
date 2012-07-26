@@ -3,11 +3,29 @@
 (require (for-template "../lang/base.rkt")
          (for-template "teach-runtime.rkt")
          "teachhelp.rkt"
-         stepper/private/shared
          racket/list
          syntax/context
          syntax/kerncase
-         syntax/stx)
+         syntax/stx
+         "../version-case/version-case.rkt"
+         (for-syntax racket/base))
+
+  ;; We're treading in private implementation; we deserve this pain.
+  (version-case
+    [(and (version<= "5.2.0.900" (version))
+          (version< (version) "5.2.900"))
+     (begin
+       (require stepper/private/shared)
+       (require (for-syntax stepper/private/shared)))]
+    [(version<= "5.2.900" (version))
+     (begin
+       (require stepper/private/syntax-property)
+       (require (for-syntax stepper/private/syntax-property)))]
+    [else
+     (error 'teachhelp.rkt "Unable to cooperate with Racket ~a" (version))])
+
+
+
 
 
 (provide advanced-define/proc

@@ -41,6 +41,7 @@
 
 
 (provide package
+	 package-anonymous
          package-standalone-xhtml
          get-inert-code
          get-standalone-code
@@ -101,14 +102,14 @@
 
 
 
-;; (define (package-anonymous source-code
-;;                            #:should-follow-children? should-follow?
-;;                            #:output-port op)
-;;   (fprintf op "(function() {\n")
-;;   (package source-code
-;;            #:should-follow-children? should-follow?
-;;            #:output-port op)
-;;   (fprintf op " return invoke; })\n"))
+(define (package-anonymous source-code
+                           #:should-follow-children? should-follow?
+                           #:output-port op)
+  (fprintf op "(function() {\n")
+  (package source-code
+           #:should-follow-children? should-follow?
+           #:output-port op)
+  (fprintf op " return invoke; })\n"))
 
 
 

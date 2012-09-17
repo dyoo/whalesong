@@ -1,7 +1,6 @@
 #lang racket/base
 
 (require "../parser/baby-parser.rkt"
-         "../parser/lam-entry-gensym.rkt"
          "../compiler/lexical-structs.rkt"
          "../compiler/expression-structs.rkt"
          (for-syntax racket/base))
@@ -16,7 +15,6 @@
        (syntax/loc #'stx
          (begin
            (printf "Running ~s ...\n" (syntax->datum #'expr))
-           (reset-lam-label-counter!/unit-testing)
            (let ([expected expt]
                  [actual 
                   (with-handlers ([void
@@ -25,8 +23,8 @@
                                                          #'stx))])
                     expr)])
              (unless (equal? actual expected)
-               (raise-syntax-error #f (format "Expected ~s, got ~s" expected actual)
-                                   #'stx))
+               (printf (format "Expected ~s, got ~s, at	~s" expected actual
+                                   (syntax-line #'stx))))
              (printf "ok.\n\n")))))]))
 
 

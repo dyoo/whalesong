@@ -227,19 +227,20 @@
 
 
 ;; the letrec gets translated into a closure call
-(begin
-  (reset-lam-label-counter!/unit-testing)
-  (check-equal? (run-my-parse '(letrec ([omega (lambda () (omega))])
-                                 (omega)))
-                (make-Top (make-Prefix '())
-                          (make-App (make-Lam 'omega 0 #f (make-App (make-EmptyClosureReference 'omega 0 #f 'lamEntry1) '())
-                                              '() 'lamEntry1)
-                                    '()))))
+(check-true (match (run-my-parse '(letrec ([omega (lambda () (omega))])
+                                    (omega)))
+              [(struct Top ((struct Prefix (list))
+                            (struct App ((struct Lam ('omega 0 
+                                                             #f 
+                                                             (struct App ((struct EmptyClosureReference ('omega 0 #f _))
+                                                                          (list)))
+                                                             (list) _))
+                                         (list)))))
+               #t]))
 
 
 ;; FIXME: make this a real test.
 (begin
-  (reset-lam-label-counter!/unit-testing)
   (void (run-my-parse #'(letrec ([e (lambda (y)
                                               (if (= y 0)
                                                   #t
@@ -292,14 +293,12 @@
                                   (make-App (make-PrimitiveKernelValue 'current-continuation-marks) '()))))
 
 
-(begin (reset-lam-label-counter!/unit-testing)
-       (check-true (match (run-my-parse #'(case-lambda))
+(begin (check-true (match (run-my-parse #'(case-lambda))
                      [(struct Top ((struct Prefix (list))
-                                   (struct CaseLam (_ (list) 'lamEntry1))))
+                                   (struct CaseLam (_ (list) _))))
                       #t])))
 
-(begin (reset-lam-label-counter!/unit-testing)
-       (check-true (match (run-my-parse #'(case-lambda [(x) x]
+(begin (check-true (match (run-my-parse #'(case-lambda [(x) x]
                                                        [(x y) x]
                                                        [(x y) y]))
                      [(struct Top ((struct Prefix (list))
@@ -309,20 +308,20 @@
                                                                        #f
                                                                        (struct LocalRef ('0 '#f))
                                                                        '()
-                                                                       'lamEntry2))
+                                                                       _))
                                                           (struct Lam (_
                                                                        2
                                                                        #f
                                                                        (struct LocalRef ('0 '#f))
                                                                        '()
-                                                                       'lamEntry3))
+                                                                       _))
                                                           (struct Lam (_
                                                                        2
                                                                        #f
                                                                        (struct LocalRef ('1 '#f))
                                                                        '()
-                                                                       'lamEntry4)))
-                                                    'lamEntry1))))
+                                                                       _)))
+                                                    _))))
                       #t])))
 
 

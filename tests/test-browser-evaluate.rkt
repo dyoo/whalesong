@@ -18,11 +18,11 @@
                     
                     (newline op)
                     
-                    (fprintf op "var innerInvoke = ")
+                    (fprintf op "var innerInvoke = (function (machine, succ, fail) {")
                     (package-anonymous (make-SexpSource program)
                                        #:should-follow-children? should-follow?
                                        #:output-port op)
-                    (fprintf op "();\n")
+                    (fprintf op "}))\n")
                     
                     (fprintf op #<<EOF
 return (function(succ, fail, params) {

@@ -85,10 +85,10 @@
            (printf " ok (~a milliseconds)\n" (evaluated-t result))]
           [else
            (printf " error!\n")
-           (raise (make-exn:fail:error-on-test
+           (displayln (exn-message (make-exn:fail:error-on-test
                    (format "Expected ~s, got ~s" exp output)
                    (current-continuation-marks)
-                   (loc-thunk)))])))
+                   (loc-thunk))))])))
 
 
 

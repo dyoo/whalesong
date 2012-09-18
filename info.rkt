@@ -3,7 +3,7 @@
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
 (define release-notes '((p "Added a preliminary gui for building Whalesong packages.")))
-(define version "1.18")
+(define version "1.19")
 (define primary-file "make-launcher.rkt")
 (define categories '(devtools))
 (define repositories '("4.x"))

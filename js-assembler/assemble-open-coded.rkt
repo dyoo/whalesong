@@ -16,6 +16,13 @@
 (define MAX-JAVASCRIPT-ARGS-AT-ONCE 100)
 
 
+;; Workaround for a regression in Racket 5.3.1: 
+(define-syntax-rule (mycase op ((x ...) b ...) ...)
+  (let ([v op])
+    (cond
+      [(or (eqv? v 'x) ...) b ...] ...)))
+
+
 (: open-code-kernel-primitive-procedure (CallKernelPrimitiveProcedure Blockht -> String))
 (define (open-code-kernel-primitive-procedure op blockht)
   (let*: ([operator : KernelPrimitiveName/Inline (CallKernelPrimitiveProcedure-operator op)]
@@ -36,7 +43,7 @@
                                  (build-list (length operands) (lambda: ([i : Natural]) i))
                                  operands
                                  (CallKernelPrimitiveProcedure-typechecks? op))])
-        (case operator
+        (mycase operator
           [(+)
            (cond [(empty? checked-operands)
                   (assemble-numeric-constant 0)]

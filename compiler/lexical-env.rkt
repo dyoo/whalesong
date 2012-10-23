@@ -122,8 +122,8 @@
 ;; Given a list of lexical addresses, computes a set of unique references.
 ;; Multiple lexical addresses to a single prefix should be treated identically.
 (define (collect-lexical-references addresses)
-  (let: ([prefix-references : (Setof EnvWholePrefixReference) (new-set)]
-         [lexical-references : (Setof EnvLexicalReference) (new-set)])
+  (let: ([prefix-references : (Setof EnvWholePrefixReference) ((inst new-set EnvWholePrefixReference))]
+         [lexical-references : (Setof EnvLexicalReference) ((inst new-set EnvLexicalReference))])
         (let: loop : (Listof (U EnvLexicalReference EnvWholePrefixReference)) 
               ([addresses : (Listof LexicalAddress) addresses])
               (cond 

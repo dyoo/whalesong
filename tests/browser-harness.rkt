@@ -23,18 +23,18 @@
 
 (define evaluate (make-evaluate 
                   (lambda (program op)
-
+                    
                     (fprintf op "(function () {")
                     (newline op)
-
+                    
                     (when first-run
                       (display (get-runtime) op)
                       (set! first-run #f))
-
+                    
                     (display "return (function(succ, fail, params) {
                                            var machine = new plt.runtime.Machine();
                                            plt.runtime.currentMachine = machine;" op)
-
+                    
                     (package program
                              #:should-follow-children? (lambda (src) #t)
                              #:output-port op)
@@ -59,15 +59,15 @@
                    s
                    "<path:...>"))
 
-                  
+
 
 ;; We use a customized error structure that supports
 ;; source location reporting.
 (define-struct (exn:fail:error-on-test exn:fail)
   (srcloc)
   #:property prop:exn:srclocs
-             (lambda (a-struct)
-               (list (exn:fail:error-on-test-srcloc a-struct))))
+  (lambda (a-struct)
+    (list (exn:fail:error-on-test-srcloc a-struct))))
 
 
 
@@ -86,9 +86,9 @@
           [else
            (printf " error!\n")
            (displayln (exn-message (make-exn:fail:error-on-test
-                   (format "Expected ~s, got ~s" exp output)
-                   (current-continuation-marks)
-                   (loc-thunk))))])))
+                                    (format "Expected ~s, got ~s" exp output)
+                                    (current-continuation-marks)
+                                    (loc-thunk))))])))
 
 
 
@@ -100,15 +100,17 @@
                                     (syntax-e
                                      #'source-file-path)
                                     ".expected")])
-
+       
        #'(test source-file-path expected-file-path))]
     [(_ original-source-file-path original-expected-file-path)
      (with-syntax ([stx stx]
                    [source-file-path (parameterize ([current-directory
-                                        (current-load-relative-directory)])
+                                                     (or (current-load-relative-directory) 
+                                                         (current-directory))])
                                        (normalize-path (syntax-e #'original-source-file-path)))]
                    [expected-file-path (parameterize ([current-directory
-                                                       (current-load-relative-directory)])
+                                                       (or (current-load-relative-directory)
+                                                           (current-directory))])
                                          (normalize-path (syntax-e #'original-expected-file-path)))])
        (quasisyntax/loc #'stx
          (test/loc original-source-file-path source-file-path
@@ -119,6 +121,6 @@
                              '#,(syntax-column #'stx)
                              '#,(syntax-position #'stx)
                              '#,(syntax-span #'stx))))))]))
-           
+
 
 (provide test)

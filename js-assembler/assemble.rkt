@@ -44,6 +44,7 @@
     
     (define-values (basic-blocks entry-points) (fracture stmts))
     
+    (: function-entry-and-exit-names (Setof Symbol))
     (define function-entry-and-exit-names
       (list->set (get-function-entry-and-exit-names stmts)))
     

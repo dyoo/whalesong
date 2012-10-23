@@ -19,7 +19,7 @@
                [log-debug (String -> Void)])
 
 (require/typed "../parser/parse-bytecode.rkt"
-               [parse-bytecode (Any -> Expression)])
+               [parse-bytecode ((U Path Input-Port) -> Expression)])
 
 (require/typed "../get-module-bytecode.rkt"
                [get-module-bytecode ((U String Path Input-Port) -> Bytes)])

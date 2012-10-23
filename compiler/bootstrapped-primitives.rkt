@@ -14,7 +14,7 @@
 (require/typed "../parameters.rkt"
                (current-defined-name (Parameterof (U Symbol LamPositionalName))))
 (require/typed "../parser/parse-bytecode.rkt"
-               (parse-bytecode (Any -> Expression)))
+               (parse-bytecode (Compiled-Expression -> Expression)))
 
 
 

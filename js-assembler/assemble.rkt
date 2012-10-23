@@ -38,42 +38,42 @@
 (define (assemble/write-invoke stmts op)
   (parameterize ([current-interned-symbol-table ((inst make-hash Symbol Symbol))]
                  [current-interned-constant-closure-table ((inst make-hash Symbol MakeCompiledProcedure))])
-  (display "(function(M, success, fail, params) {\n" op)
-  (display "var param;\n" op)
-  (display "var RT = plt.runtime;\n" op)
-  
-  (define-values (basic-blocks entry-points) (fracture stmts))
-  
-  (define function-entry-and-exit-names
-    (list->set (get-function-entry-and-exit-names stmts)))
-  
-  (: blockht : Blockht)
-  (define blockht (make-hash))
-  
-  (for ([b basic-blocks])
-    (hash-set! blockht (BasicBlock-name b) b))
-  
-  (write-blocks basic-blocks
-                blockht
-                (list->set entry-points)
-                function-entry-and-exit-names
-                op)
-  (write-linked-label-attributes stmts blockht op)
-  (display (assemble-current-interned-symbol-table) op)
-  (display (assemble-current-interned-constant-closure-table) op)
-  
-  (display "M.params.currentErrorHandler = fail;\n" op)
-  (display "M.params.currentSuccessHandler = success;\n" op)
-  (display  #<<EOF
+    (display "(function(M, success, fail, params) {\n" op)
+    (display "var param;\n" op)
+    (display "var RT = plt.runtime;\n" op)
+    
+    (define-values (basic-blocks entry-points) (fracture stmts))
+    
+    (define function-entry-and-exit-names
+      (list->set (get-function-entry-and-exit-names stmts)))
+    
+    (: blockht : Blockht)
+    (define blockht (make-hash))
+    
+    (for ([b basic-blocks])
+      (hash-set! blockht (BasicBlock-name b) b))
+    
+    (write-blocks basic-blocks
+                  blockht
+                  (list->set entry-points)
+                  function-entry-and-exit-names
+                  op)
+    (write-linked-label-attributes stmts blockht op)
+    (display (assemble-current-interned-symbol-table) op)
+    (display (assemble-current-interned-constant-closure-table) op)
+    
+    (display "M.params.currentErrorHandler = fail;\n" op)
+    (display "M.params.currentSuccessHandler = success;\n" op)
+    (display  #<<EOF
 for (param in params) {
     if (params.hasOwnProperty(param)) {
         M.params[param] = params[param];
     }
 }
 EOF
-            op)
-  (fprintf op "M.trampoline(~a, true); })"
-           (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))))
+              op)
+    (fprintf op "M.trampoline(~a, true); })"
+             (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))))
 
 
 

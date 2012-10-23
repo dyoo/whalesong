@@ -113,6 +113,9 @@
 ;;; These parameters below will probably go away soon.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(: current-defined-name (Parameterof (U Symbol LamPositionalName)))
-(define current-defined-name (make-parameter 'unknown))
+;; Workaround for what appears to be a bug in 5.3.1 pre-release
+(: UNKNOWN Symbol)
+(define UNKNOWN 'unknown)
 
+(: current-defined-name (Parameterof (U Symbol LamPositionalName)))
+(define current-defined-name (make-parameter UNKNOWN))

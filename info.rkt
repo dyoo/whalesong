@@ -2,8 +2,8 @@
 
 (define name "Whalesong")
 (define blurb '("A Racket to JavaScript compiler"))
-(define release-notes '((p "Preliminary support for Racket 5.3.")))
-(define version "1.19")
+(define release-notes '((p "Preliminary support for Racket 5.3.1")))
+(define version "1.20")
 (define primary-file "make-launcher.rkt")
 (define categories '(devtools))
 (define repositories '("4.x"))

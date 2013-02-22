@@ -44,6 +44,8 @@
                 baselib.js
 
                 baselib-frames.js
+
+                baselib-loadscript.js
                 
                 baselib-unionfind.js
                 baselib-equality.js

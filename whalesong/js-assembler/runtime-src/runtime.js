@@ -6,11 +6,14 @@
 
 // All of the values here are namespaced under "plt.runtime".
 /*global $*/
-(function(plt, baselib) {
+(function(plt) {
     'use strict';
     var runtime = {};
     plt.runtime = runtime;
 
+
+    // abbreviation, since we'll be using the basic library a lot.
+    var baselib = plt.baselib;
 
 
     //////////////////////////////////////////////////////////////////////
@@ -1117,6 +1120,54 @@
     };
 
 
+    // defaultModuleLoader: Machine string (-> any) (-> any) -> void
+    //
+    // The default module loader currently doesn't do anything dynamic.
+    // 
+    // Other module loader implementations may do more interesting
+    // things here, such as loading off the disk, or from the network.
+    var defaultModuleLoader = function(M, moduleName, success, fail) {
+        if (M.modules[moduleName] instanceof ModuleRecord) {
+            return success();
+        } else {
+            return fail();
+        }
+    };
+
+    
+    var makeLocalFileModuleLoader = function(basepath) {
+        var loadScript = baselib.loadscript.loadScript;
+        return function(M, moduleName, success, fail) {
+            if (M.modules[moduleName] instanceof ModuleRecord) {
+                return success();
+            } else {
+                var onManifestLoaded = function() {
+                    // The manifest should map module names to 
+                    // their files.
+                    if (runtime.currentModuleManifest[moduleName]) {
+                        var modulePath = 
+                            (basepath + "/" + 
+                             runtime.currentModuleManifest[moduleName]);
+                        return loadScript(modulePath, success, fail);
+                    }
+                    // FILL ME IN:
+                    // 1. Look up the path in the manifest.
+                    // 2. Dynamically load the module in using loadScript
+                    // 3. If that succeeds, continue, otherwise, fail.
+                    return fail();
+
+                };
+                return loadScript(basepath + "/manifest.js",
+                                  onManifestLoaded,
+                                  fail);
+            }
+        };
+    };
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
@@ -1125,6 +1176,8 @@
     // Exports
     var exports = runtime;
     exports['currentMachine'] = new Machine();
+    exports['currentModuleLoader'] = defaultModuleLoader;
+    exports['currentModuleManifest'] = {};
     exports['invokeMains'] = invokeMains;
     exports['lookupInMains'] = lookupInMains;
 
@@ -1273,4 +1326,4 @@
 
 
     exports['makeRandomNonce'] = makeRandomNonce;
-}(this.plt, this.plt.baselib));
+}(this.plt));

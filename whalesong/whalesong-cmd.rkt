@@ -63,7 +63,7 @@
    #:program "whalesong"
    #:argv (current-command-line-arguments)
    "The Whalesong command-line tool for compiling Racket to JavaScript"
-   ["version" "Print the current version"
+   #;["version" "Print the current version"
     "Print the current version"
     #:args ()
     (print-version)]

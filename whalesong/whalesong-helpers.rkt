@@ -282,5 +282,5 @@
 
 
 
-(define (print-version)
+#;(define (print-version)
   (fprintf (current-report-port) "~a\n" (this-package-version)))

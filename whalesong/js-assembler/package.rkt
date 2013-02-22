@@ -258,6 +258,25 @@ M.modules[~s] =
      (error 'get-javascript-implementation)]))
 
 
+
+;; source-module-name: source -> (U symbol #f)
+;; Given a source, return its module name if it's a module.
+;; If not, return #f.
+(define (source-module-name src)
+  (cond
+   [(StatementsSource? src)
+    #f]
+   [(MainModuleSource? src)
+    (rewrite-path (MainModuleSource-path src))]
+   [(ModuleSource? src)
+    (rewrite-path (ModuleSource-path src))]
+   [(SexpSource? src)
+    #f]
+   [(UninterpretedSource? src)
+    #f]))
+
+
+
 (define (assemble-modinvokes+body paths after)
   (cond
     [(empty? paths)
@@ -273,19 +292,29 @@ M.modules[~s] =
   (let ([name (rewrite-path (path->string path))]
         [afterName (gensym 'afterName)])
     (format "var ~a = function() { ~a };
-             if (! M.modules[~s].isInvoked) {
-                 M.modules[~s].internalInvoke(M,
-                                            ~a,
-                                            M.params.currentErrorHandler);
-             } else {
-                 ~a();
-             }"
+             plt.runtime.currentModuleLoader(M,
+                                             ~s,
+                                             function() {
+                                                if (! M.modules[~s].isInvoked) {
+                                                    M.modules[~s].internalInvoke(M,
+                                                                                 ~a,
+                                                                                  M.params.currentErrorHandler);
+                                                } else {
+                                                    ~a();
+                                                }
+                                             },
+                                             function() {
+                                                alert('Could not load ~s');
+                                             })
+             "
             afterName
             after
             (symbol->string name)
             (symbol->string name)
+            (symbol->string name)
             afterName
-            afterName)))
+            afterName
+            (symbol->string name))))
 
 
 
@@ -304,7 +333,7 @@ M.modules[~s] =
 (define (package source-code
                  #:should-follow-children? should-follow?
                  #:output-port op
-                 #:next-file-path (next-file-path (lambda () (error 'package))))
+                 #:next-file-path (next-file-path (lambda (module-name) (error 'package))))
   (define resources (set))
   
   
@@ -324,7 +353,9 @@ M.modules[~s] =
        src]))
   
 
-  (define (maybe-with-fresh-file thunk)
+  ;; maybe-with-fresh-file: source (-> any) -> any
+  ;; Call thunk, perhaps in the dynamic extent where op is a new file.
+  (define (maybe-with-fresh-file src thunk)
     (cond
      [(current-one-module-per-file?)
       (define old-port op)
@@ -332,7 +363,8 @@ M.modules[~s] =
       (set! op temp-string)
       (thunk)
       (set! op old-port)
-      (call-with-output-file (next-file-path)
+      (define fresh-name (next-file-path (source-module-name src)))
+      (call-with-output-file fresh-name
         (lambda (op)
           (display (compress (get-output-string temp-string)) op))
         #:exists 'replace)]
@@ -345,6 +377,7 @@ M.modules[~s] =
     (set! resources (set-union resources (list->set (source-resources src))))
 
     (maybe-with-fresh-file
+     src
      (lambda ()
        (fprintf op "\n// ** Visiting ~a\n" (source-name src))
        (define start-time (current-inexact-milliseconds))

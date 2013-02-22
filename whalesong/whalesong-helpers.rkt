@@ -7,6 +7,7 @@
          racket/date
          racket/runtime-path
          racket/pretty
+         json
          "parser/parse-bytecode.rkt"
          "compiler/compiler.rkt"
          "compiler/compiler-structs.rkt"
@@ -142,9 +143,11 @@
 
      (define written-js-paths '())
      (define written-resources '())
+     (define module-mappings (make-hash))
+
      (define make-output-js-filename
        (let ([n 0])
-         (lambda ()
+         (lambda (module-name)
            (define result (build-path (current-output-dir)
                                       (string-append
                                        (regexp-replace #rx"[.](rkt|ss)$"
@@ -157,6 +160,9 @@
            (set! n (add1 n))
            (fprintf (current-report-port)
                     (format "Writing program ~s\n" result))
+
+           (when module-name
+             (hash-set! module-mappings module-name result))
            result)))
      
      (define (on-resource r)
@@ -202,13 +208,21 @@
               (regexp-replace #rx"[.](rkt|ss)$"
                               (path->string (file-name-from-path f))
                               "")
-              ".appcache"))])
+              ".appcache"))]
+           [output-js-module-manifest-filename
+            (build-path
+             (string-append
+              (regexp-replace #rx"[.](rkt|ss)$"
+                              (path->string (file-name-from-path f))
+                              "")
+              "-module-manifest.js"))])
        (unless (directory-exists? (current-output-dir))
          (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
          (make-directory* (current-output-dir)))
 
+       ;; Write out the main module and its other module dependencies.
        (parameterize ([current-on-resource on-resource])
-         (call-with-output-file* (make-output-js-filename)
+         (call-with-output-file* (make-output-js-filename #f)
                                  (lambda (op)
                                    (display (get-runtime) op)
                                    (display (get-inert-code (make-MainModuleSource 
@@ -225,8 +239,7 @@
        (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                (lambda (op)
                                  (display (get-html-template
-                                           (map file-name-from-path
-                                                (reverse written-js-paths))
+                                           (map file-name-from-path (reverse written-js-paths))
                                            #:title title
                                            #:manifest output-manifest-filename)
                                           op))
@@ -246,8 +259,20 @@
                                  (fprintf op "\n# All other resources (e.g. sites) require the user to be online.\nNETWORK:\n*\n"))
                                
                                #:exists 'replace)
-       (define stop-time (current-inexact-milliseconds))
 
+       ;; Write out the js module manifest:
+       (fprintf (current-report-port)
+                (format "Writing js module manifest ~s\n" (build-path (current-output-dir) output-js-module-manifest-filename)))
+       (call-with-output-file* (build-path (current-output-dir) output-js-module-manifest-filename)
+                               (lambda (op)
+                                 (fprintf op "plt.runtime.currentModuleManifest=")
+                                 (write-json (for/hash ([(key path) module-mappings])
+                                               (values key (path->string (file-name-from-path path))))
+                                             op))
+                               #:exists 'replace)
+
+
+       (define stop-time (current-inexact-milliseconds))
        (fprintf (current-timing-port) "Time taken: ~a milliseconds\n" (- stop-time start-time))))))
 
 

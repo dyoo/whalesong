@@ -1127,6 +1127,7 @@
     // Other module loader implementations may do more interesting
     // things here, such as loading off the disk, or from the network.
     var defaultModuleLoader = function(M, moduleName, success, fail) {
+        console.log("request to load", moduleName);
         if (M.modules[moduleName] instanceof ModuleRecord) {
             return success();
         } else {

@@ -263,9 +263,10 @@
 
 
 (: compile-module-invoke (ModuleLocator -> InstructionSequence))
-;; Generates code that will invoke a module (if it hasn't been invoked yet)
-;; FIXME: assumes the module has already been linked.  We should error out
-;; if the module hasn't been linked yet.
+;; Generates code that will invoke a module (if it hasn't been invoked
+;; yet) FIXME: assumes the module has already been loaded/linked.  We
+;; should try to load the module, or error out if the module can't be
+;; found.
 (define (compile-module-invoke a-module-name)
   (cond
     [(kernel-module-name? a-module-name)

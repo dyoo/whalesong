@@ -188,8 +188,8 @@
                 (loop (rest stmts)))]
          
          [(DebugPrint? a-stmt)
-          ;(cons a-stmt (loop (rest stmts)))
-          (loop (rest stmts))
+          (cons a-stmt (loop (rest stmts)))
+          #;(loop (rest stmts))
           ]
 
          [(Comment? a-stmt)
@@ -344,8 +344,8 @@
      #f]
     
     [(DebugPrint? stmt)
-     ;#f
-     #t]
+     #f
+     #;#t]
     
     [(AssignImmediate? stmt)
      (equal? (AssignImmediate-target stmt)

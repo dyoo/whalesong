@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 ;;; SCHEME -- A Scheme interpreter evaluating a sort, written by Marc Feeley.
 
 ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

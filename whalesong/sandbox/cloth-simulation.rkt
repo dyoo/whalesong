@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 ;; A rewrite of the cloth simulation application from the Codea project
 ;; into world form.

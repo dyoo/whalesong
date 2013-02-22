@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; File:         fft.cl
 ; Description:  FFT benchmark from the Gabriel tests.

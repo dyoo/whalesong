@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/web-world))
+(require whalesong/web-world)
 
 (big-bang 0 (initial-view "hello world"))

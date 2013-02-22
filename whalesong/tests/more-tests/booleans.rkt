@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong/base
-(require (planet dyoo/whalesong/lang/bool))
+#lang whalesong/base
+(require whalesong/lang/bool)
 
 (boolean? "t")
 (boolean? #t)

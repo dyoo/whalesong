@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 (require "module-scoping-helper.rkt")
 x             ;; 0
 (get-x)       ;; 0

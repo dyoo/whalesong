@@ -12,7 +12,7 @@
 ;; my-image-url: (parameterof stx)
 ;;
 ;; During the dynamic extent of expand-out-images, this will be defined
-;; as the unique name for the image-url function in (planet dyoo/whalesong/image).
+;; as the unique name for the image-url function in whalesong/image.
 (define-runtime-path whalesong/image
   "image.rkt")
 (define my-image-url (make-parameter #f))

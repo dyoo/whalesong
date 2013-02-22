@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong/base
-(require (planet dyoo/whalesong/image)
-         (planet dyoo/whalesong/resource))
+#lang whalesong/base
+(require whalesong/image
+         whalesong/resource)
 
 
 ;; color-near? : Color Color Number -> Boolean

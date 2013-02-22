@@ -1,7 +1,7 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/js/world)
-         (planet dyoo/whalesong/js)
-         (planet dyoo/whalesong/web-world))
+#lang whalesong
+(require whalesong/js/world
+         whalesong/js
+         whalesong/web-world)
 
 ;; Test of getting world events from arbitrary JavaScript function application.
 

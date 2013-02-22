@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 
 (let myloop ([i 0] [acc 0])
   (cond

@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 (let ()
 
 ;; (define (caar l)

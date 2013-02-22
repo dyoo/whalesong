@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 
 ;; A tree is either a symbol or a node.
 (define-struct node (l r))

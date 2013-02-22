@@ -1,7 +1,7 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/web-world)
-         (planet dyoo/whalesong/resource))
+(require whalesong/web-world
+         whalesong/resource)
 
 ;; The world is a string, the current color.
 (define-resource view.html)

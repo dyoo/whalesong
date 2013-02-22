@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world))
+#lang whalesong
+(require whalesong/web-world)
 
 ;; tick: world view -> world
 (define (tick world view)

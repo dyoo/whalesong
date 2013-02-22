@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 
 (substring "hello world" 0)
 (substring "hello world" 1)

@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 ; Modified 2 March 1997 by Will Clinger to add graphs-benchmark
 ; and to expand the four macros below.
 ; Modified 11 June 1997 by Will Clinger to eliminate assertions

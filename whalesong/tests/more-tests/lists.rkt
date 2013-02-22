@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 
 '(1 2 3)
 (list "hello" "world")

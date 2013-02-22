@@ -57,8 +57,8 @@ then it should be trivial to make a program that just shows
 that page:
 
 
-    #lang planet dyoo/whalesong
-    (require (planet dyoo/whalesong/web-world))
+    #lang whalesong
+    (require whalesong/web-world)
 
     (define-resource index.html)
 
@@ -106,8 +106,8 @@ such as:
 
 and then, in the programming language, add behavior:
 
-    #lang planet dyoo/whalesong
-    (require (planet dyoo/whalesong/web-world))
+    #lang whalesong
+    (require whalesong/web-world)
 
     (define-resource index.html)
 
@@ -181,8 +181,8 @@ If index.html contains:
 with some appropriate CSS to make the DIV look good, then the program
 will be:
 
-    #lang planet dyoo/whalesong
-    (require (planet dyoo/whalesong/web-world))
+    #lang whalesong
+    (require whalesong/web-world)
 
     (define-resource index.html)
 
@@ -236,8 +236,8 @@ handler takes, not only the world, but the current view.
 
 
 
-    #lang planet dyoo/whalesong
-    (require (planet dyoo/whalesong/web-world))
+    #lang whalesong
+    (require whalesong/web-world)
 
     (define-resource index.html)
     (define-resource style.css)
@@ -290,8 +290,8 @@ hide.
     </html>
 
 
-    #lang planet dyoo/whalesong
-    (require (planet dyoo/whalesong/web-world))
+    #lang whalesong
+    (require whalesong/web-world)
     (define-resource index.html)
 
     ;; make-item: string -> view

@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 ;; Srinivasa Ramanujan's infinite series for approximating pi.
 
 (define (sum f a b)

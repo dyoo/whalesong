@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 
 ;; Knuth's Man-or-boy-test.
 ;; http://rosettacode.org/wiki/Man_or_boy_test

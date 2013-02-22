@@ -55,7 +55,7 @@
   ;; Does it look like something out of moby or js-vm?  Abort early, because if we don't do
   ;; this up front, Racket will try to install the deprecated module, and that's bad.
   (when (looks-like-old-moby-or-js-vm? module-source-path)
-    (fprintf (current-report-port) "ERROR: The program in ~e appears to be written using the deprecated project js-vm or Moby.\n\nPlease change the lang line to:\n\n    #lang planet dyoo/whalesong\n\ninstead.\n"
+    (fprintf (current-report-port) "ERROR: The program in ~e appears to be written using the deprecated project js-vm or Moby.\n\nPlease change the lang line to:\n\n    #lang whalesong\n\ninstead.\n"
             module-source-path)
     (abort-abort))
     

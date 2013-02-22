@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 (define (make-gen gen)
  (let ([cont #f])
    (lambda ()

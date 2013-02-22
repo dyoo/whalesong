@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong/base
-(require (planet dyoo/whalesong/lang/private/shared))
+#lang whalesong/base
+(require whalesong/lang/private/shared)
 
 ;; boxes
 "boxes"

@@ -1,14 +1,14 @@
 #lang racket
-(require (planet dyoo/whalesong/get-module-bytecode)
-         (planet dyoo/whalesong/parser/parse-bytecode)
-         (planet dyoo/whalesong/compiler/compiler)
-         (planet dyoo/whalesong/compiler/compiler-structs)
-         (planet dyoo/whalesong/js-assembler/assemble))
+(require whalesong/get-module-bytecode
+         whalesong/parser/parse-bytecode
+         whalesong/compiler/compiler
+         whalesong/compiler/compiler-structs
+         whalesong/js-assembler/assemble)
 
 (define bytecode 
   (get-module-bytecode 
    (open-input-string 
-    (string-append "#lang planet dyoo/whalesong\n"
+    (string-append "#lang whalesong\n"
                    "(define (f x)\n"
                    "  (if (= x 0)\n"
                    "      1\n"

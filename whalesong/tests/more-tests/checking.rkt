@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 (define (greet name)
   (string-append "hello " name))

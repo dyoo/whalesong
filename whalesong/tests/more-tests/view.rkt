@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/web-world))
+(require whalesong/web-world)
 
 (define view (->view (xexp->dom `(html (head)
                                        (body (p "hello world, this is a test")

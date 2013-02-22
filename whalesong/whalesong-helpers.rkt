@@ -16,7 +16,6 @@
          "logger.rkt"
          "parameters.rkt"
          "js-assembler/check-valid-module-source.rkt"
-         planet/version
          (for-syntax racket/base))
 
 (provide (all-defined-out))

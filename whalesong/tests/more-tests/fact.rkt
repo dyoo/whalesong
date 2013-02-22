@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 (define (fact x)
   (cond
    [(= x 0)

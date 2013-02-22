@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 
 (apply + 2 3 4 5 '())
 (apply + 2 3 4 '(5))

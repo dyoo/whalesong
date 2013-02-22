@@ -1,7 +1,7 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/resource)
-         (planet dyoo/whalesong/web-world))
+(require whalesong/resource
+         whalesong/web-world)
 
 (define-resource index.html)
 (define-resource style.css)

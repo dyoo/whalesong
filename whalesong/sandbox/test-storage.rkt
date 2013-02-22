@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/storage))
+(require whalesong/storage)
 
 (storage-length)
 (storage-ref "whalesong test")

@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 (provide fact)
 (define (fact x)
   (cond

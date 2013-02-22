@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 
 (define-struct f (x))
 (define-struct g (a b))

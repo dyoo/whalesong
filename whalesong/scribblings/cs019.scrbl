@@ -1,8 +1,5 @@
 #lang scribble/manual
-@(require planet/scribble
-          planet/version
-          planet/resolver
-          scribble/eval
+@(require scribble/eval
           scribble/bnf
           racket/sandbox
           racket/port
@@ -76,7 +73,7 @@ Run the following to create the @filepath{whalesong} launcher program in
 your current directory.
 @codeblock|{
 #lang racket/base
-(require (planet dyoo/whalesong:1:12/make-launcher))
+(require whalesong/make-launcher)
 }|
 This may take a few minutes, as Racket is compiling Whalesong, its
 dependencies, and its documentation.  When it finally finishes,
@@ -156,8 +153,8 @@ Let's look at a few of them.
 @subsection{Hello world}
 
 Let's try making a simple, standalone executable.  At the moment, the
-program should be written in the base language of @racket[(planet
-dyoo/whalesong/cs019)], as it provides the language features that
+program should be written in the base language of
+@racket[whalesong/cs019], as it provides the language features that
 you've been using in cs019 (@racket[local], @racket[shared], etc...),
 as well as support for the @racketmodname/this-package[web-world]
 package described later in this document.
@@ -166,7 +163,7 @@ package described later in this document.
 Write a @filepath{hello.rkt} with the following content
 @filebox["hello.rkt"]{
 @codeblock{
-    #lang planet dyoo/whalesong/cs019
+    #lang whalesong/cs019
     "hello world"
 }}
 This program is a regular Racket program, and can be executed normally,
@@ -242,7 +239,7 @@ Once we're happy with the statics of our program, we can inject dynamic behavior
 Write a file called @filepath{tick-tock.rkt} with the following content.
 @filebox["tick-tock.rkt"]{
 @codeblock|{
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 
 (define-resource index.html)
 
@@ -299,7 +296,7 @@ Finally, let's look at a program that displays our current geolocation.
 
 @filebox["where-am-i.rkt"]{
 @codeblock|{
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 
 (define-resource index.html)
 
@@ -438,11 +435,11 @@ wants to reset the page.
 ]
 
 These examples are written in a less featureful language level
-(@litchar{#lang planet dyoo/whalesong}), which is why it uses explicit
+(@litchar{#lang whalesong}), which is why it uses explicit
 @racket[require] statements to pull in support for
 @racketmodname/this-package[web-world] and
 @racketmodname/this-package[resource].  As long as you use
-@litchar{#lang planet dyoo/whalesong/cs019}, you shouldn't need to
+@litchar{#lang whalesong/cs019}, you shouldn't need to
 require those particular libraries.
 
 
@@ -768,7 +765,7 @@ can accept the event as an argument.
 
 You can construct events for testing purposes by using @racket[make-event].
 @codeblock|{
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 ;; Synthesizing a location event
 (define my-event (make-event '((latitude 41) 
                                (longitude -71))))
@@ -794,7 +791,7 @@ Get an list of the event's keys.
 We often need to dynamically inject new dom nodes into an existing
 view.  As an example where the UI is entirely in code:
 @codeblock|{
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 
 ;; tick: world view -> world
 (define (tick world view)
@@ -892,14 +889,14 @@ to the program.
 
 For example,
 @codeblock|{
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 (define-resource my-whale-image-resource "humpback.png")
 }|
 }
 Since the name we're using will often match the filename itself,
 as a convenience, we can also write the following:
 @codeblock|{
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 (define-resource humpback.png)
 }|
 which defines a variable named @racket[humpback.png] whose
@@ -933,7 +930,7 @@ Given a resource, gets its URL.
 
 For example,
 @codeblock|{
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 
 (define-resource my-whale-image-resource "humpback.png")
 

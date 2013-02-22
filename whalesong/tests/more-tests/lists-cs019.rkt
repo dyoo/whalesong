@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/cs019
+#lang whalesong/cs019
 
 (define web-colors
  (shared ([W (cons "white" G)]

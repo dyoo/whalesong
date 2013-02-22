@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world)
-         (planet dyoo/whalesong/resource))
+#lang whalesong
+(require whalesong/web-world
+         whalesong/resource)
 
 ;; The world is our TODO list, represented as a list of strings.
 

@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 (require (for-syntax racket/base))
 (provide x x++ x+1 x=0 get-x)
 (define x 0)

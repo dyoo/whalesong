@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/js))
+#lang whalesong
+(require whalesong/js)
 
 (define js-plus
   (js-function->procedure "function(x, y) { return x + y; }"))

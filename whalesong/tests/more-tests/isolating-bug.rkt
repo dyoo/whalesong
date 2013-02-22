@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 (require (for-syntax racket/base
                      syntax/struct))
 

@@ -220,11 +220,16 @@
          (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
          (make-directory* (current-output-dir)))
 
+
+       (define main-module-path (make-output-js-filename #f))
        ;; Write out the main module and its other module dependencies.
        (parameterize ([current-on-resource on-resource])
          (call-with-output-file* (make-output-js-filename #f)
                                  (lambda (op)
-                                   (display (get-runtime) op)
+                                   (display (get-runtime) op))
+                                 #:exists 'replace)
+         (call-with-output-file* main-module-path
+                                 (lambda (op)
                                    (display (get-inert-code (make-MainModuleSource 
                                                              (normalize-path (build-path f)))
                                                             make-output-js-filename)
@@ -236,12 +241,22 @@
        
        (fprintf (current-report-port)
                 (format "Writing html ~s\n" (build-path (current-output-dir) output-html-filename)))
+       (define dynamically-loaded-modules
+         (remove (file-name-from-path main-module-path)
+                 (for/list ([(key path) module-mappings])
+                   (file-name-from-path path))))
+       (displayln dynamically-loaded-modules)
        (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                (lambda (op)
                                  (display (get-html-template
-                                           (map file-name-from-path (reverse written-js-paths))
+                                           (for*/list ([p (reverse written-js-paths)]
+                                                       [name (in-value (file-name-from-path p))]
+                                                       #:unless (member name dynamically-loaded-modules))
+                                             name)
                                            #:title title
-                                           #:manifest output-manifest-filename)
+                                           #:manifest output-manifest-filename
+                                           #:module-mappings (for/hash ([(key path) module-mappings])
+                                                               (values key (path->string (file-name-from-path path)))))
                                           op))
                                #:exists 'replace)
 
@@ -256,6 +271,7 @@
                                       (fprintf op "~a\n" js-name))
                                  (for [(resource-name written-resources)]
                                       (fprintf op "~a\n" resource-name))
+                                 (fprintf op "~a\n" output-js-module-manifest-filename)
                                  (fprintf op "\n# All other resources (e.g. sites) require the user to be online.\nNETWORK:\n*\n"))
                                
                                #:exists 'replace)
@@ -268,7 +284,8 @@
                                  (fprintf op "plt.runtime.currentModuleManifest=")
                                  (write-json (for/hash ([(key path) module-mappings])
                                                (values key (path->string (file-name-from-path path))))
-                                             op))
+                                             op)
+                                 (fprintf op ";\n"))
                                #:exists 'replace)
 
 

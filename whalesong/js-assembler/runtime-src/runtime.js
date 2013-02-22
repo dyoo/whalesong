@@ -1127,7 +1127,6 @@
     // Other module loader implementations may do more interesting
     // things here, such as loading off the disk, or from the network.
     var defaultModuleLoader = function(M, moduleName, success, fail) {
-        console.log("request to load", moduleName);
         if (M.modules[moduleName] instanceof ModuleRecord) {
             return success();
         } else {
@@ -1136,31 +1135,25 @@
     };
 
     
-    var makeLocalFileModuleLoader = function(basepath) {
+    // makeLocalFileModuleLoader: (hashof string string) -> moduleLoader
+    // Given the manifest mapping module names to the files that implement them,
+    // produces a module loader that uses loadscript to get these modules
+    // into memory.
+    var makeLocalFileModuleLoader = function(moduleManifest) {
         var loadScript = baselib.loadscript.loadScript;
         return function(M, moduleName, success, fail) {
+            console.log("request to load", moduleName);
+
             if (M.modules[moduleName] instanceof ModuleRecord) {
                 return success();
             } else {
-                var onManifestLoaded = function() {
-                    // The manifest should map module names to 
-                    // their files.
-                    if (runtime.currentModuleManifest[moduleName]) {
-                        var modulePath = 
-                            (basepath + "/" + 
-                             runtime.currentModuleManifest[moduleName]);
-                        return loadScript(modulePath, success, fail);
-                    }
-                    // FILL ME IN:
-                    // 1. Look up the path in the manifest.
-                    // 2. Dynamically load the module in using loadScript
-                    // 3. If that succeeds, continue, otherwise, fail.
-                    return fail();
-
-                };
-                return loadScript(basepath + "/manifest.js",
-                                  onManifestLoaded,
-                                  fail);
+                // The manifest should map module names to 
+                // their files.
+                if (moduleManifest[moduleName]) {
+                    var modulePath = moduleManifest[moduleName];
+                    return loadScript(modulePath, success, fail);
+                }
+                return fail();
             }
         };
     };
@@ -1177,8 +1170,10 @@
     // Exports
     var exports = runtime;
     exports['currentMachine'] = new Machine();
+
     exports['currentModuleLoader'] = defaultModuleLoader;
-    exports['currentModuleManifest'] = {};
+    exports['makeLocalFileModuleLoader'] = makeLocalFileModuleLoader;
+
     exports['invokeMains'] = invokeMains;
     exports['lookupInMains'] = lookupInMains;
 
@@ -1193,6 +1188,9 @@
     // the library has finished loading.
     exports['setReadyTrue'] = setReadyTrue;
     exports['setReadyFalse'] = setReadyFalse;
+
+
+
 
     exports['Machine'] = Machine;
     exports['Frame'] = Frame;

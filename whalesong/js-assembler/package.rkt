@@ -29,7 +29,8 @@
          (prefix-in resource-query: "../resource/query.rkt")
          (prefix-in runtime: "get-runtime.rkt")
          (prefix-in racket: racket/base)
-         racket/runtime-path)
+         racket/runtime-path
+         json)
 
 
 
@@ -597,7 +598,8 @@ EOF
 (define (get-html-template js-files
                            #:manifest (manifest #f)
                            #:with-legacy-ie-support? (with-legacy-ie-support? #t)
-                           #:title (title ""))
+                           #:title (title "")
+                           #:module-mappings (module-mappings (make-hash)))
   (format #<<EOF
 <!DOCTYPE html>
 <html ~a>
@@ -610,6 +612,9 @@ EOF
     <title>~a</title>
 ~a
 ~a
+  <script>
+     plt.runtime.currentModuleLoader = plt.runtime.makeLocalFileModuleLoader(~a);
+  </script>
   <script>
   ~a
   </script>
@@ -628,6 +633,7 @@ EOF
                       (format "  <script src='~a'></script>\n" js))
                     js-files)
                "")
+  (jsexpr->string module-mappings)
   invoke-main-module-code))
 
 

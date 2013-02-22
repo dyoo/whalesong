@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/js))
+(require whalesong/js)
 
 
 ;; insert-break: -> void

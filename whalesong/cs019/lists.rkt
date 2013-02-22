@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/base
+#lang whalesong/base
 #|
 Why on earth are these here?
 Because first, etc. don't work on cyclic lists:

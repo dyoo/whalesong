@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/web-world))
+(require whalesong/web-world)
 
 (define (draw w v)
   (define v2 (view-focus v "fill-me-in"))

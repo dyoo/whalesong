@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong/base
-(require (planet dyoo/whalesong/image))
+#lang whalesong/base
+(require whalesong/image)
 ;; Sierpenski carpet.
 ;; http://rosettacode.org/wiki/Sierpinski_carpet#Scheme
 

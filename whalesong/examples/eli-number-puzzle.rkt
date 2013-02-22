@@ -1,10 +1,10 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 ;; Eli's puzzle
 ;;
 ;;    http://lists.racket-lang.org/users/archive/2011-July/046849.html
 
-(require (planet dyoo/whalesong/world))
+(require whalesong/world)
           
 (define-struct world (seq output))
 

@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 (define (mylen x acc)
   (cond

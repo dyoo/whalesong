@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong/base
-(require (planet dyoo/whalesong/resource)
-         (planet dyoo/whalesong/image))
+#lang whalesong/base
+(require whalesong/resource
+         whalesong/image)
 
 ;; The Iron Image Puzzle
 ;; Part of the Nifty Assignments page by Nick Parlante.
@@ -9,7 +9,7 @@
 ;; To run this program locally on your machine under Google Chrome, you'll
 ;; probably need to use --allow-file-access-from-files to get around
 ;; the same-origin policy.  The program should run normally if served on
-;; a web server
+;; a web server.
 
 (define-resource iron-puzzle.png)
 

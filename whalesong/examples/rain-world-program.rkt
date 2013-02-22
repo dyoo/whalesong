@@ -1,8 +1,8 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/world)
-         (planet dyoo/whalesong/image)
-         (planet dyoo/whalesong/js))
+(require whalesong/world
+         whalesong/image
+         whalesong/js)
 
 ;; Occupy the whole screen.
 (void (call-method body "css" "margin" 0))

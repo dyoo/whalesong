@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 ;; A simple binding to Google Maps.
 ;;
@@ -7,8 +7,8 @@
 ;;     https://developers.google.com/maps/documentation/javascript/tutorial
 ;; 
 
-(require (planet dyoo/whalesong/js)
-         (planet dyoo/whalesong/js/world))
+(require whalesong/js
+         whalesong/js/world)
 
 (provide initialize-google-maps-api!
          make-dom-and-map

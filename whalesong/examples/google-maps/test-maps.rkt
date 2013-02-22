@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world)
+#lang whalesong
+(require whalesong/web-world
          "maps.rkt")
 
 ;; Note: this is dyoo's API key.  Please don't abuse this.  :)

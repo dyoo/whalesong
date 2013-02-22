@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 (let loop ([b (read-byte)])
   (cond

@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 
 ;; shuffle: vector -> vector

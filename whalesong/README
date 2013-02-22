@@ -1,7 +1,7 @@
 ======================================================================
 Whalesong: a compiler from Racket to JavaScript.
 
-Danny Yoo (dyoo@cs.wpi.edu)
+Danny Yoo (dyoo@hashcollision.org)
 
 
 ======================================================================
@@ -36,7 +36,7 @@ moment, the program must be written in the base language of whalesong.
 from compiling, and we'll be working to remove this restriction.)
 
     $ cat hello.rkt 
-    #lang planet dyoo/whalesong
+    #lang whalesong
     (display "hello world")
     (newline)
 

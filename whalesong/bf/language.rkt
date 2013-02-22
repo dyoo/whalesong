@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 (require "semantics.rkt"
          (for-syntax racket/base))

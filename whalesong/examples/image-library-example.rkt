@@ -1,6 +1,6 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/image))
+(require whalesong/image)
 
 (printf "images.rkt\n")
 

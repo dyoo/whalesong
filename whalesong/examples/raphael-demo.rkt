@@ -1,7 +1,7 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/resource)
-         (planet dyoo/whalesong/web-world)
-         (planet dyoo/whalesong/js))
+#lang whalesong
+(require whalesong/resource
+         whalesong/web-world
+         whalesong/js)
 
 ; This is a small demonstration of the Javascript
 ; graphics library Raphael from http://raphaeljs.com/ .

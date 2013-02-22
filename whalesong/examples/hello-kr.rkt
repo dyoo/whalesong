@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong/korean
+#lang whalesong/korean
 
 
 (정의 (안녕 이름)

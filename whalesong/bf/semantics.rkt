@@ -1,4 +1,4 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
 ;; This is a second semantics for the language that tries to go for speed,
 ;; at the expense of making things a little more complicated.

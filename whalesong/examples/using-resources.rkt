@@ -1,7 +1,7 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/resource)
-         (planet dyoo/whalesong/image))
+(require whalesong/resource
+         whalesong/image)
 
 (define-resource whale-resource "images/humpback.jpg")
 (define-resource self-resource "using-resources.rkt")

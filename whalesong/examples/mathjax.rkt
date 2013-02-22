@@ -1,5 +1,5 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world))
+#lang whalesong
+(require whalesong/web-world)
 
 ;;; This demonstrates how to use MathJax to write equations.
 ;;; Use  --include-script mathjax-script.js  to include the MathJax.

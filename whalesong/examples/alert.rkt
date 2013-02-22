@@ -1,3 +1,3 @@
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/js))
+#lang whalesong
+(require whalesong/js)
 (alert "hello world")

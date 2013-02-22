@@ -1,7 +1,7 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/world)
-         (planet dyoo/whalesong/image))
+(require whalesong/world
+         whalesong/image)
 
 
 (define handler (on-tick add1 1))

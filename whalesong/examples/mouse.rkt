@@ -1,7 +1,7 @@
-#lang planet dyoo/whalesong
+#lang whalesong
 
-(require (planet dyoo/whalesong/world)
-         (planet dyoo/whalesong/image))
+(require whalesong/world
+         whalesong/image)
 
 (define width 640)
 (define height 480)

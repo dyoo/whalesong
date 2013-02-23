@@ -242,7 +242,8 @@
        (fprintf (current-report-port)
                 (format "Writing html ~s\n" (build-path (current-output-dir) output-html-filename)))
        (define dynamically-loaded-modules
-         (remove (file-name-from-path main-module-path)
+         '()
+         #;(remove (file-name-from-path main-module-path)
                  (for/list ([(key path) module-mappings])
                    (file-name-from-path path))))
        (displayln dynamically-loaded-modules)

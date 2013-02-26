@@ -1,7 +1,7 @@
-"use strict";
-
 $(document).ready(function() {
-    
+    "use strict";    
+
+    // Hook up a simple one-line REPL with enter triggering evaluation.
     $("#repl").keypress(function(e) {
         if (e.which == 13) {
             var repl = $(this);
@@ -17,9 +17,20 @@ $(document).ready(function() {
 
     var evaluate = function(src, after) {
         console.log("about to eval", src);
+        var onCompile = function(compiledResult) {
+            console.log("compilation got", compiledResult);
+            after();
+        };
+        var onError = function(x) {
+            console.log("error", err);
+            after();
+        };
 
-        // fill me in.
-        setTimeout(after, 1000);
+        $.ajax({dataType: 'json',
+                url: '/compile',
+                data: { src: src },
+                success: onCompile,
+                error: onError});
     };
 
 });

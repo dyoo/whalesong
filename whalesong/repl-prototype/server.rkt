@@ -17,7 +17,7 @@
 ;; Creates a response that's coupled to an output-port: whatever you
 ;; write into the output will be pushed into the response.
 (define (make-port-response #:mime-type (mime-type #"application/octet-stream")
-                            #:with-gzip? (with-gzip? #f))
+                            #:with-gzip? (with-gzip? #t))
   (define headers (if with-gzip?
                       (list (header #"Content-Encoding" #"gzip"))
                       (list)))
@@ -41,6 +41,8 @@
   (define-values (response op) 
     (make-port-response #:mime-type #"text/json"))
   (define source (extract-binding/single 'src (request-bindings req)))
+
+  (printf "program is: ~s\n" source)
   ;; Compile the program here...
   ;; Send it back as json text....
   (write-json '(1 2 3) op)

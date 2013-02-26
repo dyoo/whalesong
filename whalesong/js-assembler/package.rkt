@@ -454,20 +454,20 @@ M.modules[~s] =
             (display bytes op))]
          [(cacheable? path)
           (define string-op (open-output-bytes))
-          (assemble/write-invoke (my-force stmts) string-op)
+          (assemble/write-invoke (my-force stmts) #t string-op)
           (save-in-cache! path (get-output-bytes string-op))
           (display (get-output-string string-op) op)]
          [else
-          (assemble/write-invoke (my-force stmts) op)])]
+          (assemble/write-invoke (my-force stmts) #t op)])]
       [else
-       (assemble/write-invoke (my-force stmts) op)]))
+       (assemble/write-invoke (my-force stmts) #t op)]))
   (cond
    [(ModuleSource? src)
     (on-path (ModuleSource-path src))]
    [(MainModuleSource? src)
     (on-path (MainModuleSource-path src))]
    [else
-    (assemble/write-invoke (my-force stmts) op)]))
+    (assemble/write-invoke (my-force stmts) #f op)]))
 
 
 ;; cached?: path -> (U false bytes)

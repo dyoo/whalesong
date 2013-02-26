@@ -156,12 +156,13 @@
                   function(restart){
                       RT.currentModuleLoader(M,~s,
                                              function(){
-                                                 restart(function(M){ ~a(M); });
+                                                 restart(function(M){ console.log('resume after loading ~a'); ~a(M); });
                                              },
                                              function(){
                                                  RT.raiseModuleLoadingError(M,~s); 
                                              });
                   });"
+             (symbol->string (ModuleLocator-name (LinkModule!-path op)))
              (symbol->string (ModuleLocator-name (LinkModule!-path op)))
              (assemble-label (make-Label (LinkModule!-label op)))
              (symbol->string (ModuleLocator-name (LinkModule!-path op))))]

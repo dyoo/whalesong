@@ -473,6 +473,9 @@
 (define-struct: InstallContinuationMarkEntry! () #:transparent)
 
 
+;; Use the dynamic module loader to link the module into the runtime.
+(define-struct: LinkModule! ([path : ModuleLocator]))
+
 ;; Installs a module record into the machine
 (define-struct: InstallModuleEntry! ([name : Symbol]
                                      [path : ModuleLocator]
@@ -520,6 +523,7 @@
                                RestoreEnvironment!
                                RestoreControl!
                                
+                               LinkModule!
                                InstallModuleEntry!
                                MarkModuleInvoked!
                                AliasModuleAsMain!

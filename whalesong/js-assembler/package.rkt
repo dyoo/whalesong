@@ -292,22 +292,26 @@ M.modules[~s] =
 (define (assemble-modinvoke path after)
   (let ([name (rewrite-path (path->string path))]
         [afterName (gensym 'afterName)])
-    (format "var ~a = function() { ~a };
+    (format "
+        var ~a = function() { ~a };
+        plt.runtime.PAUSE(function(restart) {
              plt.runtime.currentModuleLoader(M,
                                              ~s,
                                              function() {
-                                                if (! M.modules[~s].isInvoked) {
-                                                    M.modules[~s].internalInvoke(M,
-                                                                                 ~a,
-                                                                                  M.params.currentErrorHandler);
-                                                } else {
-                                                    ~a();
-                                                }
+                                                restart(function(M) {
+                                                    if (! M.modules[~s].isInvoked) {
+                                                        M.modules[~s].internalInvoke(M,
+                                                                                     ~a,
+                                                                                      M.params.currentErrorHandler);
+                                                    } else {
+                                                        ~a();
+                                                    }
+                                                })
                                              },
                                              function() {
                                                 alert('Could not load ~s');
                                              })
-             "
+       });     "
             afterName
             after
             (symbol->string name)

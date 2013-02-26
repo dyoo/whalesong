@@ -26,7 +26,8 @@
   #:transparent)
 (define-struct: SexpSource ([sexp : Any])
   #:transparent)
-(define-struct: UninterpretedSource ([datum : String]
+(define-struct: UninterpretedSource ([path : Path]
+                                     [datum : String]
                                      [neighbors : (Listof Source)])
   #:transparent)
 
@@ -38,7 +39,7 @@
    [(StatementsSource? a-source)
     "<StatementsSource>"]
    [(UninterpretedSource? a-source)
-    "<UninterpretedSource>"]
+    (format "<UninterpretedSource ~a>" (UninterpretedSource-path a-source))]
    [(MainModuleSource? a-source)
     (format "<MainModuleSource ~a>" (MainModuleSource-path a-source))]
    [(SexpSource? a-source)

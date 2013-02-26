@@ -228,7 +228,8 @@
 		     (get-provided-name-code bytecode))])
 	
 	(make-UninterpretedSource
-	 (format "
+         path
+         (format "
 M.modules[~s] =
     new plt.runtime.ModuleRecord(~s,
         function(M) {
@@ -274,7 +275,7 @@ M.modules[~s] =
    [(SexpSource? src)
     #f]
    [(UninterpretedSource? src)
-    #f]))
+    (rewrite-path (UninterpretedSource-path src))]))
 
 
 

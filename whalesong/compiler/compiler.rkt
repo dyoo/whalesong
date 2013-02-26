@@ -278,13 +278,13 @@
       (make-TestAndJump (make-TestTrue (make-ModulePredicate a-module-name 'linked?))
                         linked)
       ;; TODO: try to link dynamically, using plt.runtime.currentModuleLoader.
-      (make-Perform (make-LinkModule! a-module-name))
+      (make-Perform (make-LinkModule! a-module-name linked))
       ;; If that fails, finally raise an exception here that says that the module hasn't been
       ;; linked yet.
-      #;(make-DebugPrint (make-Const 
-                          (format "DEBUG: the module ~a hasn't been linked in!!!"
-                                  (ModuleLocator-name a-module-name))))
-      (make-Goto (make-Label (LinkedLabel-label on-return)))
+      ;(make-DebugPrint (make-Const 
+      ;                    (format "DEBUG: the module ~a hasn't been linked in!!!"
+      ;                            (ModuleLocator-name a-module-name))))
+      ;(make-Goto (make-Label (LinkedLabel-label on-return)))
       linked
       (make-TestAndJump (make-TestTrue 
                          (make-ModulePredicate a-module-name 'invoked?))

@@ -2,7 +2,6 @@
 
 // Frame structures.
 (function(baselib) {
-    'use strict';
     var exports = {};
     baselib.loadscript = exports;
 

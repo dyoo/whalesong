@@ -151,6 +151,20 @@
      (format "RT.raiseUnimplementedPrimitiveError(M,~s);"
              (symbol->string (RaiseUnimplementedPrimitiveError!-name op)))]
     
+    [(LinkModule!? op)
+     (format "RT.PAUSE(
+                  function(restart){
+                      RT.currentModuleLoader(M,~s,
+                                             function(){
+                                                 restart(function(M){ ~a(M); });
+                                             },
+                                             function(){
+                                                 RT.raiseModuleLoadingError(M,~s); 
+                                             });
+                  });"
+             (symbol->string (ModuleLocator-name (LinkModule!-path op)))
+             (assemble-label (make-Label (LinkModule!-label op)))
+             (symbol->string (ModuleLocator-name (LinkModule!-path op))))]
     
     [(InstallModuleEntry!? op)
      (format "M.modules[~s]=new RT.ModuleRecord(~s,~a);"

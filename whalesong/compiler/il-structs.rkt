@@ -474,7 +474,10 @@
 
 
 ;; Use the dynamic module loader to link the module into the runtime.
-(define-struct: LinkModule! ([path : ModuleLocator]))
+;; After successful linkage, jump into label.
+(define-struct: LinkModule! ([path : ModuleLocator]
+                             [label : Symbol]))
+
 
 ;; Installs a module record into the machine
 (define-struct: InstallModuleEntry! ([name : Symbol]

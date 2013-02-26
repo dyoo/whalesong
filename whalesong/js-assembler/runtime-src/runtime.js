@@ -113,6 +113,8 @@
     var raiseOperatorApplicationError = baselib.exceptions.raiseOperatorApplicationError;
     var raiseOperatorIsNotPrimitiveProcedure = baselib.exceptions.raiseOperatorIsNotPrimitiveProcedure;
     var raiseUnimplementedPrimitiveError = baselib.exceptions.raiseUnimplementedPrimitiveError;
+    var raiseModuleLoadingError = baselib.exceptions.raiseModuleLoadingError;
+
 
 
     var ArityAtLeast = baselib.arity.ArityAtLeast;
@@ -1151,7 +1153,7 @@
                 // their files.
                 if (moduleManifest[moduleName]) {
                     var modulePath = moduleManifest[moduleName];
-                    return loadScript(modulePath, success, fail);
+                    return loadScript(modulePath+"?gensym="+Math.random(), success, fail);
                 }
                 return fail();
             }

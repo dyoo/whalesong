@@ -31,11 +31,11 @@
 
 
 
-(: assemble/write-invoke ((Listof Statement) Output-Port -> Void))
+(: assemble/write-invoke ((Listof Statement) #;Boolean Output-Port -> Void))
 ;; Writes out the JavaScript code that represents the anonymous invocation expression.
 ;; What's emitted is a function expression that, when invoked, runs the
 ;; statements.
-(define (assemble/write-invoke stmts op)
+(define (assemble/write-invoke stmts #;without-trampoline? op)
   (parameterize ([current-interned-symbol-table ((inst make-hash Symbol Symbol))]
                  [current-interned-constant-closure-table ((inst make-hash Symbol MakeCompiledProcedure))])
     (display "(function(M, success, fail, params) {\n" op)
@@ -73,8 +73,16 @@ for (param in params) {
 }
 EOF
               op)
-    (fprintf op "M.trampoline(~a, true); })"
-             (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))))
+    (fprintf op "~a(M); })"
+                    (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))
+    #;(cond [without-trampoline?
+           ;; If it's a module statement, we just want to call it directly, to get things loaded.
+           (fprintf op "~a(M); })"
+                    (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))]
+          [else
+           ;; Otherwise, we want to run under a trampolining context.
+           (fprintf op "M.trampoline(~a, true); })"
+                    (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))])))
 
 
 

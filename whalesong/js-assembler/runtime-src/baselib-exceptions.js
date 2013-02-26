@@ -178,6 +178,13 @@
     };
 
 
+    var raiseModuleLoadingError = function(MACHINE, name) {
+        var message = "unable to dynamically load module: " + name;
+        var contMarks = MACHINE.captureContinuationMarks();
+        raise(MACHINE,
+              ExnFail.constructor([message, contMarks]));
+    };
+
 
 
 
@@ -248,6 +255,7 @@
     exceptions.raiseOperatorApplicationError = raiseOperatorApplicationError;
     exceptions.raiseOperatorIsNotPrimitiveProcedure = raiseOperatorIsNotPrimitiveProcedure;
     exceptions.raiseUnimplementedPrimitiveError = raiseUnimplementedPrimitiveError;
+    exceptions.raiseModuleLoadingError = raiseModuleLoadingError;
 
 
 }(this.plt.baselib));

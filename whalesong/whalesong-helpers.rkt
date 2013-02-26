@@ -9,6 +9,7 @@
          racket/pretty
          json
          "parser/parse-bytecode.rkt"
+         "parser/path-rewriter.rkt"
          "compiler/compiler.rkt"
          "compiler/compiler-structs.rkt"
          "make/make-structs.rkt"
@@ -221,32 +222,33 @@
          (make-directory* (current-output-dir)))
 
 
-       (define main-module-path (make-output-js-filename #f))
        ;; Write out the main module and its other module dependencies.
        (parameterize ([current-on-resource on-resource])
          (call-with-output-file* (make-output-js-filename #f)
                                  (lambda (op)
                                    (display (get-runtime) op))
                                  #:exists 'replace)
-         (call-with-output-file* main-module-path
+         (call-with-output-file* (make-output-js-filename #f)
                                  (lambda (op)
                                    (display (get-inert-code (make-MainModuleSource 
                                                              (normalize-path (build-path f)))
                                                             make-output-js-filename)
                                             op))
                                  #:exists 'replace))
-
+       
+       ;; We want to get the symbolic name of the main module:
+       (define main-module-key (rewrite-path (normalize-path (build-path f))))
+       
+       
        (when (current-with-legacy-ie-support?)
          (for ([r ie-resources]) (on-resource r)))
        
        (fprintf (current-report-port)
                 (format "Writing html ~s\n" (build-path (current-output-dir) output-html-filename)))
        (define dynamically-loaded-modules
-         '()
-         #;(remove (file-name-from-path main-module-path)
-                 (for/list ([(key path) module-mappings])
-                   (file-name-from-path path))))
-       (displayln dynamically-loaded-modules)
+         (for/list ([(key path) module-mappings]
+                    #:unless (eq? key main-module-key))
+           (file-name-from-path path)))
        (call-with-output-file* (build-path (current-output-dir) output-html-filename)
                                (lambda (op)
                                  (display (get-html-template

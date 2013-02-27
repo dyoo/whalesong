@@ -399,10 +399,11 @@ M.modules[~s] =
                               window.console.log('loaded ' + ~s);
                           }
                      },
-                     function(err) {
+                     function(M, err) {
                           if (window.console && window.console.log) {
                               window.console.log('error: unable to load ' + ~s);
-                          }
+                              if (err && err.stack) { console.log(err.stack); }
+                         }
                      },
                      {});"
                   (format "~a" (source-name src))

@@ -1,10 +1,12 @@
+var COMPILED = [];
+
 $(document).ready(function() {
     "use strict";    
 
+    var repl = $("#repl");
     // Hook up a simple one-line REPL with enter triggering evaluation.
     $("#repl").keypress(function(e) {
-        if (e.which == 13) {
-            var repl = $(this);
+        if (e.which == 13 && !repl.attr('disabled')) {
             var src = repl.val();
             $(this).val("");
             repl.attr('disabled', 'true');
@@ -19,9 +21,13 @@ $(document).ready(function() {
         console.log("about to eval", src);
         var onCompile = function(compiledResult) {
             console.log("compilation got", compiledResult);
+            COMPILED.push(compiledResult);
+            eval(compiledResult.compiled);
+            // FIXME
+            plt.runtime.currentMachine.modules['whalesong/repl-prototype/anonymous-module.rkt'].invoke();
             after();
         };
-        var onError = function(x) {
+        var onError = function(err) {
             console.log("error", err);
             after();
         };

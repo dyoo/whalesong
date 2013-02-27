@@ -6,8 +6,11 @@
          file/gzip
          racket/runtime-path
          racket/port
+         racket/match
          web-server/servlet-env
          web-server/servlet
+         "../make/make-structs.rkt"
+         "../js-assembler/package.rkt"
          "write-runtime.rkt"
          (for-syntax racket/base))
 
@@ -40,13 +43,26 @@
 (define (start req)
   (define-values (response op) 
     (make-port-response #:mime-type #"text/json"))
-  (define source (extract-binding/single 'src (request-bindings req)))
-
-  (printf "program is: ~s\n" source)
+  (define text-src (extract-binding/single 'src (request-bindings req)))
+  (define as-mod? (match (extract-bindings 'm (request-bindings req))
+                    [(list (or "t" "true"))
+                     #t]
+                    [else #f]))
   ;; Compile the program here...
+  (define program-port (open-output-string))
+  (cond #;[(not as-mod?)
+           ...]
+        [else
+         (package (SexpSource (parameterize ([read-accept-reader #t])
+                                (read (open-input-string (string-append "#lang whalesong\n" text-src)))))
+                  #:should-follow-children? (lambda (src) #f)
+                  #:output-port  program-port)
+         ])
   ;; Send it back as json text....
-  (write-json '(1 2 3) op)
+  (write-json (hash 'compiled (get-output-string program-port))
+              op)
   (close-output-port op)
+  (printf "done\n")
   response)
   
 

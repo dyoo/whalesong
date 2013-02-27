@@ -1229,6 +1229,7 @@
     exports['raiseOperatorApplicationError'] = raiseOperatorApplicationError;
     exports['raiseOperatorIsNotPrimitiveProcedure'] = raiseOperatorIsNotPrimitiveProcedure;
     exports['raiseUnimplementedPrimitiveError'] = raiseUnimplementedPrimitiveError;
+    exports['raiseModuleLoadingError'] = raiseModuleLoadingError;
 
 
     exports['finalizeClosureCall'] = finalizeClosureCall;

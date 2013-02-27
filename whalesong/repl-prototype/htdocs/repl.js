@@ -4,6 +4,16 @@ $(document).ready(function() {
     "use strict";    
 
     var repl = $("#repl");
+    var output = $("#output");
+    
+    plt.runtime.currentMachine.params.currentDisplayer = function(MACHINE, domNode) {
+        $(domNode).appendTo(output);
+    }
+    plt.runtime.currentMachine.params.currentErrorDisplayer = function(MACHINE, domNode) {
+        $(domNode).appendTo(output);
+    }
+
+    
     // Hook up a simple one-line REPL with enter triggering evaluation.
     $("#repl").keypress(function(e) {
         if (e.which == 13 && !repl.attr('disabled')) {

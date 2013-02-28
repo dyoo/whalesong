@@ -31,6 +31,12 @@
 
 ;; repl-compile: any [#:lang module-path] -> compiled-bytecode
 ;; Compiles the given body in a toplevel context under the given language.
+;; Compilation creates a fresh namespace each time to avoid one compilation
+;; affecting the other.
+;;
+;; Note however, that the languages have to make sure not to maintain compilation
+;; state themselves, since we reuse the language module to improve repl construction
+;; time.
 (define (repl-compile body #:lang [language-module-path 'racket/base])
   (parameterize ([current-namespace (make-repl-namespace language-module-path)])
     (compile body)))

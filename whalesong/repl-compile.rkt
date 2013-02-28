@@ -1,28 +1,42 @@
 #lang racket/base
 
+(provide repl-compile)
+
 (define this-namespace (make-base-empty-namespace))
 
-(define (make-repl-namespace [module-path 'racket/base])
+;; Somewhat magical.
+;; See: http://lists.racket-lang.org/users/archive/2013-February/056664.html.
+(define make-fresh-namespace 
+  (eval '(lambda ()
+           (variable-reference->empty-namespace
+            (#%variable-reference)))
+        (make-base-namespace)))
+
+
+;; make-repl-namespace: [module-path] -> namespace
+;; Creates a clean namespace for the given module path.
+;;
+;; Note that we cache prior instantiations of the language
+;; to speed up construction of the namespace,
+;; so don't let people call make-repl-namespace with arbitrary values.
+(define (make-repl-namespace [language-module-path 'racket/base])
   (parameterize ([current-namespace this-namespace])
-    (dynamic-require module-path 0))
-  (define ns (make-empty-namespace))
+    (dynamic-require language-module-path 0))
+  (define ns (make-fresh-namespace))
   (parameterize ([current-namespace ns])
-    (namespace-attach-module this-namespace module-path)  
-    (namespace-require/copy module-path))
+    (namespace-attach-module this-namespace language-module-path)  
+    (namespace-require language-module-path))
   ns)
 
 
-(define memoized-table (make-weak-hash))
-(define (repl-compile body #:lang [module-path 'racket/base])
-  (define key (cons body module-path))
-  (hash-ref memoized-table key (lambda ()
-                                 (parameterize ([current-namespace (make-repl-namespace module-path)])
-                                   (define compiled (compile body))
-                                   (hash-set! memoized-table key compiled)
-                                   compiled))))
+;; repl-compile: any [#:lang module-path] -> compiled-bytecode
+;; Compiles the given body in a toplevel context under the given language.
+(define (repl-compile body #:lang [language-module-path 'racket/base])
+  (parameterize ([current-namespace (make-repl-namespace language-module-path)])
+    (compile body)))
 
 
 
-(for ([i 10])
-  (time (repl-compile '(* x 3) #:lang 'whalesong/lang/whalesong))
-  (time (repl-compile '(/ x 3) #:lang 'whalesong/lang/whalesong)))
+;(for ([i 10])
+;  (time (repl-compile '(* x 3) #:lang 'whalesong/lang/whalesong))
+;  (time (repl-compile '(/ x 3) #:lang 'whalesong/lang/whalesong)))

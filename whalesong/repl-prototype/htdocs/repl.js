@@ -34,8 +34,14 @@ $(document).ready(function() {
             COMPILED.push(compiledResult);
             eval(compiledResult.compiled);
             // FIXME
-            plt.runtime.currentMachine.modules['whalesong/repl-prototype/anonymous-module.rkt'].invoke();
-            after();
+            plt.runtime.currentMachine.modules['whalesong/repl-prototype/anonymous-module.rkt'].invoke(
+                plt.runtime.currentMachine,
+                function() {
+                    after();
+                },
+                function() {
+                    after();
+                });
         };
         var onError = function(err) {
             console.log("error", err);

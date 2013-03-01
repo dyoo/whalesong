@@ -73,7 +73,7 @@
                     (define assembled (assemble/write-invoke compiled-bytecode #f assembled-op))
                     (cons (get-output-string assembled-op) (loop))])))
          (printf "assembled codes ~s\n" assembled-codes)
-         (write-json (hash 'compiled-codes assembled-codes)
+         (write-json (hash 'compiledCodes assembled-codes)
                      op)]
         [else
          (define program-port (open-output-string))
@@ -81,7 +81,7 @@
                                 (read (open-input-string (string-append "#lang whalesong\n" text-src)))))
                   #:should-follow-children? (lambda (src) #f)
                   #:output-port  program-port)
-         (write-json (hash 'compiled-module (get-output-string program-port))
+         (write-json (hash 'compiledModule (get-output-string program-port))
                      op)
          ])
   ;; Send it back as json text....

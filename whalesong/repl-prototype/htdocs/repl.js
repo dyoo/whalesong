@@ -13,19 +13,40 @@ $(document).ready(function() {
         $(domNode).appendTo(output);
     }
 
-    
-    // Hook up a simple one-line REPL with enter triggering evaluation.
-    $("#repl").keypress(function(e) {
-        if (e.which == 13 && !repl.attr('disabled')) {
-            var src = repl.val();
-            $(this).val("");
-            repl.attr('disabled', 'true');
-            repl.val("... evaluating...");
-            evaluate(src, 
-                     function() { repl.removeAttr('disabled');
-                                  repl.val("");});
-        } 
-    });
+
+    var initializeLanguage = function(afterLanguageInitialization) {
+        // Load up the language.
+        plt.runtime.currentMachine.modules['whalesong/lang/whalesong.rkt'].invoke(
+            plt.runtime.currentMachine,
+            function() {
+                console.log("Environment initialized.");
+                afterLanguageInitialization();
+            },
+            function() {
+                // Nothing should work if we can't get this to work.
+                alert("uh oh!");
+            });
+    };
+
+
+    repl.attr('disabled', 'true');
+    initializeLanguage(
+        function() {
+            repl.removeAttr('disabled');
+            // Hook up a simple one-line REPL with enter triggering evaluation.
+            repl.keypress(function(e) {
+                if (e.which == 13 && !repl.attr('disabled')) {
+                    var src = repl.val();
+                    $(this).val("");
+                    repl.attr('disabled', 'true');
+                    repl.val("... evaluating...");
+                    evaluate(src, 
+                             function() { repl.removeAttr('disabled');
+                                          repl.val("");});
+                } 
+            });
+        });
+
 
     var evaluate = function(src, after) {
         console.log("about to eval", src);

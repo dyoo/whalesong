@@ -54,7 +54,7 @@
                      #t]
                     [else #f]))
   ;; Compile the program here...
-  (define program-port (open-output-string))
+  
   (cond [(not as-mod?)
          (define ip (open-input-string text-src))
          (port-count-lines! ip)
@@ -68,21 +68,24 @@
                     (define op (open-output-bytes))
                     (write raw-bytecode op)
                     (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
-                    (define compiled-bytecode (compile whalesong-bytecode 'val next-linkage/drop-multiple))
-                    (define assembled-op (open-output-bytes))
+                    (define compiled-bytecode (compile whalesong-bytecode 'val next-linkage/keep-multiple-on-stack))
+                    (define assembled-op (open-output-string))
                     (define assembled (assemble/write-invoke compiled-bytecode #f assembled-op))
-                    (cons (get-output-bytes assembled-op) (loop))])))
+                    (cons (get-output-string assembled-op) (loop))])))
          (printf "assembled codes ~s\n" assembled-codes)
-         (void)]
+         (write-json (hash 'compiled-codes assembled-codes)
+                     op)]
         [else
+         (define program-port (open-output-string))
          (package (SexpSource (parameterize ([read-accept-reader #t])
                                 (read (open-input-string (string-append "#lang whalesong\n" text-src)))))
                   #:should-follow-children? (lambda (src) #f)
                   #:output-port  program-port)
+         (write-json (hash 'compiled-module (get-output-string program-port))
+                     op)
          ])
   ;; Send it back as json text....
-  (write-json (hash 'compiled (get-output-string program-port))
-              op)
+
   (close-output-port op)
   (printf "done\n")
   response)

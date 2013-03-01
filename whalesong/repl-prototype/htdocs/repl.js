@@ -30,8 +30,10 @@ $(document).ready(function() {
 
 
     repl.attr('disabled', 'true');
+    repl.val('Please wait, initializing...');
     initializeLanguage(
         function() {
+            repl.val('');
             repl.removeAttr('disabled');
             // Hook up a simple one-line REPL with enter triggering evaluation.
             repl.keypress(function(e) {
@@ -51,18 +53,18 @@ $(document).ready(function() {
     var evaluate = function(src, after) {
         console.log("about to eval", src);
         var onCompile = function(compiledResult) {
-            console.log("compilation got", compiledResult);
             COMPILED.push(compiledResult);
-            eval(compiledResult.compiled);
+            after();
+            //eval(compiledResult.compiled);
             // FIXME
-            plt.runtime.currentMachine.modules['whalesong/repl-prototype/anonymous-module.rkt'].invoke(
-                plt.runtime.currentMachine,
-                function() {
-                    after();
-                },
-                function() {
-                    after();
-                });
+            // plt.runtime.currentMachine.modules['whalesong/repl-prototype/anonymous-module.rkt'].invoke(
+            //     plt.runtime.currentMachine,
+            //     function() {
+            //         after();
+            //     },
+            //     function() {
+            //         after();
+            //     });
         };
         var onError = function(err) {
             console.log("error", err);

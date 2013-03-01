@@ -25,6 +25,8 @@
              (LinkedLabel-linked-to stmt))]
       [(DebugPrint? stmt)
        empty]
+      [(MarkEntryPoint? stmt)
+       (list (MarkEntryPoint-label stmt))]
       [(AssignImmediate? stmt)
        (let: ([v : OpArg (AssignImmediate-value stmt)])
          (collect-input v))]
@@ -172,6 +174,8 @@
       [(LinkedLabel? stmt)
        (list (LinkedLabel-label stmt)
              (LinkedLabel-linked-to stmt))]
+      [(MarkEntryPoint? stmt)
+       (list (MarkEntryPoint-label stmt))]
       [(DebugPrint? stmt)
        empty]
       [(AssignImmediate? stmt)

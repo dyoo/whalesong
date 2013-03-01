@@ -170,6 +170,8 @@ EOF
           (next)]
          [(DebugPrint? stmt)
           (next)]
+         [(MarkEntryPoint? stmt)
+          (next)]
          [(AssignImmediate? stmt)
           (next)]
          [(AssignPrimOp? stmt)
@@ -293,6 +295,9 @@ EOF
         [else
          (define stmt (first stmts))
          (cond
+           [(MarkEntryPoint? stmt)
+            (default stmt)]
+           
            [(DebugPrint? stmt)
             (default stmt)]
            
@@ -430,6 +435,9 @@ EOF
           [else
            (define stmt (first stmts))
            (cond
+             [(MarkEntryPoint? stmt)
+              (default)]
+             
              [(DebugPrint? stmt)
               (default)]
              
@@ -496,6 +504,10 @@ EOF
 (define (assemble-statement stmt blockht)
   (define assembled
     (cond
+      [(MarkEntryPoint? stmt)
+       ;; Marking the entry point to the lambda should have no other effect.
+       ""]
+
       [(DebugPrint? stmt)
        (format "M.params.currentOutputPort.writeDomNode(M, $('<span/>').text(~a));"
                (assemble-oparg (DebugPrint-value stmt)
@@ -667,6 +679,9 @@ EOF
     [else
      (define first-stmt (first stmts))
      (cond
+       [(MarkEntryPoint? first-stmt)
+        (cons (MarkEntryPoint-label first-stmt)
+              (get-function-entry-and-exit-names (rest stmts)))]
        [(LinkedLabel? first-stmt)
         (cons (LinkedLabel-label first-stmt)
               (cons (LinkedLabel-linked-to first-stmt)

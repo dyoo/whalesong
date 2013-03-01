@@ -167,6 +167,7 @@
 (define-type StraightLineStatement (U
                                     DebugPrint
                                     Comment
+                                    MarkEntryPoint
                                     
                                     AssignImmediate
                                     AssignPrimOp
@@ -290,6 +291,11 @@
 
 
 (define-struct: Comment ([val : Any])
+  #:transparent)
+
+
+;; Marks the head of every lambda.
+(define-struct: MarkEntryPoint ([label : Symbol])
   #:transparent)
 
 

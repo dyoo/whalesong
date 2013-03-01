@@ -196,6 +196,9 @@
           ;(loop (rest stmts))
           (cons a-stmt (loop (rest stmts)))
           ]
+
+         [(MarkEntryPoint? a-stmt)
+          (cons a-stmt (loop (rest stmts)))]
          
          [(AssignImmediate? a-stmt)
           (cons (make-AssignImmediate (rewrite-target (AssignImmediate-target a-stmt))
@@ -346,6 +349,9 @@
     [(DebugPrint? stmt)
      #f
      #;#t]
+    
+    [(MarkEntryPoint? stmt)
+     #f]
     
     [(AssignImmediate? stmt)
      (equal? (AssignImmediate-target stmt)

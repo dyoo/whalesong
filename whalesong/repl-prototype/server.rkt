@@ -78,7 +78,7 @@
                     (define assembled-op (open-output-string))
                     (define assembled (assemble/write-invoke compiled-bytecode #f assembled-op))
                     (cons (get-output-string assembled-op) (loop))])))
-         #;(printf "assembled codes ~a\n" assembled-codes)
+         (printf "assembled codes ~a\n" assembled-codes)
          (write-json (hash 'compiledCodes assembled-codes)
                      op)]
         [else

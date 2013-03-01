@@ -844,6 +844,7 @@
       
       (append-instruction-sequences      
        (Lam-entry-label exp)
+       (make-MarkEntryPoint (Lam-entry-label exp))
        (Comment (format "lambda body for ~a" (Lam-name exp)))
        maybe-unsplice-rest-argument
        maybe-install-closure-values

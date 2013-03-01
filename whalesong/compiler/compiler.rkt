@@ -25,7 +25,8 @@
                [get-provided-names (Expression -> (Listof ModuleProvide))])
 
 
-(provide (rename-out [-compile compile])
+(provide (rename-out [-compile compile]
+                     [compile raw-compile])
          compile-general-procedure-call)
 
 
@@ -188,7 +189,7 @@
 
 (: compile-top (Top CompileTimeEnvironment Target Linkage -> InstructionSequence))
 ;; Generates code to write out the top prefix, evaluate the rest of the body,
-;; and then pop the top prefix off.
+;; and then pop the top prefix off afterwards.
 (define (compile-top top cenv target linkage)
   (let*: ([names : (Listof (U False Symbol GlobalBucket ModuleVariable)) (Prefix-names (Top-prefix top))])
     (end-with-linkage 
@@ -198,10 +199,11 @@
       (compile (Top-code top) 
                (cons (Top-prefix top) cenv)
                'val
-               next-linkage/drop-multiple)
+               next-linkage/keep-multiple-on-stack)
       (make-AssignImmediate target (make-Reg 'val))
       (make-PopEnvironment (make-Const 1) 
-                           (make-Const 0))))))
+                           (new-SubtractArg (make-Reg 'argcount)
+                                            (make-Const 1)))))))
 
 
 

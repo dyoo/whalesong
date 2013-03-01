@@ -66,18 +66,36 @@ $(document).ready(function() {
     };
 
 
+    var print = function(elt) {
+	var outputPort =
+	    M.params.currentOutputPort;
+	if (elt !== plt.runtime.VOID) {
+	    outputPort.writeDomNode(
+                M,
+                plt.runtime.toDomNode(elt, M.params['print-mode']));
+	    outputPort.writeDomNode(M, plt.runtime.toDomNode("\n", 'display'));
+	}
+    };
+
+
     // In evaluation, we'll send compilation requests to the server,
     // and get back bytecode that we should evaluate.
     var evaluate = function(src, after) {
         console.log("about to eval", src);
         var onCompile = function(compiledResult) {
             // compiledResult.compiledCodes is an array of function chunks.
+            // The evaluation leaves the value register of the machine
+            // to contain the list of values from toplevel evaluation.
             var compiledCodes = compiledResult.compiledCodes;
             forEachK(compiledCodes,
                      function(code, k) {
                          var codeFunction = eval(code);
                          var onGoodEvaluation = function() {
-                             console.log('good evaluation');
+                             var resultList = M.v;
+                             while(resultList !== plt.baselib.lists.EMPTY) {
+                                 print(resultList.first);
+                                 resultList = resultList.rest;
+                             };
                              k();
                          };
                          var onBadEvaluation = function(M, err) {
@@ -91,16 +109,6 @@ $(document).ready(function() {
                          codeFunction(M, onGoodEvaluation, onBadEvaluation);
                      },
                      after);
-            //eval(compiledResult.compiled);
-            // FIXME
-            // plt.runtime.currentMachine.modules['whalesong/repl-prototype/anonymous-module.rkt'].invoke(
-            //     plt.runtime.currentMachine,
-            //     function() {
-            //         after();
-            //     },
-            //     function() {
-            //         after();
-            //     });
         };
         var onError = function(err) {
             console.log("error", err);
@@ -113,5 +121,4 @@ $(document).ready(function() {
                 success: onCompile,
                 error: onError});
     };
-
 });

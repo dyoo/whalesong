@@ -14,7 +14,11 @@
          "../repl-compile.rkt"
          "../parser/parse-bytecode.rkt"
          "../compiler/compiler.rkt"
+         "../compiler/expression-structs.rkt"
+         "../compiler/il-structs.rkt"
+         "../compiler/lexical-structs.rkt"
          "../compiler/compiler-structs.rkt"
+         "../compiler/optimize-il.rkt"
          "../js-assembler/assemble.rkt"
          "write-runtime.rkt"
          (for-syntax racket/base))
@@ -68,11 +72,24 @@
                     (define op (open-output-bytes))
                     (write raw-bytecode op)
                     (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
-                    (define compiled-bytecode (compile whalesong-bytecode 'val next-linkage/keep-multiple-on-stack))
+                    (displayln whalesong-bytecode)
+                    (define compiled-bytecode 
+                      (let ([after-first-seq (make-label 'afterFirstSeqEvaluated)])
+                        (optimize-il
+                         (statements
+                          (append-instruction-sequences
+                           (raw-compile whalesong-bytecode '() 'val next-linkage/keep-multiple-on-stack) 
+                           (make-TestAndJump (make-TestZero (make-Reg 'argcount)) after-first-seq)
+                           (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)
+                           after-first-seq
+                           (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Reg 'argcount)))
+                           (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
+                           (make-PopEnvironment (make-Const 1) (make-Const 0)))))))
+                    (displayln compiled-bytecode)
                     (define assembled-op (open-output-string))
                     (define assembled (assemble/write-invoke compiled-bytecode #f assembled-op))
                     (cons (get-output-string assembled-op) (loop))])))
-         (printf "assembled codes ~s\n" assembled-codes)
+         (printf "assembled codes ~a\n" assembled-codes)
          (write-json (hash 'compiledCodes assembled-codes)
                      op)]
         [else

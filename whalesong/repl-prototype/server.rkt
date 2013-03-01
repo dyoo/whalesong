@@ -7,6 +7,7 @@
          racket/runtime-path
          racket/port
          racket/match
+         racket/pretty
          web-server/servlet-env
          web-server/servlet
          "../make/make-structs.rkt"
@@ -72,24 +73,12 @@
                     (define op (open-output-bytes))
                     (write raw-bytecode op)
                     (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
-                    (displayln whalesong-bytecode)
-                    (define compiled-bytecode 
-                      (let ([after-first-seq (make-label 'afterFirstSeqEvaluated)])
-                        (optimize-il
-                         (statements
-                          (append-instruction-sequences
-                           (raw-compile whalesong-bytecode '() 'val next-linkage/keep-multiple-on-stack) 
-                           (make-TestAndJump (make-TestZero (make-Reg 'argcount)) after-first-seq)
-                           (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)
-                           after-first-seq
-                           (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Reg 'argcount)))
-                           (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
-                           (make-PopEnvironment (make-Const 1) (make-Const 0)))))))
-                    (displayln compiled-bytecode)
+                    (define compiled-bytecode (compile-for-repl whalesong-bytecode))
+                    (pretty-print compiled-bytecode)
                     (define assembled-op (open-output-string))
                     (define assembled (assemble/write-invoke compiled-bytecode #f assembled-op))
                     (cons (get-output-string assembled-op) (loop))])))
-         (printf "assembled codes ~a\n" assembled-codes)
+         #;(printf "assembled codes ~a\n" assembled-codes)
          (write-json (hash 'compiledCodes assembled-codes)
                      op)]
         [else

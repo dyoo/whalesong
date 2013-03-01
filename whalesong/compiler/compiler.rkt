@@ -27,6 +27,7 @@
 
 (provide (rename-out [-compile compile]
                      [compile raw-compile])
+         compile-for-repl
          compile-general-procedure-call)
 
 
@@ -69,6 +70,49 @@
          (make-AssignImmediate target (make-Reg 'val)))))))
 
 
+;; Compiles an expression for the REPL.
+;; The result of the repl evaluation will be a list in the var register.
+(: compile-for-repl (Expression -> (Listof Statement)))
+(define (compile-for-repl exp)
+  (define lambda-bodies (collect-all-lambdas-with-bodies exp))
+  (define after-lam-bodies: (make-label 'afterLamBodies))
+  (define after-first-seq: (make-label 'afterFirstSeq))
+  (define last: (make-label 'last))
+  (define-values (after-pop-prompt-multiple: after-pop-prompt:)
+    (new-linked-labels 'afterPopPrompt))
+  
+  (optimize-il
+   (statements
+    (append-instruction-sequences
+     ;; Layout the lambda bodies...
+     (make-Goto (make-Label after-lam-bodies:))
+     (compile-lambda-bodies lambda-bodies)
+     
+     after-lam-bodies:
+     
+     ;; Begin a prompted evaluation:
+     (make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                   after-pop-prompt:)
+     (compile exp '() 'val return-linkage/nontail)
+        
+     ;; After coming back from the evaluation, rearrange the return values
+     ;; as a list.
+     after-pop-prompt-multiple:
+     (make-TestAndJump (make-TestZero (make-Reg 'argcount)) after-first-seq:)
+     (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)     
+     after-first-seq:
+     (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Reg 'argcount)))
+     (make-Goto (make-Label last:))
+     
+     after-pop-prompt:
+     (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)
+     (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Const 1)))
+     
+     last:
+     (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
+     (make-PopEnvironment (make-Const 1) (make-Const 0))))))
+
+  
 
 
 

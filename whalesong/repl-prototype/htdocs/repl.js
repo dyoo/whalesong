@@ -66,6 +66,8 @@ $(document).ready(function() {
     };
 
 
+    // Print: Racket value -> void
+    // Prints the racket value out.
     var print = function(elt) {
 	var outputPort =
 	    M.params.currentOutputPort;
@@ -121,4 +123,21 @@ $(document).ready(function() {
                 success: onCompile,
                 error: onError});
     };
+
+
+    // Things that we need to make as automated tests:
+    //
+    // Make sure: (let () (define (f x) (f x)) (f 42))
+    // is interruptable.
+    //
+    // Test: simple expressions, functions, etc.
+    //
+    // Test: multiple value return, even zero
+    //
+    // Test: require image library, try drawing a few things.
+    //
+    // Test: compile a module.
+    //
+
+
 });

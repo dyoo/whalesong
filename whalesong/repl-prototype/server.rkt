@@ -76,7 +76,7 @@
                     (define compiled-bytecode (compile-for-repl whalesong-bytecode))
                     (pretty-print compiled-bytecode)
                     (define assembled-op (open-output-string))
-                    (define assembled (assemble/write-invoke compiled-bytecode #f assembled-op))
+                    (define assembled (assemble/write-invoke compiled-bytecode assembled-op 'with-preemption))
                     (cons (get-output-string assembled-op) (loop))])))
          (printf "assembled codes ~a\n" assembled-codes)
          (write-json (hash 'compiledCodes assembled-codes)

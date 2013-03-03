@@ -115,6 +115,8 @@
                              (assemble-prefix-reference target)]
                             [(ControlFrameTemporary? target)
                              (assemble-control-frame-temporary target)]
+                            [(GlobalsReference? target)
+                             (format "M.globals[~s]" (symbol->string (GlobalsReference-name target)))]
                             [(ModulePrefixTarget? target)
                              (format "M.modules[~s].prefix"
                                      (symbol->string (ModuleLocator-name (ModulePrefixTarget-path target))))])

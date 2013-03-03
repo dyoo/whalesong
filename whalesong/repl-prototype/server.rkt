@@ -73,6 +73,7 @@
                     (define op (open-output-bytes))
                     (write raw-bytecode op)
                     (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
+                    (pretty-print whalesong-bytecode)
                     (define compiled-bytecode (compile-for-repl whalesong-bytecode))
                     (pretty-print compiled-bytecode)
                     (define assembled-op (open-output-string))

@@ -21,6 +21,10 @@
              (CheckToplevelBound!-pos op)
              (add1 (CheckToplevelBound!-depth op))
              (CheckToplevelBound!-pos op))]
+    [(CheckGlobalBound!? op)
+     (format "if (M.globals[~s]===void(0)){ RT.raiseUnboundToplevelError(M,~s); }"
+             (symbol->string (CheckGlobalBound!-name op))
+             (symbol->string (CheckGlobalBound!-name op)))]
 
 
     [(CheckClosureAndArity!? op)

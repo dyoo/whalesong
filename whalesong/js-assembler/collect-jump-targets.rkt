@@ -125,6 +125,8 @@
       [(ModuleVariable? op)
        empty]
       [(PrimitivesReference? op)
+       empty]
+      [(GlobalsReference? op)
        empty]))
 
   
@@ -276,6 +278,8 @@
       [(ModuleVariable? op)
        empty]
       [(PrimitivesReference? op)
+       empty]
+      [(GlobalsReference? op)
        empty]))
   
   (: collect-primitive-command (PrimitiveCommand -> (Listof Symbol)))

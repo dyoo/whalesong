@@ -102,4 +102,7 @@
              (symbol->string (ModuleVariable-name op)))]
 
     [(PrimitivesReference? op)
-     (format "M.primitives[~s]" (symbol->string (PrimitivesReference-name op)))]))
+     (format "M.primitives[~s]" (symbol->string (PrimitivesReference-name op)))]
+
+    [(GlobalsReference? op)
+     (format "M.globals[~s]" (symbol->string (GlobalsReference-name op)))]))

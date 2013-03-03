@@ -440,8 +440,7 @@
                                  (make-AssignPrimOp target
                                                     (make-PrimitivesReference
                                                      (kernel-module-variable->primitive-name
-                                                      prefix-element)
-                                                     ))]
+                                                      prefix-element)))]
                                 [else
                                  (make-AssignImmediate
                                   target
@@ -453,11 +452,10 @@
                            (if (ToplevelRef-check-defined? exp)
                                (make-Perform (make-CheckGlobalBound! (GlobalBucket-name prefix-element)))
                                empty-instruction-sequence)
-                           (make-AssignImmediate
+                           (make-AssignPrimOp
                             target
                             (make-GlobalsReference (GlobalBucket-name prefix-element))))]
-                         [(or (eq? prefix-element #f)
-                              (symbol? prefix-element))
+                         [(or (eq? prefix-element #f) (symbol? prefix-element))
                           (append-instruction-sequences
                            (if (ToplevelRef-check-defined? exp)
                                (make-Perform (make-CheckToplevelBound!
@@ -2080,24 +2078,32 @@
       ;; values are on the stack.
       (if (> n 0)
           (apply append-instruction-sequences
-                 (map (lambda: ([id : ToplevelRef]
-                                [from : OpArg])
-                        (make-AssignImmediate
-                         ;; Slightly subtle: the toplevelrefs were with respect to the
-                         ;; stack at the beginning of def-values, but at the moment,
-                         ;; there may be additional values that are currently there.
-                         (make-EnvPrefixReference (+ (ensure-natural (sub1 n))
-                                                     (ToplevelRef-depth id))
-                                                  (ToplevelRef-pos id)
-                                                  #f)
-                         from))
-                      ids
-                      (if (> n 0) 
-                          (cons (make-Reg 'val)
-                                (build-list (sub1 n)
-                                            (lambda: ([i : Natural])
-                                              (make-EnvLexicalReference i #f))))
-                          empty)))
+                   (map (lambda: ([id : ToplevelRef]
+                                  [from : OpArg])
+                          (define prefix 
+                            (ensure-prefix (list-ref cenv (ToplevelRef-depth id))))
+                          (define prefix-element (list-ref (Prefix-names prefix) (ToplevelRef-pos id)))  
+                          (cond
+                            [(GlobalBucket? prefix-element)
+                             (make-AssignImmediate (make-GlobalsReference (GlobalBucket-name prefix-element))
+                                                   from)]
+                            [else
+                             ;; Slightly subtle: the toplevelrefs were with respect to the
+                             ;; stack at the beginning of def-values, but at the moment,
+                             ;; there may be additional values that are currently there.
+                             (make-AssignImmediate
+                              (make-EnvPrefixReference (+ (ensure-natural (sub1 n))
+                                                          (ToplevelRef-depth id))
+                                                       (ToplevelRef-pos id)
+                                                       #f)
+                              from)]))
+                        ids
+                        (if (> n 0) 
+                            (cons (make-Reg 'val)
+                                  (build-list (sub1 n)
+                                              (lambda: ([i : Natural])
+                                                (make-EnvLexicalReference i #f))))
+                            empty)))
           empty-instruction-sequence)
       
       ;; Finally, make sure any multiple values are off the stack.
@@ -2174,6 +2180,8 @@
                               (EnvPrefixReference-pos target)
                               (EnvPrefixReference-modvar? target))]
     [(PrimitivesReference? target)
+     target]
+    [(GlobalsReference? target)
      target]
     [(ControlFrameTemporary? target)
      target]

@@ -38,7 +38,6 @@
                       ModulePredicate
                       PrimitiveKernelValue
                       VariableReference
-                      GlobalsReference
                       ))
 
 

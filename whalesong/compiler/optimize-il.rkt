@@ -147,7 +147,9 @@
        
        [(PrimitivesReference? op)
         op]
-       ))
+       
+       [(GlobalsReference? op)
+        op]))
 
 
     (: rewrite-primcmd (PrimitiveCommand -> PrimitiveCommand))

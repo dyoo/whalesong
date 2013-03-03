@@ -38,6 +38,7 @@
                       ModulePredicate
                       PrimitiveKernelValue
                       VariableReference
+                      GlobalsReference
                       ))
 
 
@@ -45,7 +46,8 @@
 (define-type Target (U AtomicRegisterSymbol 
                        EnvLexicalReference
                        EnvPrefixReference
-                       PrimitivesReference                   
+                       PrimitivesReference
+                       GlobalsReference
                        ControlFrameTemporary
                        ModulePrefixTarget
                        ))
@@ -151,6 +153,10 @@
 
 (define-struct: PrimitivesReference ([name : Symbol])
   #:transparent)
+
+(define-struct: GlobalsReference ([name : Symbol])
+  #:transparent)
+
 
 ;; Produces the entry point of the module.
 (define-struct: ModuleEntry ([name : ModuleLocator])
@@ -313,6 +319,7 @@
 
                                   ModuleVariable
                                   PrimitivesReference
+                                  GlobalsReference
                                   
                                   MakeBoxedEnvironmentValue
 
@@ -397,6 +404,12 @@
 (define-struct: CheckToplevelBound! ([depth : Natural]
                                      [pos : Natural])
   #:transparent)
+
+;; Check that the global can be defined.
+;; If not, raise an error and stop evaluation.
+(define-struct: CheckGlobalBound! ([name : Symbol])
+  #:transparent)
+
 
 ;; Check the closure procedure value in 'proc and make sure it's a closure
 ;; that can accept the right arguments (stored as a number in the argcount register.).
@@ -511,6 +524,7 @@
 
 (define-type PrimitiveCommand (U                                
                                CheckToplevelBound!
+                               CheckGlobalBound!
                                CheckClosureAndArity!
                                CheckPrimitiveArity!
 

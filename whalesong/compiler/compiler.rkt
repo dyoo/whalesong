@@ -448,9 +448,16 @@
                                   (make-EnvPrefixReference (ToplevelRef-depth exp)
                                                            (ToplevelRef-pos exp)
                                                            #t))])]
+                         [(GlobalBucket? prefix-element)
+                          (append-instruction-sequences
+                           (if (ToplevelRef-check-defined? exp)
+                               (make-Perform (make-CheckGlobalBound! (GlobalBucket-name prefix-element)))
+                               empty-instruction-sequence)
+                           (make-AssignImmediate
+                            target
+                            (make-GlobalsReference (GlobalBucket-name prefix-element))))]
                          [(or (eq? prefix-element #f)
-                              (symbol? prefix-element)
-                              (GlobalBucket? prefix-element))
+                              (symbol? prefix-element))
                           (append-instruction-sequences
                            (if (ToplevelRef-check-defined? exp)
                                (make-Perform (make-CheckToplevelBound!
@@ -487,9 +494,13 @@
                                               (ToplevelSet-pos exp)
                                               #t)
                      next-linkage/expects-single)]
+           [(GlobalBucket? prefix-element)
+            (compile (ToplevelSet-value exp)
+                     cenv
+                     (make-GlobalsReference (GlobalBucket-name prefix-element))
+                     next-linkage/expects-single)]
            [(or (eq? prefix-element #f)
-                (symbol? prefix-element)
-                (GlobalBucket? prefix-element))
+                (symbol? prefix-element))
             (compile (ToplevelSet-value exp)
                      cenv
                      (make-EnvPrefixReference (ToplevelSet-depth exp)

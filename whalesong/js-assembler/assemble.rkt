@@ -218,7 +218,7 @@ EOF
          [(= expected 1)
           'ok]
          [else
-          (fprintf op "~a=RT.si_context_expected(~a);\n"
+          (fprintf op "var ~a=RT.si_context_expected(~a);\n"
                    (munge-label-name (make-Label (BasicBlock-name a-basic-block)))
                    expected)
           'ok]))]
@@ -226,7 +226,7 @@ EOF
     [(block-looks-like-pop-multiple-values-and-continue? a-basic-block)
      =>
      (lambda (target)
-       (fprintf op "~a=RT.si_pop_multiple-values-and-continue(~a);"
+       (fprintf op "var ~a=RT.si_pop_multiple-values-and-continue(~a);"
                 (munge-label-name (make-Label (BasicBlock-name a-basic-block)))
                 target))]
     [else

@@ -2106,11 +2106,15 @@
                             empty)))
           empty-instruction-sequence)
       
-      ;; Finally, make sure any multiple values are off the stack.
+      ;; Make sure any multiple values are off the stack.
       (if (> (length ids) 1)
           (make-PopEnvironment (make-Const (sub1 (length ids)))
                                (make-Const 0))
-          empty-instruction-sequence)))))
+          empty-instruction-sequence)
+      
+      ;; Finally, set the target to void.
+      
+      (make-AssignImmediate target (make-Const (void)))))))
 
 
 

@@ -460,20 +460,20 @@ M.modules[~s] =
             (display bytes op))]
          [(cacheable? path)
           (define string-op (open-output-bytes))
-          (assemble/write-invoke (my-force stmts) #t string-op)
+          (assemble/write-invoke (my-force stmts) string-op 'no-trampoline)
           (save-in-cache! path (get-output-bytes string-op))
           (display (get-output-string string-op) op)]
          [else
-          (assemble/write-invoke (my-force stmts) #t op)])]
+          (assemble/write-invoke (my-force stmts) op 'no-trampoline)])]
       [else
-       (assemble/write-invoke (my-force stmts) #t op)]))
+       (assemble/write-invoke (my-force stmts) op 'no-trampoline)]))
   (cond
    [(ModuleSource? src)
     (on-path (ModuleSource-path src))]
    [(MainModuleSource? src)
     (on-path (MainModuleSource-path src))]
    [else
-    (assemble/write-invoke (my-force stmts) #f op)]))
+    (assemble/write-invoke (my-force stmts) op 'without-preemption)]))
 
 
 ;; cached?: path -> (U false bytes)

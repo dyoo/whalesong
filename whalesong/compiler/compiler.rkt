@@ -448,7 +448,9 @@
                                   (make-EnvPrefixReference (ToplevelRef-depth exp)
                                                            (ToplevelRef-pos exp)
                                                            #t))])]
-                         [else
+                         [(or (eq? prefix-element #f)
+                              (symbol? prefix-element)
+                              (GlobalBucket? prefix-element))
                           (append-instruction-sequences
                            (if (ToplevelRef-check-defined? exp)
                                (make-Perform (make-CheckToplevelBound!
@@ -485,7 +487,9 @@
                                               (ToplevelSet-pos exp)
                                               #t)
                      next-linkage/expects-single)]
-           [else
+           [(or (eq? prefix-element #f)
+                (symbol? prefix-element)
+                (GlobalBucket? prefix-element))
             (compile (ToplevelSet-value exp)
                      cenv
                      (make-EnvPrefixReference (ToplevelSet-depth exp)

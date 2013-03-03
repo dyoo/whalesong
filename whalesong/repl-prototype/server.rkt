@@ -2,7 +2,8 @@
 
 
 
-(require json
+(require "repl-compile.rkt"
+         json
          file/gzip
          racket/runtime-path
          racket/port
@@ -12,7 +13,6 @@
          web-server/servlet
          "../make/make-structs.rkt"
          "../js-assembler/package.rkt"
-         "../repl-compile.rkt"
          "../parser/parse-bytecode.rkt"
          "../compiler/compiler.rkt"
          "../compiler/expression-structs.rkt"
@@ -98,7 +98,7 @@
   
 
 
-;(write-repl-runtime-files)
+(write-repl-runtime-files)
 (serve/servlet start 
                #:servlet-path "/compile"
                #:extra-files-paths (list htdocs)

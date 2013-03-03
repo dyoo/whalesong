@@ -41,9 +41,7 @@
                                                 [(eq? n #f)
                                                  "false"]
                                                 [(GlobalBucket? n)
-                                                 ;; FIXME: maybe we should keep a set of global variables here?
-                                                 (format "M.primitives[~s]"
-                                                         (symbol->string (GlobalBucket-name n)))]
+                                                 (format "M.globals[~s]" (symbol->string (GlobalBucket-name n)))]
                                                 ;; FIXME:  this should be looking at the module path and getting
                                                 ;; the value here!  It shouldn't be looking into Primitives...
                                                 [(ModuleVariable? n)

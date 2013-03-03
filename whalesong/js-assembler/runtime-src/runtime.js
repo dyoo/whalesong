@@ -310,6 +310,7 @@
 
 
 	};
+        this.globals = {};
 	this.primitives = Primitives;
         this.exclusiveLock = new ExclusiveLock();
     };

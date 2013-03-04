@@ -19,7 +19,7 @@ $(document).ready(function() {
     // We then want to initialize the language module.
     var initializeLanguage = function(afterLanguageInitialization) {
         // Load up the language.
-        M.modules['whalesong/lang/whalesong.rkt'].invoke(
+        M.modules['whalesong/wescheme/lang/semantics.rkt'].invoke(
             M,
             function() {
                 console.log("Environment initialized.");

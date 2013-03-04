@@ -26,6 +26,10 @@
 
 (define-runtime-path htdocs (build-path "htdocs"))
 
+(define language 'whalesong/wescheme/lang/semantics)
+
+
+
 ;; make-port-response: (values response/incremental output-port)
 ;; Creates a response that's coupled to an output-port: whatever you
 ;; write into the output will be pushed into the response.
@@ -69,7 +73,7 @@
              (cond [(eof-object? sexp)
                     '()]
                    [else
-                    (define raw-bytecode (repl-compile sexp #:lang 'whalesong/lang/whalesong))
+                    (define raw-bytecode (repl-compile sexp #:lang language))
                     (define op (open-output-bytes))
                     (write raw-bytecode op)
                     (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))

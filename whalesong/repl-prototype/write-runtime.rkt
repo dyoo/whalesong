@@ -11,7 +11,8 @@
 (provide write-repl-runtime-files)
 
 (define-runtime-path collects-path (build-path "htdocs" "collects"))
-(define-runtime-path whalesong-lang (build-path "../lang/whalesong.rkt"))
+(define-runtime-path language-path 
+  (build-path "../wescheme/lang/semantics.rkt"))
 
 
 
@@ -50,10 +51,10 @@
                             (display (get-runtime) op))
                           #:exists 'replace)
   
-  (call-with-output-file* (make-output-js-filename 'whalesong-lang)
+  (call-with-output-file* (make-output-js-filename 'library)
                           (lambda (op)
                             (display (get-inert-code (make-ModuleSource 
-                                                      (normalize-path whalesong-lang))
+                                                      (normalize-path language-path))
                                                      make-output-js-filename)
                                      op))
                           #:exists 'replace)

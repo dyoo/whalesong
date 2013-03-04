@@ -105,4 +105,7 @@
      (format "M.primitives[~s]" (symbol->string (PrimitivesReference-name op)))]
 
     [(GlobalsReference? op)
-     (format "M.globals[~s]" (symbol->string (GlobalsReference-name op)))]))
+     (format "(M.globals[~s]!==undefined?M.globals[~s]:M.params.currentNamespace.get(~s))" 
+             (symbol->string (GlobalsReference-name op))
+             (symbol->string (GlobalsReference-name op))
+             (symbol->string (GlobalsReference-name op)))]))

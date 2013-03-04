@@ -3,6 +3,10 @@ $(document).ready(function() {
 
     var repl = $("#repl");
     var output = $("#output");
+    var breakButton = $("#break");
+    breakButton.hide();
+    breakButton.click(function() { interruptEvaluation(); });
+
 
     var M = plt.runtime.currentMachine;
 
@@ -49,9 +53,11 @@ $(document).ready(function() {
                     $(this).val("");
                     repl.attr('disabled', 'true');
                     repl.val("... evaluating...");
+                    breakButton.show();
                     evaluate(src, 
                              function() { repl.removeAttr('disabled');
-                                          repl.val("");});
+                                          repl.val("");
+                                          breakButton.hide();});
                 } 
             });
         });
@@ -83,6 +89,10 @@ $(document).ready(function() {
                 plt.runtime.toDomNode(elt, M.params['print-mode']));
 	    outputPort.writeDomNode(M, plt.runtime.toDomNode("\n", 'display'));
 	}
+    };
+
+    var interruptEvaluation = function() {
+        console.log('interrupt evaluation');
     };
 
 

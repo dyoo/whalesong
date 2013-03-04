@@ -80,6 +80,16 @@
     };
 
 
+    var raiseExnBreak = function(MACHINE, msg) {
+        var contMarks = MACHINE.captureContinuationMarks();
+        var k = false;
+        // FIXME: capture the current continuation and stuff it into
+        // k, to allow restart if possible.
+        raise(MACHINE, ExnBreak.constructor([msg, contMarks, k]));
+    };
+
+
+
     var raiseFailure = function(MACHINE, msg) {
         var contMarks = MACHINE.captureContinuationMarks();
         raise(MACHINE, ExnFail.constructor([msg, contMarks]));
@@ -208,7 +218,7 @@
     exceptions.exnSetContMarks = function(exn, v) { Exn.mutator(exn, 1, v); };
 
     exceptions.ExnBreak = ExnBreak;
-    exceptions.makeExnBreak = function(msg, marks) { return ExnBreak.constructor([msg, marks]); };
+    exceptions.makeExnBreak = function(msg, marks, k) { return ExnBreak.constructor([msg, marks, k]); };
     exceptions.isExnBreak = ExnBreak.predicate;
     exceptions.exnBreakContinuation = 
         function(exn) { return ExnBreak.accessor(exn, 0); };
@@ -244,6 +254,7 @@
 
 
     exceptions.raise = raise;
+    exceptions.raiseExnBreak = raiseExnBreak;
     exceptions.raiseFailure = raiseFailure;
     exceptions.raiseContractError = raiseContractError;
     exceptions.raiseDivisionByZeroError = raiseDivisionByZeroError;

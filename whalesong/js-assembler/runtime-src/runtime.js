@@ -106,6 +106,7 @@
 
     // Exceptions and error handling.
     var raise = baselib.exceptions.raise;
+    var makeExnBreak = baselib.exceptions.makeExnBreak; 
     var raiseUnboundToplevelError = baselib.exceptions.raiseUnboundToplevelError;
     var raiseArgumentTypeError = baselib.exceptions.raiseArgumentTypeError;
     var raiseContextExpectedValuesError = baselib.exceptions.raiseContextExpectedValuesError;
@@ -313,6 +314,13 @@
         this.globals = {};
 	this.primitives = Primitives;
         this.exclusiveLock = new ExclusiveLock();
+        this.breakScheduled = false;
+    };
+
+
+    // Schedule a break the next time the trampoline begins.
+    Machine.prototype.scheduleBreak = function() {
+        this.breakScheduled = true;
     };
 
 
@@ -461,9 +469,29 @@
     //
     var recomputeMaxNumBouncesBeforeYield;
 
+
+    // Checks to see if we need to handle break.  If so, returns true.
+    // Otherwise, returns false.
+    var maybeHandleBreak = function(MACHINE) {
+        if (MACHINE.breakScheduled) {
+            MACHINE.breakScheduled = false;
+            MACHINE.running = false;
+            MACHINE.params.currentErrorHandler(
+                MACHINE,
+                makeExnBreak("User break.",
+                             MACHINE.captureContinuationMarks(),
+                             // FIXME: capture the continuation as well,
+                             // rather than just hold false.
+                             false));
+            return true;
+        }
+        return false;
+    };
+
     var scheduleTrampoline = function(MACHINE, f, release) {
         setTimeout(
 	    function() {
+                if (maybeHandleBreak(MACHINE)) { release(); return; }
                 MACHINE._trampoline(f, false, release);
             },
             0);

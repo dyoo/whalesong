@@ -93,6 +93,7 @@ $(document).ready(function() {
 
     var interruptEvaluation = function() {
         console.log('interrupt evaluation');
+        M.scheduleBreak();
     };
 
 

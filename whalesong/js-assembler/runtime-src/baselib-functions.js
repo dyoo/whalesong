@@ -201,6 +201,16 @@
         }
 
         var i;
+
+        if (MACHINE.breakScheduled) {
+            MACHINE.breakScheduled = false;
+            return fail(baselib.exceptions.makeExnBreak("User break.",
+                                                        MACHINE.captureContinuationMarks(),
+                                                        // FIXME: capture the continuation as well,
+                                                        // rather than just hold false.
+                                                        false));
+        }
+
         var oldArgcount, oldVal, oldProc, oldErrorHandler, oldControlLength, oldEnvLength;
         if (! baselib.arity.isArityMatching(proc.racketArity, args.length - 4)) {
             var msg = baselib.format.format("arity mismatch: ~s expected ~s arguments, but received ~s",

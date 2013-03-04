@@ -25,7 +25,7 @@
   (define ns (make-fresh-namespace))
   (parameterize ([current-namespace ns])
     (namespace-attach-module this-namespace language-module-path)  
-    (namespace-require language-module-path))
+    (namespace-require/copy language-module-path))
   ns)
 
 

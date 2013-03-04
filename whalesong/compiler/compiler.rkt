@@ -295,7 +295,7 @@
          (make-PopControlFrame)
          
          ;; We sequester the prefix of the module with the record.
-         (make-Perform (make-FinalizeModuleInvokation! path))
+         (make-Perform (make-FinalizeModuleInvokation! path provides))
          (make-Goto (make-Reg 'proc))
          
          after-module-body)))]))

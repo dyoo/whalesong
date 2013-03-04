@@ -103,7 +103,7 @@
   
 
 
-;(write-repl-runtime-files)
+(write-repl-runtime-files)
 (serve/servlet start 
                #:servlet-path "/compile"
                #:extra-files-paths (list htdocs)

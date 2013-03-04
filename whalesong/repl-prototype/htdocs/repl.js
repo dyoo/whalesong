@@ -28,8 +28,11 @@ $(document).ready(function() {
                 console.log("Environment initialized.");
                 afterLanguageInitialization();
             },
-            function() {
+            function(M, err) {
                 // Nothing should work if we can't get this to work.
+                console.log(M);
+                console.log(err);
+                console.log(err.stack);
                 alert("uh oh!");
             });
     };

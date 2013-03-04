@@ -1,6 +1,7 @@
 #lang typed/racket/base
 (require "assemble-helpers.rkt"
          "../compiler/il-structs.rkt"
+         "../compiler/expression-structs.rkt"
 	 "../compiler/lexical-structs.rkt"
          "../compiler/kernel-primitives.rkt"
          "../parameters.rkt"
@@ -22,7 +23,8 @@
              (add1 (CheckToplevelBound!-depth op))
              (CheckToplevelBound!-pos op))]
     [(CheckGlobalBound!? op)
-     (format "if (M.globals[~s]===void(0)){ RT.raiseUnboundToplevelError(M,~s); }"
+     (format "if (M.globals[~s]===void(0)&&M.params.currentNamespace.get(~s)===void(0)){ RT.raiseUnboundToplevelError(M,~s); }"
+             (symbol->string (CheckGlobalBound!-name op))
              (symbol->string (CheckGlobalBound!-name op))
              (symbol->string (CheckGlobalBound!-name op)))]
 
@@ -45,7 +47,10 @@
                                                 [(eq? n #f)
                                                  "false"]
                                                 [(GlobalBucket? n)
-                                                 (format "M.globals[~s]" (symbol->string (GlobalBucket-name n)))]
+                                                 (format "M.globals[~s]!==void(0)?M.globals[~s]:M.params.currentNamespace.get(~s)"
+                                                         (symbol->string (GlobalBucket-name n))
+                                                         (symbol->string (GlobalBucket-name n))
+                                                         (symbol->string (GlobalBucket-name n)))]
                                                 ;; FIXME:  this should be looking at the module path and getting
                                                 ;; the value here!  It shouldn't be looking into Primitives...
                                                 [(ModuleVariable? n)
@@ -185,6 +190,21 @@
              (symbol->string (ModuleLocator-name (AliasModuleAsMain!-from op))))]
 
     [(FinalizeModuleInvokation!? op)
-     (format "M.modules[~s].finalizeModuleInvokation();"
-             (symbol->string
-              (ModuleLocator-name (FinalizeModuleInvokation!-path op))))]))
+     (define modname (symbol->string (ModuleLocator-name (FinalizeModuleInvokation!-path op))))
+     (string-append
+      (format "M.modules[~s].finalizeModuleInvokation();"
+              modname)
+
+      "(function (ns) {"
+      (string-join (for/list: : (Listof String) ([a-provide : ModuleProvide (FinalizeModuleInvokation!-provides op)])
+                     (cond [(kernel-module-name? (ModuleProvide-source a-provide))
+                              (format "ns.set(~s, M.primitives[~s]);"
+                                      (symbol->string (ModuleProvide-external-name a-provide))
+                                      (symbol->string (ModuleProvide-internal-name a-provide)))]
+                           [else
+                            (format "ns.set(~s, M.modules[~s].getNamespace().get(~s));" 
+                                    (symbol->string (ModuleProvide-external-name a-provide))
+                                    (symbol->string (ModuleLocator-name (ModuleProvide-source a-provide)))
+                                    (symbol->string (ModuleProvide-internal-name a-provide)))]))
+                   "")
+      (format "}(M.modules[~s].getNamespace()));" modname))]))

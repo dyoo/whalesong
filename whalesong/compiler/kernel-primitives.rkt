@@ -19,7 +19,12 @@
     (or (and (eq? (ModuleLocator-name locator) '#%kernel)
              (eq? (ModuleLocator-real-path locator) '#%kernel))
         (eq? (ModuleLocator-name locator)
-             'whalesong/lang/kernel.rkt)))
+             'whalesong/lang/kernel.rkt)
+        
+        ;; HACK HACK HACK
+        ;; This is for srcloc:
+        (eq? (ModuleLocator-name locator)
+             'collects/racket/private/kernstruct.rkt)))
 
 
   (: paramz-locator? (ModuleLocator -> Boolean))

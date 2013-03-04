@@ -516,7 +516,8 @@
 
 ;; Given the module locator, do any finalizing operations, like
 ;; setting up the module namespace.
-(define-struct: FinalizeModuleInvokation! ([path : ModuleLocator])
+(define-struct: FinalizeModuleInvokation! ([path : ModuleLocator]
+                                           [provides : (Listof ModuleProvide)])
   #:transparent)
 
 

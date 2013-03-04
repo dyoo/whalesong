@@ -90,6 +90,8 @@ $(document).ready(function() {
     // and get back bytecode that we should evaluate.
     var evaluate = function(src, after) {
         console.log("about to eval", src);
+        $("<tt/>").text('> ' + src).appendTo(output);
+        $("<br/>").appendTo(output);
         var onCompile = function(compiledResult) {
             // compiledResult.compiledCodes is an array of function chunks.
             // The evaluation leaves the value register of the machine

@@ -1,5 +1,6 @@
 $(document).ready(function() {
     "use strict";    
+    if (! console.log) { console.log = function() { }; }
 
     var repl = $("#repl");
     var output = $("#output");
@@ -16,7 +17,7 @@ $(document).ready(function() {
         $(domNode).appendTo(output);
     }
     M.params.currentErrorDisplayer = function(MACHINE, domNode) {
-        $(domNode).appendTo(output);
+        $(domNode).css("color", "red").appendTo(output);
     }
 
 
@@ -29,7 +30,6 @@ $(document).ready(function() {
             M,
             function() {
                 M.params.currentNamespace = semanticsModule.getNamespace();
-                console.log("Environment initialized.");
                 afterLanguageInitialization();
             },
             function(M, err) {
@@ -37,7 +37,7 @@ $(document).ready(function() {
                 console.log(M);
                 console.log(err);
                 console.log(err.stack);
-                alert("uh oh!");
+                alert("uh oh!: language could not be loaded.");
             });
     };
     repl.attr('disabled', 'true');
@@ -54,7 +54,7 @@ $(document).ready(function() {
                     repl.attr('disabled', 'true');
                     repl.val("... evaluating...");
                     breakButton.show();
-                    evaluate(src, 
+                    compileAndEvaluate(src, 
                              function() { repl.removeAttr('disabled');
                                           repl.val("");
                                           breakButton.hide();});
@@ -99,8 +99,7 @@ $(document).ready(function() {
 
     // In evaluation, we'll send compilation requests to the server,
     // and get back bytecode that we should evaluate.
-    var evaluate = function(src, after) {
-        console.log("about to eval", src);
+    var compileAndEvaluate = function(src, after) {
         $("<tt/>").text('> ' + src).appendTo(output);
         $("<br/>").appendTo(output);
         var onCompile = function(compiledResult) {
@@ -120,18 +119,25 @@ $(document).ready(function() {
                              k();
                          };
                          var onBadEvaluation = function(M, err) {
-                             console.log('bad evaluation');
                              console.log(err);
                              if (err.stack) {
                                  console.log(err.stack);
                              }
+                             if (err.message) { 
+                                 $("<span/>")
+                                     .text(err.message)
+                                     .css("color", "red")
+                                     .appendTo(output);
+                                 $("<br/>").appendTo(output);
+                             }
+
                              after();
                          };
                          codeFunction(M, onGoodEvaluation, onBadEvaluation);
                      },
                      after);
         };
-        var onError = function(err) {
+        var onServerError = function(err) {
             console.log("error", err);
             after();
         };
@@ -140,7 +146,7 @@ $(document).ready(function() {
                 url: '/compile',
                 data: { src: src },
                 success: onCompile,
-                error: onError});
+                error: onServerError});
     };
 
 

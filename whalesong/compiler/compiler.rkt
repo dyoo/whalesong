@@ -482,28 +482,31 @@
 (define (compile-toplevel-set exp cenv target linkage)
   (define prefix (ensure-prefix (list-ref cenv (ToplevelSet-depth exp))))
   (define prefix-element (list-ref (Prefix-names prefix) (ToplevelSet-pos exp)))
+
+  (define top-target
+    (cond
+      [(ModuleVariable? prefix-element)
+       (make-EnvPrefixReference (ToplevelSet-depth exp)
+                                (ToplevelSet-pos exp)
+                                #t)]
+      [(GlobalBucket? prefix-element)
+       (make-GlobalsReference (GlobalBucket-name prefix-element))]
+      
+      [(or (eq? prefix-element #f)
+           (symbol? prefix-element))
+       (make-EnvPrefixReference (ToplevelSet-depth exp)
+                                (ToplevelSet-pos exp)
+                                #f)]))
   (let ([get-value-code
          (cond
-           [(ModuleVariable? prefix-element)
-            (compile (ToplevelSet-value exp)
-                     cenv
-                     (make-EnvPrefixReference (ToplevelSet-depth exp)
-                                              (ToplevelSet-pos exp)
-                                              #t)
-                     next-linkage/expects-single)]
+           ;; Special case: when set!-ing globals, see that they're defined first.
            [(GlobalBucket? prefix-element)
-            (compile (ToplevelSet-value exp)
-                     cenv
-                     (make-GlobalsReference (GlobalBucket-name prefix-element))
-                     next-linkage/expects-single)]
-           [(or (eq? prefix-element #f)
-                (symbol? prefix-element))
-            (compile (ToplevelSet-value exp)
-                     cenv
-                     (make-EnvPrefixReference (ToplevelSet-depth exp)
-                                              (ToplevelSet-pos exp)
-                                              #f)
-                     next-linkage/expects-single)])]
+            (append-instruction-sequences
+             (compile (ToplevelSet-value exp) cenv 'val next-linkage/expects-single)
+             (make-Perform (make-CheckGlobalBound! (GlobalBucket-name prefix-element)))
+             (make-AssignImmediate top-target (make-Reg 'val)))]
+           [else
+            (compile (ToplevelSet-value exp) cenv top-target next-linkage/expects-single)])]
         [singular-context-check (emit-singular-context linkage)])
     (end-with-linkage
      linkage

@@ -1,7 +1,5 @@
 #lang racket/base
 
-
-
 (require "repl-compile.rkt"
          json
          file/gzip
@@ -9,6 +7,7 @@
          racket/port
          racket/match
          racket/pretty
+         racket/cmdline
          web-server/servlet-env
          web-server/servlet
          "../make/make-structs.rkt"
@@ -103,9 +102,16 @@
   
 
 
+(define current-port (make-parameter 8080))
+(void (command-line
+       #:once-each 
+       [("-p" "--port") p "Port (default 8080)" 
+                        (current-port (string->number p))]))
+
+
 (write-repl-runtime-files)
 (serve/servlet start 
                #:servlet-path "/compile"
                #:extra-files-paths (list htdocs)
                #:launch-browser? #f
-               #:port 8080)
+               #:port (current-port))

@@ -93,24 +93,23 @@
      ;; Begin a prompted evaluation:
      (make-PushControlFrame/Prompt default-continuation-prompt-tag
                                    after-pop-prompt:)
-     (compile exp '() 'val return-linkage/nontail)
+     (compile exp '() 'val next-linkage/keep-multiple-on-stack)
         
      ;; After coming back from the evaluation, rearrange the return values
      ;; as a list.
-     after-pop-prompt-multiple:
      (make-TestAndJump (make-TestZero (make-Reg 'argcount)) after-first-seq:)
      (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)     
      after-first-seq:
      (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Reg 'argcount)))
+     (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
+     (make-PopEnvironment (make-Const 1) (make-Const 0))
      (make-Goto (make-Label last:))
      
+     after-pop-prompt-multiple:
+     (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
+                          (make-Const 0))     
      after-pop-prompt:
-     (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)
-     (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Const 1)))
-     
-     last:
-     (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
-     (make-PopEnvironment (make-Const 1) (make-Const 0))))))
+     last:))))
 
   
 

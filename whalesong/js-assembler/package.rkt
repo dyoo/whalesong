@@ -173,8 +173,11 @@
            (for/list ([modprovide (get-provided-names bytecode)]
                       [i (in-naturals)])
              (string-append
-              (format "modrec.getNamespace().set(~s,exports[~s]);\n"
+              (format "ns.set(~s,exports[~s]);\n"
                       (symbol->string (ModuleProvide-internal-name modprovide))
+                      (symbol->string (ModuleProvide-external-name modprovide)))
+              (format "extNs.set(~s,exports[~s]);\n"
+                      (symbol->string (ModuleProvide-external-name modprovide))
                       (symbol->string (ModuleProvide-external-name modprovide)))
               (format "modrec.prefix[~a]=exports[~s];\n"
                       i
@@ -214,6 +217,8 @@
 	     (format "
              if(--M.cbt<0) { throw arguments.callee; }
              var modrec = M.modules[~s];
+             var ns = modrec.getNamespace();
+             var extNs = modrec.getExternalNamespace();
              ~a
              var exports = {};
              modrec.isInvoked = true;

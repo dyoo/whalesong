@@ -192,7 +192,7 @@
     [(FinalizeModuleInvokation!? op)
      (define modname (symbol->string (ModuleLocator-name (FinalizeModuleInvokation!-path op))))
      (string-append
-      "(function (selfMod,ns,prefix) {"
+      "(function (selfMod,ns,extNs,prefix) {"
       (string-join (for/list: : (Listof String) ([a-provide : ModuleProvide (FinalizeModuleInvokation!-provides op)])
                      (cond [(kernel-module-name? (ModuleProvide-source a-provide))
                             (format "ns.set(~s, M.primitives[~s]);"
@@ -200,13 +200,18 @@
                                     (symbol->string (ModuleProvide-internal-name a-provide)))]
                            [(equal? (ModuleLocator-name (ModuleProvide-source a-provide))
                                     (ModuleLocator-name (FinalizeModuleInvokation!-path op)))
-                            (format "ns.set(~s, prefix[selfMod.getPrefixOffset(~s)]);"
-                                    (symbol->string (ModuleProvide-internal-name a-provide))
-                                    (symbol->string (ModuleProvide-internal-name a-provide)))]
+                            (string-append (format "ns.set(~s, prefix[selfMod.getPrefixOffset(~s)]);"
+                                                   (symbol->string (ModuleProvide-internal-name a-provide))
+                                                   (symbol->string (ModuleProvide-internal-name a-provide)))
+                                           ;; For JS-derived code, it might be inconvenient to get the bindings by internal
+                                           ;; name.  We assign a separate mapping here to make it easier to access.
+                                           (format "extNs.set(~s, prefix[selfMod.getPrefixOffset(~s)]);"
+                                                   (symbol->string (ModuleProvide-external-name a-provide))
+                                                   (symbol->string (ModuleProvide-internal-name a-provide))))]
                            [else
                             (format "ns.set(~s, M.modules[~s].getNamespace().get(~s));" 
                                     (symbol->string (ModuleProvide-external-name a-provide))
                                     (symbol->string (ModuleLocator-name (ModuleProvide-source a-provide)))
                                     (symbol->string (ModuleProvide-internal-name a-provide)))]))
                    "")
-      (format "}(M.modules[~s],M.modules[~s].getNamespace(),M.modules[~s].prefix));" modname modname modname))]))
+      (format "}(M.modules[~s],M.modules[~s].getNamespace(),M.modules[~s].getExternalNamespace(),M.modules[~s].prefix));" modname modname modname modname))]))

@@ -34,10 +34,10 @@
 
 
     var resourceStructType = 
-        MACHINE.modules['whalesong/resource/structs.rkt'].getNamespace().get('struct:resource');
+        MACHINE.modules['whalesong/resource/structs.rkt'].getExternalNamespace().get('struct:resource');
 
     var eventStructType = 
-        MACHINE.modules['whalesong/web-world/event.rkt'].getNamespace().get('struct:event');
+        MACHINE.modules['whalesong/web-world/event.rkt'].getExternalNamespace().get('struct:event');
 
 
 

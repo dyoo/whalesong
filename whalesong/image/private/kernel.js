@@ -4,7 +4,7 @@
 
 
 //////////////////////////////////////////////////////////////////////
-var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].getNamespace();
+var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].getExternalNamespace();
 var colorStruct = colorNamespace.get('struct:color');
 var makeColor = function(r,g,b,a) { return colorStruct.constructor([r,g,b,a]); };
 var isColor = colorStruct.predicate;

@@ -1,4 +1,4 @@
-var resourceType = MACHINE.modules['whalesong/resource/structs.rkt'].getNamespace().get('struct:resource');
+var resourceType = MACHINE.modules['whalesong/resource/structs.rkt'].getExternalNamespace().get('struct:resource');
 
 var makeClosure = plt.baselib.functions.makeClosure;
 var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;

@@ -33,6 +33,7 @@
         this.isInvoked = false;
         this.prefix = false;
         this.namespace = new Namespace(this);
+        this.externalNamespace = new Namespace(this);
 
         // JavaScript-implemented code will assign privateExports
         // with all of the exported identifiers.
@@ -50,10 +51,16 @@
         return void(0);
     };
 
-    // Returns access to the names defined in the module.
+    // Returns access to the names provided in the module.
+    // Note that the names are the names internal to the module.
     ModuleRecord.prototype.getNamespace = function () {
         return this.namespace;
     };    
+
+    // Returns access to the names defined with their external names.
+    ModuleRecord.prototype.getExternalNamespace = function() {
+        return this.externalNamespace;
+    };
 
     // External invokation of a module.
     ModuleRecord.prototype.invoke = function (MACHINE, succ, fail) {

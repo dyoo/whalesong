@@ -139,7 +139,7 @@ $(document).ready(function() {
             var compiledCodes = compiledResult.compiledCodes;
             forEachK(compiledCodes,
                      function(code, k) {
-                         var codeFunction = eval(code);
+                         var codeFunction = (0,eval)(code);
                          var onGoodEvaluation = function() {
                              var resultList = M.v;
                              while(resultList !== plt.baselib.lists.EMPTY) {

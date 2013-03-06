@@ -79,13 +79,13 @@
                       (define op (open-output-bytes))
                       (write raw-bytecode op)
                       (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
-                      (pretty-print whalesong-bytecode)
+                      #;(pretty-print whalesong-bytecode)
                       (define compiled-bytecode (compile-for-repl whalesong-bytecode))
-                      (pretty-print compiled-bytecode)
+                      #;(pretty-print compiled-bytecode)
                       (define assembled-op (open-output-string))
                       (define assembled (assemble/write-invoke compiled-bytecode assembled-op 'with-preemption))
                       (cons (get-output-string assembled-op) (loop))])))
-           (printf "assembled codes ~a\n" assembled-codes)
+           #;(printf "assembled codes ~a\n" assembled-codes)
            (write-json (hash 'type "repl"
                              'compiledCodes assembled-codes)
                        op)]
@@ -102,7 +102,6 @@
   ;; Send it back as json text....
 
   (close-output-port op)
-  (printf "done\n")
   response)
   
 

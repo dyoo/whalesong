@@ -36,6 +36,7 @@ if (typeof(exports) !== 'undefined') {
 
 
 (function() {
+    'use strict';
     // Abbreviation
     var Numbers = __PLTNUMBERS_TOP__;
     //var Numbers = jsnums;

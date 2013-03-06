@@ -393,7 +393,7 @@ M.modules[~s] =
        (define start-time (current-inexact-milliseconds))
        (cond
         [(UninterpretedSource? src)
-         (fprintf op "(function(M) { ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
+         (fprintf op "(function(M) {\n\"use strict\";\n ~a }(plt.runtime.currentMachine));" (UninterpretedSource-datum src))]
         [else      
          (fprintf op "(")
          (on-source src stmts op)

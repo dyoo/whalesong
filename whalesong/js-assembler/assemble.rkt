@@ -39,6 +39,7 @@
   (parameterize ([current-interned-symbol-table ((inst make-hash Symbol Symbol))]
                  [current-interned-constant-closure-table ((inst make-hash Symbol MakeCompiledProcedure))])
     (display "(function(M, success, fail, params) {\n" op)
+    (display "\"use strict\";\n" op)
     (display "var param;\n" op)
     (display "var RT = plt.runtime;\n" op)
     

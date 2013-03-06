@@ -78,6 +78,18 @@ $(document).ready(function() {
     };
 
 
+    // writeErrorMessage: string -> void
+    // Write out an error message.
+    var writeErrorMessage = function(msg) {
+        $("<span/>")
+            .text(''+msg)
+            .css("color", "red")
+            .appendTo(output);
+        $("<br/>").appendTo(output);
+    };
+
+
+
     // Print: Racket value -> void
     // Prints the racket value out.
     var print = function(elt) {
@@ -103,6 +115,24 @@ $(document).ready(function() {
         $("<tt/>").text('> ' + src).appendTo(output);
         $("<br/>").appendTo(output);
         var onCompile = function(compiledResult) {
+            if (compiledResult.type === 'repl') {
+                return onGoodReplCompile(compiledResult);
+            } else if (compiledResult.type === 'module') {
+                alert('internal error: module unexpected');
+                after();
+            } else if (compiledResult.type === 'error') {
+                return onCompileTimeError(compiledResult);
+            }
+        };
+
+
+        var onCompileTimeError = function(compiledResult) {
+            writeErrorMessage(compiledResult.message);
+            after();
+        };
+
+
+        var onGoodReplCompile = function(compiledResult) {
             // compiledResult.compiledCodes is an array of function chunks.
             // The evaluation leaves the value register of the machine
             // to contain the list of values from toplevel evaluation.
@@ -124,11 +154,7 @@ $(document).ready(function() {
                                  console.log(err.stack);
                              }
                              if (err.message) { 
-                                 $("<span/>")
-                                     .text(err.message)
-                                     .css("color", "red")
-                                     .appendTo(output);
-                                 $("<br/>").appendTo(output);
+                                 writeErrorMessage(err.message);
                              }
 
                              after();
@@ -137,8 +163,11 @@ $(document).ready(function() {
                      },
                      after);
         };
+        var onCompileError = function(err) {
+        };
+
         var onServerError = function(err) {
-            console.log("error", err);
+            writeErrorMessage("internal server error");
             after();
         };
 

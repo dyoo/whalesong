@@ -62,38 +62,43 @@
                      #t]
                     [else #f]))
   ;; Compile the program here...
-  
-  (cond [(not as-mod?)
-         (define ip (open-input-string text-src))
-         (port-count-lines! ip)
-         (define assembled-codes
-           (let loop () 
-             (define sexp (read-syntax #f ip))
-             (cond [(eof-object? sexp)
-                    '()]
-                   [else
-                    (define raw-bytecode (repl-compile sexp #:lang language))
-                    (define op (open-output-bytes))
-                    (write raw-bytecode op)
-                    (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
-                    (pretty-print whalesong-bytecode)
-                    (define compiled-bytecode (compile-for-repl whalesong-bytecode))
-                    (pretty-print compiled-bytecode)
-                    (define assembled-op (open-output-string))
-                    (define assembled (assemble/write-invoke compiled-bytecode assembled-op 'with-preemption))
-                    (cons (get-output-string assembled-op) (loop))])))
-         (printf "assembled codes ~a\n" assembled-codes)
-         (write-json (hash 'compiledCodes assembled-codes)
-                     op)]
-        [else
-         (define program-port (open-output-string))
-         (package (SexpSource (parameterize ([read-accept-reader #t])
-                                (read (open-input-string (string-append "#lang whalesong\n" text-src)))))
-                  #:should-follow-children? (lambda (src) #f)
-                  #:output-port  program-port)
-         (write-json (hash 'compiledModule (get-output-string program-port))
-                     op)
-         ])
+  (with-handlers ([exn:fail? (lambda (exn)
+                               (write-json (hash 'type "error"
+                                                 'message (exn-message exn))
+                                           op))])
+    (cond [(not as-mod?)
+           (define ip (open-input-string text-src))
+           (port-count-lines! ip)
+           (define assembled-codes
+             (let loop () 
+               (define sexp (read-syntax #f ip))
+               (cond [(eof-object? sexp)
+                      '()]
+                     [else
+                      (define raw-bytecode (repl-compile sexp #:lang language))
+                      (define op (open-output-bytes))
+                      (write raw-bytecode op)
+                      (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
+                      (pretty-print whalesong-bytecode)
+                      (define compiled-bytecode (compile-for-repl whalesong-bytecode))
+                      (pretty-print compiled-bytecode)
+                      (define assembled-op (open-output-string))
+                      (define assembled (assemble/write-invoke compiled-bytecode assembled-op 'with-preemption))
+                      (cons (get-output-string assembled-op) (loop))])))
+           (printf "assembled codes ~a\n" assembled-codes)
+           (write-json (hash 'type "repl"
+                             'compiledCodes assembled-codes)
+                       op)]
+          [else
+           (define program-port (open-output-string))
+           (package (SexpSource (parameterize ([read-accept-reader #t])
+                                  (read (open-input-string (string-append "#lang whalesong\n" text-src)))))
+                    #:should-follow-children? (lambda (src) #f)
+                    #:output-port  program-port)
+           (write-json (hash 'type "module"
+                             'compiledModule (get-output-string program-port))
+                       op)
+           ]))
   ;; Send it back as json text....
 
   (close-output-port op)

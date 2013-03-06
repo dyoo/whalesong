@@ -21,5 +21,6 @@
          (syntax/loc stx
            (with-continuation-mark key 'pos
                                    (#%plain-app operator operands ...))))]
-      [else
-       stx])))
+      [(_)
+       (syntax/loc stx
+         (#%app))])))

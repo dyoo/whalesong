@@ -192,19 +192,21 @@
     [(FinalizeModuleInvokation!? op)
      (define modname (symbol->string (ModuleLocator-name (FinalizeModuleInvokation!-path op))))
      (string-append
-      (format "M.modules[~s].finalizeModuleInvokation();"
-              modname)
-
-      "(function (ns) {"
+      "(function (selfMod,ns,prefix) {"
       (string-join (for/list: : (Listof String) ([a-provide : ModuleProvide (FinalizeModuleInvokation!-provides op)])
                      (cond [(kernel-module-name? (ModuleProvide-source a-provide))
-                              (format "ns.set(~s, M.primitives[~s]);"
-                                      (symbol->string (ModuleProvide-external-name a-provide))
-                                      (symbol->string (ModuleProvide-internal-name a-provide)))]
+                            (format "ns.set(~s, M.primitives[~s]);"
+                                    (symbol->string (ModuleProvide-external-name a-provide))
+                                    (symbol->string (ModuleProvide-internal-name a-provide)))]
+                           [(equal? (ModuleLocator-name (ModuleProvide-source a-provide))
+                                    (ModuleLocator-name (FinalizeModuleInvokation!-path op)))
+                            (format "ns.set(~s, prefix[selfMod.getPrefixOffset(~s)]);"
+                                    (symbol->string (ModuleProvide-internal-name a-provide))
+                                    (symbol->string (ModuleProvide-internal-name a-provide)))]
                            [else
                             (format "ns.set(~s, M.modules[~s].getNamespace().get(~s));" 
                                     (symbol->string (ModuleProvide-external-name a-provide))
                                     (symbol->string (ModuleLocator-name (ModuleProvide-source a-provide)))
                                     (symbol->string (ModuleProvide-internal-name a-provide)))]))
                    "")
-      (format "}(M.modules[~s].getNamespace()));" modname))]))
+      (format "}(M.modules[~s],M.modules[~s].getNamespace(),M.modules[~s].prefix));" modname modname modname))]))

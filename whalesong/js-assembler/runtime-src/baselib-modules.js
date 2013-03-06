@@ -10,36 +10,13 @@
     var Namespace = function(modrec) {
         this.modrec = modrec;
 
-        // string -> integer
-        // Returns the position within the prefix that we should be looking.
+        // Returns the key/value pairs of the prefix.
+        // mapping: string -> value
         this.mapping = {}; 
-        this.prefix = void(0);
-        this.extra = {};
     };
 
     Namespace.prototype.get = function(name) {
-        if (this.mapping.hasOwnProperty(name)) {
-            return this.prefix[this.mapping[name]];
-        }
-        if (this.extra.hasOwnProperty(name)) {
-            return this.extra[name];
-        }
-        return void(0);
-    };
-
-    Namespace.prototype.refreshPrefixMapping = function() {
-        var prefix = this.modrec.prefix;
-        var name;
-        var i;
-        for (i = 0; i < prefix.length; i++) {
-            name = prefix.names[i];
-            this.mapping[name] = i;
-            if (this.extra.hasOwnProperty(name)) {
-                prefix[i] = this.extra[name];
-                delete this.extra[name];
-            }
-        }
-        this.prefix = prefix;
+        return this.mapping[name];
     };
 
     Namespace.prototype.hasKey = function(name) {
@@ -47,16 +24,7 @@
     };
 
     Namespace.prototype.set = function(name, value) {
-        if (this.mapping.hasOwnProperty(name)) {
-            this.prefix[this.mapping[name]] = value;
-            return;
-        };
-        if (this.extra.hasOwnProperty(name)) {
-            this.extra[name] = value;
-            return;
-        }
-        this.extra[name] = value;
-        return;
+        this.mapping[name] = value;
     };
 
     var ModuleRecord = function (name, label) {
@@ -85,12 +53,7 @@
     // Returns access to the names defined in the module.
     ModuleRecord.prototype.getNamespace = function () {
         return this.namespace;
-    };
-
-    ModuleRecord.prototype.finalizeModuleInvokation = function () {
-        this.namespace.refreshPrefixMapping();
-    };
-    
+    };    
 
     // External invokation of a module.
     ModuleRecord.prototype.invoke = function (MACHINE, succ, fail) {

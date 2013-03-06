@@ -14,11 +14,6 @@
          "../js-assembler/package.rkt"
          "../parser/parse-bytecode.rkt"
          "../compiler/compiler.rkt"
-         "../compiler/expression-structs.rkt"
-         "../compiler/il-structs.rkt"
-         "../compiler/lexical-structs.rkt"
-         "../compiler/compiler-structs.rkt"
-         "../compiler/optimize-il.rkt"
          "../js-assembler/assemble.rkt"
          "write-runtime.rkt"
          (for-syntax racket/base))
@@ -79,7 +74,7 @@
                       (define op (open-output-bytes))
                       (write raw-bytecode op)
                       (define whalesong-bytecode (parse-bytecode (open-input-bytes (get-output-bytes op))))
-                      #;(pretty-print whalesong-bytecode)
+                      (pretty-print whalesong-bytecode)
                       (define compiled-bytecode (compile-for-repl whalesong-bytecode))
                       #;(pretty-print compiled-bytecode)
                       (define assembled-op (open-output-string))

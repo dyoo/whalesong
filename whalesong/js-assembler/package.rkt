@@ -173,12 +173,13 @@
            (for/list ([modprovide (get-provided-names bytecode)]
                       [i (in-naturals)])
              (string-append
-;              (format "modrec.getNamespace().set(~s,exports[~s]);\n"
-;                      (symbol->string (ModuleProvide-internal-name modprovide))
-;                      (symbol->string (ModuleProvide-external-name modprovide)))
-              (format "modrec.prefix[~a]=exports[~s];\n"
-                      i
-                      (symbol->string (ModuleProvide-external-name modprovide)))))))
+              (format "modrec.getNamespace().set(~s,exports[~s]);\n"
+                      (symbol->string (ModuleProvide-external-name modprovide))
+                      (symbol->string (ModuleProvide-internal-name modprovide)))
+              ;(format "modrec.prefix[~a]=exports[~s];\n"
+              ;        i
+              ;        (symbol->string (ModuleProvide-external-name modprovide))))
+              ))))
 
   (define (get-prefix-code bytecode)
     (format "modrec.prefix=[~a];modrec.prefix.names=[~a];modrec.prefix.internalNames=[~a];"
@@ -220,7 +221,6 @@
              (function(MACHINE, EXPORTS){~a})(M, exports);
              ~a
              modrec.privateExports = exports;
-             modrec.finalizeModuleInvokation();
              return M.c.pop().label(M);"
 		     (symbol->string name)
                      (get-prefix-code bytecode)

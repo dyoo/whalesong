@@ -88,11 +88,11 @@
 
     EXPORTS['js-eval'] =
         makePrimitiveProcedure(
-            'myalert',
+            'js-eval',
             1,
             function(MACHINE) {
                 var elt = MACHINE.e[MACHINE.e.length - 1];
-                var obj = eval('(' + String(elt) + ')');
+                var obj = (0,eval)('(' + String(elt) + ')');
                 return obj;
             });
 

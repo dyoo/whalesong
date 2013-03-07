@@ -42,7 +42,7 @@
                 base64.js
                 
                 baselib.js
-
+                baselib-dict.js
                 baselib-frames.js
 
                 baselib-loadscript.js

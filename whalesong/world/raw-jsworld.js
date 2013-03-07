@@ -258,16 +258,18 @@ var rawJsworld = {};
     };
     Jsworld.fold = fold;
 
+    var hasOwnProperty = {}.hasOwnProperty;
+
 
     function augment(o, a) {
         var oo = {}, e;
         for (e in o) {
-            if (o.hasOwnProperty(e)) {
+            if (hasOwnProperty.call(o, e)) {
                 oo[e] = o[e];
             }
         }
         for (e in a) {
-            if (a.hasOwnProperty(e)) {
+            if (hasOwnProperty.call(a, e)) {
                 oo[e] = a[e];
             }
         }
@@ -279,7 +281,7 @@ var rawJsworld = {};
     function assoc_cons(o, k, v) {
         var oo = {}, e;
         for (e in o) {
-            if (o.hasOwnProperty(e)) {
+            if (hasOwnProperty.call(o, e)) {
                 oo[e] = o[e];
             }
         }
@@ -337,7 +339,7 @@ var rawJsworld = {};
     function without(obj, attrib) {
         var o = {}, a;
         for (a in obj) {
-            if (obj.hasOwnProperty(a)) {
+            if (hasOwnProperty.call(obj, a)) {
                 if (a !== attrib) {
                     o[a] = obj[a];
                 }
@@ -1263,7 +1265,7 @@ var rawJsworld = {};
         var a;
         if (attribs) {
             for (a in attribs) {
-                if (attribs.hasOwnProperty(a)) {
+                if (hasOwnProperty.call(attribs, a)) {
                     if (typeof attribs[a] === 'function') {
                         add_ev(node, a, attribs[a]);
                     } else {

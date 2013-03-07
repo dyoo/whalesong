@@ -925,6 +925,7 @@
         return lst;
     };
 
+    var hasOwnProperty = {}.hasOwnProperty;
 
 
 
@@ -937,7 +938,7 @@
         // that the object has a hasOwnProperty before I use it.  I've intentionally
         // turned off jslint's forin check because it's breaking here:
         for (key in obj) {
-            if (obj.hasOwnProperty && obj.hasOwnProperty(key)) {
+            if (hasOwnProperty.call(obj, key)) {
                 val = obj[key];
                 if (typeof(val) === 'number') {
                     result = makePair(makeList(makeSymbol(key),
@@ -1074,11 +1075,9 @@
         var that = this;
         if (this.id === undefined) {
             var success = function(position) {
-                if (position.hasOwnProperty &&
-                    position.hasOwnProperty('coords') &&
-                    position.coords.hasOwnProperty &&
-                    position.coords.hasOwnProperty('latitude') &&
-                    position.coords.hasOwnProperty('longitude')) {
+                if (hasOwnProperty.call(position, 'coords') &&
+                    hasOwnProperty.call(position.coords, 'latitude') &&
+                    hasOwnProperty.call(position.coords, 'longitude')) {
                     fireEvent(undefined,
                               objectToEvent({ 'latitude' : Number(position.coords.latitude),
                                               'longitude' : Number(position.coords.longitude) }));
@@ -1471,7 +1470,7 @@
     // ones, since there's an unbound number of those.
     var validElementNames = {};  
     var isValidElementName = function(name) {
-        if (! (validElementNames.hasOwnProperty(name))) {
+        if (! (hasOwnProperty.call(validElementNames, name))) {
             // Permissive parsing: see that the name is a valid
             // element type.
             // Is there a nicer way to do this besides exception

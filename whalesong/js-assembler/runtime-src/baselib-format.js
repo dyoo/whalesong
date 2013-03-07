@@ -199,12 +199,13 @@
     
 
 
+    var hasOwnProperty = {}.hasOwnProperty;
 
     var ToDomNodeParameters = function(params) {
         if (! params) { params = {}; }
         var k;
         for (k in params) {
-            if (params.hasOwnProperty(k)) {
+            if (hasOwnProperty.call(params, k)) {
                 this[k] = params[k];
             }
         }

@@ -68,7 +68,7 @@
     (display "M.params.currentSuccessHandler = success;\n" op)
     (display  #<<EOF
 for (param in params) {
-    if (params.hasOwnProperty(param)) {
+    if (Object.hasOwnProperty.call(params, param)) {
         M.params[param] = params[param];
     }
 }

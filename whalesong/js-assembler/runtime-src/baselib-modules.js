@@ -7,6 +7,8 @@
     var exports = {};
     baselib.modules = exports;
 
+    var hasOwnProperty = {}.hasOwnProperty;
+
     var Namespace = function(modrec) {
         this.modrec = modrec;
 
@@ -20,7 +22,7 @@
     };
 
     Namespace.prototype.hasKey = function(name) {
-        return this.mapping.hasOwnProperty(name);
+        return hasOwnProperty.call(this.mapping, name);
     };
 
     Namespace.prototype.set = function(name, value) {

@@ -20,6 +20,8 @@ if (!(this.plt)) { this.plt = {}; }
 
 
 
+    var hasOwnProperty = {}.hasOwnProperty;
+
     // clone: object -> object
     // Copies an object.  The new object should respond like the old
     // object, including to things like instanceof.
@@ -29,7 +31,7 @@ if (!(this.plt)) { this.plt = {}; }
         C.prototype = obj;
         var c = new C();
         for (property in obj) {
-            if (obj.hasOwnProperty(property)) {
+            if (hasOwnProperty.call(obj, property)) {
                 c[property] = obj[property];
             }
         }

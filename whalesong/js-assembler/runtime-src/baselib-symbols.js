@@ -16,12 +16,14 @@
     };
 
     var symbolCache = {};
+
+    var hasOwnProperty = {}.hasOwnProperty;
     
     // makeSymbol: string -> Symbol.
     // Interns a symbol.
     var makeSymbol = function (val) {
         // To ensure that we can eq? symbols with equal values.
-        if (!(symbolCache.hasOwnProperty(val))) {
+        if (!(hasOwnProperty.call(symbolCache,val))) {
             symbolCache[val] = new Symbol(val);
         }
         return symbolCache[val];

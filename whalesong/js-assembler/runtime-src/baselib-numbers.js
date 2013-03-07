@@ -69,10 +69,12 @@
     // Exports
 
 
+    var hasOwnProperty = {}.hasOwnProperty;
+
     // We first re-export everything in jsnums.
     var prop;
     for (prop in jsnums) {
-        if (jsnums.hasOwnProperty(prop)) {
+        if (hasOwnProperty.call(jsnums,prop)) {
             exports[prop] = jsnums[prop];
         }
     }

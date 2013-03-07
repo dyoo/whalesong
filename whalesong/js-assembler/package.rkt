@@ -733,7 +733,7 @@ var invokeMainModule = function() {
             M.params.currentErrorDisplayer(
                 M, $(plt.baselib.format.toDomNode(e.stack || e)).css('color', 'red'));
 
-            if (e.hasOwnProperty('racketError') &&
+            if (Object.hasOwnProperty.call(e,'racketError') &&
                 plt.baselib.exceptions.isExn(e.racketError)) {
                 contMarkSet = plt.baselib.exceptions.exnContMarks(e.racketError);
                 contextDiv = $('<div/>');

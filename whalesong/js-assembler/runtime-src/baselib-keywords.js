@@ -13,11 +13,13 @@
     };
 
     var keywordCache = {};
+
+    var hasOwnProperty = {}.hasOwnProperty;
     
     // makeInstance: string -> Keyword.
     Keyword.makeInstance = function (val) {
         // To ensure that we can eq? symbols with equal values.
-        if (!(keywordCache.hasOwnProperty(val))) {
+        if (!(hasOwnProperty.call(keywordCache, val))) {
             keywordCache[val] = new Keyword(val);
         }
         return keywordCache[val];

@@ -774,9 +774,6 @@
     // Executes all programs that have been labeled as a main module
     var invokeMains = function(machine, succ, fail) {
         runtime.ready(function () {
-            if (window.console && window.console.log) {
-                window.console.log("invoking main modules");
-            }
             setReadyFalse();
             machine = machine || runtime.currentMachine;
             succ = succ || function() {};
@@ -1174,7 +1171,6 @@
     var makeLocalFileModuleLoader = function(moduleManifest) {
         var loadScript = baselib.loadscript.loadScript;
         return function(M, moduleName, success, fail) {
-            console.log("request to load", moduleName);
 
             if (M.modules[moduleName] instanceof ModuleRecord) {
                 return success();

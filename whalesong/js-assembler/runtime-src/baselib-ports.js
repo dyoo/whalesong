@@ -20,6 +20,9 @@
         MACHINE.params['currentDisplayer'](MACHINE, domNode);
         $(domNode).trigger({type : 'afterAttach'});
         $('*', domNode).trigger({type : 'afterAttach'});
+        // Force a trampoline to send control back to the browser
+        // for rendering.
+        MACHINE.cbt=0;
     };
 
     var StandardErrorPort = function () {
@@ -30,6 +33,9 @@
         MACHINE.params['currentErrorDisplayer'](MACHINE, domNode);
         $(domNode).trigger({type : 'afterAttach'});
         $('*', domNode).trigger({type : 'afterAttach'});
+        // Force a trampoline to send control back to the browser
+        // for rendering.
+        MACHINE.cbt=0;
     };
 
 

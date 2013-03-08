@@ -15,10 +15,12 @@ $(document).ready(function() {
     // We configure output to send it to the "output" DOM node.
     M.params.currentDisplayer = function(MACHINE, domNode) {
         $(domNode).appendTo(output);
-    }
+        output.get(0).scrollTop = output.get(0).scrollHeight;
+    };
     M.params.currentErrorDisplayer = function(MACHINE, domNode) {
         $(domNode).css("color", "red").appendTo(output);
-    }
+        output.get(0).scrollTop = output.get(0).scrollHeight;
+    };
 
 
     // We then want to initialize the language module.

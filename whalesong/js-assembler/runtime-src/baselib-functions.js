@@ -300,15 +300,15 @@
 
 
     var makePrimitiveProcedure = function (name, arity, f) {
-        var proc = makeClosure(name,
-                               arity,
-                               function(M) {
-                                   M.cbt--;
-                                   M.v = f(M);
-                                   M.e.length -= M.a;
-                                   return M.c.pop().label(M);
-                               },
-                               []);
+        var impl = function(M) {
+            if(--M.cbt < 0) {
+                throw impl;
+            }
+            M.v = f(M);
+            M.e.length -= M.a;
+            return M.c.pop().label(M);
+        };
+        var proc = makeClosure(name, arity, impl, []);
         // Also, record the raw implementation of the function.
         proc._i = f;
         return proc;

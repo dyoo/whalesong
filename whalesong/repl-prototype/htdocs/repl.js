@@ -104,7 +104,7 @@ $(document).ready(function() {
     };
 
     var interruptEvaluation = function() {
-        console.log('interrupt evaluation');
+        console.log('scheduling an interruption');
         M.scheduleBreak();
     };
 

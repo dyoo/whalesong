@@ -15,18 +15,16 @@
         this.val = val;
     };
 
-    var symbolCache = {};
+    var symbolCache = new baselib.Dict();
 
-    var hasOwnProperty = {}.hasOwnProperty;
-    
     // makeSymbol: string -> Symbol.
     // Interns a symbol.
     var makeSymbol = function (val) {
         // To ensure that we can eq? symbols with equal values.
-        if (!(hasOwnProperty.call(symbolCache,val))) {
-            symbolCache[val] = new Symbol(val);
+        if (!(symbolCache.has(val))) {
+            symbolCache.set(val, new Symbol(val));
         }
-        return symbolCache[val];
+        return symbolCache.get(val);
     };
     
     Symbol.prototype.equals = function (other, aUnionFind) {

@@ -478,11 +478,13 @@
             MACHINE.running = false;
             MACHINE.params.currentErrorHandler(
                 MACHINE,
-                makeExnBreak("User break.",
-                             MACHINE.captureContinuationMarks(),
-                             // FIXME: capture the continuation as well,
-                             // rather than just hold false.
-                             false));
+                new baselib.exceptions.RacketError(
+                    "User break",
+                    makeExnBreak("User break.",
+                                 MACHINE.captureContinuationMarks(),
+                                 // FIXME: capture the continuation as well,
+                                 // rather than just hold false.
+                                 false)));
             return true;
         }
         return false;
@@ -554,7 +556,6 @@
         var that = this;
         var thunk = initialJump;
         var startTime = (new Date()).valueOf();
-        that.cbt = STACK_LIMIT_ESTIMATE;
         that.params.numBouncesBeforeYield =
             that.params.maxNumBouncesBeforeYield;
         that.running = true;

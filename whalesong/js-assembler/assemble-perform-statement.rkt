@@ -161,21 +161,21 @@
     [(LinkModule!? op)
      (format "RT.PAUSE(
                   function(restart){
-                      RT.currentModuleLoader(M,~s,
+                      var modname = ~s;
+                      RT.currentModuleLoader(M,modname,
                                              function(){
-                                                 restart(function(M){ console.log('resume after loading ~a'); ~a(M); });
+                                                 M.modules[modname] = M.installedModules[modname]();
+                                                 restart(~a);
                                              },
                                              function(){
-                                                 RT.raiseModuleLoadingError(M,~s); 
+                                                 RT.raiseModuleLoadingError(M,modname); 
                                              });
                   });"
              (symbol->string (ModuleLocator-name (LinkModule!-path op)))
-             (symbol->string (ModuleLocator-name (LinkModule!-path op)))
-             (assemble-label (make-Label (LinkModule!-label op)))
-             (symbol->string (ModuleLocator-name (LinkModule!-path op))))]
+             (assemble-label (make-Label (LinkModule!-label op))))]
     
     [(InstallModuleEntry!? op)
-     (format "M.modules[~s]=new RT.ModuleRecord(~s,~a);"
+     (format "M.installedModules[~s]=function(){return new RT.ModuleRecord(~s,~a);}"
              (symbol->string (ModuleLocator-name (InstallModuleEntry!-path op)))
              (symbol->string (InstallModuleEntry!-name op))
              (assemble-label (make-Label (InstallModuleEntry!-entry-point op))))]

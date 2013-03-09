@@ -252,6 +252,11 @@
 	this.e = [];                // environment
 	this.c = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
+        // These are the modules that have been installed.  They are not
+        // necessarily invoked yet.
+        this.installedModules = {};  // String -> (-> ModuleRecord)
+
+        // These are the modules that have been invoked.
 	this.modules = {};     // String -> ModuleRecord
         this.mainModules = []; // Arrayof String
 	this.params = {
@@ -1156,7 +1161,7 @@
     // Other module loader implementations may do more interesting
     // things here, such as loading off the disk, or from the network.
     var defaultModuleLoader = function(M, moduleName, success, fail) {
-        if (M.modules[moduleName] instanceof ModuleRecord) {
+        if (M.installedModules[moduleName] !== undefined) {
             return success();
         } else {
             return fail();
@@ -1172,7 +1177,7 @@
         var loadScript = baselib.loadscript.loadScript;
         return function(M, moduleName, success, fail) {
 
-            if (M.modules[moduleName] instanceof ModuleRecord) {
+            if (M.installedModules[moduleName] !== undefined) {
                 return success();
             } else {
                 // The manifest should map module names to 

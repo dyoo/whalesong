@@ -234,11 +234,12 @@
 	(make-UninterpretedSource
          path
          (format "
-M.modules[~s] =
-    new plt.runtime.ModuleRecord(~s,
+M.installedModules[~s] = function() {
+    return new plt.runtime.ModuleRecord(~s,
         function(M) {
             ~a
         });
+   }
 "
 		 (symbol->string name)
 		 (symbol->string name)
@@ -300,12 +301,14 @@ M.modules[~s] =
     (format "
         var ~a = function() { ~a };
         plt.runtime.PAUSE(function(restart) {
+             var modName = ~s;
              plt.runtime.currentModuleLoader(M,
-                                             ~s,
+                                             modName,
                                              function() {
                                                 restart(function(M) {
-                                                    if (! M.modules[~s].isInvoked) {
-                                                        M.modules[~s].internalInvoke(M,
+                                                    M.modules[modName] = M.installedModules[modName]();
+                                                    if (! M.modules[modName].isInvoked) {
+                                                        M.modules[modName].internalInvoke(M,
                                                                                      ~a,
                                                                                       M.params.currentErrorHandler);
                                                     } else {
@@ -314,17 +317,14 @@ M.modules[~s] =
                                                 })
                                              },
                                              function() {
-                                                alert('Could not load ~s');
+                                                alert('Could not load ' + modName);
                                              })
        });     "
             afterName
             after
             (symbol->string name)
-            (symbol->string name)
-            (symbol->string name)
             afterName
-            afterName
-            (symbol->string name))))
+            afterName)))
 
 
 

@@ -5,65 +5,74 @@ $(document).ready(function() {
     var repl = $("#repl");
     var output = $("#output");
     var breakButton = $("#break");
+    var resetButton = $("#reset");
     breakButton.hide();
     breakButton.click(function() { interruptEvaluation(); });
+    resetButton.click(function() { setupMachine(); });
 
 
-    var M = plt.runtime.currentMachine;
+    var M;
+
+    var setupMachine = function() { 
+        M = plt.runtime.currentMachine;
+
+        // We configure output to send it to the "output" DOM node.
+        M.params.currentDisplayer = function(MACHINE, domNode) {
+            $(domNode).appendTo(output);
+            output.get(0).scrollTop = output.get(0).scrollHeight;
+        };
+        M.params.currentErrorDisplayer = function(MACHINE, domNode) {
+            $(domNode).css("color", "red").appendTo(output);
+            output.get(0).scrollTop = output.get(0).scrollHeight;
+        };
 
 
-    // We configure output to send it to the "output" DOM node.
-    M.params.currentDisplayer = function(MACHINE, domNode) {
-        $(domNode).appendTo(output);
-        output.get(0).scrollTop = output.get(0).scrollHeight;
-    };
-    M.params.currentErrorDisplayer = function(MACHINE, domNode) {
-        $(domNode).css("color", "red").appendTo(output);
-        output.get(0).scrollTop = output.get(0).scrollHeight;
-    };
-
-
-    // We then want to initialize the language module.
-    var initializeLanguage = function(afterLanguageInitialization) {
-        // Load up the language.
-        var semanticsModule =
-            M.modules['whalesong/wescheme/lang/semantics.rkt'];
-        semanticsModule.invoke(
-            M,
+        // We then want to initialize the language module.
+        var initializeLanguage = function(afterLanguageInitialization) {
+            // Load up the language.
+            M.modules['whalesong/wescheme/lang/semantics.rkt'] =
+                M.installedModules['whalesong/wescheme/lang/semantics.rkt']();
+            var semanticsModule =
+                M.modules['whalesong/wescheme/lang/semantics.rkt'];
+            semanticsModule.invoke(
+                M,
+                function() {
+                    M.params.currentNamespace = semanticsModule.getNamespace();
+                    afterLanguageInitialization();
+                },
+                function(M, err) {
+                    // Nothing should work if we can't get this to work.
+                    console.log(M);
+                    console.log(err);
+                    console.log(err.stack);
+                    alert("uh oh!: language could not be loaded.");
+                });
+        };
+        repl.attr('disabled', 'true');
+        repl.val('Please wait, initializing...');
+        initializeLanguage(
             function() {
-                M.params.currentNamespace = semanticsModule.getNamespace();
-                afterLanguageInitialization();
-            },
-            function(M, err) {
-                // Nothing should work if we can't get this to work.
-                console.log(M);
-                console.log(err);
-                console.log(err.stack);
-                alert("uh oh!: language could not be loaded.");
+                repl.val('');
+                repl.removeAttr('disabled');
+                // Hook up a simple one-line REPL with enter triggering evaluation.
+                repl.keypress(function(e) {
+                    if (e.which == 13 && !repl.attr('disabled')) {
+                        var src = repl.val();
+                        $(this).val("");
+                        repl.attr('disabled', 'true');
+                        repl.val("... evaluating...");
+                        breakButton.show();
+                        compileAndEvaluate(src, 
+                                           function() { repl.removeAttr('disabled');
+                                                        repl.val("");
+                                                        breakButton.hide();});
+                    } 
+                });
             });
     };
-    repl.attr('disabled', 'true');
-    repl.val('Please wait, initializing...');
-    initializeLanguage(
-        function() {
-            repl.val('');
-            repl.removeAttr('disabled');
-            // Hook up a simple one-line REPL with enter triggering evaluation.
-            repl.keypress(function(e) {
-                if (e.which == 13 && !repl.attr('disabled')) {
-                    var src = repl.val();
-                    $(this).val("");
-                    repl.attr('disabled', 'true');
-                    repl.val("... evaluating...");
-                    breakButton.show();
-                    compileAndEvaluate(src, 
-                             function() { repl.removeAttr('disabled');
-                                          repl.val("");
-                                          breakButton.hide();});
-                } 
-            });
-        });
 
+
+    setupMachine();
 
 
     // CPS'ed for-each.

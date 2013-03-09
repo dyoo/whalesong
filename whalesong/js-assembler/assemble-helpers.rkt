@@ -512,7 +512,8 @@
             (symbol->string (ModuleLocator-name modname)))]
 
    [(eq? pred 'linked?)
-    (format "(M.modules[~s]!==void(0))"
+    (format "(M.installedModules[~s]!==void(0)&&M.modules[~s]!==undefined)"
+            (symbol->string (ModuleLocator-name modname))
             (symbol->string (ModuleLocator-name modname)))]))
 
 

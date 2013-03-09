@@ -1922,19 +1922,25 @@
             (end-with-linkage
              linkage
              cenv
-             (compile (InstallValue-body exp)
+             (append-instruction-sequences
+              (compile (InstallValue-body exp)
                       cenv
                       target
-                      (make-NextLinkage 0)))]
+                      (make-NextLinkage 0))
+              (make-AssignImmediate target (make-Const (void)))
+              (emit-singular-context linkage)))]
            [(= count 1)
             (append-instruction-sequences
              (end-with-linkage
               linkage
               cenv
-              (compile (InstallValue-body exp)
-                       cenv
-                       (make-EnvLexicalReference (InstallValue-depth exp) (InstallValue-box? exp))
-                       (make-NextLinkage 1))))]
+              (append-instruction-sequences
+               (compile (InstallValue-body exp)
+                        cenv
+                        (make-EnvLexicalReference (InstallValue-depth exp) (InstallValue-box? exp))
+                        (make-NextLinkage 1))
+               (make-AssignImmediate target (make-Const (void)))
+               (emit-singular-context linkage))))]
            [else
             (end-with-linkage
              linkage
@@ -1957,7 +1963,9 @@
                           (cons (make-Reg 'val) 
                                 (build-list (sub1 count) (lambda: ([i : Natural])
                                                            (make-EnvLexicalReference i #f))))))
-              (make-PopEnvironment (make-Const (sub1 count)) (make-Const 0))))]))))
+              (make-PopEnvironment (make-Const (sub1 count)) (make-Const 0))
+              (make-AssignImmediate target (make-Const (void)))
+              (emit-singular-context linkage)))]))))
 
 
 
@@ -2116,7 +2124,8 @@
       
       ;; Finally, set the target to void.
       
-      (make-AssignImmediate target (make-Const (void)))))))
+      (make-AssignImmediate target (make-Const (void)))
+      (emit-singular-context linkage)))))
 
 
 

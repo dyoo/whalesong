@@ -245,6 +245,18 @@
     // The MACHINE
 
     var Machine = function() {
+        // These are the modules that have been installed.  They are not
+        // necessarily invoked yet.
+        this.installedModules = {};  // String -> (-> ModuleRecord)
+        this.reset();
+    };
+
+
+    // Resets the state of the machine.  Almost all of the system's
+    // state is reset, except the installedModules, which should
+    // persist as an optimization to reduce loading code over and
+    // over.
+    Machine.prototype.reset = function() {
 	this.cbt = STACK_LIMIT_ESTIMATE;  // calls before trampoline
 	this.v = void(0);         // value register
 	this.p = void(0);        // procedure register
@@ -252,9 +264,9 @@
 	this.e = [];                // environment
 	this.c = [];            // control: Arrayof (U Frame CallFrame PromptFrame)
 	this.running = false;
-        // These are the modules that have been installed.  They are not
-        // necessarily invoked yet.
-        this.installedModules = {};  // String -> (-> ModuleRecord)
+
+        // We do not initialize installedModules here because
+        // we want that to persist.
 
         // These are the modules that have been invoked.
 	this.modules = {};     // String -> ModuleRecord
@@ -313,15 +325,12 @@
 	    'maxNumBouncesBeforeYield': 2000, // self-adjusting
 
 	    'currentPrint': defaultCurrentPrint
-
-
 	};
         this.globals = {};
 	this.primitives = Primitives;
         this.exclusiveLock = new ExclusiveLock();
         this.breakScheduled = false;
     };
-
 
     // Schedule a break the next time the trampoline begins.
     Machine.prototype.scheduleBreak = function() {

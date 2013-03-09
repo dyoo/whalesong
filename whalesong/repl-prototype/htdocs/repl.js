@@ -8,22 +8,27 @@ $(document).ready(function() {
     var resetButton = $("#reset");
     breakButton.hide();
     breakButton.click(function() { interruptEvaluation(); });
-    resetButton.click(function() { setupMachine(); });
+    resetButton.click(function() { output.empty(); setupMachine(); });
 
 
     var M;
 
+    var sendOutputToBottom = function() {
+        output.get(0).scrollTop = output.get(0).scrollHeight;
+    };
+
+    
     var setupMachine = function() { 
         M = plt.runtime.currentMachine;
-
+        M.reset();
         // We configure output to send it to the "output" DOM node.
         M.params.currentDisplayer = function(MACHINE, domNode) {
             $(domNode).appendTo(output);
-            output.get(0).scrollTop = output.get(0).scrollHeight;
+            sendOutputToBottom();
         };
         M.params.currentErrorDisplayer = function(MACHINE, domNode) {
             $(domNode).css("color", "red").appendTo(output);
-            output.get(0).scrollTop = output.get(0).scrollHeight;
+            sendOutputToBottom();
         };
 
 
@@ -32,6 +37,7 @@ $(document).ready(function() {
             // Load up the language.
             M.modules['whalesong/wescheme/lang/semantics.rkt'] =
                 M.installedModules['whalesong/wescheme/lang/semantics.rkt']();
+            
             var semanticsModule =
                 M.modules['whalesong/wescheme/lang/semantics.rkt'];
             semanticsModule.invoke(
@@ -97,6 +103,7 @@ $(document).ready(function() {
             .css("color", "red")
             .appendTo(output);
         $("<br/>").appendTo(output);
+        sendOutputToBottom();
     };
 
 

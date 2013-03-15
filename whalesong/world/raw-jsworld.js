@@ -194,31 +194,6 @@ var rawJsworld = {};
 
 
 
-
-    //
-    // STUFF THAT SHOULD REALLY BE IN ECMASCRIPT
-    //
-    Number.prototype.NaN0=function(){return isNaN(this)?0:this;};
-    function getPosition(e){
-        var left = 0;
-        var top  = 0;
-        while (e.offsetParent){
-            left += e.offsetLeft + (e.currentStyle?(Number(e.currentStyle.borderLeftWidth)).NaN0():0);
-            top  += e.offsetTop  + (e.currentStyle?(Number(e.currentStyle.borderTopWidth)).NaN0():0);
-            e     = e.offsetParent;
-        }
-        left += e.offsetLeft + (e.currentStyle?(Number(e.currentStyle.borderLeftWidth)).NaN0():0);
-        top  += e.offsetTop  + (e.currentStyle?(Number(e.currentStyle.borderTopWidth)).NaN0():0);
-        return {x:left, y:top};
-    }
-    Jsworld.getPosition = getPosition;
-
-
-    var gensym_counter = 0;
-    function gensym(){ return gensym_counter++;}
-    Jsworld.gensym = gensym;
-
-
     var map = function(a1, f) {
         var b = new Array(a1.length), i;
         for (i = 0; i < a1.length; i++) {
@@ -226,9 +201,6 @@ var rawJsworld = {};
         }
         return b;
     };
-    Jsworld.map = map;
-
-
 
     var concat_map = function(a, f) {
         var b = [], i;
@@ -237,129 +209,6 @@ var rawJsworld = {};
         }
         return b;
     };
-
-
-    var mapi = function(a, f) {
-        var b = new Array(a.length), i;
-        for (i = 0; i < a.length; i++) {
-                b[i] = f(a[i], i);
-        }
-        return b;
-    };
-    Jsworld.mapi = mapi;
-
-
-    var fold = function(a, x, f) {
-        var i;
-        for (i = 0; i < a.length; i++) {
-                x = f(a[i], x);
-        }
-        return x;
-    };
-    Jsworld.fold = fold;
-
-    var hasOwnProperty = {}.hasOwnProperty;
-
-
-    function augment(o, a) {
-        var oo = {}, e;
-        for (e in o) {
-            if (hasOwnProperty.call(o, e)) {
-                oo[e] = o[e];
-            }
-        }
-        for (e in a) {
-            if (hasOwnProperty.call(a, e)) {
-                oo[e] = a[e];
-            }
-        }
-        return oo;
-    }
-    Jsworld.augment = augment;
-
-
-    function assoc_cons(o, k, v) {
-        var oo = {}, e;
-        for (e in o) {
-            if (hasOwnProperty.call(o, e)) {
-                oo[e] = o[e];
-            }
-        }
-        oo[k] = v;
-        return oo;
-    }
-    Jsworld.assoc_cons = assoc_cons;
-
-
-    function cons(value, array) {
-        return [value].concat(array);
-    }
-    Jsworld.cons = cons;
-
-
-    function append(array1, array2){
-        return array1.concat(array2);
-    }
-    Jsworld.append = append;
-
-    function array_join(array1, array2){
-        var joined = [], i;
-        for (i = 0; i < array1.length; i++) {
-            joined.push([array1[i], array2[i]]);
-        }
-        return joined;
-    }
-    Jsworld.array_join = array_join;
-
-
-    function removeq(a, value) {
-        var i;
-        for (i = 0; i < a.length; i++) {
-            if (a[i] === value){
-                return a.slice(0, i).concat(a.slice(i+1));
-            }
-        }
-        return a;
-    }
-    Jsworld.removeq = removeq;
-
-
-    function filter(a, f) {
-        var b = [], i;
-        for (i = 0; i < a.length; i++) {
-                if ( f(a[i]) ) {
-                        b.push(a[i]);
-                }
-        }
-        return b;
-    }
-    Jsworld.filter = filter;
-
-
-    function without(obj, attrib) {
-        var o = {}, a;
-        for (a in obj) {
-            if (hasOwnProperty.call(obj, a)) {
-                if (a !== attrib) {
-                    o[a] = obj[a];
-                }
-            }
-        }
-        return o;
-    }
-    Jsworld.without = without;
-
-
-    function memberq(a, x) {
-        var i;
-        for (i = 0; i < a.length; i++) {
-            if (a[i] === x) {
-                return true;
-            }
-        }
-        return false;
-    }
-    Jsworld.memberq = memberq;
 
 
     function member(a, x) {
@@ -371,20 +220,7 @@ var rawJsworld = {};
         }
         return false;
     }
-    Jsworld.member = member;
 
-
-
-    function head(a){
-        return a[0];
-    }
-    Jsworld.head = head;
-
-
-    function tail(a){
-        return a.slice(1, a.length);
-    }
-    Jsworld.tail = tail;
 
     //
     // DOM UPDATING STUFFS
@@ -687,33 +523,6 @@ var rawJsworld = {};
         } else {
             maintainingSelection(
                 function(k2) {
-                    // For legibility, here is the non-CPS version of the same function:
-                    /*
-                        var oldRedraw = redraw_func(oldWorld);
-                        var newRedraw = redraw_func(world);         
-                        var oldRedrawCss = redraw_css_func(oldWorld);
-                        var newRedrawCss = redraw_css_func(world);
-                        var t = sexp2tree(newRedraw);
-                        var ns = nodes(t);
-
-                        // Try to save the current selection and preserve it across
-                        // dom updates.
-
-                        if(oldRedraw !== newRedraw) {
-                                // Kludge: update the CSS styles first.
-                                // This is a workaround an issue with excanvas: any style change
-                                // clears the content of the canvas, so we do this first before
-                                // attaching the dom element.
-                                update_css(ns, sexp2css(newRedrawCss));
-                                update_dom(toplevelNode, ns, relations(t));
-                        } else {
-                                if(oldRedrawCss !== newRedrawCss) {
-                                        update_css(ns, sexp2css(newRedrawCss));
-                                }
-                        }
-                    */
-
-
                     redraw_func(
                         world,
                         function(newRedraw) {
@@ -834,7 +643,7 @@ var rawJsworld = {};
     // init_world: any
     // handlerCreators: (Arrayof (-> handler))
     // k: any -> void
-    bigBang = function(top, init_world, handlerCreators, attribs, succ) {
+    bigBang = function(top, init_world, handlerCreators, attribs, succ, fail) {
         var i;
         // clear_running_state();
 
@@ -872,18 +681,6 @@ var rawJsworld = {};
                     if (stop) {
                         Jsworld.shutdown();
                         succ(w);
-        /*
-                        stopWhen.receiver(world,
-                            function() {                    
-                                var currentRecord = runningBigBangs.pop();
-                                if (currentRecord) { currentRecord.pause(); }
-                                if (runningBigBangs.length > 0) {
-                                    var restartingBigBang = runningBigBangs.pop();
-                                    restartingBigBang.restart();
-                                }
-                                k();
-                            });
-        */
                     }
                     else { k2(); }
                 });

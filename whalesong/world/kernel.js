@@ -48,27 +48,24 @@ var bigBang = function(MACHINE, initW, handlers) {
 
 
     PAUSE(function(restart) {
-
-	// var onBreak = function() {
-	//     bigBangController.breaker();
-	// }
-	// state.addBreakRequestedListener(onBreak);
-
 	var bigBangController = rawJsworld.bigBang(
 	    toplevelNode,
 	    initW,
 	    configs,
 	    {},
 	    function(finalWorldValue) {
-		// state.removeBreakRequestedListener(onBreak);
-
 		restart(function(MACHINE) {
 		    finalizeClosureCall(
 			MACHINE, 
 			finalWorldValue);
 		});
 
-	    });
+	    },
+            function(err) {
+                restart(function(MACHINE) {
+                    plt.baselib.exceptions.raise(MACHINE, err);
+                });
+            });
 
     });
 };

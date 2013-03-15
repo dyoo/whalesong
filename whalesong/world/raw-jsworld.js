@@ -38,11 +38,10 @@ var rawJsworld = {};
                     return;
                 }
             }
-
             try {
                 return f(a[i], function() { return forEachHelp(i+1); });
             } catch (e) {
-                f_error(e);
+                return Jsworld.shutdown({errorShutdown: e});
             }
         };
         return forEachHelp(0);
@@ -84,10 +83,16 @@ var rawJsworld = {};
 
 
     // Close all world computations.
-    Jsworld.shutdown = function() {
+    Jsworld.shutdown = function(options) {
         while(runningBigBangs.length > 0) {
             var currentRecord = runningBigBangs.pop();
             if (currentRecord) { currentRecord.pause(); }
+            if (options.cleanShutdown) {
+                currentRecord.success(world);
+            }
+            if (options.errorShutdown) {
+                currentRecord.fail(options.errorShutdown);
+            }
         }
         clear_running_state();
     };
@@ -117,8 +122,6 @@ var rawJsworld = {};
     var DELAY_BEFORE_RETRY = 10;
 
 
-    var WrappedWorldWithEffects;
-
     // change_world: CPS( CPS(world -> world) -> void )
     // Adjust the world, and notify all listeners.
     var change_world = function(updater, k) {
@@ -139,55 +142,32 @@ var rawJsworld = {};
         changingWorld = true;
         var originalWorld = world;
 
-        var changeWorldHelp, changeWorldHelp2;
+        var changeWorldHelp;
         changeWorldHelp = function() {
-                if (world instanceof WrappedWorldWithEffects) {
-                        var effects = world.getEffects();
-                        forEachK(effects,
-                                 function(anEffect, k2) {
-                                     anEffect.invokeEffect(change_world, k2);
-                                 },
-                                 function (e) {
-                                     changingWorld = false;
-                                     throw e;
-                                 },
-                                 function() {
-                                        world = world.getWorld();
-                                        changeWorldHelp2();
-                                 });
-                } else {
-                        changeWorldHelp2();
-                }
-        };
-
-        changeWorldHelp2 = function() {
-                forEachK(worldListeners,
-                                 function(listener, k2) {
-                                     listener(world, originalWorld, k2);
-                                 },
-                                 function(e) {
-                                     changingWorld = false;
-                                     world = originalWorld;
-                                     throw e; },
-                                 function() {
-                                     changingWorld = false;
-                                     k();
-                                 });
+            forEachK(worldListeners,
+                     function(listener, k2) {
+                         listener(world, originalWorld, k2);
+                     },
+                     function(e) {
+                         changingWorld = false;
+                         world = originalWorld;
+                         throw e; 
+                     },
+                     function() {
+                         changingWorld = false;
+                         k();
+                     });
         };
 
         try {
-                updater(world, function(newWorld) {
-                                world = newWorld;
-                                changeWorldHelp();
-                        });
+            updater(world, function(newWorld) {
+                world = newWorld;
+                changeWorldHelp();
+            });
         } catch(e) {
             changingWorld = false;
             world = originalWorld;
-
-            if (typeof(window.console) !== 'undefined' && window.console.log && e.stack) {
-                window.console.log(e.stack);
-            }
-            throw e;
+            return Jsworld.shutdown({errorShutdown: e});
         }
     };
     Jsworld.change_world = change_world;
@@ -611,12 +591,15 @@ var rawJsworld = {};
 
     var bigBang, StopWhenHandler;
 
-    function BigBangRecord(top, world, handlerCreators, handlers, attribs) {
+    function BigBangRecord(top, world, handlerCreators, handlers, attribs,
+                           success, fail) {
         this.top = top;
         this.world = world;
         this.handlers = handlers;
         this.handlerCreators = handlerCreators;
         this.attribs = attribs;
+        this.success = success;
+        this.fail = fail;
     }
 
     BigBangRecord.prototype.restart = function() {
@@ -655,7 +638,8 @@ var rawJsworld = {};
 
         // Create an activation record for this big-bang.
         var activationRecord =
-            new BigBangRecord(top, init_world, handlerCreators, handlers, attribs);
+            new BigBangRecord(top, init_world, handlerCreators, handlers, attribs, 
+                              succ, fail);
         runningBigBangs.push(activationRecord);
         function keepRecordUpToDate(w, oldW, k2) {
             activationRecord.world = w;
@@ -677,13 +661,12 @@ var rawJsworld = {};
         }
         var watchForTermination = function(w, oldW, k2) {
             stopWhen.test(w,
-                function(stop) {
-                    if (stop) {
-                        Jsworld.shutdown();
-                        succ(w);
-                    }
-                    else { k2(); }
-                });
+                          function(stop) {
+                              if (stop) {
+                                  Jsworld.shutdown({cleanShutdown: true});
+                              }
+                              else { k2(); }
+                          });
         };
         add_world_listener(watchForTermination);
 
@@ -1271,47 +1254,6 @@ var rawJsworld = {};
     }
     Jsworld.raw_node = raw_node;
 
-
-
-
-
-    //////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    // Effects
-
-    // An effect is an object with an invokeEffect() method.
-    WrappedWorldWithEffects = function(w, effects) {
-        if (w instanceof WrappedWorldWithEffects) {
-            this.w = w.w;
-            this.e = w.e.concat(effects);
-        } else {
-            this.w = w;
-            this.e = effects;
-        }
-    };
-
-    WrappedWorldWithEffects.prototype.getWorld = function() {
-        return this.w;
-    };
-
-    WrappedWorldWithEffects.prototype.getEffects = function() {
-        return this.e;
-    };
-
-
-    //////////////////////////////////////////////////////////////////////
-
-    Jsworld.with_effect = function(w, e) {
-        return new WrappedWorldWithEffects(w, [e]);
-    };
-
-    Jsworld.with_multiple_effects = function(w, effects) {
-        return new WrappedWorldWithEffects(w, effects);
-    };
-
-    Jsworld.has_effects = function(w) {
-        return w instanceof WrappedWorldWithEffects;
-    };
 
 
 }());

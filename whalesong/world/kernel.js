@@ -123,12 +123,7 @@ var adaptWorldFunction = function(worldFunction) {
                  success(v);
              },
              function(err) {
-                 // FIXME: do error trapping
-                 if (window.console && window.console.log) {
-                     window.console.log(err);
-                 } else {
-                     throw err;
-                 }
+                return rawJsworld.shutdown({errorShutdown: err});
              }].concat([].slice.call(arguments, 0, arguments.length - 1)));
     };
 };

@@ -9,10 +9,8 @@ jQuery(document).ready(function() {
     var resetButton = jQuery("#reset");
 
 
-
     // The machine.
     var M;
-
 
     var interactionsCount = 0;
 
@@ -185,6 +183,7 @@ jQuery(document).ready(function() {
             var compiledCodes = compiledResult.compiledCodes;
             forEachK(compiledCodes,
                      function(code, k) {
+                         // Indirect eval usage here is deliberate.
                          var codeFunction = (0,eval)(code);
                          var onGoodEvaluation = function() {
                              var resultList = M.v;
@@ -228,7 +227,6 @@ jQuery(document).ready(function() {
     //
     // Test: compile a module.
     //
-
 
     breakButton.hide();
     breakButton.click(onBreak);

@@ -20,7 +20,10 @@
 
 (define-runtime-path htdocs (build-path "htdocs"))
 
-(define language 'whalesong/wescheme/lang/semantics)
+(define language 
+  'whalesong/wescheme/lang/semantics
+  ;'whalesong/simply-scheme/semantics
+  )
 
 
 

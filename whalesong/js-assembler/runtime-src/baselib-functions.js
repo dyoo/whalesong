@@ -203,12 +203,12 @@
         var i;
 
         if (MACHINE.breakScheduled) {
-            MACHINE.breakScheduled = false;
-            return fail(baselib.exceptions.makeExnBreak("User break.",
-                                                        MACHINE.captureContinuationMarks(),
-                                                        // FIXME: capture the continuation as well,
-                                                        // rather than just hold false.
-                                                        false));
+            return fail(baselib.exceptions.makeExnBreak(
+                "User break.",
+                MACHINE.captureContinuationMarks(),
+                // FIXME: capture the continuation as well,
+                // rather than just hold false.
+                false));
         }
 
         var oldArgcount, oldVal, oldProc, oldErrorHandler, oldControlLength, oldEnvLength;

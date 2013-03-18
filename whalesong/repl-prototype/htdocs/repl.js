@@ -1,14 +1,13 @@
 jQuery(document).ready(function() {
     "use strict";    
-    if (! console.log) { console.log = function() { }; }
+
+    // if (! console.log) { console.log = function() { }; }
 
     var repl = jQuery("#repl");
     var output = jQuery("#output");
     var breakButton = jQuery("#break");
     var resetButton = jQuery("#reset");
-    breakButton.hide();
-    breakButton.click(function() { interruptEvaluation(); });
-    resetButton.click(function() { output.empty(); setupMachine(); });
+
 
 
     // The machine.
@@ -22,6 +21,30 @@ jQuery(document).ready(function() {
     var xhr = new easyXDM.Rpc(
         { remote: 'rpc.html' },
         { remote: { replCompile: {} } });
+
+
+    var onBreak = function() {
+        if (M.running) { 
+            interruptEvaluation(function(){}); 
+        } 
+    };
+
+    var onReset = function() {
+        if (M.running) {
+            M.params.currentDisplayer = 
+                function(MACHINE, domNode) {};
+            M.params.currentErrorDisplayer =
+                function(MACHINE, domNode) {};
+            interruptEvaluation(
+                function() {
+                    output.empty(); 
+                    setupMachine();
+                });
+        } else {
+            output.empty(); 
+            setupMachine();
+        }
+    };
 
     
     var setupMachine = function() { 
@@ -98,11 +121,11 @@ jQuery(document).ready(function() {
     // writeErrorMessage: string -> void
     // Write out an error message.
     var writeErrorMessage = function(msg) {
-        jQuery("<span/>")
-            .text(''+msg)
-            .css("color", "red")
-            .appendTo(output);
-        jQuery("<br/>").appendTo(output);
+        M.params.currentErrorDisplayer(M,
+                                  jQuery("<span/>")
+                                  .text(''+msg)
+                                  .css("color", "red"));
+        M.params.currentErrorDisplayer(M, jQuery("<br/>"));
         sendOutputToBottom();
     };
 
@@ -121,16 +144,19 @@ jQuery(document).ready(function() {
 	}
     };
 
-    var interruptEvaluation = function() {
-        M.scheduleBreak();
+    var interruptEvaluation = function(afterBreak) {
+        if (! M.running) {
+            throw new Error("internal error: trying to interrupt evaluation but nothing is running.");
+        }
+        M.scheduleBreak(afterBreak);
     };
 
 
     // In evaluation, we'll send compilation requests to the server,
     // and get back bytecode that we should evaluate.
     var compileAndEvaluate = function(src, after) {
-        jQuery("<tt/>").text('> ' + src).appendTo(output);
-        jQuery("<br/>").appendTo(output);
+        M.params.currentDisplayer(M, jQuery("<tt/>").text('> ' + src));
+        M.params.currentDisplayer(M, jQuery("<br/>"));
         var onCompile = function(compiledResult) {
             if (compiledResult.type === 'repl') {
                 return onGoodReplCompile(compiledResult);
@@ -177,7 +203,6 @@ jQuery(document).ready(function() {
                      after);
         };
         var onServerError = function(err) {
-            console.log(err);
             writeErrorMessage("internal server error");
             after();
         };
@@ -199,5 +224,9 @@ jQuery(document).ready(function() {
     // Test: compile a module.
     //
 
+
+    breakButton.hide();
+    breakButton.click(onBreak);
+    resetButton.click(onReset);
     setupMachine();
 });

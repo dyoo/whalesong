@@ -329,12 +329,16 @@
         this.globals = {};
 	this.primitives = Primitives;
         this.exclusiveLock = new ExclusiveLock();
-        this.breakScheduled = false;
+        this.breakScheduled = false;      // (U boolean function)
     };
 
     // Schedule a break the next time the trampoline begins.
-    Machine.prototype.scheduleBreak = function() {
-        this.breakScheduled = true;
+    Machine.prototype.scheduleBreak = function(afterBreak) {
+        if (typeof afterBreak === 'function') {
+            this.breakScheduled = afterBreak;
+        } else {
+            this.breakScheduled = true;
+        }
     };
 
 
@@ -486,8 +490,12 @@
 
     // Checks to see if we need to handle break.  If so, returns true.
     // Otherwise, returns false.
-    var maybeHandleBreak = function(MACHINE) {
-        if (MACHINE.breakScheduled) {
+    //
+    // FIXME: This logic is duplicated within one of the catch blocks
+    // in the trampoline.  Would be nice to refactor.
+    var maybeHandleBreakOutsideTrampoline = function(MACHINE) {
+        var breakScheduled = MACHINE.breakScheduled;
+        if (breakScheduled) {
             MACHINE.breakScheduled = false;
             MACHINE.running = false;
             MACHINE.params.currentErrorHandler(
@@ -499,6 +507,9 @@
                                  // FIXME: capture the continuation as well,
                                  // rather than just hold false.
                                  false)));
+            if (typeof breakScheduled === 'function') {
+                setTimeout(breakScheduled, 0);
+            }
             return true;
         }
         return false;
@@ -507,7 +518,10 @@
     var scheduleTrampoline = function(MACHINE, f, release) {
         setTimeout(
 	    function() {
-                if (maybeHandleBreak(MACHINE)) { release(); return; }
+                if (maybeHandleBreakOutsideTrampoline(MACHINE)) {
+                    release(); 
+                    return; 
+                }
                 MACHINE._trampoline(f, false, release);
             },
             0);
@@ -659,13 +673,26 @@
                     return;
                 } else if (e instanceof HaltError) {
                     that.running = false;
+                    that.breakScheduled = false;
                     e.onHalt(that);
+                    release();
+                    return;
+                } else if (e instanceof baselib.exceptions.RacketError &&
+                           baselib.exceptions.isExnBreak(e.racketError)) {
+                    var oldBreakScheduled = that.breakScheduled;
+                    if (typeof oldBreakScheduled === 'function') {
+                        setTimeout(oldBreakScheduled, 0);
+                    }
+                    that.running = false;
+                    that.breakScheduled = false;
+                    that.params.currentErrorHandler(that, e);
                     release();
                     return;
                 } else {
                     // General error condition: just exit out
                     // of the trampoline and call the current error handler.
                     that.running = false;
+                    that.breakScheduled = false;
                     that.params.currentErrorHandler(that, e);
                     release();
                     return;
@@ -673,6 +700,7 @@
             }
         }
         that.running = false;
+        that.breakScheduled = false;
         that.params.currentSuccessHandler(that);
         release();
         return;

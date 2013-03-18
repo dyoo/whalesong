@@ -1,7 +1,7 @@
 (function () {
     "use strict";
     var url = "/compile";
-    var replCompile = function(code, onDone, onDoneError) {
+    var replCompile = function(name, code, onDone, onDoneError) {
         jQuery.ajax({ 'url': url,
                       'cache': false,
                       'success': function(data, textStatus, jqXHR) { 
@@ -10,7 +10,8 @@
                       'error': function(jqXHR, textStatus, errorThrown) {
                           onDoneError(errorThrown); 
                       },
-                      'data': {'src' : code },
+                      'data': {'name' : name,
+                               'src' : code },
                       'dataType': 'json'
                     });
     };

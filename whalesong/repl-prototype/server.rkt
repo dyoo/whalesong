@@ -64,6 +64,9 @@
 (define (start req)
   (define-values (response op) 
     (make-port-response #:mime-type #"text/json" #:with-cors? #t))
+  (define name (if (exists-binding? 'name (request-bindings req))
+                   (extract-binding/single 'name (request-bindings req))
+                   #f))
   (define text-src (extract-binding/single 'src (request-bindings req)))
   (define as-mod? (match (extract-bindings 'm (request-bindings req))
                     [(list (or "t" "true"))
@@ -79,7 +82,7 @@
            (port-count-lines! ip)
            (define assembled-codes
              (let loop () 
-               (define sexp (read-syntax #f ip))
+               (define sexp (read-syntax name ip))
                (cond [(eof-object? sexp)
                       '()]
                      [else

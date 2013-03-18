@@ -13,6 +13,9 @@ jQuery(document).ready(function() {
     // The machine.
     var M;
 
+
+    var interactionsCount = 0;
+
     var sendOutputToBottom = function() {
         output.get(0).scrollTop = output.get(0).scrollHeight;
     };
@@ -206,7 +209,9 @@ jQuery(document).ready(function() {
             writeErrorMessage("internal server error");
             after();
         };
-        xhr.replCompile(src, onCompile, onServerError);
+        xhr.replCompile("<interactions" + interactionsCount + ">",
+                        src, onCompile, onServerError);
+        interactionsCount = interactionsCount + 1;
     };
 
 

@@ -28,10 +28,23 @@
 ;; Creates a response that's coupled to an output-port: whatever you
 ;; write into the output will be pushed into the response.
 (define (make-port-response #:mime-type (mime-type #"application/octet-stream")
-                            #:with-gzip? (with-gzip? #t))
-  (define headers (if with-gzip?
-                      (list (header #"Content-Encoding" #"gzip"))
-                      (list)))
+                            #:with-gzip? (with-gzip? #t)
+                            #:with-cors? (with-cors? #f))
+  (define headers 
+    (filter values 
+            (list (if with-gzip?
+                      (header #"Content-Encoding" #"gzip")
+                      #f)
+                  (cond [(not with-cors?) 
+                         #f]
+                        [(bytes? with-cors?)
+                         (header #"Access-Control-Allow-Origin" with-cors?)]
+                        [(eq? with-cors? #t)
+                         (header #"Access-Control-Allow-Origin" #"*")]
+                        [else
+                         (raise-argument-error 'make-port-response
+                                               "byte string or boolean"
+                                               with-cors?)]))))
   (define-values (in out) (make-pipe))
   (values (response
              200 #"OK"
@@ -50,7 +63,7 @@
 
 (define (start req)
   (define-values (response op) 
-    (make-port-response #:mime-type #"text/json"))
+    (make-port-response #:mime-type #"text/json" #:with-cors? #t))
   (define text-src (extract-binding/single 'src (request-bindings req)))
   (define as-mod? (match (extract-bindings 'm (request-bindings req))
                     [(list (or "t" "true"))

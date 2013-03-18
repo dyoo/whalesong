@@ -1,8 +1,8 @@
-(function() {
+(function () {
     "use strict";
     var url = "/compile";
     var replCompile = function(code, onDone, onDoneError) {
-        $.ajax({ 'url': url,
+        jQuery.ajax({ 'url': url,
                       'cache': false,
                       'success': function(data, textStatus, jqXHR) { 
                           onDone(data); 
@@ -11,9 +11,10 @@
                           onDoneError(errorThrown); 
                       },
                       'data': {'src' : code },
-                      'dataType': 'json',
+                      'dataType': 'json'
+                    });
     };
-
+    
     // If we're in the context of an iframe, provide an easyXDM
     // interface to the compiler.
     if (window.top !== window) {

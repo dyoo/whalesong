@@ -1,21 +1,27 @@
-$(document).ready(function() {
+jQuery(document).ready(function() {
     "use strict";    
     if (! console.log) { console.log = function() { }; }
 
-    var repl = $("#repl");
-    var output = $("#output");
-    var breakButton = $("#break");
-    var resetButton = $("#reset");
+    var repl = jQuery("#repl");
+    var output = jQuery("#output");
+    var breakButton = jQuery("#break");
+    var resetButton = jQuery("#reset");
     breakButton.hide();
     breakButton.click(function() { interruptEvaluation(); });
     resetButton.click(function() { output.empty(); setupMachine(); });
 
 
+    // The machine.
     var M;
 
     var sendOutputToBottom = function() {
         output.get(0).scrollTop = output.get(0).scrollHeight;
     };
+
+
+    var xhr = new easyXDM.Rpc(
+        { remote: 'rpc.html' },
+        { remote: { replCompile: {} } });
 
     
     var setupMachine = function() { 
@@ -23,11 +29,11 @@ $(document).ready(function() {
         M.reset();
         // We configure output to send it to the "output" DOM node.
         M.params.currentDisplayer = function(MACHINE, domNode) {
-            $(domNode).appendTo(output);
+            jQuery(domNode).appendTo(output);
             sendOutputToBottom();
         };
         M.params.currentErrorDisplayer = function(MACHINE, domNode) {
-            $(domNode).css("color", "red").appendTo(output);
+            jQuery(domNode).css("color", "red").appendTo(output);
             sendOutputToBottom();
         };
 
@@ -48,9 +54,6 @@ $(document).ready(function() {
                 },
                 function(M, err) {
                     // Nothing should work if we can't get this to work.
-                    console.log(M);
-                    console.log(err);
-                    console.log(err.stack);
                     alert("uh oh!: language could not be loaded.");
                 });
         };
@@ -64,7 +67,7 @@ $(document).ready(function() {
                 repl.keypress(function(e) {
                     if (e.which == 13 && !repl.attr('disabled')) {
                         var src = repl.val();
-                        $(this).val("");
+                        jQuery(this).val("");
                         repl.attr('disabled', 'true');
                         repl.val("... evaluating...");
                         breakButton.show();
@@ -76,9 +79,6 @@ $(document).ready(function() {
                 });
             });
     };
-
-
-    setupMachine();
 
 
     // CPS'ed for-each.
@@ -98,11 +98,11 @@ $(document).ready(function() {
     // writeErrorMessage: string -> void
     // Write out an error message.
     var writeErrorMessage = function(msg) {
-        $("<span/>")
+        jQuery("<span/>")
             .text(''+msg)
             .css("color", "red")
             .appendTo(output);
-        $("<br/>").appendTo(output);
+        jQuery("<br/>").appendTo(output);
         sendOutputToBottom();
     };
 
@@ -122,7 +122,6 @@ $(document).ready(function() {
     };
 
     var interruptEvaluation = function() {
-        console.log('scheduling an interruption');
         M.scheduleBreak();
     };
 
@@ -130,8 +129,8 @@ $(document).ready(function() {
     // In evaluation, we'll send compilation requests to the server,
     // and get back bytecode that we should evaluate.
     var compileAndEvaluate = function(src, after) {
-        $("<tt/>").text('> ' + src).appendTo(output);
-        $("<br/>").appendTo(output);
+        jQuery("<tt/>").text('> ' + src).appendTo(output);
+        jQuery("<br/>").appendTo(output);
         var onCompile = function(compiledResult) {
             if (compiledResult.type === 'repl') {
                 return onGoodReplCompile(compiledResult);
@@ -167,10 +166,6 @@ $(document).ready(function() {
                              k();
                          };
                          var onBadEvaluation = function(M, err) {
-                             console.log(err);
-                             if (err.stack) {
-                                 console.log(err.stack);
-                             }
                              if (err.message) { 
                                  writeErrorMessage(err.message);
                              }
@@ -181,19 +176,12 @@ $(document).ready(function() {
                      },
                      after);
         };
-        var onCompileError = function(err) {
-        };
-
         var onServerError = function(err) {
+            console.log(err);
             writeErrorMessage("internal server error");
             after();
         };
-
-        $.ajax({dataType: 'json',
-                url: '/compile',
-                data: { src: src },
-                success: onCompile,
-                error: onServerError});
+        xhr.replCompile(src, onCompile, onServerError);
     };
 
 
@@ -211,5 +199,5 @@ $(document).ready(function() {
     // Test: compile a module.
     //
 
-
+    setupMachine();
 });

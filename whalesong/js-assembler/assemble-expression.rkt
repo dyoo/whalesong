@@ -95,7 +95,7 @@
      (format "M.primitives[~s]._i(M)" (symbol->string (ApplyPrimitiveProcedure-name op)))]
 
     [(ModuleVariable? op)
-     (format "M.modules[~s].getNamespace().get(~s)"
+     (format "M.modules[~s].getExports().get(~s)"
              (symbol->string
               (ModuleLocator-name
                (ModuleVariable-module-name op)))

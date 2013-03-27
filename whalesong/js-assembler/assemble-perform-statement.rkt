@@ -209,9 +209,9 @@
                                                    (symbol->string (ModuleProvide-external-name a-provide))
                                                    (symbol->string (ModuleProvide-internal-name a-provide))))]
                            [else
-                            (format "ns.set(~s, M.modules[~s].getNamespace().get(~s));" 
+                            (format "ns.set(~s, M.modules[~s].getExports().get(~s));" 
                                     (symbol->string (ModuleProvide-external-name a-provide))
                                     (symbol->string (ModuleLocator-name (ModuleProvide-source a-provide)))
                                     (symbol->string (ModuleProvide-internal-name a-provide)))]))
                    "")
-      (format "}(M.modules[~s],M.modules[~s].getNamespace(),M.modules[~s].getExternalNamespace(),M.modules[~s].prefix));" modname modname modname modname))]))
+      (format "}(M.modules[~s],M.modules[~s].getExports(),M.modules[~s].getExternalNamespace(),M.modules[~s].prefix));" modname modname modname modname))]))

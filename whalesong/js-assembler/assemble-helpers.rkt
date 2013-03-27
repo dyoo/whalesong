@@ -95,7 +95,7 @@
                      rhs))]
    [(ModuleVariable? target)
     (lambda: ([rhs : String])
-             (format "M.modules[~s].getNamespace().set(~s,~s);"
+             (format "M.modules[~s].getExports().set(~s,~s);"
                      (symbol->string (ModuleLocator-name (ModuleVariable-module-name target)))
                      (symbol->string (ModuleVariable-name target))
                      rhs))]
@@ -497,7 +497,7 @@
 
 (: assemble-module-variable-ref (ModuleVariable -> String))
 (define (assemble-module-variable-ref var)
-  (format "M.modules[~s].getNamespace().get(~s)"
+  (format "M.modules[~s].getExports().get(~s)"
           (symbol->string (ModuleLocator-name (ModuleVariable-module-name var)))
           (symbol->string (ModuleVariable-name var))))
 

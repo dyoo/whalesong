@@ -217,7 +217,7 @@
 	     (format "
              if(--M.cbt<0) { throw arguments.callee; }
              var modrec = M.modules[~s];
-             var ns = modrec.getNamespace();
+             var ns = modrec.getExports();
              var extNs = modrec.getExternalNamespace();
              ~a
              var exports = {};

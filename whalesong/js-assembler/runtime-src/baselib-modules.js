@@ -34,7 +34,7 @@
         this.label = label;
         this.isInvoked = false;
         this.prefix = false;
-        this.namespace = new Namespace(this);
+        this.exports = new Namespace(this);
         this.externalNamespace = new Namespace(this);
 
         // JavaScript-implemented code will assign privateExports
@@ -55,8 +55,8 @@
 
     // Returns access to the names provided in the module.
     // Note that the names are the names internal to the module.
-    ModuleRecord.prototype.getNamespace = function () {
-        return this.namespace;
+    ModuleRecord.prototype.getExports = function () {
+        return this.exports;
     };    
 
     // Returns access to the names defined with their external names.

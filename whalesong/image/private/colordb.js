@@ -2,7 +2,7 @@
 // JavaScript land...
 
 
-var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].getNamespace();
+var colorNamespace = MACHINE.modules['whalesong/image/private/color.rkt'].getExports();
 var colorStruct = colorNamespace.get('struct:color');
 var makeColor = function(r,g,b,a) { return colorStruct.constructor([r,g,b,a]); };
 

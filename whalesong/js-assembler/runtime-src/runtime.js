@@ -345,14 +345,14 @@
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-app-key') || 'traced-app-key';
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getExports().get('traced-app-key') || 'traced-app-key';
         }
         return void(0);
     };
 
     var getTracedCalleeKey = function(MACHINE) {
         if (MACHINE.modules['whalesong/lang/private/traced-app.rkt']) {
-            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getNamespace().get('traced-callee-key') || 'traced-callee-key';
+            return MACHINE.modules['whalesong/lang/private/traced-app.rkt'].getExports().get('traced-callee-key') || 'traced-callee-key';
         }
         return void(0);
     };
@@ -839,7 +839,7 @@
         var i;
         machine = machine || runtime.currentMachine;
         for (i = 0; i < machine.mainModules.length; i++) {
-            var ns = machine.mainModules[i].getNamespace();
+            var ns = machine.mainModules[i].getExports();
             if(ns.hasKey(name)) {
                 return ns.get(name);
             }

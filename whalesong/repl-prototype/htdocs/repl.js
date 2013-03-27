@@ -73,7 +73,7 @@ jQuery(document).ready(function() {
             semanticsModule.invoke(
                 M,
                 function() {
-                    M.params.currentNamespace = semanticsModule.getNamespace();
+                    M.params.currentNamespace = semanticsModule.getExports();
                     afterLanguageInitialization();
                 },
                 function(M, err) {

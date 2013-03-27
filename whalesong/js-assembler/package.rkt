@@ -218,7 +218,7 @@
              if(--M.cbt<0) { throw arguments.callee; }
              var modrec = M.modules[~s];
              var ns = modrec.getExports();
-             var extNs = modrec.getExternalNamespace();
+             var extNs = modrec.getExternalExports();
              ~a
              var exports = {};
              modrec.isInvoked = true;

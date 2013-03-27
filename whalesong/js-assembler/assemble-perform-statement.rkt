@@ -214,4 +214,4 @@
                                     (symbol->string (ModuleLocator-name (ModuleProvide-source a-provide)))
                                     (symbol->string (ModuleProvide-internal-name a-provide)))]))
                    "")
-      (format "}(M.modules[~s],M.modules[~s].getExports(),M.modules[~s].getExternalNamespace(),M.modules[~s].prefix));" modname modname modname modname))]))
+      (format "}(M.modules[~s],M.modules[~s].getExports(),M.modules[~s].getExternalExports(),M.modules[~s].prefix));" modname modname modname modname))]))

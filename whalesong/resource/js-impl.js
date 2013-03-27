@@ -1,4 +1,4 @@
-var resourceType = MACHINE.modules['whalesong/resource/structs.rkt'].getExternalNamespace().get('struct:resource');
+var resourceType = MACHINE.modules['whalesong/resource/structs.rkt'].getExternalExports().get('struct:resource');
 
 var makePrimitiveProcedure = plt.baselib.functions.makePrimitiveProcedure;
 

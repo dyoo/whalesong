@@ -341,6 +341,27 @@
         }
     };
 
+    
+    Machine.prototype.loadAndInvoke = function(moduleName, success, fail) {
+        var that = this;
+        runtime.currentModuleLoader(
+            that, 
+            moduleName,
+            function() {
+                that.modules[moduleName] = that.installedModules[moduleName]();
+                that.modules[moduleName].invoke(that,
+                                             function() {
+                                                 success();
+                                             },
+                                             function(M, err) {
+                                                 fail(err);
+                                             });
+            },
+            function() {
+                fail();
+            });
+    };
+
 
     // Try to get the continuation mark key used for procedure application tracing.
     var getTracedAppKey = function(MACHINE) {
@@ -824,8 +845,7 @@
             var loop = function() {
                 if (mainModules.length > 0) {
                     var nextModuleName = mainModules.shift();
-                    machine.modules[nextModuleName] = machine.installedModules[nextModuleName]();
-                    machine.modules[nextModuleName].invoke(machine, loop, fail);
+                    machine.loadAndInvoke(nextModuleName, loop, fail);
                 } else {
                     setReadyTrue();
                     succ();

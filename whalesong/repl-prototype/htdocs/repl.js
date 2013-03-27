@@ -65,21 +65,17 @@ jQuery(document).ready(function() {
         // We then want to initialize the language module.
         var initializeLanguage = function(afterLanguageInitialization) {
             // Load up the language.
-            M.modules['whalesong/wescheme/lang/semantics.rkt'] =
-                M.installedModules['whalesong/wescheme/lang/semantics.rkt']();
-            
-            var semanticsModule =
-                M.modules['whalesong/wescheme/lang/semantics.rkt'];
-            semanticsModule.invoke(
-                M,
-                function() {
-                    M.params.currentNamespace = semanticsModule.getExports();
-                    afterLanguageInitialization();
-                },
-                function(M, err) {
-                    // Nothing should work if we can't get this to work.
-                    alert("uh oh!: language could not be loaded.");
-                });
+            M.loadAndInvoke('whalesong/wescheme/lang/semantics.rkt',
+                            function() {
+                                var semanticsModule =
+                                    M.modules['whalesong/wescheme/lang/semantics.rkt'];
+                                M.params.currentNamespace = semanticsModule.getExports();
+                                afterLanguageInitialization();
+                            },
+                            function(err) {
+                                // Nothing should work if we can't get this to work.
+                                alert("uh oh!: language could not be loaded.");
+                            });
         };
         repl.attr('disabled', 'true');
         repl.val('Please wait, initializing...');

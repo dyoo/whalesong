@@ -823,8 +823,9 @@
             var mainModules = machine.mainModules.slice();
             var loop = function() {
                 if (mainModules.length > 0) {
-                    var nextModule = mainModules.shift();
-                    nextModule.invoke(machine, loop, fail);
+                    var nextModuleName = mainModules.shift();
+                    machine.modules[nextModuleName] = machine.installedModules[nextModuleName]();
+                    machine.modules[nextModuleName].invoke(machine, loop, fail);
                 } else {
                     setReadyTrue();
                     succ();
@@ -839,7 +840,7 @@
         var i;
         machine = machine || runtime.currentMachine;
         for (i = 0; i < machine.mainModules.length; i++) {
-            var ns = machine.mainModules[i].getExports();
+            var ns = machine.modules[mainModules[i]].getExternalExports();
             if(ns.hasKey(name)) {
                 return ns.get(name);
             }

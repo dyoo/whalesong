@@ -186,7 +186,7 @@
 
 
     [(AliasModuleAsMain!? op)
-     (format "M.mainModules.push(M.modules[~s]);"
+     (format "M.mainModules.push(~s);"
              (symbol->string (ModuleLocator-name (AliasModuleAsMain!-from op))))]
 
     [(FinalizeModuleInvokation!? op)

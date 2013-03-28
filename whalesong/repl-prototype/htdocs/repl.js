@@ -1,103 +1,152 @@
-jQuery(document).ready(function() {
+(function() {
     "use strict";    
 
-    // if (! console.log) { console.log = function() { }; }
+    // options: { compilerUrl: string,,
+    //            write: (dom-node -> void) 
+    //            language: string }
+    var Repl = function(options, afterSetup) {
+        this.M = plt.runtime.currentMachine;
 
-    var repl = jQuery("#repl");
-    var output = jQuery("#output");
-    var breakButton = jQuery("#break");
-    var resetButton = jQuery("#reset");
+        this.xhr = new easyXDM.Rpc(
+            { remote: options.compilerUrl || 'rpc.html' },
+            { remote: { replCompile: {} } });
 
+        if (options.write) { this.write = options.write; }
 
-    // The machine.
-    var M;
+        this.language = (options.language || 
+                         'whalesong/wescheme/lang/semantics.rkt');
+        setupMachine(this, afterSetup);
+    };
 
-    var interactionsCount = 0;
-
-    var sendOutputToBottom = function() {
-        output.get(0).scrollTop = output.get(0).scrollHeight;
+    // write: dom-node -> void
+    // Expected to be overridden by others via options.write.
+    Repl.prototype.write = function(dom) {
+        jQuery(document.body).append(dom)
     };
 
 
-    var xhr = new easyXDM.Rpc(
-        { remote: 'rpc.html' },
-        { remote: { replCompile: {} } });
-
-
-    var onBreak = function() {
-        if (M.running) { 
-            interruptEvaluation(function(){}); 
-        } 
+    // Return true if the Repl is currently evaluating.
+    Repl.prototype.isRunning = function() {
+        return this.M.running;
     };
 
-    var onReset = function() {
-        if (M.running) {
-            M.params.currentDisplayer = 
-                function(MACHINE, domNode) {};
-            M.params.currentErrorDisplayer =
-                function(MACHINE, domNode) {};
-            interruptEvaluation(
-                function() {
-                    output.empty(); 
-                    setupMachine();
-                });
+
+    // Request a break on the current evaluation, calling afterBreak
+    // once the break succeeds.  If no evaluation is running, immediately
+    // call afterBreak.
+    Repl.prototype.requestBreak = function(afterBreak) {
+        if (this.M.running) { 
+            interruptEvaluation(this, afterBreak); 
         } else {
-            output.empty(); 
-            setupMachine();
+            afterBreak();
         }
     };
 
-    
-    var setupMachine = function() { 
-        M = plt.runtime.currentMachine;
+
+    var interruptEvaluation = function(that, afterBreak) {
+        if (! that.M.running) {
+            throw new Error("internal error: trying to interrupt evaluation but nothing is running.");
+        }
+        that.M.scheduleBreak(afterBreak);
+    };
+
+
+    // Resets the evaluator, quietly interrupting evaluation if
+    // necessary.
+    Repl.prototype.reset = function(afterReset) {
+        var that = this;
+        if (this.M.running) {
+            this.M.params.currentDisplayer = 
+                function(MACHINE, domNode) {};
+            this.M.params.currentErrorDisplayer =
+                function(MACHINE, domNode) {};
+            interruptEvaluation(
+                that,
+                function() {
+                    setupMachine(that, afterReset);
+                });
+        } else {
+            setupMachine(that, afterReset);
+        }
+    };
+
+    var setupMachine = function(that, afterSetup) { 
+        var M = that.M;
         M.reset();
-        // We configure output to send it to the "output" DOM node.
+
+        // We configure the machine's output to send it to the
+        // "output" DOM node.
         M.params.currentDisplayer = function(MACHINE, domNode) {
-            jQuery(domNode).appendTo(output);
-            sendOutputToBottom();
+            that.write(domNode);
         };
         M.params.currentErrorDisplayer = function(MACHINE, domNode) {
-            jQuery(domNode).css("color", "red").appendTo(output);
-            sendOutputToBottom();
+            that.write(domNode);
         };
-
+        // FIXME: add other parameter settings here.
 
         // We then want to initialize the language module.
-        var initializeLanguage = function(afterLanguageInitialization) {
-            // Load up the language.
-            M.loadAndInvoke('whalesong/wescheme/lang/semantics.rkt',
-                            function() {
-                                var semanticsModule =
-                                    M.modules['whalesong/wescheme/lang/semantics.rkt'];
-                                M.params.currentNamespace = semanticsModule.getExports();
-                                afterLanguageInitialization();
-                            },
-                            function(err) {
-                                // Nothing should work if we can't get this to work.
-                                alert("uh oh!: language could not be loaded.");
-                            });
-        };
-        repl.attr('disabled', 'true');
-        repl.val('Please wait, initializing...');
-        initializeLanguage(
+        M.loadAndInvoke(
+            that.language,
             function() {
-                repl.val('');
-                repl.removeAttr('disabled');
-                // Hook up a simple one-line REPL with enter triggering evaluation.
-                repl.keypress(function(e) {
-                    if (e.which == 13 && !repl.attr('disabled')) {
-                        var src = repl.val();
-                        jQuery(this).val("");
-                        repl.attr('disabled', 'true');
-                        repl.val("... evaluating...");
-                        breakButton.show();
-                        compileAndEvaluate(src, 
-                                           function() { repl.removeAttr('disabled');
-                                                        repl.val("");
-                                                        breakButton.hide();});
-                    } 
-                });
+                var semanticsModule = M.modules[that.language];
+                // FIXME: this should be getting the namespace,
+                // not the export dictionary...
+                M.params.currentNamespace = semanticsModule.getExports();
+                afterSetup();
+            },
+            function(err) {
+                // Nothing should work if we can't get this to work.
+                alert("uh oh!: language could not be loaded.");
             });
+    };
+
+
+    Repl.prototype.compileAndExecuteProgram = function(programName, code,
+					               onDone, onDoneError) {
+        var that = this;
+        this.compileProgram(
+            programName, 
+            code,
+            function(compiledCode) {
+                that.executeCompiledProgram(compiledCode,
+                                            onDone,
+                                            onDoneError);
+            },
+            onDoneError);
+    };
+
+
+    Repl.prototype.compileProgram = function(programName, code,
+                                             onDone, onDoneError) {
+        this.xhr.replCompile(programName, code, onDone, onDoneError);
+    };
+
+
+    Repl.prototype.executeCompiledProgram = function(compiledResult,
+						     onDoneSuccess, onDoneFail) {
+        var that = this;
+        // compiledResult.compiledCodes is an array of function chunks.
+        // The evaluation leaves the value register of the machine
+        // to contain the list of values from toplevel evaluation.
+        var compiledCodes = compiledResult.compiledCodes;
+        forEachK(compiledCodes,
+                 function(code, k) {
+                     // Indirect eval usage here is deliberate.
+                     var codeFunction = (0,eval)(code);
+                     var onGoodEvaluation = function() {
+                         var resultList = that.M.v;
+                         while(resultList !== plt.baselib.lists.EMPTY) {
+                             print(that, resultList.first);
+                             resultList = resultList.rest;
+                         };
+                         k();
+                     };
+                     var onBadEvaluation = function(M, err) {
+                         onDoneFail(err);
+                     };
+                     codeFunction(that.M, onGoodEvaluation, onBadEvaluation);
+                 },
+                 onDoneSuccess);
     };
 
 
@@ -115,117 +164,23 @@ jQuery(document).ready(function() {
     };
 
 
-    // writeErrorMessage: string -> void
-    // Write out an error message.
-    var writeErrorMessage = function(msg) {
-        M.params.currentErrorDisplayer(M,
-                                  jQuery("<span/>")
-                                  .text(''+msg)
-                                  .css("color", "red"));
-        M.params.currentErrorDisplayer(M, jQuery("<br/>"));
-        sendOutputToBottom();
-    };
-
-
-
-    // Print: Racket value -> void
-    // Prints the racket value out.
-    var print = function(elt) {
-	var outputPort =
-	    M.params.currentOutputPort;
+    // Print: Repl racket-value -> void
+    // Prints the racket value out, followed by a newline,
+    // unless VOID is being printed.
+    var print = function(that, elt) {
+	var outputPort = that.M.params.currentOutputPort;
 	if (elt !== plt.runtime.VOID) {
 	    outputPort.writeDomNode(
-                M,
-                plt.runtime.toDomNode(elt, M.params['print-mode']));
-	    outputPort.writeDomNode(M, plt.runtime.toDomNode("\n", 'display'));
+                that.M,
+                plt.runtime.toDomNode(elt, that.M.params['print-mode']));
+	    outputPort.writeDomNode(that.M, 
+                                    plt.runtime.toDomNode("\n", 'display'));
 	}
     };
 
-    var interruptEvaluation = function(afterBreak) {
-        if (! M.running) {
-            throw new Error("internal error: trying to interrupt evaluation but nothing is running.");
-        }
-        M.scheduleBreak(afterBreak);
-    };
 
-
-    // In evaluation, we'll send compilation requests to the server,
-    // and get back bytecode that we should evaluate.
-    var compileAndEvaluate = function(src, after) {
-        M.params.currentDisplayer(M, jQuery("<tt/>").text('> ' + src));
-        M.params.currentDisplayer(M, jQuery("<br/>"));
-        var onCompile = function(compiledResult) {
-            if (compiledResult.type === 'repl') {
-                return onGoodReplCompile(compiledResult);
-            } else if (compiledResult.type === 'module') {
-                alert('internal error: module unexpected');
-                after();
-            } else if (compiledResult.type === 'error') {
-                return onCompileTimeError(compiledResult);
-            }
-        };
-
-
-        var onCompileTimeError = function(compiledResult) {
-            writeErrorMessage(compiledResult.message);
-            after();
-        };
-
-
-        var onGoodReplCompile = function(compiledResult) {
-            // compiledResult.compiledCodes is an array of function chunks.
-            // The evaluation leaves the value register of the machine
-            // to contain the list of values from toplevel evaluation.
-            var compiledCodes = compiledResult.compiledCodes;
-            forEachK(compiledCodes,
-                     function(code, k) {
-                         // Indirect eval usage here is deliberate.
-                         var codeFunction = (0,eval)(code);
-                         var onGoodEvaluation = function() {
-                             var resultList = M.v;
-                             while(resultList !== plt.baselib.lists.EMPTY) {
-                                 print(resultList.first);
-                                 resultList = resultList.rest;
-                             };
-                             k();
-                         };
-                         var onBadEvaluation = function(M, err) {
-                             if (err.message) { 
-                                 writeErrorMessage(err.message);
-                             }
-
-                             after();
-                         };
-                         codeFunction(M, onGoodEvaluation, onBadEvaluation);
-                     },
-                     after);
-        };
-        var onServerError = function(err) {
-            writeErrorMessage("internal server error");
-            after();
-        };
-        xhr.replCompile("<interactions" + interactionsCount + ">",
-                        src, onCompile, onServerError);
-        interactionsCount = interactionsCount + 1;
-    };
-
-
-    // Things that we need to make as automated tests:
-    //
-    // Make sure: (let () (define (f x) (f x)) (f 42))
-    // is interruptable.
-    //
-    // Test: simple expressions, functions, etc.
-    //
-    // Test: multiple value return, even zero
-    //
-    // Test: require image library, try drawing a few things.
-    //
-    // Test: compile a module.
-    //
-
-    breakButton.hide();
-    breakButton.click(onBreak);
-    resetButton.click(onReset);
-    setupMachine();
-});
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // Expose to the outside world as plt.runtime.Repl.
+    plt.runtime.Repl = Repl;
+}());

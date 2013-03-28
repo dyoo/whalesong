@@ -6,17 +6,24 @@
     //            language: string }
     var Repl = function(options, afterSetup) {
         this.M = plt.runtime.currentMachine;
-
-        this.xhr = new easyXDM.Rpc(
-            { remote: options.compilerUrl || 'rpc.html' },
-            { remote: { replCompile: {} } });
-
+        this.compilerUrl = options.compilerUrl || 'rpc.html';
+        this._xhr = undefined;
         if (options.write) { this.write = options.write; }
-
         this.language = (options.language || 
                          'whalesong/wescheme/lang/semantics.rkt');
         setupMachine(this, afterSetup);
     };
+
+
+    var getXhr = function(that) {
+        if (! that._xhr) { 
+            that._xhr = new easyXDM.Rpc(
+                { remote: that.compilerUrl || 'rpc.html' },
+                { remote: { replCompile: {} } });
+        }
+        return that._xhr;
+    };
+   
 
     // write: dom-node -> void
     // Expected to be overridden by others via options.write.
@@ -35,7 +42,7 @@
     // once the break succeeds.  If no evaluation is running, immediately
     // call afterBreak.
     Repl.prototype.requestBreak = function(afterBreak) {
-        if (this.M.running) { 
+        if (this.isRunning()) {
             interruptEvaluation(this, afterBreak); 
         } else {
             afterBreak();
@@ -44,7 +51,7 @@
 
 
     var interruptEvaluation = function(that, afterBreak) {
-        if (! that.M.running) {
+        if (! that.isRunning()) {
             throw new Error("internal error: trying to interrupt evaluation but nothing is running.");
         }
         that.M.scheduleBreak(afterBreak);
@@ -55,7 +62,7 @@
     // necessary.
     Repl.prototype.reset = function(afterReset) {
         var that = this;
-        if (this.M.running) {
+        if (this.isRunning()) {
             this.M.params.currentDisplayer = 
                 function(MACHINE, domNode) {};
             this.M.params.currentErrorDisplayer =
@@ -118,7 +125,7 @@
 
     Repl.prototype.compileProgram = function(programName, code,
                                              onDone, onDoneError) {
-        this.xhr.replCompile(programName, code, onDone, onDoneError);
+        getXhr(this).replCompile(programName, code, onDone, onDoneError);
     };
 
 

@@ -43,7 +43,6 @@ jQuery(document).ready(function() {
 
 
     var onError = function(err) {
-        console.log(err);
         if (err.message) {
             write(jQuery('<span/>').css('color', 'red').append(err.message));
             write(jQuery('<br/>'));

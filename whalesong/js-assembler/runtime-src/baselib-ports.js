@@ -147,4 +147,4 @@
     exports.StandardInputPort = StandardInputPort;
 
 
-}(this.plt.baselib, $));
+}(this.plt.baselib, jQuery));

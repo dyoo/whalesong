@@ -3,7 +3,7 @@
 
 
 // list structures (pairs, empty)
-(function (baselib) {
+(function (baselib, $) {
     'use strict';
     var exports = {};
     baselib.lists = exports;
@@ -347,4 +347,4 @@
     exports.listToArray = listToArray;
     exports.arrayToList = arrayToList;
 
-}(this.plt.baselib));
+}(this.plt.baselib, jQuery));

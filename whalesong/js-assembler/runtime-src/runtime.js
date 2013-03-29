@@ -6,7 +6,7 @@
 
 // All of the values here are namespaced under "plt.runtime".
 /*global $*/
-(function(plt) {
+(function(plt, $) {
     'use strict';
     var runtime = {};
     plt.runtime = runtime;
@@ -1417,4 +1417,4 @@
 
 
     exports['makeRandomNonce'] = makeRandomNonce;
-}(this.plt));
+}(this.plt, jQuery));

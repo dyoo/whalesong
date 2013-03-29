@@ -60,9 +60,13 @@ jQuery(document).ready(function() {
         if (e.which == 13 && !prompt.attr('disabled')) { 
             onExpressionEntered();
         }});
-    var afterReplSetup = function() {
+
+    var afterReplSetup = function(theRepl) {
+        repl = theRepl;
         prompt.val('');
         prompt.removeAttr('disabled');
     };
-    var repl = new plt.runtime.Repl({ write: write }, afterReplSetup);
+
+    var repl;
+    plt.runtime.makeRepl({ write: write }, afterReplSetup);
 });

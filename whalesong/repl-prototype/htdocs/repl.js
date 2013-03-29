@@ -4,6 +4,13 @@
     // options: { compilerUrl: string,,
     //            write: (dom-node -> void) 
     //            language: string }
+
+    // makeRepl: options (Repl -> void) -> void
+    var makeRepl = function(options, afterSetup) {
+        new Repl(options, afterSetup);
+        return;
+    };
+
     var Repl = function(options, afterSetup) {
         this.M = plt.runtime.currentMachine;
         this.compilerUrl = options.compilerUrl || 'rpc.html';
@@ -80,7 +87,6 @@
     var setupMachine = function(that, afterSetup) { 
         var M = that.M;
         M.reset();
-
         // We configure the machine's output to send it to the
         // "output" DOM node.
         M.params.currentDisplayer = function(MACHINE, domNode) {
@@ -99,7 +105,7 @@
                 // FIXME: this should be getting the namespace,
                 // not the export dictionary...
                 M.params.currentNamespace = semanticsModule.getExports();
-                afterSetup();
+                afterSetup(that);
             },
             function(err) {
                 // Nothing should work if we can't get this to work.
@@ -189,5 +195,5 @@
     //////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     // Expose to the outside world as plt.runtime.Repl.
-    plt.runtime.Repl = Repl;
+    plt.runtime.makeRepl = makeRepl;
 }());

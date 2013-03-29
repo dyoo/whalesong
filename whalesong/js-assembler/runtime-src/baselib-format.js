@@ -482,4 +482,4 @@
     exports.toDomNode = toDomNode;
 
     exports.escapeString = escapeString;
-}(this.plt.baselib, $));
+}(this.plt.baselib, jQuery));

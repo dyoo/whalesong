@@ -1,6 +1,6 @@
 /*jslint devel: false, browser: true, unparam: true, vars: true, plusplus: true, maxerr: 500, indent: 4 */
 // Structure types
-(function (baselib) {
+(function (baselib,$) {
     "use strict";
     var exports = {};
     baselib.symbols = exports;
@@ -87,4 +87,4 @@
     exports.makeSymbol = makeSymbol;
     exports.isSymbol = isSymbol;
 
-}(this.plt.baselib));
+}(this.plt.baselib, jQuery));

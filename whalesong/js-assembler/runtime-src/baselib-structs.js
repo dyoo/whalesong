@@ -308,4 +308,4 @@
     exports.isStruct = isStruct;
     exports.isStructType = isStructType;
     exports.isStructTypeProperty = isStructTypeProperty;
-}(this.plt.baselib, $));
+}(this.plt.baselib, jQuery));

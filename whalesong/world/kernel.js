@@ -24,9 +24,9 @@ var finalizeClosureCall = plt.baselib.functions.finalizeClosureCall;
 //////////////////////////////////////////////////////////////////////
 
 var bigBang = function(MACHINE, initW, handlers) {
-    var outerToplevelNode = $('<span/>').css('padding', '0px').get(0);
+    var outerToplevelNode = jQuery('<span/>').css('padding', '0px').get(0);
     MACHINE.params.currentOutputPort.writeDomNode(MACHINE, outerToplevelNode);
-    var toplevelNode = $('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
+    var toplevelNode = jQuery('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
 
     var configs = [];
     var isOutputConfigSeen = false;

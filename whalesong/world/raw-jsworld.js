@@ -731,8 +731,8 @@ var rawJsworld = {};
             return {
                 onRegister: function(top) {
                     //http://www.w3.org/TR/html5/editing.html#sequential-focus-navigation-and-the-tabindex-attribue
-                    $(top).attr('tabindex', 1);
-                    $(top).focus();
+                    jQuery(top).attr('tabindex', 1);
+                    jQuery(top).focus();
                     attachEvent(top, 'keydown', wrappedPress);
                 },
                 onUnregister: function(top) {

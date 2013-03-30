@@ -133,9 +133,9 @@ var makeCanvas = function(width, height) {
     canvas.width = width;
     canvas.height = height;
 
-    $(canvas).css('width', canvas.width + "px");
-    $(canvas).css('height', canvas.height + "px");
-    $(canvas).css('padding', '0px');
+    jQuery(canvas).css('width', canvas.width + "px");
+    jQuery(canvas).css('height', canvas.height + "px");
+    jQuery(canvas).css('padding', '0px');
 
     // KLUDGE: IE compatibility uses /js/excanvas.js, and dynamic
     // elements must be marked this way.
@@ -185,14 +185,14 @@ BaseImage.prototype.toDomNode = function(params) {
     // for calling this after the dom node is attached to the
     // document.
     var onAfterAttach = function(event) {
-        // $(canvas).unbind('afterAttach', onAfterAttach);
+        // jQuery(canvas).unbind('afterAttach', onAfterAttach);
 	var ctx = this.getContext("2d");
 	that.render(ctx, 0, 0);
     };
-    $(canvas).bind('afterAttach', onAfterAttach);
+    jQuery(canvas).bind('afterAttach', onAfterAttach);
 
     // Canvases lose their drawn content on cloning.  data may help us to preserve it.
-    $(canvas).data('toRender', onAfterAttach);
+    jQuery(canvas).data('toRender', onAfterAttach);
 
     return canvas;
 };

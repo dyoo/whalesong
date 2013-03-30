@@ -1,6 +1,6 @@
 /*jslint browser: true, unparam: true, vars: true, white: true, plusplus: true, maxerr: 50, indent: 4, forin: true */
 /*global plt,MACHINE,$,EXPORTS,TreeCursor*/
-(function() {
+(function($) {
 
     "use strict";
 
@@ -2286,4 +2286,4 @@
     EXPORTS['EventHandler'] = EventHandler;
     EXPORTS['wrapFunction'] = wrapFunction;
     //////////////////////////////////////////////////////////////////////
-}());
+}(jQuery));

@@ -12,7 +12,8 @@
                       },
                       'data': {'name' : name,
                                'src' : code },
-                      'dataType': 'json'
+                      'dataType': 'json',
+                      'type' : 'post'
                     });
     };
     

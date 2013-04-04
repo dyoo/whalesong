@@ -1,6 +1,6 @@
 // vectors
 /*jslint devel: false, browser: true, vars: true, plusplus: true, maxerr: 500, indent: 4 */
-(function (baselib) {
+(function (baselib, $) {
     "use strict";
     var exports = {};
     baselib.vectors = exports;
@@ -83,25 +83,26 @@
     };
 
     Vector.prototype.toDomNode = function (params) {
-        var node = document.createElement("span"), i;
+        var node = $('<span/>'), i;
         if (params.getMode() === 'constructor') {
-            node.appendChild(document.createTextNode("(vector"));
+            node.append($('<span/>').text('(').addClass('lParen'));
+            node.append($('<span/>').text('vector'));
             for (i = 0; i < this.length(); i++) {
-                node.appendChild(document.createTextNode(" "));
-                node.appendChild(params.recur(this.ref(i)));
+                node.append(" ");
+                node.append(params.recur(this.ref(i)));
             }
-            node.appendChild(document.createTextNode(")"));
+            node.append($('<span/>').text(')').addClass('rParen'));
         } else {
-            node.appendChild(document.createTextNode("#("));
+            node.append($('<span/>').text('#(').addClass('lParen'));
             for (i = 0; i < this.length(); i++) {
-                node.appendChild(params.recur(this.ref(i)));
+                node.append(params.recur(this.ref(i)));
                 if (i !== this.length() - 1) {
-                    node.appendChild(document.createTextNode(" "));
+                    node.append(" ");
                 }
             }
-            node.appendChild(document.createTextNode(")"));
+            node.append($('<span/>').text(')').addClass('rParen'));
         }
-        return node;
+        return node.get(0);
     };
 
 
@@ -126,4 +127,4 @@
     exports.makeVectorImmutable = makeVectorImmutable;
 
 
-}(this.plt.baselib));
+}(this.plt.baselib, jQuery));

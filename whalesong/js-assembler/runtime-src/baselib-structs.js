@@ -10,7 +10,7 @@
     //////////////////////////////////////////////////////////////////////
 
     var Struct = function (constructorName, fields, structType) {
-        this._constructorName = constructorName; 
+        this._constructorName = constructorName; // Symbol
         this._fields = [];
         this.structType = structType;
     };
@@ -33,15 +33,17 @@
     };
 
     Struct.prototype.toDomNode = function (params) {
-        var node = document.createElement("span"), i;
-        $(node).append(document.createTextNode("("));
-        $(node).append(document.createTextNode(this._constructorName));
+        var node = $('<span/>');
+        var i;
+        node.append($('<span/>').text("(").addClass('lParen'));
+        node.append($('<span/>').text(this._constructorName+''));
         for(i = 0; i < this._fields.length; i++) {
-            $(node).append(document.createTextNode(" "));
-            $(node).append(params.recur(this._fields[i]));
+            node.append(" ");
+            node.append(params.recur(this._fields[i]));
         }
-        $(node).append(document.createTextNode(")"));
-        return node;
+        node.append($('<span/>').text(")").addClass('rParen'));
+        console.log(node);
+        return node.get(0);
     };
 
 

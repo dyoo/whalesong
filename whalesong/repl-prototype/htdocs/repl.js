@@ -13,6 +13,7 @@
 
     var Repl = function(options, afterSetup) {
         this.M = plt.runtime.currentMachine;
+        this.M.params['print-mode'] = 'constructor';
         this.compilerUrl = options.compilerUrl || 'rpc.html';
         this._xhr = undefined;
         if (options.write) { this.write = options.write; }
@@ -89,6 +90,7 @@
         M.reset();
         // We configure the machine's output to send it to the
         // "output" DOM node.
+        M.params['print-mode'] = 'constructor';
         M.params.currentDisplayer = function(MACHINE, domNode) {
             that.write(domNode);
         };

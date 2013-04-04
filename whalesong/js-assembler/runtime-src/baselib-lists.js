@@ -179,48 +179,51 @@
                 node = subelts[subelts.length - 1];
                 for (i = subelts.length - 2; i >= 0; i--) {
                     node = $('<span/>')
-                        .text("(cons ")
+                        .append($('<span/>').text("(").addClass('lParen'))
+                        .append($('<span/>').text("cons"))
+                        .append(" ")
                         .append(subelts[i])
                         .append(" ")
                         .append(node)
-                        .append(")").get(0);
+                        .append($('<span/>').text(")").addClass('rParen'))
+                        .get(0);
                 }
                 return node;
             } else {
-                node = document.createElement("span");
-                node.appendChild(document.createTextNode("("));
-                node.appendChild(document.createTextNode("list"));
-                node.appendChild(document.createTextNode(" "));
-                node.appendChild(subelts[0]);
+                node = $("<span/>").addClass("wescheme-cons");
+                node.append($('<span/>').text("(").addClass('lParen'));
+                node.append($('<span/>').text("list"));
+                node.append(" ");
+                node.append(subelts[0]);
                 for (i = 1; i < subelts.length; i++) {
-                    node.appendChild(document.createTextNode(" "));
-                    node.appendChild(subelts[i]);
+                    node.append(" ");
+                    node.append(subelts[i]);
                 }
-                node.appendChild(document.createTextNode(")"));
-                return node;
+                node.append($('<span/>').text(')').addClass('rParen'));
+                return node.get(0);
             }
         }
 
-        node = document.createElement('span');
+        node = $('<span/>').addClass("wescheme-cons");
         if (params.getMode() === 'print') {
-            node.appendChild(document.createTextNode("'"));
+            node.append($("<span/>").text("'"));
         }
-        node.appendChild(document.createTextNode("("));
-        node.appendChild(subelts[0]);
+        node.append($('<span/>').text('(').addClass('lParen'))
+        node.append(subelts[0]);
         if (subelts.length > 1) {
             for (i = 1; i < subelts.length - 1; i++) {
-                node.appendChild(document.createTextNode(" "));
-                node.appendChild(subelts[i]);
+                node.append(" ");
+                node.append(subelts[i]);
             }
             if (dottedPair) {
-                node.appendChild(document.createTextNode(" "));
-                node.appendChild(document.createTextNode("."));
+                node.append(" ");
+                node.append(".");
             }
-            node.appendChild(document.createTextNode(" "));
-            node.appendChild(subelts[subelts.length - 1]);
+            node.append(" ");
+            node.append(subelts[subelts.length - 1]);
         }
-        node.appendChild(document.createTextNode(")"));
-        return node;
+        node.append($('<span/>').text(")").addClass('rParen'));
+        return node.get(0);
     };
 
 

@@ -277,11 +277,11 @@
         var chunks = baselib.numbers.toRepeatingDecimal(baselib.numbers.numerator(n),
                                                         baselib.numbers.denominator(n),
                                                         {limit: 25});
-        repeatingDecimalNode.appendChild(document.createTextNode(chunks[0] + '.'));
-        repeatingDecimalNode.appendChild(document.createTextNode(chunks[1]));
+        repeatingDecimalNode.appendChild($('<span/>').text(chunks[0] + '.').get(0));
+        repeatingDecimalNode.appendChild($('<span/>').text(chunks[1]).get(0));
         if (chunks[2] === '...') {
             repeatingDecimalNode.appendChild(
-                document.createTextNode(chunks[2]));
+                $('<span/>').text(chunks[2]).get(0));
         } else if (chunks[2] !== '0') {
             var overlineSpan = document.createElement("span");
             overlineSpan.style.textDecoration = 'overline';
@@ -296,11 +296,12 @@
         var denominatorNode = document.createElement("sub");
         denominatorNode.appendChild(document.createTextNode(String(baselib.numbers.denominator(n))));
         fractionalNode.appendChild(numeratorNode);
-        fractionalNode.appendChild(document.createTextNode("/"));
+        fractionalNode.appendChild($('<span/>').text('/').get(0));
         fractionalNode.appendChild(denominatorNode);
 
         
         var numberNode = document.createElement("span");
+        numberNode.className = "wescheme-number Rational";
         numberNode.appendChild(repeatingDecimalNode);
         numberNode.appendChild(fractionalNode);
         fractionalNode.style['display'] = 'none';
@@ -326,21 +327,25 @@
         if (baselib.numbers.isExact(n)) {
             if (baselib.numbers.isInteger(n)) {
                 node = document.createElement("span");
+                node.className = "wescheme-number Integer";
                 node.appendChild(document.createTextNode(n.toString()));
                 return node;
             } else if (baselib.numbers.isRational(n)) {
                 return rationalToDomNode(n);
             } else if (baselib.numbers.isComplex(n)) {
                 node = document.createElement("span");
+                node.className = "wescheme-number Complex";
                 node.appendChild(document.createTextNode(n.toString()));
                 return node;
             } else {
                 node = document.createElement("span");
+                node.className = "wescheme-number";
                 node.appendChild(document.createTextNode(n.toString()));
                 return node;
             }
         } else {
             node = document.createElement("span");
+            node.className = "wescheme-number";
             node.appendChild(document.createTextNode(n.toString()));
             return node;
         }
@@ -397,14 +402,14 @@
                 node = document.createTextNode(toDisplayedString(x));
             }
             wrapper.appendChild(node);
-            $(wrapper).addClass("string");
+            $(wrapper).addClass("wescheme-string");
             return wrapper;
         }
 
         if (x === true || x === false) {
             node = document.createElement("span");
             node.appendChild(document.createTextNode(x ? "true" : "false"));
-            $(node).addClass("boolean");
+            $(node).addClass("wescheme-boolean");
             return node;
         }
 

@@ -64,3 +64,7 @@
   ;  (values key (path->string (file-name-from-path path))))
   
   )
+
+
+(module+ main 
+  (write-repl-runtime-files))

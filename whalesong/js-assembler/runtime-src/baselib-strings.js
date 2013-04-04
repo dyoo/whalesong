@@ -76,6 +76,14 @@
 
     Str.prototype.toDisplayedString = Str.prototype.toString;
 
+    Str.prototype.toDomNode = function(params) {
+        return $("<span/>")
+            .text(escapeString(this.toString()))
+            .addClass('wescheme-string')
+            .get(0);
+    };
+
+
     Str.prototype.copy = function () {
 	return Str.makeInstance(this.chars.slice(0));
     };

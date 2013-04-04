@@ -1,5 +1,5 @@
 // Single characters
-(function(baselib) {
+(function(baselib, $) {
     var exports = {};
     baselib.chars = exports;
 
@@ -59,6 +59,13 @@
         return this.val;
     };
 
+    Char.prototype.toDomNode = function(params) {
+        return $('<span/>')
+            .text(this.toString())
+            .addClass('wescheme-character')
+            .get(0);
+    };
+
     Char.prototype.getValue = function() {
         return this.val;
     };
@@ -80,4 +87,4 @@
     exports.isChar = plt.baselib.makeClassPredicate(Char);
 
 
-})(this['plt'].baselib);
+})(this['plt'].baselib, jQuery);

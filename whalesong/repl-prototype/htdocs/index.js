@@ -25,7 +25,10 @@ jQuery(document).ready(function() {
 
 
     var onReset = function() { 
-        repl.reset(allowInput);
+        repl.reset(function() {
+                       output.empty();
+                       allowInput();
+                   });
     };      
        
 

@@ -77,7 +77,6 @@
                     [else #f]))
   ;; Compile the program here...
   (with-handlers ([exn:fail? (lambda (exn)
-                               (printf "Error: ~s\n" (exn-message exn))
                                (write-json (hash 'type "error"
                                                  'message (exn-message exn))
                                            op))])

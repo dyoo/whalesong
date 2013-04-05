@@ -25,6 +25,7 @@
 (let loop ()
   (define eval
     (parameterize ([sandbox-memory-limit 256]
+                   [sandbox-eval-limits '(+inf.0 256)]
                    [sandbox-output (current-output-port)]
                    [sandbox-network-guard my-network-guard])
       (printf "memory limit: ~s mb\n" (sandbox-memory-limit))

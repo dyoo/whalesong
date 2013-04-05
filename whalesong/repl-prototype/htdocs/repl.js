@@ -140,28 +140,32 @@
     Repl.prototype.executeCompiledProgram = function(compiledResult,
 						     onDoneSuccess, onDoneFail) {
         var that = this;
-        // compiledResult.compiledCodes is an array of function chunks.
-        // The evaluation leaves the value register of the machine
-        // to contain the list of values from toplevel evaluation.
-        var compiledCodes = compiledResult.compiledCodes;
-        forEachK(compiledCodes,
-                 function(code, k) {
-                     // Indirect eval usage here is deliberate.
-                     var codeFunction = (0,eval)(code);
-                     var onGoodEvaluation = function() {
-                         var resultList = that.M.v;
-                         while(resultList !== plt.baselib.lists.EMPTY) {
-                             print(that, resultList.first);
-                             resultList = resultList.rest;
+        if (compiledResult.type === 'error') {
+            return onDoneFail(compiledResult);
+        } else {
+            // compiledResult.compiledCodes is an array of function chunks.
+            // The evaluation leaves the value register of the machine
+            // to contain the list of values from toplevel evaluation.
+            var compiledCodes = compiledResult.compiledCodes;
+            forEachK(compiledCodes,
+                     function(code, k) {
+                         // Indirect eval usage here is deliberate.
+                         var codeFunction = (0,eval)(code);
+                         var onGoodEvaluation = function() {
+                             var resultList = that.M.v;
+                             while(resultList !== plt.baselib.lists.EMPTY) {
+                                 print(that, resultList.first);
+                                 resultList = resultList.rest;
+                             };
+                             k();
                          };
-                         k();
-                     };
-                     var onBadEvaluation = function(M, err) {
-                         onDoneFail(err);
-                     };
-                     codeFunction(that.M, onGoodEvaluation, onBadEvaluation);
-                 },
-                 onDoneSuccess);
+                         var onBadEvaluation = function(M, err) {
+                             onDoneFail(err);
+                         };
+                         codeFunction(that.M, onGoodEvaluation, onBadEvaluation);
+                     },
+                     onDoneSuccess);
+        }
     };
 
 

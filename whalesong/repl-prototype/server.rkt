@@ -7,7 +7,6 @@
          racket/port
          racket/match
          racket/pretty
-         racket/cmdline
          web-server/servlet-env
          web-server/servlet
          "../make/make-structs.rkt"
@@ -15,7 +14,6 @@
          "../parser/parse-bytecode.rkt"
          "../compiler/compiler.rkt"
          "../js-assembler/assemble.rkt"
-         "write-runtime.rkt"
          (for-syntax racket/base))
 
 (define-runtime-path htdocs (build-path "htdocs"))
@@ -120,16 +118,22 @@
   
 
 
-(define current-port (make-parameter 8080))
-(void (command-line
-       #:once-each 
-       [("-p" "--port") p "Port (default 8080)" 
-                        (current-port (string->number p))]))
 
+(define (start-server #:port [port 8000])
+    (thread (lambda ()
+              (printf "starting web server on port ~s\n" port)
+              (serve/servlet start 
+                             #:servlet-path "/compile"
+                             #:extra-files-paths (list htdocs)
+                             #:launch-browser? #f
+                             #:port port))))
 
-(write-repl-runtime-files)
-(serve/servlet start 
-               #:servlet-path "/compile"
-               #:extra-files-paths (list htdocs)
-               #:launch-browser? #f
-               #:port (current-port))
+(module+ main
+  (define current-port (make-parameter 8080))
+  (require racket/cmdline)
+  (void (command-line
+         #:once-each 
+         [("-p" "--port") p "Port (default 8080)" 
+          (current-port (string->number p))]))
+  (start-server #:port (current-port)))
+  

@@ -3,7 +3,7 @@
 
 // Exceptions
 
-(function(baselib) {
+(function(baselib, $) {
     'use strict';
     var exports = {};
     baselib.boxes = exports;
@@ -43,16 +43,18 @@
     };
 
     Box.prototype.toDomNode = function(params) {
-        var node = document.createElement("span");
+        var node = $('<span/>');
         if (params.getMode() === 'constructor') {
-            node.appendChild(document.createTextNode("(box "));
-            node.appendChild(params.recur(this.val));
-            node.appendChild(document.createTextNode(")"));
+            node.append($('<span/>').text('(').addClass('lParen'));
+            node.append($('<span/>').text('box'));
+            node.append(" ");
+            node.append(params.recur(this.val));
+            node.append($('<span/>').text(')').addClass('rParen'));
         } else {
-            node.appendChild(document.createTextNode('#&'));
-            node.appendChild(params.recur(this.val));
+            node.append($('<span/>').text('#&'));
+            node.append(params.recur(this.val));
         }
-        return node;
+        return node.get(0);
     };
 
     Box.prototype.equals = function(other, aUnionFind) {
@@ -101,4 +103,4 @@
     exports.makeImmutableBox = makeImmutableBox;
 
 
-}(this.plt.baselib));
+}(this.plt.baselib, jQuery));

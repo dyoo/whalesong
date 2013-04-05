@@ -16,6 +16,8 @@
          "../js-assembler/assemble.rkt"
          (for-syntax racket/base))
 
+(provide start-server)
+
 (define-runtime-path htdocs (build-path "htdocs"))
 
 (define language 
@@ -75,6 +77,7 @@
                     [else #f]))
   ;; Compile the program here...
   (with-handlers ([exn:fail? (lambda (exn)
+                               (printf "Error: ~s\n" (exn-message exn))
                                (write-json (hash 'type "error"
                                                  'message (exn-message exn))
                                            op))])
@@ -119,10 +122,12 @@
 
 
 
-(define (start-server #:port [port 8000])
+(define (start-server #:port [port 8000]
+                      #:listen-ip [listen-ip "127.0.0.1"])
     (thread (lambda ()
               (printf "starting web server on port ~s\n" port)
               (serve/servlet start 
+                             #:listen-ip listen-ip
                              #:servlet-path "/compile"
                              #:extra-files-paths (list htdocs)
                              #:launch-browser? #f
@@ -133,7 +138,7 @@
   (require racket/cmdline)
   (void (command-line
          #:once-each 
-         [("-p" "--port") p "Port (default 8080)" 
+         [("-p" "--port") p "Port (default 8000)" 
           (current-port (string->number p))]))
   (start-server #:port (current-port)))
   

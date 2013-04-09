@@ -115,14 +115,14 @@
                (modularize-input-port #:module-name (string->symbol mname)
                                       #:input-port ip
                                       #:semantics-module 'whalesong)))
-           (define program-output-port (open-output-string))[
+           (define program-output-port (open-output-string))
            (package (SexpSource (parameterize ([read-accept-reader #t])
                                   (read-syntax source-name program-input-port)))
                     #:should-follow-children? (lambda (src) #f)
                     #:output-port  program-output-port)
            (write-json (hash 'type "module"
                              'module-name (string->symbol mname)
-                             'provides ()  ;; FIXME!
+                             'provides '()  ;; FIXME!
                              'compiledModule (get-output-string program-output-port))
                        op)]))
   (close-output-port op)

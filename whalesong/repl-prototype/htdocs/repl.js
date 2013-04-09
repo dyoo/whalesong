@@ -27,7 +27,7 @@
         if (! that._xhr) { 
             that._xhr = new easyXDM.Rpc(
                 { remote: that.compilerUrl || 'rpc.html' },
-                { remote: { replCompile: {} } });
+                { remote: { replCompile: {}, moduleCompile: {} } });
         }
         return that._xhr;
     };

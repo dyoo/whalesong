@@ -1,7 +1,6 @@
 #lang racket/base
 
-(require "repl-compile.rkt"
-         json
+(require json
          file/gzip
          racket/runtime-path
          racket/port
@@ -9,6 +8,8 @@
          racket/pretty
          web-server/servlet-env
          web-server/servlet
+         "repl-compile.rkt"         
+         "modularize-input-port.rkt"
          "../make/make-structs.rkt"
          "../js-assembler/package.rkt"
          "../parser/parse-bytecode.rkt"
@@ -63,14 +64,18 @@
             out))
 
 
+(define (lookup-binding req id)
+  (if (exists-binding? 'id (request-bindings req))
+      (extract-binding/single 'id (request-bindings req))
+      #f))
 
 (define (start req)
   (define-values (response op) 
     (make-port-response #:mime-type #"text/json" #:with-cors? #t))
-  (define name (if (exists-binding? 'name (request-bindings req))
-                   (extract-binding/single 'name (request-bindings req))
-                   #f))
-  (define text-src (extract-binding/single 'src (request-bindings req)))
+  (define source-name (lookup-binding req 'name))
+  (define mname (lookup-binding req 'mname))
+  (define lang (lookup-binding req 'lang))
+  (define src (extract-binding/single 'src (request-bindings req)))
   (define as-mod? (match (extract-bindings 'm (request-bindings req))
                     [(list (or "t" "true"))
                      #t]
@@ -81,11 +86,11 @@
                                                  'message (exn-message exn))
                                            op))])
     (cond [(not as-mod?)
-           (define ip (open-input-string text-src))
+           (define ip (open-input-string src))
            (port-count-lines! ip)
            (define assembled-codes
              (let loop () 
-               (define sexp (read-syntax name ip))
+               (define sexp (read-syntax source-name ip))
                (cond [(eof-object? sexp)
                       '()]
                      [else
@@ -104,17 +109,22 @@
                              'compiledCodes assembled-codes)
                        op)]
           [else
-           (define program-port (open-output-string))
+           (define program-input-port
+             (let* ([ip (open-input-string src)])
+               (port-count-lines! ip)
+               (modularize-input-port #:module-name (string->symbol mname)
+                                      #:input-port ip
+                                      #:semantics-module 'whalesong)))
+           (define program-output-port (open-output-string))[
            (package (SexpSource (parameterize ([read-accept-reader #t])
-                                  (read (open-input-string (string-append "#lang whalesong\n" text-src)))))
+                                  (read-syntax source-name program-input-port)))
                     #:should-follow-children? (lambda (src) #f)
-                    #:output-port  program-port)
+                    #:output-port  program-output-port)
            (write-json (hash 'type "module"
-                             'compiledModule (get-output-string program-port))
-                       op)
-           ]))
-  ;; Send it back as json text....
-
+                             'module-name (string->symbol mname)
+                             'provides ()  ;; FIXME!
+                             'compiledModule (get-output-string program-output-port))
+                       op)]))
   (close-output-port op)
   response)
   

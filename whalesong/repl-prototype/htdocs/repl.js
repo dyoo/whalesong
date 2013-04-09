@@ -142,7 +142,7 @@
         var that = this;
         if (compiledResult.type === 'error') {
             return onDoneFail(compiledResult);
-        } else {
+        } else if (compiledResult.type === 'repl') {
             // compiledResult.compiledCodes is an array of function chunks.
             // The evaluation leaves the value register of the machine
             // to contain the list of values from toplevel evaluation.
@@ -165,6 +165,10 @@
                          codeFunction(that.M, onGoodEvaluation, onBadEvaluation);
                      },
                      onDoneSuccess);
+        } else if (compiledResult.type === 'module') {
+            throw new Error("internal error: not yet implemented");
+        } else {
+            throw new Error("internal error: unexpected compilation result");
         }
     };
 

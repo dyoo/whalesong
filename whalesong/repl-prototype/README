@@ -1,0 +1,30 @@
+This is an experiment in the dynamic evaluation of whalesong-generated
+code.
+
+----------------------------------------------------------------------
+
+1.  Run 'write-runtime.rkt'.  This generates the runtime.js and
+library.js files in htdocs/collects.  At the moment, the only files
+written out are those that support whalesong/wescheme, though to make
+this work, we'll want to parameterize write-runtime.rkt so it can take
+in the name of the languages that the REPL should know about.
+
+2.  Start the sandboxed server.  Run sandboxed-server.rkt.
+
+Warning: you may need to first "raco make" both "sandboxed-server.rkt"
+and "server.rkt", because the Racket compilation may otherwise hit the
+memory ceiling imposed by the sandbox itself!
+
+----------------------------------------------------------------------
+
+TODO:
+
+1.  Parameterize write-runtime so it can take in a list of the
+language modules we need to compile.  Similarly, parameterize
+sandbox-server.rkt so it knows which languages to allow.
+
+2.  Allow non-sexp-based language support.  Currently, there's a nasty
+location bug in Racket 5.3.3's module-reader that makes us lose
+location information.  I'm considering just forking a copy of the
+module reader just so we're not blocked on waiting for Racket 5.3.4,
+either that or losing location information altogether.

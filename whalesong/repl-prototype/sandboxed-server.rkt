@@ -8,10 +8,13 @@
 
 
 (define current-port (make-parameter 8080))
+(define current-memory-limit (make-parameter 256))
 (void (command-line
        #:once-each 
        [("-p" "--port") p "Port (default 8080)" 
-                        (current-port (string->number p))]))
+                        (current-port (string->number p))]
+       [("--memory-limit") memlimit "Memory limit in MB (default 256)"
+                           (current-memory-limit (string->number memlimit))]))
 
 
 
@@ -24,7 +27,7 @@
 
 (let loop ()
   (define eval
-    (parameterize ([sandbox-memory-limit 256]
+    (parameterize ([sandbox-memory-limit (current-memory-limit)]
                    [sandbox-eval-limits '(+inf.0 256)]
                    [sandbox-output (current-output-port)]
                    [sandbox-network-guard my-network-guard])

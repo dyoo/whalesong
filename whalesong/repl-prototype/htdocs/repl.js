@@ -133,7 +133,20 @@
 
     Repl.prototype.compileProgram = function(programName, code,
                                              onDone, onDoneError) {
-        getXhr(this).replCompile(programName, code, onDone, onDoneError);
+        var that = this;
+        getXhr(this).replCompile(
+            programName, 
+            code,
+            onDone, 
+            function(err) {
+                // If we get a 503, try again.
+                if (err.status == 503) {
+                    that.compileProgram(programName, code,
+                                        onDone, onDoneError);
+                } else {
+                    onDoneError(err);
+                }
+            });
     };
 
 

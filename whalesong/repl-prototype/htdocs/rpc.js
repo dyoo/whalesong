@@ -13,7 +13,13 @@
                       'data': {'name' : name,
                                'src' : code },
                       'dataType': 'json',
-                      'type' : 'post'
+                      'type' : 'post',
+                      'statusCode': {
+                          // On a 503, try again.
+                          503: function() {
+                              replCompile(name, code, onDone, onDoneError);
+                          }
+                      }
                     });
     };
     
@@ -34,7 +40,13 @@
                                'src' : options.code,
                                'm' : 't'},
                       'dataType': 'json',
-                      'type' : 'post'
+                      'type' : 'post',
+                      'statusCode': {
+                          // On 503, try again.
+                          503: function() {
+                              moduleCompile(options, onDone, onDoneError);
+                          }
+                      }
                     });
     };
 

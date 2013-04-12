@@ -88,6 +88,9 @@
                         (match msg
                           [(vector level msg data)
                            (fprintf (current-report-port)"~a: ~a\n" level msg)
+                           (flush-output (current-report-port))]
+                          [else
+                           (fprintf (current-report-port)"~a\n" msg)
                            (flush-output (current-report-port))]))
                       (loop)))))))
 

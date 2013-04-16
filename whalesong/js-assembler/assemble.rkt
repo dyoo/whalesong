@@ -65,7 +65,6 @@
     (display (assemble-current-interned-constant-closure-table) op)
     
     (display "M.params.currentErrorHandler = fail;\n" op)
-    (display "M.params.currentSuccessHandler = success;\n" op)
     (display  #<<EOF
 for (param in params) {
     if (Object.hasOwnProperty.call(params, param)) {
@@ -80,6 +79,7 @@ EOF
                     (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))]
           [else
            ;; Otherwise, we want to run under a trampolining context.
+           (display "M.c.push(new RT.Closure(function(M){ console.log('calling success'); setTimeout(success, 0); },RT.makeArityAtLeast(0),void(0),'toplevel'));\n" op)
            (fprintf op "M.trampoline(~a, ~a); })"
                     (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))
                     (cond [(eq? trampoline-option 'with-preemption)

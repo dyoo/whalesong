@@ -297,7 +297,6 @@
 	    'currentOutputPort': new StandardOutputPort(),
 	    'currentErrorPort': new StandardErrorPort(),
             'currentInputPort': new StandardInputPort(),
-	    'currentSuccessHandler': function(MACHINE) {},
 	    'currentErrorHandler': function(MACHINE, exn) {
                 MACHINE.params.currentErrorDisplayer(
                     MACHINE,
@@ -720,9 +719,10 @@
                 }
             }
         }
+
+        console.log('evaluation terminated');
         that.running = false;
         that.breakScheduled = false;
-        that.params.currentSuccessHandler(that);
         release();
         return;
 

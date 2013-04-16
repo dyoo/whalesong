@@ -149,5 +149,5 @@
          #:once-each 
          [("-p" "--port") p "Port (default 8000)" 
           (current-port (string->number p))]))
-  (start-server #:port (current-port)))
+  (sync (start-server #:port (current-port))))
   

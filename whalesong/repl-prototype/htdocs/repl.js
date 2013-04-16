@@ -162,6 +162,7 @@
             var compiledCodes = compiledResult.compiledCodes;
             forEachK(compiledCodes,
                      function(code, k) {
+                         console.log(code);
                          // Indirect eval usage here is deliberate.
                          var codeFunction = (0,eval)(code);
                          var onGoodEvaluation = function() {

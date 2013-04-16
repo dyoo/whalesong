@@ -109,11 +109,11 @@
      (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
                           (make-Const 0))     
      after-pop-prompt:
-     last:))))
-
-  
-
-
+     last:
+     ;; Finally, return to the success continuation on the stack.
+     (make-AssignImmediate 'proc (make-ControlStackLabel))
+     (make-PopControlFrame)
+     (make-Goto (make-Reg 'proc))))))
 
 
 

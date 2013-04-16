@@ -88,11 +88,26 @@
 
     };
 
+    ContinuationPromptTag.prototype.toDomNode = function(params) {
+        var dom = document.createElement("span");
+        dom.appendChild(document.createTextNode('#<continuation-prompt-tag:' + this.name + '>'));
+        return dom;
+    };
+
+    ContinuationPromptTag.prototype.toWrittenString = function(cache) {
+        return '#<continuation-prompt-tag' + this.name + '>';
+    };
+
+    ContinuationPromptTag.prototype.toDisplayedString = function(cache) {
+        return '#<continuation-prompt-tag' + this.name + '>';
+    };
+
+
 
     var isContinuationPromptTag = baselib.makeClassPredicate(ContinuationPromptTag);
 
     var DEFAULT_CONTINUATION_PROMPT_TAG =
-        new ContinuationPromptTag("default-continuation-prompt-tag");
+        new ContinuationPromptTag("default");
 
 
     exports.ContinuationMarkSet = ContinuationMarkSet;

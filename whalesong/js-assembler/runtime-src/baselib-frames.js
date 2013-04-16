@@ -44,6 +44,9 @@
     // tag for supporting delimited continuations.  To support abort,
     // we also keep the size of the environment, and the handler
     // to call if an abort happens.
+    //
+    // If handler is null, handler will be a default closure that
+    // accepts any number of values and returns.
     var PromptFrame = function(label, tag, envLength, handler) {
 	this.label = label;
 	this.tag = tag; // ContinuationPromptTag
@@ -51,6 +54,9 @@
         this.handler = handler;
     };
     PromptFrame.prototype = baselib.heir(Frame.prototype);
+
+
+
 
 
 

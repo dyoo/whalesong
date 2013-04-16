@@ -3145,15 +3145,31 @@
         });
 
 
+
+    // The default prompt handler consumes a thunk and applies it.
+    var defaultPromptHandler = 
+        makeClosure("default-prompt-handler",
+                    1,
+                    function(M) {
+                        var proc = checkProcedure(M, 'apply', 0);
+                        M.e.pop();
+                        M.p = proc;
+                        M.a = 0;
+                        baselib.functions.rawApply(M);
+                    },
+                    []);
+
+
     installPrimitiveClosure(
         'abort-current-continuation',
-        2, //baselib.arity.makeArityAtLeast(1),
+        baselib.arity.makeArityAtLeast(1),
         function(M) {
             var promptTag = checkPromptTag(M, 'abort-current-continuation', 0);
             var vals = [];
             var frame;
+            var i;
             for(i = 1; i < M.a; i++) {
-                vals.push(M.e[M.e.length-1-i]);
+                vals.push(M.e[M.e.length - 1 - i]);
             }
             
             // First, find the continuation prompt.
@@ -3161,26 +3177,22 @@
                 frame = M.c.pop();
                 if (frame instanceof PromptFrame) {
                     break;
+                } else if (M.c.length === 0) {
+                    raiseContractError(
+                        M,
+                        baselib.format.format("continuation includes no prompt with the given tag", []));
                 }
             }
-            // Shrink the environment to what was observed when the PromptFrame was installed.
+            // Shrink the environment to what was observed when the
+            // PromptFrame was installed, and then set up the call
+            // to the prompt's abort handler.
             M.e.length = frame.envLength;
-
-            // Default behavior:
-            // Re-establish the prompt frame and call the thunk.
-            // FIXME: generalize to different handlers!
-            M.e.push(c);
-            if (isProcedure(vals[0])) {
-                M.p = vals[0];
-                M.a = 0;
-                baselib.functions.rawApply(M);
-            } else {
-                raiseArgumentTypeError(M,
-                                       'abort-current-continuation',
-                                       'thunk',
-                                       1,
-                                       vals[0]);
+            M.p = frame.handler || defaultPromptHandler;
+            M.a = vals.length;
+            for (i = 0; i < vals.length; i++) {
+                M.e.push(vals[vals.length - i - 1]);
             }
+            baselib.functions.rawApply(M);
         });
 
 

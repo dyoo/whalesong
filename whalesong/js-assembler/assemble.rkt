@@ -583,7 +583,7 @@ EOF
                     (assemble-label (make-Label (LinkedLabel-label label)))])))]
       
       [(PushControlFrame/Prompt? stmt)
-       (format "M.c.push(new RT.PromptFrame(~a,~a,M.e.length,~a));" 
+       (format "M.c.push(new RT.CallFrame(~a,M.p)); M.addPrompt(~a,~a);" 
                (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                  (cond
                    [(symbol? label) 

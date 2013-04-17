@@ -488,6 +488,24 @@
         return new baselib.contmarks.ContinuationMarkSet(kvLists);
     };
 
+    
+    var justReturn = function(M) {
+        M.p=M.c[M.c.length-1].label;
+        M.c.pop();
+        return(M.p)(M);
+    };
+    justReturn.mvr = function(M) {
+        M.p=M.c[M.c.length-1].label;
+        M.c.pop();
+        return(M.p.mvr)(M);
+    };
+    Machine.prototype.addPrompt = function(promptTag, abortHandlerClosure) {
+        this.c.push(new PromptFrame(justReturn,
+                                    DEFAULT_CONTINUATION_PROMPT_TAG,
+                                    this.e.length,
+                                    abortHandlerClosure));
+    };
+
 
 
 

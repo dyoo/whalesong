@@ -3146,18 +3146,22 @@
 
 
 
-    // The default prompt handler consumes a thunk and applies it.
+    // The default abort prompt handler consumes a thunk and applies
+    // it, in a context where a new prompt has been initialized.
     var defaultPromptHandler = 
-        makeClosure("default-prompt-handler",
-                    1,
-                    function(M) {
-                        var proc = checkProcedure(M, 'apply', 0);
-                        M.e.pop();
-                        M.p = proc;
-                        M.a = 0;
-                        baselib.functions.rawApply(M);
-                    },
-                    []);
+        makeClosure(
+            "default-prompt-handler",
+            1,
+            function(M) {
+                var proc = checkProcedure(M, 'apply', 0);
+                M.e.pop();
+                M.p = proc;
+                M.a = 0;
+                M.addPrompt(baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG,
+                            false);
+                baselib.functions.rawApply(M);
+            },
+            []);
 
 
     installPrimitiveClosure(

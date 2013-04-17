@@ -230,7 +230,8 @@
          
 
          abort-current-continuation
-         
+         call-with-continuation-prompt
+
          ;; needed for cs019-local
          #%stratified-body
          )

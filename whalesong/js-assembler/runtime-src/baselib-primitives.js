@@ -3003,7 +3003,7 @@
         function(M) {
             var lst = NULL;
             if (M.a === 1) {
-                lst = checkListofPairs(M, 'make-hasheq', 0);
+                lst = checkListofPairs(M, 'make-immutable-hasheq', 0);
             }
             return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqHashtable());
         });
@@ -3014,7 +3014,7 @@
         function(M) {
             var lst = NULL;
             if (M.a === 1) {
-                lst = checkListofPairs(M, 'make-hasheqv', 0);
+                lst = checkListofPairs(M, 'make-immutable-hasheqv', 0);
             }
             return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqvHashtable());
         });
@@ -3025,7 +3025,7 @@
         function(M) {
             var lst = NULL;
             if (M.a === 1) {
-                lst = checkListofPairs(M, 'make-hash', 0);
+                lst = checkListofPairs(M, 'make-immutable-hash', 0);
             }
             return initializeImmutableHash(lst, plt.baselib.hashes.makeImmutableEqualHashtable());
         });
@@ -3124,7 +3124,7 @@
         'hash-values',
         1,
         function(M) {
-            var hash = checkHash(M, 'hash-keys', 0);
+            var hash = checkHash(M, 'hash-values', 0);
             return baselib.lists.arrayToList(hash.values());
         });
 
@@ -3132,8 +3132,8 @@
         'hash-has-key?',
         2,
         function(M){
-            var hash = checkHash(M, 'hash-set!', 0);
-            var key = checkAny(M, 'hash-set!', 1);
+            var hash = checkHash(M, 'hash-has-key?', 0);
+            var key = checkAny(M, 'hash-has-key?', 1);
             return hash.containsKey(key);
         });
 
@@ -3146,23 +3146,26 @@
 
 
 
-    // The default abort prompt handler consumes a thunk and applies
-    // it, in a context where a new prompt has been initialized.
-    var defaultPromptHandler = 
-        makeClosure(
+    var makeDefaultPromptHandler = function(promptTag) {
+        return makeClosure(
             "default-prompt-handler",
             1,
             function(M) {
-                var proc = checkProcedure(M, 'apply', 0);
+                var proc = checkProcedure(M, 'default-prompt-tag', 0);
                 M.e.pop();
                 M.p = proc;
                 M.a = 0;
-                M.addPrompt(baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG,
-                            false);
+                M.addPrompt(promptTag, false);
                 baselib.functions.rawApply(M);
             },
             []);
+    };
 
+    // The default abort prompt handler consumes a thunk and applies
+    // it, in a context where a new prompt has been initialized.
+    var defaultPromptHandler =
+        makeDefaultPromptHandler(baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG);
+        
 
     installPrimitiveClosure(
         'abort-current-continuation',
@@ -3196,6 +3199,37 @@
             for (i = 0; i < vals.length; i++) {
                 M.e.push(vals[vals.length - i - 1]);
             }
+            baselib.functions.rawApply(M);
+        });
+
+ 
+    installPrimitiveClosure(
+        'call-with-continuation-prompt',
+        baselib.arity.makeArityAtLeast(1),
+        function(M) {
+            var proc, promptTag, handler, i;
+            proc = checkProcedure(M, 'call-with-continuation-prompt', 0);
+            if (M.a >= 2) {
+                promptTag = checkPromptTag(M, 'call-with-continuation-prompt', 1);
+            } else {
+                promptTag = DEFAULT_CONTINUATION_PROMPT_TAG;
+            }
+            if (M.a >= 3) {
+                if (M.e[M.e.length - 1 - 3] === false) {
+                    handler = false;
+                } else {
+                    handler = checkProcedure(M, 'call-with-continuation-prompt', 2);
+                }
+            } else {
+                handler = makeDefaultPromptHandler(promptTag);
+            }
+
+            M.p = proc;
+            if (M.a >= 1) { M.e.pop(); } // the test is redundant, but I want the parallelism.
+            if (M.a >= 2) { M.e.pop(); }
+            if (M.a >= 3) { M.e.pop(); }
+            M.a = Math.max(M.a - 3, 0);
+            M.addPrompt(promptTag, handler);
             baselib.functions.rawApply(M);
         });
 

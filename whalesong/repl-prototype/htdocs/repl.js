@@ -166,10 +166,14 @@
                          // Indirect eval usage here is deliberate.
                          var codeFunction = (0,eval)(code);
                          var onGoodEvaluation = function() {
-                             var resultList = that.M.v;
-                             while(resultList !== plt.baselib.lists.EMPTY) {
-                                 print(that, resultList.first);
-                                 resultList = resultList.rest;
+                             var resultCount = that.M.a;
+                             var results = [];
+                             var i;
+                             for (i = 0; i < resultCount; i++) {
+                                 results.push(that.M.e[that.M.e.length - 1 - i]);
+                             }
+                             for (i = 0; i < results.length; i++) {
+                                 print(that, results[i]);
                              };
                              k();
                          };

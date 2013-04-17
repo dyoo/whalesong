@@ -100,16 +100,12 @@
       
      handle-multiple-return:
      ;; After coming back from the evaluation, rearrange the return
-     ;; values as a list.
+     ;; values, to call the continuation with those as arguments.
      (make-TestAndJump (make-TestZero (make-Reg 'argcount)) 
                        bundle-values-into-list:)
      handle-return:
      (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)     
      bundle-values-into-list:
-     (make-Perform (make-UnspliceRestFromStack! 
-                    (make-Const 0) (make-Reg 'argcount)))
-     (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
-     (make-PopEnvironment (make-Const 1) (make-Const 0))
      (make-Goto (make-Label last:))
      
      ;; FIXME: missing the abort handler.  if we abort, we want the

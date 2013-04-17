@@ -77,6 +77,7 @@
   (define lambda-bodies (collect-all-lambdas-with-bodies exp))
   (define after-lam-bodies: (make-label 'afterLamBodies))
   (define after-first-seq: (make-label 'afterFirstSeq))
+  (define abort-with-multiple-values: (make-label 'abortWithMultipleValues))
   (define last: (make-label 'last))
   (define-values (after-pop-prompt-multiple: after-pop-prompt:)
     (new-linked-labels 'afterPopPrompt))
@@ -97,6 +98,7 @@
         
      ;; After coming back from the evaluation, rearrange the return values
      ;; as a list.
+     (make-PopControlFrame)             ; pop off the synthetic prompt frame
      (make-TestAndJump (make-TestZero (make-Reg 'argcount)) after-first-seq:)
      (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)     
      after-first-seq:
@@ -105,10 +107,27 @@
      (make-PopEnvironment (make-Const 1) (make-Const 0))
      (make-Goto (make-Label last:))
      
+
+     ;; If we abort, the abort handler code also needs to return values back:
      after-pop-prompt-multiple:
-     (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
-                          (make-Const 0))     
+     (make-DebugPrint (make-Const "abort multiple"))
+     (make-TestAndJump (make-TestZero (make-Reg 'argcount)) abort-with-multiple-values:)
+     (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)     
+     abort-with-multiple-values:
+     (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Reg 'argcount)))
+     (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
+     (make-PopEnvironment (make-Const 1) (make-Const 0))
+     (make-Goto (make-Label last:))
+
      after-pop-prompt:
+     (make-DebugPrint (make-Const "abort single"))
+      
+     ;; If we escaped with a single value, return that single value in a singleton list
+     (make-PushImmediateOntoEnvironment (make-Reg 'val) #f)     
+     (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Const 1)))
+     (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
+     (make-PopEnvironment (make-Const 1) (make-Const 0))
+
      last:
      ;; Finally, return to the success continuation on the stack.
      (make-AssignImmediate 'proc (make-ControlStackLabel))

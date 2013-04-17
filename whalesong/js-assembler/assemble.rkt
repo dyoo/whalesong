@@ -79,7 +79,7 @@ EOF
                     (assemble-label (make-Label (BasicBlock-name (first basic-blocks)))))]
           [else
            ;; Otherwise, we want to run under a trampolining context.
-           (display "M.c.push(new RT.Closure(function(M){ console.log('calling success'); setTimeout(success, 0); },RT.makeArityAtLeast(0),void(0),'toplevel'));\n" op)
+           (display "M.c.push(new RT.CallFrame(function(M){ setTimeout(success, 0); },M.p));\n" op)
            (fprintf op "M.trampoline(~a, ~a); })"
                     (assemble-label (make-Label (BasicBlock-name (first basic-blocks))))
                     (cond [(eq? trampoline-option 'with-preemption)

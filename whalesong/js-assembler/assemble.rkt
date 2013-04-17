@@ -583,7 +583,7 @@ EOF
                     (assemble-label (make-Label (LinkedLabel-label label)))])))]
       
       [(PushControlFrame/Prompt? stmt)
-       (format "M.c.push(new RT.PromptFrame(~a,~a,M.e.length,false));" 
+       (format "M.c.push(new RT.PromptFrame(~a,~a,M.e.length,~a));" 
                (let: ([label : (U Symbol LinkedLabel) (PushControlFrame/Prompt-label stmt)])
                  (cond
                    [(symbol? label) 
@@ -597,7 +597,13 @@ EOF
                    [(DefaultContinuationPromptTag? tag)
                     (assemble-default-continuation-prompt-tag)]
                    [(OpArg? tag)
-                    (assemble-oparg tag blockht)])))]
+                    (assemble-oparg tag blockht)]))
+               (let: ([handler : (U LinkedLabel #f) (PushControlFrame/Prompt-handler stmt)])
+                 (cond
+                  [(eq? handler #f)
+                   "false"]
+                  [else
+                   (assemble-label (make-Label (LinkedLabel-label handler)))])))]
       
       [(PopControlFrame? stmt)
        "M.c.pop();"]

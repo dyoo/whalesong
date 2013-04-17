@@ -246,7 +246,12 @@
                                                     tag
                                                     (rewrite-oparg tag)))
                                               (make-LinkedLabel (LinkedLabel-label a-label)
-                                                                (ref (LinkedLabel-linked-to a-label))))
+                                                                (ref (LinkedLabel-linked-to a-label)))
+                                              (let ([handler (PushControlFrame/Prompt-handler a-stmt)])
+                                                (if (eq? handler #f)
+                                                    #f
+                                                    (make-LinkedLabel (LinkedLabel-label handler)
+                                                                      (ref (LinkedLabel-linked-to handler))))))
                 (loop (rest stmts)))]
          
          [(PopControlFrame? a-stmt)

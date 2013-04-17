@@ -59,7 +59,8 @@
      
      ;; Begin a prompted evaluation:
      (make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                   before-pop-prompt)
+                                   before-pop-prompt
+                                   #f)
      (compile exp '() 'val return-linkage/nontail)
      before-pop-prompt-multiple
      (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
@@ -93,6 +94,7 @@
      
      ;; Begin a prompted evaluation:
      (make-PushControlFrame/Prompt default-continuation-prompt-tag
+                                   after-pop-prompt: ;; <--- FIXME: this argument isn't used right now!
                                    after-pop-prompt:)
      (compile exp '() 'val next-linkage/keep-multiple-on-stack)
         
@@ -108,7 +110,11 @@
      (make-Goto (make-Label last:))
      
 
-     ;; If we abort, the abort handler code also needs to return values back:
+     ;; If we abort, the abort handler code should call the expected thunk
+     ;; with a return going to this code:
+     ;; FIXME
+
+
      after-pop-prompt-multiple:
      (make-DebugPrint (make-Const "abort multiple"))
      (make-TestAndJump (make-TestZero (make-Reg 'argcount)) abort-with-multiple-values:)
@@ -127,6 +133,7 @@
      (make-Perform (make-UnspliceRestFromStack! (make-Const 0) (make-Const 1)))
      (make-AssignImmediate 'val (make-EnvLexicalReference 0 #f))
      (make-PopEnvironment (make-Const 1) (make-Const 0))
+     (make-Goto (make-Label last:))
 
      last:
      ;; Finally, return to the success continuation on the stack.
@@ -593,7 +600,8 @@
           cenv
           (append-instruction-sequences 
            (make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                         on-return)
+                                         on-return
+                                         #f)
            (compile (first seq) cenv 'val return-linkage/nontail)
            (emit-values-context-check-on-procedure-return (linkage-context linkage)
                                                           on-return/multiple
@@ -604,7 +612,8 @@
            (new-linked-labels 'beforePromptPop))
          (append-instruction-sequences 
           (make-PushControlFrame/Prompt (make-DefaultContinuationPromptTag)
-                                        on-return)
+                                        on-return
+                                        #f)
           
           (compile (first seq) cenv 'val return-linkage/nontail)
           on-return/multiple

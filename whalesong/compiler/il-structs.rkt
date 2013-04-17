@@ -267,7 +267,8 @@
 
 (define-struct: PushControlFrame/Prompt ([tag : (U OpArg DefaultContinuationPromptTag)]
                                          [label : LinkedLabel]
-                                         ;; TODO: add handler and arguments
+                                         [handler : (U LinkedLabel #f)]
+                                         ;; TODO: add arguments to the handler?
                                          )
   #:transparent)
 

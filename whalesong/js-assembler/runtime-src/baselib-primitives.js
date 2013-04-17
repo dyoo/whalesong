@@ -3145,7 +3145,9 @@
         });
 
 
-
+    // The default prompt handler for a given prompt tag will assume
+    // it's consuming a zero-argument thunk, and will call it in a
+    // context where that prompt has been reestablished.
     var makeDefaultPromptHandler = function(promptTag) {
         return makeClosure(
             "default-prompt-handler",
@@ -3160,6 +3162,7 @@
             },
             []);
     };
+
 
     // The default abort prompt handler consumes a thunk and applies
     // it, in a context where a new prompt has been initialized.
@@ -3221,7 +3224,11 @@
                     handler = checkProcedure(M, 'call-with-continuation-prompt', 2);
                 }
             } else {
-                handler = makeDefaultPromptHandler(promptTag);
+                if (promptTag === DEFAULT_CONTINUATION_PROMPT_TAG) {
+                    handler = defaultPromptHandler;
+                } else {
+                    handler = makeDefaultPromptHandler(promptTag);
+                }
             }
 
             M.p = proc;

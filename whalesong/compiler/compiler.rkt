@@ -59,8 +59,7 @@
      
      ;; Begin a prompted evaluation:
      (make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                   before-pop-prompt
-                                   #f)
+                                   before-pop-prompt)
      (compile exp '() 'val return-linkage/nontail)
      before-pop-prompt-multiple
      (make-PopEnvironment (make-SubtractArg (make-Reg 'argcount) (make-Const 1))
@@ -94,8 +93,7 @@
      
      ;; Begin a prompted evaluation:
      (make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                   handle-return:
-                                   #f)
+                                   handle-return:)
      (compile exp '() 'val return-linkage/nontail)
       
      handle-multiple-return:
@@ -108,10 +106,6 @@
      bundle-values-into-list:
      (make-Goto (make-Label last:))
      
-     ;; FIXME: missing the abort handler.  if we abort, we want the
-     ;; handler to call the thunk in the context that packages the
-     ;; results into a list.
-
      last:
      ;; Finally, return to the success continuation on the stack.
      (make-AssignImmediate 'proc (make-ControlStackLabel))
@@ -577,8 +571,7 @@
           cenv
           (append-instruction-sequences 
            (make-PushControlFrame/Prompt default-continuation-prompt-tag
-                                         on-return
-                                         #f)
+                                         on-return)
            (compile (first seq) cenv 'val return-linkage/nontail)
            (emit-values-context-check-on-procedure-return (linkage-context linkage)
                                                           on-return/multiple
@@ -589,8 +582,7 @@
            (new-linked-labels 'beforePromptPop))
          (append-instruction-sequences 
           (make-PushControlFrame/Prompt (make-DefaultContinuationPromptTag)
-                                        on-return
-                                        #f)
+                                        on-return)
           
           (compile (first seq) cenv 'val return-linkage/nontail)
           on-return/multiple

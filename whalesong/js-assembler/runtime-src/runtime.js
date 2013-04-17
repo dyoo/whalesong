@@ -738,7 +738,6 @@
             }
         }
 
-        console.log('evaluation terminated');
         that.running = false;
         that.breakScheduled = false;
         release();

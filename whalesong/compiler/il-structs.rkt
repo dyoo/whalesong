@@ -265,12 +265,19 @@
 (define-struct: PushControlFrame/Call ([label : LinkedLabel]) 
   #:transparent)
 
-(define-struct: PushControlFrame/Prompt ([tag : (U OpArg DefaultContinuationPromptTag)]
-                                         [label : LinkedLabel]
-                                         [handler : (U LinkedLabel #f)]
-                                         ;; TODO: add arguments to the handler?
-                                         )
+(define-struct: PushControlFrame/Prompt
+  ([tag : (U OpArg DefaultContinuationPromptTag)]
+   [label : LinkedLabel]
+   [handler : (U #f 
+                 ;; #f stands for using the default abort handler.
+                 ;;
+                 ;; The only other case the compiler needs to deal
+                 ;; with is capturing a closure, when we need to abort
+                 ;; with a special handler (currently for repl).
+                 ;; Maybe just use the 'proc register for simplicity?
+                 #;OpArg)])
   #:transparent)
+
 
 (define-struct: DefaultContinuationPromptTag ()
   #:transparent)

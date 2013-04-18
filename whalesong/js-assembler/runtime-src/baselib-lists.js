@@ -173,7 +173,6 @@
             subelts.push(params.recur(p));
         }
 
-
         if (params.getMode() === 'constructor') {
             if (dottedPair) {
                 node = subelts[subelts.length - 1];

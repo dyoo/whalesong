@@ -11,7 +11,7 @@ jQuery(document).ready(function() {
         failureCount++;
         $("#failure-index").css("display", "inline");
         $("#failure-index").append($("<a/>").attr("href", "#fail" + failureCount)
-                                   .text("" + failureCount));
+                                   .text("" + failureCount)).append(' ');
         var failMsgText = " FAIL" + ((e.message || e || '') ? 
                                      ": " + (e.message || e || '') : "");
         $(document.body).append($("<span/>").text(failMsgText)
@@ -46,16 +46,16 @@ jQuery(document).ready(function() {
     };
 
     var runAsyncTest = function(name, f, k) {
-        repl.display("running " + name + "... ");
+        $(document.body).append("running " + name + "... ");
         var success = function() {
-            repl.display(" ok\n")
+            $(document.body).append(" ok").append($("<br/>"));
             k();
         };
         var fail = function(e) {
             noteRedFailure(e);
-	    repl.display("\n");
-	    repl.display(e + '');
-            repl.display('\n');
+	    $(document.body).append($("<br/>"));
+            //	    $(document.body).append(e + '');
+	    //$(document.body).append($("<br/>"));
             k();
         };
         try {
@@ -69,10 +69,13 @@ jQuery(document).ready(function() {
     var queueTest = function(name, code, expectedText) {
         queueAsyncTest(name, function(success, fail) {
             var checkOutput = function(err) {
-                if (outputSpan.text() === expectedText) {
+                var observedText = outputSpan.text().replace(/\n$/, "");
+                if (observedText === expectedText) {
                     success();
                 } else {
-                    fail("not the same: " + outputSpan.text() + 
+                    console.log(err);
+                    console.log(observedText, expectedText);
+                    fail("not the same: " + observedText + 
                          ", " +
                          expectedText);
                 }

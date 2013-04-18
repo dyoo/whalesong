@@ -210,6 +210,7 @@
                                     'unsafe-car
                                     'unsafe-cdr
 
+                                    'continuation-prompt-available?
                                     'abort-current-continuation
                                     'call-with-continuation-prompt
                                     ))

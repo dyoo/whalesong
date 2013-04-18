@@ -225,7 +225,6 @@
                     "Not a procedure: ~e",
                     [proc]),
                 MACHINE.captureContinuationMarks()));
-
         }
 
         oldVal = MACHINE.v;

@@ -9,12 +9,16 @@
 
 
 (define (call-with-escape-continuation proc)
-  (define p (make-continuation-prompt-tag))
+  (define p (make-continuation-prompt-tag 'escape))
   (call-with-continuation-prompt
    (lambda ()
      (proc (lambda args
+             (unless (continuation-prompt-available? p) 
+               (error 'call-with-escape-continuation
+                      "escape continuation used out of context"))
              (abort-current-continuation p (lambda ()
-                                             (apply values args))))))))
+                                             (apply values args))))))
+   p))
 
 (define call/ec (procedure-rename call-with-escape-continuation 'call/ec))
 

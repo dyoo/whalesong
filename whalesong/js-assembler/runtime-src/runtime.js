@@ -501,7 +501,7 @@
     };
     Machine.prototype.addPrompt = function(promptTag, abortHandlerClosure) {
         this.c.push(new PromptFrame(justReturn,
-                                    DEFAULT_CONTINUATION_PROMPT_TAG,
+                                    promptTag,
                                     this.e.length,
                                     abortHandlerClosure));
     };

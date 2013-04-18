@@ -228,7 +228,7 @@
          current-inexact-milliseconds
          current-seconds
          
-
+         continuation-prompt-available?
          abort-current-continuation
          call-with-continuation-prompt
 

@@ -84,22 +84,35 @@
 
     // A continuation prompt tag labels a prompt frame.
     var ContinuationPromptTag = function(name) {
-	this.name = name;         // String
+	this.name = name;         // (U String false)
 
     };
 
     ContinuationPromptTag.prototype.toDomNode = function(params) {
         var dom = document.createElement("span");
-        dom.appendChild(document.createTextNode('#<continuation-prompt-tag:' + this.name + '>'));
+        if (this.name) {
+            dom.appendChild(document.createTextNode('#<continuation-prompt-tag:' 
+                                                    + this.name + '>'));
+        } else {
+            dom.appendChild(document.createTextNode('#<continuation-prompt-tag>'));
+        }
         return dom;
     };
 
     ContinuationPromptTag.prototype.toWrittenString = function(cache) {
-        return '#<continuation-prompt-tag' + this.name + '>';
+        if (this.name) {
+            return '#<continuation-prompt-tag' + this.name + '>';
+        } else {
+            return '#<continuation-prompt-tag>';
+        }
     };
 
     ContinuationPromptTag.prototype.toDisplayedString = function(cache) {
-        return '#<continuation-prompt-tag' + this.name + '>';
+        if (this.name) {
+            return '#<continuation-prompt-tag' + this.name + '>';
+        } else {
+            return '#<continuation-prompt-tag>';
+        }
     };
 
 

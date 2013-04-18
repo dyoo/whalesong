@@ -2810,7 +2810,7 @@
                 sym = checkSymbol(M, "make-continuation-prompt-tag", 0);
                 return new baselib.contmarks.ContinuationPromptTag(sym.toString());
             }
-            return new baselib.contmarks.ContinuationPromptTag(void(0));
+            return new baselib.contmarks.ContinuationPromptTag(false);
         });
 
     installPrimitiveProcedure(
@@ -3164,6 +3164,28 @@
     };
 
 
+    // FIXME: we should be able to take in an arbitrary continuation
+    // as an optional second argument!
+    //
+   // I need to change the representation of continuations to be able to
+    // detect this at runtime.
+    installPrimitiveProcedure(
+        'continuation-prompt-available?',
+        1,
+        function(M) {
+            var promptTag = checkPromptTag(M, 'continuation-prompt-available?', 0);
+            var i;
+            for (i = 0; i < M.c.length; i++) {
+                var frame = M.c[i];
+                if (frame instanceof PromptFrame && frame.tag === promptTag) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+
+
     // The default abort prompt handler consumes a thunk and applies
     // it, in a context where a new prompt has been initialized.
     var defaultPromptHandler =
@@ -3185,7 +3207,7 @@
             // First, find the continuation prompt.
             while(true) {
                 frame = M.c.pop();
-                if (frame instanceof PromptFrame) {
+                if (frame instanceof PromptFrame && frame.tag === promptTag) {
                     break;
                 } else if (M.c.length === 0) {
                     raiseContractError(

@@ -515,17 +515,6 @@ jQuery(document).ready(function() {
 		   "(on-tick 1 2)",
 		   "on-tick: expects a function name as 1st argument, but given: 1; other arguments were: 2");
     
-    queueErrorTest("on-tick! bad args amount",
-		   "(on-tick!)",
-		   "on-tick!: expects 2 or 3 arguments, but given 0");
-    
-    queueErrorTest("on-tick! given 2 bad args",
-		   "(on-tick! 1 2)",
-		   "on-tick!: expects a function name as 1st argument, but given: 1; other arguments were: 2");
-    
-    queueErrorTest("on-tick! given 3 bad args",
-		   "(on-tick! 1 2 3)",
-		   "on-tick!: expects a function name as 1st argument, but given: 1; other arguments were: 2 3");
 
     queueErrorTest("on-tap bad arg amount",
 		   "(on-tap)",
@@ -551,13 +540,6 @@ jQuery(document).ready(function() {
 		   "(on-key 1)",
 		   "on-key: expects a function name as 1st argument, but given: 1");
 
-    queueErrorTest("on-key! bad arg amount",
-		   "(on-key!)",
-		   "on-key!: expects 2 arguments, but given 0");
-    
-    queueErrorTest("on-key! bad arg a",
-		   "(on-key! 1 1)",
-		   "on-key!: expects a function name as 1st argument, but given: 1; other arguments were: 1");
 
     queueErrorTest("stop-when bad arg amount",
 		   "(stop-when)",

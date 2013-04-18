@@ -12,6 +12,7 @@
 (require "base.rkt"
          "private/traced-app.rkt"
          "private/shared.rkt"
+         "private/call-ec.rkt"
          "check-expect/check-expect.rkt"
          "bool.rkt"
          "posn.rkt"

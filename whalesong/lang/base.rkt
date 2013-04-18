@@ -15,11 +15,13 @@
          (all-from-out "list.rkt")
          (all-from-out "private/map.rkt")
          (all-from-out "private/hash.rkt")
+         (all-from-out "private/call-ec.rkt")
          quasiquote)
          
 (require "private/list.rkt"
          "private/map.rkt"
          "private/hash.rkt"
+         "private/call-ec.rkt"
          "list.rkt"
          (only-in "private/qq-and-or.rkt" quasiquote))
 

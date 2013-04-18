@@ -5,6 +5,7 @@ jQuery(document).ready(function() {
                                 // of this file.
     var outputSpan = $("<span/>");
 
+    var testsRunCount = 0;
     var failureCount = 0;
 
     var noteRedFailure = function(e) {
@@ -49,10 +50,12 @@ jQuery(document).ready(function() {
         $(document.body).append("running " + name + "... ");
         var success = function() {
             $(document.body).append(" ok").append($("<br/>"));
+            testsRunCount++;
             k();
         };
         var fail = function(e) {
             noteRedFailure(e);
+            testsRunCount++;
 	    $(document.body).append($("<br/>"));
             //	    $(document.body).append(e + '');
 	    //$(document.body).append($("<br/>"));
@@ -73,8 +76,6 @@ jQuery(document).ready(function() {
                 if (observedText === expectedText) {
                     success();
                 } else {
-                    console.log(err);
-                    console.log(observedText, expectedText);
                     fail("not the same: " + observedText + 
                          ", " +
                          expectedText);
@@ -92,7 +93,7 @@ jQuery(document).ready(function() {
     var queueErrorTest = function(name, code, expectedErrorText) {
         queueAsyncTest(name, function(success, fail) {
             var checkOutput = function(err) {
-                var errText = err + '';
+                var errText = ((err && err.message) || err) + '';
                 if (errText === expectedErrorText) {
                     success();
                 } else {
@@ -158,9 +159,9 @@ jQuery(document).ready(function() {
               "(string->symbol \"hello\")",
               "'hello");
 
-    queueTest("formatting lists",
-              "(format \"~a\" '(1 2))",
-              "\"(list 1 2)\"");
+    // queueTest("formatting lists",
+    //           "(format \"~a\" '(1 2))",
+    //           "\"(list 1 2)\"");
 
 
     queueTest("symbols that should not leak js implementation",
@@ -176,13 +177,9 @@ jQuery(document).ready(function() {
               "'__proto__");
 
 
-    queueErrorTest("set! is not enabled, part 1",
-                   "set!",
-                   "set!: this variable is not defined")
-
-    queueErrorTest("set! is not enabled, part 2",
-                   "(define x 42) (set! x 16)",
-                   "set!: this variable is not defined")
+    queueTest("simple set!",
+              "(define x 42) (set! x 16) x",
+              "16")
 
 
     queueErrorTest("test mis-application 1",
@@ -4273,7 +4270,7 @@ jQuery(document).ready(function() {
 
     var afterReplSetup = function(theRepl) {
         repl = theRepl;
-        runTests(function() { $("#is-running").text("Tests finished."); });
+        runTests(function() { $("#is-running").text("Tests finished.  " + testsRunCount + " tests executed."); });
     };
 
     $("#failure-index").css("display", "none");

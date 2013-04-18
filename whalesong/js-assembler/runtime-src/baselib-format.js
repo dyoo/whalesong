@@ -68,7 +68,7 @@
         }
 
         if (baselib.functions.isProcedure(x)) {
-            return '#<procedure:' + x.displayName + '>';
+            return '#<function:' + x.displayName + '>';
         }
 
         if (typeof(x) !== 'object' && typeof(x) !== 'function') {
@@ -111,7 +111,7 @@
         }
 
         if (baselib.functions.isProcedure(x)) {
-            return '#<procedure:' + x.displayName + '>';
+            return '#<function:' + x.displayName + '>';
         }
 
         if (typeof(x) !== 'object' && typeof(x) !== 'function') {
@@ -415,7 +415,7 @@
 
         if (baselib.functions.isProcedure(x)) {
             node = document.createElement("span");
-            node.appendChild(document.createTextNode('#<procedure:' + x.displayName + '>'));
+            node.appendChild(document.createTextNode('#<function:' + x.displayName + '>'));
             $(node).addClass("procedure");
             return node;
         }

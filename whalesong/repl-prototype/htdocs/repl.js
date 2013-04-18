@@ -172,7 +172,7 @@
                                  results.push(that.M.e[that.M.e.length - 1 - i]);
                              }
                              for (i = 0; i < results.length; i++) {
-                                 print(that, results[i]);
+                                 that.printlnIgnoringVoid(results[i]);
                              };
                              k();
                          };
@@ -204,10 +204,11 @@
     };
 
 
-    // Print: Repl racket-value -> void
+    // printlnIgnoringVoid: racket-value -> void
     // Prints the racket value out, followed by a newline,
     // unless VOID is being printed.
-    var print = function(that, elt) {
+    Repl.prototype.printlnIgnoringVoid = function(elt) {
+        var that = this;
 	var outputPort = that.M.params.currentOutputPort;
 	if (elt !== plt.runtime.VOID) {
 	    outputPort.writeDomNode(
@@ -217,6 +218,26 @@
                                     plt.runtime.toDomNode("\n", 'display'));
 	}
     };
+
+    // print: racket-value -> void
+    Repl.prototype.print = function(elt) {
+        var that = this;
+	var outputPort = that.M.params.currentOutputPort;
+	outputPort.writeDomNode(
+            that.M,
+            plt.runtime.toDomNode(elt, that.M.params['print-mode']));
+    };
+
+    // println: racket-value -> void
+    // Displays the racket value out, followed by a newline,
+    Repl.prototype.display = function(elt) {
+        var that = this;
+	var outputPort = that.M.params.currentOutputPort;
+	outputPort.writeDomNode(
+            that.M,
+            plt.runtime.toDomNode(elt, 'display'));
+    };
+
 
 
     //////////////////////////////////////////////////////////////////////

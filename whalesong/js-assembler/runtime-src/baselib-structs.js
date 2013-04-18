@@ -42,7 +42,6 @@
             node.append(params.recur(this._fields[i]));
         }
         node.append($('<span/>').text(")").addClass('rParen'));
-        console.log(node);
         return node.get(0);
     };
 

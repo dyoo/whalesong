@@ -356,8 +356,8 @@
                                                  fail(err);
                                              });
             },
-            function() {
-                fail();
+            function(err) {
+                fail(err);
             });
     };
 

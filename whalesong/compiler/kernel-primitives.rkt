@@ -209,6 +209,9 @@
 
                                     'unsafe-car
                                     'unsafe-cdr
+
+                                    'abort-current-continuation
+                                    'call-with-continuation-prompt
                                     ))
 (define-predicate KernelPrimitiveName? KernelPrimitiveName)
 

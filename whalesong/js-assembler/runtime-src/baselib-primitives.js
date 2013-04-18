@@ -3215,7 +3215,7 @@
             if (M.a >= 2) {
                 promptTag = checkPromptTag(M, 'call-with-continuation-prompt', 1);
             } else {
-                promptTag = DEFAULT_CONTINUATION_PROMPT_TAG;
+                promptTag = baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG;
             }
             if (M.a >= 3) {
                 if (M.e[M.e.length - 1 - 3] === false) {
@@ -3224,7 +3224,7 @@
                     handler = checkProcedure(M, 'call-with-continuation-prompt', 2);
                 }
             } else {
-                if (promptTag === DEFAULT_CONTINUATION_PROMPT_TAG) {
+                if (promptTag === baselib.contmarks.DEFAULT_CONTINUATION_PROMPT_TAG) {
                     handler = defaultPromptHandler;
                 } else {
                     handler = makeDefaultPromptHandler(promptTag);

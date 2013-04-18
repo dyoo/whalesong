@@ -692,7 +692,7 @@ var invokeMainModule = function() {
                 window.console.log('evaluation took ' + (stopTime - startTime) + ' milliseconds');
             }
         },
-        function(M, e) {
+        function(e) {
             var contMarkSet, context, i, appName, contextDiv, srclocProcedure;
 
             var displayContext = function() {

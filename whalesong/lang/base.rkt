@@ -12,16 +12,18 @@
                      syntax-parameterize
                      )
          (all-from-out "private/list.rkt")
-         (all-from-out "list.rkt")
          (all-from-out "private/map.rkt")
          (all-from-out "private/hash.rkt")
          (all-from-out "private/call-ec.rkt")
+         (all-from-out "private/with-handlers.rkt")
+         (all-from-out "list.rkt")
          quasiquote)
          
 (require "private/list.rkt"
          "private/map.rkt"
          "private/hash.rkt"
          "private/call-ec.rkt"
+         "private/with-handlers.rkt"
          "list.rkt"
          (only-in "private/qq-and-or.rkt" quasiquote))
 

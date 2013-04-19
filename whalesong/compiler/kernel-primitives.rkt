@@ -177,8 +177,22 @@
 
 				    'error
                                     'raise-type-error
+                                    'raise-mismatch-error
                                     'struct:exn:fail
                                     'prop:exn:srclocs
+                                    'make-exn
+                                    'make-exn:fail
+                                    'make-exn:fail:contract
+                                    'make-exn:fail:contract:arity
+                                    'make-exn:fail:contract:variable
+                                    'make-exn:fail:contract:divide-by-zero
+
+                                    'exn:fail?
+                                    'exn:fail:contract?
+                                    'exn:fail:contract:arity?
+                                    
+                                    'exn-message
+                                    'exn-continuation-marks
 
                                     'hash?
                                     'hash-equal?

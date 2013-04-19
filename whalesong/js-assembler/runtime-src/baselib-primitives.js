@@ -161,14 +161,12 @@
     installPrimitiveConstant('eof', baselib.constants.EOF_VALUE);
 
 
-    // The parameter keys here must be uninterned symbols, so we explicitly
-    // call the symbol constructor here.
     installPrimitiveConstant('exception-handler-key',
-                             new baselib.symbols.Symbol("exnh"));
+                             baselib.paramz.exceptionHandlerKey);
     installPrimitiveConstant('parameterization-key',
-                             new baselib.symbols.Symbol("paramz"));
+                             baselib.paramz.parameterizationKey);
     installPrimitiveConstant('break-enabled-key',
-                             new baselib.symbols.Symbol("break-on?"));
+                             baselib.paramz.breakEnabledKey);
 
 
     var gensymCounter = 0;
@@ -2482,6 +2480,28 @@
             var marks = checkContinuationMarkSet(M, 'make-exn:fail:contract:divide-by-zero', 1);
             return baselib.exceptions.makeExnFailContractDivisionByZero(message, marks);
         });
+
+    installPrimitiveProcedure(
+        'exn:fail?',
+        1,
+        function(M) {
+            return baselib.exceptions.isExnFail(M.e[M.e.length-1]);
+        });
+
+    installPrimitiveProcedure(
+        'exn:fail:contract?',
+        1,
+        function(M) {
+            return baselib.exceptions.isExnFailContract(M.e[M.e.length-1]);
+        });
+
+    installPrimitiveProcedure(
+        'exn:fail:contract:arity?',
+        1,
+        function(M) {
+            return baselib.exceptions.isExnFailContractArity(M.e[M.e.length-1]);
+        });
+
 
     installPrimitiveProcedure(
         'exn-message',

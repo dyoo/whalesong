@@ -57,6 +57,7 @@
                 baselib-vectors.js
                 baselib-chars.js
                 baselib-symbols.js
+                baselib-paramz.js
                 baselib-strings.js
                 baselib-bytes.js                    
 

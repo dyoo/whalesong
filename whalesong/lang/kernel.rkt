@@ -285,28 +285,29 @@
 ;;  sleep
 ;;  (identity -identity)
 
-raise  
-error
-raise-type-error
-raise-mismatch-error
+  raise  
+  error
+  raise-type-error
+  raise-mismatch-error
 
-make-exn
-make-exn:fail
-make-exn:fail:contract
-make-exn:fail:contract:arity
-make-exn:fail:contract:variable
-make-exn:fail:contract:divide-by-zero
-
-exn-message
-exn-continuation-marks
-
+  make-exn
+  make-exn:fail
+  make-exn:fail:contract
+  make-exn:fail:contract:arity
+  make-exn:fail:contract:variable
+  make-exn:fail:contract:divide-by-zero
 
 ;;  exn?
-;;  exn:fail?
-;;  exn:fail:contract?
 ;;  exn:fail:contract:arity?
 ;;  exn:fail:contract:variable?
 ;;  exn:fail:contract:divide-by-zero?
+  exn:fail?
+  exn:fail:contract?
+  exn:fail:contract:arity?
+
+  exn-message
+  exn-continuation-marks
+
   abs
   quotient
   remainder

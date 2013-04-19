@@ -47,6 +47,26 @@
         return baselib.lists.arrayToList(result);
     };
 
+
+    ContinuationMarkSet.prototype.refFirst = function(key, promptTag) {
+        // FIXME: refFirst needs to watch the promptTag as well and capture up to it.
+        var i, j;
+        var result = [];
+        var kvlist;
+        for (i = 0; i < this.kvlists.length; i++) {
+            kvlist = this.kvlists[i];
+            for (j = 0; j < kvlist.length; j++) {
+                if (baselib.equality.equals(kvlist[j][0], key)) {
+                    return (kvlist[j][1]);
+                }
+            }
+        }
+        return undefined;
+    };
+
+
+
+
     // Returns an approximate stack trace.
     // getContext: MACHINE -> (arrayof (U Procedure (Vector source line column position span)))
     ContinuationMarkSet.prototype.getContext = function(MACHINE) {

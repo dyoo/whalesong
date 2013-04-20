@@ -26,19 +26,22 @@
 
 
 (let loop ()
-  (define eval
-    (parameterize ([sandbox-memory-limit (current-memory-limit)]
-                   [sandbox-eval-limits '(+inf.0 256)]
-                   [sandbox-output (current-output-port)]
-                   [sandbox-network-guard my-network-guard])
-      (printf "memory limit: ~s mb\n" (sandbox-memory-limit))
+  (parameterize ([sandbox-memory-limit (current-memory-limit)]
+                 [sandbox-eval-limits '(+inf.0 256)]
+                 [sandbox-output (current-output-port)]
+                 [sandbox-network-guard my-network-guard])
+    (printf "memory limit: ~s mb\n" (sandbox-memory-limit))
+    (define eval
       (make-module-evaluator server-path
-                             #:allow-read (list (build-path "/")))))
-  (printf "starting server thread\n")
-  (define server-thread (eval `(start-server #:port ,(current-port))))
-  (printf "thread started\n")
-  (with-handlers ([exn:fail? (lambda (exn)
-                               (printf "server died prematurely?  ~s\n" (exn-message exn)))])
-    (sync server-thread))
-  (printf "restarting server\n")
-  (loop))
+                             #:allow-read (list (build-path "/"))))
+    (printf "starting server thread\n")
+    (eval 
+     `(begin (define server-thread (start-server #:port ,(current-port)))
+             (printf "thread started\n")
+             (with-handlers ([exn:fail?
+                              (lambda (exn)
+                                (printf "server died prematurely?  ~s\n" 
+                                        (exn-message exn)))])
+               (sync server-thread))))
+    (printf "restarting server\n")
+    (loop)))

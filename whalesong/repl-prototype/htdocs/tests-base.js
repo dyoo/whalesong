@@ -4262,7 +4262,7 @@ jQuery(document).ready(function() {
     window.plt.tests = {};
     window.plt.tests.initTests = initTests;
     window.plt.tests.resetTests = function() {
-        $("#failure-index").clear();
+        $("#failure-index").empty();
         failureCount = 0;
         $("#failure-index").css("display", "none");
         

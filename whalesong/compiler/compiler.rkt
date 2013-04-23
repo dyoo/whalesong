@@ -1335,8 +1335,13 @@
            [(ToplevelRef? e)
             (cond
               [(ModuleVariable? k)
-               (make-EnvPrefixReference (ToplevelRef-depth e) (ToplevelRef-pos e) #t)]
-              
+               (cond [(kernel-module-name? (ModuleVariable-module-name k))
+                      (make-PrimitiveKernelValue
+                       (kernel-module-variable->primitive-name k))]
+                     [else
+                      (make-EnvPrefixReference (ToplevelRef-depth e)
+                                               (ToplevelRef-pos e)
+                                               #t)])]
               [else
                (make-EnvPrefixReference (ToplevelRef-depth e) (ToplevelRef-pos e) #f)])]
            [(PrimitiveKernelValue? e)

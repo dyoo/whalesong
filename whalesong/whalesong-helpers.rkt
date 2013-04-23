@@ -319,6 +319,15 @@
               (current-output-port)))))
 
 
+(define (print-bytecode filename)
+  (with-catchall-exception-handler
+   (lambda ()
+     (turn-on-logger!)
+     (define path (normalize-path (build-path filename)))
+     (define bytecode (parse-bytecode path))
+     (pretty-print bytecode))))
+
+
 (define (print-il filename)
   (with-catchall-exception-handler
    (lambda ()

@@ -137,6 +137,28 @@
                   #:args (path)
                   (maybe-with-profiling
                    (print-il path))]
+
+   ["print-bytecode" "print the bytecode of a module"
+               "Prints the bytecode of a module; used for debugging purposes."
+               #:once-each
+               [("-v" "--verbose")
+                   ("Display verbose messages.")
+                   (current-verbose? #t)]
+                  [("--debug-show-timings")
+                   ("Display debug messages about compilation time.")
+                   (current-timing-port (current-output-port))]
+                  [("--enable-profiling")
+                   ("Enable profiling to standard output")
+                   (with-profiling? #t)]
+                  [("--root-dir")
+                   root-path
+                   ("Set the root package path (default: current-directory)")
+                   (set-root-path! root-path)]
+                  #:args (path)
+                  (maybe-with-profiling
+                   (print-bytecode path))]
+
+
    
    ["get-runtime" "print the runtime library to standard output"
                   "Prints the runtime JavaScript library that's used by Whalesong programs."

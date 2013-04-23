@@ -499,10 +499,11 @@
         M.c.pop();
         return(M.p.mvr)(M);
     };
-    Machine.prototype.addPrompt = function(promptTag, abortHandlerClosure) {
+
+    Machine.prototype.addPrompt = function(promptTag, abortHandlerClosure, envLength) {
         this.c.push(new PromptFrame(justReturn,
                                     promptTag,
-                                    this.e.length,
+                                    envLength,
                                     abortHandlerClosure));
     };
 

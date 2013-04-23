@@ -3177,7 +3177,7 @@
                 M.e.pop();
                 M.p = proc;
                 M.a = 0;
-                M.addPrompt(promptTag, false);
+                M.addPrompt(promptTag, false, M.e.length);
                 baselib.functions.rawApply(M);
             },
             []);
@@ -3272,13 +3272,17 @@
                     handler = makeDefaultPromptHandler(promptTag);
                 }
             }
-
             M.p = proc;
             if (M.a >= 1) { M.e.pop(); } // the test is redundant, but I want the parallelism.
             if (M.a >= 2) { M.e.pop(); }
             if (M.a >= 3) { M.e.pop(); }
             M.a = Math.max(M.a - 3, 0);
-            M.addPrompt(promptTag, handler);
+
+            // subtle: the prompt's environment is the one _after_ the current call!
+            // That's why we need to do M.e.length - M.a: the environment currently
+            // has extra values due to us calling the prompt handler here.
+            M.addPrompt(promptTag, handler, M.e.length - M.a); 
+
             baselib.functions.rawApply(M);
         });
 

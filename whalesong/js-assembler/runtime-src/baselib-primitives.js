@@ -3280,7 +3280,7 @@
 
             // subtle: the prompt's environment is the one _after_ the current call!
             // That's why we need to do M.e.length - M.a: the environment currently
-            // has extra values due to us calling the prompt handler here.
+            // has extra values due to us calling the prompt's procedure here.
             M.addPrompt(promptTag, handler, M.e.length - M.a); 
 
             baselib.functions.rawApply(M);

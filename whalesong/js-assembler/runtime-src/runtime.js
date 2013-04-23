@@ -736,7 +736,7 @@
                         exceptionHandlerFunction !== false) {
                         that.p = exceptionHandlerFunction;
                         that.a = 1;
-                        that.e.push(e);
+                        that.e.push(e.racketError);
                         thunk = baselib.functions.rawApply;
                     } else {
                         that.running = false;

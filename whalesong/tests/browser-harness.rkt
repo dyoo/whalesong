@@ -13,6 +13,7 @@
          "../make/make-structs.rkt"
          racket/port
          racket/path
+         racket/string
          racket/runtime-path
          racket/runtime-path
          (for-syntax racket/base
@@ -25,12 +26,12 @@
                   (lambda (program op)
                     
                     (fprintf op "(function () {")
+                    (fprintf op "if (typeof console !== 'undefined') { console.log('loading'); }")
                     (newline op)
                     
                     (when first-run
                       (display (get-runtime) op)
                       (set! first-run #f))
-                    
                     (display "return (function(succ, fail, params) {
                                            var machine = new plt.runtime.Machine();
                                            plt.runtime.currentMachine = machine;" op)
@@ -41,14 +42,12 @@
                     (display "             machine.params.currentDisplayer = function(MACHINE, v) {
                                                  params.currentDisplayer(v);
                                            };
-                                          plt.runtime.ready(function() {
-                                              plt.runtime.invokeMains(machine,
-                                                                      succ,
-                                                                      function(MACHINE, e) {
-                                                                          fail(e);
-                                                                      });
-                                          });
-
+                                           plt.runtime.invokeMains(machine,
+                                                                   succ,
+                                                                   function(e) {
+                                                                       params.currentDisplayer(jQuery('<span/>').text(e.message).get(0));
+                                                                       succ();
+                                                                    });
                                        });
                               });" op))))
 
@@ -71,22 +70,37 @@
 
 
 
+(define (clean s)
+  (string-trim (strip-paths s)
+               #:left? #f
+               #:right? #t))
+
+
 (define (test/loc original-source-file-path source-file-path
                   original-expected-file-path expected-file-path
                   loc-thunk)
   (printf "running test on ~s..." original-source-file-path)
   (flush-output (current-output-port))
-  (let* ([exp (call-with-input-file expected-file-path port->string)]
+  (let* ([expected (call-with-input-file expected-file-path port->string)]
          [src-path source-file-path]
-         [result (evaluate (make-MainModuleSource src-path))]
-         [output (evaluated-stdout result)])
-    (cond [(string=? (strip-paths output)
-                     (strip-paths exp))
-           (printf " ok (~a milliseconds)\n" (evaluated-t result))]
+         [result ;; (U evaluated exn)
+          (with-handlers ([exn:fail? (lambda (exn)
+                                       ;; On errors, we check to see if the
+                                       ;; exception string matches what
+                                       ;; we expected.
+                                       exn)])
+            (evaluate (make-MainModuleSource src-path)))]
+         [output (if (exn? result)
+                     (exn-message result)
+                     (evaluated-stdout result))])
+    (cond [(string=? (clean output) (clean expected))
+           (if (exn? result)
+               (printf " ok\n")
+               (printf " ok (~a milliseconds)\n" (evaluated-t result)))]
           [else
            (printf " error!\n")
            (displayln (exn-message (make-exn:fail:error-on-test
-                                    (format "Expected ~s, got ~s" exp output)
+                                    (format "Expected ~s, got ~s" (clean expected) (clean output))
                                     (current-continuation-marks)
                                     (loc-thunk))))])))
 

@@ -888,16 +888,15 @@
         runtime.ready(function () {
             setReadyFalse();
             machine = machine || runtime.currentMachine;
-            succ = succ || function() {};
-            fail = fail || function() {};
+            var wrappedSucc = function() { if (succ) { succ.apply(null, arguments); } setReadyTrue(); }
+            var wrappedFail = function() { if (fail) { fail.apply(null, arguments); } setReadyTrue(); }
             var mainModules = machine.mainModules.slice();
             var loop = function() {
                 if (mainModules.length > 0) {
                     var nextModuleName = mainModules.shift();
-                    machine.loadAndInvoke(nextModuleName, loop, fail);
+                    machine.loadAndInvoke(nextModuleName, loop, wrappedFail);
                 } else {
-                    setReadyTrue();
-                    succ();
+                    wrappedSucc();
                 }
             };
             setTimeout(loop, 0);

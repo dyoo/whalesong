@@ -181,6 +181,11 @@ jQuery(document).ready(function() {
               "16")
 
 
+    queueTest("exception handling",
+              "(with-handlers ([exn:fail? (lambda (exn) (printf \"I see: ~a\" (exn-message exn)))]) (/ 1 0))",
+              "I see: /: division by zero");
+
+
     queueErrorTest("test mis-application 1",
                    "(define (double x) (+ x x)) (double double)",
                    "+: expects a number as 1st argument, but given: #<function:double>; other arguments were: #<function:double>");

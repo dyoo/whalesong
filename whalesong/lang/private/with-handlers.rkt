@@ -28,7 +28,6 @@
      (with-continuation-mark 
        exception-handler-key
        (lambda (e)
-         (printf "Abort handler sees ~s\n" e)
          ;; Deliver the exception to the escape handler:
          (abort-current-continuation
           handler-prompt-key
@@ -41,7 +40,6 @@
 
 
 (define (select-handler e l)
-  (printf "in the select handler\n")
   (let loop ([l l])
     (cond
      [(null? l)
@@ -68,8 +66,6 @@
                            [(handler-name) handler] ...)
                 (call-handled-body
                  (lambda (e)
-                   (printf "about to call the select handler\n")
-                   (printf "I see: ~s\n" e)
                    (select-handler e (list (cons pred-name handler-name) ...)))
                  (lambda ()
                    expr1 expr ...))))))])))

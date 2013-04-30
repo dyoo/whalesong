@@ -1,8 +1,5 @@
 #lang scribble/manual
-@(require planet/scribble
-          planet/version
-          planet/resolver
-          scribble/eval
+@(require scribble/eval
           scribble/bnf
           racket/sandbox
           racket/port
@@ -16,9 +13,9 @@
 @(define-runtime-path git-head-path "../.git/refs/heads/master")
 
 
-@(require (for-label (this-package-in js)
-                     (this-package-in js/world))
-          (for-label (except-in (this-package-in lang/base)
+@(require (for-label whalesong/js
+                     whalesong/js/world)
+          (for-label (except-in whalesong/lang/base
                                 string?
                                 printf
                                 number->string
@@ -31,8 +28,8 @@
                                 newline
                                 current-output-port
                                 display))
-          (for-label (this-package-in resource)
-          (for-label (this-package-in web-world))))
+          (for-label whalesong/resource
+          (for-label whalesong/web-world)))
 
 
 
@@ -244,7 +241,11 @@ Pacman.}
 
 @subsection{Installing Whalesong}
 
+[FIXME: this part needs revision since we're moving over to a PLaneT2
+installation]
 
+
+@;{
 
 Before you begin, if you are using DrRacket,
 @itemize[#:style 'ordered
@@ -270,7 +271,7 @@ directory.
 You should also see a @filepath{whalesong-gui} launcher that includes
 a minimal graphical user interface.
 
-
+}
 
 
 
@@ -312,7 +313,7 @@ restriction as quickly as possible.
 Write a @filepath{hello.rkt} with the following content
 @filebox["hello.rkt"]{
 @codeblock{
-    #lang planet dyoo/whalesong
+    #lang whalesong
     (display "hello world")
     (newline)
 }}
@@ -349,11 +350,11 @@ Visit @link["http://hashcollision.org/whalesong/examples/dom-play/dom-play.html"
 
 @filebox["dom-play.rkt"]{
 @codeblock|{
-#lang planet dyoo/whalesong
+#lang whalesong
 
 ;; Uses the JavaScript FFI, which provides bindings for:
 ;; $ and call-method
-(require (planet dyoo/whalesong/js))
+(require whalesong/js)
 
 ;; insert-break: -> void
 (define (insert-break)
@@ -382,7 +383,7 @@ Visit @link["http://hashcollision.org/whalesong/examples/dom-play/dom-play.html"
     (insert-break)
     (loop (add1 i))]))
 }|}
-This program uses the @link["http:/jquery.com"]{JQuery} API provided by @racketmodname[(planet dyoo/whalesong/js)],
+This program uses the @link["http:/jquery.com"]{JQuery} API provided by @racketmodname[whalesong/js],
 as well as the native JavaScript FFI to produce output on the browser.
 If we run Whalesong on this program, and view the resulting @filepath{dom-play.html} in our
 web browser, we should see a pale, green page with some output.
@@ -413,7 +414,7 @@ with generated JavaScript binaries here:
 
 @filebox["fact.rkt"]{
 @codeblock|{
-#lang planet dyoo/whalesong
+#lang whalesong
 (provide fact)
 (define (fact x)
   (cond
@@ -573,13 +574,13 @@ get-javascript depend on.
 
 
 @section{Including external resources}
-@defmodule/this-package[resource]
+@defmodule[whalesong/resource]
 
 Programs may need to use external file @deftech{resource}s that aren't
 themselves Racket programs, but instead some other kind of data.
 Graphical programs will often use @filepath{.png}s, and web-related
 programs @filepath{.html}s, for example.  Whalesong provides the
-@racketmodname/this-package[resource] library to refer and use these
+@racketmodname[whalesong/resource] library to refer and use these
 external resources.  When Whalesong compiles a program into a package,
 these resources will be bundled alongside the JavaScript-compiled
 output.
@@ -589,15 +590,15 @@ Defines a @tech{resource} with the given path name.
 
 For example,
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/resource))
+#lang whalesong
+(require whalesong/resource)
 (define-resource my-whale-image-resource "humpback.png")
 }|
 }
 As a convenience, you can also write
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/resource))
+#lang whalesong
+(require whalesong/resource)
 (define-resource humpback.png)
 }|
 which defines a variable named @racket[humpback.png] whose
@@ -626,9 +627,9 @@ Given a @tech{resource}, gets a URL.
 
 For example,
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/resource)
-         (planet dyoo/whalesong/image))
+#lang whalesong
+(require whalesong/resource
+         whalesong/image)
 
 (define-resource my-whale-image-resource "humpback.png")
 
@@ -659,7 +660,7 @@ For example,
 
 @section{The web-world API}
 
-@defmodule/this-package[web-world]
+@defmodule[whalesong/web-world]
 
 The @tt{web-world} library allows you to write functional event-driven
 @link["http://world.cs.brown.edu"]{World} programs for the web; the
@@ -692,9 +693,9 @@ Once we're happy with the statics of our program, we can inject dynamic behavior
 Write a file called @filepath{tick-tock.rkt} with the following content.
 @filebox["tick-tock.rkt"]{
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world)
-         (planet dyoo/whalesong/resource))
+#lang whalesong
+(require whalesong/web-world
+         whalesong/resource)
 
 (define-resource view.html)
 
@@ -724,8 +725,8 @@ Several things are happening here.
 @itemize[
 
 @item{We @racket[require] a few libraries to get us some additional
-behavior; in particular, @racketmodname/this-package[web-world] to let
-us write event-driven web-based programs, and @racketmodname/this-package[resource]
+behavior; in particular, @racketmodname[whalesong/web-world] to let
+us write event-driven web-based programs, and @racketmodname[whalesong/resource]
 to give us access to external @tech{resource}s.}
 
 @item{We use @racket[define-resource] to refer to external files, like @filepath{view.html} that
@@ -740,7 +741,7 @@ bind to many other kinds of web events (by using @racket[view-bind]).}
 
 
 @subsection{@racket[big-bang] and its options}
-@declare-exporting/this-package[web-world]
+@declare-exporting[whalesong/web-world]
 @defproc[(big-bang [w world]
                    [h big-bang-handler] ...) world]{
 Start a big bang computation.  The @racket[big-bang] consumes an initial world,
@@ -866,7 +867,7 @@ function will be called every time an event occurs.
 
 
 @subsection{Views}
-@declare-exporting/this-package[web-world]
+@declare-exporting[whalesong/web-world]
 A @deftech{view} is a functional representation of the browser DOM
 tree.  A view is always focused on an element, and the functions in
 this subsection show how to traverse and manipulate the view.
@@ -1104,7 +1105,7 @@ then focus moves to the parent.}
 
 
 @subsection{Events}
-@declare-exporting/this-package[web-world]
+@declare-exporting[whalesong/web-world]
 An @deftech{event} is a structure that holds name-value pairs.
 Whenever an event occurs in web-world, it may include some auxiliary
 information about the event.  As a concrete example, location events
@@ -1126,12 +1127,12 @@ Get an list of the event's keys.
 
 
 @subsection{Dynamic DOM generation with xexps} 
-@declare-exporting/this-package[web-world]
+@declare-exporting[whalesong/web-world]
 We often need to dynamically inject new dom nodes into an existing
 view.  As an example where the UI is entirely in code:
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/web-world))
+#lang whalesong
+(require whalesong/web-world)
 
 ;; tick: world view -> world
 (define (tick world view)
@@ -1221,7 +1222,7 @@ Coerses a view into a @tech{xexp}.
 
 @subsection{Tips and tricks: Hiding standard output or directing it to an element}
 
-@declare-exporting/this-package[web-world]
+@declare-exporting[whalesong/web-world]
 
 For a web-world program, output is normally done by using
 @racket[to-draw].  However, side effecting functions, such as
@@ -1273,7 +1274,7 @@ even if the id does not currently exist on the page.
 
 @section{The JavaScript Foreign Function Interface}
 
-@defmodule/this-package[js]{
+@defmodule[whalesong/js]{
 
 
 [[This needs to describe what hooks we've got from the JavaScript side
@@ -1449,7 +1450,7 @@ Returns the height of the viewport.
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @subsection{Adding new event handlers to world programs with the FFI}
-@defmodule/this-package[js/world]
+@defmodule[whalesong/js/world]
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 The callback-driven asynchronous APIs in JavaScript can act as sources
@@ -1477,9 +1478,9 @@ require information that's produced at setup-time.
 For example, we can reimplement some of the behavior of
 @racket[on-location-change] with the following:
 @codeblock|{
-#lang planet dyoo/whalesong
-(require (planet dyoo/whalesong/js)
-         (planet dyoo/whalesong/js/world))
+#lang whalesong
+(require whalesong/js
+         whalesong/js/world)
 
 (define setup-geo
   (js-function->procedure

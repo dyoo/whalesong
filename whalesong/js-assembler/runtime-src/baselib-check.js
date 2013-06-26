@@ -143,6 +143,11 @@
         baselib.numbers.isNatural,
         'natural');
 
+    var checkNaturalOrFalse = makeCheckArgumentType(
+        function(x) { return (baselib.numbers.isNatural(x) || 
+                              x === false); },
+        'natural or false');
+
     var checkByte = makeCheckArgumentType(
         baselib.numbers.isByte,
         'byte');
@@ -284,6 +289,7 @@
     exports.checkReal = checkReal;
     exports.checkNonNegativeReal = checkNonNegativeReal;
     exports.checkNatural = checkNatural;
+    exports.checkNaturalOrFalse = checkNaturalOrFalse;
     exports.checkNaturalInRange = checkNaturalInRange;
     exports.checkByte = checkByte;
     exports.checkBytes = checkBytes;

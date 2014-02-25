@@ -101,8 +101,7 @@
                         (succ || function () {}).apply(null, arguments); 
                     };
                     var wrappedFail = function(err) {
-                        releaseLock(); 
-                        (fail || function () {})(err); 
+                        (fail || function () {})(err);
                     };
                     if (!(baselib.arity.isArityMatching(v.racketArity, args.length - 2))) {
                         var msg = baselib.format.format(
@@ -159,8 +158,9 @@
                         MACHINE.v = oldVal;
                         MACHINE.a = oldArgcount;
                         MACHINE.p = oldProc;
+                        // The lock is released by _trampoline in this case.
                         wrappedFail(e);
-                    };  
+                    };
 
                     MACHINE._trampoline(v.label, false, releaseLock);
                 });

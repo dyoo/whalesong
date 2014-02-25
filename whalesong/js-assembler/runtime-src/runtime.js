@@ -908,7 +908,7 @@
         var i;
         machine = machine || runtime.currentMachine;
         for (i = 0; i < machine.mainModules.length; i++) {
-            var ns = machine.modules[mainModules[i]].getExternalExports();
+            var ns = machine.modules[machine.mainModules[i]].getExternalExports();
             if(ns.hasKey(name)) {
                 return ns.get(name);
             }

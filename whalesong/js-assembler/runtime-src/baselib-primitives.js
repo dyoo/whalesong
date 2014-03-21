@@ -84,6 +84,7 @@
     var checkReal = baselib.check.checkReal;
     var checkNonNegativeReal = baselib.check.checkNonNegativeReal;
     var checkNatural = baselib.check.checkNatural;
+    var checkNaturalOrFalse = baselib.check.checkNaturalOrFalse;
     var checkNaturalInRange = baselib.check.checkNaturalInRange;
     var checkInteger = baselib.check.checkInteger;
     var checkIntegerForChar = baselib.check.makeCheckArgumentType(
@@ -2756,10 +2757,10 @@
         5,
         function(M) {
             var source = M.e[M.e.length - 1];
-            var line = checkNatural(M, 'srcloc', 1);
-            var column = checkNatural(M, 'srcloc', 2);
-            var position = checkNatural(M, 'srcloc', 3);
-            var span = checkNatural(M, 'srcloc', 4);
+            var line = checkNaturalOrFalse(M, 'srcloc', 1);
+            var column = checkNaturalOrFalse(M, 'srcloc', 2);
+            var position = checkNaturalOrFalse(M, 'srcloc', 3);
+            var span = checkNaturalOrFalse(M, 'srcloc', 4);
             return baselib.srclocs.makeSrcloc(source, line, column, position, span);
         });
 
@@ -2768,10 +2769,10 @@
         5,
         function(M) {
             var source = M.e[M.e.length - 1];
-            var line = checkNatural(M, 'make-srcloc', 1);
-            var column = checkNatural(M, 'make-srcloc', 2);
-            var position = checkNatural(M, 'make-srcloc', 3);
-            var span = checkNatural(M, 'make-srcloc', 4);
+            var line = checkNaturalOrFalse(M, 'make-srcloc', 1);
+            var column = checkNaturalOrFalse(M, 'make-srcloc', 2);
+            var position = checkNaturalOrFalse(M, 'make-srcloc', 3);
+            var span = checkNaturalOrFalse(M, 'make-srcloc', 4);
             return baselib.srclocs.makeSrcloc(source, line, column, position, span);
         });
 

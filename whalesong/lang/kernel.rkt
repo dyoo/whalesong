@@ -40,12 +40,13 @@
 ;; Custom letrec and letrec-values in order to avoid running
 ;; into the (in Racket) newly introduced undefined value.
 
-(provide letrec letrec-values)  
+(provide letrec letrec-values)
+(define unique-undefined-value (list '<undefined>))
 (define-syntax (letrec stx)
   (syntax-case stx ()
     [(_ ([id expr] ...) body ...)
      (syntax/loc stx
-       (let ([id '**undefined**] ...)
+       (let ([id unique-undefined-value] ...)
          (set! id expr) ...
          (let () body ...)))]))
 
@@ -53,7 +54,7 @@
   (syntax-case stx ()
     [(_ ([(id ...) expr] ...) body ...)
      (syntax/loc stx
-       (let ([id '**undefined**] ... ...)
+       (let ([id unique-undefined-value] ... ...)
          (set!-values (id ...) expr) ...
          (let () body ...)))]))
 

@@ -228,6 +228,7 @@
            (make-ModuleLocator (rewrite-path resolved-path-name)
                                (normalize-path resolved-path-name))]
           [else
+           (displayln (list 'wrap-module-name resolved-path-name rewritten-path))
            (error 'wrap-module-name "Unable to resolve module path ~s."
                   resolved-path-name)]))]))
    

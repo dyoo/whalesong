@@ -1,6 +1,11 @@
 #lang whalesong (require "selfhost-lang.rkt" whalesong/lang/for)
 
-(provide string-replace) ; (string-replace k r s) replace all occurences of k in s with r
+(provide string-replace ; (string-replace k r s) replace all occurences of k in s with r
+         string-split-at-non-alphanumeric
+         string-join
+         string-titlecase)
+
+(define string-titlecase values) ; for now XXX todo: used in munge-label
 
 ; string-index : string string [integer] -> integer
 ;   return the index of the first occurence of k in the string s
@@ -39,13 +44,51 @@
 
 ; Test must evaluate to #t
 #;(and (= (string-index "bar" "foobarbazbar")
-        (string-index "bar" "foobarbazbar" 1)
-        (string-index "bar" "foobarbazbar" 2)
-        (string-index "bar" "foobarbazbar" 3) 
-        3)
-     (= (string-index "bar" "foobarbazbar" 4) 9)
-     (equal? (string-index "bar" "foobarbazbar" 10) #f))
+          (string-index "bar" "foobarbazbar" 1)
+          (string-index "bar" "foobarbazbar" 2)
+          (string-index "bar" "foobarbazbar" 3) 
+          3)
+       (= (string-index "bar" "foobarbazbar" 4) 9)
+       (equal? (string-index "bar" "foobarbazbar" 10) #f))
 
 ; (string-replace "foo" "_" "abfoocdfoooo")
+
+(define non-splitters
+  (let ()
+    (define alpha "qwertyuiopasdfghjklzxcvbnm")
+    (define ALPHA "QWERTYUIOPASDFGHJKLZXCVBNM")
+    (define nums  "0123456789")
+    (string->list (string-append alpha ALPHA nums))))
+
+; (regexp-split #rx"[^a-zA-Z0-9]+" s)
+(define (string-split-at-non-alphanumeric s)
+  (define (splitter? c) (not (memq c non-splitters)))
+  (define chunks
+    (reverse
+     (let loop ([chunks '()] [current '()] [xs (string->list s)])
+       (cond 
+         [(and (empty? xs) (empty? current))
+          chunks]
+         [(empty? xs)
+          (cons (reverse current) chunks)]
+         [(splitter? (car xs))
+          (loop (cons (reverse current) chunks) '() (cdr xs))]
+         [else 
+          (loop chunks (cons (car xs) current) (cdr xs))]))))
+  (map list->string chunks))
+
+
+(define (string-join strs [sep #f])
+  (apply string-append
+    (cond
+      [(empty? strs) '("")]
+      [(not sep)     strs]
+      [else          (let loop ([xs (list (car strs))] [ys (rest strs)])
+                       (if (empty? ys)
+                           (reverse xs)
+                           (loop (cons (car ys) (cons sep xs))
+                                 (cdr ys))))])))
+
+
 
 

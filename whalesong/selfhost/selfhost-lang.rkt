@@ -16,11 +16,13 @@
          sort
          natural?
          vector-copy
+         bytes->string/utf-8 ; is values
+         path->string
          ; no-ops
          :
+         ann
          log-debug
-         ensure-type-subsetof
-         )
+         ensure-type-subsetof)
 
 (require "selfhost-parameters.rkt")
 (require (for-syntax racket/base))
@@ -66,6 +68,7 @@
 (define-syntax (define-type stx) #'(void))
 (define-syntax (: stx) #'(void))
 (define-syntax (ensure-type-subsetof stx) #'(void))
+(define-syntax (ann stx) (syntax-case stx () [(_ expr type) #'expr]))
 
 (define-syntax (inst stx)
   (syntax-case stx ()
@@ -86,3 +89,7 @@
     (vector-set! v j (vector-ref vec i)))
   v)
 
+(define bytes->string/utf-8 values)
+
+(define (path->string x)
+  (error 'todo-implement-me))

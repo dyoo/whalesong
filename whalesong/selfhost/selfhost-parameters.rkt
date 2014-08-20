@@ -32,7 +32,9 @@
 
 (define-syntax (parameterize stx)
   (syntax-case stx ()
-    [(_ ([param-expr val-expr]) body ...)
+    [(_ () body ...) 
+     #'(let () body ...)]
+    [(_ ([param-expr val-expr] more ...) body ...)
      #'(let ()
          (define proc param-expr)
          (define p (find-parameter proc))
@@ -41,5 +43,5 @@
          (define vs (cons v old))
          (set-parameter-values! p vs)
          (begin0
-           body ...
+           (parameterize (more ...) body ...)
            (set-parameter-values! p old)))]))

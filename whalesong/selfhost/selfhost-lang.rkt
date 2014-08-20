@@ -15,6 +15,7 @@
          path?
          sort
          natural?
+         vector-copy
          ; no-ops
          :
          log-debug
@@ -74,3 +75,14 @@
 (define (log-debug . _) (void))
 
 (define (natural? o) (and (number? o) (integer? o) (not (negative? o))))
+
+(require whalesong/lang/for)
+
+(define (vector-copy vec [start 0] [end (vector-length vec)])
+  (define n (- end start))
+  (define v (make-vector n #\space))
+  (for ([i (in-range start end)]
+        [j (in-range 0 n)])
+    (vector-set! v j (vector-ref vec i)))
+  v)
+

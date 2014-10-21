@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang whalesong (require "../selfhost-lang.rkt")
 (require "lexical-structs.rkt")
 
 
@@ -163,24 +163,11 @@
 (define current-short-labels? (make-parameter #t))
 
 
-(define make-label-counter 0)
-
-(: reset-make-label-counter (-> Void))
-(define (reset-make-label-counter)
-  (set! make-label-counter 0))
-
 (: make-label (Symbol -> Symbol))
-#;(define make-label
+(define make-label
   (let ([n 0])
     (lambda (l)
       (set! n (add1 n))
       (if (current-short-labels?)
           (string->symbol (format "_~a" n))
           (string->symbol (format "~a~a" l n))))))
-
-(define (make-label l)
-  (set! make-label-counter (+ make-label-counter 1))
-  (define n make-label-counter)
-  (if (current-short-labels?)
-      (string->symbol (format "_~a" n))
-      (string->symbol (format "~a~a" l n))))

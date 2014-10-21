@@ -1,9 +1,16 @@
 #lang racket/base
-
-(require "../parser/baby-parser.rkt"
+(require (rename-in "../parser/baby-parser.rkt"
+                    [parse baby-parse])
          "../compiler/lexical-structs.rkt"
          "../compiler/expression-structs.rkt"
          (for-syntax racket/base))
+
+
+(define (parse x)
+  (parameterize ([current-short-labels? #f])
+    (reset-make-label-counter)
+    (baby-parse x)))
+
 
 (printf "test-parse.rkt\n");
 

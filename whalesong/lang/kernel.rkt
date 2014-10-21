@@ -3,8 +3,8 @@
                                      sgn conjugate))
          (prefix-in racket: racket/base)
          racket/provide
-	 racket/local
-	 (for-syntax racket/base)
+         racket/local
+         (for-syntax racket/base)
          racket/stxparam
          
          (only-in '#%paramz
@@ -35,6 +35,28 @@
     [(v) (set! my-current-print-mode v)]))
 
 (provide current-print-mode)
+
+
+;; Custom letrec and letrec-values in order to avoid running
+;; into the (in Racket) newly introduced undefined value.
+
+(provide letrec letrec-values)
+(define unique-undefined-value (list '<undefined>))
+(define-syntax (letrec stx)
+  (syntax-case stx ()
+    [(_ ([id expr] ...) body ...)
+     (syntax/loc stx
+       (let ([id unique-undefined-value] ...)
+         (set! id expr) ...
+         (let () body ...)))]))
+
+(define-syntax (letrec-values stx)
+  (syntax-case stx ()
+    [(_ ([(id ...) expr] ...) body ...)
+     (syntax/loc stx
+       (let ([id unique-undefined-value] ... ...)
+         (set!-values (id ...) expr) ...
+         (let () body ...)))]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -83,74 +105,74 @@
          null
          eof
          #%plain-module-begin
-	 #%module-begin
-	 #%datum
-	 #%app
+         #%module-begin
+         #%datum
+         #%app
          #%plain-app
-	 #%top-interaction
-	 #%top
+         #%top-interaction
+         #%top
          module
          define
-	 define-values
+         define-values
          let-syntax
-	 let-values
-	 let*-values
-	 define-struct
+         let-values
+         let*-values
+         define-struct
          struct
          if
-	 cond
-	 else
+         cond
+         else
          =>
-	 case
-	 quote
-	 unquote
-	 unquote-splicing
-	 lambda
-	 case-lambda
-	 let
-	 let*
-	 letrec
-	 letrec-values
-	 local
-	 begin
-	 begin0
-	 set!
-	 and
-	 or
-	 when
-	 unless
+         case
+         quote
+         unquote
+         unquote-splicing
+         lambda
+         case-lambda
+         let
+         let*
+         letrec
+         letrec-values
+         local
+         begin
+         begin0
+         set!
+         and
+         or
+         when
+         unless
          do
          require
-	 for-syntax
+         for-syntax
          for-template
-	 define-for-syntax
-	 begin-for-syntax
-	 prefix-in
-	 only-in
+         define-for-syntax
+         begin-for-syntax
+         prefix-in
+         only-in
          rename-in
          except-in
-	 provide
-	 planet
-	 all-defined-out
-	 all-from-out
+         provide
+         planet
+         all-defined-out
+         all-from-out
          prefix-out
-	 except-out
-	 rename-out
-	 struct-out
+         except-out
+         rename-out
+         struct-out
          filtered-out
          combine-in
          protect-out
          combine-out
-
+         
          
          define-syntax-rule
-	 define-syntax
-	 define-syntaxes
-
-
+         define-syntax
+         define-syntaxes
+         
+         
          let/cc
-	 with-continuation-mark
-
+         with-continuation-mark
+         
          hash?
          hash-equal?
          hash-eq?
@@ -172,20 +194,20 @@
          hash-remove
          equal-hash-code
          hash-count
-
-
+         
+         
          ;; Kernel inlinable
          *
-	 -
-	 +
-	 =
-	 /
-	 sub1
-	 add1
-	 <
-	 >
-	 <=
-	 >=
+         -
+         +
+         =
+         /
+         sub1
+         add1
+         <
+         >
+         <=
+         >=
          cons
          car
          cdr
@@ -196,15 +218,15 @@
          not
          eq?
          values
-
+         
          ;; The version of apply in racket/base is doing some stuff that
          ;; we are not handling yet.  So we expose the raw apply here instead.
          (rename-out [kernel:apply apply])
          call-with-values
-
+         
          gensym
-
-
+         
+         
          srcloc
          make-srcloc
          srcloc?
@@ -213,25 +235,25 @@
          srcloc-column
          srcloc-position
          srcloc-span
-
-
+         
+         
          make-struct-type
          make-struct-field-accessor
          make-struct-field-mutator
          struct-type?
-
+         
          exn:fail
          struct:exn:fail
          prop:exn:srclocs
-
-
+         
+         
          current-inexact-milliseconds
          current-seconds
          
          continuation-prompt-available?
          abort-current-continuation
          call-with-continuation-prompt
-
+         
          ;; needed for cs019-local
          #%stratified-body
          )
@@ -248,293 +270,293 @@
 ;; Many of these should be pushed upward rather than stubbed, so that
 ;; Racket's compiler can optimize these.
 (provide-stub-function
-
+ 
  current-output-port
  current-print 
-
-
-
+ 
+ 
+ 
  write
  write-byte
  display
  newline
  displayln
-
+ 
  
  current-continuation-marks
  continuation-mark-set->list
  
-;;  continuation-mark-set?
-;;  continuation-mark-set->list
-
-;;  struct-constructor-procedure?
-;;  struct-predicate-procedure?
-;;  struct-accessor-procedure?
-;;  struct-mutator-procedure?
-
-;;  make-arity-at-least
-;;  arity-at-least?
-;;  arity-at-least-value
-
-
-;;  compose
-;;  current-inexact-milliseconds
-;;  current-seconds
-  void
-  random
-;;  sleep
-;;  (identity -identity)
-
-  raise  
-  error
-  raise-type-error
-  raise-mismatch-error
-
-  make-exn
-  make-exn:fail
-  make-exn:fail:contract
-  make-exn:fail:contract:arity
-  make-exn:fail:contract:variable
-  make-exn:fail:contract:divide-by-zero
-
-;;  exn?
-;;  exn:fail:contract:arity?
-;;  exn:fail:contract:variable?
-;;  exn:fail:contract:divide-by-zero?
-  exn:fail?
-  exn:fail:contract?
-  exn:fail:contract:arity?
-
-  exn-message
-  exn-continuation-marks
-
-  abs
-  quotient
-  remainder
-  modulo
-  max
-  min
-  gcd
-  lcm
-  floor
-  ceiling
-  round
-  truncate
-  numerator
-  denominator
-  expt
-  exp
-  log
-  sin
-  sinh
-  cos
-  cosh
-  tan
-  asin
-  acos
-  atan
-  sqr
-  sqrt
-  integer-sqrt
-  sgn
-  make-rectangular
-  make-polar
-  real-part
-  imag-part
-  angle
-  magnitude
-  conjugate
-  inexact->exact
-  exact->inexact
-  number->string
-  string->number
-  procedure?
-  procedure-arity
-  procedure-arity-includes?
-  procedure-rename
-  ;;  (undefined? -undefined?)
-;;  immutable?
-void?
-symbol?
-string?
-char?
-boolean?
-vector?
-struct?
-;;  bytes?
-byte?
-number?
-complex?
-real?
-rational?
-integer?
-exact-integer?
-exact?
-exact-nonnegative-integer?
-inexact?
-odd?
-even?
-zero?
-positive?
-negative?
-box?
-;;  hash?
-
-  equal?
-  eqv?
-  
-  caar
-  cdar
-  cadr
-  cddr
-  caaar
-  cdaar
-  cadar
-  cddar
-  caadr
-  cdadr
-  caddr
-  cdddr
-  caaaar
-  cdaaar
-  cadaar
-  cddaar
-  caadar
-  cdadar
-  caddar
-  cdddar
-  caaadr
-  cdaadr
-  cadadr
-  cddadr
-  caaddr
-  cdaddr
-  cadddr
-  cddddr
-  
-  length
-  list*
-  list-ref
-;;  list-tail
-  append
-  reverse
-  for-each
-  map
-  andmap
-  ormap
-  memq
-  memv
-  member
-  memf
-  assq
-  assv
-  assoc
-;;  sort
-  box
-;;  box-immutable
-  unbox
-  set-box!
-;;  make-hash
-;;  make-hasheq
-;;  hash-set!
-;;  hash-ref
-;;  hash-remove!
-;;  hash-map
-;;  hash-for-each
-  make-string
-  string
-  string-length
-  string-ref
-  string=?
-  string<?
-  string>?
-  string<=?
-  string>=?
-  string-ci=?
-  string-ci<?
-  string-ci>?
-  string-ci<=?
-  string-ci>=?
-
-  string-copy
-  substring
-  string-append
-  string->list
-  list->string
-  string->symbol
-  symbol->string
-  
-  format
-  printf
-  fprintf
-;;  string->immutable-string
-  string-set!
-;;  string-fill!
-;;  make-bytes
-;;  bytes
-;;  bytes->immutable-bytes
-;;  bytes-length
-;;  bytes-ref
-;;  bytes-set!
-;;  subbytes
-;;  bytes-copy
-;;  bytes-fill!
-;;  bytes-append
-;;  bytes->list
-;;  list->bytes
-;;  bytes=?
-;;  bytes<?
-;;  bytes>?
-  make-vector
-  vector
-  vector-length
-  vector-ref
-  vector-set!
-  vector->list
-  list->vector
-  char=?
-  char<?
-  char>?
-  char<=?
-  char>=?
-  char-ci=?
-  char-ci<?
-  char-ci>?
-  char-ci<=?
-  char-ci>=?
-  char-alphabetic?
-  char-numeric?
-  char-whitespace?
-  char-upper-case?
-  char-lower-case?
-  char->integer
-  integer->char
-  char-upcase
-  char-downcase
-
-  
-  ;; these are defined in bootstrapped-primitives in Whalesong's compiler package
-  call-with-current-continuation
-  call/cc
-
-  ;;  call-with-continuation-prompt
-  ;;  abort-current-continuation
-  default-continuation-prompt-tag
-  make-continuation-prompt-tag
-  continuation-prompt-tag?
-
-  make-reader-graph
-  make-placeholder
-  placeholder-set!
-
-  eof-object?
-  read-byte
-
-
-  hash-has-key?
-  hash-keys
-  hash-values
-  )
+ ;;  continuation-mark-set?
+ ;;  continuation-mark-set->list
+ 
+ ;;  struct-constructor-procedure?
+ ;;  struct-predicate-procedure?
+ ;;  struct-accessor-procedure?
+ ;;  struct-mutator-procedure?
+ 
+ ;;  make-arity-at-least
+ ;;  arity-at-least?
+ ;;  arity-at-least-value
+ 
+ 
+ ;;  compose
+ ;;  current-inexact-milliseconds
+ ;;  current-seconds
+ void
+ random
+ ;;  sleep
+ ;;  (identity -identity)
+ 
+ raise  
+ error
+ raise-type-error
+ raise-mismatch-error
+ 
+ make-exn
+ make-exn:fail
+ make-exn:fail:contract
+ make-exn:fail:contract:arity
+ make-exn:fail:contract:variable
+ make-exn:fail:contract:divide-by-zero
+ 
+ ;;  exn?
+ ;;  exn:fail:contract:arity?
+ ;;  exn:fail:contract:variable?
+ ;;  exn:fail:contract:divide-by-zero?
+ exn:fail?
+ exn:fail:contract?
+ exn:fail:contract:arity?
+ 
+ exn-message
+ exn-continuation-marks
+ 
+ abs
+ quotient
+ remainder
+ modulo
+ max
+ min
+ gcd
+ lcm
+ floor
+ ceiling
+ round
+ truncate
+ numerator
+ denominator
+ expt
+ exp
+ log
+ sin
+ sinh
+ cos
+ cosh
+ tan
+ asin
+ acos
+ atan
+ sqr
+ sqrt
+ integer-sqrt
+ sgn
+ make-rectangular
+ make-polar
+ real-part
+ imag-part
+ angle
+ magnitude
+ conjugate
+ inexact->exact
+ exact->inexact
+ number->string
+ string->number
+ procedure?
+ procedure-arity
+ procedure-arity-includes?
+ procedure-rename
+ ;;  (undefined? -undefined?)
+ ;;  immutable?
+ void?
+ symbol?
+ string?
+ char?
+ boolean?
+ vector?
+ struct?
+ ;;  bytes?
+ byte?
+ number?
+ complex?
+ real?
+ rational?
+ integer?
+ exact-integer?
+ exact?
+ exact-nonnegative-integer?
+ inexact?
+ odd?
+ even?
+ zero?
+ positive?
+ negative?
+ box?
+ ;;  hash?
+ 
+ equal?
+ eqv?
+ 
+ caar
+ cdar
+ cadr
+ cddr
+ caaar
+ cdaar
+ cadar
+ cddar
+ caadr
+ cdadr
+ caddr
+ cdddr
+ caaaar
+ cdaaar
+ cadaar
+ cddaar
+ caadar
+ cdadar
+ caddar
+ cdddar
+ caaadr
+ cdaadr
+ cadadr
+ cddadr
+ caaddr
+ cdaddr
+ cadddr
+ cddddr
+ 
+ length
+ list*
+ list-ref
+ ;;  list-tail
+ append
+ reverse
+ for-each
+ map
+ andmap
+ ormap
+ memq
+ memv
+ member
+ memf
+ assq
+ assv
+ assoc
+ ;;  sort
+ box
+ ;;  box-immutable
+ unbox
+ set-box!
+ ;;  make-hash
+ ;;  make-hasheq
+ ;;  hash-set!
+ ;;  hash-ref
+ ;;  hash-remove!
+ ;;  hash-map
+ ;;  hash-for-each
+ make-string
+ string
+ string-length
+ string-ref
+ string=?
+ string<?
+ string>?
+ string<=?
+ string>=?
+ string-ci=?
+ string-ci<?
+ string-ci>?
+ string-ci<=?
+ string-ci>=?
+ 
+ string-copy
+ substring
+ string-append
+ string->list
+ list->string
+ string->symbol
+ symbol->string
+ 
+ format
+ printf
+ fprintf
+ ;;  string->immutable-string
+ string-set!
+ ;;  string-fill!
+ ;;  make-bytes
+ ;;  bytes
+ ;;  bytes->immutable-bytes
+ ;;  bytes-length
+ ;;  bytes-ref
+ ;;  bytes-set!
+ ;;  subbytes
+ ;;  bytes-copy
+ ;;  bytes-fill!
+ ;;  bytes-append
+ ;;  bytes->list
+ ;;  list->bytes
+ ;;  bytes=?
+ ;;  bytes<?
+ ;;  bytes>?
+ make-vector
+ vector
+ vector-length
+ vector-ref
+ vector-set!
+ vector->list
+ list->vector
+ char=?
+ char<?
+ char>?
+ char<=?
+ char>=?
+ char-ci=?
+ char-ci<?
+ char-ci>?
+ char-ci<=?
+ char-ci>=?
+ char-alphabetic?
+ char-numeric?
+ char-whitespace?
+ char-upper-case?
+ char-lower-case?
+ char->integer
+ integer->char
+ char-upcase
+ char-downcase
+ 
+ 
+ ;; these are defined in bootstrapped-primitives in Whalesong's compiler package
+ call-with-current-continuation
+ call/cc
+ 
+ ;;  call-with-continuation-prompt
+ ;;  abort-current-continuation
+ default-continuation-prompt-tag
+ make-continuation-prompt-tag
+ continuation-prompt-tag?
+ 
+ make-reader-graph
+ make-placeholder
+ placeholder-set!
+ 
+ eof-object?
+ read-byte
+ 
+ 
+ hash-has-key?
+ hash-keys
+ hash-values
+ )
 
 
 

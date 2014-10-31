@@ -6,13 +6,13 @@
                      syntax/struct
                      racket/struct-info
                      scheme/include)
+         racket/undefined
          "traced-app.rkt")
 
 (provide shared)
 
 (define-for-syntax code-insp (current-code-inspector))
 
-(define undefined (letrec ([x x]) x))
 (require (only-in "../kernel.rkt" [cons the-cons]))
 
 (define-syntax shared

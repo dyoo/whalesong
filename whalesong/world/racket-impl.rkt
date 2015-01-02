@@ -5,6 +5,7 @@
          on-tick
          on-mouse
          on-key
+         on-release
          key=?
          stop-when)
 
@@ -32,6 +33,9 @@
 
 (define (on-key handler)
   (error 'on-key "must be run in JavaScript context"))
+
+(define (on-release handler)
+  (error 'on-release "must be run in JavaScript context"))
 
 (define (key=? key-1 key-2)
   (error 'key=? "must be run in JavaScript context"))

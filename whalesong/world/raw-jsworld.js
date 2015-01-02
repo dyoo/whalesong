@@ -743,7 +743,27 @@ var rawJsworld = {};
     }
     Jsworld.on_key = on_key;
 
-
+    function on_release(release) {
+        return function() {
+            var wrappedRelease = function(e) {
+                preventDefault(e);
+                stopPropagation(e);
+                change_world(function(w, k) { release(w, e, k); }, doNothing);
+            };
+            return {
+                onRegister: function(top) {
+                    //http://www.w3.org/TR/html5/editing.html#sequential-focus-navigation-and-the-tabindex-attribue
+                    jQuery(top).attr('tabindex', 1);
+                    jQuery(top).focus();
+                    attachEvent(top, 'keyup', wrappedRelease);
+                },
+                onUnregister: function(top) {
+                    detachEvent(top, 'keyup', wrappedRelease);
+                }
+            };
+        };
+    }
+    Jsworld.on_release = on_release;
 
 
     // http://www.quirksmode.org/js/events_mouse.html

@@ -168,6 +168,22 @@ OnKey.prototype.toRawHandler = function(MACHINE, toplevelNode) {
         });
 };
 
+var OnRelease = function(handler) {
+    WorldConfigOption.call(this, 'on-release');
+    this.handler = handler;
+}
+
+OnRelease.prototype = plt.baselib.heir(WorldConfigOption.prototype);
+ 
+OnRelease.prototype.toRawHandler = function(MACHINE, toplevelNode) {
+    var that = this;
+    var worldFunction = adaptWorldFunction(that.handler);
+    return rawJsworld.on_release(
+        function(w, e, success) {
+            worldFunction(w, getKeyCodeName(e), success);
+        });
+};
+
 
 var getKeyCodeName = function(e) {
     var code = e.charCode || e.keyCode;

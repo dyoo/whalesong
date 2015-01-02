@@ -103,6 +103,15 @@ EXPORTS['on-key'] =
             return new OnKey(f);
         });
 
+EXPORTS['on-release'] =
+    makePrimitiveProcedure(
+        'on-release',
+        1,
+        function(MACHINE) {
+            var f = checkProcedureWithKey(MACHINE, "on-key", 0);
+            return new OnRelease(f);
+        });
+
 EXPORTS['on-mouse'] =
     makePrimitiveProcedure(
         'on-mouse',

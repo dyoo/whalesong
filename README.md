@@ -9,9 +9,11 @@ This fork of Whalesong differs from dyoo/whalesong in the following ways:
     (require whalesong/lang/for)
   * Adds match
     (require whalesong/lang/match)
+  * Adds on-release
+    (as a complement to on-key)
   * Adds parameters
     (require whalesong/lang/parameters)
-    
+ 
 Note: The implementation of parameters works fine,
       as long as you don't mix parameterize with non-local-exits
       and reentries (i.e. call/cc and friends)

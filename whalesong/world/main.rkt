@@ -16,6 +16,7 @@
  #:provided-values (big-bang
                     on-tick
                     on-key
+                    on-release
                     on-mouse
                     key=?
                     to-draw

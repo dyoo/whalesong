@@ -12,6 +12,7 @@ var colorRed = function(c) { return colorStruct.accessor(c, 0); };
 var colorGreen = function(c) { return colorStruct.accessor(c, 1); };
 var colorBlue = function(c) { return colorStruct.accessor(c, 2); };
 var colorAlpha = function(c) { return colorStruct.accessor(c, 3); };
+var equals = plt.baselib.equality.equals;
 //////////////////////////////////////////////////////////////////////
 
 var heir = plt.baselib.heir;
@@ -27,30 +28,28 @@ var isAngle = function(x) {
 };
 
 
-
-
 // Produces true if the value is a color or a color string.
 // On the Racket side of things, this is exposed as image-color?.
 var isColorOrColorString = function(thing) {
     return (isColor(thing) ||
-	    ((plt.baselib.strings.isString(thing) ||
+            ((plt.baselib.strings.isString(thing) ||
               plt.baselib.symbols.isSymbol(thing)) &&
-	     typeof(colorDb.get(thing)) != 'undefined'));
-}
-
-
-
-
-
-
-var colorString = function(aColor) {
-    return ("rgb(" + 
-	    colorRed(aColor) + "," +
-	    colorGreen(aColor) + ", " + 
-	    colorBlue(aColor) + ")");
+              typeof(colorDb.get(thing)) != 'undefined'));
 };
 
 
+
+
+//////////////////////////////////////////////////////////////////////
+// colorString : hexColor Style -> rgba
+// Style can be "solid" (1.0), "outline" (1.0), a number (0-1.0) or null (1.0)
+var colorString = function(aColor, aStyle) {
+  var alpha = isNaN(aStyle)? 1.0 : aStyle/255;
+  return "rgba(" + colorRed(aColor) + "," +
+                  colorGreen(aColor) + ", " +
+                  colorBlue(aColor) + ", " +
+                  alpha + ")";
+};
 
 
 
@@ -87,13 +86,27 @@ var isImage = function(thing) {
     return true;
 };
 
+// given two arrays of {x,y} structs, determine their equivalence
+var verticesEqual = function(v1, v2){
+  if(v1.length !== v2.length){ return false; }
+  for(var i=0; i< v1.length; i++){
+    if(v1[i].x !== v2[i].x || v1[i].y !== v2[i].y){ return false; }
+  }
+  return true;
+};
+// given two arrays of xs and ys, zip them into a vertex array
+var zipVertices = function(xs, ys){
+  if(xs.length !== ys.length){throw new Error('failure in zipVertices');}
+  var vertices = [];
+  for(var i=0; i<xs.length;i++){
+    vertices.push({x: xs[i], y: ys[i]});
+  }
+  return vertices;
+};
 
 
 // Base class for all images.
-var BaseImage = function(pinholeX, pinholeY) {
-    this.pinholeX = pinholeX;
-    this.pinholeY = pinholeY;
-};
+var BaseImage = function() {};
 
 
 
@@ -116,13 +129,40 @@ BaseImage.prototype.getBaseline = function(){
     return this.height;
 };
 
+// return the vertex array if it exists, otherwise make one using height and width
+BaseImage.prototype.getVertices = function(){
+  if(this.vertices){ return this.vertices; }
+  else{ return [{x:0 , y: 0},
+                {x: this.width, y: 0},
+                {x: 0, y: this.height},
+                {x: this.width, y: this.height}]; }
+};
 
 // render: context fixnum fixnum: -> void
 // Render the image, where the upper-left corner of the image is drawn at
 // (x, y).
-// NOTE: the rendering should be oblivous to the pinhole.
+// If the image isn't vertex-based, throw an error
+// Otherwise, stroke and fill the vertices.
 BaseImage.prototype.render = function(ctx, x, y) {
-    throw new Error('BaseImage.render unimplemented!');
+  if(!this.vertices){
+    throw new Error('BaseImage.render is not implemented for this type!');
+  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x+this.vertices[0].x, y+this.vertices[0].y);
+  for(var i=1; i < this.vertices.length; i++){
+    ctx.lineTo(x+this.vertices[i].x, y+this.vertices[i].y);
+  }
+  ctx.closePath();
+
+  if (this.style.toString().toLowerCase() === "outline") {
+    ctx.strokeStyle = colorString(this.color);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = colorString(this.color, this.style);
+    ctx.fill();
+  }
+  ctx.restore();
 };
 
 
@@ -186,8 +226,8 @@ BaseImage.prototype.toDomNode = function(params) {
     // document.
     var onAfterAttach = function(event) {
         // jQuery(canvas).unbind('afterAttach', onAfterAttach);
-	var ctx = this.getContext("2d");
-	that.render(ctx, 0, 0);
+        var ctx = this.getContext("2d");
+      that.render(ctx, 0, 0);
     };
     jQuery(canvas).bind('afterAttach', onAfterAttach);
 
@@ -203,9 +243,38 @@ BaseImage.prototype.toDomNode = function(params) {
 BaseImage.prototype.toWrittenString = function(cache) { return "<image>"; }
 BaseImage.prototype.toDisplayedString = function(cache) { return "<image>"; }
 
+// Best-Guess equivalence for images. If they're vertex-based we're in luck,
+// otherwise we go pixel-by-pixel. It's up to exotic image types to provide
+// more efficient ways of comparing one another
 BaseImage.prototype.equals = function(other, aUnionFind) {
-    return (this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY);
+  if(this.width    !== other.getWidth()    ||
+     this.height   !== other.getHeight()){ return false; }
+  // if they're both vertex-based images, all we need to compare are
+  // their styles, vertices and color
+  if(this.vertices && other.vertices){
+    return (this.style    === other.style &&
+            verticesEqual(this.vertices, other.vertices) &&
+            equals(this.color, other.color, aUnionFind));
+  }
+  // if it's something more sophisticated, render both images to canvases
+  // First check canvas dimensions, then go pixel-by-pixel
+  var c1 = this.toDomNode(), c2 = other.toDomNode();
+  if(c1.width !== c2.width || c1.height !== c2.height){ return false;}
+  try{
+    var ctx1 = c1.getContext('2d'), ctx2 = c2.getContext('2d'),
+    data1 = ctx1.getImageData(0, 0, c1.width, c1.height),
+    data2 = ctx2.getImageData(0, 0, c2.width, c2.height);
+    var pixels1 = data1.data,
+    pixels2 = data2.data;
+    for(var i = 0; i < pixels1.length; i++){
+      if(pixels1[i] !== pixels2[i]){ return false; }
+    }
+  } catch(e){
+    // if we violate CORS, just bail
+    return false;
+  }
+  // if, after all this, we're still good...then they're equal!
+  return true;
 };
 
 
@@ -221,183 +290,181 @@ var isScene = function(x) {
 //////////////////////////////////////////////////////////////////////
 // SceneImage: primitive-number primitive-number (listof image) -> Scene
 var SceneImage = function(width, height, children, withBorder) {
-    BaseImage.call(this, Math.floor(width/2), Math.floor(height/2));
-    this.width = width;
-    this.height = height;
-    this.children = children; // arrayof [image, number, number]
-    this.withBorder = withBorder;
-}
+  BaseImage.call(this);
+  this.width    = width;
+  this.height   = height;
+  this.children = children; // arrayof [image, number, number]
+  this.withBorder = withBorder;
+};
 SceneImage.prototype = heir(BaseImage.prototype);
-
 
 // add: image primitive-number primitive-number -> Scene
 SceneImage.prototype.add = function(anImage, x, y) {
-    return new SceneImage(this.width, 
-			  this.height,
-			  this.children.concat([[anImage, 
-						 x - anImage.pinholeX, 
-						 y - anImage.pinholeY]]),
-			  this.withBorder);
+  return new SceneImage(this.width,
+                        this.height,
+                        this.children.concat([[anImage,
+                                               x - anImage.getWidth()/2,
+                                               y - anImage.getHeight()/2]]),
+                        this.withBorder);
 };
 
 // render: 2d-context primitive-number primitive-number -> void
 SceneImage.prototype.render = function(ctx, x, y) {
-    var i;
-    var childImage, childX, childY;
-    // Clear the scene.
-    ctx.clearRect(x, y, this.width, this.height);
-    // Then ask every object to render itself.
-    for(i = 0; i < this.children.length; i++) {
-	childImage = this.children[i][0];
-	childX = this.children[i][1];
-	childY = this.children[i][2];
-	ctx.save();
-	childImage.render(ctx, childX + x, childY + y);
-	ctx.restore();
-
-
-    }
-    // Finally, draw the black border if withBorder is true
-    if (this.withBorder) {
-	ctx.strokeStyle = 'black';
-	ctx.strokeRect(x, y, this.width, this.height);
-    }
+  var i;
+  var childImage, childX, childY;
+  // create a clipping region around the boundaries of the Scene
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0)";
+  ctx.fillRect(x, y, this.width, this.height);
+  ctx.restore();
+  // save the context, reset the path, and clip to the path around the scene edge
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, this.width, this.height);
+  ctx.clip();
+  // Ask every object to render itself inside the region
+  for(i = 0; i < this.children.length; i++) {
+    // then, render the child images
+    childImage = this.children[i][0];
+    childX = this.children[i][1];
+    childY = this.children[i][2];
+    childImage.render(ctx, childX + x, childY + y);
+  }
+  // unclip
+  ctx.restore();
+  
+  if (this.withBorder) {
+    ctx.strokeStyle = 'black';
+    ctx.strokeRect(x, y, this.width, this.height);
+  }
 };
 
 SceneImage.prototype.equals = function(other, aUnionFind) {
-    if (!(other instanceof SceneImage)) {
-	return false;
-    } 
-
-    if (this.pinholeX != other.pinholeX ||
-	this.pinholeY != other.pinholeY ||
-	this.width != other.width ||
-	this.height != other.height ||
-	this.children.length != other.children.length) {
-	return false;
+  if (!(other instanceof SceneImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  if (this.width    !== other.width ||
+      this.height   !== other.height ||
+      this.children.length !== other.children.length) {
+    return false;
+  }
+  
+  for (var i = 0; i < this.children.length; i++) {
+    var rec1 = this.children[i];
+    var rec2 = other.children[i];
+    if (rec1[1] !== rec2[1] ||
+        rec1[2] !== rec2[2] ||
+        !equals(rec1[0], rec2[0], aUnionFind)) {
+      return false;
     }
-
-    for (var i = 0; i < this.children.length; i++) {
-	var rec1 = this.children[i];
-	var rec2 = other.children[i];
-	if (rec1[1] !== rec2[1] ||
-	    rec1[2] !== rec2[2] ||
-	    !plt.baselib.equality.equals(rec1[0], 
-			                 rec2[0],
-			                 aUnionFind)) {
-	    return false;
- 	}
-    }
-    return true;
+  }
+  return true;
 };
-
 
 //////////////////////////////////////////////////////////////////////
 // FileImage: string node -> Image
 var FileImage = function(src, rawImage) {
-    BaseImage.call(this, 0, 0);
-    var self = this;
-    this.src = src;
-    this.isLoaded = false;
-
-    // animationHack: see installHackToSupportAnimatedGifs() for details.
-    this.animationHackImg = undefined;
-
-    if (rawImage && rawImage.complete) { 
-	this.img = rawImage;
-	this.isLoaded = true;
-	this.pinholeX = self.img.width / 2;
-	this.pinholeY = self.img.height / 2;
-    } else {
-	// fixme: we may want to do something blocking here for
-	// onload, since we don't know at this time what the file size
-	// should be, nor will drawImage do the right thing until the
-	// file is loaded.
-	this.img = new Image();
-	this.img.onload = function() {
+  BaseImage.call(this);
+  var self = this;
+  this.src = src;
+  this.isLoaded = false;
+  
+  // animationHack: see installHackToSupportAnimatedGifs() for details.
+  this.animationHackImg = undefined;
+  
+  if (rawImage && rawImage.complete) {
+    this.img = rawImage;
+    this.isLoaded = true;
+    self.width = self.img.width;
+    self.height = self.img.height;
+  } else {
+    // fixme: we may want to do something blocking here for
+    // onload, since we don't know at this time what the file size
+    // should be, nor will drawImage do the right thing until the
+    // file is loaded.
+    this.img = new Image();
+    this.img.onload = function() {
 	    self.isLoaded = true;
-	    self.pinholeX = self.img.width / 2;
-	    self.pinholeY = self.img.height / 2;
-	};
-	this.img.onerror = function(e) {
+      self.width = self.img.width;
+      self.height = self.img.height;
+    };
+    this.img.onerror = function(e) {
 	    self.img.onerror = "";
 	    self.img.src = "http://www.wescheme.org/images/broken.png";
-	}
-	this.img.src = src;
     }
+    this.img.src = src;
+  }
 }
 FileImage.prototype = heir(BaseImage.prototype);
 
 
 var imageCache = {};
 FileImage.makeInstance = function(path, rawImage) {
-    if (! (path in imageCache)) {
-	imageCache[path] = new FileImage(path, rawImage);
-    } 
-    return imageCache[path];
+  if (! (path in imageCache)) {
+    imageCache[path] = new FileImage(path, rawImage);
+  }
+  return imageCache[path];
 };
 
 FileImage.installInstance = function(path, rawImage) {
-    imageCache[path] = new FileImage(path, rawImage);
+  imageCache[path] = new FileImage(path, rawImage);
 };
 
 FileImage.installBrokenImage = function(path) {
-    imageCache[path] = new TextImage("Unable to load " + path, 10, colorDb.get("red"),
-				     "normal", "Optimer","","",false);
+  imageCache[path] = new TextImage("Unable to load " + path, 10, colorDb.get("red"),
+                                   "normal", "Optimer","","",false);
 };
 
 
 
 FileImage.prototype.render = function(ctx, x, y) {
-    this.installHackToSupportAnimatedGifs();
-    ctx.drawImage(this.animationHackImg, x, y);
+  this.installHackToSupportAnimatedGifs();
+  ctx.drawImage(this.animationHackImg, x, y);
 };
 
 
 // The following is a hack that we use to allow animated gifs to show
 // as animating on the canvas.
 FileImage.prototype.installHackToSupportAnimatedGifs = function() {
-    if (this.animationHackImg) { return; }
-    this.animationHackImg = this.img.cloneNode(true);
-    document.body.appendChild(this.animationHackImg);
-    this.animationHackImg.width = 0;
-    this.animationHackImg.height = 0;
+  if (this.animationHackImg) { return; }
+  this.animationHackImg = this.img.cloneNode(true);
+  document.body.appendChild(this.animationHackImg);
+  this.animationHackImg.style.position = 'absolute';
+  this.animationHackImg.style.top = '-2000px';
 };
 
 
 FileImage.prototype.getWidth = function() {
-    return this.img.width;
+  return this.img.width;
 };
 
 
 FileImage.prototype.getHeight = function() {
-    return this.img.height;
+  return this.img.height;
 };
 
 // Override toDomNode: we don't need a full-fledged canvas here.
 FileImage.prototype.toDomNode = function(params) {
-    return this.img.cloneNode(true);
+  return this.img.cloneNode(true);
 };
 
 FileImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof FileImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.src == other.src);
+  if (!(other instanceof FileImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.src === other.src);
 };
 
 //////////////////////////////////////////////////////////////////////
-// VideoImage: String Node -> Video
-var VideoImage = function(src, rawVideo) {
-    BaseImage.call(this, 0, 0);
+// FileVideoe: String Node -> Video
+var FileVideo = function(src, rawVideo) {
+    BaseImage.call(this);
     var self = this;
     this.src = src;
-    if (rawVideo) { 
+    if (rawVideo) {
 	this.video			= rawVideo;
 	this.width			= self.video.videoWidth;
 	this.height			= self.video.videoHeight;
-	this.pinholeX		= self.width / 2;
-	this.pinholeY		= self.height / 2;
 	this.video.volume	= 1;
 	this.video.poster	= "http://www.wescheme.org/images/broken.png";
 	this.video.autoplay	= true;
@@ -414,8 +481,6 @@ var VideoImage = function(src, rawVideo) {
 	this.video.addEventListener('canplay', function() {
 	    this.width			= self.video.videoWidth;
 	    this.height			= self.video.videoHeight;
-	    this.pinholeX		= self.width / 2;
-	    this.pinholeY		= self.height / 2;
 	    this.video.poster	= "http://www.wescheme.org/images/broken.png";
 	    this.video.autoplay	= true;
 	    this.video.autobuffer=true;
@@ -428,351 +493,407 @@ var VideoImage = function(src, rawVideo) {
 	});
     }
 }
-VideoImage.prototype = heir(BaseImage.prototype);
-
+FileVideo.prototype = heir(BaseImage.prototype);
 
 var videos = {};
-VideoImage.makeInstance = function(path, rawVideo) {
-    if (! (path in VideoImage)) {
-	videos[path] = new VideoImage(path, rawVideo);
+FileVideo.makeInstance = function(path, rawVideo) {
+    if (! (path in FileVideo)) {
+	videos[path] = new FileVideo(path, rawVideo);
     } 
     return videos[path];
 };
 
-VideoImage.prototype.render = function(ctx, x, y) {
+FileVideo.prototype.render = function(ctx, x, y) {
     ctx.drawImage(this.video, x, y);
 };
+FileVideo.prototype.equals = function(other, aUnionFind) {
+  return (other instanceof FileVideo) && (this.src === other.src);
+};
 
-VideoImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof VideoImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.src == other.src);
+//////////////////////////////////////////////////////////////////////
+// FileAudio: String Node -> Video
+var FileAudio = function(src, loop, rawAudio) {
+  this.src = src;
+  var that = this;
+  if (rawAudio && (rawAudio.readyState===4)) {
+    that.audio                  = rawAudio;
+    that.audio.autoplay         = true;
+    that.audio.autobuffer       = true;
+    that.audio.currentTime      = 0;
+    that.audio.loop             = loop;
+    that.audio.play();
+  } else {
+    // fixme: we may want to do something blocking here for
+    // onload, since we don't know at this time what the file size
+    // should be, nor will drawImage do the right thing until the
+    // file is loaded.
+    that.audio = document.createElement('audio');
+    that.audio.src = src;
+    that.audio.addEventListener('canplay', function() {
+                                that.audio.autoplay     = true;
+                                that.audio.autobuffer   = true;
+                                that.audio.currentTime  = 0;
+                                that.audio.loop         = loop;
+                                that.audio.play();
+                                });
+  }
+  return true;
+};
+var audioCache = {};
+FileAudio.makeInstance = function(path, loop, rawAudio) {
+  /*        if (! (path in audioCache)) {
+   audioCache[path] = new FileAudio(path, loop, rawAudio, afterInit);
+   return audioCache[path];
+   } else {
+   audioCache[path].audio.play();
+   afterInit(audioCache[path]);
+   return audioCache[path];
+   }
+   */
+  return new FileAudio(path, loop, rawAudio);
+};
+
+//////////////////////////////////////////////////////////////////////
+// ImageDataImage: imageData -> image
+// Given an array of pixel data, create an image
+var ImageDataImage = function(imageData) {
+  BaseImage.call(this);
+  this.imageData= imageData;
+  this.width    = imageData.width;
+  this.height   = imageData.height;
+};
+
+ImageDataImage.prototype = heir(BaseImage.prototype);
+
+ImageDataImage.prototype.render = function(ctx, x, y) {
+  ctx.putImageData(this.imageData, x, y);
 };
 
 
 //////////////////////////////////////////////////////////////////////
 // OverlayImage: image image placeX placeY -> image
 // Creates an image that overlays img1 on top of the
-// other image. 
+// other image img2.
 var OverlayImage = function(img1, img2, placeX, placeY) {
-    // calculate centers using width/height, so we are scene/image agnostic
-    var c1x = img1.getWidth()/2;
-    var c1y = img1.getHeight()/2;
-    var c2x = img2.getWidth()/2;
-    var c2y = img2.getHeight()/2;
+  BaseImage.call(this);
+  
+  // An overlay image consists of width, height, x1, y1, x2, and
+  // y2.  We need to compute these based on the inputs img1,
+  // img2, placex, and placey.
+  
+  // placeX and placeY may be non-numbers, in which case their values
+  // depend on the img1 and img2 geometry.
 
-    // calculate absolute offset of 2nd image's *CENTER*
-    // convert relative X,Y to center offsets, 
-    // if placeX and placeY are UL corner offsets, convert to center offsets
-    if	(placeX == "left"  )	var xOffset = img2.getWidth()-(c1x+c2x);
-    else if (placeX == "right" )	var xOffset = img1.getWidth()-(c1x+c2x);
-    else if (placeX == "beside")	var xOffset = c1x+c2x;
-    else if (placeX == "middle")	var xOffset = 0;
-    else if (placeX == "center")	var xOffset = 0;
-    else				var xOffset = placeX - (c1x-c2x);
+  var x1, y1, x2, y2;
+  
+  if (placeX === "left") {
+    x1 = 0;
+    x2 = 0;
+  } else if (placeX === "right") {
+    x1 = Math.max(img1.getWidth(), img2.getWidth()) - img1.getWidth();
+    x2 = Math.max(img1.getWidth(), img2.getWidth()) - img2.getWidth();
+  } else if (placeX === "beside") {
+    x1 = 0;
+    x2 = img1.getWidth();
+  } else if (placeX === "middle" || placeX === "center") {
+    x1 = Math.max(img1.getWidth(), img2.getWidth())/2 - img1.getWidth()/2;
+    x2 = Math.max(img1.getWidth(), img2.getWidth())/2 - img2.getWidth()/2;
+  } else {
+    x1 = Math.max(placeX, 0) - placeX;
+    x2 = Math.max(placeX, 0);
+  }
+  
+  if (placeY === "top") {
+    y1 = 0;
+    y2 = 0;
+  } else if (placeY === "bottom") {
+    y1 = Math.max(img1.getHeight(), img2.getHeight()) - img1.getHeight();
+    y2 = Math.max(img1.getHeight(), img2.getHeight()) - img2.getHeight();
+  } else if (placeY === "above") {
+    y1 = 0;
+    y2 = img1.getHeight();
+  } else if (placeY === "baseline") {
+    y1 = Math.max(img1.getBaseline(), img2.getBaseline()) - img1.getBaseline();
+    y2 = Math.max(img1.getBaseline(), img2.getBaseline()) - img2.getBaseline();
+  } else if (placeY === "middle" || placeY === "center") {
+    y1 = Math.max(img1.getHeight(), img2.getHeight())/2 - img1.getHeight()/2;
+    y2 = Math.max(img1.getHeight(), img2.getHeight())/2 - img2.getHeight()/2;
+  } else {
+    y1 = Math.max(placeY, 0) - placeY;
+    y2 = Math.max(placeY, 0);
+  }
+  
+  // calculate the vertices of this image by translating the verticies of the sub-images
+  var i, v1 = img1.getVertices(), v2 = img2.getVertices(), xs = [], ys = [];
 
-    if	(placeY == "bottom")	var yOffset = img1.getHeight()-(c1y+c2y);
-    else if (placeY == "top")	var yOffset = img2.getHeight()-(c1y+c2y); 
-    else if (placeY == "above" )	var yOffset = c1y+c2y;
-    else if (placeY == "middle")	var yOffset = 0;
-    else if	(placeY == "center")	var yOffset = 0;
-    else if (placeY == "baseline")	var yOffset= img1.getBaseline()-img2.getBaseline();
-    else				var yOffset = placeY - (c1y-c2y);
-
-    // Correct offsets when dealing with Scenes instead of images,
-    // by adding the center values
-    if(isScene(img1)){xOffset =+c1x; yOffset =+c1y;}
-    if(isScene(img2)){xOffset =+c2x; yOffset =+c2y;}
-    
-    // The *center* of the 2nd image, once overlaid, changes by the original difference in centers, 
-    // plus the size of the offsets. Calculate this delta for X and Y.
-    var deltaX	= c1x - c2x + xOffset; 
-    var deltaY	= c1y - c2y + yOffset;
-
-    // Each edge of the new, combined image may be grown or shrunk, depending on deltaX or deltaY
-    var left	= Math.min(0, deltaX);
-    var top		= Math.min(0, deltaY);
-    var right	= Math.max(deltaX + img2.getWidth(),  img1.getWidth());
-    var bottom	= Math.max(deltaY + img2.getHeight(), img1.getHeight());
-    
-    // Calculate the new width, height and center based on edge lengths
-    this.width = right - left;
-    this.height = bottom - top;
-    BaseImage.call(this, 
-		   Math.floor((right-left) / 2),
-		   Math.floor((bottom-top) / 2));
-
-    // store the overlaid images, and the offsets for each
-    this.img1 = img1;
-    this.img2 = img2;
-    this.img1Dx = -left;
-    this.img1Dy = -top;
-    this.img2Dx = deltaX - left;	
-    this.img2Dy = deltaY - top;
+  for(i=0; i<v1.length; i++){
+    xs.push(Math.round(v1[i].x + x1));
+    ys.push(Math.round(v1[i].y + y1));
+  }
+  for(i=0; i<v2.length; i++){
+    xs.push(Math.round(v2[i].x + x2));
+    ys.push(Math.round(v2[i].y + y2));
+  }
+  
+  // store the vertices as something private, so this.getVertices() will still return undefined
+  this._vertices = zipVertices(xs, ys);
+  this.width  = Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
+  this.height = Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
+  
+  // store the offsets for rendering
+  this.x1 = Math.floor(x1);
+  this.y1 = Math.floor(y1);
+  this.x2 = Math.floor(x2);
+  this.y2 = Math.floor(y2);
+  this.img1 = img1;
+  this.img2 = img2;
 };
-
 
 OverlayImage.prototype = heir(BaseImage.prototype);
 
+OverlayImage.prototype.getVertices = function() { return this._vertices; };
 
 OverlayImage.prototype.render = function(ctx, x, y) {
-    ctx.save();
-    this.img2.render(ctx, x + this.img2Dx, y + this.img2Dy);
-    this.img1.render(ctx, x + this.img1Dx, y + this.img1Dy);
-    ctx.restore();
+  ctx.save();
+  this.img2.render(ctx, x + this.x2, y + this.y2);
+  this.img1.render(ctx, x + this.x1, y + this.y1);
+  ctx.restore();
 };
 
 OverlayImage.prototype.equals = function(other, aUnionFind) {
-    return ( other instanceof OverlayImage &&
-	     this.pinholeX == other.pinholeX &&
-	     this.pinholeY == other.pinholeY &&
-	     this.width == other.width &&
-	     this.height == other.height &&
-	     this.img1Dx == other.img1Dx &&
-	     this.img1Dy == other.img1Dy &&
-	     this.img2Dx == other.img2Dx &&
-	     this.img2Dy == other.img2Dy &&
-	     plt.baselib.equality.equals(this.img1, other.img1, aUnionFind) &&
-	     plt.baselib.equality.equals(this.img2, other.img2, aUnionFind) );
+  if (!(other instanceof OverlayImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.width     === other.width &&
+          this.height    === other.height &&
+          this.x1        === other.x1 &&
+          this.y1        === other.y1 &&
+          this.x2        === other.x2 &&
+          this.y2        === other.y2 &&
+          equals(this.img1, other.img1, aUnionFind) &&
+          equals(this.img2, other.img2, aUnionFind) );
 };
 
 
 //////////////////////////////////////////////////////////////////////
 // rotate: angle image -> image
 // Rotates image by angle degrees in a counter-clockwise direction.
-// based on http://stackoverflow.com/questions/3276467/adjusting-div-width-and-height-after-rotated
+// TODO: special case for ellipse?
 var RotateImage = function(angle, img) {
-    var sin   = Math.sin(angle * Math.PI / 180),
-        cos = Math.cos(angle * Math.PI / 180);
-    var width = img.getWidth();
-    var height = img.getHeight();
-
-    // (w,0) rotation
-    var x1 = (cos * width),
-        y1 = (sin * width);
-    
-    // (0,h) rotation
-    var x2 = (-sin * height),
-        y2 = ( cos * height);
-    
-    // (w,h) rotation
-    var x3 = (cos * width - sin * height),
-        y3 = (sin * width + cos * height);
-    
-    var minX = Math.min(0, x1, x2, x3),
-        maxX = Math.max(0, x1, x2, x3),
-        minY = Math.min(0, y1, y2, y3),
-        maxY = Math.max(0, y1, y2, y3);
-    
-    var rotatedWidth  = maxX - minX,
-        rotatedHeight = maxY - minY;
-    
-    // resize the image
-    BaseImage.call(this, 
-		   Math.floor(rotatedWidth / 2),
-		   Math.floor(rotatedHeight / 2));
-    this.img	= img;
-    this.width	= Math.floor(rotatedWidth);
-    this.height = Math.floor(rotatedHeight);
-    this.angle	= angle;
-    this.translateX = Math.floor(-minX);
-    this.translateY = Math.floor(-minY);
+  BaseImage.call(this);
+  var sin   = Math.sin(angle * Math.PI / 180);
+  var cos   = Math.cos(angle * Math.PI / 180);
+  var width = img.getWidth();
+  var height= img.getHeight();
+  
+  // rotate each point as if it were rotated about (0,0)
+  var vertices = img.getVertices(), xs = [], ys = [];
+  for(var i=0; i<vertices.length; i++){
+    xs[i] = Math.round(vertices[i].x*cos - vertices[i].y*sin);
+    ys[i] = Math.round(vertices[i].x*sin + vertices[i].y*cos);
+  }
+  // figure out what translation is necessary to shift the vertices back to 0,0
+  var translateX = Math.floor(-Math.min.apply( Math, xs ));
+  var translateY = Math.floor(-Math.min.apply( Math, ys ));
+  for(var i=0; i<vertices.length; i++){
+    xs[i] += translateX;
+    ys[i] += translateY;
+  }
+  
+  // store the vertices as something private, so this.getVertices() will still return undefined
+  this._vertices = zipVertices(xs,ys);
+  var rotatedWidth  = Math.max.apply( Math, xs ) - Math.min.apply( Math, xs );
+  var rotatedHeight = Math.max.apply( Math, ys ) - Math.min.apply( Math, ys );
+  
+  this.img        = img;
+  this.width      = Math.floor(rotatedWidth);
+  this.height     = Math.floor(rotatedHeight);
+  this.angle      = angle;
+  this.translateX = translateX;
+  this.translateY  = translateY;
 };
 
 RotateImage.prototype = heir(BaseImage.prototype);
 
+RotateImage.prototype.getVertices = function() { return this._vertices; };
 
 // translate the canvas using the calculated values, then draw at the rotated (x,y) offset.
 RotateImage.prototype.render = function(ctx, x, y) {
-    // calculate the new x and y offsets, by rotating the radius formed by the hypoteneuse
-    var sin	= Math.sin(this.angle * Math.PI / 180),
-    cos	= Math.cos(this.angle * Math.PI / 180),
-    r	= Math.sqrt(x*x + y*y);
-    ctx.save();
-    ctx.translate(x + this.translateX, y + this.translateY);
-    ctx.rotate(this.angle * Math.PI / 180);
-    this.img.render(ctx, 0, 0);
-    ctx.restore();
+  ctx.save();
+  ctx.translate(x+this.translateX, y + this.translateY);
+  ctx.rotate(this.angle * Math.PI / 180);
+  this.img.render(ctx, 0, 0);
+  ctx.restore();
 };
 
-
 RotateImage.prototype.equals = function(other, aUnionFind) {
-    return ( other instanceof RotateImage &&
-	     this.pinholeX == other.pinholeX &&
-	     this.pinholeY == other.pinholeY &&
-	     this.width == other.width &&
-	     this.height == other.height &&
-	     this.angle == other.angle &&
-	     this.translateX == other.translateX &&
-	     this.translateY == other.translateY &&
-	     plt.baselib.equality.equals(this.img, other.img, aUnionFind) );
+  if (!(other instanceof RotateImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.width     === other.width &&
+          this.height    === other.height &&
+          this.angle     === other.angle &&
+          this.translateX=== other.translateX &&
+          this.translateY=== other.translateY &&
+          equals(this.img, other.img, aUnionFind) );
 };
 
 //////////////////////////////////////////////////////////////////////
 // ScaleImage: factor factor image -> image
 // Scale an image
 var ScaleImage = function(xFactor, yFactor, img) {
-    
-    // resize the image
-    BaseImage.call(this, 
-		   Math.floor((img.getWidth() * xFactor) / 2),
-		   Math.floor((img.getHeight() * yFactor) / 2));
-    
-    this.img	= img;
-    this.width	= Math.floor(img.getWidth() * xFactor);
-    this.height = Math.floor(img.getHeight() * yFactor);
-    this.xFactor = xFactor;
-    this.yFactor = yFactor;
+  BaseImage.call(this);
+  var vertices = img.getVertices();
+  var xs = [], ys = [];
+  for(var i=0; i<vertices.length; i++){
+    xs[i] = Math.round(vertices[i].x*xFactor);
+    ys[i] = Math.round(vertices[i].y*yFactor);
+  }
+  // store the vertices as something private, so this.getVertices() will still return undefined
+  this._vertices = zipVertices(xs,ys);
+  
+  this.img      = img;
+  this.width    = Math.floor(img.getWidth() * xFactor);
+  this.height   = Math.floor(img.getHeight() * yFactor);
+  this.xFactor  = xFactor;
+  this.yFactor  = yFactor;
 };
 
 ScaleImage.prototype = heir(BaseImage.prototype);
 
+ScaleImage.prototype.getVertices = function() { return this._vertices; };
 
 // scale the context, and pass it to the image's render function
 ScaleImage.prototype.render = function(ctx, x, y) {
-    ctx.save();
-    ctx.scale(this.xFactor, this.yFactor);
-    this.img.render(ctx, x / this.xFactor, y / this.yFactor);
-    ctx.restore();
+  ctx.save();
+  ctx.scale(this.xFactor, this.yFactor);
+  this.img.render(ctx, x / this.xFactor, y / this.yFactor);
+  ctx.restore();
 };
 
-
 ScaleImage.prototype.equals = function(other, aUnionFind) {
-    return ( other instanceof ScaleImage &&
-	     this.pinholeX == other.pinholeX &&
-	     this.pinholeY == other.pinholeY &&
-	     this.width == other.width &&
-	     this.height == other.height &&
-	     this.xFactor == other.xFactor &&
-	     this.yFactor == other.yFactor &&
-	     plt.baselib.equality.equals(this.img, other.img, aUnionFind) );
+  if (!(other instanceof ScaleImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.width     === other.width &&
+          this.height    === other.height &&
+          this.xFactor   === other.xFactor &&
+          this.yFactor   === other.yFactor &&
+          equals(this.img, other.img, aUnionFind) );
 };
 
 //////////////////////////////////////////////////////////////////////
 // CropImage: startX startY width height image -> image
 // Crop an image
 var CropImage = function(x, y, width, height, img) {
-    
-    BaseImage.call(this, 
-		   Math.floor(width / 2),
-		   Math.floor(height / 2));
-    
-    this.x		= x;
-    this.y		= y;
-    this.width	= width;
-    this.height = height;
-    this.img	= img;
+  BaseImage.call(this);
+  this.x          = x;
+  this.y          = y;
+  this.width      = width;
+  this.height     = height;
+  this.img        = img;
 };
 
 CropImage.prototype = heir(BaseImage.prototype);
 
-
 CropImage.prototype.render = function(ctx, x, y) {
-    ctx.save();
-    ctx.translate(-this.x, -this.y);
-    this.img.render(ctx, x, y);
-    ctx.restore();
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, this.width, this.height);
+  ctx.clip();
+  ctx.translate(-this.x, -this.y);
+  this.img.render(ctx, x, y);
+  ctx.restore();
 };
 
 CropImage.prototype.equals = function(other, aUnionFind) {
-    return ( other instanceof CropImage &&
-	     this.pinholeX == other.pinholeX &&
-	     this.pinholeY == other.pinholeY &&
-	     this.width == other.width &&
-	     this.height == other.height &&
-	     this.x == other.x &&
-	     this.y == other.y &&
-	     plt.baselib.equality.equals(this.img, other.img, aUnionFind) );
+  if (!(other instanceof CropImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.width     === other.width &&
+          this.height    === other.height &&
+          this.x         === other.x &&
+          this.y         === other.y &&
+          equals(this.img, other.img, aUnionFind) );
 };
 
 //////////////////////////////////////////////////////////////////////
 // FrameImage: factor factor image -> image
 // Stick a frame around the image
 var FrameImage = function(img) {
-    
-    BaseImage.call(this, 
-		   Math.floor(img.getWidth()/ 2),
-		   Math.floor(img.getHeight()/ 2));
-    
-    this.img	= img;
-    this.width	= img.getWidth();
-    this.height = img.getHeight();
+  BaseImage.call(this);
+  this.img        = img;
+  this.width      = img.getWidth();
+  this.height     = img.getHeight();
 };
 
 FrameImage.prototype = heir(BaseImage.prototype);
 
-
 // scale the context, and pass it to the image's render function
 FrameImage.prototype.render = function(ctx, x, y) {
-    ctx.save();
-    this.img.render(ctx, x, y);
-    ctx.beginPath();
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(x, y, this.width, this.height);
-    ctx.closePath();
-    ctx.restore();
+  ctx.save();
+  this.img.render(ctx, x, y);
+  ctx.beginPath();
+  ctx.strokeStyle = "black";
+  ctx.strokeRect(x, y, this.width, this.height);
+  ctx.closePath();
+  ctx.restore();
 };
 
 FrameImage.prototype.equals = function(other, aUnionFind) {
-    return ( other instanceof FrameImage &&
-	     this.pinholeX == other.pinholeX &&
-	     this.pinholeY == other.pinholeY &&
-	     plt.baselib.equality.equals(this.img, other.img, aUnionFind) );
+  if (!(other instanceof FrameImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return equals(this.img, other.img, aUnionFind);
 };
 
 //////////////////////////////////////////////////////////////////////
 // FlipImage: image string -> image
 // Flip an image either horizontally or vertically
 var FlipImage = function(img, direction) {
-    this.img	= img;
-    this.width	= img.getWidth();
-    this.height = img.getHeight();
-    this.direction = direction;
-    BaseImage.call(this, 
-		   img.pinholeX,
-		   img.pinholeY);
+  BaseImage.call(this);
+  this.img        = img;
+  this.width      = img.getWidth();
+  this.height     = img.getHeight();
+  this.direction  = direction;
 };
 
 FlipImage.prototype = heir(BaseImage.prototype);
 
-
 FlipImage.prototype.render = function(ctx, x, y) {
-    // when flipping an image of dimension M and offset by N across an axis, 
-    // we need to translate the canvas by M+2N in the opposite direction
-    ctx.save();
-    if(this.direction == "horizontal"){
-	ctx.scale(-1, 1);
-	ctx.translate(-(this.width+2*x), 0);
-	this.img.render(ctx, x, y);
-    }
-    if (this.direction == "vertical"){
-	ctx.scale(1, -1);
-	ctx.translate(0, -(this.height+2*y));
-	this.img.render(ctx, x, y);
-    }
-    ctx.restore();
+  // when flipping an image of dimension M and offset by N across an axis,
+  // we need to translate the canvas by M+2N in the opposite direction
+  ctx.save();
+  if(this.direction === "horizontal"){
+    ctx.scale(-1, 1);
+    ctx.translate(-(this.width+2*x), 0);
+    this.img.render(ctx, x, y);
+  }
+  if (this.direction === "vertical"){
+    ctx.scale(1, -1);
+    ctx.translate(0, -(this.height+2*y));
+    this.img.render(ctx, x, y);
+  }
+  ctx.restore();
 };
 
-
 FlipImage.prototype.getWidth = function() {
-    return this.width;
+  return this.width;
 };
 
 FlipImage.prototype.getHeight = function() {
-    return this.height;
+  return this.height;
 };
 
 FlipImage.prototype.equals = function(other, aUnionFind) {
-    return ( other instanceof FlipImage &&
-	     this.pinholeX == other.pinholeX &&
-	     this.pinholeY == other.pinholeY &&
-	     this.width == other.width &&
-	     this.height == other.height &&
-	     this.direction == other.direction &&
-	     plt.baselib.equality.equals(this.img, other.img, aUnionFind) );
+  if (!(other instanceof FlipImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.width     === other.width &&
+          this.height    === other.height &&
+          this.direction === other.direction &&
+          equals(this.img, other.img, aUnionFind) );
 };
-
 
 
 
@@ -780,145 +901,73 @@ FlipImage.prototype.equals = function(other, aUnionFind) {
 //////////////////////////////////////////////////////////////////////
 // RectangleImage: Number Number Mode Color -> Image
 var RectangleImage = function(width, height, style, color) {
-    BaseImage.call(this, width/2, height/2);
-    this.width = width;
-    this.height = height;
-    this.style = style;
-    this.color = color;
+  BaseImage.call(this);
+  this.width  = width;
+  this.height = height;
+  this.style  = style;
+  this.color  = color;
+  this.vertices = [{x:0,y:height},{x:0,y:0},{x:width,y:0},{x:width,y:height}];
 };
 RectangleImage.prototype = heir(BaseImage.prototype);
 
-
-RectangleImage.prototype.render = function(ctx, x, y) {
-    if (this.style.toString().toLowerCase() == "outline") {
-	ctx.save();
-	ctx.beginPath();
-	ctx.strokeStyle = colorString(this.color);
-	ctx.strokeRect(x, y, this.width, this.height);
-	ctx.closePath();
-	ctx.restore();
-    } else {
-	ctx.save();
-	ctx.beginPath();
-
-	ctx.fillStyle = colorString(this.color);
-	ctx.fillRect(x, y, this.width, this.height);
-
-	ctx.closePath();
-	ctx.restore();
-    }
-};
-
 RectangleImage.prototype.getWidth = function() {
-    return this.width;
+  return this.width;
 };
-
 
 RectangleImage.prototype.getHeight = function() {
-    return this.height;
+  return this.height;
 };
-
-RectangleImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof RectangleImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.width == other.width &&
-	    this.height == other.height &&
-	    this.style == other.style &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
-};
-
 
 //////////////////////////////////////////////////////////////////////
 // RhombusImage: Number Number Mode Color -> Image
 var RhombusImage = function(side, angle, style, color) {
-    // sin(angle/2-in-radians) * side = half of base
-    this.width = Math.sin(angle/2 * Math.PI / 180) * side * 2;
-    // cos(angle/2-in-radians) * side = half of height
-    this.height = Math.abs(Math.cos(angle/2 * Math.PI / 180)) * side * 2;
-    BaseImage.call(this, this.width/2, this.height/2);
-    this.side = side;
-    this.angle = angle;
-    this.style = style;
-    this.color = color;
+  BaseImage.call(this);
+  // sin(angle/2-in-radians) * side = half of base
+  // cos(angle/2-in-radians) * side = half of height
+  this.width  = Math.sin(angle/2 * Math.PI / 180) * side * 2;
+  this.height = Math.abs(Math.cos(angle/2 * Math.PI / 180)) * side * 2;
+  this.side   = side;
+  this.angle  = angle;
+  this.style  = style;
+  this.color  = color;
+  this.vertices = [{x:this.width/2, y:0},
+                   {x:this.width,   y:this.height/2},
+                   {x:this.width/2, y:this.height},
+                   {x:0,            y:this.height/2}];
+  
 };
 RhombusImage.prototype = heir(BaseImage.prototype);
 
-
-RhombusImage.prototype.render = function(ctx, x, y) {
-    ctx.save();
-    ctx.beginPath();
-    // if angle < 180 start at the top of the canvas, otherwise start at the bottom
-    ctx.moveTo(x+this.getWidth()/2, y);
-    ctx.lineTo(x+this.getWidth(), y+this.getHeight()/2);
-    ctx.lineTo(x+this.getWidth()/2, y+this.getHeight());
-    ctx.lineTo(x, y+this.getHeight()/2);
-    ctx.closePath();
-    
-    if (this.style.toString().toLowerCase() == "outline") {
-	ctx.strokeStyle = colorString(this.color);
-	ctx.stroke();
-    }
-    else {
-	ctx.fillStyle = colorString(this.color);
-	ctx.fill();
-    }
-    ctx.restore();
-};
-
 RhombusImage.prototype.getWidth = function() {
-    return this.width;
+  return this.width;
 };
-
 
 RhombusImage.prototype.getHeight = function() {
-    return this.height;
+  return this.height;
 };
-
-RhombusImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof RhombusImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.side == other.side &&
-	    this.angle == other.angle &&
-	    this.style == other.style &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
-};
-
 
 //////////////////////////////////////////////////////////////////////
-
-
-var ImageDataImage = function(imageData) {
-    BaseImage.call(this, 0, 0);
-    this.imageData = imageData;
-    this.width = imageData.width;
-    this.height = imageData.height;
+// PosnImage: Vertices Mode Color -> Image
+//
+var PosnImage = function(vertices, style, color) {
+  BaseImage.call(this);
+  var xs = vertices.map(function(v){return types.posnX(v);}),
+  ys = vertices.map(function(v){return types.posnY(v);}),
+  vertices = zipVertices(xs, ys);
+  
+  this.width      = Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
+  this.height     = Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
+  this.style      = style;
+  this.color      = color;
+  // shift the vertices by the calculated offsets, now that we know the width
+  var xOffset = Math.min.apply(Math, xs);
+  var yOffset = Math.min.apply(Math, ys);
+  for(var i=0; i<vertices.length; i++){
+    vertices[i].x -= xOffset; vertices[i].y -= yOffset;
+  }
+  this.vertices   = vertices;
 };
-
-ImageDataImage.prototype = heir(BaseImage.prototype);
-
-ImageDataImage.prototype.render = function(ctx, x, y) {
-    ctx.putImageData(this.imageData, x, y);
-};
-
-ImageDataImage.prototype.getWidth = function() {
-    return this.width;
-};
-
-
-ImageDataImage.prototype.getHeight = function() {
-    return this.height;
-};
-
-ImageDataImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof ImageDataImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY);
-};
-
-
-
+PosnImage.prototype = heir(BaseImage.prototype);
 
 //////////////////////////////////////////////////////////////////////
 // PolygonImage: Number Count Step Mode Color -> Image
@@ -928,492 +977,284 @@ ImageDataImage.prototype.equals = function(other, aUnionFind) {
 // another circle is inscribed in the polygon, whose radius is length/2tan(pi/count)
 // rotate a 3/4 quarter turn plus half the angle length to keep bottom base level
 var PolygonImage = function(length, count, step, style, color) {
-    this.aVertices = [];
-    var xMax = 0;
-    var yMax = 0;
-    var xMin = 0;
-    var yMin = 0;
-    
-    this.outerRadius = Math.floor(length/(2*Math.sin(Math.PI/count)));
-    this.innerRadius = Math.floor(length/(2*Math.tan(Math.PI/count)));
-    var adjust = (3*Math.PI/2)+Math.PI/count;
-    
-    // rotate around outer circle, storing x,y pairs as vertices
-    // keep track of mins and maxs
-    var radians = 0;
-    for(var i = 0; i < count; i++) {
-	// rotate to the next vertex (skipping by this.step)
-	radians = radians + (step*2*Math.PI/count);
-	
-	var v = {	x: this.outerRadius*Math.cos(radians-adjust),
-			y: this.outerRadius*Math.sin(radians-adjust) };
-	if(v.x < xMin) xMin = v.x;
-	if(v.x > xMax) xMax = v.y;
-	if(v.y < yMin) yMin = v.x;
-	if(v.y > yMax) yMax = v.y;
-	this.aVertices.push(v);		
-    }
-    // HACK: try to work around handling of non-integer coordinates in CANVAS
-    // by ensuring that the boundaries of the canvas are outside of the vertices
-    for(var i=0; i<this.aVertices.length; i++){
-	if(this.aVertices[i].x < xMin) xMin = this.aVertices[i].x-1;
-	if(this.aVertices[i].x > xMax) xMax = this.aVertices[i].x+1;
-	if(this.aVertices[i].y < yMin) yMin = this.aVertices[i].y-1;
-	if(this.aVertices[i].y > yMax) yMax = this.aVertices[i].y+1;
-    }
-    
-    this.width	= Math.floor(xMax-xMin);
-    this.height	= Math.floor(yMax-yMin);
-    this.length	= length;
-    this.count	= count;
-    this.step	= step;
-    this.style	= style;
-    this.color	= color;
-    BaseImage.call(this, Math.floor(this.width/2), Math.floor(this.height/2));
+  BaseImage.call(this);
+  this.outerRadius = Math.floor(length/(2*Math.sin(Math.PI/count)));
+  this.innerRadius = Math.floor(length/(2*Math.tan(Math.PI/count)));
+  var adjust = (3*Math.PI/2)+Math.PI/count;
+  
+  // rotate around outer circle, storing x and y coordinates
+  var radians = 0, xs = [], ys = [];
+  for(var i = 0; i < count; i++) {
+    radians = radians + (step*2*Math.PI/count);
+    xs.push(Math.round(this.outerRadius*Math.cos(radians-adjust)));
+    ys.push(Math.round(this.outerRadius*Math.sin(radians-adjust)));
+  }
+  var vertices = zipVertices(xs, ys);
+  
+  this.width      = Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
+  this.height     = Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
+  this.length     = length;
+  this.count      = count;
+  this.step       = step;
+  this.style      = style;
+  this.color      = color;
+  
+  // shift the vertices by the calculated offsets, now that we know the width
+  var xOffset = Math.round(this.width/2);
+  var yOffset = ((this.count % 2)? this.outerRadius : this.innerRadius);
+  for(i=0; i<vertices.length; i++){
+    vertices[i].x += xOffset; vertices[i].y += yOffset;
+  }
+  this.vertices   = vertices;
 };
+
 PolygonImage.prototype = heir(BaseImage.prototype);
 
-
-// shift all vertices by an offset to put the center of the polygon at the 
-// center of the canvas. Even-sided polygons highest points are in line with
-// the innerRadius. Odd-sides polygons highest vertex is on the outerRadius
-PolygonImage.prototype.render = function(ctx, x, y) {
-    var xOffset = x+Math.round(this.width/2);
-    var yOffset = y+((this.count % 2)? this.outerRadius : this.innerRadius);
-    
-    ctx.save();
-
-    ctx.beginPath();
-    ctx.moveTo(xOffset+this.aVertices[0].x, yOffset+this.aVertices[0].y);
-    for(var i=1; i<this.aVertices.length; i++){
-	ctx.lineTo(xOffset+this.aVertices[i].x, yOffset+this.aVertices[i].y);
-    }
-    ctx.lineTo(xOffset+this.aVertices[0].x, yOffset+this.aVertices[0].y);
-    ctx.closePath();
-    
-    if (this.style.toString().toLowerCase() == "outline") {
-	ctx.strokeStyle = colorString(this.color);
-	ctx.stroke();
-    }
-    else {
-	ctx.fillStyle = colorString(this.color);
-	ctx.fill();
-    }
-    ctx.restore();
-};
-
-PolygonImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof PolygonImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.length == other.length &&
-	    this.step == other.step &&
-	    this.count == other.count &&
-	    this.style == other.style &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
-};
-
-
 var maybeQuote = function(s) {
-    if (/ /.test(s)) {
-	return "\"" + s + "\"";
-    }
-    return s;
-}
+  if (/ /.test(s)) {
+    return "\"" + s + "\"";
+  }
+  return s;
+};
+
 
 //////////////////////////////////////////////////////////////////////
 // TextImage: String Number Color String String String String any/c -> Image
-//////////////////////////////////////////////////////////////////////
-// TextImage: String Number Color String String String String any/c -> Image
-var TextImage = function(msg, size, color, face, family, style, weight, underline) {	
-    var metrics;
-    this.msg	= msg;
-    this.size	= size;
-    this.color	= color;
-    this.face	= face;
-    this.family = family;
-    this.style	= (style == "slant")? "oblique" : style;  // Racket's "slant" -> CSS's "oblique"
-    this.weight	= (weight== "light")? "lighter" : weight; // Racket's "light" -> CSS's "lighter"
-    this.underline	= underline;
-    // example: "bold italic 20px 'Times', sans-serif". 
-    // Default weight is "normal", face is "Optimer"
-    var canvas	= makeCanvas(0, 0);
-    var ctx		= canvas.getContext("2d");
-    
-    this.font = (this.weight + " " +
-		 this.style + " " +
-		 this.size + "px " +
-		 maybeQuote(this.face) + " " +
-		 maybeQuote(this.family));
-    try {
-	ctx.font	= this.font;
-    } catch (e) {
-	this.fallbackOnFont();
-	ctx.font	= this.font;
-    }
-    
-    // Defensive: on IE, this can break.
-    try {
-	metrics	= ctx.measureText(msg);
-	this.width	= metrics.width;
-	this.height	= Number(this.size); 
-    } catch(e) {
-	this.fallbackOnFont();
-    }
-    BaseImage.call(this, Math.round(this.width/2), 0);// weird pinhole settings needed for "baseline" alignment
-}
+var TextImage = function(msg, size, color, face, family, style, weight, underline) {
+  BaseImage.call(this);
+  var metrics;
+  this.msg        = msg;
+  this.size       = size;   // 18
+  this.color      = color;  // red
+  this.face       = face;   // Gill Sans
+  this.family     = family; // 'swiss
+  this.style      = (style === "slant")? "oblique" : style;  // Racket's "slant" -> CSS's "oblique"
+  this.weight     = (weight=== "light")? "lighter" : weight; // Racket's "light" -> CSS's "lighter"
+  this.underline  = underline;
+  // example: "bold italic 20px 'Times', sans-serif".
+  // Default weight is "normal", face is "Arial"
+  
+  // NOTE: we *ignore* font-family, as it causes a number of font bugs due the browser inconsistencies
+  var canvas  = makeCanvas(0, 0),
+      ctx     = canvas.getContext("2d");
+  
+  this.font = (this.style + " " +
+               this.weight + " " +
+               this.size + "px " +
+               '"'+this.face+'", '+
+               this.family);
+  
+  try {
+    ctx.font    = this.font;
+  } catch (e) {
+    this.fallbackOnFont();
+    ctx.font    = this.font;
+  }
+  
+  // Defensive: on IE, this can break.
+  try {
+    metrics     = ctx.measureText(msg);
+    this.width  = metrics.width;
+    this.height = Number(this.size);
+  } catch(e) {
+    this.fallbackOnFont();
+  }
+};
 
 
 TextImage.prototype = heir(BaseImage.prototype);
 
 TextImage.prototype.fallbackOnFont = function() {
-    // Defensive: if the browser doesn't support certain features, we
-    // reduce to a smaller feature set and try again.
-    this.font	= this.size + "px " + maybeQuote(this.family);    
-    var canvas	= makeCanvas(0, 0);
-    var ctx	= canvas.getContext("2d");
-    ctx.font	= this.font;
-    var metrics	= ctx.measureText(this.msg);
-    this.width	= metrics.width;
-    // KLUDGE: I don't know how to get at the height.
-    this.height	= Number(this.size);//ctx.measureText("m").width + 20;
+  // Defensive: if the browser doesn't support certain features, we
+  // reduce to a smaller feature set and try again.
+  this.font       = this.size + "px " + maybeQuote(this.family);
+  var canvas      = makeCanvas(0, 0);
+  var ctx         = canvas.getContext("2d");
+  ctx.font        = this.font;
+  var metrics     = ctx.measureText(this.msg);
+  this.width      = metrics.width;
+  // KLUDGE: I don't know how to get at the height.
+  this.height     = Number(this.size);//ctx.measureText("m").width + 20;
 };
 
 
 TextImage.prototype.render = function(ctx, x, y) {
-    ctx.save();
-
-    ctx.textAlign	= 'left';
-    ctx.textBaseline= 'top';
-    ctx.fillStyle	= colorString(this.color);
-    ctx.font		= this.font;
-    try { 
-	ctx.fillText(this.msg, x, y); 
-    } catch (e) {
-	this.fallbackOnFont();
-	ctx.font		= this.font;	
-	ctx.fillText(this.msg, x, y); 
-    }
-    if(this.underline){
-	ctx.beginPath();
-	ctx.moveTo(x, y+this.size);
-	// we use this.size, as it is more accurate for underlining than this.height
-	ctx.lineTo(x+this.width, y+this.size);
-	ctx.closePath();
-	ctx.strokeStyle = colorString(this.color);
-	ctx.stroke();
-    }
-    ctx.restore();
+  ctx.save();
+  ctx.textAlign   = 'left';
+  ctx.textBaseline= 'top';
+  ctx.fillStyle   = colorString(this.color);
+  ctx.font        = this.font;
+  try {
+    ctx.fillText(this.msg, x, y);
+  } catch (e) {
+    this.fallbackOnFont();
+    ctx.font = this.font;
+    ctx.fillText(this.msg, x, y);
+  }
+  if(this.underline){
+    ctx.beginPath();
+    ctx.moveTo(x, y+this.size);
+    // we use this.size, as it is more accurate for underlining than this.height
+    ctx.lineTo(x+this.width, y+this.size);
+    ctx.closePath();
+    ctx.strokeStyle = colorString(this.color);
+    ctx.stroke();
+  }
+  ctx.restore();
 };
 
-
 TextImage.prototype.getBaseline = function() {
-    return this.size;
+  return this.size;
 };
 
 TextImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof TextImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.msg	== other.msg &&
-	    this.size	== other.size &&
-	    this.face	== other.face &&
-	    this.family == other.family &&
-	    this.style	== other.style &&
-	    this.weight == other.weight &&
-	    this.underline == other.underline &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind) &&
-	    this.font == other.font);
+  if (!(other instanceof TextImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.msg      === other.msg &&
+          this.size     === other.size &&
+          this.face     === other.face &&
+          this.family   === other.family &&
+          this.style    === other.style &&
+          this.weight   === other.weight &&
+          this.underline === other.underline &&
+          equals(this.color, other.color, aUnionFind) &&
+          this.font === other.font);
 };
 
 
 //////////////////////////////////////////////////////////////////////
 // StarImage: fixnum fixnum fixnum color -> image
+// Most of this code here adapted from the Canvas tutorial at:
+// http://developer.apple.com/safari/articles/makinggraphicswithcanvas.html
 var StarImage = function(points, outer, inner, style, color) {
-    BaseImage.call(this,
-		   Math.max(outer, inner),
-		   Math.max(outer, inner));
-    this.points	= points;
-    this.outer	= outer;
-    this.inner	= inner;
-    this.style	= style;
-    this.color	= color;
-    this.radius	= Math.max(this.inner, this.outer);
-    this.width	= this.radius*2;
-    this.height	= this.radius*2;
+  BaseImage.call(this);
+  this.points     = points;
+  this.outer      = outer;
+  this.inner      = inner;
+  this.style      = style;
+  this.color      = color;
+  this.radius     = Math.max(this.inner, this.outer);
+  this.width      = this.radius*2;
+  this.height     = this.radius*2;
+  var vertices   = [];
+  
+  var oneDegreeAsRadian = Math.PI / 180;
+  for(var pt = 0; pt < (this.points * 2) + 1; pt++ ) {
+    var rads = ( ( 360 / (2 * this.points) ) * pt ) * oneDegreeAsRadian - 0.5;
+    var radius = ( pt % 2 === 1 ) ? this.outer : this.inner;
+    vertices.push({x:this.radius + ( Math.sin( rads ) * radius ),
+                  y:this.radius + ( Math.cos( rads ) * radius )} );
+  }
+  this.vertices = vertices;
 };
 
 StarImage.prototype = heir(BaseImage.prototype);
 
-var oneDegreeAsRadian = Math.PI / 180;
-
-// render: context fixnum fixnum -> void
-// Draws a star on the given context.
-// Most of this code here adapted from the Canvas tutorial at:
-// http://developer.apple.com/safari/articles/makinggraphicswithcanvas.html
-StarImage.prototype.render = function(ctx, x, y) {
-    ctx.save();
-    ctx.beginPath();
-    for( var pt = 0; pt < (this.points * 2) + 1; pt++ ) {
-	var rads = ( ( 360 / (2 * this.points) ) * pt ) * oneDegreeAsRadian - 0.5;
-	var radius = ( pt % 2 == 1 ) ? this.outer : this.inner;
-	ctx.lineTo(x + this.radius + ( Math.sin( rads ) * radius ), 
-		   y + this.radius + ( Math.cos( rads ) * radius ) );
-    }
-    ctx.closePath();
-    if (this.style.toString().toLowerCase() == "outline") {
-	ctx.strokeStyle = colorString(this.color);
-	ctx.stroke();
-    } else {
-	ctx.fillStyle = colorString(this.color);
-	ctx.fill();
-    }
-    ctx.restore();
-};
-
-StarImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof StarImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.points == other.points &&
-	    this.outer == other.outer &&
-	    this.inner == other.inner &&
-	    this.style == other.style &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
-};
-
-
-
 /////////////////////////////////////////////////////////////////////
-//TriangleImage: Number Number Mode Color -> Image
-var TriangleImage = function(side, angle, style, color) {
-    // sin(angle/2-in-radians) * side = half of base
-    this.width = Math.sin(angle/2 * Math.PI / 180) * side * 2;
-    // cos(angle/2-in-radians) * side = height of altitude
-    this.height = Math.floor(Math.abs(Math.cos(angle/2 * Math.PI / 180)) * side);
-    
-    BaseImage.call(this, Math.floor(this.width/2), Math.floor(this.height/2));
-    this.side = side;
-    this.angle = angle;
-    this.style = style;
-    this.color = color;
-}
+//TriangleImage: Number Number Number Mode Color -> Image
+// Draws a triangle with the base = sideC, and the angle between sideC
+// and sideB being angleA
+// See http://docs.racket-lang.org/teachpack/2htdpimage.html#(def._((lib._2htdp/image..rkt)._triangle))
+var TriangleImage = function(sideC, angleA, sideB, style, color) {
+  BaseImage.call(this);
+  this.width = sideC;
+  this.height = Math.sqrt(Math.pow(sideB,2) - Math.pow(0.5*sideC,2));
+  
+  var vertices = [];
+  // if angle < 180 start at the top of the canvas, otherwise start at the bottom
+  if(angleA < 180){
+    vertices.push({x: 0, y: 0});
+    vertices.push({x: sideC, y: 0});
+    vertices.push({x: sideB*Math.cos(angleA*Math.PI/180),
+                   y: this.height});
+  } else {
+    vertices.push({x: 0, y: this.height - 0});
+    vertices.push({x: sideC, y: this.height - 0});
+    vertices.push({x: Math.abs(sideB*Math.cos(angleA*Math.PI/180)),
+                   y: 0});
+  }
+  this.vertices = vertices;
+  
+  this.style = style;
+  this.color = color;
+};
 TriangleImage.prototype = heir(BaseImage.prototype);
-
-
-TriangleImage.prototype.render = function(ctx, x, y) {
-    var width = this.getWidth();
-    var height = this.getHeight();
-    ctx.save();
-    ctx.beginPath();
-    // if angle < 180 start at the top of the canvas, otherwise start at the bottom
-    if(this.angle < 180){
-	ctx.moveTo(x+width/2, y);
-	ctx.lineTo(x, y+height);
-	ctx.lineTo(x+width, y+height);		
-    } else {
-	ctx.moveTo(x+width/2, y+height);
-	ctx.lineTo(x, y);
-	ctx.lineTo(x+width, y);				
-    }
-    ctx.closePath();
-    
-    if (this.style.toString().toLowerCase() == "outline") {
-	ctx.strokeStyle = colorString(this.color);
-	ctx.stroke();
-    }
-    else {
-	ctx.fillStyle = colorString(this.color);
-	ctx.fill();
-    }
-    ctx.restore();
-};
-
-TriangleImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof TriangleImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.side == other.side &&
-	    this.angle == other.angle &&
-	    this.style == other.style &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
-};
-
-/////////////////////////////////////////////////////////////////////
-//RightTriangleImage: Number Number Mode Color -> Image
-var RightTriangleImage = function(side1, side2, style, color) {
-    this.width = side1;
-    this.height = side2;
-    
-    BaseImage.call(this, Math.floor(this.width/2), Math.floor(this.height/2));
-    this.side1 = side1;
-    this.side2 = side2;
-    this.style = style;
-    this.color = color;
-}
-RightTriangleImage.prototype = heir(BaseImage.prototype);
-
-
-RightTriangleImage.prototype.render = function(ctx, x, y) {
-    var width = this.getWidth();
-    var height = this.getHeight();
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x, y+this.side2);
-    ctx.lineTo(x+this.side1, y+this.side2);
-    ctx.lineTo(x, y);
-    ctx.closePath();
-    
-    if (this.style.toString().toLowerCase() == "outline") {
-	ctx.strokeStyle = colorString(this.color);
-	ctx.stroke();
-    }
-    else {
-	ctx.fillStyle = colorString(this.color);
-	ctx.fill();
-    }
-    ctx.restore();
-};
-
-RightTriangleImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof RightTriangleImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.side1 == other.side1 &&
-	    this.side2 == other.side2 &&
-	    this.style == other.style &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
-};
 
 //////////////////////////////////////////////////////////////////////
 //Ellipse : Number Number Mode Color -> Image
 var EllipseImage = function(width, height, style, color) {
-    BaseImage.call(this, Math.floor(width/2), Math.floor(height/2));
-    this.width = width;
-    this.height = height;
-    this.style = style;
-    this.color = color;
+  BaseImage.call(this);
+  this.width = width;
+  this.height = height;
+  this.style = style;
+  this.color = color;
 };
 
 EllipseImage.prototype = heir(BaseImage.prototype);
 
-
 EllipseImage.prototype.render = function(ctx, aX, aY) {
-    ctx.save();
-    ctx.beginPath();
-
-    // Most of this code is taken from:
-    // http://webreflection.blogspot.com/2009/01/ellipse-and-circle-for-canvas-2d.html
-    var hB = (this.width / 2) * .5522848,
-    vB = (this.height / 2) * .5522848,
-    eX = aX + this.width,
-    eY = aY + this.height,
-    mX = aX + this.width / 2,
-    mY = aY + this.height / 2;
-    ctx.moveTo(aX, mY);
-    ctx.bezierCurveTo(aX, mY - vB, mX - hB, aY, mX, aY);
-    ctx.bezierCurveTo(mX + hB, aY, eX, mY - vB, eX, mY);
-    ctx.bezierCurveTo(eX, mY + vB, mX + hB, eY, mX, eY);
-    ctx.bezierCurveTo(mX - hB, eY, aX, mY + vB, aX, mY);
-    ctx.closePath();
-    if (this.style.toString().toLowerCase() == "outline") {
- 	ctx.strokeStyle = colorString(this.color);
-	ctx.stroke();
-    }
-    else {
- 	ctx.fillStyle = colorString(this.color);
-	ctx.fill();
-    }
-
-
-    ctx.restore();
+  ctx.save();
+  ctx.beginPath();
+  
+  // Most of this code is taken from:
+  // http://webreflection.blogspot.com/2009/01/ellipse-and-circle-for-canvas-2d.html
+  var hB = (this.width / 2) * 0.5522848,
+  vB = (this.height / 2) * 0.5522848,
+  eX = aX + this.width,
+  eY = aY + this.height,
+  mX = aX + this.width / 2,
+  mY = aY + this.height / 2;
+  ctx.moveTo(aX, mY);
+  ctx.bezierCurveTo(aX, mY - vB, mX - hB, aY, mX, aY);
+  ctx.bezierCurveTo(mX + hB, aY, eX, mY - vB, eX, mY);
+  ctx.bezierCurveTo(eX, mY + vB, mX + hB, eY, mX, eY);
+  ctx.bezierCurveTo(mX - hB, eY, aX, mY + vB, aX, mY);
+  ctx.closePath();
+  if (this.style.toString().toLowerCase() === "outline") {
+    ctx.strokeStyle = colorString(this.color);
+    ctx.stroke();
+  }
+  else {
+    ctx.fillStyle = colorString(this.color, this.style);
+    ctx.fill();
+  }
+  
+  ctx.restore();
 };
 
 EllipseImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof EllipseImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.width == other.width &&
-	    this.height == other.height &&
-	    this.style == other.style &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
+  if (!(other instanceof EllipseImage)) {
+    return BaseImage.prototype.equals.call(this, other, aUnionFind);
+  }
+  return (this.width    === other.width &&
+          this.height   === other.height &&
+          this.style    === other.style &&
+          equals(this.color, other.color, aUnionFind));
 };
 
 
 //////////////////////////////////////////////////////////////////////
-//Line: Number Number Color Boolean -> Image
-var LineImage = function(x, y, color, normalPinhole) {
-    if (x >= 0) {
-	if (y >= 0) {
-	    BaseImage.call(this, 0, 0);
-	} else {
-	    BaseImage.call(this, 0, -y);
-	}
-    } else {
-	if (y >= 0) {
-	    BaseImage.call(this, -x, 0);
-	} else {
-	    BaseImage.call(this, -x, -y);
-	}
-    }
-    
-    this.x = x;
-    this.y = y;
-    this.color = color;
-    this.width = Math.abs(x) + 1;
-    this.height = Math.abs(y) + 1;
-    
-    // put the pinhle in the center of the image
-    if(normalPinhole){
- 	this.pinholeX = this.width/2;
- 	this.pinholeY = this.height/2;
-    }
-}
+// Line: Number Number Color Boolean -> Image
+var LineImage = function(x, y, color) {
+  BaseImage.call(this);
+  var vertices;
+  if (x >= 0) {
+    if (y >= 0) { vertices = [{x:  0, y:  0}, {x: x, y: y}]; }
+    else        { vertices = [{x:  0, y: -y}, {x: x, y: 0}]; }
+  } else {
+    if (y >= 0) { vertices = [{x: -x, y:  0}, {x: 0, y: y}]; }
+    else        { vertices = [{x: -x, y: -y}, {x: 0, y: 0}]; }
+  }
+  // preserve the invariant that all vertex-based images have a style
+  this.style  = "outline";
+  this.color  = color;
+  this.width  = Math.abs(x);
+  this.height = Math.abs(y);
+  this.vertices = vertices;
+};
 
 LineImage.prototype = heir(BaseImage.prototype);
-
-
-LineImage.prototype.render = function(ctx, xstart, ystart) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.strokeStyle = colorString(this.color);
-    if (this.x >= 0) {
-	if (this.y >= 0) {
-	    ctx.moveTo(xstart, ystart);
-	    ctx.lineTo((xstart + this.x),
-		       (ystart + this.y));
-	} else {
-	    ctx.moveTo(xstart, ystart + (-this.y));
-	    ctx.lineTo(xstart + this.x, ystart);
-	}
-    } else {
-	if (this.y >= 0) {
-	    ctx.moveTo(xstart + (-this.x), ystart);
-	    ctx.lineTo(xstart,
-		       (ystart + this.y));		
-	} else {
-	    ctx.moveTo(xstart + (-this.x), ystart + (-this.y));
-	    ctx.lineTo(xstart, ystart);
-	}
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-};
-
-
-LineImage.prototype.equals = function(other, aUnionFind) {
-    return (other instanceof LineImage &&
-	    this.pinholeX == other.pinholeX &&
-	    this.pinholeY == other.pinholeY &&
-	    this.x == other.x &&
-	    this.y == other.y &&
-	    plt.baselib.equality.equals(this.color, other.color, aUnionFind));
-};
-
-
-
-
 
 
 
@@ -1495,17 +1336,17 @@ var makeRectangleImage = function(width, height, style, color) {
 var makeRhombusImage = function(side, angle, style, color) {
     return new RhombusImage(side, angle, style, color);
 };
+var makePosnImage = function(posns, style, color) {
+  return new PosnImage(posns, style, color);
+};
 var makePolygonImage = function(length, count, step, style, color) {
     return new PolygonImage(length, count, step, style, color);
 };
 var makeSquareImage = function(length, style, color) {
     return new RectangleImage(length, length, style, color);
 };
-var makeRightTriangleImage = function(side1, side2, style, color) {
-    return new RightTriangleImage(side1, side2, style, color);
-};
-var makeTriangleImage = function(side, angle, style, color) {
-    return new TriangleImage(side, angle, style, color);
+var makeTriangleImage = function(side, angle, side2, style, color) {
+  return new TriangleImage(side, angle, side2, style, color);
 };
 var makeEllipseImage = function(width, height, style, color) {
     return new EllipseImage(width, height, style, color);
@@ -1540,8 +1381,11 @@ var makeImageDataImage = function(imageData) {
 var makeFileImage = function(path, rawImage) {
     return FileImage.makeInstance(path, rawImage);
 };
-var makeVideoImage = function(path, rawVideo) {
-    return VideoImage.makeInstance(path, rawVideo);
+var makeFileVideo = function(path, rawVideo) {
+    return FileVideo.makeInstance(path, rawVideo);
+};
+var makeFileAudio = function(path, rawAudio){
+  return FileAudio.makeInstance(path, rawAudio)
 };
 
 
@@ -1554,7 +1398,6 @@ var isPolygonImage = function(x) { return x instanceof PolygonImage; };
 var isRhombusImage = function(x) { return x instanceof RhombusImage; };
 var isSquareImage	= function(x) { return x instanceof SquareImage; };
 var isTriangleImage= function(x) { return x instanceof TriangleImage; };
-var isRightTriangleImage = function(x) { return x instanceof RightTriangleImage; };
 var isEllipseImage = function(x) { return x instanceof EllipseImage; };
 var isLineImage	= function(x) { return x instanceof LineImage; };
 var isOverlayImage = function(x) { return x instanceof OverlayImage; };
@@ -1584,7 +1427,8 @@ EXPORTS.makeCanvas = makeCanvas;
 EXPORTS.BaseImage = BaseImage;
 EXPORTS.SceneImage = SceneImage;
 EXPORTS.FileImage = FileImage;
-EXPORTS.VideoImage = VideoImage;
+EXPORTS.FileVideo = FileVideo;
+EXPORTS.FileAudio = FileAudio
 EXPORTS.OverlayImage = OverlayImage;
 EXPORTS.RotateImage = RotateImage;
 EXPORTS.ScaleImage = ScaleImage;
@@ -1598,7 +1442,6 @@ EXPORTS.PolygonImage = PolygonImage;
 EXPORTS.TextImage = TextImage;
 EXPORTS.StarImage = StarImage;
 EXPORTS.TriangleImage = TriangleImage;
-EXPORTS.RightTriangleImage = RightTriangleImage;
 EXPORTS.EllipseImage = EllipseImage;
 EXPORTS.LineImage = LineImage;
 EXPORTS.StarImage = StarImage;
@@ -1614,7 +1457,6 @@ EXPORTS.makeRectangleImage = makeRectangleImage;
 EXPORTS.makeRhombusImage = makeRhombusImage;
 EXPORTS.makePolygonImage = makePolygonImage;
 EXPORTS.makeSquareImage = makeSquareImage;
-EXPORTS.makeRightTriangleImage = makeRightTriangleImage;
 EXPORTS.makeTriangleImage = makeTriangleImage;
 EXPORTS.makeEllipseImage = makeEllipseImage;
 EXPORTS.makeLineImage = makeLineImage;
@@ -1627,8 +1469,8 @@ EXPORTS.makeFlipImage = makeFlipImage;
 EXPORTS.makeTextImage = makeTextImage;
 EXPORTS.makeImageDataImage = makeImageDataImage;
 EXPORTS.makeFileImage = makeFileImage;
-EXPORTS.makeVideoImage = makeVideoImage;
-
+EXPORTS.makeFileVideo = makeFileVideo;
+EXPORTS.makeFileAudio = makeFileAudio;
 EXPORTS.imageToColorList = imageToColorList;
 EXPORTS.colorListToImage = colorListToImage;
 
@@ -1650,7 +1492,6 @@ EXPORTS.isPolygonImage = isPolygonImage;
 EXPORTS.isRhombusImage = isRhombusImage;
 EXPORTS.isSquareImage = isSquareImage;
 EXPORTS.isTriangleImage = isTriangleImage;
-EXPORTS.isRightTriangleImage = isRightTriangleImage;
 EXPORTS.isEllipseImage = isEllipseImage;
 EXPORTS.isLineImage = isLineImage;
 EXPORTS.isOverlayImage = isOverlayImage;
@@ -1662,7 +1503,7 @@ EXPORTS.isFlipImage = isFlipImage;
 EXPORTS.isTextImage = isTextImage;
 EXPORTS.isFileImage = isFileImage;
 EXPORTS.isFileVideo = isFileVideo;
-
+//EXPORTS.isFileAudio = isFileAudio;
 
 
 EXPORTS.makeColor = makeColor;

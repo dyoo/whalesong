@@ -37,9 +37,12 @@ var isFontWeight = function(x){
 	|| (x === false);		// false is also acceptable
 };
 var isMode = function(x) {
-    return ((isString(x) || isSymbol(x)) &&
-	    (x.toString().toLowerCase() == "solid" ||
-	     x.toString().toLowerCase() == "outline"));
+	return ((isString(x) || isSymbol(x)) &&
+          (x.toString().toLowerCase() == "solid" ||
+           x.toString().toLowerCase() == "outline")) ||
+         ((jsnums.isReal(x)) &&
+          (jsnums.greaterThanOrEqual(x, 0) &&
+           jsnums.lessThanOrEqual(x, 255)));
 };
 
 var isPlaceX = function(x) {
@@ -67,6 +70,24 @@ var isStyle = function(x) {
 
 
 
+// Useful trigonometric functions based on htdp teachpack
+
+// excess : compute the Euclidean excess
+//  Note: If the excess is 0, then C is 90 deg.
+//        If the excess is negative, then C is obtuse.
+//        If the excess is positive, then C is acuse.
+function excess(sideA, sideB, sideC) {
+  return sideA*sideA + sideB*sideB - sideC*sideC;
+}
+
+// return c^2 = a^2 + b^2 - 2ab cos(C)
+function cosRel(sideA, sideB, angleC) {
+  return (sideA*sideA) + (sideB*sideB) - (2*sideA*sideB*Math.cos(angleC * Math.PI/180));
+}
+
+var less = function(lhs, rhs) {
+  return (rhs - lhs) > 0.00001;
+}
 
 
 
@@ -137,7 +158,7 @@ var checkAngle = plt.baselib.check.makeCheckArgumentType(
 
 var checkMode = plt.baselib.check.makeCheckArgumentType(
     isMode,
-    'solid or outline');
+    'solid or outline or [0-255]');
 
 
 var checkSideCount = plt.baselib.check.makeCheckArgumentType(
@@ -161,9 +182,17 @@ var checkListofColor = plt.baselib.check.makeCheckListofArgumentType(
 
 
 
-
-
 //////////////////////////////////////////////////////////////////////
+
+EXPORTS['image=?'] =
+    makePrimitiveProcedure(
+        'image=?',
+        2,
+        function(MACHINE) {
+          var img1 = checkImageOrScene(MACHINE,'image=?', 0);
+          var img2 = checkImageOrScene(MACHINE,'image=?', 1);
+         return img1.equals(img2);
+        });
 
 
 EXPORTS['image-color?'] =
@@ -321,6 +350,40 @@ EXPORTS['image-url'] =
     plt.baselib.functions.renameProcedure(EXPORTS['bitmap/url'],
                                           'image-url');
 
+
+EXPORTS['video/url'] =
+    makeClosure(
+        'video/url',
+        1,
+        function(MACHINE) {
+            var path = checkString(MACHINE, 'video/url', 0);
+            PAUSE(
+                function(restart) {
+                  var rawVideo = document.createElement('video');
+                  rawVideo.src = path.toString();
+                  rawVideo.addEventListener('canplay', function() {
+                    restart(function(MACHINE) {
+                            function pause(){ rawVideo.pause(); return true;};
+                            finalizeClosureCall(
+                              MACHINE,
+                              makeFileVideo(path.toString(), rawVideo));
+//                    aState.addBreakRequestedListener(pause);
+                    });
+                  });
+                  rawVideo.addEventListener('error', function(e) {
+                    restart(function(MACHINE) {
+                        plt.baselib.exceptions.raiseFailure(
+                            MACHINE, 
+                            plt.baselib.format.format(
+                                "unable to load ~a: ~a",
+                                [url,
+                                 e.message]));
+                    });
+                  });
+                  rawVideo.src = path.toString();
+                }
+            );
+        });
 
 
 
@@ -580,6 +643,28 @@ EXPORTS['empty-scene'] =
                                   true);
 	});
 
+EXPORTS['put-image'] =
+    makePrimitiveProcedure(
+        'put-image',
+        4,
+        function(MACHINE) {
+	    var picture = checkImage(MACHINE, "put-image", 0);
+	    var x = checkReal(MACHINE, "put-image", 1);
+	    var y = checkReal(MACHINE, "put-image", 2);
+            var background = checkImageOrScene(MACHINE, "place-image", 3);
+	    if (isScene(background)) {
+		return background.add(picture, jsnums.toFixnum(x), background.getHeight() - jsnums.toFixnum(y));
+	    } else {
+		var newScene = makeSceneImage(background.getWidth(),
+					      background.getHeight(),
+					      [], 
+					      false);
+		newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
+          newScene = newScene.add(picture, jsnums.toFixnum(x), background.getHeight() - jsnums.toFixnum(y));
+		return newScene;
+	    }
+
+        });
 
 
 EXPORTS['place-image'] = 
@@ -598,8 +683,8 @@ EXPORTS['place-image'] =
 					      background.getHeight(),
 					      [], 
 					      false);
-		newScene = newScene.add(background.updatePinhole(0, 0), 0, 0);
-		newScene = newScene.add(picture, jsnums.toFixnum(x), jsnums.toFixnum(y));
+		newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
+          newScene = newScene.add(picture, jsnums.toFixnum(x), jsnums.toFixnum(y));
 		return newScene;
 	    }
 
@@ -632,8 +717,8 @@ EXPORTS['place-image/align'] =
 					      background.getHeight(),
 					      [], 
 					      false);
-		newScene = newScene.add(background.updatePinhole(0, 0), 0, 0);
-		newScene = newScene.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
+		newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
+    newScene = newScene.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
 		return newScene;
             }
         });
@@ -784,17 +869,19 @@ EXPORTS['scene+line'] =
 	    var c = checkColor(MACHINE, "scene+line", 5);
 	    // make a scene containing the image
 	    var newScene = makeSceneImage(jsnums.toFixnum(img.getWidth()), 
-					  jsnums.toFixnum(img.getHeight()), 
-					  [],
-					  true);
-	    newScene = newScene.add(img.updatePinhole(0, 0), 0, 0);
+                                    jsnums.toFixnum(img.getHeight()),
+                                    [],
+                                    false);
+	    newScene = newScene.add(img, img.getWidth()/2, img.getHeight()/2);
 	    // make an image containing the line
 	    var line = makeLineImage(jsnums.toFixnum(x2-x1),
-				     jsnums.toFixnum(y2-y1),
-				     c,
-				     false);
+                               jsnums.toFixnum(y2-y1),
+                               c,
+                               false),
+          leftMost = Math.min(x1,x2),
+          topMost = Math.min(y1,y2);
 	    // add the line to scene, offset by the original amount
-	    return newScene.add(line, jsnums.toFixnum(x1), jsnums.toFixnum(y1));
+	    return newScene.add(line, line.getWidth()/2+leftMost, line.getHeight()/2+topMost);
         });
 
 
@@ -836,9 +923,27 @@ EXPORTS['rectangle'] =
 				      s.toString(), 
                                       c);
         });
+/*
 
+ need to port over checks for isListofPosns and isListOfLength
+ 
+EXPORTS['polygon'] =
+    makePrimitiveProcedure(
+        'polygon',
+        3,
+        function(MACHINE) {
+      function isPosnList(lst){ return isListOf(lst, types.isPosn); }
+	    var points = checkListOfLength(MACHINE, "polygon", 0);
+	    var points = checkListOfPosns(MACHINE, "polygon", 0);
+	    var s = checkMode(MACHINE, "polygon", 2);
+      var c = checkColor(MACHINE, "polygon", 3);
+	    return makePosnImage(points,
+				    s.toString(),
+				    c);            
+        });
 
-EXPORTS['regular-polygon'] = 
+*/
+EXPORTS['regular-polygon'] =
     makePrimitiveProcedure(
         'regular-polygon',
         4,
@@ -880,14 +985,219 @@ EXPORTS['triangle'] =
 	    var s = checkNonNegativeReal(MACHINE, "triangle", 0);
 	    var m = checkMode(MACHINE, "triangle", 1);
 	    var c = checkColor(MACHINE, "triangle", 2);
-	    return makeTriangleImage(jsnums.toFixnum(s), 
-				     60, 
-				     m.toString(),
-				     c);
+	    return makeTriangleImage(jsnums.toFixnum(s),
+                                        jsnums.toFixnum(360-60),
+                                        jsnums.toFixnum(s),
+                                        m.toString(),
+                                        c);
         });
 
 
-EXPORTS['right-triangle'] = 
+EXPORTS['triangle/sas'] =
+    makePrimitiveProcedure(
+        'triangle/sas',
+        5,
+        function(MACHINE) {
+	    var sideA = checkNonNegativeReal(MACHINE, "triangle/sas", 0);
+	    var angleB = checkAngle(MACHINE, "triangle/sas", 1);
+      var sideC = checkNonNegativeReal(MACHINE, "triangle/sas", 2);
+	    var style = checkMode(MACHINE, "triangle/sas", 3);
+	    var color = checkColor(MACHINE, "triangle/sas", 4);
+       // cast to fixnums
+       sideA = jsnums.toFixnum(sideA); angleB = jsnums.toFixnum(angleB); sideC = jsnums.toFixnum(sideC);
+       var sideB2 = cosRel(sideA, sideC, angleB);
+       var sideB  = Math.sqrt(sideB2);
+              
+       if (sideB2 <= 0) {
+         raise( types.incompleteExn(types.exnFailContract, "The given side, angle and side will not form a triangle: "
+                                    + sideA + ", " + angleB + ", " + sideC, []) );
+       } else {
+        if (less(sideA + sideC, sideB) ||
+            less(sideB + sideC, sideA) ||
+            less(sideA + sideB, sideC)) {
+         raise( types.incompleteExn(types.exnFailContract, "The given side, angle and side will not form a triangle: "
+                                    + sideA + ", " + angleB + ", " + sideC, []) );
+        }
+       }
+
+       var angleA = Math.acos(excess(sideB, sideC, sideA) / (2 * sideB * sideC)) * (180 / Math.PI);
+
+	    return makeTriangleImage(jsnums.toFixnum(sideC),
+                                         jsnums.toFixnum(angleA),
+                                         jsnums.toFixnum(sideB),
+                                         style.toString(),
+                                         color);
+        });
+
+EXPORTS['triangle/sss'] =
+    makePrimitiveProcedure(
+        'triangle/sss',
+        5,
+        function(MACHINE) {
+	    var sideA = checkNonNegativeReal(MACHINE, "triangle/sss", 0);
+      var sideB = checkNonNegativeReal(MACHINE, "triangle/sss", 1);
+      var sideC = checkNonNegativeReal(MACHINE, "triangle/sss", 2);
+	    var style = checkMode(MACHINE, "triangle/sss", 3);
+	    var color = checkColor(MACHINE, "triangle/sss", 4);
+      // cast to fixnums
+      sideA = jsnums.toFixnum(sideA); sideB = jsnums.toFixnum(sideB); sideC = jsnums.toFixnum(sideC);
+      if (less(sideA + sideB, sideC) ||
+            less(sideC + sideB, sideA) ||
+            less(sideA + sideC, sideB)) {
+        raise( types.incompleteExn(types.exnFailContract, "The given sides will not form a triangle: "
+                                    + sideA+", "+sideB+", "+sideC, []) );
+      }
+
+      var angleA = Math.acos(excess(sideB, sideC, sideA) / (2 * sideB * sideC)) * (180 / Math.PI);
+	    return makeTriangleImage(jsnums.toFixnum(sideC),
+                                         jsnums.toFixnum(angleA),
+                                         jsnums.toFixnum(sideB),
+                                         style.toString(),
+                                         color);
+        });
+
+EXPORTS['triangle/ass'] =
+    makePrimitiveProcedure(
+        'triangle/ass',
+        5,
+        function(MACHINE) {
+	    var angleA = checkAngle(MACHINE, "triangle/ass", 0);
+	    var sideB = checkNonNegativeReal(MACHINE, "triangle/ass", 1);
+      var sideC = checkNonNegativeReal(MACHINE, "triangle/ass", 2);
+	    var style = checkMode(MACHINE, "triangle/ass", 3);
+	    var color = checkColor(MACHINE, "triangle/ass", 4);
+       // cast to fixnums
+       angleA = jsnums.toFixnum(angleA); sideB = jsnums.toFixnum(sideB); sideC = jsnums.toFixnum(sideC);
+       if (colorDb.get(color)) { color = colorDb.get(color); }
+       if (less(180, angleA)) {
+         raise( types.incompleteExn(types.exnFailContract, "The given angle, side and side will not form a triangle: "
+                                    + angleA + ", " + sideB + ", " + sideC, []) );
+       }
+	    return makeTriangleImage(jsnums.toFixnum(sideC),
+                                        jsnums.toFixnum(angleA),
+                                        jsnums.toFixnum(sideB),
+                                        style.toString(),
+                                        color);
+        });
+
+EXPORTS['triangle/ssa'] =
+    makePrimitiveProcedure(
+        'triangle/ssa',
+        5,
+        function(MACHINE) {
+	    var sideA = checkNonNegativeReal(MACHINE, "triangle/ssa", 0);
+      var sideB = checkNonNegativeReal(MACHINE, "triangle/ssa", 1);
+	    var angleC = checkAngle(MACHINE, "triangle/ssa", 2);
+	    var style = checkMode(MACHINE, "triangle/ssa", 3);
+	    var color = checkColor(MACHINE, "triangle/ssa", 4);
+         // cast to fixnums
+         sideA = jsnums.toFixnum(sideA); sideB = jsnums.toFixnum(sideB); angleC = jsnums.toFixnum(angleC);
+         if (less(180, angleC)) {
+           raise( types.incompleteExn(types.exnFailContract, "The given side, side and angle will not form a triangle: "
+                                      + sideA + ", " + sideB + ", " + angleC, []) );
+         }
+         var sideC2 = cosRel(sideA, sideB, angleC);
+         var sideC  = Math.sqrt(sideC2);
+        
+         if (sideC2 <= 0) {
+           raise( types.incompleteExn(types.exnFailContract, "The given side, side and angle will not form a triangle: "
+                                      + sideA + ", " + sideB + ", " + angleC, []) );
+         } else {
+           if (less(sideA + sideB, sideC) ||
+               less(sideC + sideB, sideA) ||
+               less(sideA + sideC, sideB)) {
+           raise( types.incompleteExn(types.exnFailContract, "The given side, side and angle will not form a triangle: "
+                                      + sideA + ", " + sideB + ", " + angleC, []) );
+           }
+         }
+
+         var angleA = Math.acos(excess(sideB, sideC, sideA) / (2 * sideB * sideC)) * (180 / Math.PI);
+	    return makeTriangleImage(jsnums.toFixnum(sideC),
+                                          jsnums.toFixnum(angleA),
+                                          jsnums.toFixnum(sideB),
+                                          style.toString(),
+                                          color);
+        });
+
+EXPORTS['triangle/aas'] =
+    makePrimitiveProcedure(
+        'triangle/aas',
+        5,
+        function(MACHINE) {
+	    var angleA = checkAngle(MACHINE, "triangle/aas", 0);
+	    var angleB = checkAngle(MACHINE, "triangle/aas", 1);
+      var sideC = checkNonNegativeReal(MACHINE, "triangle/aas", 2);
+	    var style = checkMode(MACHINE, "triangle/aas", 3);
+	    var color = checkColor(MACHINE, "triangle/aas", 4);
+      // cast to fixnums
+      var angleA = jsnums.toFixnum(angleA); angleB = jsnums.toFixnum(angleB); sideC = jsnums.toFixnum(sideC);
+      var angleC = (180 - angleA - angleB);
+      if (less(angleC, 0)) {
+         raise( types.incompleteExn(types.exnFailContract, "The given angle, angle and side will not form a triangle: "
+                                    + angleA + ", " + angleB + ", " + sideC, []) );
+      }
+      var hypotenuse = sideC / (Math.sin(angleC*Math.PI/180))
+      var sideB = hypotenuse * Math.sin(angleB*Math.PI/180);
+	    return makeTriangleImage(jsnums.toFixnum(sideC),
+                                          jsnums.toFixnum(angleA),
+                                          jsnums.toFixnum(sideB),
+                                          style.toString(),
+                                          color);
+        });
+
+
+EXPORTS['triangle/asa'] =
+    makePrimitiveProcedure(
+        'triangle/asa',
+        5,
+        function(MACHINE) {
+	    var angleA = checkAngle(MACHINE, "triangle/asa", 0);
+      var sideB = checkNonNegativeReal(MACHINE, "triangle/asa", 1);
+	    var angleC = checkAngle(MACHINE, "triangle/asa", 2);
+	    var style = checkMode(MACHINE, "triangle/asa", 3);
+	    var color = checkColor(MACHINE, "triangle/asa", 4);
+      // cast to fixnums
+      var angleA = jsnums.toFixnum(angleA); sideB = jsnums.toFixnum(sideB); angleC = jsnums.toFixnum(angleC);
+      var angleB = (180 - angleA - angleC);
+      if (less(angleB, 0)) {
+        raise( types.incompleteExn(types.exnFailContract, "The given angle, side and angle will not form a triangle: "
+                                   + angleA + ", " + sideB + ", " + angleC, []) );
+      }
+      var base = (sideB * Math.sin(angleA*Math.PI/180)) / (Math.sin(angleB*Math.PI/180));
+      var sideC = (sideB * Math.sin(angleC*Math.PI/180)) / (Math.sin(angleB*Math.PI/180));
+	    return makeTriangleImage(jsnums.toFixnum(sideC),
+                                             jsnums.toFixnum(angleA),
+                                             jsnums.toFixnum(sideB),
+                                             style.toString(),
+                                             color);
+        });
+
+EXPORTS['triangle/saa'] =
+    makePrimitiveProcedure(
+        'triangle/saa',
+        5,
+        function(MACHINE) {
+	    var sideA = checkNonNegativeReal(MACHINE, "triangle/saa", 0);
+      var angleB = checkAngle(MACHINE, "triangle/saa", 1);
+	    var angleC = checkAngle(MACHINE, "triangle/saa", 2);
+	    var style = checkMode(MACHINE, "triangle/saa", 3);
+	    var color = checkColor(MACHINE, "triangle/saa", 4);
+       // cast to fixnums
+       var sideA = jsnums.toFixnum(sideA); angleB = jsnums.toFixnum(angleB); angleC = jsnums.toFixnum(angleC);
+       var angleA = (180 - angleC - angleB);
+       var hypotenuse = sideA / (Math.sin(angleA*Math.PI/180));
+       var sideC = hypotenuse * Math.sin(angleC*Math.PI/180);
+       var sideB = hypotenuse * Math.sin(angleB*Math.PI/180);
+	    return makeTriangleImage(jsnums.toFixnum(sideC),
+                                               jsnums.toFixnum(angleA),
+                                               jsnums.toFixnum(sideB),
+                                               style.toString(),
+                                               color);
+        });
+
+
+
+EXPORTS['right-triangle'] =
     makePrimitiveProcedure(
         'right-triangle',
         4,
@@ -896,10 +1206,11 @@ EXPORTS['right-triangle'] =
 	    var side2 = checkNonNegativeReal(MACHINE, "right-triangle", 1);
 	    var s = checkMode(MACHINE, "right-triangle", 2);
 	    var c = checkColor(MACHINE, "right-triangle", 3);
-	    return makeRightTriangleImage(jsnums.toFixnum(side1), 
-                                          jsnums.toFixnum(side2),
-                                          s.toString(),
-                                          c);
+	    return makeTriangleImage(jsnums.toFixnum(side1),
+                               jsnums.toFixnum(360-90),
+                               jsnums.toFixnum(side2),
+                               s.toString(),
+                               c);
         });
 
 
@@ -909,13 +1220,18 @@ EXPORTS['isosceles-triangle'] =
         4,
         function(MACHINE) {
 	    var side = checkNonNegativeReal(MACHINE, "isosceles-triangle", 0);
-	    var angle = checkAngle(MACHINE, "isosceles-triangle", 1);
+	    var angleC = checkAngle(MACHINE, "isosceles-triangle", 1);
 	    var s = checkMode(MACHINE, "isosceles-triangle", 2);
 	    var c = checkColor(MACHINE, "isosceles-triangle", 3);
-	    return makeTriangleImage(jsnums.toFixnum(side), 
-                                     jsnums.toFixnum(angle), 
-                                     s.toString(),
-                                     c);
+      // cast to fixnums
+      side = jsnums.toFixnum(side); angleC = jsnums.toFixnum(angleC);
+      var angleAB = (180-angleC)/2;
+      var base = 2*side*Math.sin((angleC*Math.PI/180)/2);
+	    return makeTriangleImage(jsnums.toFixnum(base),
+                                         jsnums.toFixnum(360-angleAB),// add 180 to make the triangle point up
+                                         jsnums.toFixnum(side),
+                                         s.toString(),
+                                         c);
         });
 
 

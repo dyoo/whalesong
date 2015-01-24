@@ -11,9 +11,13 @@ This fork of Whalesong differs from dyoo/whalesong in the following ways:
     (require whalesong/lang/match)
   * Adds on-release
     (as a complement to on-key)
+    Contributed by Darren Cruse
   * Adds parameters
     (require whalesong/lang/parameters)
- 
+  * Extended whalesong/image and whalesong/images
+    (more functions, bug fixes, not matches WeScheme)
+    Contributed by Emmanuel Schanzer
+
 Note: The implementation of parameters works fine,
       as long as you don't mix parameterize with non-local-exits
       and reentries (i.e. call/cc and friends)

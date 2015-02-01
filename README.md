@@ -19,6 +19,8 @@ This fork of Whalesong differs from dyoo/whalesong in the following ways:
   * Extended whalesong/image and whalesong/images
     (more functions, bug fixes, now matches WeScheme)
     Contributed by Emmanuel Schanzer
+  * Adds play-sound
+    (assumes a browser with html5 audio support)
 
 Note: The implementation of parameters works fine,
       as long as you don't mix parameterize with non-local-exits

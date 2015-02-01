@@ -17,7 +17,7 @@ This fork of Whalesong differs from dyoo/whalesong in the following ways:
   * Adds parameters
     (require whalesong/lang/parameters)
   * Extended whalesong/image and whalesong/images
-    (more functions, bug fixes, not matches WeScheme)
+    (more functions, bug fixes, now matches WeScheme)
     Contributed by Emmanuel Schanzer
 
 Note: The implementation of parameters works fine,

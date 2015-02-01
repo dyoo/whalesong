@@ -385,6 +385,56 @@ EXPORTS['video/url'] =
             );
         });
 
+// We keep a cache of loaded sounds:
+var audioCache = {};
+
+EXPORTS['play-sound'] =
+    makeClosure(
+        'play-sound',
+        1,
+        function(MACHINE) {
+            var path = checkString(MACHINE, 'play-sound', 0);
+            var fileAudio = audioCache[path];
+            if (fileAudio) {
+                // the sound was already loaded
+                finalizeClosureCall(
+                    MACHINE,
+                    fileAudio.play());
+            }
+            else {
+               // this sound has never been played before
+               PAUSE(
+                   function(restart) {
+                      fileAudio = makeFileAudio(path.toString());
+                      audioCache[path] = fileAudio;
+                      // let the audio file load before playing...
+                      fileAudio.loading = true;
+                      // (fileAudio.audio is the raw html5 Audio object)
+                      fileAudio.audio.addEventListener('canplay', function() {
+                          // ignore canplay events that follow the initial load
+                          if(fileAudio.loading) {
+                            restart(function(MACHINE) {
+                              finalizeClosureCall(
+                                  MACHINE,
+                                  fileAudio.play());
+                              });
+                            fileAudio.loading = false; // we're done loading
+                          }
+                      })
+                      fileAudio.audio.addEventListener('error', function(e) {
+                          restart(function(MACHINE) {
+                              plt.baselib.exceptions.raiseFailure(
+                                  MACHINE,
+                                  plt.baselib.format.format(
+                                      "unable to load ~a: ~a",
+                                      [path,
+                                      e.message]));
+                              });
+                      });
+                  });
+            }
+        });
+
 
 
 EXPORTS['overlay'] = 

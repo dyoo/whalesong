@@ -456,7 +456,7 @@ FileImage.prototype.equals = function(other, aUnionFind) {
 };
 
 //////////////////////////////////////////////////////////////////////
-// FileVideoe: String Node -> Video
+// FileVideo: String Node -> Video
 var FileVideo = function(src, rawVideo) {
     BaseImage.call(this);
     var self = this;
@@ -507,51 +507,38 @@ FileVideo.prototype.render = function(ctx, x, y) {
     ctx.drawImage(this.video, x, y);
 };
 FileVideo.prototype.equals = function(other, aUnionFind) {
-  return (other instanceof FileVideo) && (this.src === other.src);
+    return (other instanceof FileVideo) && (this.src === other.src);
 };
 
 //////////////////////////////////////////////////////////////////////
-// FileAudio: String Node -> Video
+// FileAudio: String Boolean Audio -> FileAudio
 var FileAudio = function(src, loop, rawAudio) {
-  this.src = src;
-  var that = this;
-  if (rawAudio && (rawAudio.readyState===4)) {
-    that.audio                  = rawAudio;
-    that.audio.autoplay         = true;
-    that.audio.autobuffer       = true;
-    that.audio.currentTime      = 0;
-    that.audio.loop             = loop;
-    that.audio.play();
-  } else {
-    // fixme: we may want to do something blocking here for
-    // onload, since we don't know at this time what the file size
-    // should be, nor will drawImage do the right thing until the
-    // file is loaded.
-    that.audio = document.createElement('audio');
-    that.audio.src = src;
-    that.audio.addEventListener('canplay', function() {
-                                that.audio.autoplay     = true;
-                                that.audio.autobuffer   = true;
-                                that.audio.currentTime  = 0;
-                                that.audio.loop         = loop;
-                                that.audio.play();
-                                });
-  }
-  return true;
+    this.src = src;
+    if(rawAudio) {
+        this.audio = rawAudio;
+    }
+    else {
+        this.audio = document.createElement('audio');
+    }
+    this.audio.src = src;
+    this.audio.autoplay         = false;
+    this.audio.autobuffer       = true;
+    // the below caused firefox to hang (but things work ok without it)
+    // this.audio.currentTime      = 0;
+    this.audio.loop             = loop;
+    return true;
 };
-var audioCache = {};
+
 FileAudio.makeInstance = function(path, loop, rawAudio) {
-  /*        if (! (path in audioCache)) {
-   audioCache[path] = new FileAudio(path, loop, rawAudio, afterInit);
-   return audioCache[path];
-   } else {
-   audioCache[path].audio.play();
-   afterInit(audioCache[path]);
-   return audioCache[path];
-   }
-   */
-  return new FileAudio(path, loop, rawAudio);
+    return new FileAudio(path, loop, rawAudio);
 };
+
+FileAudio.prototype.play = function () {
+    this.audio.play();
+    return true;
+}
+
+
 
 //////////////////////////////////////////////////////////////////////
 // ImageDataImage: imageData -> image
@@ -1384,8 +1371,8 @@ var makeFileImage = function(path, rawImage) {
 var makeFileVideo = function(path, rawVideo) {
     return FileVideo.makeInstance(path, rawVideo);
 };
-var makeFileAudio = function(path, rawAudio){
-  return FileAudio.makeInstance(path, rawAudio)
+var makeFileAudio = function(path, loop, rawAudio){
+  return FileAudio.makeInstance(path, loop, rawAudio)
 };
 
 
@@ -1409,7 +1396,7 @@ var isFlipImage	= function(x) { return x instanceof FlipImage; };
 var isTextImage	= function(x) { return x instanceof TextImage; };
 var isFileImage	= function(x) { return x instanceof FileImage; };
 var isFileVideo	= function(x) { return x instanceof FileVideo; };
-
+var isFileAudio = function(x) { return x instanceof FileAudio; };
 
 
 
@@ -1503,7 +1490,7 @@ EXPORTS.isFlipImage = isFlipImage;
 EXPORTS.isTextImage = isTextImage;
 EXPORTS.isFileImage = isFileImage;
 EXPORTS.isFileVideo = isFileVideo;
-//EXPORTS.isFileAudio = isFileAudio;
+EXPORTS.isFileAudio = isFileAudio;
 
 
 EXPORTS.makeColor = makeColor;

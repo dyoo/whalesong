@@ -24,6 +24,7 @@
                              "sandbox"
                              "examples"
                              "experiments"
+                             "selfhost"
                              "simulator"
                              "tmp"))
 (define can-be-loaded-with 'all)

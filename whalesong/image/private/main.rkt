@@ -12,11 +12,12 @@
                "js-impl.js")
  #:provided-values (text
                     text/font
-
+                    
                     bitmap/url
                     image-url      ;; older name for bitmap/url
                     open-image-url ;; older name for bitmap/url
-
+                    video/url
+                    play-sound
                     overlay
                     overlay/xy
                     overlay/align
@@ -28,6 +29,7 @@
                     above
                     above/align
                     empty-scene
+                    put-image
                     place-image
                     place-image/align
                     rotate
@@ -43,9 +45,17 @@
                     circle
                     square
                     rectangle
+                    polygon
                     regular-polygon
                     ellipse
                     triangle
+                    triangle/sas
+                    triangle/sss
+                    triangle/ass
+                    triangle/ssa
+                    triangle/aas
+                    triangle/asa
+                    triangle/saa
                     right-triangle
                     isosceles-triangle
                     star
@@ -66,6 +76,6 @@
                     side-count?
                     step-count?
                     image?
-
+                    image=?
                     name->color
                     ))

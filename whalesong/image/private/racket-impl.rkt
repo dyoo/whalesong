@@ -15,6 +15,7 @@
          above
          above/align
          empty-scene
+         put-image
          place-image
          place-image/align
          rotate
@@ -30,9 +31,17 @@
          circle
          square
          rectangle
+         polygon
          regular-polygon
          ellipse
          triangle
+         triangle/sas
+         triangle/sss
+         triangle/ass
+         triangle/ssa
+         triangle/aas
+         triangle/asa
+         triangle/saa
          right-triangle
          isosceles-triangle
          star
@@ -51,19 +60,22 @@
          angle?
          side-count?
          image?
+         image=?
          ;; Something funky is happening on the Racket side of things with regards
          ;; to step-count?  See:  http://bugs.racket-lang.org/query/?cmd=view&pr=12031
          ;; step-count?
-
+         
          bitmap/url
-
+         video/url
+         play-sound
+         
          name->color
-
+         
          step-count?
          image-url
          open-image-url
          color-list->bitmap
-
+         
          )
 
 
@@ -99,6 +111,7 @@
   above
   above/align
   empty-scene
+  put-image
   place-image
   place-image/align
   rotate
@@ -114,9 +127,17 @@
   circle
   square
   rectangle
+  polygon
   regular-polygon
   ellipse
   triangle
+  triangle/sas
+  triangle/sss
+  triangle/ass
+  triangle/ssa
+  triangle/aas
+  triangle/asa
+  triangle/saa
   right-triangle
   isosceles-triangle
   star
@@ -134,12 +155,15 @@
   y-place?
   angle?
   side-count?
-
+  
   image?
+  image=?
   ;; Something funky is happening on the Racket side of things with regards
   ;; to step-count?  See:  http://bugs.racket-lang.org/query/?cmd=view&pr=12031
   ;; step-count?
   bitmap/url
+  video/url
+  play-sound
   name->color
   step-count?
   image-url
@@ -149,7 +173,7 @@
 
 
 
-  
+
 
 ;(define (my-step-count? x)
 ;  (and (integer? x)
@@ -161,9 +185,9 @@
 
 
 #;(define (name->color n)
-  (error 'name->color "not implemented yet"))
+    (error 'name->color "not implemented yet"))
 
 
 #;(provide (rename-out [my-step-count? step-count?]
-                     [bitmap/url image-url]
-                     [bitmap/url open-image-url]))
+                       [bitmap/url image-url]
+                       [bitmap/url open-image-url]))

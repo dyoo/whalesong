@@ -300,7 +300,7 @@ var SceneImage = function(width, height, color, children, withBorder) {
 SceneImage.prototype = heir(BaseImage.prototype);
 
 // add: image primitive-number primitive-number -> Scene
-SceneImage.prototype.add = function(anImage, x, color) {
+SceneImage.prototype.add = function(anImage, x, y) {
   return new SceneImage(this.width,
                         this.height,
                         this.children.concat([[anImage,

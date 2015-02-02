@@ -683,12 +683,14 @@ EXPORTS['above/align'] =
 EXPORTS['empty-scene'] =
     makePrimitiveProcedure(
         'empty-scene',
-	2,
+        plt.baselib.lists.makeList(2, 3),
 	function(MACHINE) {
 	    var width = checkNonNegativeReal(MACHINE, 'empty-scene', 0);
 	    var height = checkNonNegativeReal(MACHINE, 'empty-scene', 1);
-	    return makeSceneImage(jsnums.toFixnum(width), 
+      var color = (MACHINE.a===3)? checkColor(MACHINE, 'empty-scene', 2) : null;
+	    return makeSceneImage(jsnums.toFixnum(width),
                                   jsnums.toFixnum(height),
+                                  color,
                                   [],
                                   true);
 	});

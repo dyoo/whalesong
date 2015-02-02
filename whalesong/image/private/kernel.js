@@ -288,13 +288,14 @@ var isScene = function(x) {
 
 
 //////////////////////////////////////////////////////////////////////
-// SceneImage: primitive-number primitive-number (listof image) -> Scene
-var SceneImage = function(width, height, children, withBorder) {
+// SceneImage: primitive-number primitive-number color (listof image) -> Scene
+var SceneImage = function(width, height, color, children, withBorder) {
   BaseImage.call(this);
   this.width    = width;
   this.height   = height;
   this.children = children; // arrayof [image, number, number]
   this.withBorder = withBorder;
+  this.color    = color;
 };
 SceneImage.prototype = heir(BaseImage.prototype);
 
@@ -314,7 +315,8 @@ SceneImage.prototype.render = function(ctx, x, y) {
   var childImage, childX, childY;
   // create a clipping region around the boundaries of the Scene
   ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,0)";
+  // if no color is defined, default to transparent
+  ctx.fillStyle = this.color? colorString(this.color) : "rgba(0,0,0,0)";
   ctx.fillRect(x, y, this.width, this.height);
   ctx.restore();
   // save the context, reset the path, and clip to the path around the scene edge

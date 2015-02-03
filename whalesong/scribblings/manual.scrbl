@@ -76,11 +76,11 @@ document lives in @url{http://hashcollision.org/whalesong}.}}
        @centered{@smaller{Current commit head is @tt{@git-head}.}})
      "")
 
-
-
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @section{Introduction}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+@defmodule[whalesong #:lang]
 
 Whalesong is a compiler from Racket to JavaScript; it takes Racket
 programs and translates them so that they can run stand-alone on a

@@ -6,7 +6,7 @@ Installation
 
 raco pkg install -j 1 --force --deps search-auto --scope installation whalesong
 
-Imporatnt: Use -j 1 to build Whalesong (this turns off parallel builds)
+Important: Use -j 1 to build Whalesong (this turns off parallel builds)
 
 This fork of Whalesong differs from dyoo/whalesong in the following ways:
 

@@ -7,6 +7,7 @@ Installation
 raco pkg install -j 1 --force --deps search-auto --scope installation whalesong
 
 Important: Use -j 1 to build Whalesong (this turns off parallel builds)
+           This also means, that you can't install Whalesong from the DrRacket package manager.
 
 This fork of Whalesong differs from dyoo/whalesong in the following ways:
 

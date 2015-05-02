@@ -303,6 +303,7 @@ SceneImage.prototype = heir(BaseImage.prototype);
 SceneImage.prototype.add = function(anImage, x, y) {
   return new SceneImage(this.width,
                         this.height,
+                        null,
                         this.children.concat([[anImage,
                                                x - anImage.getWidth()/2,
                                                y - anImage.getHeight()/2]]),
@@ -1311,7 +1312,7 @@ var colorListToImage = function(listOfColors,
 
 
 var makeSceneImage = function(width, height, children, withBorder) {
-    return new SceneImage(width, height, children, withBorder);
+    return new SceneImage(width, height, null, children, withBorder);
 };
 var makeCircleImage = function(radius, style, color) {
     return new EllipseImage(2*radius, 2*radius, style, color);

@@ -687,8 +687,9 @@ EXPORTS['empty-scene'] =
 	function(MACHINE) {
 	    var width = checkNonNegativeReal(MACHINE, 'empty-scene', 0);
 	    var height = checkNonNegativeReal(MACHINE, 'empty-scene', 1);
-      var color = (MACHINE.a===3)? checkColor(MACHINE, 'empty-scene', 2) : null;
-	    return makeSceneImage(jsnums.toFixnum(width),
+            var color = (MACHINE.a===3)? checkColor(MACHINE, 'empty-scene', 2) : null;
+
+            return new SceneImage(jsnums.toFixnum(width),
                                   jsnums.toFixnum(height),
                                   color,
                                   [],

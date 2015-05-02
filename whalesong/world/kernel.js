@@ -315,6 +315,7 @@ ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
                         reusableCanvas.height = height;
                     }
 		    var ctx = reusableCanvas.getContext("2d");
+                    ctx.clearRect(0, 0, width, height);
 		    v.render(ctx, 0, 0);
 		    success([toplevelNode, reusableCanvasNode]);
 		} else {

@@ -689,7 +689,7 @@ EXPORTS['empty-scene'] =
 	    var height = checkNonNegativeReal(MACHINE, 'empty-scene', 1);
             var color = (MACHINE.a===3)? checkColor(MACHINE, 'empty-scene', 2) : null;
 
-            return new SceneImage(jsnums.toFixnum(width),
+            return makeSceneImage(jsnums.toFixnum(width),
                                   jsnums.toFixnum(height),
                                   color,
                                   [],
@@ -708,10 +708,11 @@ EXPORTS['put-image'] =
 	    if (isScene(background)) {
 		return background.add(picture, jsnums.toFixnum(x), background.getHeight() - jsnums.toFixnum(y));
 	    } else {
-		var newScene = makeSceneImage(background.getWidth(),
-					      background.getHeight(),
-					      [], 
-					      false);
+                var newScene = makeSceneImage(background.getWidth(),
+                                              background.getHeight(),
+                                              null,
+                                              [],
+                                              false);
 		newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
           newScene = newScene.add(picture, jsnums.toFixnum(x), background.getHeight() - jsnums.toFixnum(y));
 		return newScene;
@@ -732,10 +733,11 @@ EXPORTS['place-image'] =
 	    if (isScene(background)) {
 		return background.add(picture, jsnums.toFixnum(x), jsnums.toFixnum(y));
 	    } else {
-		var newScene = makeSceneImage(background.getWidth(),
-					      background.getHeight(),
-					      [], 
-					      false);
+                var newScene = makeSceneImage(background.getWidth(),
+                                              background.getHeight(),
+                                              null,
+                                              [],
+                                              false);
 		newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
           newScene = newScene.add(picture, jsnums.toFixnum(x), jsnums.toFixnum(y));
 		return newScene;
@@ -766,10 +768,11 @@ EXPORTS['place-image/align'] =
 	    if (isScene(background)) {
 		return background.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
 	    } else {
-		var newScene = makeSceneImage(background.getWidth(),
-					      background.getHeight(),
-					      [], 
-					      false);
+                var newScene = makeSceneImage(background.getWidth(),
+                                              background.getHeight(),
+                                              null,
+                                              [],
+                                              false);
 		newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
     newScene = newScene.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
 		return newScene;
@@ -921,10 +924,11 @@ EXPORTS['scene+line'] =
 	    var y2 = checkReal(MACHINE,	"scene+line", 4);
 	    var c = checkColor(MACHINE, "scene+line", 5);
 	    // make a scene containing the image
-	    var newScene = makeSceneImage(jsnums.toFixnum(img.getWidth()), 
-                                    jsnums.toFixnum(img.getHeight()),
-                                    [],
-                                    false);
+            var newScene = makeSceneImage(jsnums.toFixnum(img.getWidth()), 
+                                          jsnums.toFixnum(img.getHeight()),
+                                          null,
+                                          [],
+                                          false);
 	    newScene = newScene.add(img, img.getWidth()/2, img.getHeight()/2);
 	    // make an image containing the line
 	    var line = makeLineImage(jsnums.toFixnum(x2-x1),

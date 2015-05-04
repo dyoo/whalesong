@@ -288,7 +288,7 @@ var isScene = function(x) {
 
 
 //////////////////////////////////////////////////////////////////////
-// SceneImage: primitive-number primitive-number color (listof image) -> Scene
+// SceneImage: primitive-number primitive-number color (listof image) boolean -> Scene
 var SceneImage = function(width, height, color, children, withBorder) {
   BaseImage.call(this);
   this.width    = width;
@@ -1311,8 +1311,8 @@ var colorListToImage = function(listOfColors,
 
 
 
-var makeSceneImage = function(width, height, children, withBorder) {
-    return new SceneImage(width, height, null, children, withBorder);
+var makeSceneImage = function(width, height, color, children, withBorder) {
+    return new SceneImage(width, height, color, children, withBorder);
 };
 var makeCircleImage = function(radius, style, color) {
     return new EllipseImage(2*radius, 2*radius, style, color);

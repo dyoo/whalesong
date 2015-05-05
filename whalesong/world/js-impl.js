@@ -87,10 +87,16 @@ EXPORTS['to-draw'] =
 EXPORTS['stop-when'] =
     makePrimitiveProcedure(
         'stop-when',
-        1,
+        plt.baselib.lists.makeList(1, 2),
         function(MACHINE) {
             var f = checkProcedure1(MACHINE, "on-tick", 0);
-            return new StopWhen(f);
+            if (MACHINE.a === 2) {
+                var lp = checkProcedure1(MACHINE, "to-draw", 1);
+            } else {
+                var lp = null;
+            }
+
+            return new StopWhen(f, lp);
         });
 
 

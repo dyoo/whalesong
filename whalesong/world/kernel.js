@@ -282,8 +282,6 @@ ToDraw.prototype = plt.baselib.heir(OutputConfig.prototype);
  
 ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
-    var reusableCanvas;
-    var reusableCanvasNode;
     var adaptedWorldFunction = adaptWorldFunction(this.handler);
 
     var worldFunction = function(world, success) {
@@ -291,6 +289,12 @@ ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
         adaptedWorldFunction(
             world,
             function(v) {
+                var reusableCanvas = toplevelNode.getElementsByTagName('canvas')[0];
+                var reusableCanvasNode;
+                if (reusableCanvas) {
+                    reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+                }
+
                 // fixme: once jsworld supports fail continuations, use them
                 // to check the status of the scene object and make sure it's an
                 // image.
@@ -325,6 +329,7 @@ ToDraw.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     };
 
     var cssFunction = function(w, k) { 
+        var reusableCanvas = toplevelNode.getElementsByTagName('canvas')[0];
         if (reusableCanvas) {
  	    k([[reusableCanvas, 
                 ["padding", "0px"],
@@ -369,9 +374,10 @@ DefaultDrawingOutput.prototype.toRawHandler = function(MACHINE, toplevelNode) {
 
 
 
-var StopWhen = function(handler) {
+var StopWhen = function(handler, last_picture) {
     WorldConfigOption.call(this, 'stop-when');
     this.handler = handler;
+    this.last_picture = new ToDraw(last_picture);
 };
 
 StopWhen.prototype = plt.baselib.heir(WorldConfigOption.prototype);
@@ -379,5 +385,6 @@ StopWhen.prototype = plt.baselib.heir(WorldConfigOption.prototype);
 StopWhen.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
     var worldFunction = adaptWorldFunction(that.handler);
-    return rawJsworld.stop_when(worldFunction);
+    var lastPictureHandler = that.last_picture.toRawHandler(MACHINE, toplevelNode);
+    return rawJsworld.stop_when(worldFunction, undefined, lastPictureHandler);
 };

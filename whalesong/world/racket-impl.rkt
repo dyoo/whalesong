@@ -40,5 +40,8 @@
 (define (key=? key-1 key-2)
   (error 'key=? "must be run in JavaScript context"))
 
-(define (stop-when handler)
-  (error 'stop-when "must be run in JavaScript context"))
+(define stop-when
+  (case-lambda [(handler)
+                (error 'stop-when "must be run in JavaScript context")]
+               [(handler last-picture)
+                (error 'stop-when "must be run in JavaScript context")]))

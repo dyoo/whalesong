@@ -28,6 +28,9 @@ This fork of Whalesong differs from dyoo/whalesong in the following ways:
   * Adds play-sound
     (assumes a browser with html5 audio support)
     Contributed by Emmanuel Schanzer and Darren Cruse
+  * Bug fixes by Vishesh Yadav
+  * The flag --as-standalone-xhtml is now --as-standalone-html
+    and produces standalone html rather than xhtml.
 
 Note: The implementation of parameters works fine,
       as long as you don't mix parameterize with non-local-exits

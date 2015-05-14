@@ -94,7 +94,7 @@
                            (flush-output (current-report-port))]))
                       (loop)))))))
 
-(define (build-standalone-xhtml f)
+(define (build-standalone-html f)
   (with-catchall-exception-handler
    (lambda ()
      (turn-on-logger!)
@@ -104,7 +104,7 @@
               (build-path
                (regexp-replace #rx"[.](rkt|ss)$"
                                (path->string filename)
-                               ".xhtml"))])
+                               ".html"))])
          (unless (directory-exists? (current-output-dir))
            (fprintf (current-report-port) "Creating destination directory ~s\n" (current-output-dir))
            (make-directory* (current-output-dir)))
@@ -129,10 +129,10 @@
                                         (build-path (current-output-dir)
                                                     (resource-key r)))]))])
            (fprintf (current-report-port)
-                    (format "Writing program ~s\n" (build-path (current-output-port) output-filename)))
+                    (format "Writing program ~s\n" (build-path (current-output-dir) output-filename)))
            (call-with-output-file* (build-path (current-output-dir) output-filename)
                                    (lambda (op)
-                                     (package-standalone-xhtml
+                                     (package-standalone-html
                                       (make-MainModuleSource 
                                        (normalize-path (build-path f)))
                                       op))

@@ -1,7 +1,6 @@
 #lang racket/base
 
 (require "assemble.rkt"
-         "quote-cdata.rkt"
          "../logger.rkt"
          "../make/make.rkt"
          "../make/make-structs.rkt"
@@ -43,7 +42,7 @@
 
 (provide package
 	 package-anonymous
-         package-standalone-xhtml
+         package-standalone-html
          get-inert-code
          get-standalone-code
          write-standalone-code
@@ -506,14 +505,13 @@ M.installedModules[~s] = function() {
 
 
 
-;; package-standalone-xhtml: X output-port -> void
-(define (package-standalone-xhtml source-code op)
+;; package-standalone-html: X output-port -> void
+(define (package-standalone-html source-code op)
   (display (get-header) op)
-  (display (quote-cdata
-            (string-append (get-runtime)
-                           (get-inert-code source-code
-                                           (lambda () (error 'package-standalone-xhtml)))
-                           invoke-main-module-code)) op)
+  (display (string-append (get-runtime)
+                          (get-inert-code source-code
+                                          (lambda () (error 'package-standalone-html)))
+                          invoke-main-module-code) op)
   (display *footer* op))
 
 
@@ -591,7 +589,7 @@ M.installedModules[~s] = function() {
     (format
   #<<EOF
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<html xml:lang="en">
   <head>
     <meta name="viewport" content="initial-scale=1.0, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta charset="utf-8"/>

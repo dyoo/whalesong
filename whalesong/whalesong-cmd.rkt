@@ -17,7 +17,7 @@
 
 ;; Usage:
 ;;
-;; * Build standalone .xhtml application.
+;; * Build standalone .html application.
 ;;
 ;;     $ whalesong build main-module-name.rkt
 ;;
@@ -102,8 +102,8 @@
              dest-dir
              ("Set destination directory (default: current-directory)")
              (current-output-dir dest-dir)]
-            [("--as-standalone-xhtml")
-             ("Write single standalone xhtml file")
+            [("--as-standalone-html")
+             ("Write single standalone html file")
              (as-standalone-html? #t)]
             #:multi
             [("--include-script")
@@ -115,7 +115,7 @@
 
             (maybe-with-profiling
              (if (as-standalone-html?)
-                 (build-standalone-xhtml path)
+                 (build-standalone-html path)
                  (build-html-and-javascript path)))]
 
    ["print-il" "print the intermediate translation of a module"

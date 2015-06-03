@@ -26,6 +26,12 @@ var isAngle = function(x) {
         jsnums.greaterThanOrEqual(x, 0) &&
         jsnums.lessThan(x, 360);
 };
+// differentiate between rotation angle and other angles
+var isRotateAngle = function(x) {
+    return plt.baselib.numbers.isReal(x) &&
+        jsnums.greaterThan(x, -360) &&
+        jsnums.lessThan(x, 360);
+};
 
 
 // Produces true if the value is a color or a color string.
@@ -1469,6 +1475,7 @@ EXPORTS.isImage = isImage;
 EXPORTS.isScene = isScene;
 EXPORTS.isColorOrColorString = isColorOrColorString;
 EXPORTS.isAngle = isAngle;
+EXPORTS.isRotateAngle = isRotateAngle;
 EXPORTS.isSideCount = isSideCount;
 EXPORTS.isStepCount = isStepCount;
 EXPORTS.isPointsCount = isPointsCount;

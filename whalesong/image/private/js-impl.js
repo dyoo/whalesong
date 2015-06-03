@@ -154,6 +154,9 @@ var checkPlaceY = plt.baselib.check.makeCheckArgumentType(
 var checkAngle = plt.baselib.check.makeCheckArgumentType(
     isAngle,
     "finite real number between 0 and 360");
+var checkRotateAngle = plt.baselib.check.makeCheckArgumentType(
+    isRotateAngle,
+    "finite real number between -360 and 360");
 
 
 var checkMode = plt.baselib.check.makeCheckArgumentType(
@@ -790,9 +793,13 @@ EXPORTS['rotate'] =
         'rotate',
         2,
         function(MACHINE) {
-	    var angle = checkAngle(MACHINE, "rotate", 0);
+	    var angle = checkRotateAngle(MACHINE, "rotate", 0);
 	    var img = checkImage(MACHINE, "rotate", 1);
-	    return makeRotateImage(jsnums.toFixnum(-angle), img);
+            if (jsnums.lessThan(angle, 0)) {
+		return makeRotateImage(jsnums.toFixnum(-(360 + angle)), img);
+	    } else {
+		return makeRotateImage(jsnums.toFixnum(-angle), img);
+	    }
         });
 
 

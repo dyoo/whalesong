@@ -28,9 +28,7 @@ var isAngle = function(x) {
 };
 // differentiate between rotation angle and other angles
 var isRotateAngle = function(x) {
-    return plt.baselib.numbers.isReal(x) &&
-        jsnums.greaterThan(x, -360) &&
-        jsnums.lessThan(x, 360);
+    return plt.baselib.numbers.isReal(x);
 };
 
 
@@ -672,8 +670,9 @@ OverlayImage.prototype.equals = function(other, aUnionFind) {
 
 
 //////////////////////////////////////////////////////////////////////
-// rotate: angle image -> image
-// Rotates image by angle degrees in a counter-clockwise direction.
+// RotateImage: angle image -> image
+// Rotates image by angle degrees in a *clockwise* direction.
+// NOTE: the angle direction differs from the rotate function.
 // TODO: special case for ellipse?
 var RotateImage = function(angle, img) {
   BaseImage.call(this);

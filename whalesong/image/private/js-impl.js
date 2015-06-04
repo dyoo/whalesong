@@ -89,8 +89,6 @@ var less = function(lhs, rhs) {
   return (rhs - lhs) > 0.00001;
 }
 
-
-
 var checkString = plt.baselib.check.checkString;
 var checkStringOrFalse = plt.baselib.check.makeCheckArgumentType(
     function(x) { return plt.baselib.strings.isString(x) || x === false; },
@@ -782,26 +780,24 @@ EXPORTS['place-image/align'] =
             }
         });
 
-
-
-
-
-
-
+//////////////////////////////////////////////////////////////////////
+// rotate: angle image -> image
+// Rotates image by angle degrees in a counter-clockwise direction.
 EXPORTS['rotate'] = 
     makePrimitiveProcedure(
         'rotate',
         2,
         function(MACHINE) {
 	    var angle = checkRotateAngle(MACHINE, "rotate", 0);
+	    var angle360 = angle % 360;
 	    var img = checkImage(MACHINE, "rotate", 1);
-            if (jsnums.lessThan(angle, 0)) {
-		return makeRotateImage(jsnums.toFixnum(-(360 + angle)), img);
+	    // convert to clockwise rotation for makeRotateImage
+	    if (angle360 < 0) {
+		return makeRotateImage(jsnums.toFixnum(-(360 + angle360)), img);
 	    } else {
-		return makeRotateImage(jsnums.toFixnum(-angle), img);
+		return makeRotateImage(jsnums.toFixnum(-angle360), img);
 	    }
         });
-
 
 
 EXPORTS['scale'] = 

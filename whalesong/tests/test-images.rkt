@@ -601,8 +601,34 @@ Australia2
  (flip-horizontal
   (rotate 30 (square 50 "solid" "blue"))))
 
-"A solid blue triangle, rotated 30 degrees. Should be flush left"
-(rotate 30 (triangle 100 "solid" "blue"))
+(define blue-tri (triangle 100 "solid" "blue"))
+"A solid blue triangle, rotated 0 degrees. Should be pointing up."
+(rotate 0 blue-tri)
+"A solid blue triangle, rotated 30 degrees ccw. Should be flush left"
+(rotate 30 blue-tri)
+"A solid blue triangle, rotated 90 degrees ccw. Should be pointing left."
+(rotate 90 blue-tri)
+"A solid blue triangle, rotated 180 degrees ccw. Should be pointing down."
+(rotate 180 blue-tri)
+"A solid blue triangle, rotated 270 degrees ccw. Should be pointing right."
+(rotate 270 blue-tri)
+"A solid blue triangle, rotated 630 degrees ccw. Should be pointing right."
+(rotate 630 blue-tri)
+"A solid blue triangle, rotated 360 degrees ccw. Should be pointing up."
+(rotate 360 blue-tri)
+"A solid blue triangle, rotated 360.1 degrees ccw. Should be approximately pointing up."
+(rotate 360.1 blue-tri)
+"A solid blue triangle, rotated 720.5 degrees ccw. Should be approximately pointing up."
+(rotate 720.5 blue-tri)
+"A solid blue triangle, rotated 1.5 degrees cw. Should be approximately pointing up."
+(rotate -1.5 blue-tri)
+"A solid blue triangle, rotated -90 degrees ccw (90 cw). Should be pointing right."
+(rotate -90 blue-tri)
+"A solid blue triangle, rotated -450 degrees ccw (450 cw). Should be pointing right."
+(rotate -450 blue-tri)
+"A solid blue triangle, rotated -810 degrees ccw (810 cw). Should be pointing right."
+(rotate -810 blue-tri)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SCALE & SCALE/XY

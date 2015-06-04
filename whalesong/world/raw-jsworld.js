@@ -663,12 +663,16 @@ var rawJsworld = {};
             stopWhen.test(w,
                           function(stop) {
                               if (stop) {
-                                  var handler = stopWhen.last_picture_handler();
-                                  handler.onRegister(top);
-                                  handler._listener(w, oldW, function(v) {
+                                  if (stopWhen.last_picture_handler) {
+                                      var handler = stopWhen.last_picture_handler();
+                                      handler.onRegister(top);
+                                      handler._listener(w, oldW, function(v) {
+                                          Jsworld.shutdown({cleanShutdown: true});
+                                          k2();
+                                      })
+                                  } else {
                                       Jsworld.shutdown({cleanShutdown: true});
-                                      k2();
-                                  })
+                                  }
                               } else { k2(); }
                           });
         };

@@ -377,7 +377,7 @@ DefaultDrawingOutput.prototype.toRawHandler = function(MACHINE, toplevelNode) {
 var StopWhen = function(handler, last_picture) {
     WorldConfigOption.call(this, 'stop-when');
     this.handler = handler;
-    this.last_picture = new ToDraw(last_picture);
+    this.last_picture = last_picture && new ToDraw(last_picture);
 };
 
 StopWhen.prototype = plt.baselib.heir(WorldConfigOption.prototype);
@@ -385,6 +385,6 @@ StopWhen.prototype = plt.baselib.heir(WorldConfigOption.prototype);
 StopWhen.prototype.toRawHandler = function(MACHINE, toplevelNode) {
     var that = this;
     var worldFunction = adaptWorldFunction(that.handler);
-    var lastPictureHandler = that.last_picture.toRawHandler(MACHINE, toplevelNode);
+    var lastPictureHandler = that.last_picture && that.last_picture.toRawHandler(MACHINE, toplevelNode);
     return rawJsworld.stop_when(worldFunction, undefined, lastPictureHandler);
 };

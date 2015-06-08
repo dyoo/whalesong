@@ -1,5 +1,7 @@
 #lang s-exp "../lang/base.rkt"
 
+(require "types.rkt")
+
 (provide big-bang
          to-draw
          on-tick

@@ -99,6 +99,10 @@ var rawJsworld = {};
 
 
 
+    function add_world_listener_first(listener) {
+        worldListeners.unshift(listener);
+    }
+
     function add_world_listener(listener) {
         worldListeners.push(listener);
     }
@@ -659,25 +663,47 @@ var rawJsworld = {};
                 handlers[i].onRegister(top);
             }
         }
+
+        var showLastPicture = function(w, oldW) {
+            if (stopWhen.last_picture_handler) {
+                var handler = stopWhen.last_picture_handler();
+                handler.onRegister(top);
+                handler._listener(w, oldW, function(v) {
+                    Jsworld.shutdown({cleanShutdown: true});
+                })
+            } else {
+                Jsworld.shutdown({cleanShutdown: true});
+            }
+        };
+
         var watchForTermination = function(w, oldW, k2) {
             stopWhen.test(w,
-                          function(stop) {
-                              if (stop) {
-                                  if (stopWhen.last_picture_handler) {
-                                      var handler = stopWhen.last_picture_handler();
-                                      handler.onRegister(top);
-                                      handler._listener(w, oldW, function(v) {
-                                          Jsworld.shutdown({cleanShutdown: true});
-                                          k2();
-                                      })
-                                  } else {
-                                      Jsworld.shutdown({cleanShutdown: true});
-                                  }
-                              } else { k2(); }
-                          });
+                function(stop) {
+                    if (stop) {
+                        showLastPicture(w, oldW);
+                    }
+                    k2();
+                });
         };
         add_world_listener(watchForTermination);
 
+        var watchForStopWith = function(w, oldW, k2) {
+            /**
+             * If we have a  last_picture we call that with new world, or
+             * else call the regular draw handler
+             *
+             * TODO: We don't call regular draw handler as of now when
+             *       when world ends with stop-with
+             */
+            if (isStopWithStruct(w)) {
+                world = stopWithWorld(w); //NOTE: Is this assignment safe?
+                showLastPicture(world, oldW);
+            }
+            k2();
+        }
+        /* Its important that this stays above all handlers, so that we
+         * shutdown before calling any other handler */
+        add_world_listener_first(watchForStopWith);
 
         // Finally, begin the big-bang.
         copy_attribs(top, attribs);

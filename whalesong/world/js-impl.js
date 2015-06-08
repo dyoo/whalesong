@@ -32,7 +32,10 @@ var checkHandler = plt.baselib.check.makeCheckArgumentType(
     isWorldConfigOption,
     "world configuration handler");
 
-
+var worldNamespace = MACHINE.modules['whalesong/world/types.rkt'].getExternalExports();
+var stopWithStruct = worldNamespace.get('struct:stop-with');
+var isStopWithStruct = stopWithStruct.predicate
+var stopWithWorld = function(s) { return stopWithStruct.accessor(s, 0); }
 
 
 // The default tick delay is 28 times a second.

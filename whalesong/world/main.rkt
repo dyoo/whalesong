@@ -1,6 +1,7 @@
 #lang s-exp "../lang/js/js.rkt"
 
-(require "../image.rkt")
+(require "../image.rkt"
+         "types.rkt")
 
 (declare-implementation
  #:racket "racket-impl.rkt"

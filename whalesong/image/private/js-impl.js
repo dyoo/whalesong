@@ -754,20 +754,23 @@ EXPORTS['place-image/align'] =
         6,
         function(MACHINE) {
 	    var img = checkImage(MACHINE, "place-image/align", 0);
-	    var x = checkReal(MACHINE, "place-image/align", 1);
-	    var y = checkReal(MACHINE, "place-image/align", 2);
+	    var x = jsnums.toFixnum(checkReal(MACHINE, "place-image/align", 1));
+	    var y = jsnums.toFixnum(checkReal(MACHINE, "place-image/align", 2));
 	    var placeX = checkPlaceX(MACHINE, "place-image/align", 3);
 	    var placeY = checkPlaceY(MACHINE, "place-image/align", 4);
 	    var background = checkImageOrScene(MACHINE, "place-image/align", 5);
 	    
+            var pinholeX = img.pinholeX || img.getWidth() / 2;
+            var pinholeY = img.pinholeY || img.getHeight() / 2;
+
 	    // calculate x and y based on placeX and placeY
-	    if (placeX == "left") x = x + img.pinholeX;
-	    else if (placeX == "right") x = x - img.pinholeX;
-	    if (placeY == "top") y = y + img.pinholeY;
-	    else if (placeY == "bottom") y = y - img.pinholeY;
+	    if (placeX == "left") x = x + pinholeX;
+	    else if (placeX == "right") x = x - pinholeX;
+	    if (placeY == "top") y = y + pinholeY;
+	    else if (placeY == "bottom") y = y - pinholeY;
 
 	    if (isScene(background)) {
-		return background.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
+		return background.add(img, x, y);
 	    } else {
                 var newScene = makeSceneImage(background.getWidth(),
                                               background.getHeight(),
@@ -775,7 +778,7 @@ EXPORTS['place-image/align'] =
                                               [],
                                               false);
 		newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
-    newScene = newScene.add(img, jsnums.toFixnum(x), jsnums.toFixnum(y));
+                newScene = newScene.add(img, x, y);
 		return newScene;
             }
         });

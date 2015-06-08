@@ -474,6 +474,22 @@ EXPORTS['overlay/xy'] =
 				    jsnums.toFixnum(deltaY));
         });
 
+EXPORTS['overlay/offset'] = 
+    makePrimitiveProcedure(
+        'overlay/offset',
+        4,
+        function(MACHINE) {
+	    var img1 = checkImage(MACHINE, "overlay/offset", 0);
+	    var deltaX = checkReal(MACHINE, "overlay/offset", 1);
+	    var deltaY = checkReal(MACHINE, "overlay/offset", 2);
+	    var img2 = checkImage(MACHINE, "overlay/offset", 3);
+            var middleX = (img1.getWidth() - img2.getWidth()) / 2;
+            var middleY = (img1.getHeight() - img2.getHeight()) / 2;
+	    return makeOverlayImage(img1,
+				    img2,
+				    jsnums.toFixnum(middleX + deltaX),
+				    jsnums.toFixnum(middleY + deltaY));
+        });
 
 
  EXPORTS['overlay/align'] = 
@@ -538,6 +554,23 @@ EXPORTS['underlay/xy'] =
 				    img1.updatePinhole(0, 0),
 				    -(jsnums.toFixnum(deltaX)),
 				    -(jsnums.toFixnum(deltaY)));
+        });
+
+EXPORTS['underlay/offset'] = 
+    makePrimitiveProcedure(
+        'underlay/offset',
+        4,
+        function(MACHINE) {
+	    var img1 = checkImage(MACHINE, "underlay/offset", 0);
+	    var deltaX = checkReal(MACHINE, "underlay/offset", 1);
+	    var deltaY = checkReal(MACHINE, "underlay/offset", 2);
+	    var img2 = checkImage(MACHINE, "underlay/offset", 3);
+            var middleX = (img1.getWidth() - img2.getWidth()) / 2;
+            var middleY = (img1.getHeight() - img2.getHeight()) / 2;
+	    return makeOverlayImage(img2,
+				    img1,
+				    -jsnums.toFixnum(middleX + deltaX),
+				    -jsnums.toFixnum(middleY + deltaY));
         });
 
 EXPORTS['underlay/align'] = 

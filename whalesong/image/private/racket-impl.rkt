@@ -5,9 +5,11 @@
 (provide text
          text/font
          overlay
+         overlay/offset
          overlay/xy
          overlay/align
          underlay
+         underlay/offset
          underlay/xy
          underlay/align
          beside
@@ -101,9 +103,11 @@
   text
   text/font
   overlay
+  overlay/offset
   overlay/xy
   overlay/align
   underlay
+  underlay/offset
   underlay/xy
   underlay/align
   beside

@@ -19,9 +19,11 @@
                     video/url
                     play-sound
                     overlay
+                    overlay/offset
                     overlay/xy
                     overlay/align
                     underlay
+                    underlay/offset
                     underlay/xy
                     underlay/align
                     beside

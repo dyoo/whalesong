@@ -69,7 +69,7 @@
                             (display "var M = new plt.runtime.Machine();\n" op)                           
                             (display "(function() { " op)
                             (display "var myInvoke = " op)
-                            (assemble/write-invoke a-statement op)
+                            (assemble/write-invoke a-statement op 'with-preemption)
                             (display ";" op)
                             (fprintf op 
                                      "return function(succ, fail, params) {

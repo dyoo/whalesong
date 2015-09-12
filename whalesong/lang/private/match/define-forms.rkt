@@ -3,7 +3,7 @@
 (require (for-syntax racket/base
                      racket/syntax
                      (only-in racket/list append* remove-duplicates)
-                     unstable/sequence
+                     syntax/stx
                      syntax/parse
                      syntax/parse/experimental/template
                      racket/lazy-require))
@@ -145,9 +145,9 @@
          [(_ ((~and cl [pat exp]) ...) body1 body ...)
           (quasisyntax/loc stx
 			   (let ()
-                            #,@(for/list ([c (in-syntax #'(cl ...))]
-                                          [p (in-syntax #'(pat ...))]
-                                          [e (in-syntax #'(exp ...))])
+                            #,@(for/list ([c (in-list (stx->list #'(cl ...)))]
+                                          [p (in-list (stx->list #'(pat ...)))]
+                                          [e (in-list (stx->list #'(exp ...)))])
                                  (quasisyntax/loc c (match-define #,p #,e)))
                             body1 body ...))]))
 

@@ -200,7 +200,7 @@
                       (current-verbose? #t)]
                      [("--debug-show-timings")
                       ("Display debug messages about compilation time.")
-                      (current-timing-port (current-output-port))]
+                      (current-timing-port (current-error-port))]
                      [("--enable-profiling")
                       ("Enable profiling to standard output")
                       (with-profiling? #t)]

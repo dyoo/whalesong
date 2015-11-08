@@ -88,7 +88,7 @@
 
 
 (: current-report-port (Parameterof Output-Port))
-(define current-report-port (make-parameter (current-output-port)))
+(define current-report-port (make-parameter (current-error-port)))
 
 
 (: current-timing-port (Parameterof Output-Port))

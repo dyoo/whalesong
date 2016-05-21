@@ -1,6 +1,13 @@
 Whalesong
 =========
 
+Important
+---------
+
+Whalesong needs Racket 5.2.
+As is Whalesong doesn't work on version 5.3 or greater.
+See https://github.com/soegaard/whalesong/issues/48
+
 Installation
 ------------
 

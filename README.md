@@ -18,7 +18,7 @@ Important: Use -j 1 to build Whalesong (this turns off parallel builds)
 
 This fork of Whalesong differs from dyoo/whalesong in the following ways:
 
-  * Builds on latest release of Racket
+  * Builds on version 6.2 of Racket
     (fixes the x undefined problem)
   * Adds for
     (require whalesong/lang/for)
